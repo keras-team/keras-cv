@@ -18,7 +18,7 @@ from keras_cv.layers import preprocessing
 
 class GrayscaleTest(tf.test.TestCase):
     def test_return_shapes(self):
-        xs = tf.ones((2, 512, 512, 3))
+        xs = tf.ones((2, 52, 24, 3))
 
         layer = preprocessing.Grayscale(
             output_channels=1,
@@ -30,12 +30,12 @@ class GrayscaleTest(tf.test.TestCase):
         )
         xs2 = layer(xs, training=True)
 
-        self.assertEqual(xs1.shape, [2, 512, 512, 1])
-        self.assertEqual(xs2.shape, [2, 512, 512, 3])
+        self.assertEqual(xs1.shape, [2, 52, 24, 1])
+        self.assertEqual(xs2.shape, [2, 52, 24, 3])
 
     def test_in_tf_function(self):
         xs = tf.cast(
-            tf.stack([2 * tf.ones((100, 100, 3)), tf.ones((100, 100, 3))], axis=0),
+            tf.stack([2 * tf.ones((10, 10, 3)), tf.ones((10, 10, 3))], axis=0),
             tf.float32,
         )
 
@@ -61,12 +61,12 @@ class GrayscaleTest(tf.test.TestCase):
 
         xs2 = augment(xs)
 
-        self.assertEqual(xs1.shape, [2, 100, 100, 1])
-        self.assertEqual(xs2.shape, [2, 100, 100, 3])
+        self.assertEqual(xs1.shape, [2, 10, 10, 1])
+        self.assertEqual(xs2.shape, [2, 10, 10, 3])
 
     def test_non_square_image(self):
         xs = tf.cast(
-            tf.stack([2 * tf.ones((512, 1024, 3)), tf.ones((512, 1024, 3))], axis=0),
+            tf.stack([2 * tf.ones((52, 24, 3)), tf.ones((52, 24, 3))], axis=0),
             tf.float32,
         )
 
@@ -80,12 +80,12 @@ class GrayscaleTest(tf.test.TestCase):
         )
         xs2 = layer(xs, training=True)
 
-        self.assertEqual(xs1.shape, [2, 512, 1024, 1])
-        self.assertEqual(xs2.shape, [2, 512, 1024, 3])
+        self.assertEqual(xs1.shape, [2, 52, 24, 1])
+        self.assertEqual(xs2.shape, [2, 52, 24, 3])
 
     def test_in_single_image(self):
         xs = tf.cast(
-            tf.ones((512, 512, 3)),
+            tf.ones((52, 24, 3)),
             dtype=tf.float32,
         )
 
@@ -99,5 +99,5 @@ class GrayscaleTest(tf.test.TestCase):
         )
         xs2 = layer(xs, training=True)
 
-        self.assertEqual(xs1.shape, [512, 512, 1])
-        self.assertEqual(xs2.shape, [512, 512, 3])
+        self.assertEqual(xs1.shape, [52, 24, 1])
+        self.assertEqual(xs2.shape, [52, 24, 3])

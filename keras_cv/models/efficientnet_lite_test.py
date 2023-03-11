@@ -1,4 +1,4 @@
-# Copyright 2022 The KerasCV Authors
+# Copyright 2023 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -33,7 +33,9 @@ be tested manually when making changes to this model.
 """
 
 
-class EfficientNetLiteTest(ModelsTest, tf.test.TestCase, parameterized.TestCase):
+class EfficientNetLiteTest(
+    ModelsTest, tf.test.TestCase, parameterized.TestCase
+):
     @parameterized.parameters(*MODEL_LIST)
     def test_application_base(self, app, _, args):
         super()._test_application_base(app, _, args)

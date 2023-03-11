@@ -44,7 +44,9 @@ def parse_imagenet_example(img_size, crop_to_aspect_ratio):
             image = resizing(image)
 
         # Decode label
-        label = tf.cast(tf.reshape(parsed[label_key], shape=()), dtype=tf.int32) - 1
+        label = (
+            tf.cast(tf.reshape(parsed[label_key], shape=()), dtype=tf.int32) - 1
+        )
         label = tf.one_hot(label, 1000)
 
         return image, label
@@ -92,7 +94,9 @@ def load(
     """
 
     if batch_size is not None and img_size is None:
-        raise ValueError("Batching can only be performed if images are resized.")
+        raise ValueError(
+            "Batching can only be performed if images are resized."
+        )
 
     num_splits = 1024 if split == "train" else 128
     filenames = [

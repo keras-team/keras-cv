@@ -53,10 +53,10 @@ class MixUp(BaseImageAugmentationLayer):
 
     def _sample_from_beta(self, alpha, beta, shape):
         sample_alpha = tf.random.gamma(
-            shape, 1.0, beta=alpha, seed=self._random_generator.make_legacy_seed()
+            shape, alpha=alpha, seed=self._random_generator.make_legacy_seed()
         )
         sample_beta = tf.random.gamma(
-            shape, 1.0, beta=beta, seed=self._random_generator.make_legacy_seed()
+            shape, alpha=beta, seed=self._random_generator.make_legacy_seed()
         )
         return sample_alpha / (sample_alpha + sample_beta)
 
@@ -67,7 +67,9 @@ class MixUp(BaseImageAugmentationLayer):
         bounding_boxes = inputs.get("bounding_boxes", None)
         images, lambda_sample, permutation_order = self._mixup(images)
         if labels is not None:
-            labels = self._update_labels(labels, lambda_sample, permutation_order)
+            labels = self._update_labels(
+                labels, lambda_sample, permutation_order
+            )
             inputs["labels"] = labels
         if bounding_boxes is not None:
             bounding_boxes = self._update_bounding_boxes(
@@ -86,9 +88,13 @@ class MixUp(BaseImageAugmentationLayer):
 
     def _mixup(self, images):
         batch_size = tf.shape(images)[0]
-        permutation_order = tf.random.shuffle(tf.range(0, batch_size), seed=self.seed)
+        permutation_order = tf.random.shuffle(
+            tf.range(0, batch_size), seed=self.seed
+        )
 
-        lambda_sample = self._sample_from_beta(self.alpha, self.alpha, (batch_size,))
+        lambda_sample = self._sample_from_beta(
+            self.alpha, self.alpha, (batch_size,)
+        )
         lambda_sample = tf.cast(
             tf.reshape(lambda_sample, [-1, 1, 1, 1]), dtype=self.compute_dtype
         )
@@ -106,7 +112,9 @@ class MixUp(BaseImageAugmentationLayer):
 
         lambda_sample = tf.reshape(lambda_sample, [-1, 1])
 
-        labels = lambda_sample * labels + (1.0 - lambda_sample) * labels_for_mixup
+        labels = (
+            lambda_sample * labels + (1.0 - lambda_sample) * labels_for_mixup
+        )
 
         return labels
 

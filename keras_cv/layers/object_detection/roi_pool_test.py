@@ -22,7 +22,9 @@ class ROIPoolTest(tf.test.TestCase):
         roi_pooler = ROIPooler(
             "rel_yxyx", target_size=[2, 2], image_shape=[224, 224, 3]
         )
-        feature_map = tf.expand_dims(tf.reshape(tf.range(64), [8, 8, 1]), axis=0)
+        feature_map = tf.expand_dims(
+            tf.reshape(tf.range(64), [8, 8, 1]), axis=0
+        )
         rois = tf.reshape(tf.constant([0.0, 0.0, 1.0, 1.0]), [1, 1, 4])
         pooled_feature_map = roi_pooler(feature_map, rois)
         # the maximum value would be at bottom-right at each block, roi sharded into 2x2 blocks
@@ -36,12 +38,18 @@ class ROIPoolTest(tf.test.TestCase):
         # | 48, 49, 50, 51      | 52, 53, 54, 55        |
         # | 56, 57, 58, 59(max) | 60, 61, 62, 63(max)   |
         # --------------------------------------------
-        expected_feature_map = tf.reshape(tf.constant([27, 31, 59, 63]), [1, 2, 2, 1])
+        expected_feature_map = tf.reshape(
+            tf.constant([27, 31, 59, 63]), [1, 2, 2, 1]
+        )
         self.assertAllClose(expected_feature_map, pooled_feature_map)
 
     def test_roi_quantize_y(self):
-        roi_pooler = ROIPooler("yxyx", target_size=[2, 2], image_shape=[224, 224, 3])
-        feature_map = tf.expand_dims(tf.reshape(tf.range(64), [8, 8, 1]), axis=0)
+        roi_pooler = ROIPooler(
+            "yxyx", target_size=[2, 2], image_shape=[224, 224, 3]
+        )
+        feature_map = tf.expand_dims(
+            tf.reshape(tf.range(64), [8, 8, 1]), axis=0
+        )
         rois = tf.reshape(tf.constant([0.0, 0.0, 224, 220]), [1, 1, 4])
         pooled_feature_map = roi_pooler(feature_map, rois)
         # the maximum value would be at bottom-right at each block, roi sharded into 2x2 blocks
@@ -55,12 +63,18 @@ class ROIPoolTest(tf.test.TestCase):
         # | 48, 49, 50          | 51, 52, 53, 54        | 55 (removed)
         # | 56, 57, 58(max)     | 59, 60, 61, 62(max)   | 63 (removed)
         # --------------------------------------------
-        expected_feature_map = tf.reshape(tf.constant([26, 30, 58, 62]), [1, 2, 2, 1])
+        expected_feature_map = tf.reshape(
+            tf.constant([26, 30, 58, 62]), [1, 2, 2, 1]
+        )
         self.assertAllClose(expected_feature_map, pooled_feature_map)
 
     def test_roi_quantize_x(self):
-        roi_pooler = ROIPooler("yxyx", target_size=[2, 2], image_shape=[224, 224, 3])
-        feature_map = tf.expand_dims(tf.reshape(tf.range(64), [8, 8, 1]), axis=0)
+        roi_pooler = ROIPooler(
+            "yxyx", target_size=[2, 2], image_shape=[224, 224, 3]
+        )
+        feature_map = tf.expand_dims(
+            tf.reshape(tf.range(64), [8, 8, 1]), axis=0
+        )
         rois = tf.reshape(tf.constant([0.0, 0.0, 220, 224]), [1, 1, 4])
         pooled_feature_map = roi_pooler(feature_map, rois)
         # the maximum value would be at bottom-right at each block, roi sharded into 2x2 blocks
@@ -73,12 +87,18 @@ class ROIPoolTest(tf.test.TestCase):
         # | 40, 41, 42, 43      | 44, 45, 46, 47        |
         # | 48, 49, 50, 51(max) | 52, 53, 54, 55(max)   |
         # --------------------------------------------
-        expected_feature_map = tf.reshape(tf.constant([19, 23, 51, 55]), [1, 2, 2, 1])
+        expected_feature_map = tf.reshape(
+            tf.constant([19, 23, 51, 55]), [1, 2, 2, 1]
+        )
         self.assertAllClose(expected_feature_map, pooled_feature_map)
 
     def test_roi_quantize_h(self):
-        roi_pooler = ROIPooler("yxyx", target_size=[3, 2], image_shape=[224, 224, 3])
-        feature_map = tf.expand_dims(tf.reshape(tf.range(64), [8, 8, 1]), axis=0)
+        roi_pooler = ROIPooler(
+            "yxyx", target_size=[3, 2], image_shape=[224, 224, 3]
+        )
+        feature_map = tf.expand_dims(
+            tf.reshape(tf.range(64), [8, 8, 1]), axis=0
+        )
         rois = tf.reshape(tf.constant([0.0, 0.0, 224, 224]), [1, 1, 4])
         pooled_feature_map = roi_pooler(feature_map, rois)
         # the maximum value would be at bottom-right at each block, roi sharded into 3x2 blocks
@@ -99,8 +119,12 @@ class ROIPoolTest(tf.test.TestCase):
         self.assertAllClose(expected_feature_map, pooled_feature_map)
 
     def test_roi_quantize_w(self):
-        roi_pooler = ROIPooler("yxyx", target_size=[2, 3], image_shape=[224, 224, 3])
-        feature_map = tf.expand_dims(tf.reshape(tf.range(64), [8, 8, 1]), axis=0)
+        roi_pooler = ROIPooler(
+            "yxyx", target_size=[2, 3], image_shape=[224, 224, 3]
+        )
+        feature_map = tf.expand_dims(
+            tf.reshape(tf.range(64), [8, 8, 1]), axis=0
+        )
         rois = tf.reshape(tf.constant([0.0, 0.0, 224, 224]), [1, 1, 4])
         pooled_feature_map = roi_pooler(feature_map, rois)
         # the maximum value would be at bottom-right at each block, roi sharded into 2x3 blocks
@@ -120,8 +144,12 @@ class ROIPoolTest(tf.test.TestCase):
         self.assertAllClose(expected_feature_map, pooled_feature_map)
 
     def test_roi_feature_map_height_smaller_than_roi(self):
-        roi_pooler = ROIPooler("yxyx", target_size=[6, 2], image_shape=[224, 224, 3])
-        feature_map = tf.expand_dims(tf.reshape(tf.range(16), [4, 4, 1]), axis=0)
+        roi_pooler = ROIPooler(
+            "yxyx", target_size=[6, 2], image_shape=[224, 224, 3]
+        )
+        feature_map = tf.expand_dims(
+            tf.reshape(tf.range(16), [4, 4, 1]), axis=0
+        )
         rois = tf.reshape(tf.constant([0.0, 0.0, 224, 224]), [1, 1, 4])
         pooled_feature_map = roi_pooler(feature_map, rois)
         # | 0, 1(max)   | 2, 3(max)     |
@@ -137,8 +165,12 @@ class ROIPoolTest(tf.test.TestCase):
         self.assertAllClose(expected_feature_map, pooled_feature_map)
 
     def test_roi_feature_map_width_smaller_than_roi(self):
-        roi_pooler = ROIPooler("yxyx", target_size=[2, 6], image_shape=[224, 224, 3])
-        feature_map = tf.expand_dims(tf.reshape(tf.range(16), [4, 4, 1]), axis=0)
+        roi_pooler = ROIPooler(
+            "yxyx", target_size=[2, 6], image_shape=[224, 224, 3]
+        )
+        feature_map = tf.expand_dims(
+            tf.reshape(tf.range(16), [4, 4, 1]), axis=0
+        )
         rois = tf.reshape(tf.constant([0.0, 0.0, 224, 224]), [1, 1, 4])
         pooled_feature_map = roi_pooler(feature_map, rois)
         # | 0       | 1         | 2         | 3         |
@@ -148,13 +180,18 @@ class ROIPoolTest(tf.test.TestCase):
         # | 12(max) | 13(max)   | 14(max)   | 15(max)   |
         # --------------------------------------------
         expected_feature_map = tf.reshape(
-            tf.constant([4, 4, 5, 6, 6, 7, 12, 12, 13, 14, 14, 15]), [1, 2, 6, 1]
+            tf.constant([4, 4, 5, 6, 6, 7, 12, 12, 13, 14, 14, 15]),
+            [1, 2, 6, 1],
         )
         self.assertAllClose(expected_feature_map, pooled_feature_map)
 
     def test_roi_empty(self):
-        roi_pooler = ROIPooler("yxyx", target_size=[2, 2], image_shape=[224, 224, 3])
-        feature_map = tf.expand_dims(tf.reshape(tf.range(1, 65), [8, 8, 1]), axis=0)
+        roi_pooler = ROIPooler(
+            "yxyx", target_size=[2, 2], image_shape=[224, 224, 3]
+        )
+        feature_map = tf.expand_dims(
+            tf.reshape(tf.range(1, 65), [8, 8, 1]), axis=0
+        )
         rois = tf.reshape(tf.constant([0.0, 0.0, 0.0, 0.0]), [1, 1, 4])
         pooled_feature_map = roi_pooler(feature_map, rois)
         # all outputs should be top-left pixel
@@ -162,4 +199,6 @@ class ROIPoolTest(tf.test.TestCase):
 
     def test_invalid_image_shape(self):
         with self.assertRaisesRegex(ValueError, "dynamic shape"):
-            _ = ROIPooler("rel_yxyx", target_size=[2, 2], image_shape=[None, 224, 3])
+            _ = ROIPooler(
+                "rel_yxyx", target_size=[2, 2], image_shape=[None, 224, 3]
+            )

@@ -14,7 +14,7 @@
 import tensorflow as tf
 
 
-def validate_format(bounding_boxes):
+def validate_format(bounding_boxes, variable_name="bounding_boxes"):
     """validates that a given set of bounding boxes complies with KerasCV format.
 
     For a set of bounding boxes to be valid it must satisfy the following conditions:
@@ -37,14 +37,14 @@ def validate_format(bounding_boxes):
     """
     if not isinstance(bounding_boxes, dict):
         raise ValueError(
-            "Expected `bounding_boxes` to be a dictionary, got "
-            f"`bounding_boxes={bounding_boxes}`."
+            f"Expected `{variable_name}` to be a dictionary, got "
+            f"`{variable_name}={bounding_boxes}`."
         )
     if not all([x in bounding_boxes for x in ["boxes", "classes"]]):
         raise ValueError(
-            "Expected `bounding_boxes` to be a dictionary containing keys "
+            f"Expected `{variable_name}` to be a dictionary containing keys "
             "`'classes'` and `'boxes'`.  Got "
-            f"`bounding_boxes.keys()={bounding_boxes.keys()}`."
+            f"`{variable_name}.keys()={bounding_boxes.keys()}`."
         )
 
     boxes = bounding_boxes.get("boxes")
@@ -69,7 +69,9 @@ def validate_format(bounding_boxes):
 
     info["classes_one_hot"] = len(classes.shape) == 3
 
-    if isinstance(boxes, tf.RaggedTensor) != isinstance(classes, tf.RaggedTensor):
+    if isinstance(boxes, tf.RaggedTensor) != isinstance(
+        classes, tf.RaggedTensor
+    ):
         raise ValueError(
             "Either both `boxes` and `classes` "
             "should be Ragged, or neither should be ragged."

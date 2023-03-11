@@ -23,9 +23,13 @@ def scale_loss_for_distribution(loss_value):
     return loss_value
 
 
-def convert_inputs_to_tf_dataset(x=None, y=None, sample_weight=None, batch_size=None):
+def convert_inputs_to_tf_dataset(
+    x=None, y=None, sample_weight=None, batch_size=None
+):
     if sample_weight is not None:
-        raise ValueError("Contrastive trainers do not yet support `sample_weight`.")
+        raise ValueError(
+            "Contrastive trainers do not yet support `sample_weight`."
+        )
 
     if isinstance(x, tf.data.Dataset):
         if y is not None or batch_size is not None:

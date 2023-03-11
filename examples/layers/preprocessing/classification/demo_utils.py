@@ -17,9 +17,9 @@ import tensorflow as tf
 import tensorflow_datasets as tfds
 
 
-def resize(image, label, img_size=(224, 224), classes=10):
+def resize(image, label, img_size=(224, 224), num_classes=10):
     image = tf.image.resize(image, img_size)
-    label = tf.one_hot(label, classes)
+    label = tf.one_hot(label, num_classes)
     return {"images": image, "labels": label}
 
 
@@ -32,11 +32,11 @@ def load_oxford_dataset(
     # Load dataset.
     data, ds_info = tfds.load(name, as_supervised=as_supervised, with_info=True)
     train_ds = data["train"]
-    classes = ds_info.features["label"].num_classes
+    num_classes = ds_info.features["label"].num_classes
 
     # Get tf dataset.
     train_ds = train_ds.map(
-        lambda x, y: resize(x, y, img_size=img_size, classes=classes)
+        lambda x, y: resize(x, y, img_size=img_size, num_classes=num_classes)
     ).batch(batch_size)
     return train_ds
 

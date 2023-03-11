@@ -16,7 +16,7 @@ import tensorflow as tf
 from keras_cv import bounding_box
 from keras_cv.layers import preprocessing
 
-classes = 10
+num_classes = 10
 
 
 class RandomShearTest(tf.test.TestCase):
@@ -46,7 +46,7 @@ class RandomShearTest(tf.test.TestCase):
         # randomly sample labels
         ys_labels = tf.random.categorical(tf.math.log([[0.5, 0.5]]), 2)
         ys_labels = tf.squeeze(ys_labels)
-        ys_labels = tf.one_hot(ys_labels, classes)
+        ys_labels = tf.one_hot(ys_labels, num_classes)
 
         # randomly sample bounding boxes
         ys_bounding_boxes = {
@@ -63,7 +63,11 @@ class RandomShearTest(tf.test.TestCase):
         )
 
         outputs = layer(
-            {"images": xs, "targets": ys_labels, "bounding_boxes": ys_bounding_boxes}
+            {
+                "images": xs,
+                "targets": ys_labels,
+                "bounding_boxes": ys_bounding_boxes,
+            }
         )
         xs, ys_labels, ys_bounding_boxes = (
             outputs["images"],
@@ -109,8 +113,16 @@ class RandomShearTest(tf.test.TestCase):
             outputs["bounding_boxes"]["boxes"],
         )
         new_area = tf.math.multiply(
-            tf.abs(tf.subtract(ys_bounding_boxes[..., 2], ys_bounding_boxes[..., 0])),
-            tf.abs(tf.subtract(ys_bounding_boxes[..., 3], ys_bounding_boxes[..., 1])),
+            tf.abs(
+                tf.subtract(
+                    ys_bounding_boxes[..., 2], ys_bounding_boxes[..., 0]
+                )
+            ),
+            tf.abs(
+                tf.subtract(
+                    ys_bounding_boxes[..., 3], ys_bounding_boxes[..., 1]
+                )
+            ),
         )
         old_area = tf.math.multiply(
             tf.abs(tf.subtract(ys["boxes"][..., 2], ys["boxes"][..., 0])),
@@ -189,8 +201,12 @@ class RandomShearTest(tf.test.TestCase):
         ys = tf.cast(
             tf.stack(
                 [
-                    tf.constant([[10.0, 20.0, 40.0, 50.0], [12.0, 22.0, 42.0, 54.0]]),
-                    tf.constant([[10.0, 20.0, 40.0, 50.0], [12.0, 22.0, 42.0, 54.0]]),
+                    tf.constant(
+                        [[10.0, 20.0, 40.0, 50.0], [12.0, 22.0, 42.0, 54.0]]
+                    ),
+                    tf.constant(
+                        [[10.0, 20.0, 40.0, 50.0], [12.0, 22.0, 42.0, 54.0]]
+                    ),
                 ],
                 axis=0,
             ),

@@ -77,7 +77,10 @@ class PatchingAndEmbedding(layers.Layer):
             shape=[1, 1, self.project_dim], name="class_token", trainable=True
         )
         self.num_patches = (
-            input_shape[1] // self.patch_size * input_shape[2] // self.patch_size
+            input_shape[1]
+            // self.patch_size
+            * input_shape[2]
+            // self.patch_size
         )
         self.position_embedding = layers.Embedding(
             input_dim=self.num_patches + 1, output_dim=self.project_dim
@@ -123,7 +126,9 @@ class PatchingAndEmbedding(layers.Layer):
             ),
             dtype=patches_flattened.dtype,
         )
-        patches_flattened = tf.concat([class_token_broadcast, patches_flattened], 1)
+        patches_flattened = tf.concat(
+            [class_token_broadcast, patches_flattened], 1
+        )
         positions = tf.range(start=0, limit=self.num_patches + 1, delta=1)
 
         if interpolate and None not in (
@@ -154,7 +159,9 @@ class PatchingAndEmbedding(layers.Layer):
             encoded = patches_flattened + self.position_embedding(positions)
         return encoded
 
-    def __interpolate_positional_embeddings(self, embedding, height, width, patch_size):
+    def __interpolate_positional_embeddings(
+        self, embedding, height, width, patch_size
+    ):
         """
         Allows for pre-trained position embedding interpolation. This trick allows you to fine-tune a ViT
         on higher resolution images than it was trained on.

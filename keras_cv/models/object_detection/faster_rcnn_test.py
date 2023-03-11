@@ -20,8 +20,10 @@ from absl.testing import parameterized
 from tensorflow.keras import optimizers
 
 import keras_cv
-from keras_cv.models import ResNet50V2
-from keras_cv.models.object_detection.__test_utils__ import _create_bounding_box_dataset
+from keras_cv.models import ResNet50V2Backbone
+from keras_cv.models.object_detection.__test_utils__ import (
+    _create_bounding_box_dataset,
+)
 from keras_cv.models.object_detection.faster_rcnn import FasterRCNN
 
 
@@ -33,7 +35,9 @@ class FasterRCNNTest(tf.test.TestCase, parameterized.TestCase):
     )
     def test_faster_rcnn_infer(self, batch_shape):
         model = FasterRCNN(
-            classes=80, bounding_box_format="xyxy", backbone=self._build_backbone()
+            num_classes=80,
+            bounding_box_format="xyxy",
+            backbone=self._build_backbone(),
         )
         images = tf.random.normal(batch_shape)
         outputs = model(images, training=False)
@@ -48,7 +52,9 @@ class FasterRCNNTest(tf.test.TestCase, parameterized.TestCase):
     )
     def test_faster_rcnn_train(self, batch_shape):
         model = FasterRCNN(
-            classes=80, bounding_box_format="xyxy", backbone=self._build_backbone()
+            num_classes=80,
+            bounding_box_format="xyxy",
+            backbone=self._build_backbone(),
         )
         images = tf.random.normal(batch_shape)
         outputs = model(images, training=True)
@@ -57,7 +63,9 @@ class FasterRCNNTest(tf.test.TestCase, parameterized.TestCase):
 
     def test_invalid_compile(self):
         model = FasterRCNN(
-            classes=80, bounding_box_format="yxyx", backbone=self._build_backbone()
+            num_classes=80,
+            bounding_box_format="yxyx",
+            backbone=self._build_backbone(),
         )
         with self.assertRaisesRegex(ValueError, "only accepts"):
             model.compile(rpn_box_loss="binary_crossentropy")
@@ -76,7 +84,7 @@ class FasterRCNNTest(tf.test.TestCase, parameterized.TestCase):
     )
     def test_faster_rcnn_with_dictionary_input_format(self):
         faster_rcnn = keras_cv.models.FasterRCNN(
-            classes=20,
+            num_classes=20,
             bounding_box_format="xywh",
             backbone=self._build_backbone(),
         )
@@ -98,4 +106,4 @@ class FasterRCNNTest(tf.test.TestCase, parameterized.TestCase):
         faster_rcnn.evaluate(dataset)
 
     def _build_backbone(self):
-        return ResNet50V2(include_top=False, include_rescaling=True).as_backbone()
+        return ResNet50V2Backbone().get_feature_extractor()

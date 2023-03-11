@@ -57,6 +57,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
     For transfer learning use cases, make sure to read the [guide to transfer
         learning & fine-tuning](https://keras.io/guides/transfer_learning/).
     Args:
+
         include_rescaling: bool, whether or not to Rescale the inputs. If set
             to `True`, inputs will be passed through a `Rescaling(1/255.0)`
             layer.
@@ -64,6 +65,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
             the top of the network.  If provided, `classes` must be provided.
         classes: optional int, number of classes to classify images into (only
             to be specified if `include_top` is `True`).
+
         weights: one of `None` (random initialization), a pretrained weight file
             path, or a reference to pre-trained weights (e.g. 'imagenet/classification')
             (see available pre-trained weights in weights.py)
@@ -149,7 +151,7 @@ def MLPMixer(
     channels_mlp_dim,
     include_rescaling,
     include_top,
-    classes=None,
+    num_classes=None,
     input_tensor=None,
     weights=None,
     pooling=None,
@@ -171,8 +173,8 @@ def MLPMixer(
         If set to True, inputs will be passed through a
         `Rescaling(1/255.0)` layer.
       include_top: whether to include the fully-connected
-        layer at the top of the network.  If provided, classes must be provided.
-      classes: optional number of classes to classify images
+        layer at the top of the network.  If provided, num_classes must be provided.
+      num_classes: optional number of classes to classify images
         into, only to be specified if `include_top` is True.
       weights: one of `None` (random initialization), or a pretrained
         weight file path.
@@ -206,11 +208,11 @@ def MLPMixer(
             f"Weights file not found at location: {weights}"
         )
 
-    if include_top and not classes:
+    if include_top and not num_classes:
         raise ValueError(
             "If `include_top` is True, "
-            "you should specify `classes`. "
-            f"Received: classes={classes}"
+            "you should specify `num_classes`. "
+            f"Received: num_classes={num_classes}"
         )
 
     if not isinstance(input_shape, tuple):
@@ -226,7 +228,9 @@ def MLPMixer(
         raise ValueError("Non-uniform resolutions are not supported.")
 
     if input_shape[0] % patch_size != 0:
-        raise ValueError("Input resolution should be divisible by the patch size.")
+        raise ValueError(
+            "Input resolution should be divisible by the patch size."
+        )
 
     inputs = utils.parse_model_inputs(input_shape, input_tensor)
 
@@ -244,15 +248,17 @@ def MLPMixer(
     x = layers.Reshape((x.shape[1] * x.shape[2], x.shape[3]))(x)
 
     for i in range(num_blocks):
-        x = MixerBlock(tokens_mlp_dim, channels_mlp_dim, name=f"mixer_block_{i}")(x)
+        x = MixerBlock(
+            tokens_mlp_dim, channels_mlp_dim, name=f"mixer_block_{i}"
+        )(x)
 
     x = layers.LayerNormalization()(x)
 
     if include_top:
         x = layers.GlobalAveragePooling1D(name="avg_pool")(x)
-        x = layers.Dense(classes, activation=classifier_activation, name="predictions")(
-            x
-        )
+        x = layers.Dense(
+            num_classes, activation=classifier_activation, name="predictions"
+        )(x)
 
     elif pooling == "avg":
         x = layers.GlobalAveragePooling1D(name="avg_pool")(x)
@@ -271,7 +277,7 @@ def MLPMixerB16(
     *,
     include_rescaling,
     include_top,
-    classes=None,
+    num_classes=None,
     input_tensor=None,
     weights=None,
     pooling=None,
@@ -289,7 +295,7 @@ def MLPMixerB16(
         channels_mlp_dim=MODEL_CONFIGS["MLPMixerB16"]["channels_mlp_dim"],
         include_rescaling=include_rescaling,
         include_top=include_top,
-        classes=classes,
+        num_classes=num_classes,
         input_tensor=input_tensor,
         weights=weights,
         pooling=pooling,
@@ -303,7 +309,7 @@ def MLPMixerB32(
     *,
     include_rescaling,
     include_top,
-    classes=None,
+    num_classes=None,
     input_tensor=None,
     weights=None,
     pooling=None,
@@ -320,7 +326,7 @@ def MLPMixerB32(
         channels_mlp_dim=MODEL_CONFIGS["MLPMixerB32"]["channels_mlp_dim"],
         include_rescaling=include_rescaling,
         include_top=include_top,
-        classes=classes,
+        num_classes=num_classes,
         input_tensor=input_tensor,
         weights=weights,
         pooling=pooling,
@@ -334,7 +340,7 @@ def MLPMixerL16(
     *,
     include_rescaling,
     include_top,
-    classes=None,
+    num_classes=None,
     input_tensor=None,
     weights=None,
     pooling=None,
@@ -351,7 +357,7 @@ def MLPMixerL16(
         channels_mlp_dim=MODEL_CONFIGS["MLPMixerL16"]["channels_mlp_dim"],
         include_rescaling=include_rescaling,
         include_top=include_top,
-        classes=classes,
+        num_classes=num_classes,
         input_tensor=input_tensor,
         weights=weights,
         pooling=pooling,

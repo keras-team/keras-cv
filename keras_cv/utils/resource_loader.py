@@ -54,7 +54,9 @@ class LazySO:
     def ops(self):
         if self._ops is None:
             self.display_warning_if_incompatible()
-            self._ops = tf.load_op_library(get_path_to_datafile(self.relative_path))
+            self._ops = tf.load_op_library(
+                get_path_to_datafile(self.relative_path)
+            )
         return self._ops
 
     def display_warning_if_incompatible(self):

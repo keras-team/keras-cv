@@ -17,7 +17,6 @@ import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 
-from keras_cv import bounding_box
 from keras_cv.metrics import _COCOMeanAveragePrecision
 
 
@@ -35,10 +34,12 @@ class _COCOMeanAveragePrecisionTest(tf.test.TestCase):
         )
 
         # These would match if they were in the area range
-        y_true = np.array([[[0, 0, 10, 10, 1], [5, 5, 10, 10, 1]]]).astype(np.float32)
-        y_pred = np.array([[[0, 0, 10, 10, 1, 1.0], [5, 5, 10, 10, 1, 0.5]]]).astype(
+        y_true = np.array([[[0, 0, 10, 10, 1], [5, 5, 10, 10, 1]]]).astype(
             np.float32
         )
+        y_pred = np.array(
+            [[[0, 0, 10, 10, 1, 1.0], [5, 5, 10, 10, 1, 0.5]]]
+        ).astype(np.float32)
 
         model.compile(metrics=[mean_average_precision])
 
@@ -207,10 +208,10 @@ class _COCOMeanAveragePrecisionTest(tf.test.TestCase):
             dtype=tf.float64,
         )
         y_pred = tf.constant(
-            [[[0, 50, 100, 150, 1, 1.0], [0, 50, 100, 150, 33, 1.0]]], dtype=tf.float32
+            [[[0, 50, 100, 150, 1, 1.0], [0, 50, 100, 150, 33, 1.0]]],
+            dtype=tf.float32,
         )
 
-        y_true = bounding_box.pad_batch_to_shape(y_true, (1, 20, 5))
         metric = _COCOMeanAveragePrecision(
             bounding_box_format="xyxy",
             iou_thresholds=[0.15],
@@ -225,8 +226,6 @@ class _COCOMeanAveragePrecisionTest(tf.test.TestCase):
     def DISABLE_test_bounding_box_counting(self):
         y_true = tf.constant([[[0, 0, 100, 100, 1]]], dtype=tf.float64)
         y_pred = tf.constant([[[0, 50, 100, 150, 1, 1.0]]], dtype=tf.float32)
-
-        y_true = bounding_box.pad_batch_to_shape(y_true, (1, 20, 5))
 
         metric = _COCOMeanAveragePrecision(
             bounding_box_format="xyxy",

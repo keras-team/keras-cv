@@ -68,7 +68,9 @@ class RandomRotationTest(tf.test.TestCase):
         # 180 rotation.
         layer = RandomRotation(factor=(0.5, 0.5), bounding_box_format="xyxy")
         output = layer(input)
-        output["bounding_boxes"] = bounding_box.to_dense(output["bounding_boxes"])
+        output["bounding_boxes"] = bounding_box.to_dense(
+            output["bounding_boxes"]
+        )
         expected_bounding_boxes = {
             "boxes": tf.convert_to_tensor(
                 [[112.0, 112.0, 312.0, 312.0], [212.0, 212.0, 412.0, 412.0]],
@@ -112,7 +114,10 @@ class RandomRotationTest(tf.test.TestCase):
         expected_output = {
             "boxes": tf.ragged.constant(
                 [
-                    [[112.0, 112.0, 312.0, 312.0], [212.0, 212.0, 412.0, 412.0]],
+                    [
+                        [112.0, 112.0, 312.0, 312.0],
+                        [212.0, 212.0, 412.0, 412.0],
+                    ],
                     [[112.0, 112.0, 312.0, 312.0]],
                 ],
                 dtype=tf.float32,
@@ -129,43 +134,54 @@ class RandomRotationTest(tf.test.TestCase):
             ),
         }
         expected_output = bounding_box.to_dense(expected_output)
-        output["bounding_boxes"] = bounding_box.to_dense(output["bounding_boxes"])
+        output["bounding_boxes"] = bounding_box.to_dense(
+            output["bounding_boxes"]
+        )
 
-        self.assertAllClose(expected_output["boxes"], output["bounding_boxes"]["boxes"])
         self.assertAllClose(
-            expected_output["classes"], output["bounding_boxes"]["classes"]
+            expected_output["boxes"], output["bounding_boxes"]["boxes"]
+        )
+        self.assertAllClose(
+            expected_output["classes"],
+            output["bounding_boxes"]["classes"],
         )
 
     def test_augment_sparse_segmentation_mask(self):
-        classes = 8
+        num_classes = 8
 
         input_images = np.random.random((2, 20, 20, 3)).astype(np.float32)
         # Masks are all 0s or 8s, to verify that when we rotate we don't do bad
         # mask interpolation to either a 0 or a 7
-        masks = np.random.randint(2, size=(2, 20, 20, 1)) * (classes - 1)
+        masks = np.random.randint(2, size=(2, 20, 20, 1)) * (num_classes - 1)
         inputs = {"images": input_images, "segmentation_masks": masks}
 
-        # Attempting to rotate a sparse mask without specifying classes fails.
+        # Attempting to rotate a sparse mask without specifying num_classes fails.
         bad_layer = RandomRotation(factor=(0.25, 0.25))
         with self.assertRaisesRegex(ValueError, "masks must be one-hot"):
             outputs = bad_layer(inputs)
 
         # 90 degree rotation.
-        layer = RandomRotation(factor=(0.25, 0.25), segmentation_classes=classes)
+        layer = RandomRotation(
+            factor=(0.25, 0.25), segmentation_classes=num_classes
+        )
         outputs = layer(inputs)
         expected_masks = np.rot90(masks, axes=(1, 2))
         self.assertAllClose(expected_masks, outputs["segmentation_masks"])
 
         # 45 degree rotation. Only verifies that no interpolation takes place.
-        layer = RandomRotation(factor=(0.125, 0.125), segmentation_classes=classes)
+        layer = RandomRotation(
+            factor=(0.125, 0.125), segmentation_classes=num_classes
+        )
         outputs = layer(inputs)
         self.assertAllInSet(outputs["segmentation_masks"], [0, 7])
 
     def test_augment_one_hot_segmentation_mask(self):
-        classes = 8
+        num_classes = 8
 
         input_images = np.random.random((2, 20, 20, 3)).astype(np.float32)
-        masks = tf.one_hot(np.random.randint(classes, size=(2, 20, 20)), classes)
+        masks = tf.one_hot(
+            np.random.randint(num_classes, size=(2, 20, 20)), num_classes
+        )
         inputs = {"images": input_images, "segmentation_masks": masks}
 
         # 90 rotation.

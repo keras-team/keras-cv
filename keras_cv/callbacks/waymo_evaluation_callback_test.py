@@ -15,10 +15,7 @@ import keras
 import pytest
 import tensorflow as tf
 
-try:
-    from keras_cv.callbacks import WaymoEvaluationCallback
-except ImportError:
-    pass
+from keras_cv.callbacks import WaymoEvaluationCallback
 
 NUM_RECORDS = 10
 POINT_FEATURES = 3
@@ -47,7 +44,8 @@ class WaymoEvaluationCallbackTest(tf.test.TestCase):
             [
                 tf.random.uniform((NUM_RECORDS // 2, NUM_BOXES, BOX_FEATURES)),
                 tf.cast(
-                    tf.fill((NUM_RECORDS // 2, NUM_BOXES, BOX_FEATURES), -1), tf.float32
+                    tf.fill((NUM_RECORDS // 2, NUM_BOXES, BOX_FEATURES), -1),
+                    tf.float32,
                 ),
             ],
             axis=0,

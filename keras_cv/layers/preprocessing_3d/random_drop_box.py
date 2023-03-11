@@ -15,7 +15,7 @@
 import tensorflow as tf
 
 from keras_cv.layers.preprocessing_3d import base_augmentation_layer_3d
-from keras_cv.ops.point_cloud import is_within_any_box3d
+from keras_cv.point_cloud import is_within_any_box3d
 
 POINT_CLOUDS = base_augmentation_layer_3d.POINT_CLOUDS
 BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
@@ -86,7 +86,9 @@ class RandomDropBox(base_augmentation_layer_3d.BaseAugmentationLayer3D):
         )
         # Randomly remove max_drop_bounding_boxes number of bounding boxes.
         num_bounding_boxes = bounding_boxes.get_shape().as_list()[1]
-        random_scores_for_selected_boxes = tf.random.uniform(shape=[num_bounding_boxes])
+        random_scores_for_selected_boxes = tf.random.uniform(
+            shape=[num_bounding_boxes]
+        )
         random_scores_for_selected_boxes = tf.where(
             selected_boxes_mask, random_scores_for_selected_boxes, 0.0
         )

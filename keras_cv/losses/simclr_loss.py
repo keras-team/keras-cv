@@ -58,18 +58,22 @@ class SimCLRLoss(tf.keras.losses.Loss):
 
         # Compute logits
         logits_11 = (
-            tf.matmul(projections_1, projections_1, transpose_b=True) / self.temperature
+            tf.matmul(projections_1, projections_1, transpose_b=True)
+            / self.temperature
         )
         logits_11 = logits_11 - tf.cast(masks * LARGE_NUM, logits_11.dtype)
         logits_22 = (
-            tf.matmul(projections_2, projections_2, transpose_b=True) / self.temperature
+            tf.matmul(projections_2, projections_2, transpose_b=True)
+            / self.temperature
         )
         logits_22 = logits_22 - tf.cast(masks * LARGE_NUM, logits_22.dtype)
         logits_12 = (
-            tf.matmul(projections_1, projections_2, transpose_b=True) / self.temperature
+            tf.matmul(projections_1, projections_2, transpose_b=True)
+            / self.temperature
         )
         logits_21 = (
-            tf.matmul(projections_2, projections_1, transpose_b=True) / self.temperature
+            tf.matmul(projections_2, projections_1, transpose_b=True)
+            / self.temperature
         )
 
         loss_a = keras.losses.categorical_crossentropy(

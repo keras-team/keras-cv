@@ -15,7 +15,7 @@ import tensorflow as tf
 
 from keras_cv.layers.preprocessing.mix_up import MixUp
 
-classes = 10
+num_classes = 10
 
 
 class MixUpTest(tf.test.TestCase):
@@ -24,7 +24,7 @@ class MixUpTest(tf.test.TestCase):
         # randomly sample labels
         ys_labels = tf.random.categorical(tf.math.log([[0.5, 0.5]]), 2)
         ys_labels = tf.squeeze(ys_labels)
-        ys_labels = tf.one_hot(ys_labels, classes)
+        ys_labels = tf.one_hot(ys_labels, num_classes)
 
         # randomly sample bounding boxes
         ys_bounding_boxes = {
@@ -35,7 +35,11 @@ class MixUpTest(tf.test.TestCase):
         layer = MixUp()
         # mixup on labels
         outputs = layer(
-            {"images": xs, "labels": ys_labels, "bounding_boxes": ys_bounding_boxes}
+            {
+                "images": xs,
+                "labels": ys_labels,
+                "bounding_boxes": ys_bounding_boxes,
+            }
         )
         xs, ys_labels, ys_bounding_boxes = (
             outputs["images"],
@@ -99,11 +103,15 @@ class MixUpTest(tf.test.TestCase):
 
     def test_image_input_only(self):
         xs = tf.cast(
-            tf.stack([2 * tf.ones((100, 100, 1)), tf.ones((100, 100, 1))], axis=0),
+            tf.stack(
+                [2 * tf.ones((100, 100, 1)), tf.ones((100, 100, 1))], axis=0
+            ),
             tf.float32,
         )
         layer = MixUp()
-        with self.assertRaisesRegexp(ValueError, "expects inputs in a dictionary"):
+        with self.assertRaisesRegexp(
+            ValueError, "expects inputs in a dictionary"
+        ):
             _ = layer(xs)
 
     def test_single_image_input(self):
@@ -121,7 +129,9 @@ class MixUpTest(tf.test.TestCase):
         ys = tf.one_hot(tf.constant([1, 0]), 2, dtype=tf.int32)
         inputs = {"images": xs, "labels": ys}
         layer = MixUp()
-        with self.assertRaisesRegexp(ValueError, "MixUp received labels with type"):
+        with self.assertRaisesRegexp(
+            ValueError, "MixUp received labels with type"
+        ):
             _ = layer(inputs)
 
     def test_image_input(self):

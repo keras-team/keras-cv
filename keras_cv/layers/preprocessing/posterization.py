@@ -68,7 +68,9 @@ class Posterization(BaseImageAugmentationLayer):
             )
 
         if not (0 < bits < 9):
-            raise ValueError(f"Bits value must be between 1-8. Received bits: {bits}.")
+            raise ValueError(
+                f"Bits value must be between 1-8. Received bits: {bits}."
+            )
 
         self._shift = 8 - bits
         self._value_range = value_range
@@ -94,7 +96,9 @@ class Posterization(BaseImageAugmentationLayer):
     def augment_bounding_boxes(self, bounding_boxes, **kwargs):
         return bounding_boxes
 
-    def augment_segmentation_mask(self, segmentation_mask, transformation, **kwargs):
+    def augment_segmentation_mask(
+        self, segmentation_mask, transformation, **kwargs
+    ):
         return segmentation_mask
 
     def _batch_augment(self, inputs):

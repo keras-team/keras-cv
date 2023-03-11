@@ -16,7 +16,7 @@ import tensorflow as tf
 
 from keras_cv.bounding_box_3d import CENTER_XYZ_DXDYDZ_PHI
 from keras_cv.layers.preprocessing_3d import base_augmentation_layer_3d
-from keras_cv.ops.point_cloud import is_within_any_box3d
+from keras_cv.point_cloud import is_within_any_box3d
 
 POINT_CLOUDS = base_augmentation_layer_3d.POINT_CLOUDS
 BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
@@ -86,7 +86,9 @@ class SwapBackground(base_augmentation_layer_3d.BaseAugmentationLayer3D):
             bounding_boxes[..., : CENTER_XYZ_DXDYDZ_PHI.CLASS],
             keepdims=True,
         )
-        point_clouds = tf.where(~objects_points_in_point_clouds, point_clouds, 0.0)
+        point_clouds = tf.where(
+            ~objects_points_in_point_clouds, point_clouds, 0.0
+        )
 
         # Extract objects from additional_point_clouds.
         objects_points_in_additional_point_clouds = is_within_any_box3d(
@@ -95,7 +97,9 @@ class SwapBackground(base_augmentation_layer_3d.BaseAugmentationLayer3D):
             keepdims=True,
         )
         additional_point_clouds = tf.where(
-            objects_points_in_additional_point_clouds, additional_point_clouds, 0.0
+            objects_points_in_additional_point_clouds,
+            additional_point_clouds,
+            0.0,
         )
 
         # Remove backgorund points in point_clouds overlaps with additional_bounding_boxes.
@@ -130,12 +134,15 @@ class SwapBackground(base_augmentation_layer_3d.BaseAugmentationLayer3D):
             )
             object_point_clouds = tf.boolean_mask(
                 additional_point_clouds[frame_index],
-                additional_point_clouds[frame_index, :, POINTCLOUD_LABEL_INDEX] > 0,
+                additional_point_clouds[frame_index, :, POINTCLOUD_LABEL_INDEX]
+                > 0,
                 axis=0,
             )
 
             point_clouds_list += [
-                tf.concat([object_point_clouds, background_point_clouds], axis=0)
+                tf.concat(
+                    [object_point_clouds, background_point_clouds], axis=0
+                )
             ]
 
         point_clouds = tf.ragged.stack(point_clouds_list)
@@ -165,5 +172,7 @@ class SwapBackground(base_augmentation_layer_3d.BaseAugmentationLayer3D):
             bounding_boxes=bounding_boxes,
             transformation=transformation,
         )
-        result.update({POINT_CLOUDS: point_clouds, BOUNDING_BOXES: bounding_boxes})
+        result.update(
+            {POINT_CLOUDS: point_clouds, BOUNDING_BOXES: bounding_boxes}
+        )
         return result

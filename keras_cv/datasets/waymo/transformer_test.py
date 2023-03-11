@@ -33,7 +33,8 @@ class WaymoOpenDatasetTransformerTest(tf.test.TestCase):
         )
 
     @pytest.mark.skipif(
-        "TEST_WAYMO_DEPS" not in os.environ or os.environ["TEST_WAYMO_DEPS"] != "true",
+        "TEST_WAYMO_DEPS" not in os.environ
+        or os.environ["TEST_WAYMO_DEPS"] != "true",
         reason="Requires Waymo Open Dataset package",
     )
     def test_load_and_transform(self):
@@ -56,8 +57,12 @@ class WaymoOpenDatasetTransformerTest(tf.test.TestCase):
 
         # Laser points.
         point_xyz_mean = tf.reduce_mean(lidar_tensors["point_xyz"], axis=0)
-        self.assertAllClose(point_xyz_mean, lidar_tensors["pose"][:3, 3], atol=100)
-        point_feature_mean = tf.reduce_mean(lidar_tensors["point_feature"], axis=0)
+        self.assertAllClose(
+            point_xyz_mean, lidar_tensors["pose"][:3, 3], atol=100
+        )
+        point_feature_mean = tf.reduce_mean(
+            lidar_tensors["point_feature"], axis=0
+        )
         self.assertAllGreater(point_feature_mean[0], 0)
         self.assertAllGreater(tf.abs(point_feature_mean[1]), 1e-6)
         self.assertAllGreater(point_feature_mean[2:4], 0)
@@ -69,7 +74,9 @@ class WaymoOpenDatasetTransformerTest(tf.test.TestCase):
         self.assertEqual(lidar_tensors["label_box_class"].shape[0], num_boxes)
         self.assertEqual(lidar_tensors["label_box_density"].shape[0], num_boxes)
         self.assertTrue(tf.math.reduce_all(lidar_tensors["label_box_mask"]))
-        self.assertAllGreater(tf.math.reduce_max(lidar_tensors["label_point_class"]), 0)
+        self.assertAllGreater(
+            tf.math.reduce_max(lidar_tensors["label_point_class"]), 0
+        )
 
         # Multi-frame tensors for augmentation.
         augmented_example = next(
@@ -79,7 +86,8 @@ class WaymoOpenDatasetTransformerTest(tf.test.TestCase):
         self.assertEqual(augmented_example["bounding_boxes"].shape, [16, 11])
 
     @pytest.mark.skipif(
-        "TEST_WAYMO_DEPS" not in os.environ or os.environ["TEST_WAYMO_DEPS"] != "true",
+        "TEST_WAYMO_DEPS" not in os.environ
+        or os.environ["TEST_WAYMO_DEPS"] != "true",
         reason="Requires Waymo Open Dataset package",
     )
     def test_pad_and_transform_to_vehicle(self):
@@ -112,4 +120,6 @@ class WaymoOpenDatasetTransformerTest(tf.test.TestCase):
         self.assertEqual(example["label_box_density"].shape[0], 1000)
         self.assertEqual(example["label_box_mask"].shape, [1000])
         self.assertTrue(tf.math.reduce_any(example["label_box_mask"]))
-        self.assertAllGreater(tf.math.reduce_max(example["label_point_class"]), 0)
+        self.assertAllGreater(
+            tf.math.reduce_max(example["label_point_class"]), 0
+        )

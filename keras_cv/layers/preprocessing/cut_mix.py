@@ -50,10 +50,10 @@ class CutMix(BaseImageAugmentationLayer):
 
     def _sample_from_beta(self, alpha, beta, shape):
         sample_alpha = tf.random.gamma(
-            shape, 1.0, beta=alpha, seed=self._random_generator.make_legacy_seed()
+            shape, alpha=alpha, seed=self._random_generator.make_legacy_seed()
         )
         sample_beta = tf.random.gamma(
-            shape, 1.0, beta=beta, seed=self._random_generator.make_legacy_seed()
+            shape, alpha=beta, seed=self._random_generator.make_legacy_seed()
         )
         return sample_alpha / (sample_alpha + sample_beta)
 
@@ -89,8 +89,12 @@ class CutMix(BaseImageAugmentationLayer):
             input_shape[2],
         )
 
-        permutation_order = tf.random.shuffle(tf.range(0, batch_size), seed=self.seed)
-        lambda_sample = self._sample_from_beta(self.alpha, self.alpha, (batch_size,))
+        permutation_order = tf.random.shuffle(
+            tf.range(0, batch_size), seed=self.seed
+        )
+        lambda_sample = self._sample_from_beta(
+            self.alpha, self.alpha, (batch_size,)
+        )
 
         ratio = tf.math.sqrt(1 - lambda_sample)
 
@@ -98,7 +102,7 @@ class CutMix(BaseImageAugmentationLayer):
             ratio * tf.cast(image_height, dtype=tf.float32), dtype=tf.int32
         )
         cut_width = tf.cast(
-            ratio * tf.cast(image_height, dtype=tf.float32), dtype=tf.int32
+            ratio * tf.cast(image_width, dtype=tf.float32), dtype=tf.int32
         )
 
         random_center_height = tf.random.uniform(

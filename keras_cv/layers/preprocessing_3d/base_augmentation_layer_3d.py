@@ -169,7 +169,9 @@ class BaseAugmentationLayer3D(tf.keras.__internal__.layers.BaseRandomLayer):
             bounding_boxes = inputs[BOUNDING_BOXES]
             if point_clouds.shape.rank == 3 and bounding_boxes.shape.rank == 3:
                 return self._augment(inputs)
-            elif point_clouds.shape.rank == 4 and bounding_boxes.shape.rank == 4:
+            elif (
+                point_clouds.shape.rank == 4 and bounding_boxes.shape.rank == 4
+            ):
                 return self._batch_augment(inputs)
             else:
                 raise ValueError(

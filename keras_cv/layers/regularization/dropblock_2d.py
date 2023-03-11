@@ -146,7 +146,10 @@ class DropBlock2D(BaseRandomLayer):
             )
 
         self._rate = rate
-        self._dropblock_height, self._dropblock_width = conv_utils.normalize_tuple(
+        (
+            self._dropblock_height,
+            self._dropblock_width,
+        ) = conv_utils.normalize_tuple(
             value=block_size, n=2, name="block_size", allow_zero=False
         )
         self.seed = seed
@@ -209,10 +212,12 @@ class DropBlock2D(BaseRandomLayer):
         )
 
         # Slightly scale the values, to account for magnitude change
-        percent_ones = tf.cast(tf.reduce_sum(block_pattern), tf.float32) / tf.cast(
-            tf.size(block_pattern), tf.float32
+        percent_ones = tf.cast(
+            tf.reduce_sum(block_pattern), tf.float32
+        ) / tf.cast(tf.size(block_pattern), tf.float32)
+        return (
+            x / tf.cast(percent_ones, x.dtype) * tf.cast(block_pattern, x.dtype)
         )
-        return x / tf.cast(percent_ones, x.dtype) * tf.cast(block_pattern, x.dtype)
 
     def get_config(self):
         config = {

@@ -43,12 +43,16 @@ class PosterizationTest(tf.test.TestCase):
         self.assertAllEqual(output, expected_output)
 
     def _get_random_bits(self):
-        return int(self.rng.uniform(shape=(), minval=1, maxval=9, dtype=tf.int32))
+        return int(
+            self.rng.uniform(shape=(), minval=1, maxval=9, dtype=tf.int32)
+        )
 
     def test_single_image_rescaled(self):
         bits = self._get_random_bits()
         dummy_input = self.rng.uniform(shape=(224, 224, 3), maxval=1.0)
-        expected_output = self._calc_expected_output(dummy_input * 255, bits=bits) / 255
+        expected_output = (
+            self._calc_expected_output(dummy_input * 255, bits=bits) / 255
+        )
 
         layer = Posterization(bits=bits, value_range=[0, 1])
         output = layer(dummy_input)

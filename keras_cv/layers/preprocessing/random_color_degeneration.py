@@ -68,10 +68,20 @@ class RandomColorDegeneration(BaseImageAugmentationLayer):
     def augment_label(self, label, transformation=None, **kwargs):
         return label
 
-    def augment_segmentation_mask(self, segmentation_mask, transformation, **kwargs):
+    def augment_segmentation_mask(
+        self, segmentation_mask, transformation, **kwargs
+    ):
         return segmentation_mask
 
     def get_config(self):
         config = super().get_config()
         config.update({"factor": self.factor, "seed": self.seed})
         return config
+
+    @classmethod
+    def from_config(cls, config):
+        if isinstance(config["factor"], dict):
+            config["factor"] = tf.keras.utils.deserialize_keras_object(
+                config["factor"]
+            )
+        return cls(**config)

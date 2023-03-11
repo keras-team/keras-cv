@@ -12,7 +12,9 @@ import keras_cv
 from keras_cv.metrics import coco
 
 
-def produce_random_data(include_confidence=False, num_images=128, classes=20):
+def produce_random_data(
+    include_confidence=False, num_images=128, num_classes=20
+):
     """Generates a fake list of bounding boxes for use in this test.
 
     Returns:
@@ -23,7 +25,7 @@ def produce_random_data(include_confidence=False, num_images=128, classes=20):
     images = []
     for _ in range(num_images):
         num_boxes = math.floor(25 * random.uniform(0, 1))
-        classes_in_image = np.floor(np.random.rand(num_boxes, 1) * classes)
+        classes_in_image = np.floor(np.random.rand(num_boxes, 1) * num_classes)
         bboxes = np.random.rand(num_boxes, 4)
         boxes = np.concatenate([bboxes, classes_in_image], axis=-1)
         if include_confidence:
@@ -35,10 +37,7 @@ def produce_random_data(include_confidence=False, num_images=128, classes=20):
             )
         )
 
-    images = [
-        keras_cv.bounding_box.pad_batch_to_shape(x, [25, images[0].shape[1]])
-        for x in images
-    ]
+    images = [keras_cv.bounding_box.to_dense(x, max_boxes=25) for x in images]
     return tf.stack(images, axis=0)
 
 
@@ -56,7 +55,7 @@ end_to_end_runtimes = []
 for images in n_images:
     y_true = produce_random_data(num_images=images)
     y_pred = produce_random_data(num_images=images, include_confidence=True)
-    metric = coco._COCORecall(class_ids)
+    metric = coco._BoxRecall(class_ids)
     # warm up
     metric.update_state(y_true, y_pred)
     metric.result()

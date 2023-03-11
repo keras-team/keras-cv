@@ -36,7 +36,14 @@ class GroupPointsByBoundingBoxesTest(tf.test.TestCase):
             max_points_per_bounding_boxes=2,
         )
         point_clouds = np.array(
-            [[[0, 1, 2, 3, 4], [10, 1, 2, 3, 4], [0, -1, 2, 3, 4], [100, 100, 2, 3, 4]]]
+            [
+                [
+                    [0, 1, 2, 3, 4],
+                    [10, 1, 2, 3, 4],
+                    [0, -1, 2, 3, 4],
+                    [100, 100, 2, 3, 4],
+                ]
+            ]
             * 2
         ).astype("float32")
         bounding_boxes = np.array(
@@ -56,7 +63,12 @@ class GroupPointsByBoundingBoxesTest(tf.test.TestCase):
         }
         outputs = add_layer(inputs)
         object_point_clouds = np.array(
-            [[[[0, 1, 2, 3, 4], [0, -1, 2, 3, 4]], [[10, 1, 2, 3, 4], [0, 0, 0, 0, 0]]]]
+            [
+                [
+                    [[0, 1, 2, 3, 4], [0, -1, 2, 3, 4]],
+                    [[10, 1, 2, 3, 4], [0, 0, 0, 0, 0]],
+                ]
+            ]
             * 2
         ).astype("float32")
         object_bounding_boxes = np.array(
@@ -66,10 +78,14 @@ class GroupPointsByBoundingBoxesTest(tf.test.TestCase):
         self.assertAllClose(inputs[BOUNDING_BOXES], outputs[BOUNDING_BOXES])
         self.assertAllClose(inputs["dummy_item"], outputs["dummy_item"])
         # Sort the point clouds due to the orders of points are different when using Tensorflow and Metal+Tensorflow (MAC).
-        outputs[OBJECT_POINT_CLOUDS] = tf.sort(outputs[OBJECT_POINT_CLOUDS], axis=-2)
+        outputs[OBJECT_POINT_CLOUDS] = tf.sort(
+            outputs[OBJECT_POINT_CLOUDS], axis=-2
+        )
         object_point_clouds = tf.sort(object_point_clouds, axis=-2)
         self.assertAllClose(outputs[OBJECT_POINT_CLOUDS], object_point_clouds)
-        self.assertAllClose(outputs[OBJECT_BOUNDING_BOXES], object_bounding_boxes)
+        self.assertAllClose(
+            outputs[OBJECT_BOUNDING_BOXES], object_bounding_boxes
+        )
 
     def test_not_augment_point_clouds_and_bounding_boxes(self):
         add_layer = GroupPointsByBoundingBoxes(
@@ -78,7 +94,14 @@ class GroupPointsByBoundingBoxesTest(tf.test.TestCase):
             max_points_per_bounding_boxes=2,
         )
         point_clouds = np.array(
-            [[[0, 1, 2, 3, 4], [10, 1, 2, 3, 4], [0, -1, 2, 3, 4], [100, 100, 2, 3, 4]]]
+            [
+                [
+                    [0, 1, 2, 3, 4],
+                    [10, 1, 2, 3, 4],
+                    [0, -1, 2, 3, 4],
+                    [100, 100, 2, 3, 4],
+                ]
+            ]
             * 2
         ).astype("float32")
         bounding_boxes = np.array(
@@ -149,13 +172,18 @@ class GroupPointsByBoundingBoxesTest(tf.test.TestCase):
         self.assertAllClose(inputs[POINT_CLOUDS], outputs[POINT_CLOUDS])
         self.assertAllClose(inputs[BOUNDING_BOXES], outputs[BOUNDING_BOXES])
         # Sort the point clouds due to the orders of points are different when using Tensorflow and Metal+Tensorflow (MAC).
-        outputs[OBJECT_POINT_CLOUDS] = tf.sort(outputs[OBJECT_POINT_CLOUDS], axis=-2)
+        outputs[OBJECT_POINT_CLOUDS] = tf.sort(
+            outputs[OBJECT_POINT_CLOUDS], axis=-2
+        )
         object_point_clouds = tf.sort(object_point_clouds, axis=-2)
         self.assertAllClose(outputs[OBJECT_POINT_CLOUDS], object_point_clouds)
-        self.assertAllClose(outputs[OBJECT_BOUNDING_BOXES], object_bounding_boxes)
+        self.assertAllClose(
+            outputs[OBJECT_BOUNDING_BOXES], object_bounding_boxes
+        )
 
     @pytest.mark.skipif(
-        "TEST_CUSTOM_OPS" not in os.environ or os.environ["TEST_CUSTOM_OPS"] != "true",
+        "TEST_CUSTOM_OPS" not in os.environ
+        or os.environ["TEST_CUSTOM_OPS"] != "true",
         reason="Requires binaries compiled from source",
     )
     def test_augment_point_clouds_and_bounding_boxes_v2(self):
@@ -165,7 +193,14 @@ class GroupPointsByBoundingBoxesTest(tf.test.TestCase):
             max_points_per_bounding_boxes=2,
         )
         point_clouds = np.array(
-            [[[0, 1, 2, 3, 4], [10, 1, 2, 3, 4], [0, -1, 2, 3, 4], [100, 100, 2, 3, 4]]]
+            [
+                [
+                    [0, 1, 2, 3, 4],
+                    [10, 1, 2, 3, 4],
+                    [0, -1, 2, 3, 4],
+                    [100, 100, 2, 3, 4],
+                ]
+            ]
             * 2
         ).astype("float32")
         bounding_boxes = np.array(
@@ -185,7 +220,12 @@ class GroupPointsByBoundingBoxesTest(tf.test.TestCase):
         )
         object_point_clouds, object_bounding_boxes = outputs[0], outputs[1]
         expected_object_point_clouds = np.array(
-            [[[[0, 1, 2, 3, 4], [0, -1, 2, 3, 4]], [[10, 1, 2, 3, 4], [0, 0, 0, 0, 0]]]]
+            [
+                [
+                    [[0, 1, 2, 3, 4], [0, -1, 2, 3, 4]],
+                    [[10, 1, 2, 3, 4], [0, 0, 0, 0, 0]],
+                ]
+            ]
             * 2
         ).astype("float32")
         expected_object_bounding_boxes = np.array(

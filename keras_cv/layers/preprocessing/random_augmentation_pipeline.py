@@ -114,3 +114,12 @@ class RandomAugmentationPipeline(BaseImageAugmentationLayer):
             }
         )
         return config
+
+    @classmethod
+    def from_config(cls, config):
+        layers = config.pop("layers", None)
+        if layers:
+            if isinstance(layers[0], dict):
+                layers = tf.keras.utils.deserialize_keras_object(layers)
+            config["layers"] = layers
+        return cls(**config)

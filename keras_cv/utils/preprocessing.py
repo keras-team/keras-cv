@@ -48,7 +48,9 @@ def get_interpolation(interpolation):
     return _TF_INTERPOLATION_METHODS[interpolation]
 
 
-def transform_value_range(images, original_range, target_range, dtype=tf.float32):
+def transform_value_range(
+    images, original_range, target_range, dtype=tf.float32
+):
     """transforms values in input tensor from original_range to target_range.
     This function is intended to be used in preprocessing layers that
     rely upon color values.  This allows us to assume internally that
@@ -80,17 +82,24 @@ def transform_value_range(images, original_range, target_range, dtype=tf.float32
     )
     ```
     """
-    if original_range[0] == target_range[0] and original_range[1] == target_range[1]:
+    if (
+        original_range[0] == target_range[0]
+        and original_range[1] == target_range[1]
+    ):
         return images
 
     images = tf.cast(images, dtype=dtype)
     original_min_value, original_max_value = _unwrap_value_range(
         original_range, dtype=dtype
     )
-    target_min_value, target_max_value = _unwrap_value_range(target_range, dtype=dtype)
+    target_min_value, target_max_value = _unwrap_value_range(
+        target_range, dtype=dtype
+    )
 
     # images in the [0, 1] scale
-    images = (images - original_min_value) / (original_max_value - original_min_value)
+    images = (images - original_min_value) / (
+        original_max_value - original_min_value
+    )
 
     scale_factor = target_max_value - target_min_value
     return (images * scale_factor) + target_min_value
@@ -125,7 +134,15 @@ def blend(image1: tf.Tensor, image2: tf.Tensor, factor: float) -> tf.Tensor:
     return tf.clip_by_value(temp, 0.0, 255.0)
 
 
-def parse_factor(param, min_value=0.0, max_value=1.0, param_name="factor", seed=None):
+def parse_factor(
+    param, min_value=0.0, max_value=1.0, param_name="factor", seed=None
+):
+    if isinstance(param, dict):
+        # For all classes missing a `from_config` implementation.
+        # (RandomHue, RandomShear, etc.)
+        # To be removed with addition of `keras.__internal__` namespace support
+        param = tf.keras.utils.deserialize_keras_object(param)
+
     if isinstance(param, core.FactorSampler):
         return param
 
@@ -188,11 +205,17 @@ def get_rotation_matrix(angles, image_height, image_width, name=None):
     with backend.name_scope(name or "rotation_matrix"):
         x_offset = (
             (image_width - 1)
-            - (tf.cos(angles) * (image_width - 1) - tf.sin(angles) * (image_height - 1))
+            - (
+                tf.cos(angles) * (image_width - 1)
+                - tf.sin(angles) * (image_height - 1)
+            )
         ) / 2.0
         y_offset = (
             (image_height - 1)
-            - (tf.sin(angles) * (image_width - 1) + tf.cos(angles) * (image_height - 1))
+            - (
+                tf.sin(angles) * (image_width - 1)
+                + tf.cos(angles) * (image_height - 1)
+            )
         ) / 2.0
         num_angles = tf.shape(angles)[0]
         return tf.concat(
@@ -313,7 +336,9 @@ def transform(
                 if output_shape_value is not None:
                     output_shape = output_shape_value
 
-        output_shape = tf.convert_to_tensor(output_shape, tf.int32, name="output_shape")
+        output_shape = tf.convert_to_tensor(
+            output_shape, tf.int32, name="output_shape"
+        )
 
         if not output_shape.get_shape().is_compatible_with([2]):
             raise ValueError(
@@ -322,7 +347,9 @@ def transform(
                 "{}".format(output_shape)
             )
 
-        fill_value = tf.convert_to_tensor(fill_value, tf.float32, name="fill_value")
+        fill_value = tf.convert_to_tensor(
+            fill_value, tf.float32, name="fill_value"
+        )
 
         return tf.raw_ops.ImageProjectiveTransformV3(
             images=images,

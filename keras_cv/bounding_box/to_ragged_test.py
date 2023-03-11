@@ -34,7 +34,10 @@ class ToRaggedTest(tf.test.TestCase):
     def test_round_trip(self):
         original = {
             "boxes": tf.constant(
-                [[[0, 0, 0, 0], [-1, -1, -1, -1]], [[-1, -1, -1, -1], [-1, -1, -1, -1]]]
+                [
+                    [[0, 0, 0, 0], [-1, -1, -1, -1]],
+                    [[-1, -1, -1, -1], [-1, -1, -1, -1]],
+                ]
             ),
             "classes": tf.constant([[1, -1], [-1, -1]]),
         }

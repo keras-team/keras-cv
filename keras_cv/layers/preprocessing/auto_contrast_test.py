@@ -44,7 +44,8 @@ class AutoContrastTest(tf.test.TestCase):
 
     def test_auto_contrast_different_values_per_channel(self):
         img = tf.constant(
-            [[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]], dtype=tf.float32
+            [[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]],
+            dtype=tf.float32,
         )
         img = tf.expand_dims(img, axis=0)
 

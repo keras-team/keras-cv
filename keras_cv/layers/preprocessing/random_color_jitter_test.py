@@ -91,10 +91,18 @@ class RandomColorJitterTest(tf.test.TestCase, parameterized.TestCase):
         self.assertEqual(config["saturation_factor"], (0.5, 0.9))
         self.assertEqual(config["hue_factor"], 0.5)
 
-        reconstructed_layer = preprocessing.RandomColorJitter.from_config(config)
-        self.assertEqual(reconstructed_layer.brightness_factor, layer.brightness_factor)
-        self.assertEqual(reconstructed_layer.contrast_factor, layer.contrast_factor)
-        self.assertEqual(reconstructed_layer.saturation_factor, layer.saturation_factor)
+        reconstructed_layer = preprocessing.RandomColorJitter.from_config(
+            config
+        )
+        self.assertEqual(
+            reconstructed_layer.brightness_factor, layer.brightness_factor
+        )
+        self.assertEqual(
+            reconstructed_layer.contrast_factor, layer.contrast_factor
+        )
+        self.assertEqual(
+            reconstructed_layer.saturation_factor, layer.saturation_factor
+        )
         self.assertEqual(reconstructed_layer.hue_factor, layer.hue_factor)
 
     # Test 5: Check if inference model is OK.

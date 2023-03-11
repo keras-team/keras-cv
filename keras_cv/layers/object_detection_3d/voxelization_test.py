@@ -39,7 +39,9 @@ class VoxelizationTest(tf.test.TestCase):
             shape=[1, 1000, 4], minval=-10, maxval=10, dtype=tf.float32
         )
         point_mask = tf.cast(
-            tf.random.uniform(shape=[1, 1000], minval=0, maxval=2, dtype=tf.int32),
+            tf.random.uniform(
+                shape=[1, 1000], minval=0, maxval=2, dtype=tf.int32
+            ),
             tf.bool,
         )
         output = layer(point_xyz, point_feature, point_mask)
@@ -60,7 +62,9 @@ class VoxelizationTest(tf.test.TestCase):
             shape=[1, 1000, 4], minval=-10, maxval=10, dtype=tf.float32
         )
         point_mask = tf.cast(
-            tf.random.uniform(shape=[1, 1000], minval=0, maxval=2, dtype=tf.int32),
+            tf.random.uniform(
+                shape=[1, 1000], minval=0, maxval=2, dtype=tf.int32
+            ),
             tf.bool,
         )
         output = layer(point_xyz, point_feature, point_mask)

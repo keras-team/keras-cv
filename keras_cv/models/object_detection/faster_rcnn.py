@@ -73,7 +73,13 @@ class FeaturePyramid(tf.keras.layers.Layer):
         p3_output = self.conv_c3_3x3(p3_output)
         p2_output = self.conv_c2_3x3(p2_output)
 
-        return {2: p2_output, 3: p3_output, 4: p4_output, 5: p5_output, 6: p6_output}
+        return {
+            2: p2_output,
+            3: p3_output,
+            4: p4_output,
+            5: p5_output,
+            6: p6_output,
+        }
 
     def get_config(self):
         config = {}
@@ -164,13 +170,13 @@ class RPNHead(tf.keras.layers.Layer):
 class RCNNHead(tf.keras.layers.Layer):
     def __init__(
         self,
-        classes,
+        num_classes,
         conv_dims=[],
         fc_dims=[1024, 1024],
         **kwargs,
     ):
         super().__init__(**kwargs)
-        self.num_classes = classes
+        self.num_classes = num_classes
         self.conv_dims = conv_dims
         self.fc_dims = fc_dims
         self.convs = []
@@ -188,7 +194,9 @@ class RCNNHead(tf.keras.layers.Layer):
             layer = tf.keras.layers.Dense(units=fc_dim, activation="relu")
             self.fcs.append(layer)
         self.box_pred = tf.keras.layers.Dense(units=4)
-        self.cls_score = tf.keras.layers.Dense(units=classes + 1, activation="softmax")
+        self.cls_score = tf.keras.layers.Dense(
+            units=num_classes + 1, activation="softmax"
+        )
 
     def call(self, feature_map, training=None):
         x = feature_map
@@ -202,7 +210,7 @@ class RCNNHead(tf.keras.layers.Layer):
 
     def get_config(self):
         config = {
-            "classes": self.num_classes,
+            "num_classes": self.num_classes,
             "conv_dims": self.conv_dims,
             "fc_dims": self.fc_dims,
         }
@@ -216,7 +224,7 @@ class FasterRCNN(tf.keras.Model):
     """A Keras model implementing the FasterRCNN architecture.
 
     Implements the FasterRCNN architecture for object detection.  The constructor
-    requires `classes`, `bounding_box_format` and a `backbone`.
+    requires `num_classes`, `bounding_box_format` and a `backbone`.
 
     References:
         - [FasterRCNN](https://arxiv.org/pdf/1506.01497.pdf)
@@ -224,16 +232,16 @@ class FasterRCNN(tf.keras.Model):
     Usage:
     ```python
     retina_net = keras_cv.models.FasterRCNN(
-        classes=20,
+        num_classes=20,
         bounding_box_format="xywh",
         backbone=None,
     )
     ```
 
     Args:
-        classes: the number of classes in your dataset excluding the background
-            class.  Classes should be represented by integers in the range
-            [0, classes).
+        num_classes: the number of classes in your dataset excluding the background
+            class.  classes should be represented by integers in the range
+            [0, num_classes).
         bounding_box_format: The format of bounding boxes of model output. Refer
             [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
             for more details on supported bounding box formats.
@@ -268,7 +276,7 @@ class FasterRCNN(tf.keras.Model):
 
     def __init__(
         self,
-        classes,
+        num_classes,
         bounding_box_format,
         backbone=None,
         anchor_generator=None,
@@ -299,15 +307,17 @@ class FasterRCNN(tf.keras.Model):
             nms_score_threshold_train=float("-inf"),
             nms_score_threshold_test=float("-inf"),
         )
-        self.box_matcher = BoxMatcher(thresholds=[0.0, 0.5], match_values=[-2, -1, 1])
+        self.box_matcher = BoxMatcher(
+            thresholds=[0.0, 0.5], match_values=[-2, -1, 1]
+        )
         self.roi_sampler = _ROISampler(
             bounding_box_format="yxyx",
             roi_matcher=self.box_matcher,
-            background_class=classes,
+            background_class=num_classes,
             num_sampled_rois=512,
         )
         self.roi_pooler = _ROIAligner(bounding_box_format="yxyx")
-        self.rcnn_head = rcnn_head or RCNNHead(classes)
+        self.rcnn_head = rcnn_head or RCNNHead(num_classes)
         self.backbone = (
             backbone
             or keras_cv.models.ResNet50(
@@ -348,7 +358,9 @@ class FasterRCNN(tf.keras.Model):
             box_format="yxyx",
             variance=BOX_VARIANCE,
         )
-        rois, _ = self.roi_generator(decoded_rpn_boxes, rpn_scores, training=training)
+        rois, _ = self.roi_generator(
+            decoded_rpn_boxes, rpn_scores, training=training
+        )
         rois = _clip_boxes(rois, "yxyx", image_shape)
         rpn_boxes = tf.concat(tf.nest.flatten(rpn_boxes), axis=1)
         rpn_scores = tf.concat(tf.nest.flatten(rpn_scores), axis=1)
@@ -361,14 +373,20 @@ class FasterRCNN(tf.keras.Model):
             feature_map, tf.concat([tf.shape(rois)[:2], [-1]], axis=0)
         )
         # [BS, H*W*K, 4], [BS, H*W*K, num_classes + 1]
-        rcnn_box_pred, rcnn_cls_pred = self.rcnn_head(feature_map, training=training)
+        rcnn_box_pred, rcnn_cls_pred = self.rcnn_head(
+            feature_map, training=training
+        )
         return rcnn_box_pred, rcnn_cls_pred
 
     def call(self, images, training=None):
         image_shape = tf.shape(images[0])
         anchors = self.anchor_generator(image_shape=image_shape)
-        rois, feature_map, _, _ = self._call_rpn(images, anchors, training=training)
-        box_pred, cls_pred = self._call_rcnn(rois, feature_map, training=training)
+        rois, feature_map, _, _ = self._call_rpn(
+            images, anchors, training=training
+        )
+        box_pred, cls_pred = self._call_rcnn(
+            rois, feature_map, training=training
+        )
         if not training:
             # box_pred is on "center_yxhw" format, convert to target format.
             box_pred = _decode_deltas_to_boxes(
@@ -453,18 +471,26 @@ class FasterRCNN(tf.keras.Model):
         ) = self.rpn_labeler(
             tf.concat(tf.nest.flatten(anchors), axis=0), boxes, classes
         )
-        rpn_box_weights /= self.rpn_labeler.samples_per_image * global_batch * 0.25
+        rpn_box_weights /= (
+            self.rpn_labeler.samples_per_image * global_batch * 0.25
+        )
         rpn_cls_weights /= self.rpn_labeler.samples_per_image * global_batch
         rois, feature_map, rpn_box_pred, rpn_cls_pred = self._call_rpn(
             images, anchors, training=training
         )
         rois = tf.stop_gradient(rois)
-        rois, box_targets, box_weights, cls_targets, cls_weights = self.roi_sampler(
-            rois, boxes, classes
-        )
+        (
+            rois,
+            box_targets,
+            box_weights,
+            cls_targets,
+            cls_weights,
+        ) = self.roi_sampler(rois, boxes, classes)
         box_weights /= self.roi_sampler.num_sampled_rois * global_batch * 0.25
         cls_weights /= self.roi_sampler.num_sampled_rois * global_batch
-        box_pred, cls_pred = self._call_rcnn(rois, feature_map, training=training)
+        box_pred, cls_pred = self._call_rcnn(
+            rois, feature_map, training=training
+        )
         y_true = {
             "rpn_box": rpn_box_targets,
             "rpn_classification": rpn_cls_targets,
@@ -499,12 +525,16 @@ class FasterRCNN(tf.keras.Model):
         # TODO(tanzhenyu): remove this hack and perform broadcasting elsewhere
         classes = tf.expand_dims(y["classes"], axis=-1)
         with tf.GradientTape() as tape:
-            total_loss = self.compute_loss(images, boxes, classes, training=True)
+            total_loss = self.compute_loss(
+                images, boxes, classes, training=True
+            )
             reg_losses = []
             if self.weight_decay:
                 for var in self.trainable_variables:
                     if "bn" not in var.name:
-                        reg_losses.append(self.weight_decay * tf.nn.l2_loss(var))
+                        reg_losses.append(
+                            self.weight_decay * tf.nn.l2_loss(var)
+                        )
                 l2_loss = tf.math.add_n(reg_losses)
             total_loss += l2_loss
         self.optimizer.minimize(total_loss, self.trainable_variables, tape=tape)
@@ -556,7 +586,7 @@ class FasterRCNN(tf.keras.Model):
 
     def get_config(self):
         return {
-            "classes": self.classes,
+            "num_classes": self.num_classes,
             "bounding_box_format": self.bounding_box_format,
             "backbone": self.backbone,
             "anchor_generator": self.anchor_generator,

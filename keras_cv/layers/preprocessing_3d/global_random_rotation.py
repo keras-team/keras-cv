@@ -16,8 +16,8 @@ import tensorflow as tf
 
 from keras_cv.bounding_box_3d import CENTER_XYZ_DXDYDZ_PHI
 from keras_cv.layers.preprocessing_3d import base_augmentation_layer_3d
-from keras_cv.ops.point_cloud import coordinate_transform
-from keras_cv.ops.point_cloud import wrap_angle_radians
+from keras_cv.point_cloud import coordinate_transform
+from keras_cv.point_cloud import wrap_angle_radians
 
 POINT_CLOUDS = base_augmentation_layer_3d.POINT_CLOUDS
 BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
@@ -60,9 +60,15 @@ class GlobalRandomRotation(base_augmentation_layer_3d.BaseAugmentationLayer3D):
         **kwargs
     ):
         super().__init__(**kwargs)
-        max_rotation_angle_x = max_rotation_angle_x if max_rotation_angle_x else 0.0
-        max_rotation_angle_y = max_rotation_angle_y if max_rotation_angle_y else 0.0
-        max_rotation_angle_z = max_rotation_angle_z if max_rotation_angle_z else 0.0
+        max_rotation_angle_x = (
+            max_rotation_angle_x if max_rotation_angle_x else 0.0
+        )
+        max_rotation_angle_y = (
+            max_rotation_angle_y if max_rotation_angle_y else 0.0
+        )
+        max_rotation_angle_z = (
+            max_rotation_angle_z if max_rotation_angle_z else 0.0
+        )
 
         if max_rotation_angle_x < 0:
             raise ValueError("max_rotation_angle_x must be >=0.")
@@ -83,17 +89,33 @@ class GlobalRandomRotation(base_augmentation_layer_3d.BaseAugmentationLayer3D):
 
     def get_random_transformation(self, **kwargs):
         random_rotation_x = self._random_generator.random_uniform(
-            (), minval=-self._max_rotation_angle_x, maxval=self._max_rotation_angle_x
+            (),
+            minval=-self._max_rotation_angle_x,
+            maxval=self._max_rotation_angle_x,
+            dtype=self.compute_dtype,
         )
         random_rotation_y = self._random_generator.random_uniform(
-            (), minval=-self._max_rotation_angle_y, maxval=self._max_rotation_angle_y
+            (),
+            minval=-self._max_rotation_angle_y,
+            maxval=self._max_rotation_angle_y,
+            dtype=self.compute_dtype,
         )
         random_rotation_z = self._random_generator.random_uniform(
-            (), minval=-self._max_rotation_angle_z, maxval=self._max_rotation_angle_z
+            (),
+            minval=-self._max_rotation_angle_z,
+            maxval=self._max_rotation_angle_z,
+            dtype=self.compute_dtype,
         )
         return {
             "pose": tf.stack(
-                [0, 0, 0, random_rotation_z, random_rotation_x, random_rotation_y],
+                [
+                    0,
+                    0,
+                    0,
+                    random_rotation_z,
+                    random_rotation_x,
+                    random_rotation_y,
+                ],
                 axis=0,
             )
         }
@@ -103,13 +125,17 @@ class GlobalRandomRotation(base_augmentation_layer_3d.BaseAugmentationLayer3D):
     ):
         pose = transformation["pose"]
         point_clouds_xyz = coordinate_transform(point_clouds[..., :3], pose)
-        point_clouds = tf.concat([point_clouds_xyz, point_clouds[..., 3:]], axis=-1)
+        point_clouds = tf.concat(
+            [point_clouds_xyz, point_clouds[..., 3:]], axis=-1
+        )
 
         bounding_boxes_xyz = coordinate_transform(
             bounding_boxes[..., : CENTER_XYZ_DXDYDZ_PHI.Z + 1], pose
         )
         bounding_boxes_heading = wrap_angle_radians(
-            tf.expand_dims(bounding_boxes[..., CENTER_XYZ_DXDYDZ_PHI.PHI], axis=-1)
+            tf.expand_dims(
+                bounding_boxes[..., CENTER_XYZ_DXDYDZ_PHI.PHI], axis=-1
+            )
             - pose[3]
         )
         bounding_boxes = tf.concat(

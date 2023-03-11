@@ -67,8 +67,12 @@ class TransformerEncoder(layers.Layer):
         self.layer_norm_epsilon = layer_norm_epsilon
         self.mlp_units = [mlp_dim, project_dim]
 
-        self.layer_norm1 = layers.LayerNormalization(epsilon=self.layer_norm_epsilon)
-        self.layer_norm2 = layers.LayerNormalization(epsilon=self.layer_norm_epsilon)
+        self.layer_norm1 = layers.LayerNormalization(
+            epsilon=self.layer_norm_epsilon
+        )
+        self.layer_norm2 = layers.LayerNormalization(
+            epsilon=self.layer_norm_epsilon
+        )
         self.attn = layers.MultiHeadAttention(
             num_heads=self.num_heads,
             key_dim=self.project_dim // self.num_heads,
@@ -113,6 +117,9 @@ class TransformerEncoder(layers.Layer):
 
     def get_config(self):
         config = super().get_config()
+        activation = self.activation
+        if not isinstance(activation, (str, dict)):
+            activation = tf.keras.activations.serialize(activation)
         config.update(
             {
                 "project_dim": self.project_dim,
@@ -120,7 +127,7 @@ class TransformerEncoder(layers.Layer):
                 "num_heads": self.num_heads,
                 "attention_dropout": self.attention_dropout,
                 "mlp_dropout": self.mlp_dropout,
-                "activation": self.activation,
+                "activation": activation,
                 "layer_norm_epsilon": self.layer_norm_epsilon,
             }
         )
@@ -129,5 +136,6 @@ class TransformerEncoder(layers.Layer):
     @classmethod
     def from_config(cls, config, custom_objects=None):
         activation = config.pop("activation")
-        activation = tf.keras.activations.deserialize(activation)
+        if isinstance(activation, (str, dict)):
+            activation = tf.keras.activations.deserialize(activation)
         return cls(activation=activation, **config)

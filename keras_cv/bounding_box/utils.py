@@ -21,7 +21,10 @@ from keras_cv.bounding_box.formats import XYWH
 
 def is_relative(bounding_box_format):
     """A util to check if a bounding box format uses relative coordinates"""
-    if bounding_box_format.lower() not in bounding_box.converters.TO_XYXY_CONVERTERS:
+    if (
+        bounding_box_format.lower()
+        not in bounding_box.converters.TO_XYXY_CONVERTERS
+    ):
         raise ValueError(
             "`is_relative()` received an unsupported format for the argument "
             f"`bounding_box_format`.  `bounding_box_format` should be one of "
@@ -54,12 +57,16 @@ def _relative_area(boxes, bounding_box_format):
     widths = boxes[..., XYWH.WIDTH]
     heights = boxes[..., XYWH.HEIGHT]
     # handle corner case where shear performs a full inversion.
-    return tf.where(tf.math.logical_and(widths > 0, heights > 0), widths * heights, 0.0)
+    return tf.where(
+        tf.math.logical_and(widths > 0, heights > 0), widths * heights, 0.0
+    )
 
 
 # bounding_boxes is a dictionary with shape:
 # {"boxes": [None, None, 4], "mask": [None, None]}
-def clip_to_image(bounding_boxes, bounding_box_format, images=None, image_shape=None):
+def clip_to_image(
+    bounding_boxes, bounding_box_format, images=None, image_shape=None
+):
     """clips bounding boxes to image boundaries.
 
     `clip_to_image()` clips bounding boxes that have coordinates out of bounds of an
@@ -94,7 +101,9 @@ def clip_to_image(bounding_boxes, bounding_box_format, images=None, image_shape=
         ],
         axis=-1,
     )
-    areas = _relative_area(clipped_bounding_boxes, bounding_box_format="rel_xyxy")
+    areas = _relative_area(
+        clipped_bounding_boxes, bounding_box_format="rel_xyxy"
+    )
     clipped_bounding_boxes = bounding_box.convert_format(
         clipped_bounding_boxes,
         source="rel_xyxy",
@@ -106,7 +115,9 @@ def clip_to_image(bounding_boxes, bounding_box_format, images=None, image_shape=
         tf.expand_dims(areas > 0.0, axis=-1), clipped_bounding_boxes, -1.0
     )
     classes = tf.where(areas > 0.0, classes, tf.constant(-1, classes.dtype))
-    nan_indices = tf.math.reduce_any(tf.math.is_nan(clipped_bounding_boxes), axis=-1)
+    nan_indices = tf.math.reduce_any(
+        tf.math.is_nan(clipped_bounding_boxes), axis=-1
+    )
     classes = tf.where(nan_indices, tf.constant(-1, classes.dtype), classes)
 
     # TODO update dict and return

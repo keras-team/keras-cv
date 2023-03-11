@@ -19,7 +19,9 @@ from keras_cv.metrics.coco import compute_pycoco_metrics
 
 
 class PyCOCOCallback(Callback):
-    def __init__(self, validation_data, bounding_box_format, cache=True, **kwargs):
+    def __init__(
+        self, validation_data, bounding_box_format, cache=True, **kwargs
+    ):
         """Creates a callback to evaluate PyCOCO metrics on a validation dataset.
 
         Args:
@@ -62,7 +64,8 @@ class PyCOCOCallback(Callback):
 
         gt = [boxes for boxes in self.val_data.map(boxes_only)]
         gt_boxes = tf.concat(
-            [tf.RaggedTensor.from_tensor(boxes["boxes"]) for boxes in gt], axis=0
+            [tf.RaggedTensor.from_tensor(boxes["boxes"]) for boxes in gt],
+            axis=0,
         )
         gt_classes = tf.concat(
             [tf.RaggedTensor.from_tensor(boxes["classes"]) for boxes in gt],
@@ -84,7 +87,9 @@ class PyCOCOCallback(Callback):
 
         ground_truth = {}
         ground_truth["source_id"] = [source_ids]
-        ground_truth["height"] = [tf.tile(tf.constant([height]), [total_images])]
+        ground_truth["height"] = [
+            tf.tile(tf.constant([height]), [total_images])
+        ]
         ground_truth["width"] = [tf.tile(tf.constant([width]), [total_images])]
 
         ground_truth["num_detections"] = [gt_boxes.row_lengths(axis=1)]

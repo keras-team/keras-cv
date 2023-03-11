@@ -57,7 +57,9 @@ class JitteredResizeTest(tf.test.TestCase, parameterized.TestCase):
             seed=self.seed,
         )
         output = layer(input, training=True)
-        output["bounding_boxes"] = bounding_box.to_dense(output["bounding_boxes"])
+        output["bounding_boxes"] = bounding_box.to_dense(
+            output["bounding_boxes"]
+        )
         expected_output = {
             "boxes": tf.convert_to_tensor([[0, 0, 1, 1]], dtype=tf.float32),
             "classes": tf.convert_to_tensor([0], dtype=tf.float32),
@@ -91,7 +93,9 @@ class JitteredResizeTest(tf.test.TestCase, parameterized.TestCase):
             seed=self.seed,
         )
         output = layer(input, training=True)
-        output["bounding_boxes"] = bounding_box.to_dense(output["bounding_boxes"])
+        output["bounding_boxes"] = bounding_box.to_dense(
+            output["bounding_boxes"]
+        )
         expected_output = {
             "classes": tf.convert_to_tensor([[0, 0], [0, 0]], dtype=tf.float32),
             "boxes": tf.convert_to_tensor(

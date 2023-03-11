@@ -41,7 +41,9 @@ class BoxMatcherTest(tf.test.TestCase):
             )
 
     def test_box_matcher_unbatched(self):
-        sim_matrix = tf.constant([[0.04, 0, 0, 0], [0, 0, 1.0, 0]], dtype=tf.float32)
+        sim_matrix = tf.constant(
+            [[0.04, 0, 0, 0], [0, 0, 1.0, 0]], dtype=tf.float32
+        )
 
         fg_threshold = 0.5
         bg_thresh_hi = 0.2
@@ -61,7 +63,9 @@ class BoxMatcherTest(tf.test.TestCase):
         self.assertAllEqual(matched_values.numpy(), [-2, 1])
 
     def test_box_matcher_batched(self):
-        sim_matrix = tf.constant([[[0.04, 0, 0, 0], [0, 0, 1.0, 0]]], dtype=tf.float32)
+        sim_matrix = tf.constant(
+            [[[0.04, 0, 0, 0], [0, 0, 1.0, 0]]], dtype=tf.float32
+        )
 
         fg_threshold = 0.5
         bg_thresh_hi = 0.2
@@ -100,7 +104,9 @@ class BoxMatcherTest(tf.test.TestCase):
         negative_matches = tf.equal(matched_values, -2)
 
         self.assertAllEqual(positive_matches.numpy(), [True, True, True, True])
-        self.assertAllEqual(negative_matches.numpy(), [False, False, False, False])
+        self.assertAllEqual(
+            negative_matches.numpy(), [False, False, False, False]
+        )
         # the first anchor cannot be matched to 4th gt box given that is matched to
         # the last anchor.
         self.assertAllEqual(match_indices.numpy(), [1, 2, 0, 3])

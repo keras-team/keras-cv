@@ -93,7 +93,8 @@ class Mosaic(BaseImageAugmentationLayer):
         )
         # concatenate the batches with permutation order to get all 4 images of the mosaic
         permutation_order = tf.concat(
-            [tf.expand_dims(tf.range(batch_size), axis=-1), permutation_order], axis=-1
+            [tf.expand_dims(tf.range(batch_size), axis=-1), permutation_order],
+            axis=-1,
         )
 
         input_height, input_width, _ = images.shape[1:]
@@ -106,7 +107,8 @@ class Mosaic(BaseImageAugmentationLayer):
         )
         mosaic_centers_y = (
             self.center_sampler(
-                shape=tf.expand_dims(batch_size, axis=0), dtype=self.compute_dtype
+                shape=tf.expand_dims(batch_size, axis=0),
+                dtype=self.compute_dtype,
             )
             * input_height
         )
@@ -208,10 +210,15 @@ class Mosaic(BaseImageAugmentationLayer):
             [input_height, input_width],
         )
         # tf.image.crop_and_resize will always output float32, so we need to recast
+        # tf.image.crop_and_resize outputs [num_boxes, crop_height, crop_width, depth]
+        # since num_boxes is always one we squeeze axis 0
         output = tf.cast(output, self.compute_dtype)
-        return tf.squeeze(output)
+        output = tf.squeeze(output, axis=0)
+        return output
 
-    def _update_label(self, images, labels, permutation_order, mosaic_centers, index):
+    def _update_label(
+        self, images, labels, permutation_order, mosaic_centers, index
+    ):
         # updates labels for one output mosaic
         input_height, input_width, _ = images.shape[1:]
         labels_for_mosaic = tf.gather(labels, permutation_order[index])
@@ -236,7 +243,13 @@ class Mosaic(BaseImageAugmentationLayer):
         return label
 
     def _update_bounding_box(
-        self, images, bounding_boxes, permutation_order, translate_x, translate_y, index
+        self,
+        images,
+        bounding_boxes,
+        permutation_order,
+        translate_x,
+        translate_y,
+        index,
     ):
         # updates bounding_boxes for one output mosaic
         bounding_boxes = bounding_box.convert_format(
@@ -273,7 +286,10 @@ class Mosaic(BaseImageAugmentationLayer):
             ],
         )
 
-        boxes_for_mosaic = {"boxes": boxes_for_mosaic, "classes": classes_for_mosaic}
+        boxes_for_mosaic = {
+            "boxes": boxes_for_mosaic,
+            "classes": classes_for_mosaic,
+        }
         boxes_for_mosaic = bounding_box.clip_to_image(
             boxes_for_mosaic,
             bounding_box_format="xyxy",

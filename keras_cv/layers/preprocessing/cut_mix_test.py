@@ -15,7 +15,7 @@ import tensorflow as tf
 
 from keras_cv.layers.preprocessing.cut_mix import CutMix
 
-classes = 10
+num_classes = 10
 
 
 class CutMixTest(tf.test.TestCase):
@@ -24,7 +24,7 @@ class CutMixTest(tf.test.TestCase):
         # randomly sample labels
         ys = tf.random.categorical(tf.math.log([[0.5, 0.5]]), 2)
         ys = tf.squeeze(ys)
-        ys = tf.one_hot(ys, classes)
+        ys = tf.one_hot(ys, num_classes)
 
         layer = CutMix(seed=1)
         outputs = layer({"images": xs, "labels": ys})
@@ -81,7 +81,9 @@ class CutMixTest(tf.test.TestCase):
 
     def test_in_tf_function(self):
         xs = tf.cast(
-            tf.stack([2 * tf.ones((100, 100, 1)), tf.ones((100, 100, 1))], axis=0),
+            tf.stack(
+                [2 * tf.ones((100, 100, 1)), tf.ones((100, 100, 1))], axis=0
+            ),
             tf.float32,
         )
         ys = tf.one_hot(tf.constant([0, 1]), 2)
@@ -126,7 +128,9 @@ class CutMixTest(tf.test.TestCase):
         ys = tf.one_hot(tf.constant([1, 0]), 2, dtype=tf.int32)
         inputs = {"images": xs, "labels": ys}
         layer = CutMix()
-        with self.assertRaisesRegexp(ValueError, "CutMix received labels with type"):
+        with self.assertRaisesRegexp(
+            ValueError, "CutMix received labels with type"
+        ):
             _ = layer(inputs)
 
     def test_image_input(self):

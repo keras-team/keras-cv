@@ -46,8 +46,8 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
             inputs will be passed through a `Rescaling(scale=1 / 255)`
             layer, defaults to True.
         include_top: whether to include the fully-connected layer at the top of the
-            network.  If provided, `classes` must be provided.
-        classes: optional number of classes to classify images into, only to be
+            network.  If provided, `num_classes` must be provided.
+        num_classes: optional number of classes to classify images into, only to be
             specified if `include_top` is True, and if no `weights` argument is
             specified.
         weights: one of `None` (random initialization), or a pretrained weight file
@@ -154,7 +154,14 @@ def HardSwish(name=None):
 
 
 def InvertedResBlock(
-    expansion, filters, kernel_size, stride, se_ratio, activation, block_id, name=None
+    expansion,
+    filters,
+    kernel_size,
+    stride,
+    se_ratio,
+    activation,
+    block_id,
+    name=None,
 ):
     """An Inverted Residual Block.
 
@@ -251,7 +258,7 @@ def MobileNetV3(
     last_point_ch,
     include_rescaling,
     include_top,
-    classes=None,
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -282,8 +289,8 @@ def MobileNetV3(
             inputs will be passed through a `Rescaling(scale=1 / 255)`
             layer, defaults to True.
         include_top: whether to include the fully-connected layer at the top of the
-            network.  If provided, `classes` must be provided.
-        classes: optional number of classes to classify images into, only to be
+            network.  If provided, `num_classes` must be provided.
+        num_classes: optional number of classes to classify images into, only to be
             specified if `include_top` is True, and if no `weights` argument is
             specified.
         weights: one of `None` (random initialization), or a pretrained weight file
@@ -326,7 +333,7 @@ def MobileNetV3(
     Raises:
         ValueError: if `weights` represents an invalid path to weights file and is not
             None.
-        ValueError: if `include_top` is True and `classes` is not specified.
+        ValueError: if `include_top` is True and `num_classes` is not specified.
     """
     if weights and not tf.io.gfile.exists(weights):
         raise ValueError(
@@ -335,11 +342,11 @@ def MobileNetV3(
             f"Weights file not found at location: {weights}"
         )
 
-    if include_top and not classes:
+    if include_top and not num_classes:
         raise ValueError(
             "If `include_top` is True, "
-            "you should specify `classes`. "
-            f"Received: classes={classes}"
+            "you should specify `num_classes`. "
+            f"Received: num_classes={num_classes}"
         )
 
     if minimalistic:
@@ -403,9 +410,13 @@ def MobileNetV3(
 
         if dropout_rate > 0:
             x = layers.Dropout(dropout_rate)(x)
-        x = layers.Conv2D(classes, kernel_size=1, padding="same", name="Logits")(x)
+        x = layers.Conv2D(
+            num_classes, kernel_size=1, padding="same", name="Logits"
+        )(x)
         x = layers.Flatten()(x)
-        x = layers.Activation(activation=classifier_activation, name="Predictions")(x)
+        x = layers.Activation(
+            activation=classifier_activation, name="Predictions"
+        )(x)
     elif pooling == "avg":
         x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
     elif pooling == "max":
@@ -422,7 +433,7 @@ def MobileNetV3Small(
     *,
     include_rescaling,
     include_top,
-    classes=None,
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -435,37 +446,39 @@ def MobileNetV3Small(
     **kwargs,
 ):
     def stack_fn(x, kernel, activation, se_ratio):
-        x = InvertedResBlock(1, depth(16 * alpha), 3, 2, se_ratio, layers.ReLU(), 0)(x)
+        x = InvertedResBlock(
+            1, depth(16 * alpha), 3, 2, se_ratio, layers.ReLU(), 0
+        )(x)
         x = InvertedResBlock(
             72.0 / 16, depth(24 * alpha), 3, 2, None, layers.ReLU(), 1
         )(x)
         x = InvertedResBlock(
             88.0 / 24, depth(24 * alpha), 3, 1, None, layers.ReLU(), 2
         )(x)
-        x = InvertedResBlock(4, depth(40 * alpha), kernel, 2, se_ratio, activation, 3)(
-            x
-        )
-        x = InvertedResBlock(6, depth(40 * alpha), kernel, 1, se_ratio, activation, 4)(
-            x
-        )
-        x = InvertedResBlock(6, depth(40 * alpha), kernel, 1, se_ratio, activation, 5)(
-            x
-        )
-        x = InvertedResBlock(3, depth(48 * alpha), kernel, 1, se_ratio, activation, 6)(
-            x
-        )
-        x = InvertedResBlock(3, depth(48 * alpha), kernel, 1, se_ratio, activation, 7)(
-            x
-        )
-        x = InvertedResBlock(6, depth(96 * alpha), kernel, 2, se_ratio, activation, 8)(
-            x
-        )
-        x = InvertedResBlock(6, depth(96 * alpha), kernel, 1, se_ratio, activation, 9)(
-            x
-        )
-        x = InvertedResBlock(6, depth(96 * alpha), kernel, 1, se_ratio, activation, 10)(
-            x
-        )
+        x = InvertedResBlock(
+            4, depth(40 * alpha), kernel, 2, se_ratio, activation, 3
+        )(x)
+        x = InvertedResBlock(
+            6, depth(40 * alpha), kernel, 1, se_ratio, activation, 4
+        )(x)
+        x = InvertedResBlock(
+            6, depth(40 * alpha), kernel, 1, se_ratio, activation, 5
+        )(x)
+        x = InvertedResBlock(
+            3, depth(48 * alpha), kernel, 1, se_ratio, activation, 6
+        )(x)
+        x = InvertedResBlock(
+            3, depth(48 * alpha), kernel, 1, se_ratio, activation, 7
+        )(x)
+        x = InvertedResBlock(
+            6, depth(96 * alpha), kernel, 2, se_ratio, activation, 8
+        )(x)
+        x = InvertedResBlock(
+            6, depth(96 * alpha), kernel, 1, se_ratio, activation, 9
+        )(x)
+        x = InvertedResBlock(
+            6, depth(96 * alpha), kernel, 1, se_ratio, activation, 10
+        )(x)
         return x
 
     return MobileNetV3(
@@ -473,7 +486,7 @@ def MobileNetV3Small(
         last_point_ch=1024,
         include_rescaling=include_rescaling,
         include_top=include_top,
-        classes=classes,
+        num_classes=num_classes,
         weights=weights,
         input_shape=input_shape,
         input_tensor=input_tensor,
@@ -491,7 +504,7 @@ def MobileNetV3Large(
     *,
     include_rescaling,
     include_top,
-    classes=None,
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -504,9 +517,15 @@ def MobileNetV3Large(
     **kwargs,
 ):
     def stack_fn(x, kernel, activation, se_ratio):
-        x = InvertedResBlock(1, depth(16 * alpha), 3, 1, None, layers.ReLU(), 0)(x)
-        x = InvertedResBlock(4, depth(24 * alpha), 3, 2, None, layers.ReLU(), 1)(x)
-        x = InvertedResBlock(3, depth(24 * alpha), 3, 1, None, layers.ReLU(), 2)(x)
+        x = InvertedResBlock(
+            1, depth(16 * alpha), 3, 1, None, layers.ReLU(), 0
+        )(x)
+        x = InvertedResBlock(
+            4, depth(24 * alpha), 3, 2, None, layers.ReLU(), 1
+        )(x)
+        x = InvertedResBlock(
+            3, depth(24 * alpha), 3, 1, None, layers.ReLU(), 2
+        )(x)
         x = InvertedResBlock(
             3, depth(40 * alpha), kernel, 2, se_ratio, layers.ReLU(), 3
         )(x)
@@ -517,11 +536,21 @@ def MobileNetV3Large(
             3, depth(40 * alpha), kernel, 1, se_ratio, layers.ReLU(), 5
         )(x)
         x = InvertedResBlock(6, depth(80 * alpha), 3, 2, None, activation, 6)(x)
-        x = InvertedResBlock(2.5, depth(80 * alpha), 3, 1, None, activation, 7)(x)
-        x = InvertedResBlock(2.3, depth(80 * alpha), 3, 1, None, activation, 8)(x)
-        x = InvertedResBlock(2.3, depth(80 * alpha), 3, 1, None, activation, 9)(x)
-        x = InvertedResBlock(6, depth(112 * alpha), 3, 1, se_ratio, activation, 10)(x)
-        x = InvertedResBlock(6, depth(112 * alpha), 3, 1, se_ratio, activation, 11)(x)
+        x = InvertedResBlock(2.5, depth(80 * alpha), 3, 1, None, activation, 7)(
+            x
+        )
+        x = InvertedResBlock(2.3, depth(80 * alpha), 3, 1, None, activation, 8)(
+            x
+        )
+        x = InvertedResBlock(2.3, depth(80 * alpha), 3, 1, None, activation, 9)(
+            x
+        )
+        x = InvertedResBlock(
+            6, depth(112 * alpha), 3, 1, se_ratio, activation, 10
+        )(x)
+        x = InvertedResBlock(
+            6, depth(112 * alpha), 3, 1, se_ratio, activation, 11
+        )(x)
         x = InvertedResBlock(
             6, depth(160 * alpha), kernel, 2, se_ratio, activation, 12
         )(x)
@@ -538,7 +567,7 @@ def MobileNetV3Large(
         last_point_ch=1280,
         include_rescaling=include_rescaling,
         include_top=include_top,
-        classes=classes,
+        num_classes=num_classes,
         weights=weights,
         input_shape=input_shape,
         input_tensor=input_tensor,
@@ -552,5 +581,9 @@ def MobileNetV3Large(
     )
 
 
-setattr(MobileNetV3Large, "__doc__", BASE_DOCSTRING.format(name="MobileNetV3Large"))
-setattr(MobileNetV3Small, "__doc__", BASE_DOCSTRING.format(name="MobileNetV3Small"))
+setattr(
+    MobileNetV3Large, "__doc__", BASE_DOCSTRING.format(name="MobileNetV3Large")
+)
+setattr(
+    MobileNetV3Small, "__doc__", BASE_DOCSTRING.format(name="MobileNetV3Small")
+)

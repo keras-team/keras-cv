@@ -20,7 +20,18 @@ from keras_cv.layers.object_detection.sampling import balanced_sample
 class BalancedSamplingTest(tf.test.TestCase):
     def test_balanced_sampling(self):
         positive_matches = tf.constant(
-            [True, False, False, False, False, False, False, False, False, False]
+            [
+                True,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+            ]
         )
         negative_matches = tf.constant(
             [False, True, True, True, True, True, True, True, True, True]
@@ -36,8 +47,30 @@ class BalancedSamplingTest(tf.test.TestCase):
     def test_balanced_batched_sampling(self):
         positive_matches = tf.constant(
             [
-                [True, False, False, False, False, False, False, False, False, False],
-                [False, False, False, False, False, False, True, False, False, False],
+                [
+                    True,
+                    False,
+                    False,
+                    False,
+                    False,
+                    False,
+                    False,
+                    False,
+                    False,
+                    False,
+                ],
+                [
+                    False,
+                    False,
+                    False,
+                    False,
+                    False,
+                    False,
+                    True,
+                    False,
+                    False,
+                    False,
+                ],
             ]
         )
         negative_matches = tf.constant(
@@ -58,7 +91,18 @@ class BalancedSamplingTest(tf.test.TestCase):
 
     def test_balanced_sampling_over_positive_fraction(self):
         positive_matches = tf.constant(
-            [True, False, False, False, False, False, False, False, False, False]
+            [
+                True,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+            ]
         )
         negative_matches = tf.constant(
             [False, True, True, True, True, True, True, True, True, True]
@@ -73,7 +117,18 @@ class BalancedSamplingTest(tf.test.TestCase):
 
     def test_balanced_sampling_under_positive_fraction(self):
         positive_matches = tf.constant(
-            [True, False, False, False, False, False, False, False, False, False]
+            [
+                True,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+            ]
         )
         negative_matches = tf.constant(
             [False, True, True, True, True, True, True, True, True, True]
@@ -89,7 +144,18 @@ class BalancedSamplingTest(tf.test.TestCase):
 
     def test_balanced_sampling_over_num_samples(self):
         positive_matches = tf.constant(
-            [True, False, False, False, False, False, False, False, False, False]
+            [
+                True,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+            ]
         )
         negative_matches = tf.constant(
             [False, True, True, True, True, True, True, True, True, True]
@@ -99,12 +165,26 @@ class BalancedSamplingTest(tf.test.TestCase):
         positive_fraction = 0.1
         with self.assertRaisesRegex(ValueError, "has less element"):
             _ = balanced_sample(
-                positive_matches, negative_matches, num_samples, positive_fraction
+                positive_matches,
+                negative_matches,
+                num_samples,
+                positive_fraction,
             )
 
     def test_balanced_sampling_no_positive(self):
         positive_matches = tf.constant(
-            [False, False, False, False, False, False, False, False, False, False]
+            [
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+            ]
         )
         # the rest are neither positive nor negative, but ignord matches
         negative_matches = tf.constant(
