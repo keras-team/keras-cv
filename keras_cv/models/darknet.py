@@ -44,16 +44,16 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
         https://keras.io/guides/transfer_learning/).
 
     Args:
-        include_rescaling: whether or not to Rescale the inputs.If set to True,
+        include_rescaling: whether or not to rescale the inputs. If set to True,
             inputs will be passed through a `Rescaling(1/255.0)` layer.
         include_top: whether to include the fully-connected layer at the top of
             the network.  If provided, `num_classes` must be provided.
-        num_classes: optional number of classes to classify images into, only to be
+        num_classes: optional number of classes to classify images into. Only to be
             specified if `include_top` is True.
         weights: one of `None` (random initialization), or a pretrained weight
             file path.
         input_shape: optional shape tuple, defaults to (None, None, 3).
-        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
+        input_tensor: optional Keras tensor (i.e., output of `layers.Input()`)
             to use as image input for the model.
         pooling: optional pooling mode for feature extraction when `include_top`
             is `False`.
@@ -63,7 +63,8 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
                 output of the last convolutional block, and thus the output of the
                 model will be a 2D tensor.
             - `max` means that global max pooling will be applied.
-        name: (Optional) name to pass to the model.  Defaults to "{name}".
+        name: optional name to pass to the model, defaults to "{name}".
+        
     Returns:
         A `keras.Model` instance.
 """
@@ -87,16 +88,16 @@ class DarkNet(keras.Model):
 
     Args:
         blocks: numbers of building blocks from the layer dark2 to layer dark5.
-        include_rescaling: whether or not to Rescale the inputs.If set to True,
+        include_rescaling: whether to rescale the inputs. If set to True,
             inputs will be passed through a `Rescaling(1/255.0)` layer.
         include_top: whether to include the fully-connected layer at the top of
             the network.  If provided, `num_classes` must be provided.
-        num_classes: optional number of classes to classify imagesinto, only to be
+        num_classes: optional number of classes to classify images into. Only to be
             specified if `include_top` is True.
-        weights: one of `None` (random initialization), or a pretrained weight
+        weights: one of `None` (random initialization) or a pretrained weight
             file path.
         input_shape: optional shape tuple, defaults to (None, None, 3).
-        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
+        input_tensor: optional Keras tensor (i.e., output of `layers.Input()`)
             to use as image input for the model.
         pooling: optional pooling mode for feature extraction when `include_top`
             is `False`.
@@ -109,8 +110,8 @@ class DarkNet(keras.Model):
         classifier_activation: A `str` or callable. The activation function to use
             on the "top" layer. Ignored unless `include_top=True`. Set
             `classifier_activation=None` to return the logits of the "top" layer.
+        name: optional name to pass to the model, defaults to "DarkNet".
 
-        name: (Optional) name to pass to the model.  Defaults to "DarkNet".
     Returns:
         A `keras.Model` instance.
     """
