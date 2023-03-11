@@ -104,124 +104,129 @@ class CSPDarkNet(keras.Model):
         name="CSPDarkNet",
         **kwargs,
     ):
+        if weights and not tf.io.gfile.exists(weights):
+            raise ValueError(
+                "The `weights` argument should be either `None` or the path to the "
+                f"weights file to be loaded. Weights file not found at location: {weights}"
+            )
 
-    if weights and not tf.io.gfile.exists(weights):
-        raise ValueError(
-            "The `weights` argument should be either `None` or the path to the "
-            f"weights file to be loaded. Weights file not found at location: {weights}"
+        if include_top and not num_classes:
+            raise ValueError(
+                "If `include_top` is True, you should specify `num_classes`. Received: "
+                f"num_classes={num_classes}"
+            )
+
+        ConvBlock = (
+            DarknetConvBlockDepthwise if use_depthwise else DarknetConvBlock
         )
 
-    if include_top and not num_classes:
-        raise ValueError(
-            "If `include_top` is True, you should specify `num_classes`. Received: "
-            f"num_classes={num_classes}"
-        )
+        base_channels = int(width_multiplier * 64)
+        base_depth = max(round(depth_multiplier * 3), 1)
 
-    ConvBlock = DarknetConvBlockDepthwise if use_depthwise else DarknetConvBlock
+        inputs = utils.parse_model_inputs(input_shape, input_tensor)
 
-    base_channels = int(width_multiplier * 64)
-    base_depth = max(round(depth_multiplier * 3), 1)
+        x = inputs
+        if include_rescaling:
+            x = layers.Rescaling(1 / 255.0)(x)
 
-    inputs = utils.parse_model_inputs(input_shape, input_tensor)
-
-    x = inputs
-    if include_rescaling:
-        x = layers.Rescaling(1 / 255.0)(x)
-
-    # stem
-    x = Focus(name="stem_focus")(x)
-    x = DarknetConvBlock(
-        base_channels, kernel_size=3, strides=1, name="stem_conv"
-    )(x)
-
-    _backbone_level_outputs = {}
-    # dark2
-    x = ConvBlock(
-        base_channels * 2, kernel_size=3, strides=2, name="dark2_conv"
-    )(x)
-    x = CrossStagePartial(
-        base_channels * 2,
-        num_bottlenecks=base_depth,
-        use_depthwise=use_depthwise,
-        name="dark2_csp",
-    )(x)
-    _backbone_level_outputs[2] = x
-
-    # dark3
-    x = ConvBlock(
-        base_channels * 4, kernel_size=3, strides=2, name="dark3_conv"
-    )(x)
-    x = CrossStagePartial(
-        base_channels * 4,
-        num_bottlenecks=base_depth * 3,
-        use_depthwise=use_depthwise,
-        name="dark3_csp",
-    )(x)
-    _backbone_level_outputs[3] = x
-
-    # dark4
-    x = ConvBlock(
-        base_channels * 8, kernel_size=3, strides=2, name="dark4_conv"
-    )(x)
-    x = CrossStagePartial(
-        base_channels * 8,
-        num_bottlenecks=base_depth * 3,
-        use_depthwise=use_depthwise,
-        name="dark4_csp",
-    )(x)
-    _backbone_level_outputs[4] = x
-
-    # dark5
-    x = ConvBlock(
-        base_channels * 16, kernel_size=3, strides=2, name="dark5_conv"
-    )(x)
-    x = SpatialPyramidPoolingBottleneck(
-        base_channels * 16, hidden_filters=base_channels * 8, name="dark5_spp"
-    )(x)
-    x = CrossStagePartial(
-        base_channels * 16,
-        num_bottlenecks=base_depth,
-        residual=False,
-        use_depthwise=use_depthwise,
-        name="dark5_csp",
-    )(x)
-    _backbone_level_outputs[5] = x
-
-    if include_top:
-        x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-        x = layers.Dense(
-            num_classes, activation=classifier_activation, name="predictions"
+        # stem
+        x = Focus(name="stem_focus")(x)
+        x = DarknetConvBlock(
+            base_channels, kernel_size=3, strides=1, name="stem_conv"
         )(x)
-    elif pooling == "avg":
-        x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-    elif pooling == "max":
-        x = layers.GlobalMaxPooling2D(name="max_pool")(x)
 
-    model = keras.Model(inputs, x, name=name, **kwargs)
-    model._backbone_level_outputs = _backbone_level_outputs
-    # Bind the `to_backbone_model` method to the application model.
-    model.as_backbone = types.MethodType(utils.as_backbone, model)
+        _backbone_level_outputs = {}
+        # dark2
+        x = ConvBlock(
+            base_channels * 2, kernel_size=3, strides=2, name="dark2_conv"
+        )(x)
+        x = CrossStagePartial(
+            base_channels * 2,
+            num_bottlenecks=base_depth,
+            use_depthwise=use_depthwise,
+            name="dark2_csp",
+        )(x)
+        _backbone_level_outputs[2] = x
 
-    if weights is not None:
-        model.load_weights(weights)
-    return model
+        # dark3
+        x = ConvBlock(
+            base_channels * 4, kernel_size=3, strides=2, name="dark3_conv"
+        )(x)
+        x = CrossStagePartial(
+            base_channels * 4,
+            num_bottlenecks=base_depth * 3,
+            use_depthwise=use_depthwise,
+            name="dark3_csp",
+        )(x)
+        _backbone_level_outputs[3] = x
 
+        # dark4
+        x = ConvBlock(
+            base_channels * 8, kernel_size=3, strides=2, name="dark4_conv"
+        )(x)
+        x = CrossStagePartial(
+            base_channels * 8,
+            num_bottlenecks=base_depth * 3,
+            use_depthwise=use_depthwise,
+            name="dark4_csp",
+        )(x)
+        _backbone_level_outputs[4] = x
 
-DEPTH_MULTIPLIERS = {
-    "tiny": 0.33,
-    "s": 0.33,
-    "m": 0.67,
-    "l": 1.00,
-    "x": 1.33,
-}
+        # dark5
+        x = ConvBlock(
+            base_channels * 16, kernel_size=3, strides=2, name="dark5_conv"
+        )(x)
+        x = SpatialPyramidPoolingBottleneck(
+            base_channels * 16,
+            hidden_filters=base_channels * 8,
+            name="dark5_spp",
+        )(x)
+        x = CrossStagePartial(
+            base_channels * 16,
+            num_bottlenecks=base_depth,
+            residual=False,
+            use_depthwise=use_depthwise,
+            name="dark5_csp",
+        )(x)
+        _backbone_level_outputs[5] = x
 
-WIDTH_MULTIPLIERS = {
-    "tiny": 0.375,
-    "s": 0.50,
-    "m": 0.75,
-    "l": 1.00,
-    "x": 1.25,
-}
+        if include_top:
+            x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
+            x = layers.Dense(
+                num_classes,
+                activation=classifier_activation,
+                name="predictions",
+            )(x)
+        elif pooling == "avg":
+            x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
+        elif pooling == "max":
+            x = layers.GlobalMaxPooling2D(name="max_pool")(x)
+
+        model = keras.Model(inputs, x, name=name, **kwargs)
+        model._backbone_level_outputs = _backbone_level_outputs
+        # Bind the `to_backbone_model` method to the application model.
+        model.as_backbone = types.MethodType(utils.as_backbone, model)
+
+        if weights is not None:
+            model.load_weights(weights)
+        return model
+
+    DEPTH_MULTIPLIERS = {
+        "tiny": 0.33,
+        "s": 0.33,
+        "m": 0.67,
+        "l": 1.00,
+        "x": 1.33,
+    }
+
+    WIDTH_MULTIPLIERS = {
+        "tiny": 0.375,
+        "s": 0.50,
+        "m": 0.75,
+        "l": 1.00,
+        "x": 1.25,
+    }
+
 
 BASE_DOCSTRING = """Instantiates the {name} architecture.
 
