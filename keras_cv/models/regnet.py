@@ -784,7 +784,8 @@ class RegNet(tf.keras.Model):
             "input_tensor": self.input_tensor,
             "input_shape": self.input_shape,
             "pooling": self.pooling,
-            "classifier_activation": self.classifier_activation
+            "classifier_activation": self.classifier_activation,
+            "trainable": self.trainable
         }
 
     @classmethod
