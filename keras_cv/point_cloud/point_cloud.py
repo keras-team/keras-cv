@@ -125,6 +125,27 @@ def is_within_any_box3d_v2(points, boxes, keepdims=False):
     return res
 
 
+def is_within_any_box3d_v3(points, boxes, keepdims=False):
+    """Checks if 3d points are within 3d bounding boxes.
+    Currently only xyz format is supported.
+
+    Args:
+      points: [..., num_points, 3] float32 Tensor for 3d points in xyz format.
+      boxes: [..., num_boxes, 7] float32 Tensor for 3d boxes in [x, y, z, dx,
+        dy, dz, phi].
+      keepdims: boolean. If true, retains reduced dimensions with length 1.
+
+    Returns:
+      boolean Tensor of shape [..., num_points] indicating whether
+      the point belongs to the box.
+
+    """
+    res = custom_ops.ops.kcv_within_any_box(points, boxes)
+    if keepdims:
+        res = res[..., tf.newaxis]
+    return res
+
+
 def get_rank(tensor):
     return tensor.shape.ndims or tf.rank(tensor)
 
