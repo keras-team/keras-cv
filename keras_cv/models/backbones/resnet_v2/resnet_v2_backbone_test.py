@@ -81,7 +81,7 @@ class ResNetV2BackboneTest(tf.test.TestCase, parameterized.TestCase):
         ("keras_format", "keras_v3", "model.keras"),
     )
     def test_saved_alias_model(self, save_format, filename):
-        model = ResNet18V2Backbone()
+        model = ResNet50V2Backbone()
         model_output = model(self.input_batch)
         save_path = os.path.join(self.get_temp_dir(), filename)
         model.save(save_path, save_format=save_format)
