@@ -77,7 +77,7 @@ CONSISTENT_OUTPUT_TEST_CONFIGURATIONS = [
     (
         "RandomBrightness",
         layers.RandomBrightness,
-        {"value_range": (0, 1), "factor": (1, 1)},
+        {"factor": (1, 1), "value_range": (0, 1)},
     ),
 ]
 
