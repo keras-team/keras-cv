@@ -12,14 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Tests to ensure that _BoxRecall computes the correct values."""
+"""Tests to ensure that BoxRecall computes the correct values."""
 import os
 
 import numpy as np
 import tensorflow as tf
 
 from keras_cv import bounding_box
-from keras_cv.metrics import _BoxRecall
+from keras_cv.metrics import BoxRecall
 
 SAMPLE_FILE = os.path.dirname(os.path.abspath(__file__)) + "/sample_boxes.npz"
 
@@ -40,7 +40,7 @@ class RecallCorrectnessTest(tf.test.TestCase):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
 
         # Area range all
-        recall = _BoxRecall(
+        recall = BoxRecall(
             bounding_box_format="xyxy",
             class_ids=categories + [1000],
             max_detections=1,
@@ -54,7 +54,7 @@ class RecallCorrectnessTest(tf.test.TestCase):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
 
         # Area range all
-        recall = _BoxRecall(
+        recall = BoxRecall(
             bounding_box_format="xyxy",
             class_ids=categories + [1000],
             max_detections=10,
@@ -68,7 +68,7 @@ class RecallCorrectnessTest(tf.test.TestCase):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
 
         # Area range all
-        recall = _BoxRecall(
+        recall = BoxRecall(
             bounding_box_format="xyxy",
             class_ids=categories + [1000],
             max_detections=100,
@@ -80,7 +80,7 @@ class RecallCorrectnessTest(tf.test.TestCase):
 
     def test_recall_correctness_small_objects(self):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
-        recall = _BoxRecall(
+        recall = BoxRecall(
             bounding_box_format="xyxy",
             class_ids=categories + [1000],
             max_detections=100,
@@ -93,7 +93,7 @@ class RecallCorrectnessTest(tf.test.TestCase):
 
     def test_recall_correctness_medium_objects(self):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
-        recall = _BoxRecall(
+        recall = BoxRecall(
             bounding_box_format="xyxy",
             class_ids=categories + [1000],
             max_detections=100,
@@ -106,7 +106,7 @@ class RecallCorrectnessTest(tf.test.TestCase):
 
     def test_recall_correctness_large_objects(self):
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
-        recall = _BoxRecall(
+        recall = BoxRecall(
             bounding_box_format="xyxy",
             class_ids=categories + [1000],
             max_detections=100,

@@ -129,9 +129,9 @@ class BoxRecall(ODPyMetric):
                 pred_boxes = _gather_by_image_and_category(y_pred, imgId, catId)
                 pred_boxes = utils.slice(pred_boxes, self.max_detections)
                 result = self.true_positives_for_image(true_boxes, pred_boxes)
-                self.true_positives[:, c_i] += result
 
-            self.ground_truth_boxes += y_true["boxes"][imgId].shape[0]
+                self.true_positives[:, c_i] += result
+                self.ground_truth_boxes[c_i] += true_boxes["boxes"].shape[0]
 
     def result(self):
         present_values = self.ground_truth_boxes != 0
