@@ -66,7 +66,7 @@ class ClassificationTrainingBenchmark(
 
             model = app(
                 include_top=True,
-                classes=self.num_classes,
+                num_classes=self.num_classes,
                 input_shape=(56, 56, 1),
                 include_rescaling=True,
             )

@@ -39,22 +39,22 @@ class RetinaNet(tf.keras.Model):
     """A Keras model implementing the RetinaNet architecture.
 
     Implements the RetinaNet architecture for object detection.  The constructor
-    requires `classes`, and `bounding_box_format`.  Optionally, a backbone,
+    requires `num_classes`, and `bounding_box_format`.  Optionally, a backbone,
     custom label encoder, and prediction decoder may all be provided.
 
     Usage:
     ```python
     retina_net = keras_cv.models.RetinaNet(
-        classes=20,
+        num_classes=20,
         bounding_box_format="xywh",
         backbone=ResNet50V2Backbone(),
     )
     ```
 
     Args:
-        classes: the number of classes in your dataset excluding the background
-            class.  Classes should be represented by integers in the range
-            [0, classes).
+        num_classes: the number of classes in your dataset excluding the background
+            class.  classes should be represented by integers in the range
+            [0, num_classes).
         bounding_box_format: The format of bounding boxes of input dataset. Refer
             [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
             for more details on supported bounding box formats.
@@ -89,7 +89,7 @@ class RetinaNet(tf.keras.Model):
 
     def __init__(
         self,
-        classes,
+        num_classes,
         bounding_box_format,
         backbone=None,
         anchor_generator=None,
@@ -137,7 +137,7 @@ class RetinaNet(tf.keras.Model):
             )
 
         self.bounding_box_format = bounding_box_format
-        self.classes = classes
+        self.classes = num_classes
         # TODO(jbischof): replace with preset default once this is Task subclass
         if backbone is None:
             self.backbone = keras_cv.models.ResNet50V2Backbone()
@@ -165,7 +165,8 @@ class RetinaNet(tf.keras.Model):
         self.classification_head = (
             classification_head
             or layers_lib.PredictionHead(
-                output_filters=9 * classes, bias_initializer=prior_probability
+                output_filters=9 * num_classes,
+                bias_initializer=prior_probability,
             )
         )
 
@@ -220,7 +221,7 @@ class RetinaNet(tf.keras.Model):
             cls_pred.append(
                 tf.reshape(
                     self.classification_head(feature, training=training),
-                    [N, -1, self.classes],
+                    [N, -1, self.num_classes],
                 )
             )
 
@@ -346,19 +347,19 @@ class RetinaNet(tf.keras.Model):
         if box_pred.shape[-1] != 4:
             raise ValueError(
                 "box_pred should have shape (None, None, 4). "
-                f"Got box_pred.shape={tuple(box_pred.shape)}.  Does your model's `classes` "
-                "parameter match your losses `classes` parameter?"
+                f"Got box_pred.shape={tuple(box_pred.shape)}.  Does your model's `num_classes` "
+                "parameter match your losses `num_classes` parameter?"
             )
-        if cls_pred.shape[-1] != self.classes:
+        if cls_pred.shape[-1] != self.num_classes:
             raise ValueError(
                 "cls_pred should have shape (None, None, 4). "
-                f"Got cls_pred.shape={tuple(cls_pred.shape)}.  Does your model's `classes` "
-                "parameter match your losses `classes` parameter?"
+                f"Got cls_pred.shape={tuple(cls_pred.shape)}.  Does your model's `num_classes` "
+                "parameter match your losses `num_classes` parameter?"
             )
 
         cls_labels = tf.one_hot(
             tf.cast(classes, dtype=tf.int32),
-            depth=self.classes,
+            depth=self.num_classes,
             dtype=tf.float32,
         )
 
@@ -443,7 +444,7 @@ class RetinaNet(tf.keras.Model):
 
     def get_config(self):
         return {
-            "classes": self.classes,
+            "num_classes": self.num_classes,
             "bounding_box_format": self.bounding_box_format,
             # TODO(bischof): actually serialize the backbone
             "backbone": self.backbone,

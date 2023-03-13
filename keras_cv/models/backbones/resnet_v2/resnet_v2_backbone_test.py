@@ -76,6 +76,25 @@ class ResNetV2BackboneTest(tf.test.TestCase, parameterized.TestCase):
         restored_output = restored_model(self.input_batch)
         self.assertAllClose(model_output, restored_output)
 
+    @parameterized.named_parameters(
+        ("tf_format", "tf", "model"),
+        ("keras_format", "keras_v3", "model.keras"),
+    )
+    def test_saved_alias_model(self, save_format, filename):
+        model = ResNet18V2Backbone()
+        model_output = model(self.input_batch)
+        save_path = os.path.join(self.get_temp_dir(), filename)
+        model.save(save_path, save_format=save_format)
+        restored_model = keras.models.load_model(save_path)
+
+        # Check we got the real object back.
+        # Note that these aliases create the base case
+        self.assertIsInstance(restored_model, ResNetV2Backbone)
+
+        # Check that output matches.
+        restored_output = restored_model(self.input_batch)
+        self.assertAllClose(model_output, restored_output)
+
     def test_model_backbone_layer_names_stability(self):
         model = ResNetV2Backbone(
             stackwise_filters=[64, 128, 256, 512],
