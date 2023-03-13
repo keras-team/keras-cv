@@ -88,7 +88,7 @@ class ResNetV2BackboneTest(tf.test.TestCase, parameterized.TestCase):
         restored_model = keras.models.load_model(save_path)
 
         # Check we got the real object back.
-        # Note that these aliases create the base case
+        # Note that these aliases serialized as the base class
         self.assertIsInstance(restored_model, ResNetV2Backbone)
 
         # Check that output matches.
