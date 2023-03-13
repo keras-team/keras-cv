@@ -158,7 +158,12 @@ class MultiHeadCenterPillar(tf.keras.Model):
         self._prediction_decoder = prediction_decoder
         self._head_names = self._multiclass_head._head_names
 
-    def call(self, point_xyz, point_feature, point_mask, training=None):
+    def call(self, input_dict, training=None):
+        point_xyz, point_feature, point_mask = (
+            input_dict["point_xyz"],
+            input_dict["point_feature"],
+            input_dict["point_mask"],
+        )
         voxel_feature = self._voxelization_layer(
             point_xyz, point_feature, point_mask, training=training
         )
@@ -169,9 +174,11 @@ class MultiHeadCenterPillar(tf.keras.Model):
         # returns dict {"class_1": concat_pred_1, "class_2": concat_pred_2}
         return predictions
 
-    def compute_loss(
-        self, predictions, box_dict, heatmap_dict, top_k_index_dict
-    ):
+    def compute_loss(self, predictions, targets):
+        box_dict = targets["box_3d"]
+        heatmap_dict = targets["heatmap"]
+        top_k_index_dict = targets["top_k_index"]
+
         y_pred = {}
         y_true = {}
         sample_weight = {}
@@ -200,25 +207,8 @@ class MultiHeadCenterPillar(tf.keras.Model):
 
     def train_step(self, data):
         x, y, sample_weight = tf.keras.utils.unpack_x_y_sample_weight(data)
-        box_3d_dict = y["box_3d"]
-        heatmap_dict = y["heatmap"]
-        top_k_index_dict = y["top_k_index"]
-        losses = []
         with tf.GradientTape() as tape:
-            predictions = self(
-                x["point_xyz"],
-                x["point_feature"],
-                x["point_mask"],
-                training=True,
-            )
-            losses.append(
-                self.compute_loss(
-                    predictions, box_3d_dict, heatmap_dict, top_k_index_dict
-                )
-            )
-            if self.weight_decay:
-                for var in self.trainable_variables:
-                    losses.append(self.weight_decay * tf.nn.l2_loss(var))
-            total_loss = tf.math.add_n(losses)
-        self.optimizer.minimize(total_loss, self.trainable_variables, tape=tape)
+            predictions = self(x, training=True)
+            loss = self.compute_loss(predictions, y)
+        self.optimizer.minimize(loss, self.trainable_variables, tape=tape)
         return self.compute_metrics({}, {}, {}, sample_weight={})
