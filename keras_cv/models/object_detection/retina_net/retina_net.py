@@ -137,7 +137,7 @@ class RetinaNet(tf.keras.Model):
             )
 
         self.bounding_box_format = bounding_box_format
-        self.classes = num_classes
+        self.num_classes = num_classes
         # TODO(jbischof): replace with preset default once this is Task subclass
         if backbone is None:
             self.backbone = keras_cv.models.ResNet50V2Backbone()
