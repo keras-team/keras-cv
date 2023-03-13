@@ -21,7 +21,10 @@ import tensorflow.keras.initializers as initializers
 from keras_cv import bounding_box
 from keras_cv.bounding_box import iou as iou_lib
 from keras_cv.metrics.object_detection import utils
-from keras_cv.metrics.object_detection.object_detection_py_metric import ODPyMetric
+from keras_cv.metrics.object_detection.object_detection_py_metric import (
+    ODPyMetric,
+)
+
 
 class BoxRecall(ODPyMetric):
     """BoxRecall computes recall based on varying true positive IoU thresholds.
@@ -100,17 +103,14 @@ class BoxRecall(ODPyMetric):
         # Initialize parameter values
         self.bounding_box_format = bounding_box_format
 
-
         self.iou_thresholds = np.array(iou_thresholds)
         self.area_range = area_range
         self.max_detections = max_detections
-
 
         if any([c < 0 for c in class_ids]):
             raise ValueError(
                 "class_ids must be positive.  Got " f"class_ids={class_ids}"
             )
-
 
     def reset_state(self):
         self.true_positives = np.zeros(
@@ -124,13 +124,14 @@ class BoxRecall(ODPyMetric):
         y_true = bounding_box.ensure_tensor(y_true)
         y_pred = bounding_box.ensure_tensor(y_true)
         for imgId in range(y_true["boxes"].shape[0]):
-            for catId, c_i in enumerate(self.class_ids):
+            for c_i, catId in enumerate(self.class_ids):
                 true_boxes = _gather_by_image_and_category(y_true, imgId, catId)
                 pred_boxes = _gather_by_image_and_category(y_pred, imgId, catId)
-                result = self.true_positives_for_image(catId, imgId)
+                pred_boxes = utils.slice(pred_boxes, self.max_detections)
+                result = self.true_positives_for_image(true_boxes, pred_boxes)
                 self.true_positives[:, c_i] += result
 
-            self.ground_truth_boxes += y_true["boxes"].shape[0]
+            self.ground_truth_boxes += y_true["boxes"][imgId].shape[0]
 
     def result(self):
         present_values = self.ground_truth_boxes != 0
@@ -159,11 +160,13 @@ class BoxRecall(ODPyMetric):
             y_true["boxes"],
             bounding_box_format=self.bounding_box_format,
         )
+        ious = tf.cast(ious, self.dtype)
 
         # [num_gts]
-        max_ious = tf.math.reduce_max(ious, axis=-1)
-        matches = max_ious > tf.constant(self.iou_thresholds)[None, :]
-        return tf.math.reduce_sum(tf.cast(matches, tf.int32), axis=-1)
+        max_ious = tf.math.reduce_max(ious, axis=-1, keepdims=True)
+        thresholds = tf.constant(self.iou_thresholds, dtype=self.dtype)[None, :]
+        matches = max_ious > thresholds
+        return tf.math.reduce_sum(tf.cast(matches, tf.int32), axis=0)
 
     def get_config(self):
         config = super().get_config()
@@ -181,6 +184,6 @@ class BoxRecall(ODPyMetric):
 
 def _gather_by_image_and_category(bounding_boxes, image_index, category_id):
     bounding_boxes = utils.get_boxes_for_image(bounding_boxes, image_index)
-    inds = bounding_boxes["classes"] == category_id
+    inds = tf.where(bounding_boxes["classes"] == category_id)
     bounding_boxes = utils.gather_nd(bounding_boxes, inds)
     return bounding_boxes

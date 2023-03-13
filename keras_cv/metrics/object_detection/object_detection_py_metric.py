@@ -17,9 +17,8 @@
 import types
 
 import tensorflow.compat.v2 as tf
-from tensorflow.python.util.tf_export import keras_export
-
 from keras.metrics import base_metric
+from tensorflow.python.util.tf_export import keras_export
 
 
 class ODPyMetric(base_metric.Metric):
@@ -28,6 +27,7 @@ class ODPyMetric(base_metric.Metric):
     `ODPyMetric` is implemented to support the fact that `tf.py_function` cannot
     accept dictionaries as an input.
     """
+
     def __init__(self, name=None, dtype=None, **kwargs):
         super().__init__(name=name, dtype=dtype, **kwargs)
         self.reset_state()
@@ -38,15 +38,19 @@ class ODPyMetric(base_metric.Metric):
         # Wrap the update_state function in a py_function and scope it to /cpu:0
         obj_update_state = obj.update_state
 
-        def update_state_on_cpu(y_true_boxes, y_true_classes, y_pred_boxes, y_pred_classes, y_pred_confidence, sample_weight=None):
-            y_true = {
-                'boxes': y_true_boxes,
-                'classes': y_true_classes
-            }
+        def update_state_on_cpu(
+            y_true_boxes,
+            y_true_classes,
+            y_pred_boxes,
+            y_pred_classes,
+            y_pred_confidence,
+            sample_weight=None,
+        ):
+            y_true = {"boxes": y_true_boxes, "classes": y_true_classes}
             y_pred = {
-                'boxes': y_pred_boxes,
-                'classes': y_pred_classes,
-                'confidence': y_pred_confidence
+                "boxes": y_pred_boxes,
+                "classes": y_pred_classes,
+                "confidence": y_pred_confidence,
             }
             with tf.device("/cpu:0"):
                 return obj_update_state(y_true, y_pred, sample_weight)
@@ -54,12 +58,18 @@ class ODPyMetric(base_metric.Metric):
         obj.update_state_on_cpu = update_state_on_cpu
 
         def update_state_fn(self, y_true, y_pred, sample_weight=None):
-            y_true_boxes = y_true['boxes']
-            y_true_classes = y_true['classes']
-            y_pred_boxes = y_pred['boxes']
-            y_pred_classes = y_pred['classes']
-            y_pred_confidence = y_pred['classes']
-            eager_inputs = [y_true_boxes, y_true_classes, y_pred_boxes, y_pred_classes, y_pred_confidence]
+            y_true_boxes = y_true["boxes"]
+            y_true_classes = y_true["classes"]
+            y_pred_boxes = y_pred["boxes"]
+            y_pred_classes = y_pred["classes"]
+            y_pred_confidence = y_pred["classes"]
+            eager_inputs = [
+                y_true_boxes,
+                y_true_classes,
+                y_pred_boxes,
+                y_pred_classes,
+                y_pred_confidence,
+            ]
             if sample_weight is not None:
                 eager_inputs.append(sample_weight)
             return tf.py_function(
