@@ -107,7 +107,7 @@ def gather_nd(bounding_boxes, indices):
     classes = bounding_boxes["classes"]
     result = {
         "boxes": tf.gather_nd(boxes, indices),
-        "classes": tf.gather_nd(classes, indices)
+        "classes": tf.gather_nd(classes, indices),
     }
 
     if "confidence" in bounding_boxes:
@@ -115,6 +115,7 @@ def gather_nd(bounding_boxes, indices):
         result["confidence"] = tf.gather_nd(confidence, indices)
 
     return result
+
 
 def get_boxes_for_image(bounding_boxes, index):
     boxes = bounding_boxes["boxes"]

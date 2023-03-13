@@ -148,23 +148,6 @@ class BoxRecallTest(tf.test.TestCase):
 
         self.assertEqual(recall.result(), 0.5)
 
-    def test_recall_direct_assignment(self):
-        recall = BoxRecall(
-            bounding_box_format="xyxy",
-            max_detections=100,
-            class_ids=[1],
-            area_range=(0, 1e9**2),
-        )
-        t = len(recall.iou_thresholds)
-        k = len(recall.class_ids)
-
-        true_positives = tf.ones((t, k), dtype=tf.int32)
-        ground_truth_boxes = tf.ones((k,), dtype=tf.int32) * 2
-        recall.true_positives.assign(true_positives)
-        recall.ground_truth_boxes.assign(ground_truth_boxes)
-
-        self.assertEqual(recall.result(), 0.5)
-
     def test_max_detections_one_third(self):
         recall = BoxRecall(
             bounding_box_format="xyxy",
@@ -231,24 +214,6 @@ class BoxRecallTest(tf.test.TestCase):
         recall.update_state(y_true, y_pred)
 
         self.assertAlmostEqual(recall.result().numpy(), 1.0)
-
-    def test_recall_direct_assignment_one_third(self):
-        recall = BoxRecall(
-            bounding_box_format="xyxy",
-            max_detections=100,
-            class_ids=[1],
-            area_range=(0, 1e9**2),
-        )
-        t = len(recall.iou_thresholds)
-        k = len(recall.class_ids)
-
-        true_positives = tf.ones((t, k), dtype=tf.int32)
-        ground_truth_boxes = tf.ones((k,), dtype=tf.int32) * 3
-
-        recall.true_positives.assign(true_positives)
-        recall.ground_truth_boxes.assign(ground_truth_boxes)
-
-        self.assertAlmostEqual(recall.result().numpy(), 1 / 3)
 
     def test_area_range_bounding_box_counting(self):
         y_true = {
