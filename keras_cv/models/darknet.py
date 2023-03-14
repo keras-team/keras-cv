@@ -23,14 +23,14 @@ from tensorflow import keras
 from tensorflow.keras import layers
 
 from keras_cv.models import utils
-from keras_cv.models.__internal__.darknet_utils import DarknetConvBlock
-from keras_cv.models.__internal__.darknet_utils import ResidualBlocks
+from keras_cv.models.__internal__.darknet_utils import apply_darknet_conv_block
+from keras_cv.models.__internal__.darknet_utils import apply_residual_blocks
 from keras_cv.models.__internal__.darknet_utils import (
-    SpatialPyramidPoolingBottleneck,
+    apply_spatial_pyramid_pooling_bottleneck,
 )
 from keras_cv.models.weights import parse_weights
 
-BASE_DOCSTRING = """Instantiates the {name} architecture.
+BASE_DOCSTRING = """Represents the {name} architecture.
 
     Although the {name} architecture is commonly used for detection tasks, it is
     possible to extract the intermediate dark2 to dark5 layers from the model for
@@ -39,7 +39,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
     Reference:
         - [YoloV3 Paper](https://arxiv.org/abs/1804.02767)
         - [YoloV3 implementation](https://github.com/ultralytics/yolov3)
-        
+
     For transfer learning use cases, make sure to read the
     [guide to transfer learning & fine-tuning](
         https://keras.io/guides/transfer_learning/).
@@ -65,7 +65,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
                 model will be a 2D tensor.
             - `max` means that global max pooling will be applied.
         name: string, optional name to pass to the model, defaults to "{name}".
-        
+
     Returns:
         A `keras.Model` instance.
 """
@@ -74,7 +74,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
 @keras.utils.register_keras_serializable(package="keras_cv.models")
 class DarkNet(keras.Model):
 
-    """Instantiates the DarkNet architecture.
+    """Represents the DarkNet architecture.
 
     The DarkNet architecture is commonly used for detection tasks. It is
     possible to extract the intermediate dark2 to dark5 layers from the model for
@@ -150,16 +150,16 @@ class DarkNet(keras.Model):
             x = layers.Rescaling(1 / 255.0)(x)
 
         # stem
-        x = DarknetConvBlock(
+        x = apply_darknet_conv_block(
             filters=32,
             kernel_size=3,
             strides=1,
             activation="leaky_relu",
             name="stem_conv",
         )(x)
-        x = ResidualBlocks(
-            filters=64, num_blocks=1, name="stem_residual_block"
-        )(x)
+        x = apply_residual_blocks(
+            x, filters=64, num_blocks=1, name="stem_residual_block"
+        )
 
         # filters for the ResidualBlock outputs
         filters = [128, 256, 512, 1024]
@@ -168,39 +168,40 @@ class DarkNet(keras.Model):
         layer_num = 2
 
         for filter, block in zip(filters, blocks):
-            x = ResidualBlocks(
+            x = apply_residual_blocks(
+                x,
                 filters=filter,
                 num_blocks=block,
                 name=f"dark{layer_num}_residual_block",
-            )(x)
+            )
             layer_num += 1
 
         # remaining dark5 layers
-        x = DarknetConvBlock(
+        x = apply_darknet_conv_block(
             filters=512,
             kernel_size=1,
             strides=1,
             activation="leaky_relu",
             name="dark5_conv1",
         )(x)
-        x = DarknetConvBlock(
+        x = apply_darknet_conv_block(
             filters=1024,
             kernel_size=3,
             strides=1,
             activation="leaky_relu",
             name="dark5_conv2",
         )(x)
-        x = SpatialPyramidPoolingBottleneck(
-            512, activation="leaky_relu", name="dark5_spp"
-        )(x)
-        x = DarknetConvBlock(
+        x = apply_spatial_pyramid_pooling_bottleneck(
+            x, 512, activation="leaky_relu", name="dark5_spp"
+        )
+        x = apply_darknet_conv_block(
             filters=1024,
             kernel_size=3,
             strides=1,
             activation="leaky_relu",
             name="dark5_conv3",
         )(x)
-        x = DarknetConvBlock(
+        x = apply_darknet_conv_block(
             filters=512,
             kernel_size=1,
             strides=1,
