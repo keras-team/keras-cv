@@ -201,7 +201,7 @@ def correct_pad(inputs, kernel_size):
     )
 
 
-def conv_bn(
+def apply_conv_bn(
     x,
     conv_type,
     filters,
@@ -313,7 +313,7 @@ def apply_efficientnet_block(
     """
     filters = filters_in * expand_ratio
     if expand_ratio != 1:
-        x = conv_bn(
+        x = apply_conv_bn(
             x=inputs,
             conv_type="normal",
             filters=filters,
@@ -338,7 +338,7 @@ def apply_efficientnet_block(
     else:
         conv_pad = "same"
 
-    x = conv_bn(
+    x = apply_conv_bn(
         x=x,
         conv_type="depth",
         filters=None,
@@ -380,7 +380,7 @@ def apply_efficientnet_block(
         x = layers.multiply([x, se], name=name + "_se_excite")
 
     # Output phase
-    x = conv_bn(
+    x = apply_conv_bn(
         x=x,
         conv_type="normal",
         filters=filters_out,
@@ -511,10 +511,10 @@ class EfficientNet(keras.Model):
             padding=correct_pad(x, 3), name="stem_conv_pad"
         )(x)
 
-        x = conv_bn(
+        x = apply_conv_bn(
             x=x,
             conv_type="normal",
-            filters=self.round_filters(32, width_coefficient, depth_divisor),
+            filters=Efficientnet.round_filters(32, width_coefficient, depth_divisor),
             kernel_size=3,
             strides=2,
             padding="valid",
@@ -531,22 +531,22 @@ class EfficientNet(keras.Model):
         b = 0
         blocks = float(
             sum(
-                self.round_repeats(args["repeats"], depth_coefficient)
+                Efficientnet.round_repeats(args["repeats"], depth_coefficient)
                 for args in blocks_args
             )
         )
         for i, args in enumerate(blocks_args):
             assert args["repeats"] > 0
             # Update block input and output filters based on depth multiplier.
-            args["filters_in"] = self.round_filters(
+            args["filters_in"] = Efficientnet.round_filters(
                 args["filters_in"], width_coefficient, depth_divisor
             )
-            args["filters_out"] = self.round_filters(
+            args["filters_out"] = Efficientnet.round_filters(
                 args["filters_out"], width_coefficient, depth_divisor
             )
 
             for j in range(
-                self.round_repeats(args.pop("repeats"), depth_coefficient)
+                Efficientnet.round_repeats(args.pop("repeats"), depth_coefficient)
             ):
                 # The first block needs to take care of stride and filter size
                 # increase.
@@ -563,7 +563,7 @@ class EfficientNet(keras.Model):
                 b += 1
 
         # Build top
-        x = conv_bn(
+        x = apply_conv_bn(
             x=x,
             conv_type="normal",
             filters=self.round_filters(1280, width_coefficient, depth_divisor),
@@ -616,8 +616,17 @@ class EfficientNet(keras.Model):
         self.num_classes = num_classes
         self.classifier_activation = classifier_activation
 
-    def round_filters(self, filters, width_coefficient, divisor):
-        """Round number of filters based on depth multiplier."""
+    @staticmethod
+    def round_filters(filters, width_coefficient, divisor):
+        """Round number of filters based on depth multiplier.
+        Args:
+            filters: int, number of filters for Conv layer
+            width_coefficient: float, denotes the scaling coefficient of network width
+            divisor: int, a unit of network width
+
+        Returns:
+            int, new rounded filters value for Conv layer
+        """
         filters *= width_coefficient
         new_filters = max(
             divisor, int(filters + divisor / 2) // divisor * divisor
@@ -627,8 +636,16 @@ class EfficientNet(keras.Model):
             new_filters += divisor
         return int(new_filters)
 
-    def round_repeats(self, repeats, depth_coefficient):
-        """Round number of repeats based on depth multiplier."""
+    @staticmethod
+    def round_repeats(repeats, depth_coefficient):
+        """Round number of repeats based on depth multiplier.
+        Args:
+            repeats: int, number of repeats of efficentnet block
+            depth_coefficient: float, denotes the scaling coefficient of  network depth
+
+        Returns:
+            int, rounded repeats
+        """
         return int(math.ceil(depth_coefficient * repeats))
 
     def get_config(self):
