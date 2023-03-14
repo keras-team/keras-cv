@@ -36,18 +36,18 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
         - [Searching for MobileNetV3](https://arxiv.org/abs/1905.02244)
         - [Based on the Original keras.applications MobileNetv3](https://github.com/keras-team/keras/blob/master/keras/applications/mobilenet_v3.py)
 
-    This class returns a Keras {name} model.
+    This class represents a Keras {name} model.
 
     For transfer learning use cases, make sure to read the [guide to transfer
         learning & fine-tuning](https://keras.io/guides/transfer_learning/).
 
     Args:
-        include_rescaling: whether or not to rescale the inputs. If set to True,
+        include_rescaling: bool, whether or not to rescale the inputs. If set to True,
             inputs will be passed through a `Rescaling(scale=1 / 255)`
             layer. Defaults to True.
-        include_top: whether to include the fully-connected layer at the top of the
+        include_top: bool, whether to include the fully-connected layer at the top of the
             network. If provided, `num_classes` must be provided.
-        num_classes: optional number of classes to classify images into. Only to be
+        num_classes: integer, optional number of classes to classify images into. Only to be
             specified if `include_top` is True, and if no `weights` argument is
             specified.
         weights: one of `None` (random initialization) or a pretrained weight file
@@ -63,7 +63,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
                 of the last convolutional block, and thus the output of the model will
                 be a 2D tensor.
             - `max` means that global max pooling will be applied.
-        alpha: controls the width of the network. This is known as the
+        alpha: float, controls the width of the network. This is known as the
             depth multiplier in the MobileNetV3 paper, but the name is kept for
             consistency with MobileNetV1 in Keras.
             - If `alpha` < 1.0, proportionally decreases the number
@@ -81,14 +81,14 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
         dropout_rate: a float between 0 and 1 denoting the fraction of input units to
             drop, defaults to 0.2.
         classifier_activation: the activation function to use, defaults to softmax.
-        name: (Optional) name to pass to the model, defaults to "{name}".
+        name: string, optional name to pass to the model, defaults to "{name}".
 
     Returns:
         A `keras.Model` instance.
 """
 
 
-def depth(x, divisor=8, min_value=None):
+def apply_depth(x, divisor=8, min_value=None):
     """Ensure that all layers have a channel number that is divisible by the `divisor`.
 
     Args:
@@ -112,7 +112,7 @@ def depth(x, divisor=8, min_value=None):
     return new_x
 
 
-def HardSigmoid(x, name=None):
+def apply_hard_sigmoid(x, name=None):
     """The Hard Sigmoid function.
 
     Args:
@@ -130,7 +130,7 @@ def HardSigmoid(x, name=None):
     return activation(x + 3.0) * (1.0 / 6.0)
 
 
-def HardSwish(x, name=None):
+def apply_hard_swish(x, name=None):
     """The Hard Swish function.
 
     Args:
@@ -145,10 +145,10 @@ def HardSwish(x, name=None):
 
     multiply_layer = layers.Multiply()
 
-    return multiply_layer([x, HardSigmoid(x)])
+    return multiply_layer([x, apply_hard_sigmoid(x)])
 
 
-def InvertedResBlock(
+def apply_inverted_res_block(
     x,
     expansion,
     filters,
@@ -189,7 +189,7 @@ def InvertedResBlock(
         prefix = f"expanded_conv_{block_id}"
 
         x = layers.Conv2D(
-            depth(infilters * expansion),
+            apply_depth(infilters * expansion),
             kernel_size=1,
             padding="same",
             use_bias=False,
@@ -219,9 +219,9 @@ def InvertedResBlock(
     x = activation(x)
 
     if se_ratio:
-        with custom_object_scope({"hard_sigmoid": HardSigmoid}):
+        with custom_object_scope({"hard_sigmoid": apply_hard_sigmoid}):
             x = cv_layers.SqueezeAndExcite2D(
-                filters=depth(infilters * expansion),
+                filters=apply_depth(infilters * expansion),
                 ratio=se_ratio,
                 squeeze_activation="relu",
                 excite_activation="hard_sigmoid",
@@ -255,7 +255,7 @@ class MobileNetV3(keras.Model):
         - [Searching for MobileNetV3](https://arxiv.org/pdf/1905.02244.pdf) (ICCV 2019)
         - [Based on the Original keras.applications MobileNetv3](https://github.com/keras-team/keras/blob/master/keras/applications/mobilenet_v3.py)
 
-    This class returns a Keras MobileNetV3 model.
+    This class represents a Keras MobileNetV3 model.
 
     For transfer learning use cases, make sure to read the [guide to transfer
         learning & fine-tuning](https://keras.io/guides/transfer_learning/).
@@ -263,11 +263,11 @@ class MobileNetV3(keras.Model):
     Args:
         stack_fn: a function that returns tensors passed through Inverted
             Residual Blocks.
-        last_point_ch: the number of filters for the convolution layer.
-        include_rescaling: whether to rescale the inputs. If set to True,
+        last_point_ch: integer, the number of filters for the convolution layer.
+        include_rescaling: bool, whether to rescale the inputs. If set to True,
             inputs will be passed through a `Rescaling(scale=1 / 255)`
             layer.
-        include_top: whether to include the fully-connected layer at the top of the
+        include_top: bool, whether to include the fully-connected layer at the top of the
             network. If provided, `num_classes` must be provided.
         num_classes: optional number of classes to classify images into. Only to be
             specified if `include_top` is True, and if no `weights` argument is
@@ -285,7 +285,7 @@ class MobileNetV3(keras.Model):
                 of the last convolutional block, and thus the output of the model will
                 be a 2D tensor.
             - `max` means that global max pooling will be applied.
-        alpha: controls the width of the network. This is known as the
+        alpha: float, controls the width of the network. This is known as the
             depth multiplier in the MobileNetV3 paper, but the name is kept for
             consistency with MobileNetV1 in Keras.
             - If `alpha` < 1.0, proportionally decreases the number
@@ -303,7 +303,7 @@ class MobileNetV3(keras.Model):
         dropout_rate: a float between 0 and 1 denoting the fraction of input units to
             drop, defaults to 0.2.
         classifier_activation: the activation function to use, defaults to softmax.
-        name: optional name to pass to the model, defaults to "MobileNetV3".
+        name: string, optional name to pass to the model, defaults to "MobileNetV3".
         **kwargs: Pass-through keyword arguments to `tf.keras.Model`.
 
     Returns:
@@ -353,7 +353,7 @@ class MobileNetV3(keras.Model):
             se_ratio = None
         else:
             kernel = 5
-            activation = HardSwish
+            activation = apply_hard_swish
             se_ratio = 0.25
 
         inputs = utils.parse_model_inputs(input_shape, input_tensor)
@@ -381,12 +381,12 @@ class MobileNetV3(keras.Model):
 
         x = stack_fn(x, kernel, activation, se_ratio)
 
-        last_conv_ch = depth(backend.int_shape(x)[channel_axis] * 6)
+        last_conv_ch = apply_depth(backend.int_shape(x)[channel_axis] * 6)
 
         # if the width multiplier is greater than 1 we
         # increase the number of output channels
         if alpha > 1.0:
-            last_point_ch = depth(last_point_ch * alpha)
+            last_point_ch = apply_depth(last_point_ch * alpha)
         x = layers.Conv2D(
             last_conv_ch,
             kernel_size=1,
@@ -483,38 +483,38 @@ def MobileNetV3Small(
     **kwargs,
 ):
     def stack_fn(x, kernel, activation, se_ratio):
-        x = InvertedResBlock(
-            x, 1, depth(16 * alpha), 3, 2, se_ratio, layers.ReLU(), 0
+        x = apply_inverted_res_block(
+            x, 1, apply_depth(16 * alpha), 3, 2, se_ratio, layers.ReLU(), 0
         )
-        x = InvertedResBlock(
-            x, 72.0 / 16, depth(24 * alpha), 3, 2, None, layers.ReLU(), 1
+        x = apply_inverted_res_block(
+            x, 72.0 / 16, apply_depth(24 * alpha), 3, 2, None, layers.ReLU(), 1
         )
-        x = InvertedResBlock(
-            x, 88.0 / 24, depth(24 * alpha), 3, 1, None, layers.ReLU(), 2
+        x = apply_inverted_res_block(
+            x, 88.0 / 24, apply_depth(24 * alpha), 3, 1, None, layers.ReLU(), 2
         )
-        x = InvertedResBlock(
-            x, 4, depth(40 * alpha), kernel, 2, se_ratio, activation, 3
+        x = apply_inverted_res_block(
+            x, 4, apply_depth(40 * alpha), kernel, 2, se_ratio, activation, 3
         )
-        x = InvertedResBlock(
-            x, 6, depth(40 * alpha), kernel, 1, se_ratio, activation, 4
+        x = apply_inverted_res_block(
+            x, 6, apply_depth(40 * alpha), kernel, 1, se_ratio, activation, 4
         )
-        x = InvertedResBlock(
-            x, 6, depth(40 * alpha), kernel, 1, se_ratio, activation, 5
+        x = apply_inverted_res_block(
+            x, 6, apply_depth(40 * alpha), kernel, 1, se_ratio, activation, 5
         )
-        x = InvertedResBlock(
-            x, 3, depth(48 * alpha), kernel, 1, se_ratio, activation, 6
+        x = apply_inverted_res_block(
+            x, 3, apply_depth(48 * alpha), kernel, 1, se_ratio, activation, 6
         )
-        x = InvertedResBlock(
-            x, 3, depth(48 * alpha), kernel, 1, se_ratio, activation, 7
+        x = apply_inverted_res_block(
+            x, 3, apply_depth(48 * alpha), kernel, 1, se_ratio, activation, 7
         )
-        x = InvertedResBlock(
-            x, 6, depth(96 * alpha), kernel, 2, se_ratio, activation, 8
+        x = apply_inverted_res_block(
+            x, 6, apply_depth(96 * alpha), kernel, 2, se_ratio, activation, 8
         )
-        x = InvertedResBlock(
-            x, 6, depth(96 * alpha), kernel, 1, se_ratio, activation, 9
+        x = apply_inverted_res_block(
+            x, 6, apply_depth(96 * alpha), kernel, 1, se_ratio, activation, 9
         )
-        x = InvertedResBlock(
-            x, 6, depth(96 * alpha), kernel, 1, se_ratio, activation, 10
+        x = apply_inverted_res_block(
+            x, 6, apply_depth(96 * alpha), kernel, 1, se_ratio, activation, 10
         )
         return x
 
@@ -554,48 +554,50 @@ def MobileNetV3Large(
     **kwargs,
 ):
     def stack_fn(x, kernel, activation, se_ratio):
-        x = InvertedResBlock(
-            x, 1, depth(16 * alpha), 3, 1, None, layers.ReLU(), 0
+        x = apply_inverted_res_block(
+            x, 1, apply_depth(16 * alpha), 3, 1, None, layers.ReLU(), 0
         )
-        x = InvertedResBlock(
-            x, 4, depth(24 * alpha), 3, 2, None, layers.ReLU(), 1
+        x = apply_inverted_res_block(
+            x, 4, apply_depth(24 * alpha), 3, 2, None, layers.ReLU(), 1
         )
-        x = InvertedResBlock(
-            x, 3, depth(24 * alpha), 3, 1, None, layers.ReLU(), 2
+        x = apply_inverted_res_block(
+            x, 3, apply_depth(24 * alpha), 3, 1, None, layers.ReLU(), 2
         )
-        x = InvertedResBlock(
-            x, 3, depth(40 * alpha), kernel, 2, se_ratio, layers.ReLU(), 3
+        x = apply_inverted_res_block(
+            x, 3, apply_depth(40 * alpha), kernel, 2, se_ratio, layers.ReLU(), 3
         )
-        x = InvertedResBlock(
-            x, 3, depth(40 * alpha), kernel, 1, se_ratio, layers.ReLU(), 4
+        x = apply_inverted_res_block(
+            x, 3, apply_depth(40 * alpha), kernel, 1, se_ratio, layers.ReLU(), 4
         )
-        x = InvertedResBlock(
-            x, 3, depth(40 * alpha), kernel, 1, se_ratio, layers.ReLU(), 5
+        x = apply_inverted_res_block(
+            x, 3, apply_depth(40 * alpha), kernel, 1, se_ratio, layers.ReLU(), 5
         )
-        x = InvertedResBlock(x, 6, depth(80 * alpha), 3, 2, None, activation, 6)
-        x = InvertedResBlock(
-            x, 2.5, depth(80 * alpha), 3, 1, None, activation, 7
+        x = apply_inverted_res_block(
+            x, 6, apply_depth(80 * alpha), 3, 2, None, activation, 6
         )
-        x = InvertedResBlock(
-            x, 2.3, depth(80 * alpha), 3, 1, None, activation, 8
+        x = apply_inverted_res_block(
+            x, 2.5, apply_depth(80 * alpha), 3, 1, None, activation, 7
         )
-        x = InvertedResBlock(
-            x, 2.3, depth(80 * alpha), 3, 1, None, activation, 9
+        x = apply_inverted_res_block(
+            x, 2.3, apply_depth(80 * alpha), 3, 1, None, activation, 8
         )
-        x = InvertedResBlock(
-            x, 6, depth(112 * alpha), 3, 1, se_ratio, activation, 10
+        x = apply_inverted_res_block(
+            x, 2.3, apply_depth(80 * alpha), 3, 1, None, activation, 9
         )
-        x = InvertedResBlock(
-            x, 6, depth(112 * alpha), 3, 1, se_ratio, activation, 11
+        x = apply_inverted_res_block(
+            x, 6, apply_depth(112 * alpha), 3, 1, se_ratio, activation, 10
         )
-        x = InvertedResBlock(
-            x, 6, depth(160 * alpha), kernel, 2, se_ratio, activation, 12
+        x = apply_inverted_res_block(
+            x, 6, apply_depth(112 * alpha), 3, 1, se_ratio, activation, 11
         )
-        x = InvertedResBlock(
-            x, 6, depth(160 * alpha), kernel, 1, se_ratio, activation, 13
+        x = apply_inverted_res_block(
+            x, 6, apply_depth(160 * alpha), kernel, 2, se_ratio, activation, 12
         )
-        x = InvertedResBlock(
-            x, 6, depth(160 * alpha), kernel, 1, se_ratio, activation, 14
+        x = apply_inverted_res_block(
+            x, 6, apply_depth(160 * alpha), kernel, 1, se_ratio, activation, 13
+        )
+        x = apply_inverted_res_block(
+            x, 6, apply_depth(160 * alpha), kernel, 1, se_ratio, activation, 14
         )
         return x
 
