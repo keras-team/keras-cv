@@ -63,12 +63,12 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
 
     Reference:
         - [Patches Are All You Need?](https://arxiv.org/abs/2201.09792)
-    
+
     This class represents a Keras {name} model.
-    
+
     For transfer learning use cases, make sure to read the [guide to transfer
         learning & fine-tuning](https://keras.io/guides/transfer_learning/).
-        
+
     Args:
         include_rescaling: bool, whether or not to rescale the inputs. If set to True,
             inputs will be passed through a `Rescaling(1/255.0)` layer.
@@ -91,7 +91,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
                 be a 2D tensor.
             - `max` means that global max pooling will be applied.
         name: string, optional name to pass to the model, defaults to "{name}".
-        
+
     Returns:
       A `keras.Model` instance.
 """
