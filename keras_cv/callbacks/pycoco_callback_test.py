@@ -58,6 +58,11 @@ class PyCOCOCallbackTest(tf.test.TestCase):
             [f"val_{metric}" for metric in METRIC_NAMES], history.history.keys()
         )
 
+    @pytest.mark.skip(
+        reason="Causing OOMs on GitHub actions.  This is not a "
+        "user facing API and will be replaced in a matter of weeks, so we "
+        "shouldn't invest engineering resources into working around the OOMs here."
+    )
     def test_model_fit_rcnn(self):
         model = keras_cv.models.FasterRCNN(
             num_classes=10,

@@ -139,10 +139,13 @@ class RetinaNet(tf.keras.Model):
             anchor_generator
             or RetinaNet.default_anchor_generator(bounding_box_format)
         )
-        label_encoder = label_encoder or cv_layers.RetinaNetLabelEncoder(
-            bounding_box_format=bounding_box_format,
-            anchor_generator=anchor_generator,
-            box_variance=BOX_VARIANCE,
+        label_encoder = (
+            label_encoder
+            or keras_cv.models.object_detection.retina_net.RetinaNetLabelEncoder(
+                bounding_box_format=bounding_box_format,
+                anchor_generator=anchor_generator,
+                box_variance=BOX_VARIANCE,
+            )
         )
         super().__init__(
             name=name,
@@ -160,11 +163,19 @@ class RetinaNet(tf.keras.Model):
 
         self.bounding_box_format = bounding_box_format
         self.num_classes = num_classes
-        # TODO(jbischof): replace with preset default once this is Task subclass
+        if num_classes == 1:
+            raise ValueError(
+                "RetinaNet must always have at least 2 classes. "
+                "This is because logits are passed through a `tf.softmax()` call "
+                "before `MultiClassNonMaxSuppression()` is applied.  If only "
+                "a single class is present, the model will always give a score of "
+                "`1` for the single present class."
+            )
         if backbone is None:
             self.backbone = keras_cv.models.ResNet50V2Backbone()
         else:
             self.backbone = backbone
+
         self._prediction_decoder = (
             prediction_decoder
             or cv_layers.MultiClassNonMaxSuppression(
@@ -205,8 +216,19 @@ class RetinaNet(tf.keras.Model):
 
     @prediction_decoder.setter
     def prediction_decoder(self, prediction_decoder):
+        if prediction_decoder.bounding_box_format != self.bounding_box_format:
+            raise ValueError(
+                "Expected `prediction_decoder` and RetinaNet to "
+                "use the same `bounding_box_format`, but got "
+                "`prediction_decoder.bounding_box_format="
+                f"{prediction_decoder.bounding_box_format}`, and "
+                "`self.bounding_box_format="
+                f"{self.bounding_box_format}`."
+            )
         self._prediction_decoder = prediction_decoder
         self.make_predict_function(force=True)
+        self.make_train_function(force=True)
+        self.make_test_function(force=True)
 
     @staticmethod
     def default_anchor_generator(bounding_box_format):
@@ -223,13 +245,16 @@ class RetinaNet(tf.keras.Model):
             clip_boxes=True,
         )
 
-    def _forward(self, images, training=None):
-        feature_extractor_outputs = self.feature_extractor(
-            images, training=training
-        )
-        features = self.feature_pyramid(
-            feature_extractor_outputs, training=training
-        )
+    def call(self, images, training=None):
+        if isinstance(images, tf.RaggedTensor):
+            raise ValueError(
+                "`RetinaNet()` does not yet support inputs of type `RaggedTensor` for input images. "
+                "To correctly resize your images for object detection tasks, we recommend resizing using "
+                "`keras_cv.layers.Resizing(pad_to_aspect_ratio=True, bounding_box_format=your_format)`"
+                "on your inputs."
+            )
+        backbone_outputs = self.feature_extractor(images, training=training)
+        features = self.feature_pyramid(backbone_outputs, training=training)
 
         N = tf.shape(images)[0]
         cls_pred = []
@@ -249,34 +274,21 @@ class RetinaNet(tf.keras.Model):
 
         cls_pred = tf.concat(cls_pred, axis=1)
         box_pred = tf.concat(box_pred, axis=1)
-
-        return box_pred, cls_pred
-
-    def call(self, images, training=None):
-        if isinstance(images, tf.RaggedTensor):
-            raise ValueError(
-                "`RetinaNet()` does not yet support inputs of type `RaggedTensor` for input images. "
-                "To correctly resize your images for object detection tasks, we recommend resizing using "
-                "`keras_cv.layers.Resizing(pad_to_aspect_ratio=True, bounding_box_format=your_format)`"
-                "on your inputs."
-            )
-        box_pred, cls_pred = self._forward(images, training=training)
-        if not training:
-            # box_pred is on "center_yxhw" format, convert to target format.
-            anchors = self.anchor_generator(images[0])
-            anchors = tf.concat(tf.nest.flatten(anchors), axis=0)
-            box_pred = _decode_deltas_to_boxes(
-                anchors=anchors,
-                boxes_delta=box_pred,
-                anchor_format=self.anchor_generator.bounding_box_format,
-                box_format=self.bounding_box_format,
-                variance=BOX_VARIANCE,
-            )
         return box_pred, cls_pred
 
     def decode_predictions(self, predictions, images):
         # no-op if default decoder is used.
         box_pred, cls_pred = predictions
+        # box_pred is on "center_yxhw" format, convert to target format.
+        anchors = self.anchor_generator(images[0])
+        anchors = tf.concat(tf.nest.flatten(anchors), axis=0)
+        box_pred = _decode_deltas_to_boxes(
+            anchors=anchors,
+            boxes_delta=box_pred,
+            anchor_format=self.anchor_generator.bounding_box_format,
+            box_format=self.bounding_box_format,
+            variance=BOX_VARIANCE,
+        )
         box_pred = bounding_box.convert_format(
             box_pred,
             source=self.bounding_box_format,
@@ -299,6 +311,7 @@ class RetinaNet(tf.keras.Model):
         classification_loss=None,
         weight_decay=0.0001,
         loss=None,
+        metrics=None,
         **kwargs,
     ):
         """compiles the RetinaNet.
@@ -314,15 +327,24 @@ class RetinaNet(tf.keras.Model):
                 A preconfigured `FocalLoss` is provided when the string "focal" is
                 passed.
             weight_decay: a float for variable weight decay.
+            metrics: KerasCV object detection metrics that accept decoded
+                bounding boxes as their inputs.  Examples of this metric type are
+                `keras_cv.metrics.BoxRecall()` and
+                `keras_cv.metrics.BoxMeanAveragePrecision()`.  When `metrics` are
+                included in the call to `compile()`, the RetinaNet will perform
+                non max suppression decoding during the forward pass.  By
+                default the RetinaNet uses a
+                `keras_cv.layers.MultiClassNonMaxSuppression()` layer to
+                perform decoding.  This behavior can be customized by passing in a
+                `prediction_decoder` to the constructor or by modifying the
+                `prediction_decoder` attribute on the model. It should be noted
+                that the default non max suppression operation does not have
+                TPU support, and thus when training on TPU metrics must be
+                evaluated in a `keras.utils.SidecarEvaluator` or a
+                `keras.callbacks.Callback`.
             kwargs: most other `keras.Model.compile()` arguments are supported and
                 propagated to the `keras.Model` class.
         """
-        if "metrics" in kwargs.keys():
-            raise ValueError(
-                "`RetinaNet` does not currently support the use of "
-                "`metrics` due to performance and distribution concerns. Please us the "
-                "`PyCOCOCallback` to evaluate COCO metrics."
-            )
         if loss is not None:
             raise ValueError(
                 "`RetinaNet` does not accept a `loss` to `compile()`. "
@@ -356,10 +378,11 @@ class RetinaNet(tf.keras.Model):
             "box": self.box_loss,
             "classification": self.classification_loss,
         }
+        self._has_user_metrics = metrics is not None and len(metrics) != 0
+        self._user_metrics = metrics
         super().compile(loss=losses, **kwargs)
 
-    def compute_loss(self, images, boxes, classes, training):
-        box_pred, cls_pred = self._forward(images, training=training)
+    def compute_loss(self, x, box_pred, cls_pred, boxes, classes):
         if boxes.shape[-1] != 4:
             raise ValueError(
                 "boxes should have shape (None, None, 4).  Got "
@@ -405,19 +428,18 @@ class RetinaNet(tf.keras.Model):
             "classification": cls_weights,
         }
         return super().compute_loss(
-            x=images, y=y_true, y_pred=y_pred, sample_weight=sample_weights
+            x=x, y=y_true, y_pred=y_pred, sample_weight=sample_weights
         )
 
     def train_step(self, data):
         x, y = unpack_input(data)
-
-        y = bounding_box.convert_format(
+        y_for_label_encoder = bounding_box.convert_format(
             y,
             source=self.bounding_box_format,
             target=self.label_encoder.bounding_box_format,
             images=x,
         )
-        boxes, classes = self.label_encoder(x, y)
+        boxes, classes = self.label_encoder(x, y_for_label_encoder)
         boxes = bounding_box.convert_format(
             boxes,
             source=self.label_encoder.bounding_box_format,
@@ -426,7 +448,10 @@ class RetinaNet(tf.keras.Model):
         )
 
         with tf.GradientTape() as tape:
-            total_loss = self.compute_loss(x, boxes, classes, training=True)
+            box_pred, cls_pred = self(x, training=True)
+            total_loss = self.compute_loss(
+                x, box_pred, cls_pred, boxes, classes
+            )
 
             reg_losses = []
             if self.weight_decay:
@@ -442,27 +467,50 @@ class RetinaNet(tf.keras.Model):
         gradients = tape.gradient(total_loss, trainable_vars)
         self.optimizer.apply_gradients(zip(gradients, trainable_vars))
 
-        return self.compute_metrics(x, {}, {}, sample_weight={})
+        if not self._has_user_metrics:
+            return super().compute_metrics(x, {}, {}, sample_weight={})
+
+        y_pred = self.decode_predictions((box_pred, cls_pred), x)
+        return self.compute_metrics(x, y, y_pred, sample_weight=None)
 
     def test_step(self, data):
         x, y = unpack_input(data)
-
-        y = bounding_box.convert_format(
+        y_for_label_encoder = bounding_box.convert_format(
             y,
             source=self.bounding_box_format,
             target=self.label_encoder.bounding_box_format,
             images=x,
         )
-        boxes, classes = self.label_encoder(x, y)
+        boxes, classes = self.label_encoder(x, y_for_label_encoder)
         boxes = bounding_box.convert_format(
             boxes,
             source=self.label_encoder.bounding_box_format,
             target=self.bounding_box_format,
             images=x,
         )
-        _ = self.compute_loss(x, boxes, classes, training=False)
 
-        return self.compute_metrics(x, {}, {}, sample_weight={})
+        box_pred, cls_pred = self(x, training=False)
+        _ = self.compute_loss(x, box_pred, cls_pred, boxes, classes)
+
+        if not self._has_user_metrics:
+            return super().compute_metrics(x, {}, {}, sample_weight={})
+        y_pred = self.decode_predictions((box_pred, cls_pred), x)
+        return self.compute_metrics(x, y, y_pred, sample_weight=None)
+
+    def compute_metrics(self, x, y, y_pred, sample_weight):
+        metrics = {}
+        metrics.update(super().compute_metrics(x, {}, {}, sample_weight={}))
+
+        for metric in self._user_metrics:
+            metric.update_state(y, y_pred, sample_weight=sample_weight)
+
+        for metric in self._user_metrics:
+            result = metric.result()
+            if isinstance(result, dict):
+                metrics.update(result)
+            else:
+                metrics[metric.name] = result
+        return metrics
 
     def get_config(self):
         return {
