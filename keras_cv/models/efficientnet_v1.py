@@ -514,7 +514,9 @@ class EfficientNet(keras.Model):
         x = apply_conv_bn(
             x=x,
             conv_type="normal",
-            filters=EfficientNet.round_filters(32, width_coefficient, depth_divisor),
+            filters=EfficientNet.round_filters(
+                32, width_coefficient, depth_divisor
+            ),
             kernel_size=3,
             strides=2,
             padding="valid",
@@ -546,7 +548,9 @@ class EfficientNet(keras.Model):
             )
 
             for j in range(
-                EfficientNet.round_repeats(args.pop("repeats"), depth_coefficient)
+                EfficientNet.round_repeats(
+                    args.pop("repeats"), depth_coefficient
+                )
             ):
                 # The first block needs to take care of stride and filter size
                 # increase.
