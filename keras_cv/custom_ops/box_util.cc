@@ -269,7 +269,8 @@ double RotatedBox2D::IoU(const RotatedBox2D& other) const {
   return intersection_area / union_area;
 }
 
-bool RotatedBox2D::left_hand_side(const Vertex& point, const Vertex& v1, const Vertex& v2) const {
+bool RotatedBox2D::left_hand_side(const Vertex& point, const Vertex& v1,
+                                  const Vertex& v2) const {
   double d1 = (point.y - v1.y) * (v2.x - v1.x);
   double d2 = (point.x - v1.x) * (v2.y - v1.y);
   return d1 >= d2;
@@ -330,7 +331,8 @@ std::vector<Vertex> ParseVerticesFromTensor(const Tensor& points_tensor) {
   return points3d;
 }
 
-std::vector<int> GetMinXIndexFromBoxes(std::vector<Upright3DBox>& boxes, std::vector<double>& points) {
+std::vector<int> GetMinXIndexFromBoxes(std::vector<Upright3DBox>& boxes,
+                                       std::vector<double>& points) {
   std::vector<int> res;
   res.reserve(boxes.size());
   auto p_begin = points.begin();
@@ -346,7 +348,8 @@ std::vector<int> GetMinXIndexFromBoxes(std::vector<Upright3DBox>& boxes, std::ve
   return res;
 }
 
-std::vector<int> GetMaxXIndexFromBoxes(std::vector<Upright3DBox>& boxes, std::vector<double>& points) {
+std::vector<int> GetMaxXIndexFromBoxes(std::vector<Upright3DBox>& boxes,
+                                       std::vector<double>& points) {
   std::vector<int> res;
   res.reserve(boxes.size());
   auto p_begin = points.begin();
@@ -362,7 +365,8 @@ std::vector<int> GetMaxXIndexFromBoxes(std::vector<Upright3DBox>& boxes, std::ve
   return res;
 }
 
-std::vector<int> GetMinYIndexFromBoxes(std::vector<Upright3DBox>& boxes, std::vector<double>& points) {
+std::vector<int> GetMinYIndexFromBoxes(std::vector<Upright3DBox>& boxes,
+                                       std::vector<double>& points) {
   std::vector<int> res;
   res.reserve(boxes.size());
   auto p_begin = points.begin();
@@ -378,7 +382,8 @@ std::vector<int> GetMinYIndexFromBoxes(std::vector<Upright3DBox>& boxes, std::ve
   return res;
 }
 
-std::vector<int> GetMaxYIndexFromBoxes(std::vector<Upright3DBox>& boxes, std::vector<double>& points) {
+std::vector<int> GetMaxYIndexFromBoxes(std::vector<Upright3DBox>& boxes,
+                                       std::vector<double>& points) {
   std::vector<int> res;
   res.reserve(boxes.size());
   auto p_begin = points.begin();

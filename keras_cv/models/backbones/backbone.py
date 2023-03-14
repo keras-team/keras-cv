@@ -15,7 +15,6 @@
 
 import os
 
-import tensorflow as tf
 from tensorflow import keras
 
 from keras_cv.utils.python_utils import classproperty
@@ -31,6 +30,15 @@ class Backbone(keras.Model):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self._pyramid_level_inputs = {}
+
+    def get_config(self):
+        # Don't chain to super here. The default `get_config()` for functional
+        # models is nested and cannot be passed to our Backbone constructors.
+        return {
+            "name": self.name,
+            "trainable": self.trainable,
+        }
 
     @classmethod
     def from_config(cls, config):
@@ -145,71 +153,26 @@ class Backbone(keras.Model):
             )(cls.from_preset.__func__)
 
     @property
-    def backbone_level_outputs(self):
-        """Backbone outputs at each resolution level for transfer learning."""
-        return None
+    def pyramid_level_inputs(self):
+        """Intermediate model outputs for feature extraction.
 
-    @backbone_level_outputs.setter
-    def backbone_level_outputs(self, value):
-        self._backbone_level_outputs = value
+        Format is a dictionary with int as key and layer name as value.
+        The int key represent the level of the feature output. A typical feature
+        pyramid has five levels corresponding to scales P3, P4, P5, P6, P7 in
+        the backbone. Scale Pn represents a feature map 2^n times smaller in
+        width and height than the input image.
 
-    def get_feature_extractor(self, min_level=None, max_level=None):
-        """Convert the application model into a model backbone for other tasks.
-
-        The backbone model will usually take same inputs as the original
-        application model, but produce multiple outputs, one for each feature
-        level. Those outputs can be feed to network downstream, like FPN and RPN.
-
-        The output of the backbone model will be a dict with int as key and
-        tensor as value. The int key represent the level of the feature output.
-        A typical feature pyramid has five levels corresponding to scales P3,
-        P4, P5, P6, P7 in the backbone. Scale Pn represents a feature map 2n
-        times smaller in width and height than the input image.
-
-        Args:
-            min_level: optional int, the lowest level of feature to be included
-                in the output. Default to model's lowest feature level (based on
-                the model structure).
-            max_level: optional int, the highest level of feature to be included
-                in the output. Default to model's highest feature level (based
-                on the model structure).
-
-        Returns:
-            a `tf.keras.Model` which has dict as outputs.
-        Raises:
-            ValueError: When the model is lack of information for feature level,
-            and can't be converted to backbone model, or the min_level/max_level
-            param is out of range based on the model structure.
+        Example:
+        ```python
+        {
+            3: 'v2_stack_1_block4_out',
+            4: 'v2_stack_2_block6_out',
+            5: 'v2_stack_3_block3_out',
+        }
+        ```
         """
-        if self._backbone_level_outputs is not None:
-            backbone_level_outputs = self._backbone_level_outputs
-            model_levels = list(sorted(backbone_level_outputs.keys()))
-            if min_level is not None:
-                if min_level < model_levels[0]:
-                    raise ValueError(
-                        f"The min_level provided: {min_level} should be in "
-                        f"the range of {model_levels}"
-                    )
-            else:
-                min_level = model_levels[0]
+        return self._pyramid_level_inputs
 
-            if max_level is not None:
-                if max_level > model_levels[-1]:
-                    raise ValueError(
-                        f"The max_level provided: {max_level} should be in "
-                        f"the range of {model_levels}"
-                    )
-            else:
-                max_level = model_levels[-1]
-
-            outputs = {}
-            for level in range(min_level, max_level + 1):
-                outputs[level] = backbone_level_outputs[level]
-
-            return tf.keras.Model(inputs=self.inputs, outputs=outputs)
-
-        else:
-            raise ValueError(
-                "The current model doesn't have any feature level "
-                "information so extraction not possible."
-            )
+    @pyramid_level_inputs.setter
+    def pyramid_level_inputs(self, value):
+        self._pyramid_level_inputs = value
