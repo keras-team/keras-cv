@@ -122,11 +122,17 @@ class BoxRecall(ODPyMetric):
 
     def update_state(self, y_true, y_pred, sample_weight=None):
         y_true = bounding_box.ensure_tensor(y_true)
-        y_pred = bounding_box.ensure_tensor(y_true)
+        y_pred = bounding_box.ensure_tensor(y_pred)
+        y_true = utils.filter_boxes_by_area_range(y_true)
+        y_pred = utils.filter_boxes_by_area_range(y_pred)
         for imgId in range(y_true["boxes"].shape[0]):
             for c_i, catId in enumerate(self.class_ids):
-                true_boxes = _gather_by_image_and_category(y_true, imgId, catId)
-                pred_boxes = _gather_by_image_and_category(y_pred, imgId, catId)
+                true_boxes = _gather_by_image_and_category(
+                    true_boxes, imgId, catId
+                )
+                pred_boxes = _gather_by_image_and_category(
+                    pred_boxes, imgId, catId
+                )
                 pred_boxes = utils.slice(pred_boxes, self.max_detections)
                 result = self.true_positives_for_image(true_boxes, pred_boxes)
 
