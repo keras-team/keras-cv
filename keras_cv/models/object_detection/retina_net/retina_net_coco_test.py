@@ -36,9 +36,6 @@ class RetinaNetTest(tf.test.TestCase):
         retina_net = keras_cv.models.RetinaNet(
             num_classes=2,
             bounding_box_format="xywh",
-            backbone=keras_cv.models.ResNet50(
-                include_top=False, include_rescaling=False
-            ).as_backbone(),
         )
         retina_net.prediction_decoder = (
             keras_cv.layers.MultiClassNonMaxSuppression(
