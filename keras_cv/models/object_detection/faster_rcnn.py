@@ -431,7 +431,8 @@ class FasterRCNN(tf.keras.Model):
         rpn_box_loss = _validate_and_get_loss(rpn_box_loss, "rpn_box_loss")
         if rpn_classification_loss == "BinaryCrossentropy":
             rpn_classification_loss = tf.keras.losses.BinaryCrossentropy(
-                from_logits=True, reduction=tf.keras.losses.Reduction.SUM
+                from_logits=True,
+                reduction=tf.keras.losses.Reduction.SUM_OVER_BATCH_SIZE,
             )
         rpn_classification_loss = _validate_and_get_loss(
             rpn_classification_loss, "rpn_cls_loss"
@@ -605,9 +606,9 @@ def _validate_and_get_loss(loss, loss_name):
         raise ValueError(
             f"FasterRCNN only accepts `tf.keras.losses.Loss` for {loss_name}, got {loss}"
         )
-    if loss.reduction != tf.keras.losses.Reduction.SUM:
+    if loss.reduction != tf.keras.losses.Reduction.SUM_OVER_BATCH_SIZE:
         logging.info(
             f"FasterRCNN only accepts `SUM` reduction, got {loss.reduction}, automatically converted."
         )
-        loss.reduction = tf.keras.losses.Reduction.SUM
+        loss.reduction = tf.keras.losses.Reduction.SUM_OVER_BATCH_SIZE
     return loss

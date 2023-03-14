@@ -487,10 +487,13 @@ def _parse_box_loss(loss):
     # case insensitive comparison
     if loss.lower() == "smoothl1":
         return keras_cv.losses.SmoothL1Loss(
-            l1_cutoff=1.0, reduction=tf.keras.losses.Reduction.SUM
+            l1_cutoff=1.0,
+            reduction=tf.keras.losses.Reduction.SUM_OVER_BATCH_SIZE,
         )
     if loss.lower() == "huber":
-        return keras.losses.Huber(reduction=tf.keras.losses.Reduction.SUM)
+        return keras.losses.Huber(
+            reduction=tf.keras.losses.Reduction.SUM_OVER_BATCH_SIZE
+        )
 
     raise ValueError(
         "Expected `box_loss` to be either a Keras Loss, "
@@ -506,7 +509,8 @@ def _parse_classification_loss(loss):
     # case insensitive comparison
     if loss.lower() == "focal":
         return keras_cv.losses.FocalLoss(
-            from_logits=True, reduction=tf.keras.losses.Reduction.SUM
+            from_logits=True,
+            reduction=tf.keras.losses.Reduction.SUM_OVER_BATCH_SIZE,
         )
 
     raise ValueError(
