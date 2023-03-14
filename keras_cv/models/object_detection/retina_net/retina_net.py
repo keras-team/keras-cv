@@ -44,11 +44,33 @@ class RetinaNet(tf.keras.Model):
 
     Usage:
     ```python
-    retina_net = keras_cv.models.RetinaNet(
+    images = tf.random.uniform((1, 512, 512, 3))
+    labels = {
+        "boxes": [
+            [
+                [0, 0, 100, 100],
+                [100, 100, 200, 200],
+                [300, 300, 400, 400],
+            ]
+        ],
+        "classes": [[1, 1, 1]],
+    }
+    model = keras_cv.models.RetinaNet(
         num_classes=20,
         bounding_box_format="xywh",
-        backbone=ResNet50V2Backbone(),
     )
+
+    # Evaluate model
+    model(images)
+
+    # Train model
+    model.compile(
+        classification_loss='focal',
+        box_loss='smoothl1',
+        optimizer=tf.optimizers.SGD(global_clipnorm=10.0),
+        jit_compile=False,
+    )
+    model.fit(images, labels)
     ```
 
     Args:
