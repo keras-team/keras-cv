@@ -170,7 +170,7 @@ class BoxRecall(ODPyMetric):
         )
         ious = tf.cast(ious, self.dtype)
 
-        # [num_gts]
+        # [num_gts, 1]
         max_ious = tf.math.reduce_max(ious, axis=-1, keepdims=True)
         thresholds = tf.constant(self.iou_thresholds, dtype=self.dtype)[None, :]
         matches = max_ious > thresholds
