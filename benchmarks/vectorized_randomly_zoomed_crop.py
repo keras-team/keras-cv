@@ -308,7 +308,7 @@ if __name__ == "__main__":
     (x_train, _), _ = tf.keras.datasets.cifar10.load_data()
     x_train = x_train.astype(np.float32)
 
-    num_images = [100, 200, 500, 1000]
+    num_images = [1000, 2000, 5000, 10000]
     results = {}
     aug_candidates = [RandomlyZoomedCrop, OldRandomlyZoomedCrop]
     aug_args = {
