@@ -54,17 +54,17 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
     Reference:
         - [MLP-Mixer: An all-MLP Architecture for Vision](https://arxiv.org/abs/2105.01601)
         
-    This class returns a Keras {name} model.
+    This class represents a Keras {name} model.
 
     For transfer learning use cases, make sure to read the [guide to transfer
         learning & fine-tuning](https://keras.io/guides/transfer_learning/).
         
     Args:
-        include_rescaling: whether or not to rescale the inputs. If set to True,
+        include_rescaling: bool, whether or not to rescale the inputs. If set to True,
             inputs will be passed through a `Rescaling(1/255.0)` layer.
-        include_top: whether to include the fully-connected layer at the top of the
+        include_top: bool, whether to include the fully-connected layer at the top of the
             network.  If provided, num_classes must be provided.
-        num_classes: optional number of classes to classify images into. Only to be
+        num_classes: integer, optional number of classes to classify images into. Only to be
             specified if `include_top` is True.
         weights: one of `None` (random initialization), a pretrained weight file
             path, or a reference to pre-trained weights (e.g. 'imagenet/classification')
@@ -80,7 +80,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
                 of the last convolutional block, and thus the output of the model will
                 be a 2D tensor.
             - `max` means that global max pooling will be applied.
-        name: optional name to pass to the model, defaults to "{name}".
+        name: string, optional name to pass to the model, defaults to "{name}".
         classifier_activation: A `str` or callable. The activation function to use
             on the "top" layer. Ignored unless `include_top=True`. Set
             `classifier_activation=None` to return the logits of the "top" layer.
@@ -90,7 +90,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
 """
 
 
-def MLPBlock(x, mlp_dim, name=None):
+def apply_mlp_block(x, mlp_dim, name=None):
     """An MLP block consisting of two linear layers with GELU activation in
     between.
 
@@ -110,7 +110,7 @@ def MLPBlock(x, mlp_dim, name=None):
     return layers.Dense(x.shape[-1], name=f"{name}_dense_2")(y)
 
 
-def MixerBlock(x, tokens_mlp_dim, channels_mlp_dim, name=None):
+def apply_mixer_block(x, tokens_mlp_dim, channels_mlp_dim, name=None):
     """A mixer block.
 
     Args:
@@ -130,12 +130,12 @@ def MixerBlock(x, tokens_mlp_dim, channels_mlp_dim, name=None):
     y = layers.LayerNormalization()(x)
     y = layers.Permute((2, 1))(y)
 
-    y = MLPBlock(y, tokens_mlp_dim, name=f"{name}_token_mixing")
+    y = apply_mlp_block(y, tokens_mlp_dim, name=f"{name}_token_mixing")
     y = layers.Permute((2, 1))(y)
     x = layers.Add()([x, y])
 
     y = layers.LayerNormalization()(x)
-    y = MLPBlock(y, channels_mlp_dim, name=f"{name}_channel_mixing")
+    y = apply_mlp_block(y, channels_mlp_dim, name=f"{name}_channel_mixing")
     return layers.Add()([x, y])
 
 
@@ -148,16 +148,15 @@ class MLPMixer(keras.Model):
       input_shape: tuple denoting the input shape, (224, 224, 3) for example.
       patch_size: integer denoting the size of the patches to be extracted
         from the inputs (16 for extracting 16x16 patches for example).
-      num_blocks: number of mixer blocks.
-      hidden_dim: dimension to which the patches will be linearly projected.
-      tokens_mlp_dim: dimension of the MLP block responsible for tokens.
-      channels_mlp_dim: dimension of the MLP block responsible for channels.
-      include_rescaling: whether to rescale the inputs.
-        If set to True, inputs will be passed through a
-        `Rescaling(1/255.0)` layer.
-      include_top: whether to include the fully-connected
+      num_blocks: integer, number of mixer blocks.
+      hidden_dim: integer, dimension to which the patches will be linearly projected.
+      tokens_mlp_dim: integer, dimension of the MLP block responsible for tokens.
+      channels_mlp_dim: integer, dimension of the MLP block responsible for channels.
+      include_rescaling: whether to rescale the inputs. If set to True,
+        inputs will be passed through a `Rescaling(1/255.0)` layer.
+      include_top: bool, whether to include the fully-connected
         layer at the top of the network. If provided, num_classes must be provided.
-      num_classes: optional number of classes to classify images
+      num_classes: integer, optional number of classes to classify images
         into. Only to be specified if `include_top` is True.
       weights: one of `None` (random initialization) or a pretrained
         weight file path.
@@ -179,7 +178,7 @@ class MLPMixer(keras.Model):
         `classifier_activation=None` to return the logits of the "top" layer.
         When loading pretrained weights, `classifier_activation` can only
         be `None` or `"softmax"`.
-      name: optional name to pass to the model, defaults to "MLPMixer".
+      name: string, optional name to pass to the model, defaults to "MLPMixer".
 
     Returns:
       A `keras.Model` instance.
@@ -250,7 +249,7 @@ class MLPMixer(keras.Model):
         x = layers.Reshape((x.shape[1] * x.shape[2], x.shape[3]))(x)
 
         for i in range(num_blocks):
-            x = MixerBlock(
+            x = apply_mixer_block(
                 x, tokens_mlp_dim, channels_mlp_dim, name=f"mixer_block_{i}"
             )
 
