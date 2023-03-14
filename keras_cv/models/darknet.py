@@ -39,16 +39,17 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
     Reference:
         - [YoloV3 Paper](https://arxiv.org/abs/1804.02767)
         - [YoloV3 implementation](https://github.com/ultralytics/yolov3)
+        
     For transfer learning use cases, make sure to read the
     [guide to transfer learning & fine-tuning](
         https://keras.io/guides/transfer_learning/).
 
     Args:
-        include_rescaling: whether or not to rescale the inputs. If set to True,
+        include_rescaling: bool, whether or not to rescale the inputs. If set to True,
             inputs will be passed through a `Rescaling(1/255.0)` layer.
-        include_top: whether to include the fully-connected layer at the top of
+        include_top: bool, whether to include the fully-connected layer at the top of
             the network.  If provided, `num_classes` must be provided.
-        num_classes: optional number of classes to classify images into. Only to be
+        num_classes: integer, optional number of classes to classify images into. Only to be
             specified if `include_top` is True.
         weights: one of `None` (random initialization), or a pretrained weight
             file path.
@@ -63,7 +64,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
                 output of the last convolutional block, and thus the output of the
                 model will be a 2D tensor.
             - `max` means that global max pooling will be applied.
-        name: optional name to pass to the model, defaults to "{name}".
+        name: string, optional name to pass to the model, defaults to "{name}".
         
     Returns:
         A `keras.Model` instance.
@@ -87,12 +88,12 @@ class DarkNet(keras.Model):
         https://keras.io/guides/transfer_learning/).
 
     Args:
-        blocks: numbers of building blocks from the layer dark2 to layer dark5.
-        include_rescaling: whether to rescale the inputs. If set to True,
+        blocks: integer, numbers of building blocks from the layer dark2 to layer dark5.
+        include_rescaling: bool, whether to rescale the inputs. If set to True,
             inputs will be passed through a `Rescaling(1/255.0)` layer.
-        include_top: whether to include the fully-connected layer at the top of
+        include_top: bool, whether to include the fully-connected layer at the top of
             the network.  If provided, `num_classes` must be provided.
-        num_classes: optional number of classes to classify images into. Only to be
+        num_classes: integer, optional number of classes to classify images into. Only to be
             specified if `include_top` is True.
         weights: one of `None` (random initialization) or a pretrained weight
             file path.
@@ -110,7 +111,7 @@ class DarkNet(keras.Model):
         classifier_activation: A `str` or callable. The activation function to use
             on the "top" layer. Ignored unless `include_top=True`. Set
             `classifier_activation=None` to return the logits of the "top" layer.
-        name: optional name to pass to the model, defaults to "DarkNet".
+        name: string, optional name to pass to the model, defaults to "DarkNet".
 
     Returns:
         A `keras.Model` instance.
