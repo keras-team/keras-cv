@@ -27,11 +27,16 @@ class BoxCountDelta(keras.metrics.Metric):
     attempting to tune the confidence threshold of your
     `MultiClassNonMaxSuppression` layer in an object detection model.  If this
     metric is high, it indicates that your model is making too many or too few
-    predictions.  Ideally this metric will be zero.
+    predictions.  Ideally this metric will be close to zero.
 
     Args:
       mode: (Optional) either 'relative' or 'absolute'.  When set to 'absolute',
-        the metric will measure the absolute value of the BoxCountDelta.
+        the metric will measure the absolute value of the BoxCountDelta.  The
+        relative mode can be useful in situations where your model consistently
+        outputs too many boxes or too few boxes.  In particular, when set to
+        `relative` and the value is a high magnitude negative, it is prudent to
+        increase the `confidence` setting in your model's non max suppression
+        operation.
       name: (Optional) string name of the metric instance.
       dtype: (Optional) data type of the metric result.
 
