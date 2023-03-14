@@ -44,7 +44,7 @@ class RetinaNet(tf.keras.Model):
 
     Usage:
     ```python
-    images = tf.random.ones(shape=(1, 512, 512, 3))
+    images = tf.ones(shape=(1, 512, 512, 3))
     labels = {
         "boxes": [
             [
