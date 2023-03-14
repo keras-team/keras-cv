@@ -171,10 +171,10 @@ class RetinaNet(tf.keras.Model):
                 "a single class is present, the model will always give a score of "
                 "`1` for the single present class."
             )
-    if backbone is None:
-        self.backbone = keras_cv.models.ResNet50V2Backbone()
-    else:
-        self.backbone = backbone
+        if backbone is None:
+            self.backbone = keras_cv.models.ResNet50V2Backbone()
+        else:
+            self.backbone = backbone
 
         self._prediction_decoder = (
             prediction_decoder
