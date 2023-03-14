@@ -176,13 +176,13 @@ class RetinaNet(tf.keras.Model):
         else:
             self.backbone = backbone
 
-        self._prediction_decoder = (
-            prediction_decoder
-            or cv_layers.MultiClassNonMaxSuppression(
-                bounding_box_format=bounding_box_format,
-                from_logits=True,
+            self._prediction_decoder = (
+                prediction_decoder
+                or cv_layers.MultiClassNonMaxSuppression(
+                    bounding_box_format=bounding_box_format,
+                    from_logits=True,
+                )
             )
-        )
 
         # initialize trainable networks
         extractor_levels = [3, 4, 5]
