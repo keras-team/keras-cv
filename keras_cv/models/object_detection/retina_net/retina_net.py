@@ -254,7 +254,6 @@ class RetinaNet(tf.keras.Model):
                 "on your inputs."
             )
         backbone_outputs = self.feature_extractor(images, training=training)
-        print(backbone_outputs)
         features = self.feature_pyramid(backbone_outputs, training=training)
 
         N = tf.shape(images)[0]
