@@ -64,17 +64,17 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
     Reference:
         - [Patches Are All You Need?](https://arxiv.org/abs/2201.09792)
     
-    This class returns a Keras {name} model.
+    This class represents a Keras {name} model.
     
     For transfer learning use cases, make sure to read the [guide to transfer
         learning & fine-tuning](https://keras.io/guides/transfer_learning/).
         
     Args:
-        include_rescaling: whether or not to rescale the inputs. If set to True,
+        include_rescaling: bool, whether or not to rescale the inputs. If set to True,
             inputs will be passed through a `Rescaling(1/255.0)` layer.
-        include_top: whether to include the fully-connected layer at the top of the
+        include_top: bool, whether to include the fully-connected layer at the top of the
             network. If provided, num_classes must be provided.
-        num_classes: optional number of classes to classify images into. Only to be
+        num_classes: integer, optional number of classes to classify images into. Only to be
             specified if `include_top` is True.
         weights: one of `None` (random initialization), a pretrained weight file
             path, or a reference to pre-trained weights (e.g. 'imagenet/classification')
@@ -90,19 +90,19 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
                 of the last convolutional block, and thus the output of the model will
                 be a 2D tensor.
             - `max` means that global max pooling will be applied.
-        name: optional name to pass to the model, defaults to "{name}".
+        name: string, optional name to pass to the model, defaults to "{name}".
         
     Returns:
       A `keras.Model` instance.
 """
 
 
-def ConvMixerLayer(x, dim, kernel_size):
+def apply_conv_mixer_layer(x, dim, kernel_size):
     """ConvMixerLayer module.
     Args:
         x: input tensor.
         dim: integer, filters of the layer in a block.
-        kernel_size: integer, kernel size of the Conv2d layers.
+        kernel_size: integer, kernel size of the Conv2D layers.
     Returns:
         the updated input tensor.
     """
@@ -119,7 +119,7 @@ def ConvMixerLayer(x, dim, kernel_size):
     return x
 
 
-def PatchEmbed(x, dim, patch_size):
+def apply_patch_embed(x, dim, patch_size):
     """Implementation for Extracting Patch Embeddings.
     Args:
         x: input tensor.
@@ -142,15 +142,15 @@ class ConvMixer(keras.Model):
     """Instantiates the ConvMixer architecture.
 
     Args:
-        dim: number of filters.
-        depth: number of ConvMixer Layer.
-        patch_size: size of the patches.
-        kernel_size: kernel size for conv2d layers.
-        include_top: whether to include the fully-connected
+        dim: integer, number of filters.
+        depth: integer, number of ConvMixer Layer.
+        patch_size: integer, size of the patches.
+        kernel_size: integer, kernel size for Conv2D layers.
+        include_top: bool, whether to include the fully-connected
             layer at the top of the network.
-        include_rescaling: whether to rescale the inputs. If set to True,
+        include_rescaling: bool, whether to rescale the inputs. If set to True,
             inputs will be passed through a `Rescaling(1/255.0)` layer.
-        name: optional name to pass to the model, defaults to "ConvMixer".
+        name: string, optional name to pass to the model, defaults to "ConvMixer".
         weights: one of `None` (random initialization)
             or the path to the weights file to be loaded.
         input_shape: optional shape tuple, defaults to (None, None, 3).
@@ -167,7 +167,7 @@ class ConvMixer(keras.Model):
                 the output of the model will be a 2D tensor.
             - `max` means that global max pooling will
                 be applied.
-        num_classes: optional number of classes to classify images
+        num_classes: integer, optional number of classes to classify images
             into. Only to be specified if `include_top` is True.
         classifier_activation: A `str` or callable. The activation function to use
             on the "top" layer. Ignored unless `include_top=True`. Set
@@ -218,10 +218,10 @@ class ConvMixer(keras.Model):
 
         if include_rescaling:
             x = layers.Rescaling(1 / 255.0)(x)
-        x = PatchEmbed(x, dim, patch_size)
+        x = apply_patch_embed(x, dim, patch_size)
 
         for _ in range(depth):
-            x = ConvMixerLayer(x, dim, kernel_size)
+            x = apply_conv_mixer_layer(x, dim, kernel_size)
 
         if include_top:
             x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
