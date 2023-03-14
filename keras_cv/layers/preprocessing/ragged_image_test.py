@@ -78,6 +78,11 @@ CONSISTENT_OUTPUT_TEST_CONFIGURATIONS = [
         layers.RandomTranslation,
         {"height_factor": 0.5, "width_factor": 0.5},
     ),
+    (
+        "RandomZoom",
+        layers.RandomZoom,
+        {"height_factor": 0.2, "width_factor": 0.5},
+    ),
     ("Solarization", layers.Solarization, {"value_range": (0, 255)}),
 ]
 
