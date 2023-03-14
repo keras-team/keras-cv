@@ -88,17 +88,17 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
 """
 
 
-def apply_depth(x, divisor=8, min_value=None):
+def depth(x, divisor=8, min_value=None):
     """Ensure that all layers have a channel number that is divisible by the `divisor`.
 
     Args:
-        x: input tensor.
+        x: integer, input value.
         divisor: integer, the value by which a channel number should be divisible,
             defaults to 8.
         min_value: float, minimum value for the new tensor.
 
     Returns:
-        the updated input tensor.
+        the updated input scalar.
     """
 
     if min_value is None:
@@ -189,7 +189,7 @@ def apply_inverted_res_block(
         prefix = f"expanded_conv_{block_id}"
 
         x = layers.Conv2D(
-            apply_depth(infilters * expansion),
+            depth(infilters * expansion),
             kernel_size=1,
             padding="same",
             use_bias=False,
@@ -221,7 +221,7 @@ def apply_inverted_res_block(
     if se_ratio:
         with custom_object_scope({"hard_sigmoid": apply_hard_sigmoid}):
             x = cv_layers.SqueezeAndExcite2D(
-                filters=apply_depth(infilters * expansion),
+                filters=depth(infilters * expansion),
                 ratio=se_ratio,
                 squeeze_activation="relu",
                 excite_activation="hard_sigmoid",
@@ -381,12 +381,12 @@ class MobileNetV3(keras.Model):
 
         x = stack_fn(x, kernel, activation, se_ratio)
 
-        last_conv_ch = apply_depth(backend.int_shape(x)[channel_axis] * 6)
+        last_conv_ch = depth(backend.int_shape(x)[channel_axis] * 6)
 
         # if the width multiplier is greater than 1 we
         # increase the number of output channels
         if alpha > 1.0:
-            last_point_ch = apply_depth(last_point_ch * alpha)
+            last_point_ch = depth(last_point_ch * alpha)
         x = layers.Conv2D(
             last_conv_ch,
             kernel_size=1,
@@ -484,37 +484,37 @@ def MobileNetV3Small(
 ):
     def stack_fn(x, kernel, activation, se_ratio):
         x = apply_inverted_res_block(
-            x, 1, apply_depth(16 * alpha), 3, 2, se_ratio, layers.ReLU(), 0
+            x, 1, depth(16 * alpha), 3, 2, se_ratio, layers.ReLU(), 0
         )
         x = apply_inverted_res_block(
-            x, 72.0 / 16, apply_depth(24 * alpha), 3, 2, None, layers.ReLU(), 1
+            x, 72.0 / 16, depth(24 * alpha), 3, 2, None, layers.ReLU(), 1
         )
         x = apply_inverted_res_block(
-            x, 88.0 / 24, apply_depth(24 * alpha), 3, 1, None, layers.ReLU(), 2
+            x, 88.0 / 24, depth(24 * alpha), 3, 1, None, layers.ReLU(), 2
         )
         x = apply_inverted_res_block(
-            x, 4, apply_depth(40 * alpha), kernel, 2, se_ratio, activation, 3
+            x, 4, depth(40 * alpha), kernel, 2, se_ratio, activation, 3
         )
         x = apply_inverted_res_block(
-            x, 6, apply_depth(40 * alpha), kernel, 1, se_ratio, activation, 4
+            x, 6, depth(40 * alpha), kernel, 1, se_ratio, activation, 4
         )
         x = apply_inverted_res_block(
-            x, 6, apply_depth(40 * alpha), kernel, 1, se_ratio, activation, 5
+            x, 6, depth(40 * alpha), kernel, 1, se_ratio, activation, 5
         )
         x = apply_inverted_res_block(
-            x, 3, apply_depth(48 * alpha), kernel, 1, se_ratio, activation, 6
+            x, 3, depth(48 * alpha), kernel, 1, se_ratio, activation, 6
         )
         x = apply_inverted_res_block(
-            x, 3, apply_depth(48 * alpha), kernel, 1, se_ratio, activation, 7
+            x, 3, depth(48 * alpha), kernel, 1, se_ratio, activation, 7
         )
         x = apply_inverted_res_block(
-            x, 6, apply_depth(96 * alpha), kernel, 2, se_ratio, activation, 8
+            x, 6, depth(96 * alpha), kernel, 2, se_ratio, activation, 8
         )
         x = apply_inverted_res_block(
-            x, 6, apply_depth(96 * alpha), kernel, 1, se_ratio, activation, 9
+            x, 6, depth(96 * alpha), kernel, 1, se_ratio, activation, 9
         )
         x = apply_inverted_res_block(
-            x, 6, apply_depth(96 * alpha), kernel, 1, se_ratio, activation, 10
+            x, 6, depth(96 * alpha), kernel, 1, se_ratio, activation, 10
         )
         return x
 
@@ -555,49 +555,49 @@ def MobileNetV3Large(
 ):
     def stack_fn(x, kernel, activation, se_ratio):
         x = apply_inverted_res_block(
-            x, 1, apply_depth(16 * alpha), 3, 1, None, layers.ReLU(), 0
+            x, 1, depth(16 * alpha), 3, 1, None, layers.ReLU(), 0
         )
         x = apply_inverted_res_block(
-            x, 4, apply_depth(24 * alpha), 3, 2, None, layers.ReLU(), 1
+            x, 4, depth(24 * alpha), 3, 2, None, layers.ReLU(), 1
         )
         x = apply_inverted_res_block(
-            x, 3, apply_depth(24 * alpha), 3, 1, None, layers.ReLU(), 2
+            x, 3, depth(24 * alpha), 3, 1, None, layers.ReLU(), 2
         )
         x = apply_inverted_res_block(
-            x, 3, apply_depth(40 * alpha), kernel, 2, se_ratio, layers.ReLU(), 3
+            x, 3, depth(40 * alpha), kernel, 2, se_ratio, layers.ReLU(), 3
         )
         x = apply_inverted_res_block(
-            x, 3, apply_depth(40 * alpha), kernel, 1, se_ratio, layers.ReLU(), 4
+            x, 3, depth(40 * alpha), kernel, 1, se_ratio, layers.ReLU(), 4
         )
         x = apply_inverted_res_block(
-            x, 3, apply_depth(40 * alpha), kernel, 1, se_ratio, layers.ReLU(), 5
+            x, 3, depth(40 * alpha), kernel, 1, se_ratio, layers.ReLU(), 5
         )
         x = apply_inverted_res_block(
-            x, 6, apply_depth(80 * alpha), 3, 2, None, activation, 6
+            x, 6, depth(80 * alpha), 3, 2, None, activation, 6
         )
         x = apply_inverted_res_block(
-            x, 2.5, apply_depth(80 * alpha), 3, 1, None, activation, 7
+            x, 2.5, depth(80 * alpha), 3, 1, None, activation, 7
         )
         x = apply_inverted_res_block(
-            x, 2.3, apply_depth(80 * alpha), 3, 1, None, activation, 8
+            x, 2.3, depth(80 * alpha), 3, 1, None, activation, 8
         )
         x = apply_inverted_res_block(
-            x, 2.3, apply_depth(80 * alpha), 3, 1, None, activation, 9
+            x, 2.3, depth(80 * alpha), 3, 1, None, activation, 9
         )
         x = apply_inverted_res_block(
-            x, 6, apply_depth(112 * alpha), 3, 1, se_ratio, activation, 10
+            x, 6, depth(112 * alpha), 3, 1, se_ratio, activation, 10
         )
         x = apply_inverted_res_block(
-            x, 6, apply_depth(112 * alpha), 3, 1, se_ratio, activation, 11
+            x, 6, depth(112 * alpha), 3, 1, se_ratio, activation, 11
         )
         x = apply_inverted_res_block(
-            x, 6, apply_depth(160 * alpha), kernel, 2, se_ratio, activation, 12
+            x, 6, depth(160 * alpha), kernel, 2, se_ratio, activation, 12
         )
         x = apply_inverted_res_block(
-            x, 6, apply_depth(160 * alpha), kernel, 1, se_ratio, activation, 13
+            x, 6, depth(160 * alpha), kernel, 1, se_ratio, activation, 13
         )
         x = apply_inverted_res_block(
-            x, 6, apply_depth(160 * alpha), kernel, 1, se_ratio, activation, 14
+            x, 6, depth(160 * alpha), kernel, 1, se_ratio, activation, 14
         )
         return x
 
