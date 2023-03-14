@@ -104,7 +104,7 @@ class BoxRecall(ODPyMetric):
         self.bounding_box_format = bounding_box_format
 
         self.iou_thresholds = np.array(iou_thresholds)
-        self.area_range = area_range
+        self.area_range = area_range or [0, 1e9]
         self.max_detections = max_detections
 
         if any([c < 0 for c in class_ids]):
@@ -123,18 +123,20 @@ class BoxRecall(ODPyMetric):
     def update_state(self, y_true, y_pred, sample_weight=None):
         y_true = bounding_box.ensure_tensor(y_true)
         y_pred = bounding_box.ensure_tensor(y_pred)
-        y_true = utils.filter_boxes_by_area_range(y_true)
-        y_pred = utils.filter_boxes_by_area_range(y_pred)
+
         for imgId in range(y_true["boxes"].shape[0]):
             for c_i, catId in enumerate(self.class_ids):
-                true_boxes = _gather_by_image_and_category(
-                    true_boxes, imgId, catId
-                )
-                pred_boxes = _gather_by_image_and_category(
-                    pred_boxes, imgId, catId
-                )
+                true_boxes = _gather_by_image_and_category(y_true, imgId, catId)
+                pred_boxes = _gather_by_image_and_category(y_pred, imgId, catId)
                 pred_boxes = utils.slice(pred_boxes, self.max_detections)
-                result = self.true_positives_for_image(true_boxes, pred_boxes)
+
+                true_boxes = utils.filter_boxes_by_area_range(
+                    true_boxes, self.area_range[0], self.area_range[1]
+                )
+                pred_boxes = utils.filter_boxes_by_area_range(
+                    pred_boxes, self.area_range[0], self.area_range[1]
+                )
+                result = self._true_positives_for_image(true_boxes, pred_boxes)
 
                 self.true_positives[:, c_i] += result
                 self.ground_truth_boxes[c_i] += true_boxes["boxes"].shape[0]
@@ -160,7 +162,7 @@ class BoxRecall(ODPyMetric):
         )
         return tf.math.reduce_mean(recalls_per_threshold)
 
-    def true_positives_for_image(self, y_true, y_pred):
+    def _true_positives_for_image(self, y_true, y_pred):
         ious = iou_lib.compute_iou(
             y_pred["boxes"],
             y_true["boxes"],
