@@ -53,12 +53,12 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
 
     Reference:
         - [MLP-Mixer: An all-MLP Architecture for Vision](https://arxiv.org/abs/2105.01601)
-        
+
     This class represents a Keras {name} model.
 
     For transfer learning use cases, make sure to read the [guide to transfer
         learning & fine-tuning](https://keras.io/guides/transfer_learning/).
-        
+
     Args:
         include_rescaling: bool, whether or not to rescale the inputs. If set to True,
             inputs will be passed through a `Rescaling(1/255.0)` layer.
@@ -84,7 +84,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
         classifier_activation: A `str` or callable. The activation function to use
             on the "top" layer. Ignored unless `include_top=True`. Set
             `classifier_activation=None` to return the logits of the "top" layer.
-            
+
     Returns:
       A `keras.Model` instance.
 """
