@@ -11,3 +11,63 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+import tensorflow as tf
+from absl.testing import parameterized
+from packaging import version
+
+from keras_cv.models.backbones.resnet_v1 import resnet_v1_backbone as resnet_v1
+
+from keras_cv.models.models_test import ModelsTest
+
+MODEL_LIST = [
+    (resnet_v1.ResNet18, 512, {}),
+]
+
+"""
+Below are other configurations that we omit from our CI but that can/should
+be tested manually when making changes to this model.
+(resnet_v1.ResNet34, 512, {}),
+(resnet_v1.ResNet50, 2048, {}),
+(resnet_v1.ResNet101, 2048, {}),
+(resnet_v1.ResNet152, 2048, {}),
+"""
+
+
+class ResNetV1Test(ModelsTest, tf.test.TestCase, parameterized.TestCase):
+    @parameterized.parameters(*MODEL_LIST)
+    def test_application_base(self, app, _, args):
+        super()._test_application_base(app, _, args)
+
+    @parameterized.parameters(*MODEL_LIST)
+    def test_application_with_rescaling(self, app, last_dim, args):
+        super()._test_application_with_rescaling(app, last_dim, args)
+
+    @parameterized.parameters(*MODEL_LIST)
+    def test_application_pooling(self, app, last_dim, args):
+        super()._test_application_pooling(app, last_dim, args)
+
+    @parameterized.parameters(*MODEL_LIST)
+    def test_application_variable_input_channels(self, app, last_dim, args):
+        super()._test_application_variable_input_channels(app, last_dim, args)
+
+    @parameterized.parameters(*MODEL_LIST)
+    def test_model_serialization_tf(self, app, last_dim, args):
+        super()._test_model_serialization(
+            app, last_dim, args, save_format="tf", filename="model"
+        )
+
+    @parameterized.parameters(*MODEL_LIST)
+    def test_model_serialization_keras_format(self, app, last_dim, args):
+        if version.parse(tf.__version__) >= version.parse("2.12.0-dev0"):
+            super()._test_model_serialization(
+                app,
+                last_dim,
+                args,
+                save_format="keras_v3",
+                filename="model.keras",
+            )
+
+
+if __name__ == "__main__":
+    tf.test.main()
