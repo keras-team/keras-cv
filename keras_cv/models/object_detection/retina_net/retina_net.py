@@ -172,7 +172,9 @@ class RetinaNet(tf.keras.Model):
                 "`1` for the single present class."
             )
         if backbone is None:
-            self.backbone = keras_cv.models.ResNet50V2Backbone()
+            self.backbone = keras_cv.models.ResNet50V2Backbone.from_preset(
+                "resnet50_v2_imagenet"
+            )
         else:
             self.backbone = backbone
 
