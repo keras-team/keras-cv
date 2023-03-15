@@ -558,7 +558,7 @@ def ZBlock(
         # Squeeze-Excitation block
         x = SqueezeAndExcite2D(
             inv_btlneck_filters, ratio=squeeze_excite_ratio, name=name
-        )
+        )(x)
 
         # conv_1x1_2
         x = layers.Conv2D(
