@@ -197,6 +197,8 @@ class RetinaNet(keras.Model):
         )
         prior_probability = tf.constant_initializer(-np.log((1 - 0.01) / 0.01))
 
+        self.feature_pyramid = FeaturePyramid()
+
         self.classification_head = (
             classification_head
             or keras_cv.models.object_detection.retina_net.prediction_head.PredictionHead(
