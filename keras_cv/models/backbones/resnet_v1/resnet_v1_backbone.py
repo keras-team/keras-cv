@@ -17,6 +17,7 @@ Reference:
   - [Based on the original keras.applications ResNet](https://github.com/keras-team/keras/blob/master/keras/applications/resnet.py)
 """
 
+import copy
 import types
 
 import tensorflow as tf
@@ -25,7 +26,15 @@ from tensorflow.keras import backend
 from tensorflow.keras import layers
 
 from keras_cv.models import utils
+from keras_cv.models.backbones.backbone import Backbone
+from keras_cv.models.backbones.resnet_v1.resnet_v1_backbone_presets import (
+    backbone_presets,
+)
+from keras_cv.models.backbones.resnet_v1.resnet_v1_backbone_presets import (
+    backbone_presets_with_weights,
+)
 from keras_cv.models.weights import parse_weights
+from keras_cv.utils.python_utils import classproperty
 
 MODEL_CONFIGS = {
     "ResNet18": {
@@ -258,7 +267,7 @@ def apply_stack(
     """
 
     if name is None:
-        name = f"v1_stack_{backend.get_uid('v1_stack')}"
+        name = "v1_stack"
 
     if block_type == "basic_block":
         block_fn = apply_basic_block
@@ -285,7 +294,7 @@ def apply_stack(
 
 
 @keras.utils.register_keras_serializable(package="keras_cv.models")
-class ResNet(keras.Model):
+class ResNetBackbone(Backbone):
     """Instantiates the ResNet architecture.
 
     Args:
@@ -331,39 +340,16 @@ class ResNet(keras.Model):
 
     def __init__(
         self,
+        *,
         stackwise_filters,
         stackwise_blocks,
         stackwise_strides,
         include_rescaling,
-        include_top,
-        name="ResNet",
-        weights=None,
         input_shape=(None, None, 3),
         input_tensor=None,
-        pooling=None,
-        num_classes=None,
-        classifier_activation="softmax",
         block_type="block",
         **kwargs,
     ):
-        if weights and not tf.io.gfile.exists(weights):
-            raise ValueError(
-                "The `weights` argument should be either `None` or the path to the "
-                f"weights file to be loaded. Weights file not found at location: {weights}"
-            )
-
-        if include_top and not num_classes:
-            raise ValueError(
-                "If `include_top` is True, you should specify `num_classes`. "
-                f"Received: num_classes={num_classes}"
-            )
-
-        if include_top and pooling:
-            raise ValueError(
-                f"`pooling` must be `None` when `include_top=True`."
-                f"Received pooling={pooling} and include_top={include_top}. "
-            )
-
         inputs = utils.parse_model_inputs(input_shape, input_tensor)
         x = inputs
 
@@ -385,7 +371,7 @@ class ResNet(keras.Model):
 
         num_stacks = len(stackwise_filters)
 
-        stack_level_outputs = {}
+        pyramid_level_inputs = {}
         for stack_index in range(num_stacks):
             x = apply_stack(
                 x,
@@ -394,70 +380,50 @@ class ResNet(keras.Model):
                 stride=stackwise_strides[stack_index],
                 block_type=block_type,
                 first_shortcut=(block_type == "block" or stack_index > 0),
+                name=f"v2_stack_{stack_index}",
             )
-            stack_level_outputs[stack_index + 2] = x
-
-        if include_top:
-            x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-            x = layers.Dense(
-                num_classes,
-                activation=classifier_activation,
-                name="predictions",
-            )(x)
-        else:
-            if pooling == "avg":
-                x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-            elif pooling == "max":
-                x = layers.GlobalMaxPooling2D(name="max_pool")(x)
+            pyramid_level_inputs[stack_index + 2] = x.node.layer.name
 
         # Create model.
         super().__init__(inputs=inputs, outputs=x, **kwargs)
 
         # All references to `self` below this line
-        if weights is not None:
-            self.load_weights(weights)
-        # Set this private attribute for recreate backbone model with outputs at
-        # each resolution level.
-        self._backbone_level_outputs = stack_level_outputs
-
-        # Bind the `to_backbone_model` method to the application model.
-        self.as_backbone = types.MethodType(utils.as_backbone, self)
-
+        self.pyramid_level_inputs = pyramid_level_inputs
         self.stackwise_filters = stackwise_filters
         self.stackwise_blocks = stackwise_blocks
         self.stackwise_strides = stackwise_strides
         self.include_rescaling = include_rescaling
-        self.include_top = include_top
         self.input_tensor = input_tensor
-        self.pooling = pooling
-        self.num_classes = num_classes
-        self.classifier_activation = classifier_activation
         self.block_type = block_type
 
     def get_config(self):
-        return {
-            "stackwise_filters": self.stackwise_filters,
-            "stackwise_blocks": self.stackwise_blocks,
-            "stackwise_strides": self.stackwise_strides,
-            "include_rescaling": self.include_rescaling,
-            "include_top": self.include_top,
-            # Remove batch dimension from `input_shape`
-            "input_shape": self.input_shape[1:],
-            "input_tensor": self.input_tensor,
-            "pooling": self.pooling,
-            "num_classes": self.num_classes,
-            "classifier_activation": self.classifier_activation,
-            "block_type": self.block_type,
-            "name": self.name,
-            "trainable": self.trainable,
-        }
+        config = super().get_config()
+        config.update(
+            {
+                "stackwise_filters": self.stackwise_filters,
+                "stackwise_blocks": self.stackwise_blocks,
+                "stackwise_strides": self.stackwise_strides,
+                "include_rescaling": self.include_rescaling,
+                # Remove batch dimension from `input_shape`
+                "input_shape": self.input_shape[1:],
+                "input_tensor": self.input_tensor,
+                "block_type": self.block_type,
+            }
+        )
+        return config
 
-    @classmethod
-    def from_config(cls, config):
-        return cls(**config)
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return copy.deepcopy(backbone_presets)
+
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include weights."""
+        return copy.deepcopy(backbone_presets_with_weights)
 
 
-def ResNet18(
+def ResNet18Backbone(
     *,
     include_rescaling,
     include_top,
@@ -472,7 +438,7 @@ def ResNet18(
 ):
     """Instantiates the ResNet18 architecture."""
 
-    return ResNet(
+    return ResNetBackbone(
         stackwise_filters=MODEL_CONFIGS["ResNet18"]["stackwise_filters"],
         stackwise_blocks=MODEL_CONFIGS["ResNet18"]["stackwise_blocks"],
         stackwise_strides=MODEL_CONFIGS["ResNet18"]["stackwise_strides"],
@@ -490,7 +456,7 @@ def ResNet18(
     )
 
 
-def ResNet34(
+def ResNet34Backbone(
     *,
     include_rescaling,
     include_top,
@@ -505,7 +471,7 @@ def ResNet34(
 ):
     """Instantiates the ResNet34 architecture."""
 
-    return ResNet(
+    return ResNetBackbone(
         stackwise_filters=MODEL_CONFIGS["ResNet34"]["stackwise_filters"],
         stackwise_blocks=MODEL_CONFIGS["ResNet34"]["stackwise_blocks"],
         stackwise_strides=MODEL_CONFIGS["ResNet34"]["stackwise_strides"],
@@ -523,7 +489,7 @@ def ResNet34(
     )
 
 
-def ResNet50(
+def ResNet50Backbone(
     *,
     include_rescaling,
     include_top,
@@ -538,7 +504,7 @@ def ResNet50(
 ):
     """Instantiates the ResNet50 architecture."""
 
-    return ResNet(
+    return ResNetBackbone(
         stackwise_filters=MODEL_CONFIGS["ResNet50"]["stackwise_filters"],
         stackwise_blocks=MODEL_CONFIGS["ResNet50"]["stackwise_blocks"],
         stackwise_strides=MODEL_CONFIGS["ResNet50"]["stackwise_strides"],
@@ -556,7 +522,7 @@ def ResNet50(
     )
 
 
-def ResNet101(
+def ResNet101Backbone(
     *,
     include_rescaling,
     include_top,
@@ -570,7 +536,7 @@ def ResNet101(
     **kwargs,
 ):
     """Instantiates the ResNet101 architecture."""
-    return ResNet(
+    return ResNetBackbone(
         stackwise_filters=MODEL_CONFIGS["ResNet101"]["stackwise_filters"],
         stackwise_blocks=MODEL_CONFIGS["ResNet101"]["stackwise_blocks"],
         stackwise_strides=MODEL_CONFIGS["ResNet101"]["stackwise_strides"],
@@ -588,7 +554,7 @@ def ResNet101(
     )
 
 
-def ResNet152(
+def ResNet152Backbone(
     *,
     include_rescaling,
     include_top,
@@ -602,7 +568,7 @@ def ResNet152(
     **kwargs,
 ):
     """Instantiates the ResNet152 architecture."""
-    return ResNet(
+    return ResNetBackbone(
         stackwise_filters=MODEL_CONFIGS["ResNet152"]["stackwise_filters"],
         stackwise_blocks=MODEL_CONFIGS["ResNet152"]["stackwise_blocks"],
         stackwise_strides=MODEL_CONFIGS["ResNet152"]["stackwise_strides"],
@@ -620,8 +586,8 @@ def ResNet152(
     )
 
 
-setattr(ResNet18, "__doc__", BASE_DOCSTRING.format(name="ResNet18"))
-setattr(ResNet34, "__doc__", BASE_DOCSTRING.format(name="ResNet34"))
-setattr(ResNet50, "__doc__", BASE_DOCSTRING.format(name="ResNet50"))
-setattr(ResNet101, "__doc__", BASE_DOCSTRING.format(name="ResNet101"))
-setattr(ResNet152, "__doc__", BASE_DOCSTRING.format(name="ResNet152"))
+setattr(ResNet18Backbone, "__doc__", BASE_DOCSTRING.format(name="ResNet18"))
+setattr(ResNet34Backbone, "__doc__", BASE_DOCSTRING.format(name="ResNet34"))
+setattr(ResNet50Backbone, "__doc__", BASE_DOCSTRING.format(name="ResNet50"))
+setattr(ResNet101Backbone, "__doc__", BASE_DOCSTRING.format(name="ResNet101"))
+setattr(ResNet152Backbone, "__doc__", BASE_DOCSTRING.format(name="ResNet152"))

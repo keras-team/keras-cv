@@ -321,7 +321,7 @@ class FasterRCNN(keras.Model):
         self.rcnn_head = rcnn_head or RCNNHead(num_classes)
         self.backbone = (
             backbone
-            or keras_cv.models.ResNet50(
+            or keras_cv.models.ResNet50Backbone(
                 include_top=False, include_rescaling=True
             ).as_backbone()
         )

@@ -17,11 +17,10 @@ from absl.testing import parameterized
 from packaging import version
 
 from keras_cv.models.backbones.resnet_v1 import resnet_v1_backbone as resnet_v1
-
 from keras_cv.models.models_test import ModelsTest
 
 MODEL_LIST = [
-    (resnet_v1.ResNet18, 512, {}),
+    (resnet_v1.ResNet18Backbone, 512, {}),
 ]
 
 """

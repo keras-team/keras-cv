@@ -34,7 +34,6 @@ class ClassificationTrainingBenchmark(
 
     _benchmark_parameters = [
         # TODO(jbischof): revert to ResNetV2 once classification head ready
-        ("ResNet50", models.ResNet50),
         ("DenseNet121", models.DenseNet121),
     ]
 
