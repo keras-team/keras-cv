@@ -15,10 +15,12 @@
 				"python.linting.flake8Enabled": true,
 				"python.linting.pylintEnabled": false,
 				"python.testing.pytestEnabled": true,
-				"python.formatting.provider": "black",
 				"editor.formatOnSave": true,
 				"editor.codeActionsOnSave": {
 					"source.organizeImports": true
+				},
+				"[python]": {
+					"editor.defaultFormatter": "ms-python.black-formatter"
 				},
 				"editor.rulers": [
 					80
