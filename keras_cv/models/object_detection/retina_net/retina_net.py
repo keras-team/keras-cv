@@ -201,7 +201,7 @@ class RetinaNet(keras.Model):
 
         self.classification_head = (
             classification_head
-            or keras_cv.models.object_detection.retina_net.prediction_head.PredictionHead(
+            or PredictionHead(
                 output_filters=9 * num_classes,
                 bias_initializer=prior_probability,
             )
