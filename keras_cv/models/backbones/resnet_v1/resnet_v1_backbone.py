@@ -36,52 +36,6 @@ from keras_cv.utils.python_utils import classproperty
 BN_AXIS = 3
 BN_EPSILON = 1.001e-5
 
-BASE_DOCSTRING = """Instantiates the {name} architecture.
-    Reference:
-        - [Deep Residual Learning for Image Recognition](https://arxiv.org/abs/1512.03385)
-        - [Identity Mappings in Deep Residual Networks](https://arxiv.org/abs/1603.05027) (ECCV 2016)
-    This function returns a Keras {name} model.
-
-    The difference in Resnet and ResNetV2 rests in the structure of their
-    individual building blocks. In ResNetV2, the batch normalization and
-    ReLU activation precede the convolution layers, as opposed to ResNetV1 where
-    the batch normalization and ReLU activation are applied after the
-    convolution layers.
-
-    For transfer learning use cases, make sure to read the [guide to transfer
-        learning & fine-tuning](https://keras.io/guides/transfer_learning/).
-
-    Args:
-        include_rescaling: bool, whether or not to Rescale the inputs. If set
-            to `True`, inputs will be passed through a `Rescaling(1/255.0)`
-            layer.
-        include_top: bool, whether to include the fully-connected layer at
-            the top of the network.  If provided, `num_classes` must be provided.
-        num_classes: optional int, number of classes to classify images into (only
-            to be specified if `include_top` is `True`).
-        weights: one of `None` (random initialization), a pretrained weight file
-            path, or a reference to pre-trained weights (e.g. 'imagenet/classification')
-            (see available pre-trained weights in weights.py)
-        input_shape: optional shape tuple, defaults to (None, None, 3).
-        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
-            to use as image input for the model.
-        pooling: optional pooling mode for feature extraction
-            when `include_top` is `False`.
-            - `None` means that the output of the model will be the 4D tensor output
-                of the last convolutional block.
-            - `avg` means that global average pooling will be applied to the output
-                of the last convolutional block, and thus the output of the model will
-                be a 2D tensor.
-            - `max` means that global max pooling will be applied.
-        name: (Optional) name to pass to the model.  Defaults to "{name}".
-        classifier_activation: A `str` or callable. The activation function to use
-            on the "top" layer. Ignored unless `include_top=True`. Set
-            `classifier_activation=None` to return the logits of the "top" layer.
-
-    Returns:
-      A `keras.Model` instance.
-"""
-
 
 def apply_basic_block(
     x, filters, kernel_size=3, stride=1, conv_shortcut=True, name=None
@@ -95,6 +49,7 @@ def apply_basic_block(
         stride: int, stride of the first layer. Defaults to 1.
         conv_shortcut: bool, uses convolution shortcut if `True`. If `False`
             (default), uses identity or pooling shortcut, based on stride.
+        name: string, optional prefix for the layer names used in the block.
 
     Returns:
       Output tensor for the residual block.
@@ -158,6 +113,7 @@ def apply_block(
         stride: int, stride of the first layer. Defaults to 1.
         conv_shortcut: bool, uses convolution shortcut if `True`. If `False`
             (default), uses identity or pooling shortcut, based on stride.
+        name: string, optional prefix for the layer names used in the block.
 
     Returns:
       Output tensor for the residual block.
@@ -222,17 +178,18 @@ def apply_stack(
     """A set of stacked residual blocks.
 
     Args:
-      x: input tensor.
-      filters: int, filters of the layer in a block.
-      blocks: int, blocks in the stacked blocks.
-      stride: int, stride of the first layer in the first block. Defaults to 2.
-      block_type: string, one of "basic_block" or "block". The block type to
-            stack. Use "basic_block" for ResNet18 and ResNet34.
-      first_shortcut: bool. Use convolution shortcut if `True` (default),
-            otherwise uses identity or pooling shortcut, based on stride.
+        x: input tensor.
+        filters: int, filters of the layer in a block.
+        blocks: int, blocks in the stacked blocks.
+        stride: int, stride of the first layer in the first block. Defaults to 2.
+        name: string, optional prefix for the layer names used in the block.
+        block_type: string, one of "basic_block" or "block". The block type to
+              stack. Use "basic_block" for ResNet18 and ResNet34.
+        first_shortcut: bool. Use convolution shortcut if `True` (default),
+              otherwise uses identity or pooling shortcut, based on stride.
 
     Returns:
-      Output tensor for the stacked blocks.
+        Output tensor for the stacked blocks.
     """
 
     if name is None:
@@ -266,6 +223,18 @@ def apply_stack(
 class ResNetBackbone(Backbone):
     """Instantiates the ResNet architecture.
 
+    Reference:
+        - [Deep Residual Learning for Image Recognition](https://arxiv.org/abs/1512.03385)
+
+    The difference in ResNetV1 and ResNetV2 rests in the structure of their
+    individual building blocks. In ResNetV2, the batch normalization and
+    ReLU activation precede the convolution layers, as opposed to ResNetV1 where
+    the batch normalization and ReLU activation are applied after the
+    convolution layers.
+
+    For transfer learning use cases, make sure to read the
+    [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
+
     Args:
         stackwise_filters: list of ints, number of filters for each stack in
             the model.
@@ -275,36 +244,29 @@ class ResNetBackbone(Backbone):
         include_rescaling: bool, whether or not to Rescale the inputs. If set
             to `True`, inputs will be passed through a `Rescaling(1/255.0)`
             layer.
-        include_top: bool, whether to include the fully-connected
-            layer at the top of the network.
-        name: string, model name.
-        weights: one of `None` (random initialization),
-            or the path to the weights file to be loaded.
         input_shape: optional shape tuple, defaults to (None, None, 3).
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
             to use as image input for the model.
-        pooling: optional pooling mode for feature extraction
-            when `include_top` is `False`.
-            - `None` means that the output of the model will be
-                the 4D tensor output of the
-                last convolutional layer.
-            - `avg` means that global average pooling
-                will be applied to the output of the
-                last convolutional layer, and thus
-                the output of the model will be a 2D tensor.
-            - `max` means that global max pooling will
-                be applied.
-        num_classes: optional number of classes to classify images
-            into, only to be specified if `include_top` is True.
-        classifier_activation: A `str` or callable. The activation function to
-            use on the "top" layer. Ignored unless `include_top=True`. Set
-            `classifier_activation=None` to return the logits of the "top"
-            layer.
         block_type: string, one of "basic_block" or "block". The block type to
             stack. Use "basic_block" for ResNet18 and ResNet34.
 
-    Returns:
-      A `keras.Model` instance.
+    Examples:
+    ```python
+    input_data = tf.ones(shape=(8, 224, 224, 3))
+
+    # Pretrained backbone
+    model = keras_cv.models.ResNetBackbone.from_preset("resnet50_imagenet")
+    output = model(input_data)
+
+    # Randomly initialized backbone with a custom config
+    model = ResNetBackbone(
+        stackwise_filters=[64, 128, 256, 512],
+        stackwise_blocks=[2, 2, 2, 2],
+        stackwise_strides=[1, 2, 2, 2],
+        include_rescaling=False,
+    )
+    output = model(input_data)
+    ```
     """
 
     def __init__(
@@ -390,6 +352,39 @@ class ResNetBackbone(Backbone):
     def presets_with_weights(cls):
         """Dictionary of preset names and configurations that include weights."""
         return copy.deepcopy(backbone_presets_with_weights)
+
+
+ALIAS_DOCSTRING = """ResNetBackbone (V1) model with {num_layers} layers.
+
+    Reference:
+        - [Deep Residual Learning for Image Recognition](https://arxiv.org/abs/1512.03385)
+
+    The difference in ResNetV1 and ResNetV2 rests in the structure of their
+    individual building blocks. In ResNetV2, the batch normalization and
+    ReLU activation precede the convolution layers, as opposed to ResNetV1 where
+    the batch normalization and ReLU activation are applied after the
+    convolution layers.
+
+    For transfer learning use cases, make sure to read the
+    [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
+
+    Args:
+        include_rescaling: bool, whether or not to Rescale the inputs. If set
+            to `True`, inputs will be passed through a `Rescaling(1/255.0)`
+            layer.
+        input_shape: optional shape tuple, defaults to (None, None, 3).
+        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
+            to use as image input for the model.
+
+    Examples:
+    ```python
+    input_data = tf.ones(shape=(8, 224, 224, 3))
+
+    # Randomly initialized backbone
+    model = ResNet{num_layers}Backbone()
+    output = model(input_data)
+    ```
+"""
 
 
 class ResNet18Backbone(ResNetBackbone):
@@ -541,8 +536,8 @@ class ResNet152Backbone(ResNetBackbone):
         return {}
 
 
-setattr(ResNet18Backbone, "__doc__", BASE_DOCSTRING.format(name="ResNet18"))
-setattr(ResNet34Backbone, "__doc__", BASE_DOCSTRING.format(name="ResNet34"))
-setattr(ResNet50Backbone, "__doc__", BASE_DOCSTRING.format(name="ResNet50"))
-setattr(ResNet101Backbone, "__doc__", BASE_DOCSTRING.format(name="ResNet101"))
-setattr(ResNet152Backbone, "__doc__", BASE_DOCSTRING.format(name="ResNet152"))
+setattr(ResNet18Backbone, "__doc__", ALIAS_DOCSTRING.format(num_layers=18))
+setattr(ResNet34Backbone, "__doc__", ALIAS_DOCSTRING.format(num_layers=34))
+setattr(ResNet50Backbone, "__doc__", ALIAS_DOCSTRING.format(num_layers=50))
+setattr(ResNet101Backbone, "__doc__", ALIAS_DOCSTRING.format(num_layers=101))
+setattr(ResNet152Backbone, "__doc__", ALIAS_DOCSTRING.format(num_layers=152))
