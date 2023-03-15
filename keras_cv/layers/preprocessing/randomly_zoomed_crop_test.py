@@ -1,4 +1,4 @@
-# Copyright 2022 The KerasCV Authors
+# Copyright 2023 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import numpy as np
 import tensorflow as tf
 from absl.testing import parameterized
 
@@ -119,7 +120,8 @@ class RandomlyZoomedCropTest(tf.test.TestCase, parameterized.TestCase):
         with self.assertRaisesRegex(
             ValueError,
             "`aspect_ratio_factor` must be tuple of two positive floats or "
-            "keras_cv.core.FactorSampler instance. Received aspect_ratio_factor=(.*)",
+            "keras_cv.core.FactorSampler instance. Received "
+            "aspect_ratio_factor=(.*)",
         ):
             _ = preprocessing.RandomlyZoomedCrop(
                 height=self.target_size[0],
@@ -145,3 +147,48 @@ class RandomlyZoomedCropTest(tf.test.TestCase, parameterized.TestCase):
                 aspect_ratio_factor=(3 / 4, 4 / 3),
                 zoom_factor=zoom_factor,
             )
+
+    def test_randomly_zoomed_crop_on_batched_images_independently(self):
+        image = tf.random.uniform(shape=(100, 100, 3))
+        input_images = tf.stack([image, image], axis=0)
+
+        layer = preprocessing.RandomlyZoomedCrop(
+            height=self.target_size[0],
+            width=self.target_size[1],
+            aspect_ratio_factor=(3 / 4, 4 / 3),
+            zoom_factor=(0.8, 1.0),
+            seed=self.seed,
+        )
+
+        results = layer(input_images)
+        self.assertNotAllClose(results[0], results[1])
+
+    def test_config_with_custom_name(self):
+        layer = preprocessing.RandomlyZoomedCrop(
+            height=self.target_size[0],
+            width=self.target_size[1],
+            aspect_ratio_factor=(3 / 4, 4 / 3),
+            zoom_factor=(0.8, 1.0),
+            name="image_preproc",
+        )
+        config = layer.get_config()
+        layer_1 = preprocessing.RandomlyZoomedCrop.from_config(config)
+        self.assertEqual(layer_1.name, layer.name)
+
+    def test_output_dtypes(self):
+        inputs = np.array([[[1], [2]], [[3], [4]]], dtype="float64")
+        layer = preprocessing.RandomlyZoomedCrop(
+            height=self.target_size[0],
+            width=self.target_size[1],
+            aspect_ratio_factor=(3 / 4, 4 / 3),
+            zoom_factor=(0.8, 1.0),
+        )
+        self.assertAllEqual(layer(inputs).dtype, "float32")
+        layer = preprocessing.RandomlyZoomedCrop(
+            height=self.target_size[0],
+            width=self.target_size[1],
+            aspect_ratio_factor=(3 / 4, 4 / 3),
+            zoom_factor=(0.8, 1.0),
+            dtype="uint8",
+        )
+        self.assertAllEqual(layer(inputs).dtype, "uint8")
