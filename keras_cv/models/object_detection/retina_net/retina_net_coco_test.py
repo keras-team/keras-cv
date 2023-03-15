@@ -49,7 +49,6 @@ class RetinaNetTest(tf.test.TestCase):
             if isinstance(layer, tf.keras.layers.BatchNormalization):
                 layer.trainable = False
 
-        # BatchNormalization makes it really hard to overfit a miniature dataset
         retina_net.compile(
             optimizer=optimizers.SGD(
                 learning_rate=0.0075, global_clipnorm=10.0
