@@ -15,6 +15,7 @@ import numpy as np
 import tensorflow as tf
 from absl.testing import parameterized
 
+from keras_cv import core
 from keras_cv.layers import preprocessing
 
 
@@ -192,3 +193,26 @@ class RandomlyZoomedCropTest(tf.test.TestCase, parameterized.TestCase):
             dtype="uint8",
         )
         self.assertAllEqual(layer(inputs).dtype, "uint8")
+
+    def test_config(self):
+        layer = preprocessing.RandomlyZoomedCrop(
+            height=self.target_size[0],
+            width=self.target_size[1],
+            aspect_ratio_factor=(3 / 4, 4 / 3),
+            zoom_factor=(0.8, 1.0),
+        )
+        config = layer.get_config()
+        self.assertTrue(
+            isinstance(config["aspect_ratio_factor"], core.UniformFactorSampler)
+        )
+        self.assertTrue(
+            isinstance(config["zoom_factor"], core.UniformFactorSampler)
+        )
+        self.assertEqual(
+            config["aspect_ratio_factor"].get_config()["lower"], 3 / 4
+        )
+        self.assertEqual(
+            config["aspect_ratio_factor"].get_config()["upper"], 4 / 3
+        )
+        self.assertEqual(config["zoom_factor"].get_config()["lower"], 0.8)
+        self.assertEqual(config["zoom_factor"].get_config()["upper"], 1.0)
