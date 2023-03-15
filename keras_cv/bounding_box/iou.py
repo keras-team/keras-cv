@@ -64,6 +64,7 @@ def _compute_intersection(boxes1, boxes2):
     return intersect_height * intersect_width
 
 
+@tf.function(jit_compile=True)
 def compute_iou(
     boxes1,
     boxes2,

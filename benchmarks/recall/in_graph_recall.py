@@ -131,7 +131,6 @@ class InGraphBoxRecall(keras.metrics.Metric):
 
         for img in tf.range(num_images):
             y_true_for_image = utils.get_boxes_for_image(y_true, img)
-
             y_pred_for_image = utils.get_boxes_for_image(y_pred, img)
             y_pred_for_image = utils.order_by_confidence(y_pred_for_image)
 
@@ -190,7 +189,7 @@ class InGraphBoxRecall(keras.metrics.Metric):
         self.true_positives.assign_add(true_positives_update)
         self.ground_truth_boxes.assign_add(ground_truth_boxes_update)
 
-    @tf.function
+    @tf.function(jit_compile=True)
     def result(self):
         present_values = self.ground_truth_boxes != 0
         n_present_categories = tf.math.reduce_sum(
