@@ -18,9 +18,7 @@ Reference:
 """
 
 import copy
-import types
 
-import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import backend
 from tensorflow.keras import layers
@@ -33,36 +31,7 @@ from keras_cv.models.backbones.resnet_v1.resnet_v1_backbone_presets import (
 from keras_cv.models.backbones.resnet_v1.resnet_v1_backbone_presets import (
     backbone_presets_with_weights,
 )
-from keras_cv.models.weights import parse_weights
 from keras_cv.utils.python_utils import classproperty
-
-MODEL_CONFIGS = {
-    "ResNet18": {
-        "stackwise_filters": [64, 128, 256, 512],
-        "stackwise_blocks": [2, 2, 2, 2],
-        "stackwise_strides": [1, 2, 2, 2],
-    },
-    "ResNet34": {
-        "stackwise_filters": [64, 128, 256, 512],
-        "stackwise_blocks": [3, 4, 6, 3],
-        "stackwise_strides": [1, 2, 2, 2],
-    },
-    "ResNet50": {
-        "stackwise_filters": [64, 128, 256, 512],
-        "stackwise_blocks": [3, 4, 6, 3],
-        "stackwise_strides": [1, 2, 2, 2],
-    },
-    "ResNet101": {
-        "stackwise_filters": [64, 128, 256, 512],
-        "stackwise_blocks": [3, 4, 23, 3],
-        "stackwise_strides": [1, 2, 2, 2],
-    },
-    "ResNet152": {
-        "stackwise_filters": [64, 128, 256, 512],
-        "stackwise_blocks": [3, 8, 36, 3],
-        "stackwise_strides": [1, 2, 2, 2],
-    },
-}
 
 BN_AXIS = 3
 BN_EPSILON = 1.001e-5
@@ -423,167 +392,153 @@ class ResNetBackbone(Backbone):
         return copy.deepcopy(backbone_presets_with_weights)
 
 
-def ResNet18Backbone(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    classifier_activation="softmax",
-    name="resnet18",
-    **kwargs,
-):
-    """Instantiates the ResNet18 architecture."""
-
-    return ResNetBackbone(
-        stackwise_filters=MODEL_CONFIGS["ResNet18"]["stackwise_filters"],
-        stackwise_blocks=MODEL_CONFIGS["ResNet18"]["stackwise_blocks"],
-        stackwise_strides=MODEL_CONFIGS["ResNet18"]["stackwise_strides"],
-        include_rescaling=include_rescaling,
-        include_top=include_top,
-        name=name,
-        weights=weights,
-        input_shape=input_shape,
-        input_tensor=input_tensor,
-        pooling=pooling,
-        num_classes=num_classes,
-        classifier_activation=classifier_activation,
-        block_type="basic_block",
+class ResNet18Backbone(ResNetBackbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return ResNetBackbone.from_preset("resnet18", **kwargs)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
+
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include weights."""
+        return {}
 
 
-def ResNet34Backbone(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    classifier_activation="softmax",
-    name="resnet34",
-    **kwargs,
-):
-    """Instantiates the ResNet34 architecture."""
-
-    return ResNetBackbone(
-        stackwise_filters=MODEL_CONFIGS["ResNet34"]["stackwise_filters"],
-        stackwise_blocks=MODEL_CONFIGS["ResNet34"]["stackwise_blocks"],
-        stackwise_strides=MODEL_CONFIGS["ResNet34"]["stackwise_strides"],
-        include_rescaling=include_rescaling,
-        include_top=include_top,
-        name=name,
-        weights=weights,
-        input_shape=input_shape,
-        input_tensor=input_tensor,
-        pooling=pooling,
-        num_classes=num_classes,
-        classifier_activation=classifier_activation,
-        block_type="basic_block",
+class ResNet34Backbone(ResNetBackbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return ResNetBackbone.from_preset("resnet34", **kwargs)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
+
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include weights."""
+        return {}
 
 
-def ResNet50Backbone(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    classifier_activation="softmax",
-    name="resnet50",
-    **kwargs,
-):
-    """Instantiates the ResNet50 architecture."""
-
-    return ResNetBackbone(
-        stackwise_filters=MODEL_CONFIGS["ResNet50"]["stackwise_filters"],
-        stackwise_blocks=MODEL_CONFIGS["ResNet50"]["stackwise_blocks"],
-        stackwise_strides=MODEL_CONFIGS["ResNet50"]["stackwise_strides"],
-        include_rescaling=include_rescaling,
-        include_top=include_top,
-        name=name,
-        weights=parse_weights(weights, include_top, "resnet50"),
-        input_shape=input_shape,
-        input_tensor=input_tensor,
-        pooling=pooling,
-        num_classes=num_classes,
-        classifier_activation=classifier_activation,
-        block_type="block",
+class ResNet50Backbone(ResNetBackbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return ResNetBackbone.from_preset("resnet50", **kwargs)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {
+            "resnet50_imagenet": copy.deepcopy(
+                backbone_presets["resnet50_imagenet"]
+            ),
+        }
+
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include weights."""
+        return cls.presets
 
 
-def ResNet101Backbone(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    classifier_activation="softmax",
-    name="resnet101",
-    **kwargs,
-):
-    """Instantiates the ResNet101 architecture."""
-    return ResNetBackbone(
-        stackwise_filters=MODEL_CONFIGS["ResNet101"]["stackwise_filters"],
-        stackwise_blocks=MODEL_CONFIGS["ResNet101"]["stackwise_blocks"],
-        stackwise_strides=MODEL_CONFIGS["ResNet101"]["stackwise_strides"],
-        name=name,
-        include_rescaling=include_rescaling,
-        include_top=include_top,
-        weights=weights,
-        input_shape=input_shape,
-        input_tensor=input_tensor,
-        pooling=pooling,
-        num_classes=num_classes,
-        classifier_activation=classifier_activation,
-        block_type="block",
+class ResNet101Backbone(ResNetBackbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return ResNetBackbone.from_preset("resnet101", **kwargs)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
+
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include weights."""
+        return {}
 
 
-def ResNet152Backbone(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    classifier_activation="softmax",
-    name="resnet152",
-    **kwargs,
-):
-    """Instantiates the ResNet152 architecture."""
-    return ResNetBackbone(
-        stackwise_filters=MODEL_CONFIGS["ResNet152"]["stackwise_filters"],
-        stackwise_blocks=MODEL_CONFIGS["ResNet152"]["stackwise_blocks"],
-        stackwise_strides=MODEL_CONFIGS["ResNet152"]["stackwise_strides"],
-        include_rescaling=include_rescaling,
-        include_top=include_top,
-        name=name,
-        weights=weights,
-        input_shape=input_shape,
-        input_tensor=input_tensor,
-        pooling=pooling,
-        num_classes=num_classes,
-        classifier_activation=classifier_activation,
-        block_type="block",
+class ResNet152Backbone(ResNetBackbone):
+    def __new__(
+        self,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return ResNetBackbone.from_preset("resnet152", **kwargs)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
+
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include weights."""
+        return {}
 
 
 setattr(ResNet18Backbone, "__doc__", BASE_DOCSTRING.format(name="ResNet18"))
