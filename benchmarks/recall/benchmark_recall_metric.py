@@ -18,6 +18,7 @@ import os
 import time
 import numpy as np
 import tensorflow as tf
+import json
 
 from keras_cv import bounding_box
 from keras_cv.metrics import BoxRecall
@@ -29,6 +30,7 @@ import seaborn as sns
 
 SAMPLE_FILE = os.path.dirname(os.path.abspath(__file__)) + "/sample_boxes.npz"
 
+name = 'v2'
 
 def trial(metric, y_true, y_pred, expected_result):
     # Warmup!!!
@@ -135,6 +137,15 @@ for args, target in cases:
     ingraph_runtimes.append(runtime_ingraph)
     pymetric_runtimes.append(runtime_pymetric)
 
+with open('history.json', 'r') as f:
+    history = json.load(f)
+
+history['ingraph-' + name] = ingraph_runtimes
+history['pymetric-' + name] = pymetric_runtimes
+
+with open('history.json', 'w') as f:
+    json.dump(history, f)
+
 df = pd.DataFrame(
     data={
         'ingraph': ingraph_runtimes,
@@ -142,4 +153,4 @@ df = pd.DataFrame(
     }
 )
 
-sns.violin(df, )
+sns.violinplot(df)
