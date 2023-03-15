@@ -14,8 +14,7 @@
 
 from keras_cv.models.__internal__.darknet_utils import CrossStagePartial
 from keras_cv.models.__internal__.darknet_utils import apply_darknet_conv_block
-from keras_cv.models.__internal__.darknet_utils import apply_residual_blocks
-from keras_cv.models.__internal__.darknet_utils import Focus
+from keras_cv.models.__internal__.darknet_utils import apply_focus
 from keras_cv.models.__internal__.darknet_utils import apply_residual_blocks
 from keras_cv.models.__internal__.darknet_utils import (
     apply_spatial_pyramid_pooling_bottleneck,

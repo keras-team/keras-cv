@@ -30,7 +30,7 @@ def apply_darknet_conv_block(
     """The basic conv block used in Darknet. Applies Conv2D followed by a BatchNorm.
 
     Args:
-        filters: Integer, the dimensionality of the output space (i.e. the number of
+        filters: integer, the dimensionality of the output space (i.e. the number of
             output filters in the convolution).
         kernel_size: An integer or tuple/list of 2 integers, specifying the height
             and width of the 2D convolution window. Can be a single integer to specify
@@ -38,7 +38,7 @@ def apply_darknet_conv_block(
         strides: An integer or tuple/list of 2 integers, specifying the strides of
             the convolution along the height and width. Can be a single integer to
             the same value both dimensions.
-        use_bias: Boolean, whether the layer uses a bias vector.
+        use_bias: boolean, whether the layer uses a bias vector.
         activation: the activation applied after the BatchNorm layer. One of "silu",
             "relu" or "leaky_relu". Defaults to "silu".
         name: string, the prefix for the layer names used in the block.
@@ -74,9 +74,9 @@ def apply_residual_blocks(x, filters, num_blocks, name=None):
 
     Args:
         x: input tensor
-        filters: Integer, the dimensionality of the output spaces (i.e. the number of
+        filters: integer, the dimensionality of the output spaces (i.e. the number of
             output filters in used the blocks).
-        num_blocks: Integer, number of times the residual connections are repeated
+        num_blocks: integer, number of times the residual connections are repeated
         name: string, the prefix for the layer names used in the block.
 
     Returns:
@@ -132,9 +132,9 @@ def apply_spatial_pyramid_pooling_bottleneck(
 
     Args:
         x: input tensor
-        filters: Integer, the dimensionality of the output spaces (i.e. the number of
+        filters: integer, the dimensionality of the output spaces (i.e. the number of
             output filters in used the blocks).
-        hidden_filters: Integer, the dimensionality of the intermediate bottleneck space
+        hidden_filters: integer, the dimensionality of the intermediate bottleneck space
             (i.e. the number of output filters in the bottleneck convolution). If None,
             it will be equal to filters. Defaults to None.
         kernel_sizes: A list or tuple representing all the pool sizes used for the
@@ -188,7 +188,7 @@ def apply_darknet_conv_block_depthwise(
     """The depthwise conv block used in CSPDarknet.
 
     Args:
-        filters: Integer, the dimensionality of the output space (i.e. the number of
+        filters: integer, the dimensionality of the output space (i.e. the number of
             output filters in the final convolution).
         kernel_size: An integer or tuple/list of 2 integers, specifying the height
             and width of the 2D convolution window. Can be a single integer to specify
@@ -233,7 +233,7 @@ class CrossStagePartial(layers.Layer):
     """A block used in Cross Stage Partial Darknet.
 
     Args:
-        filters: Integer, the dimensionality of the output space (i.e. the number of
+        filters: integer, the dimensionality of the output space (i.e. the number of
             output filters in the final convolution).
         num_bottlenecks: an integer representing the number of blocks added in the
             layer bottleneck.
@@ -339,7 +339,7 @@ class CrossStagePartial(layers.Layer):
         return dict(list(base_config.items()) + list(config.items()))
 
 
-def Focus(name=None):
+def apply_focus(x, name=None):
     """A block used in CSPDarknet to focus information into channels of the image.
 
     If the dimensions of a batch input is (batch_size, width, height, channels), this
@@ -347,24 +347,22 @@ def Focus(name=None):
     See [the original discussion on YoloV5 Focus Layer](https://github.com/ultralytics/yolov5/discussions/3181).
 
     Args:
-        name: the name for the lambda layer used in the block.
+        x: input tensor
+        name: string, the name for the lambda layer used in the block.
 
     Returns:
-        a function that takes an input Tensor representing a Focus layer.
+        the result of applying a Focus layer on the input tensor.
     """
 
-    def apply(x):
-        return layers.Lambda(
-            lambda x: tf.concat(
-                [
-                    x[..., ::2, ::2, :],
-                    x[..., 1::2, ::2, :],
-                    x[..., ::2, 1::2, :],
-                    x[..., 1::2, 1::2, :],
-                ],
-                axis=-1,
-            ),
-            name=name,
-        )(x)
-
-    return apply
+    return layers.Lambda(
+        lambda x: tf.concat(
+            [
+                x[..., ::2, ::2, :],
+                x[..., 1::2, ::2, :],
+                x[..., ::2, 1::2, :],
+                x[..., 1::2, 1::2, :],
+            ],
+            axis=-1,
+        ),
+        name=name,
+    )(x)
