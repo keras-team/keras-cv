@@ -15,6 +15,7 @@
 """Tests to ensure that BoxRecall computes the correct values."""
 import os
 
+from tqdm import tqdm
 import time
 import numpy as np
 import tensorflow as tf
@@ -37,6 +38,7 @@ name = "v2"
 def trial(metric, y_true, y_pred, expected_result):
     # Warmup!!!
     metric.update_state(y_true, y_pred)
+    result = metric.result()
     metric.reset_state()
 
     t0 = time.time()
@@ -138,24 +140,25 @@ ingraph_runtimes = []
 pymetric_runtimes = []
 pycocotools_runtimes = []
 
-for args, target, cocotoolskey in cases:
-    igr_metric = in_graph_recall.InGraphBoxRecall(**args)
+for args, target, cocotoolskey in tqdm(cases):
+    # igr_metric = in_graph_recall.InGraphBoxRecall(**args)
     pymetric_metric = pymetric_recall.PyMetricRecall(**args)
-    pycocotools_metric = pycocotools_recall.COCOToolsRecall(cocotoolskey)
+    # pycocotools_metric = pycocotools_recall.COCOToolsRecall(cocotoolskey)
 
-    runtime_pycocotools = trial(pycocotools_metric, y_true, y_pred, target)
-    runtime_ingraph = trial(igr_metric, y_true, y_pred, target)
+    # runtime_pycocotools = trial(pycocotools_metric, y_true, y_pred, target)
+    # runtime_ingraph = trial(igr_metric, y_true, y_pred, target)
     runtime_pymetric = trial(pymetric_metric, y_true, y_pred, target)
 
-    ingraph_runtimes.append(runtime_ingraph)
+    # ingraph_runtimes.append(runtime_ingraph)
     pymetric_runtimes.append(runtime_pymetric)
-    pycocotools_runtimes.append(runtime_pycocotools)
+    # pycocotools_runtimes.append(runtime_pycocotools)
+
 with open("history.json", "r") as f:
     history = json.load(f)
 
-history["ingraph"] = ingraph_runtimes
+# history["ingraph"] = ingraph_runtimes
 history["pymetric"] = pymetric_runtimes
-history["pycocotools"] = pycocotools_runtimes
+# history["pycocotools"] = pycocotools_runtimes
 
 with open("history.json", "w") as f:
     json.dump(history, f)

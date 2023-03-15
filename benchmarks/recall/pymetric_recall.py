@@ -128,11 +128,12 @@ class PyMetricRecall(ODPyMetric):
                 pred_boxes = utils.filter_boxes_by_area_range(
                     pred_boxes, self.area_range[0], self.area_range[1]
                 )
-                result = self._true_positives_for_image(true_boxes, pred_boxes)
+                result = self._true_positives_for_image(true_boxes['boxes'], pred_boxes['boxes'])
 
                 self.true_positives[:, c_i] += result
                 self.ground_truth_boxes[c_i] += true_boxes["boxes"].shape[0]
 
+    @tf.function()
     def result(self):
         present_values = self.ground_truth_boxes != 0
         n_present_categories = tf.math.reduce_sum(
@@ -152,10 +153,11 @@ class PyMetricRecall(ODPyMetric):
         )
         return tf.math.reduce_mean(recalls_per_threshold)
 
+    @tf.function(jit_compile=True)
     def _true_positives_for_image(self, y_true, y_pred):
         ious = iou_lib.compute_iou(
-            y_pred["boxes"],
-            y_true["boxes"],
+            y_pred,
+            y_true,
             bounding_box_format=self.bounding_box_format,
         )
         ious = tf.cast(ious, self.dtype)
@@ -179,7 +181,7 @@ class PyMetricRecall(ODPyMetric):
         )
         return config
 
-
+@tf.function(reduce_retracing=True)
 def _gather_by_image_and_category(bounding_boxes, image_index, category_id):
     bounding_boxes = utils.get_boxes_for_image(bounding_boxes, image_index)
     inds = tf.where(bounding_boxes["classes"] == category_id)
