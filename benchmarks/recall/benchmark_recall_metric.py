@@ -147,10 +147,8 @@ with open('history.json', 'w') as f:
     json.dump(history, f)
 
 df = pd.DataFrame(
-    data={
-        'ingraph': ingraph_runtimes,
-        'pymetric': pymetric_runtimes
-    }
+    data=history
 )
 
 sns.violinplot(df)
+plt.show()
