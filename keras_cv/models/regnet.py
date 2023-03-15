@@ -256,7 +256,7 @@ BASE_DOCSTRING = """This class represents the {name} architecture.
 """
 
 
-def conv2d_bn(
+def apply_conv2d_bn(
     x,
     filters,
     kernel_size,
@@ -305,7 +305,7 @@ def apply_stem(x, name=None):
     if name is None:
         name = "stem" + str(backend.get_uid("stem"))
 
-    x = conv2d_bn(
+    x = apply_conv2d_bn(
         x=x,
         filters=32,
         kernel_size=(3, 3),
@@ -317,7 +317,7 @@ def apply_stem(x, name=None):
     return x
 
 
-def apply_XBlock(
+def apply_x_block(
     inputs, filters_in, filters_out, group_width, stride=1, name=None
 ):
     """Implementation of X Block.
@@ -349,7 +349,7 @@ def apply_XBlock(
     groups = filters_out // group_width
 
     if stride != 1:
-        skip = conv2d_bn(
+        skip = apply_conv2d_bn(
             x=inputs,
             filters=filters_out,
             kernel_size=(1, 1),
@@ -362,7 +362,7 @@ def apply_XBlock(
 
     # Build block
     # conv_1x1_1
-    x = conv2d_bn(
+    x = apply_conv2d_bn(
         x=inputs,
         filters=filters_out,
         kernel_size=(1, 1),
@@ -370,7 +370,7 @@ def apply_XBlock(
     )
 
     # conv_3x3
-    x = conv2d_bn(
+    x = apply_conv2d_bn(
         x=x,
         filters=filters_out,
         kernel_size=(3, 3),
@@ -381,7 +381,7 @@ def apply_XBlock(
     )
 
     # conv_1x1_2
-    x = conv2d_bn(
+    x = apply_conv2d_bn(
         x=x,
         filters=filters_out,
         kernel_size=(1, 1),
@@ -394,7 +394,7 @@ def apply_XBlock(
     return x
 
 
-def apply_YBlock(
+def apply_y_block(
     inputs,
     filters_in,
     filters_out,
@@ -432,7 +432,7 @@ def apply_YBlock(
     groups = filters_out // group_width
 
     if stride != 1:
-        skip = conv2d_bn(
+        skip = apply_conv2d_bn(
             x=inputs,
             filters=filters_out,
             kernel_size=(1, 1),
@@ -445,7 +445,7 @@ def apply_YBlock(
 
     # Build block
     # conv_1x1_1
-    x = conv2d_bn(
+    x = apply_conv2d_bn(
         x=inputs,
         filters=filters_out,
         kernel_size=(1, 1),
@@ -453,7 +453,7 @@ def apply_YBlock(
     )
 
     # conv_3x3
-    x = conv2d_bn(
+    x = apply_conv2d_bn(
         x=x,
         filters=filters_out,
         kernel_size=(3, 3),
@@ -469,7 +469,7 @@ def apply_YBlock(
     )
 
     # conv_1x1_2
-    x = conv2d_bn(
+    x = apply_conv2d_bn(
         x=x,
         filters=filters_out,
         kernel_size=(1, 1),
@@ -482,7 +482,7 @@ def apply_YBlock(
     return x
 
 
-def apply_ZBlock(
+def apply_z_block(
     inputs,
     filters_in,
     filters_out,
@@ -525,7 +525,7 @@ def apply_ZBlock(
 
     # Build block
     # conv_1x1_1
-    x = conv2d_bn(
+    x = apply_conv2d_bn(
         x=inputs,
         filters=inv_btlneck_filters,
         kernel_size=(1, 1),
@@ -534,7 +534,7 @@ def apply_ZBlock(
     )
 
     # conv_3x3
-    x = conv2d_bn(
+    x = apply_conv2d_bn(
         x=x,
         filters=inv_btlneck_filters,
         kernel_size=(3, 3),
@@ -548,10 +548,10 @@ def apply_ZBlock(
     # Squeeze-Excitation block
     x = SqueezeAndExcite2D(
         inv_btlneck_filters, ratio=squeeze_excite_ratio, name=name
-    )  # Bug: SqueezeAndExcite2D is not included
+    )(x)
 
     # conv_1x1_2
-    x = conv2d_bn(
+    x = apply_conv2d_bn(
         x=x,
         filters=filters_out,
         kernel_size=(1, 1),
@@ -586,7 +586,7 @@ def apply_stage(
         name = str(backend.get_uid("stage"))
 
     if block_type == "X":
-        x = apply_XBlock(
+        x = apply_x_block(
             x,
             filters_in,
             filters_out,
@@ -595,7 +595,7 @@ def apply_stage(
             name=f"{name}_XBlock_0",
         )
         for i in range(1, depth):
-            x = apply_XBlock(
+            x = apply_x_block(
                 x,
                 filters_out,
                 filters_out,
@@ -603,7 +603,7 @@ def apply_stage(
                 name=f"{name}_XBlock_{i}",
             )
     elif block_type == "Y":
-        x = apply_YBlock(
+        x = apply_y_block(
             x,
             filters_in,
             filters_out,
@@ -612,7 +612,7 @@ def apply_stage(
             name=name + "_YBlock_0",
         )
         for i in range(1, depth):
-            x = apply_YBlock(
+            x = apply_y_block(
                 x,
                 filters_out,
                 filters_out,
@@ -620,7 +620,7 @@ def apply_stage(
                 name=f"{name}_YBlock_{i}",
             )
     elif block_type == "Z":
-        x = apply_ZBlock(
+        x = apply_z_block(
             x,
             filters_in,
             filters_out,
@@ -629,7 +629,7 @@ def apply_stage(
             name=f"{name}_ZBlock_0",
         )
         for i in range(1, depth):
-            x = apply_ZBlock(
+            x = apply_z_block(
                 x,
                 filters_out,
                 filters_out,
