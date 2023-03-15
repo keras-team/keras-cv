@@ -27,10 +27,12 @@ import in_graph_recall
 import pymetric_recall
 import matplotlib.pyplot as plt
 import seaborn as sns
+import pycocotools_recall
 
 SAMPLE_FILE = os.path.dirname(os.path.abspath(__file__)) + "/sample_boxes.npz"
 
-name = 'v2'
+name = "v2"
+
 
 def trial(metric, y_true, y_pred, expected_result):
     # Warmup!!!
@@ -69,6 +71,7 @@ def load_samples(fname):
 
     return y_true, y_pred, categories
 
+
 y_true, y_pred, categories = load_samples(SAMPLE_FILE)
 
 cases = [
@@ -79,6 +82,7 @@ cases = [
             "max_detections": 1,
         },
         0.478,
+        "ARmax1",
     ),
     (
         {
@@ -87,6 +91,7 @@ cases = [
             "max_detections": 10,
         },
         0.645,
+        "ARmax10",
     ),
     (
         {
@@ -95,6 +100,7 @@ cases = [
             "max_detections": 100,
         },
         0.648,
+        "ARmax100",
     ),
     (
         {
@@ -104,6 +110,7 @@ cases = [
             "area_range": (0, 32**2),
         },
         0.628,
+        "ARs",
     ),
     (
         {
@@ -113,6 +120,7 @@ cases = [
             "area_range": (32**2, 96**2),
         },
         0.653,
+        "ARm",
     ),
     (
         {
@@ -122,33 +130,37 @@ cases = [
             "area_range": (96**2, 1e5**2),
         },
         0.641,
+        "ARl",
     ),
 ]
 
 ingraph_runtimes = []
 pymetric_runtimes = []
+pycocotools_runtimes = []
 
-for args, target in cases:
+for args, target, cocotoolskey in cases:
     igr_metric = in_graph_recall.InGraphBoxRecall(**args)
     pymetric_metric = pymetric_recall.PyMetricRecall(**args)
+    pycocotools_metric = pycocotools_recall.COCOToolsRecall(cocotoolskey)
+
+    runtime_pycocotools = trial(pycocotools_metric, y_true, y_pred, target)
     runtime_ingraph = trial(igr_metric, y_true, y_pred, target)
     runtime_pymetric = trial(pymetric_metric, y_true, y_pred, target)
 
     ingraph_runtimes.append(runtime_ingraph)
     pymetric_runtimes.append(runtime_pymetric)
-
-with open('history.json', 'r') as f:
+    pycocotools_runtimes.append(runtime_pycocotools)
+with open("history.json", "r") as f:
     history = json.load(f)
 
-history['ingraph-' + name] = ingraph_runtimes
-history['pymetric-' + name] = pymetric_runtimes
+history["ingraph"] = ingraph_runtimes
+history["pymetric"] = pymetric_runtimes
+history["pycocotools"] = pycocotools_runtimes
 
-with open('history.json', 'w') as f:
+with open("history.json", "w") as f:
     json.dump(history, f)
 
-df = pd.DataFrame(
-    data=history
-)
+df = pd.DataFrame(data=history)
 
 sns.violinplot(df)
 plt.show()

@@ -86,17 +86,13 @@ class PyMetricRecall(ODPyMetric):
         **kwargs,
     ):
         self.class_ids = list(class_ids)
-        iou_thresholds = iou_thresholds or [
-            x / 100.0 for x in range(50, 100, 5)
-        ]
+        iou_thresholds = iou_thresholds or [x / 100.0 for x in range(50, 100, 5)]
         self.num_thresholds = len(iou_thresholds)
         self.num_categories = len(class_ids)
         self.true_positives = np.zeros(
             shape=(self.num_thresholds, self.num_categories), dtype="int32"
         )
-        self.ground_truth_boxes = np.zeros(
-            shape=(self.num_categories), dtype="int32"
-        )
+        self.ground_truth_boxes = np.zeros(shape=(self.num_categories), dtype="int32")
         super().__init__(**kwargs)
         # Initialize parameter values
         self.bounding_box_format = bounding_box_format
@@ -114,9 +110,7 @@ class PyMetricRecall(ODPyMetric):
         self.true_positives = np.zeros(
             shape=(self.num_thresholds, self.num_categories), dtype="int32"
         )
-        self.ground_truth_boxes = np.zeros(
-            shape=(self.num_categories), dtype="int32"
-        )
+        self.ground_truth_boxes = np.zeros(shape=(self.num_categories), dtype="int32")
 
     def update_state(self, y_true, y_pred, sample_weight=None):
         y_true = bounding_box.ensure_tensor(y_true)
@@ -152,9 +146,7 @@ class PyMetricRecall(ODPyMetric):
         true_positives = tf.cast(self.true_positives, self.dtype)
         ground_truth_boxes = tf.cast(self.ground_truth_boxes, self.dtype)
 
-        recalls = tf.math.divide_no_nan(
-            true_positives, ground_truth_boxes[None, :]
-        )
+        recalls = tf.math.divide_no_nan(true_positives, ground_truth_boxes[None, :])
         recalls_per_threshold = (
             tf.math.reduce_sum(recalls, axis=-1) / n_present_categories
         )

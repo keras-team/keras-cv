@@ -22,7 +22,7 @@ from keras_cv.bounding_box import iou as iou_lib
 from keras_cv.metrics.coco import utils
 
 
-class _BoxRecall(keras.metrics.Metric):
+class InGraphBoxRecall(keras.metrics.Metric):
     """_BoxRecall computes recall based on varying true positive IoU thresholds.
 
     _BoxRecall is analagous to traditional Recall.  The primary distinction is

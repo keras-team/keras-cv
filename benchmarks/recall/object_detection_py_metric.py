@@ -88,9 +88,7 @@ class ODPyMetric(base_metric.Metric):
         obj.result_on_host_cpu = result_on_host_cpu
 
         def result_fn(self):
-            return tf.py_function(
-                self.result_on_host_cpu, inp=[], Tout=obj.dtype
-            )
+            return tf.py_function(self.result_on_host_cpu, inp=[], Tout=obj.dtype)
 
         obj.result = types.MethodType(result_fn, obj)
 
