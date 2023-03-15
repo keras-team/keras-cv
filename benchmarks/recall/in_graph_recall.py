@@ -21,6 +21,11 @@ from keras_cv import bounding_box
 from keras_cv.bounding_box import iou as iou_lib
 import utils
 
+@tf.function(jit_compile=True)
+def iou(y_true, y_pred, bbox_format):
+    return iou_lib.compute_iou(
+        y_true, y_pred, bbox_format
+    )
 
 class InGraphBoxRecall(keras.metrics.Metric):
     """The fully in graph box recall metric."""
@@ -160,7 +165,7 @@ class InGraphBoxRecall(keras.metrics.Metric):
                     class_id=category,
                 )
 
-                ious = iou_lib.compute_iou(
+                ious = iou(
                     ground_truths["boxes"], detections["boxes"], "yxyx"
                 )
 
