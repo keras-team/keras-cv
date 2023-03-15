@@ -146,8 +146,8 @@ class WaymoEvaluationCallback(Callback):
             tf.repeat(frame_ids, boxes_per_pred_frame), pred_real_boxes
         )
         predictions["prediction_bbox"] = predicted_boxes
-        predictions["prediction_type"] = predicted_classes
-        predictions["prediction_score"] = prediction_scores
+        predictions["prediction_type"] = tf.squeeze(predicted_classes)
+        predictions["prediction_score"] = tf.squeeze(prediction_scores)
         predictions["prediction_overlap_nlz"] = tf.cast(
             tf.zeros(predicted_boxes.shape[0]), tf.bool
         )

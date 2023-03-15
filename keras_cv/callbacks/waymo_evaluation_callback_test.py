@@ -21,7 +21,7 @@ NUM_RECORDS = 10
 POINT_FEATURES = 3
 NUM_POINTS = 20
 NUM_BOXES = 2
-BOX_FEATURES = 9
+BOX_FEATURES = 7
 
 METRIC_KEYS = [
     "average_precision",
@@ -54,7 +54,18 @@ class WaymoEvaluationCallbackTest(tf.test.TestCase):
             (
                 points,
                 {
-                    "boxes": boxes,
+                    "3d_boxes": {
+                        "boxes": boxes,
+                        "classes": tf.ones((NUM_RECORDS, NUM_BOXES)),
+                        "difficulty": tf.ones((NUM_RECORDS, NUM_BOXES)),
+                        "mask": tf.concat(
+                            [
+                                tf.ones((NUM_RECORDS // 2, NUM_BOXES)),
+                                tf.zeros((NUM_RECORDS // 2, NUM_BOXES)),
+                            ],
+                            axis=0,
+                        ),
+                    }
                 },
             )
         ).batch(5)
@@ -67,9 +78,18 @@ class WaymoEvaluationCallbackTest(tf.test.TestCase):
     def build_model(self):
         inputs = tf.keras.Input(shape=(POINT_FEATURES, NUM_POINTS))
         x = keras.layers.Flatten()(inputs)
-        x = keras.layers.Dense(BOX_FEATURES * NUM_BOXES)(x)
-        x = keras.layers.Reshape((NUM_BOXES, BOX_FEATURES))(x)
-        x = keras.layers.Lambda(lambda x: (x[:, :, :7], x[:, :, 7:]))(x)
+        # Add extra features for class and confidence
+        x = keras.layers.Dense(NUM_BOXES * (BOX_FEATURES + 2))(x)
+        x = keras.layers.Reshape((NUM_BOXES, BOX_FEATURES + 2))(x)
+        x = keras.layers.Lambda(
+            lambda x: {
+                "3d_boxes": {
+                    "boxes": x[:, :, :7],
+                    "classes": tf.cast(x[:, :, 7], tf.uint8),
+                    "confidence": x[:, :, 8],
+                }
+            }
+        )(x)
 
         class MeanLoss(keras.losses.Loss):
             def call(self, y_true, y_pred):
