@@ -22,7 +22,16 @@ from keras_cv import layers as cv_layers
 from keras_cv.bounding_box.converters import _decode_deltas_to_boxes
 from keras_cv.models.object_detection import predict_utils
 from keras_cv.models.object_detection.__internal__ import unpack_input
+<<<<<<< HEAD
 from keras_cv.utils.train import get_feature_extractor
+=======
+from keras_cv.models.object_detection.retina_net.feature_pyramid import (
+    FeaturePyramid,
+)
+from keras_cv.models.object_detection.retina_net.prediction_head import (
+    PredictionHead,
+)
+>>>>>>> 1a57b3d (Reformat retinanet directory structure)
 
 BOX_VARIANCE = [0.1, 0.1, 0.2, 0.2]
 
@@ -189,7 +198,6 @@ class RetinaNet(keras.Model):
         self.feature_extractor = get_feature_extractor(
             self.backbone, extractor_layer_names, extractor_levels
         )
-        self.feature_pyramid = layers_lib.FeaturePyramid()
         prior_probability = tf.constant_initializer(-np.log((1 - 0.01) / 0.01))
 
         self.classification_head = (
