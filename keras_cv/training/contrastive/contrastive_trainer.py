@@ -46,7 +46,7 @@ class ContrastiveTrainer(keras.Model):
     encoder = keras_cv.models.DenseNet121(include_rescaling=True, include_top=False, pooling="avg")
     augmenter = keras_cv.layers.preprocessing.RandomFlip()
     projector = keras.layers.Dense(64)
-    probe = keras_cv.training.ContrastiveTrainer.linear_probe(classes=10)
+    probe = keras_cv.training.ContrastiveTrainer.linear_probe(num_classes=10)
 
     trainer = keras_cv.training.ContrastiveTrainer(
         encoder=encoder,
@@ -259,5 +259,5 @@ class ContrastiveTrainer(keras.Model):
         )
 
     @staticmethod
-    def linear_probe(classes, **kwargs):
-        return keras.Sequential(keras.layers.Dense(classes), **kwargs)
+    def linear_probe(num_classes, **kwargs):
+        return keras.Sequential(keras.layers.Dense(num_classes), **kwargs)

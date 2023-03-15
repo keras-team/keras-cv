@@ -116,6 +116,17 @@ class RandomZoomTest(tf.test.TestCase, parameterized.TestCase):
         actual_output = layer(input_images, training=False)
         self.assertAllClose(expected_output, actual_output)
 
+    def test_random_zoom_on_batched_images_independently(self):
+        image = tf.random.uniform(shape=(100, 100, 3))
+        input_images = tf.stack([image, image], axis=0)
+
+        layer = RandomZoom(
+            height_factor=(-0.4, -0.5), width_factor=(-0.2, -0.3)
+        )
+
+        results = layer(input_images)
+        self.assertNotAllClose(results[0], results[1])
+
     def test_config_with_custom_name(self):
         layer = RandomZoom(0.5, 0.6, name="image_preproc")
         config = layer.get_config()

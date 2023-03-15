@@ -70,8 +70,8 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
         include_rescaling: whether or not to Rescale the inputs.If set to True,
             inputs will be passed through a `Rescaling(1/255.0)` layer.
         include_top: whether to include the fully-connected layer at the top of the
-            network.  If provided, classes must be provided.
-        classes: optional number of classes to classify images into, only to be
+            network.  If provided, num_classes must be provided.
+        num_classes: optional number of classes to classify images into, only to be
             specified if `include_top` is True.
         weights: one of `None` (random initialization), a pretrained weight file
             path, or a reference to pre-trained weights (e.g. 'imagenet/classification')
@@ -93,10 +93,11 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
 """
 
 
-def ConvMixerLayer(dim, kernel_size):
-    """ConvMixerLayer module.
+def CovnMixer_Layer(dim, kernel_size):
+    """CovnMixer Layer module.
     Args:
-        dim: integer, Number of filters for convolution layers.
+        inputs: Input tensor.
+        dim: integer, filters of the layer in a block.
         kernel_size: integer, kernel size of the Conv2d layers.
     Returns:
         Output tensor for the CovnMixer Layer.
@@ -117,10 +118,10 @@ def ConvMixerLayer(dim, kernel_size):
     return apply
 
 
-def PatchEmbed(dim, patch_size):
+def patch_embed(dim, patch_size):
     """Implementation for Extracting Patch Embeddings.
     Args:
-        dim: integer, Number of filters for convolution layers.
+        inputs: Input tensor.
         patch_size: integer, Size of patches.
     Returns:
         Output tensor for the patch embed.
@@ -149,12 +150,12 @@ def ConvMixer(
     input_shape=(None, None, 3),
     input_tensor=None,
     pooling=None,
-    classes=None,
+    num_classes=None,
     classifier_activation="softmax",
 ):
     """Instantiates the ConvMixer architecture.
     Args:
-        dim: Number of filters for convolution layers.
+        dim: number of filters.
         depth: number of CovnMixer Layer.
         patch_size: Size of the patches.
         kernel_size: kernel size for conv2d layers.
@@ -179,7 +180,7 @@ def ConvMixer(
                 the output of the model will be a 2D tensor.
             - `max` means that global max pooling will
                 be applied.
-        classes: optional number of classes to classify images
+        num_classes: optional number of classes to classify images
             into, only to be specified if `include_top` is True.
         classifier_activation: A `str` or callable. The activation function to use
             on the "top" layer. Ignored unless `include_top=True`. Set
@@ -195,10 +196,10 @@ def ConvMixer(
             f"weights file to be loaded. Weights file not found at location: {weights}"
         )
 
-    if include_top and not classes:
+    if include_top and not num_classes:
         raise ValueError(
-            "If `include_top` is True, you should specify `classes`. "
-            f"Received: classes={classes}"
+            "If `include_top` is True, you should specify `num_classes`. "
+            f"Received: num_classes={num_classes}"
         )
 
     if include_top and pooling:
@@ -212,15 +213,15 @@ def ConvMixer(
 
     if include_rescaling:
         x = layers.Rescaling(1 / 255.0)(x)
-    x = PatchEmbed(dim, patch_size)(x)
+    x = patch_embed(dim, patch_size)(x)
 
     for _ in range(depth):
-        x = ConvMixerLayer(dim, kernel_size)(x)
+        x = CovnMixer_Layer(dim, kernel_size)(x)
 
     if include_top:
         x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
         x = layers.Dense(
-            classes, activation=classifier_activation, name="predictions"
+            num_classes, activation=classifier_activation, name="predictions"
         )(x)
     else:
         if pooling == "avg":
@@ -238,7 +239,7 @@ def ConvMixer(
 def ConvMixer_1536_20(
     include_rescaling,
     include_top,
-    classes=None,
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -259,7 +260,7 @@ def ConvMixer_1536_20(
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
-        classes=classes,
+        num_classes=num_classes,
         classifier_activation=classifier_activation,
         **kwargs,
     )
@@ -268,7 +269,7 @@ def ConvMixer_1536_20(
 def ConvMixer_1536_24(
     include_rescaling,
     include_top,
-    classes=None,
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -289,7 +290,7 @@ def ConvMixer_1536_24(
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
-        classes=classes,
+        num_classes=num_classes,
         classifier_activation=classifier_activation,
         **kwargs,
     )
@@ -298,7 +299,7 @@ def ConvMixer_1536_24(
 def ConvMixer_768_32(
     include_rescaling,
     include_top,
-    classes=None,
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -319,7 +320,7 @@ def ConvMixer_768_32(
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
-        classes=classes,
+        num_classes=num_classes,
         classifier_activation=classifier_activation,
         **kwargs,
     )
@@ -328,7 +329,7 @@ def ConvMixer_768_32(
 def ConvMixer_1024_16(
     include_rescaling,
     include_top,
-    classes=None,
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -349,7 +350,7 @@ def ConvMixer_1024_16(
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
-        classes=classes,
+        num_classes=num_classes,
         classifier_activation=classifier_activation,
         **kwargs,
     )
@@ -358,7 +359,7 @@ def ConvMixer_1024_16(
 def ConvMixer_512_16(
     include_rescaling,
     include_top,
-    classes=None,
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -379,7 +380,7 @@ def ConvMixer_512_16(
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
-        classes=classes,
+        num_classes=num_classes,
         classifier_activation=classifier_activation,
         **kwargs,
     )

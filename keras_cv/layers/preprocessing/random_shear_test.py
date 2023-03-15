@@ -16,7 +16,7 @@ import tensorflow as tf
 from keras_cv import bounding_box
 from keras_cv.layers import preprocessing
 
-classes = 10
+num_classes = 10
 
 
 class RandomShearTest(tf.test.TestCase):
@@ -46,7 +46,7 @@ class RandomShearTest(tf.test.TestCase):
         # randomly sample labels
         ys_labels = tf.random.categorical(tf.math.log([[0.5, 0.5]]), 2)
         ys_labels = tf.squeeze(ys_labels)
-        ys_labels = tf.one_hot(ys_labels, classes)
+        ys_labels = tf.one_hot(ys_labels, num_classes)
 
         # randomly sample bounding boxes
         ys_bounding_boxes = {

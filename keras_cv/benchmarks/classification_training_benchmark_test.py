@@ -32,7 +32,8 @@ class ClassificationTrainingBenchmark(
     """Benchmarks for classification models using `tf.test.Benchmark`."""
 
     _benchmark_parameters = [
-        ("ResNet50V2", models.ResNet50V2),
+        # TODO(jbischof): revert to ResNetV2 once classification head ready
+        ("ResNet50", models.ResNet50),
         ("DenseNet121", models.DenseNet121),
     ]
 
@@ -65,7 +66,7 @@ class ClassificationTrainingBenchmark(
 
             model = app(
                 include_top=True,
-                classes=self.num_classes,
+                num_classes=self.num_classes,
                 input_shape=(56, 56, 1),
                 include_rescaling=True,
             )

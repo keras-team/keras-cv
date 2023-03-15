@@ -32,11 +32,8 @@ class PyCOCOCallbackTest(tf.test.TestCase):
 
     def test_model_fit_retinanet(self):
         model = keras_cv.models.RetinaNet(
-            classes=10,
+            num_classes=10,
             bounding_box_format="xywh",
-            backbone=keras_cv.models.ResNet50V2(
-                include_top=False, include_rescaling=True, weights=None
-            ).as_backbone(),
         )
         # all metric formats must match
         model.compile(
@@ -61,13 +58,15 @@ class PyCOCOCallbackTest(tf.test.TestCase):
             [f"val_{metric}" for metric in METRIC_NAMES], history.history.keys()
         )
 
+    @pytest.mark.skip(
+        reason="Causing OOMs on GitHub actions.  This is not a "
+        "user facing API and will be replaced in a matter of weeks, so we "
+        "shouldn't invest engineering resources into working around the OOMs here."
+    )
     def test_model_fit_rcnn(self):
         model = keras_cv.models.FasterRCNN(
-            classes=10,
+            num_classes=10,
             bounding_box_format="xywh",
-            backbone=keras_cv.models.ResNet50V2(
-                include_top=False, include_rescaling=True, weights=None
-            ).as_backbone(),
         )
         model.compile(
             optimizer="adam",
