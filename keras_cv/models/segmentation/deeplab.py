@@ -205,7 +205,7 @@ class SegmentationHead(layers.Layer):
             be parsed as `(height_factor, width_factor)`. Defaults to `None`, which means
             no resize will happen to the output mask tensor.
         kernel_size: Int. The kernel_size to be used in each of the convolutional blocks.
-            Defaults to 3. 
+            Defaults to 3.
         use_bias: boolean. Whether to use bias or not in each of the convolutional blocks.
             Defaults to False since the blocks use `BatchNormalization`
             after each convolution, rendering bias obsolete.
