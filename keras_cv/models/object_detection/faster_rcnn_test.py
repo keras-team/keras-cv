@@ -17,6 +17,7 @@ import os
 import pytest
 import tensorflow as tf
 from absl.testing import parameterized
+from tensorflow import keras
 from tensorflow.keras import optimizers
 
 import keras_cv

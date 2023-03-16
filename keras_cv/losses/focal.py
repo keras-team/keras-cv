@@ -14,6 +14,7 @@
 
 import tensorflow as tf
 import tensorflow.keras.backend as K
+from tensorflow import keras
 
 
 @keras.utils.register_keras_serializable(package="keras_cv")

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import tensorflow as tf
+from tensorflow import keras
 
 
 @keras.utils.register_keras_serializable(package="keras_cv")

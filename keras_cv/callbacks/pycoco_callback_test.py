@@ -14,6 +14,7 @@
 
 import pytest
 import tensorflow as tf
+from tensorflow import keras
 
 import keras_cv
 from keras_cv.callbacks import PyCOCOCallback

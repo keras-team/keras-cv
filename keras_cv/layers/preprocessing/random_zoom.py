@@ -15,6 +15,7 @@
 
 import tensorflow as tf
 from keras import backend
+from tensorflow import keras
 
 from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
     VectorizedBaseImageAugmentationLayer,

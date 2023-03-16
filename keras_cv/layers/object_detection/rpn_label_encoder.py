@@ -15,6 +15,7 @@
 from typing import Mapping
 
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv import bounding_box
 from keras_cv.bounding_box import iou

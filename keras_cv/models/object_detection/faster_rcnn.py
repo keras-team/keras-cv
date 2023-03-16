@@ -14,6 +14,7 @@
 
 import tensorflow as tf
 from absl import logging
+from tensorflow import keras
 
 import keras_cv
 from keras_cv import bounding_box

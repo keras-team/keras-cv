@@ -11,10 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 from typing import List
 from typing import Tuple
 
 import tensorflow as tf
+from tensorflow import keras
 
 
 @keras.utils.register_keras_serializable(package="keras_cv")

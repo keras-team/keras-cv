@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import tensorflow as tf
+from tensorflow import keras
 from tensorflow.keras import layers
 
 from keras_cv import core

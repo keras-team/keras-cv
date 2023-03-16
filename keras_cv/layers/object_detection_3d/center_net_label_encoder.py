@@ -19,6 +19,7 @@ from typing import Union
 
 import numpy as np
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv.layers.object_detection_3d import voxel_utils
 

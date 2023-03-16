@@ -16,6 +16,7 @@ from typing import List
 from typing import Sequence
 
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv.layers.object_detection_3d.heatmap_decoder import HeatmapDecoder
 

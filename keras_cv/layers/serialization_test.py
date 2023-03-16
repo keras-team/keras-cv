@@ -16,6 +16,7 @@ import inspect
 
 import tensorflow as tf
 from absl.testing import parameterized
+from tensorflow import keras
 
 from keras_cv import layers as cv_layers
 from keras_cv.layers.vit_layers import PatchingAndEmbedding

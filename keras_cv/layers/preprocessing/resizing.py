@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import tensorflow as tf
+from tensorflow import keras
 
 import keras_cv.utils
 from keras_cv import bounding_box

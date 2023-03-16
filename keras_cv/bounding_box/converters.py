@@ -18,6 +18,7 @@ from typing import Optional
 from typing import Union
 
 import tensorflow as tf
+from tensorflow import keras
 
 
 # Internal exception to propagate the fact images was not passed to a converter that

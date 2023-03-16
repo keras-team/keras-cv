@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import tensorflow as tf
+from tensorflow import keras
 
 
 # TODO(tanzhenyu): consider inherit from LossFunctionWrapper to

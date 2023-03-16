@@ -17,6 +17,7 @@
 # https://github.com/tensorflow/models/blob/master/official/vision/ops/preprocess_ops.py
 
 import tensorflow as tf
+from tensorflow import keras
 
 import keras_cv
 from keras_cv import layers

@@ -18,6 +18,7 @@ from typing import Optional
 from typing import Tuple
 
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv import bounding_box
 

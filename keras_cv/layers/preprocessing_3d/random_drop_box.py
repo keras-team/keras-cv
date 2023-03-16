@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv.layers.preprocessing_3d import base_augmentation_layer_3d
 from keras_cv.point_cloud import is_within_any_box3d

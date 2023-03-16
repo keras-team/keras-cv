@@ -17,6 +17,7 @@ import time
 
 import tensorflow.compat.v2 as tf
 import tensorflow_datasets as tfds
+from tensorflow import keras
 
 from keras_cv import models
 

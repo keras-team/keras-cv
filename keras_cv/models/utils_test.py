@@ -15,6 +15,7 @@
 
 import tensorflow as tf
 from keras import layers
+from tensorflow import keras
 
 from keras_cv.models import utils
 

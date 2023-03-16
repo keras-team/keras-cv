@@ -14,7 +14,7 @@
 
 import inspect
 
-import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv import core
 

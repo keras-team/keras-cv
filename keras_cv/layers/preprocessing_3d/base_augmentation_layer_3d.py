@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import tensorflow as tf
+from tensorflow import keras
 
 POINT_CLOUDS = "point_clouds"
 BOUNDING_BOXES = "bounding_boxes"

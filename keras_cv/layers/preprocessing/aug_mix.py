@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv import layers
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (

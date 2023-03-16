@@ -14,6 +14,7 @@
 
 import pytest
 import tensorflow as tf
+from tensorflow import keras
 from tensorflow.keras import optimizers
 
 import keras_cv

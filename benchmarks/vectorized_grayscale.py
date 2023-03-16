@@ -11,11 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import time
 
 import matplotlib.pyplot as plt
 import tensorflow as tf
-import tensorflow.keras as keras
+from tensorflow import keras
 
 from keras_cv.layers import Grayscale
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (

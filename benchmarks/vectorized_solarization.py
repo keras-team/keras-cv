@@ -3,6 +3,7 @@ import time
 import numpy as np
 import tensorflow as tf
 from matplotlib import pyplot as plt
+from tensorflow import keras
 
 from keras_cv.layers import BaseImageAugmentationLayer
 from keras_cv.layers import Solarization

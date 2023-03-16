@@ -20,12 +20,14 @@ Reference:
         https://arxiv.org/abs/1905.11946) (ICML 2019)
     - [Based on the original EfficientNet Lite's](https://github.com/tensorflow/tpu/tree/master/models/official/efficientnet/lite)
 """
+
 import copy
 import math
 
 import tensorflow as tf
 from keras import backend
 from keras import layers
+from tensorflow import keras
 
 from keras_cv.models import utils
 from keras_cv.models.weights import parse_weights

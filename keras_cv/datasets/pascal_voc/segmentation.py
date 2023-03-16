@@ -32,6 +32,7 @@ This module contains following functionalities:
 3. Produce tfrecords from the dataset.
 4. Load existing tfrecords from result in 3.
 """
+
 import logging
 import multiprocessing
 import os.path
@@ -42,6 +43,7 @@ import xml
 import numpy as np
 import tensorflow as tf
 import tensorflow_datasets as tfds
+from tensorflow import keras
 
 VOC_URL = (
     "http://host.robots.ox.ac.uk/pascal/VOC/voc2012/VOCtrainval_11-May-2012.tar"

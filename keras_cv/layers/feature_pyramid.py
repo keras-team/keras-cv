@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import tensorflow as tf
+from tensorflow import keras
 
 
 # TODO(scottzhu): Register it later due to the conflict in the retina_net

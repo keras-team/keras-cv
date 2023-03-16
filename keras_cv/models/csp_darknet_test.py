@@ -14,6 +14,7 @@
 
 import tensorflow as tf
 from absl.testing import parameterized
+from tensorflow import keras
 
 from keras_cv.models import csp_darknet
 

@@ -24,6 +24,7 @@ import sys
 import tensorflow as tf
 from absl import flags
 from absl import logging
+from tensorflow import keras
 
 from keras_cv import models
 from keras_cv.datasets.pascal_voc.segmentation import load

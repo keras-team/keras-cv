@@ -17,6 +17,7 @@ import os
 import pytest
 import tensorflow as tf
 import tensorflow_datasets as tfds
+from tensorflow import keras
 
 from keras_cv.models import ResNet50V2Backbone
 from keras_cv.models import segmentation
