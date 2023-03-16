@@ -18,10 +18,10 @@ Reference:
   - [MLP-Mixer: An all-MLP Architecture for Vision](https://arxiv.org/abs/2105.01601)
 """
 
+import keras
 import tensorflow as tf
-from tensorflow import keras
-from tensorflow.keras import backend
-from tensorflow.keras import layers
+from keras import backend
+from keras import layers
 
 from keras_cv.models import utils
 

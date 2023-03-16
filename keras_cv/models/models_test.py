@@ -15,10 +15,10 @@
 
 import os
 
+import keras
 import pytest
 import tensorflow as tf
-from tensorflow import keras
-from tensorflow.keras import backend
+from keras import backend
 
 
 class ModelsTest:

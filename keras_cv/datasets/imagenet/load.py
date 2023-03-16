@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import tensorflow as tf
-from tensorflow.keras import layers
+from keras import layers
 
 
 def parse_imagenet_example(img_size, crop_to_aspect_ratio):

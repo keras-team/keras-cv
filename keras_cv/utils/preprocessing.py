@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import tensorflow as tf
-from tensorflow.keras import backend
+from keras import backend
 
 from keras_cv import core
 

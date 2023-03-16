@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import tensorflow as tf
-from tensorflow.keras import layers
+from keras import layers
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")

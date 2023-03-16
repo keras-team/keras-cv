@@ -19,11 +19,11 @@ References:
     - [Based on the original keras.applications MobileNetv3](https://github.com/keras-team/keras/blob/master/keras/applications/mobilenet_v3.py)
 """
 
+import keras
 import tensorflow as tf
-from tensorflow import keras
-from tensorflow.keras import backend
-from tensorflow.keras import layers
-from tensorflow.keras.utils import custom_object_scope
+from keras import backend
+from keras import layers
+from keras.utils import custom_object_scope
 
 from keras_cv import layers as cv_layers
 from keras_cv.models import utils

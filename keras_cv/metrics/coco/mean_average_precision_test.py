@@ -13,9 +13,9 @@
 # limitations under the License.
 """Tests for _COCOMeanAveragePrecision."""
 
+import keras
 import numpy as np
 import tensorflow as tf
-from tensorflow import keras
 
 from keras_cv.metrics import _COCOMeanAveragePrecision
 

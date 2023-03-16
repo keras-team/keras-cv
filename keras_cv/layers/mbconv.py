@@ -12,10 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 import tensorflow as tf
 from keras import backend
-from tensorflow.keras import layers
+from keras import layers
 
 BN_AXIS = 3
 
