@@ -31,15 +31,15 @@ class DeepLabV3(keras.Model):
             the num_classes doesn't contain the background class, and the classes
             from the data should be represented by integers with range
             [0, num_classes).
-        backbone: an optional backbone network for the model. Should be a KerasCV model.
-        weights: weights for the complete DeepLabV3 model. one of `None` (random
+        backbone: Optional backbone network for the model. Should be a KerasCV model.
+        weights: Weights for the complete DeepLabV3 model. one of `None` (random
             initialization), a pretrained weight file path, or a reference to
             pre-trained weights (e.g. 'imagenet/classification' or 'voc/segmentation') (see available
             pre-trained weights in weights.py)
-        spatial_pyramid_pooling: also known as Atrous Spatial Pyramid Pooling (ASPP).
+        spatial_pyramid_pooling: Also known as Atrous Spatial Pyramid Pooling (ASPP).
             Performs spatial pooling on different spatial levels in the pyramid, with
             dilation.
-        segmentation_head: an optional `keras.Layer` that predict the segmentation
+        segmentation_head: Optional `keras.Layer` that predict the segmentation
             mask based on feature from backbone and feature from decoder.
     """
 
@@ -189,13 +189,13 @@ class SegmentationHead(layers.Layer):
     segmentation mask (pixel level classifications) as the output for the model.
 
     Args:
-        num_classes: int. Number of output classes for the prediction. This should
+        num_classes: int, number of output classes for the prediction. This should
             include all the classes (e.g. background) for the model to predict.
-        convolutions: int. Number of `Conv2D` layers that are stacked before the final
+        convolutions: int, number of `Conv2D` layers that are stacked before the final
             classification layer. Defaults to 2.
-        filters: int. Number of filter/channels for the the conv2D layers.
+        filters: int, number of filter/channels for the the conv2D layers.
             Defaults to 256.
-        activations: str or function. Activation functions between the
+        activations: str or function, activation functions between the
             conv2D layers and the final classification layer. Defaults to `"relu"`.
         output_scale_factor: int, or a pair of ints. Factor for upsampling the output mask.
             This is useful to scale the output mask back to same size as the input
@@ -203,12 +203,12 @@ class SegmentationHead(layers.Layer):
             ratio on both width and height. When a pair of ints are provided, they will
             be parsed as `(height_factor, width_factor)`. Defaults to `None`, which means
             no resize will happen to the output mask tensor.
-        kernel_size: Int. The kernel_size to be used in each of the convolutional blocks.
+        kernel_size: int, the kernel size to be used in each of the convolutional blocks.
             Defaults to 3.
-        use_bias: boolean. Whether to use bias or not in each of the convolutional blocks.
+        use_bias: boolean, whether to use bias or not in each of the convolutional blocks.
             Defaults to False since the blocks use `BatchNormalization`
             after each convolution, rendering bias obsolete.
-        activation: str or function. The activation to apply in the classification
+        activation: str or function, activation to apply in the classification
             layer (output of the head). Defaults to `"softmax"`.
 
     Examples:
