@@ -15,7 +15,7 @@
 
 import os
 
-from tensorflow import keras
+import keras
 
 from keras_cv.utils.python_utils import classproperty
 from keras_cv.utils.python_utils import format_docstring

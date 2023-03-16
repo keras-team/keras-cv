@@ -13,8 +13,8 @@
 # limitations under the License.
 
 import tensorflow as tf
-from tensorflow import keras
-from tensorflow.keras import layers
+from keras import layers
+import keras
 
 from keras_cv.layers.spatial_pyramid import SpatialPyramidPooling
 from keras_cv.models import utils

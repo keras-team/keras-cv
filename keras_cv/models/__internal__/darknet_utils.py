@@ -18,10 +18,10 @@ Reference:
   - [YoloV3 implementation](https://github.com/ultralytics/yolov3)
 """
 
+import keras
 import tensorflow as tf
-from tensorflow import keras
-from tensorflow.keras import backend
-from tensorflow.keras import layers
+from keras import backend
+from keras import layers
 
 
 def DarknetConvBlock(

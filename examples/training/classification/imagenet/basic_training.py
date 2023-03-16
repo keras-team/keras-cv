@@ -22,13 +22,13 @@ Description: Use KerasCV to train an image classifier using modern best practice
 import math
 import sys
 
+import keras
 import tensorflow as tf
 from absl import flags
-from tensorflow import keras
-from tensorflow.keras import callbacks
-from tensorflow.keras import losses
-from tensorflow.keras import metrics
-from tensorflow.keras import optimizers
+from keras import callbacks
+from keras import losses
+from keras import metrics
+from keras import optimizers
 
 import keras_cv
 from keras_cv import models

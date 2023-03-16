@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import keras
 import tensorflow as tf
-from tensorflow import keras
-from tensorflow.keras import layers
-from tensorflow.keras import metrics
-from tensorflow.keras import optimizers
+from keras import layers
+from keras import metrics
+from keras import optimizers
 
 from keras_cv.layers import preprocessing
 from keras_cv.losses import SimCLRLoss

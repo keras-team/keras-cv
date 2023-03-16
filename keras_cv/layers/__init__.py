@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from tensorflow.keras.layers import CenterCrop
-from tensorflow.keras.layers import RandomHeight
-from tensorflow.keras.layers import RandomWidth
+from keras.layers import CenterCrop
+from keras.layers import RandomHeight
+from keras.layers import RandomWidth
 
 from keras_cv.layers.feature_pyramid import FeaturePyramid
 from keras_cv.layers.fusedmbconv import FusedMBConvBlock

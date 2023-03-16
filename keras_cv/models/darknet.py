@@ -18,9 +18,9 @@ Reference:
     - [YoloV3 implementation](https://github.com/ultralytics/yolov3)
 """
 
+import keras
 import tensorflow as tf
-from tensorflow import keras
-from tensorflow.keras import layers
+from keras import layers
 
 from keras_cv.models import utils
 from keras_cv.models.__internal__.darknet_utils import DarknetConvBlock

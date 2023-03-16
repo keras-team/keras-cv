@@ -14,7 +14,7 @@
 
 
 import tensorflow as tf
-from tensorflow import keras
+import keras
 
 from keras_cv.utils.train import convert_inputs_to_tf_dataset
 

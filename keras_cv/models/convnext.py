@@ -18,10 +18,10 @@ References:
   (CVPR 2022)
 """
 
+import keras
 import tensorflow as tf
-from tensorflow import keras
-from tensorflow.keras import backend
-from tensorflow.keras import layers
+from keras import backend
+from keras import layers
 
 from keras_cv.layers.regularization import StochasticDepth
 from keras_cv.models import utils
