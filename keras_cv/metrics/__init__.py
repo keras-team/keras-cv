@@ -12,6 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from keras_cv.metrics.object_detection.box_coco_metric_suite import (
+from keras_cv.metrics.object_detection.object_detection_metric_suite import (
     ObjectDetectionMetricSuite,
 )
