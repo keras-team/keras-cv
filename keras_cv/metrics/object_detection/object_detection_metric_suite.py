@@ -28,6 +28,8 @@ from keras_cv.metrics.coco import compute_pycoco_metrics
 
 
 class HidePrints:
+    """A basic internal only context manager to hide print statements."""
+
     def __enter__(self):
         self._original_stdout = sys.stdout
         sys.stdout = open(os.devnull, "w")
@@ -38,6 +40,7 @@ class HidePrints:
 
 
 def _box_concat(b1, b2):
+    """Concatenates two bounding box batches together."""
     if b1 == None:
         return b2
     if b2 == None:
@@ -66,6 +69,52 @@ METRIC_NAMES = [
 
 
 class ObjectDetectionMetricSuite(keras.metrics.Metric):
+    """ObjectDetectionMetricSuite computes standard object deteciton metrics.
+
+    Args:
+        bounding_box_format: the bounding box format for inputs.
+
+    Usage:
+    `ObjectDetectionMetricSuite()` can be used like any standard metric with any
+    KerasCV object detection model.  Inputs to `y_true` must be KerasCV bounding
+    box dictionaries, `{"classes": classes, "boxes": boxes}`, and `y_pred` must
+    follow the same format with an additional `confidence` key.
+
+    Using this metric suite alongside a model is trivial; simply provide it to
+    the `compile()` arguments of the model:
+
+    ```python
+    images = tf.ones(shape=(1, 512, 512, 3))
+    labels = {
+        "boxes": [
+            [
+                [0, 0, 100, 100],
+                [100, 100, 200, 200],
+                [300, 300, 400, 400],
+            ]
+        ],
+        "classes": [[1, 1, 1]],
+    }
+    model = keras_cv.models.RetinaNet(
+        num_classes=20,
+        bounding_box_format="xywh",
+    )
+
+    # Evaluate model
+    model(images)
+
+    # Train model
+    model.compile(
+        classification_loss='focal',
+        box_loss='smoothl1',
+        optimizer=tf.optimizers.SGD(global_clipnorm=10.0),
+        jit_compile=False,
+        metrics=[keras_cv.metrics.ObjectDetectionMetricSuite('xywh')]
+    )
+    model.fit(images, labels)
+    ```
+    """
+
     def __init__(self, bounding_box_format, **kwargs):
         super().__init__(**kwargs)
         self.ground_truths = None
