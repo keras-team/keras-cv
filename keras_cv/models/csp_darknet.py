@@ -93,7 +93,7 @@ BASE_DOCSTRING = """Represents the {name} architecture.
 """
 
 
-@keras.utils.regester_keras_serializable(package="keras_cv.models")
+@keras.utils.register_keras_serializable(package="keras_cv.models")
 class CSPDarkNet(keras.Model):
     """This class represents the CSPDarkNet architecture.
     Although the DarkNet architecture is commonly used for detection tasks, it is
