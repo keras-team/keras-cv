@@ -35,15 +35,25 @@ from keras_cv.models.__internal__.darknet_utils import (
 )
 from keras_cv.models.weights import parse_weights
 
+DEPTH_MULTIPLIERS = {
+    "tiny": 0.33,
+    "s": 0.33,
+    "m": 0.67,
+    "l": 1.00,
+    "x": 1.33,
+}
 
-@keras.utils.regester_keras_serializable(package="keras_cv.models")
-class CSPDarkNet(keras.Model):
-    """This class Instantiates the CSPDarkNet architecture.
-
-    Although the DarkNet architecture is commonly used for detection tasks, it is
+WIDTH_MULTIPLIERS = {
+    "tiny": 0.375,
+    "s": 0.50,
+    "m": 0.75,
+    "l": 1.00,
+    "x": 1.25,
+}
+BASE_DOCSTRING = """Represents the {name} architecture.
+    The CSPDarkNet architectures are commonly used for detection tasks. It is
     possible to extract the intermediate dark2 to dark5 layers from the model for
     creating a feature pyramid Network.
-
     Reference:
         - [YoloV4 Paper](https://arxiv.org/abs/1804.02767)
         - [CSPNet Paper](https://arxiv.org/pdf/1911.11929)
@@ -51,7 +61,51 @@ class CSPDarkNet(keras.Model):
         - [YoloX implementation](https://github.com/ultralytics/yolov3)
     For transfer learning use cases, make sure to read the
     [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
+    Args:
+        include_rescaling: bool, whether or not to rescale the inputs. If set to True,
+            inputs will be passed through a `Rescaling(1/255.0)` layer.
+        include_top: bool, whether to include the fully-connected layer at the top of
+            the network. If provided, `num_classes` must be provided.
+        use_depthwise: a boolean value used to decide whether a depthwise conv block
+            should be used over a regular darknet block. Defaults to False
+        num_classes: integer, optional number of classes to classify images into. Only to be
+            specified if `include_top` is True.
+        weights: one of `None` (random initialization), a pretrained weight file
+            path, or a reference to pre-trained weights (e.g. 'imagenet/classification')
+            (see available pre-trained weights in weights.py)
+        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
+            to use as image input for the model.
+        input_shape: optional shape tuple, defaults to (None, None, 3).
+        pooling: optional pooling mode for feature extraction when `include_top`
+            is `False`.
+            - `None` means that the output of the model will be the 4D tensor output
+                of the last convolutional block.
+            - `avg` means that global average pooling will be applied to the
+                output of the last convolutional block, and thus the output of the
+                model will be a 2D tensor.
+            - `max` means that global max pooling will be applied.
+        classifier_activation: A `str` or callable. The activation function to use
+            on the "top" layer. Ignored unless `include_top=True`. Set
+            `classifier_activation=None` to return the logits of the "top" layer.
+        name: string, optional name to pass to the model, defaults to "{name}".
+    Returns:
+        A `keras.Model` instance.
+"""
 
+
+@keras.utils.regester_keras_serializable(package="keras_cv.models")
+class CSPDarkNet(keras.Model):
+    """This class represents the CSPDarkNet architecture.
+    Although the DarkNet architecture is commonly used for detection tasks, it is
+    possible to extract the intermediate dark2 to dark5 layers from the model for
+    creating a feature pyramid Network.
+    Reference:
+        - [YoloV4 Paper](https://arxiv.org/abs/1804.02767)
+        - [CSPNet Paper](https://arxiv.org/pdf/1911.11929)
+        - [YoloX Paper](https://arxiv.org/abs/2107.08430)
+        - [YoloX implementation](https://github.com/ultralytics/yolov3)
+    For transfer learning use cases, make sure to read the
+    [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
     Args:
         depth_multiplier: A float value used to calculate the base depth of the model
             this changes based the detection model being used.
@@ -210,74 +264,11 @@ class CSPDarkNet(keras.Model):
             model.load_weights(weights)
         return model
 
-    DEPTH_MULTIPLIERS = {
-        "tiny": 0.33,
-        "s": 0.33,
-        "m": 0.67,
-        "l": 1.00,
-        "x": 1.33,
-    }
-
-    WIDTH_MULTIPLIERS = {
-        "tiny": 0.375,
-        "s": 0.50,
-        "m": 0.75,
-        "l": 1.00,
-        "x": 1.25,
-    }
-
-
-BASE_DOCSTRING = """Instantiates the {name} architecture.
-
-    The CSPDarkNet architectures are commonly used for detection tasks. It is
-    possible to extract the intermediate dark2 to dark5 layers from the model for
-    creating a feature pyramid Network.
-
-    Reference:
-        - [YoloV4 Paper](https://arxiv.org/abs/1804.02767)
-        - [CSPNet Paper](https://arxiv.org/pdf/1911.11929)
-        - [YoloX Paper](https://arxiv.org/abs/2107.08430)
-        - [YoloX implementation](https://github.com/ultralytics/yolov3)
-    For transfer learning use cases, make sure to read the
-    [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
-
-    Args:
-        include_rescaling: whether or not to Rescale the inputs.If set to True,
-            inputs will be passed through a `Rescaling(1/255.0)` layer.
-        include_top: whether to include the fully-connected layer at the top of
-            the network.  If provided, `num_classes` must be provided.
-        use_depthwise: a boolean value used to decide whether a depthwise conv block
-            should be used over a regular darknet block. Defaults to False
-        num_classes: optional number of classes to classify images into, only to be
-            specified if `include_top` is True.
-        weights: one of `None` (random initialization), a pretrained weight file
-            path, or a reference to pre-trained weights (e.g. 'imagenet/classification')
-            (see available pre-trained weights in weights.py)
-        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
-            to use as image input for the model.
-        input_shape: optional shape tuple, defaults to (None, None, 3).
-        pooling: optional pooling mode for feature extraction when `include_top`
-            is `False`.
-            - `None` means that the output of the model will be the 4D tensor output
-                of the last convolutional block.
-            - `avg` means that global average pooling will be applied to the
-                output of the last convolutional block, and thus the output of the
-                model will be a 2D tensor.
-            - `max` means that global max pooling will be applied.
-        classifier_activation: A `str` or callable. The activation function to use
-            on the "top" layer. Ignored unless `include_top=True`. Set
-            `classifier_activation=None` to return the logits of the "top" layer.
-
-        name: (Optional) name to pass to the model.  Defaults to "{name}".
-    Returns:
-        A `keras.Model` instance.
-    """
-
 
 def CSPDarkNetTiny(
     *,
-    include_rescaling=None,
-    include_top=None,
+    include_rescaling,
+    include_top,
     use_depthwise=False,
     num_classes=None,
     weights=None,
