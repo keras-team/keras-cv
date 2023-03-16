@@ -15,9 +15,9 @@
 # Also export the image KPLs from core keras, so that user can import all the image
 # KPLs from one place.
 
-from tensorflow.keras.layers import CenterCrop
-from tensorflow.keras.layers import RandomHeight
-from tensorflow.keras.layers import RandomWidth
+from keras.layers import CenterCrop
+from keras.layers import RandomHeight
+from keras.layers import RandomWidth
 
 from keras_cv.layers.preprocessing.aug_mix import AugMix
 from keras_cv.layers.preprocessing.augmenter import Augmenter
