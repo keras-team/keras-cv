@@ -13,8 +13,8 @@
 # limitations under the License.
 
 
-import tensorflow as tf
 import keras
+import tensorflow as tf
 
 from keras_cv.utils.train import convert_inputs_to_tf_dataset
 

@@ -14,9 +14,9 @@
 
 import os
 
+import keras
 import tensorflow as tf
 from absl.testing import parameterized
-import keras
 
 from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
     ResNet50V2Backbone,

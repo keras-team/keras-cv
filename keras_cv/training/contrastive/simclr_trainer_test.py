@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import keras
 import tensorflow as tf
 from keras import layers
 from keras import optimizers
-import keras
 
 from keras_cv.losses import SimCLRLoss
 from keras_cv.models import ResNet50V2Backbone

@@ -21,10 +21,10 @@ Description: Use KerasCV to train a RetinaNet on Pascal VOC 2007.
 import resource
 import sys
 
+import keras
 import tensorflow as tf
 import tensorflow_datasets as tfds
 from absl import flags
-import keras
 
 import keras_cv
 from keras_cv.callbacks import PyCOCOCallback
