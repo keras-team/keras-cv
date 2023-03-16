@@ -38,30 +38,34 @@ class RandomContrast(VectorizedBaseImageAugmentationLayer):
     range of RGB colors.
 
     Input shape:
-      3D (unbatched) or 4D (batched) tensor with shape:
-      `(..., height, width, channels)`, in `"channels_last"` format.
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., height, width, channels)`, in `"channels_last"` format.
     Output shape:
-      3D (unbatched) or 4D (batched) tensor with shape:
-      `(..., height, width, channels)`, in `"channels_last"` format.
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., height, width, channels)`, in `"channels_last"` format.
 
     Args:
-      factor: a positive float represented as fraction of value, or a tuple of
-        size 2 representing lower and upper bound. When represented as a single
-        float, lower = upper. The contrast factor will be randomly picked
-        between `[1.0 - lower, 1.0 + upper]`. For any pixel x in the channel,
-        the output will be `(x - mean) * factor + mean` where `mean` is the mean
-        value of the channel.
-      seed: Integer. Used to create a random seed.
+        value_range: A tuple or a list of two elements. The first value
+            represents the lower bound for values in passed images, the second
+            represents the upper bound. Images passed to the layer should have
+            values within `value_range`.
+        factor: A positive float represented as fraction of value, or a tuple of
+            size 2 representing lower and upper bound. When represented as a
+            single float, lower = upper. The contrast factor will be randomly
+            picked between `[1.0 - lower, 1.0 + upper]`. For any pixel x in the
+            channel, the output will be `(x - mean) * factor + mean` where
+            `mean` is the mean value of the channel.
+        seed: Integer. Used to create a random seed.
 
     Usage:
     ```python
     (images, labels), _ = tf.keras.datasets.cifar10.load_data()
-    random_contrast = keras_cv.layers.preprocessing.RandomContrast()
+    random_contrast = RandomContrast(value_range=(0, 255), factor=0.3)
     augmented_images = random_contrast(images)
     ```
     """
 
-    def __init__(self, factor, seed=None, **kwargs):
+    def __init__(self, value_range, factor, seed=None, **kwargs):
         super().__init__(seed=seed, force_generator=True, **kwargs)
         if isinstance(factor, (tuple, list)):
             min = 1 - factor[0]
@@ -73,10 +77,11 @@ class RandomContrast(VectorizedBaseImageAugmentationLayer):
         self.factor = preprocessing_utils.parse_factor(
             (min, max), min_value=-1, max_value=2
         )
+        self.value_range = value_range
         self.seed = seed
 
     def get_random_transformation_batch(self, batch_size, **kwargs):
-        return self.factor(shape=(batch_size,))
+        return self.factor(shape=(batch_size, 1, 1, 1))
 
     def augment_ragged_image(self, image, transformation, **kwargs):
         return self.augment_images(
@@ -85,14 +90,12 @@ class RandomContrast(VectorizedBaseImageAugmentationLayer):
 
     def augment_images(self, images, transformations, **kwargs):
         contrast_factors = tf.cast(transformations, dtype=images.dtype)
-        # broadcast
-        contrast_factors = contrast_factors[
-            ..., tf.newaxis, tf.newaxis, tf.newaxis
-        ]
         means = tf.reduce_mean(images, axis=(1, 2), keepdims=True)
 
         images = (images - means) * contrast_factors + means
-        images = tf.clip_by_value(images, 0, 255)
+        images = tf.clip_by_value(
+            images, self.value_range[0], self.value_range[1]
+        )
         return images
 
     def augment_labels(self, labels, transformations, **kwargs):
@@ -109,6 +112,7 @@ class RandomContrast(VectorizedBaseImageAugmentationLayer):
     def get_config(self):
         config = {
             "factor": self.factor_input,
+            "value_range": self.value_range,
             "seed": self.seed,
         }
         base_config = super().get_config()
