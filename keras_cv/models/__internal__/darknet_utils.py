@@ -24,13 +24,13 @@ from tensorflow.keras import backend
 from tensorflow.keras import layers
 
 
-def apply_darknet_conv_block(
+def DarknetConvBlock(
     filters, kernel_size, strides, use_bias=False, activation="silu", name=None
 ):
     """The basic conv block used in Darknet. Applies Conv2D followed by a BatchNorm.
 
     Args:
-        filters: integer, the dimensionality of the output space (i.e. the number of
+        filters: Integer, the dimensionality of the output space (i.e. the number of
             output filters in the convolution).
         kernel_size: An integer or tuple/list of 2 integers, specifying the height
             and width of the 2D convolution window. Can be a single integer to specify
@@ -38,10 +38,10 @@ def apply_darknet_conv_block(
         strides: An integer or tuple/list of 2 integers, specifying the strides of
             the convolution along the height and width. Can be a single integer to
             the same value both dimensions.
-        use_bias: boolean, whether the layer uses a bias vector.
+        use_bias: Boolean, whether the layer uses a bias vector.
         activation: the activation applied after the BatchNorm layer. One of "silu",
             "relu" or "leaky_relu". Defaults to "silu".
-        name: string, the prefix for the layer names used in the block.
+        name: the prefix for the layer names used in the block.
     """
 
     if name is None:
@@ -69,59 +69,60 @@ def apply_darknet_conv_block(
     return keras.Sequential(model_layers, name=None)
 
 
-def apply_residual_blocks(x, filters, num_blocks, name=None):
+def ResidualBlocks(filters, num_blocks, name=None):
     """A residual block used in DarkNet models, repeated `num_blocks` times.
 
     Args:
-        x: input tensor
-        filters: integer, the dimensionality of the output spaces (i.e. the number of
+        filters: Integer, the dimensionality of the output spaces (i.e. the number of
             output filters in used the blocks).
-        num_blocks: integer, number of times the residual connections are repeated
-        name: string, the prefix for the layer names used in the block.
+        num_blocks: number of times the residual connections are repeated
+        name: the prefix for the layer names used in the block.
 
     Returns:
-        the result of applying residual blocks 'num_blocks' times on the input tensor.
+        a function that takes an input Tensor representing a ResidualBlock.
     """
 
     if name is None:
         name = f"residual_block{backend.get_uid('residual_block')}"
 
-    x = apply_darknet_conv_block(
-        filters,
-        kernel_size=3,
-        strides=2,
-        activation="leaky_relu",
-        name=f"{name}_conv1",
-    )(x)
-
-    for i in range(1, num_blocks + 1):
-        residual = x
-
-        x = apply_darknet_conv_block(
-            filters // 2,
-            kernel_size=1,
-            strides=1,
-            activation="leaky_relu",
-            name=f"{name}_conv{2*i}",
-        )(x)
-        x = apply_darknet_conv_block(
+    def apply(x):
+        x = DarknetConvBlock(
             filters,
             kernel_size=3,
-            strides=1,
+            strides=2,
             activation="leaky_relu",
-            name=f"{name}_conv{2*i + 1}",
+            name=f"{name}_conv1",
         )(x)
 
-        if i == num_blocks:
-            x = layers.Add(name=f"{name}_out")([residual, x])
-        else:
-            x = layers.Add(name=f"{name}_add_{i}")([residual, x])
+        for i in range(1, num_blocks + 1):
+            residual = x
 
-    return x
+            x = DarknetConvBlock(
+                filters // 2,
+                kernel_size=1,
+                strides=1,
+                activation="leaky_relu",
+                name=f"{name}_conv{2*i}",
+            )(x)
+            x = DarknetConvBlock(
+                filters,
+                kernel_size=3,
+                strides=1,
+                activation="leaky_relu",
+                name=f"{name}_conv{2*i + 1}",
+            )(x)
+
+            if i == num_blocks:
+                x = layers.Add(name=f"{name}_out")([residual, x])
+            else:
+                x = layers.Add(name=f"{name}_add_{i}")([residual, x])
+
+        return x
+
+    return apply
 
 
-def apply_spatial_pyramid_pooling_bottleneck(
-    x,
+def SpatialPyramidPoolingBottleneck(
     filters,
     hidden_filters=None,
     kernel_sizes=(5, 9, 13),
@@ -131,19 +132,18 @@ def apply_spatial_pyramid_pooling_bottleneck(
     """Spatial pyramid pooling layer used in YOLOv3-SPP
 
     Args:
-        x: input tensor
-        filters: integer, the dimensionality of the output spaces (i.e. the number of
+        filters: Integer, the dimensionality of the output spaces (i.e. the number of
             output filters in used the blocks).
-        hidden_filters: integer, the dimensionality of the intermediate bottleneck space
+        hidden_filters: Integer, the dimensionality of the intermediate bottleneck space
             (i.e. the number of output filters in the bottleneck convolution). If None,
             it will be equal to filters. Defaults to None.
         kernel_sizes: A list or tuple representing all the pool sizes used for the
             pooling layers. Defaults to (5, 9, 13).
         activation: Activation for the conv layers. Defaults to "silu".
-        name: string, the prefix for the layer names used in the block.
+        name: the prefix for the layer names used in the block.
 
     Returns:
-        the result of applying a spatial pyramid pooling layer to the input tensor.
+        a function that takes an input Tensor representing an SpatialPyramidPoolingBottleneck.
     """
     if name is None:
         name = f"spp{backend.get_uid('spp')}"
@@ -151,44 +151,47 @@ def apply_spatial_pyramid_pooling_bottleneck(
     if hidden_filters is None:
         hidden_filters = filters
 
-    x = apply_darknet_conv_block(
-        hidden_filters,
-        kernel_size=1,
-        strides=1,
-        activation=activation,
-        name=f"{name}_conv1",
-    )(x)
-    x = [x]
+    def apply(x):
+        x = DarknetConvBlock(
+            hidden_filters,
+            kernel_size=1,
+            strides=1,
+            activation=activation,
+            name=f"{name}_conv1",
+        )(x)
+        x = [x]
 
-    for kernel_size in kernel_sizes:
-        x.append(
-            layers.MaxPooling2D(
-                kernel_size,
-                strides=1,
-                padding="same",
-                name=f"{name}_maxpool_{kernel_size}",
-            )(x[0])
-        )
+        for kernel_size in kernel_sizes:
+            x.append(
+                layers.MaxPooling2D(
+                    kernel_size,
+                    strides=1,
+                    padding="same",
+                    name=f"{name}_maxpool_{kernel_size}",
+                )(x[0])
+            )
 
-    x = layers.Concatenate(name=f"{name}_concat")(x)
-    x = apply_darknet_conv_block(
-        filters,
-        kernel_size=1,
-        strides=1,
-        activation=activation,
-        name=f"{name}_conv2",
-    )(x)
+        x = layers.Concatenate(name=f"{name}_concat")(x)
+        x = DarknetConvBlock(
+            filters,
+            kernel_size=1,
+            strides=1,
+            activation=activation,
+            name=f"{name}_conv2",
+        )(x)
 
-    return x
+        return x
+
+    return apply
 
 
-def apply_darknet_conv_block_depthwise(
+def DarknetConvBlockDepthwise(
     filters, kernel_size, strides, activation="silu", name=None
 ):
     """The depthwise conv block used in CSPDarknet.
 
     Args:
-        filters: integer, the dimensionality of the output space (i.e. the number of
+        filters: Integer, the dimensionality of the output space (i.e. the number of
             output filters in the final convolution).
         kernel_size: An integer or tuple/list of 2 integers, specifying the height
             and width of the 2D convolution window. Can be a single integer to specify
@@ -198,7 +201,7 @@ def apply_darknet_conv_block_depthwise(
             the same value both dimensions.
         activation: the activation applied after the final layer. One of "silu",
             "relu" or "leaky_relu". Defaults to "silu".
-        name: string, the prefix for the layer names used in the block.
+        name: the prefix for the layer names used in the block.
 
     """
 
@@ -220,7 +223,7 @@ def apply_darknet_conv_block_depthwise(
         model_layers.append(layers.LeakyReLU(0.1))
 
     model_layers.append(
-        apply_darknet_conv_block(
+        DarknetConvBlock(
             filters, kernel_size=1, strides=1, activation=activation
         )
     )
@@ -233,7 +236,7 @@ class CrossStagePartial(layers.Layer):
     """A block used in Cross Stage Partial Darknet.
 
     Args:
-        filters: integer, the dimensionality of the output space (i.e. the number of
+        filters: Integer, the dimensionality of the output space (i.e. the number of
             output filters in the final convolution).
         num_bottlenecks: an integer representing the number of blocks added in the
             layer bottleneck.
@@ -264,19 +267,17 @@ class CrossStagePartial(layers.Layer):
 
         hidden_channels = filters // 2
         ConvBlock = (
-            apply_darknet_conv_block_depthwise
-            if use_depthwise
-            else apply_darknet_conv_block
+            DarknetConvBlockDepthwise if use_depthwise else DarknetConvBlock
         )
 
-        self.darknet_conv1 = apply_darknet_conv_block(
+        self.darknet_conv1 = DarknetConvBlock(
             hidden_channels,
             kernel_size=1,
             strides=1,
             activation=activation,
         )
 
-        self.darknet_conv2 = apply_darknet_conv_block(
+        self.darknet_conv2 = DarknetConvBlock(
             hidden_channels,
             kernel_size=1,
             strides=1,
@@ -287,7 +288,7 @@ class CrossStagePartial(layers.Layer):
         self.bottleneck_convs = []
         for _ in range(num_bottlenecks):
             self.bottleneck_convs.append(
-                apply_darknet_conv_block(
+                DarknetConvBlock(
                     hidden_channels,
                     kernel_size=1,
                     strides=1,
@@ -307,7 +308,7 @@ class CrossStagePartial(layers.Layer):
         self.add = layers.Add()
         self.concatenate = layers.Concatenate()
 
-        self.darknet_conv3 = apply_darknet_conv_block(
+        self.darknet_conv3 = DarknetConvBlock(
             filters, kernel_size=1, strides=1, activation=activation
         )
 
@@ -339,7 +340,7 @@ class CrossStagePartial(layers.Layer):
         return dict(list(base_config.items()) + list(config.items()))
 
 
-def apply_focus(x, name=None):
+def Focus(name=None):
     """A block used in CSPDarknet to focus information into channels of the image.
 
     If the dimensions of a batch input is (batch_size, width, height, channels), this
@@ -347,22 +348,24 @@ def apply_focus(x, name=None):
     See [the original discussion on YoloV5 Focus Layer](https://github.com/ultralytics/yolov5/discussions/3181).
 
     Args:
-        x: input tensor
-        name: string, the name for the lambda layer used in the block.
+        name: the name for the lambda layer used in the block.
 
     Returns:
-        the result of applying a Focus layer on the input tensor.
+        a function that takes an input Tensor representing a Focus layer.
     """
 
-    return layers.Lambda(
-        lambda x: tf.concat(
-            [
-                x[..., ::2, ::2, :],
-                x[..., 1::2, ::2, :],
-                x[..., ::2, 1::2, :],
-                x[..., 1::2, 1::2, :],
-            ],
-            axis=-1,
-        ),
-        name=name,
-    )(x)
+    def apply(x):
+        return layers.Lambda(
+            lambda x: tf.concat(
+                [
+                    x[..., ::2, ::2, :],
+                    x[..., 1::2, ::2, :],
+                    x[..., ::2, 1::2, :],
+                    x[..., 1::2, 1::2, :],
+                ],
+                axis=-1,
+            ),
+            name=name,
+        )(x)
+
+    return apply

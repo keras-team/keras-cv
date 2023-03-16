@@ -23,10 +23,10 @@ from tensorflow import keras
 from tensorflow.keras import layers
 
 from keras_cv.models import utils
-from keras_cv.models.__internal__.darknet_utils import apply_darknet_conv_block
-from keras_cv.models.__internal__.darknet_utils import apply_residual_blocks
+from keras_cv.models.__internal__.darknet_utils import DarknetConvBlock
+from keras_cv.models.__internal__.darknet_utils import ResidualBlocks
 from keras_cv.models.__internal__.darknet_utils import (
-    apply_spatial_pyramid_pooling_bottleneck,
+    SpatialPyramidPoolingBottleneck,
 )
 from keras_cv.models.weights import parse_weights
 
@@ -150,16 +150,16 @@ class DarkNet(keras.Model):
             x = layers.Rescaling(1 / 255.0)(x)
 
         # stem
-        x = apply_darknet_conv_block(
+        x = DarknetConvBlock(
             filters=32,
             kernel_size=3,
             strides=1,
             activation="leaky_relu",
             name="stem_conv",
         )(x)
-        x = apply_residual_blocks(
-            x, filters=64, num_blocks=1, name="stem_residual_block"
-        )
+        x = ResidualBlocks(
+            filters=64, num_blocks=1, name="stem_residual_block"
+        )(x)
 
         # filters for the ResidualBlock outputs
         filters = [128, 256, 512, 1024]
@@ -168,40 +168,39 @@ class DarkNet(keras.Model):
         layer_num = 2
 
         for filter, block in zip(filters, blocks):
-            x = apply_residual_blocks(
-                x,
+            x = ResidualBlocks(
                 filters=filter,
                 num_blocks=block,
                 name=f"dark{layer_num}_residual_block",
-            )
+            )(x)
             layer_num += 1
 
         # remaining dark5 layers
-        x = apply_darknet_conv_block(
+        x = DarknetConvBlock(
             filters=512,
             kernel_size=1,
             strides=1,
             activation="leaky_relu",
             name="dark5_conv1",
         )(x)
-        x = apply_darknet_conv_block(
+        x = DarknetConvBlock(
             filters=1024,
             kernel_size=3,
             strides=1,
             activation="leaky_relu",
             name="dark5_conv2",
         )(x)
-        x = apply_spatial_pyramid_pooling_bottleneck(
-            x, 512, activation="leaky_relu", name="dark5_spp"
-        )
-        x = apply_darknet_conv_block(
+        x = SpatialPyramidPoolingBottleneck(
+            512, activation="leaky_relu", name="dark5_spp"
+        )(x)
+        x = DarknetConvBlock(
             filters=1024,
             kernel_size=3,
             strides=1,
             activation="leaky_relu",
             name="dark5_conv3",
         )(x)
-        x = apply_darknet_conv_block(
+        x = DarknetConvBlock(
             filters=512,
             kernel_size=1,
             strides=1,
