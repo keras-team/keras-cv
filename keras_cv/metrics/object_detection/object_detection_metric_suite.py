@@ -14,17 +14,12 @@
 import os
 import sys
 import types
-import warnings
 
-import numpy as np
 import tensorflow as tf
 import tensorflow.keras as keras
-import tensorflow.keras.initializers as initializers
 
 import keras_cv
 from keras_cv import bounding_box
-from keras_cv.bounding_box import iou as iou_lib
-from keras_cv.metrics.coco import compute_pycoco_metrics
 
 
 class HidePrints:
@@ -41,9 +36,9 @@ class HidePrints:
 
 def _box_concat(b1, b2):
     """Concatenates two bounding box batches together."""
-    if b1 == None:
+    if b1 is None:
         return b2
-    if b2 == None:
+    if b2 is None:
         return b1
 
     result = {}
