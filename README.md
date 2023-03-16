@@ -51,7 +51,7 @@ pip install git+https://github.com/keras-team/keras-cv.git tensorflow --upgrade
 ```python
 import keras_cv
 import tensorflow as tf
-from tensorflow import keras
+import keras
 import tensorflow_datasets as tfds
 
 # Create a preprocessing pipeline
