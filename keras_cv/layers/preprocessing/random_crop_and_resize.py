@@ -283,9 +283,7 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
     @classmethod
     def from_config(cls, config):
         if isinstance(config["crop_area_factor"], dict):
-            config[
-                "crop_area_factor"
-            ] = keras.utils.deserialize_keras_object(
+            config["crop_area_factor"] = keras.utils.deserialize_keras_object(
                 config["crop_area_factor"]
             )
         if isinstance(config["aspect_ratio_factor"], dict):

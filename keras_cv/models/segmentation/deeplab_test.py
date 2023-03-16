@@ -129,9 +129,7 @@ class DeeplabTest(tf.test.TestCase):
         output_res = [96, 96]
         num_images = 11788
 
-        image_resizing = keras.layers.Resizing(
-            target_size[1], target_size[0]
-        )
+        image_resizing = keras.layers.Resizing(target_size[1], target_size[0])
         labels_resizing = keras.layers.Resizing(output_res[1], output_res[0])
 
         def resize_images_and_masks(data):

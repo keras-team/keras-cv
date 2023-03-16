@@ -113,7 +113,7 @@ class GlobalRandomTranslation(
         bounding_boxes = tf.concat(
             [
                 bounding_boxes_xyz,
-                bounding_boxes[..., CENTER_XYZ_DXDYDZ_PHI.DX:],
+                bounding_boxes[..., CENTER_XYZ_DXDYDZ_PHI.DX :],
             ],
             axis=-1,
         )

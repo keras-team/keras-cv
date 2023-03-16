@@ -44,9 +44,9 @@ def _meshgrid(
     dim = len(m)
     assert dim == 2 or dim == 3
     if dim == 2:
-        mesh = np.mgrid[-m[0]: m[0] + 1, -m[1]: m[1] + 1]
+        mesh = np.mgrid[-m[0] : m[0] + 1, -m[1] : m[1] + 1]
     else:
-        mesh = np.mgrid[-m[0]: m[0] + 1, -m[1]: m[1] + 1, -m[2]: m[2] + 1]
+        mesh = np.mgrid[-m[0] : m[0] + 1, -m[1] : m[1] + 1, -m[2] : m[2] + 1]
     mesh = np.concatenate(mesh[..., np.newaxis], axis=-1)
     mesh = np.reshape(mesh, [-1, dim])
     return mesh * voxel_size

@@ -194,11 +194,11 @@ class _RpnLabelEncoder(keras.layers.Layer):
             num_anchors_lvl = anchors.get_shape().as_list()[0]
             if target_shape == 2:
                 unpacked_targets[level] = targets[
-                    count: count + num_anchors_lvl, ...
+                    count : count + num_anchors_lvl, ...
                 ]
             else:
                 unpacked_targets[level] = targets[
-                    :, count: count + num_anchors_lvl, ...
+                    :, count : count + num_anchors_lvl, ...
                 ]
             count += num_anchors_lvl
         return unpacked_targets

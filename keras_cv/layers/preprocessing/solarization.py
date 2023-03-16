@@ -153,9 +153,7 @@ class Solarization(VectorizedBaseImageAugmentationLayer):
     @classmethod
     def from_config(cls, config):
         if isinstance(config["threshold_factor"], dict):
-            config[
-                "threshold_factor"
-            ] = keras.utils.deserialize_keras_object(
+            config["threshold_factor"] = keras.utils.deserialize_keras_object(
                 config["threshold_factor"]
             )
         if isinstance(config["addition_factor"], dict):

@@ -183,7 +183,7 @@ class GlobalRandomScaling(base_augmentation_layer_3d.BaseAugmentationLayer3D):
         bounding_boxes = tf.concat(
             [
                 bounding_boxes_xyzdxdydz,
-                bounding_boxes[..., CENTER_XYZ_DXDYDZ_PHI.PHI:],
+                bounding_boxes[..., CENTER_XYZ_DXDYDZ_PHI.PHI :],
             ],
             axis=-1,
         )

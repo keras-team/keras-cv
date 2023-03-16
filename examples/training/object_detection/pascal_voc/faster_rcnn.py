@@ -157,8 +157,8 @@ def resize_and_crop_image(
 
         if random_jittering:
             scaled_image = scaled_image[
-                offset[0]: offset[0] + desired_size[0],
-                offset[1]: offset[1] + desired_size[1],
+                offset[0] : offset[0] + desired_size[0],
+                offset[1] : offset[1] + desired_size[1],
                 :,
             ]
 
@@ -317,9 +317,7 @@ weight_decay = 0.0001
 step = 0
 
 callbacks = [
-    keras.callbacks.ModelCheckpoint(
-        FLAGS.weights_path, save_weights_only=True
-    ),
+    keras.callbacks.ModelCheckpoint(FLAGS.weights_path, save_weights_only=True),
     keras.callbacks.TensorBoard(
         log_dir=FLAGS.tensorboard_path, write_steps_per_second=True
     ),

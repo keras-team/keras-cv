@@ -142,10 +142,10 @@ class GlobalRandomRotation(base_augmentation_layer_3d.BaseAugmentationLayer3D):
             [
                 bounding_boxes_xyz,
                 bounding_boxes[
-                    ..., CENTER_XYZ_DXDYDZ_PHI.DX: CENTER_XYZ_DXDYDZ_PHI.DZ + 1
+                    ..., CENTER_XYZ_DXDYDZ_PHI.DX : CENTER_XYZ_DXDYDZ_PHI.DZ + 1
                 ],
                 bounding_boxes_heading,
-                bounding_boxes[..., CENTER_XYZ_DXDYDZ_PHI.CLASS:],
+                bounding_boxes[..., CENTER_XYZ_DXDYDZ_PHI.CLASS :],
             ],
             axis=-1,
         )
