@@ -97,7 +97,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
 """
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class LayerScale(layers.Layer):
     """Layer scale module.
     References:

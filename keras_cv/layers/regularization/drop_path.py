@@ -14,8 +14,8 @@
 import tensorflow as tf
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
-class DropPath(keras.__internal__.layers.BaseRandomLayer):
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
+class DropPath(tf.keras.__internal__.layers.BaseRandomLayer):
     """
     Implements the DropPath layer. DropPath randomly drops samples during training
      with a probability of `rate`. Note that this layer drops individual samples
@@ -37,7 +37,7 @@ class DropPath(keras.__internal__.layers.BaseRandomLayer):
 
     # (...)
     input = tf.ones((1, 3, 3, 1), dtype=tf.float32)
-    residual = keras.layers.Conv2D(1, 1)(input)
+    residual = tf.keras.layers.Conv2D(1, 1)(input)
     output = keras_cv.layers.DropPath()(input)
     # (...)
     ```
@@ -54,7 +54,7 @@ class DropPath(keras.__internal__.layers.BaseRandomLayer):
         else:
             keep_prob = 1 - self.rate
             drop_map_shape = (x.shape[0],) + (1,) * (len(x.shape) - 1)
-            drop_map = keras.backend.random_bernoulli(
+            drop_map = tf.keras.backend.random_bernoulli(
                 drop_map_shape, p=keep_prob, seed=self.seed
             )
             x = x / keep_prob

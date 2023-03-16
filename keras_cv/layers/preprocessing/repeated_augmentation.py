@@ -18,7 +18,7 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 )
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class RepeatedAugmentation(BaseImageAugmentationLayer):
     """RepeatedAugmentation augments each image in a batch multiple times.
 
@@ -119,7 +119,7 @@ class RepeatedAugmentation(BaseImageAugmentationLayer):
     @classmethod
     def from_config(cls, config):
         if config["augmenters"] and isinstance(config["augmenters"][0], dict):
-            config["augmenters"] = keras.utils.deserialize_keras_object(
+            config["augmenters"] = tf.keras.utils.deserialize_keras_object(
                 config["augmenters"]
             )
         return cls(**config)

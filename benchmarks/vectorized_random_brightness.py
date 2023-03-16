@@ -143,7 +143,7 @@ class RandomBrightnessTest(tf.test.TestCase):
 
 if __name__ == "__main__":
     # Run benchmark
-    (x_train, _), _ = keras.datasets.cifar10.load_data()
+    (x_train, _), _ = tf.keras.datasets.cifar10.load_data()
     x_train = x_train.astype(np.float32)
 
     num_images = [1000, 2000, 5000, 10000]

@@ -19,7 +19,7 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 )
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class RandomAugmentationPipeline(BaseImageAugmentationLayer):
     """RandomAugmentationPipeline constructs a pipeline based on provided arguments.
 
@@ -120,6 +120,6 @@ class RandomAugmentationPipeline(BaseImageAugmentationLayer):
         layers = config.pop("layers", None)
         if layers:
             if isinstance(layers[0], dict):
-                layers = keras.utils.deserialize_keras_object(layers)
+                layers = tf.keras.utils.deserialize_keras_object(layers)
             config["layers"] = layers
         return cls(**config)

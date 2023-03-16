@@ -32,8 +32,8 @@ IS_DICT = "is_dict"
 USE_TARGETS = "use_targets"
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
-class BaseImageAugmentationLayer(keras.__internal__.layers.BaseRandomLayer):
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
+class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
     """Abstract base layer for image augmentaion.
 
     This layer contains base functionalities for preprocessing layers which
@@ -108,7 +108,7 @@ class BaseImageAugmentationLayer(keras.__internal__.layers.BaseRandomLayer):
     ```
 
     Note that since the randomness is also a common functionality, this layer
-    also includes a keras.backend.RandomGenerator, which can be used to
+    also includes a tf.keras.backend.RandomGenerator, which can be used to
     produce the random numbers.  The random number generator is stored in the
     `self._random_generator` attribute.
     """

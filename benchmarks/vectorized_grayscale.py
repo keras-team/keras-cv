@@ -42,7 +42,7 @@ class OldGrayscale(BaseImageAugmentationLayer):
                  b. (..., height, width, 3) if output_channels = 3.
     Usage:
     ```python
-    (images, labels), _ = keras.datasets.cifar10.load_data()
+    (images, labels), _ = tf.keras.datasets.cifar10.load_data()
     to_grayscale = keras_cv.layers.preprocessing.Grayscale()
     augmented_images = to_grayscale(images)
     ```

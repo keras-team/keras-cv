@@ -18,8 +18,8 @@ from keras_cv import bounding_box
 
 
 # TODO(tanzhenyu): provide a TPU compatible NMS decoder.
-@keras.utils.register_keras_serializable(package="keras_cv")
-class MultiClassNonMaxSuppression(keras.layers.Layer):
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
+class MultiClassNonMaxSuppression(tf.keras.layers.Layer):
     """A Keras layer that decodes predictions of an object detection model.
 
     Arguments:
@@ -57,13 +57,13 @@ class MultiClassNonMaxSuppression(keras.layers.Layer):
         self.max_detections_per_class = max_detections_per_class
         self.built = True
 
-    def call(self, box_prediction, confidence_prediction):
+    def call(self, box_prediction, class_prediction):
         """Accepts images and raw predictions, and returns bounding box predictions.
 
         Args:
             box_prediction: Dense Tensor of shape [batch, boxes, 4] in the
                 `bounding_box_format` specified in the constructor.
-            confidence_prediction: Dense Tensor of shape [batch, boxes, num_classes].
+            class_prediction: Dense Tensor of shape [batch, boxes, num_classes].
         """
         target_format = "yxyx"
         if bounding_box.is_relative(self.bounding_box_format):
@@ -75,32 +75,32 @@ class MultiClassNonMaxSuppression(keras.layers.Layer):
             target=target_format,
         )
         if self.from_logits:
-            confidence_prediction = tf.nn.softmax(confidence_prediction)
+            class_prediction = tf.nn.softmax(class_prediction)
 
         box_prediction = tf.expand_dims(box_prediction, axis=-2)
         (
-            box_pred,
-            confidence_pred,
-            class_pred,
+            box_prediction,
+            confidence_prediction,
+            class_prediction,
             valid_det,
         ) = tf.image.combined_non_max_suppression(
             boxes=box_prediction,
-            scores=confidence_prediction,
+            scores=class_prediction,
             max_output_size_per_class=self.max_detections_per_class,
             max_total_size=self.max_detections,
             score_threshold=self.confidence_threshold,
             iou_threshold=self.iou_threshold,
             clip_boxes=False,
         )
-        box_pred = bounding_box.convert_format(
-            box_pred,
+        box_prediction = bounding_box.convert_format(
+            box_prediction,
             source=target_format,
             target=self.bounding_box_format,
         )
         bounding_boxes = {
-            "boxes": box_pred,
-            "confidence": confidence_pred,
-            "classes": class_pred,
+            "boxes": box_prediction,
+            "confidence": confidence_prediction,
+            "classes": class_prediction,
             "num_detections": valid_det,
         }
         # this is required to comply with KerasCV bounding box format.

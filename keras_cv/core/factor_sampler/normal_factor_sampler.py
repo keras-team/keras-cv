@@ -16,7 +16,7 @@ import tensorflow as tf
 from keras_cv.core.factor_sampler.factor_sampler import FactorSampler
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class NormalFactorSampler(FactorSampler):
     """NormalFactorSampler samples factors from a normal distribution.
 

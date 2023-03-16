@@ -18,7 +18,7 @@ from tensorflow import keras
 LARGE_NUM = 1e9
 
 
-class SimCLRLoss(keras.losses.Loss):
+class SimCLRLoss(tf.keras.losses.Loss):
     """Implements SimCLR Cosine Similarity loss.
 
     SimCLR loss is used for contrastive self-supervised learning.

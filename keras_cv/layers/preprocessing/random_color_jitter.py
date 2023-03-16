@@ -21,7 +21,7 @@ from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer impo
 from keras_cv.utils import preprocessing as preprocessing_utils
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class RandomColorJitter(VectorizedBaseImageAugmentationLayer):
     """RandomColorJitter class randomly apply brightness, contrast, saturation
     and hue image processing operation sequentially and randomly on the
@@ -70,7 +70,7 @@ class RandomColorJitter(VectorizedBaseImageAugmentationLayer):
 
     Usage:
     ```python
-    (images, labels), _ = keras.datasets.cifar10.load_data()
+    (images, labels), _ = tf.keras.datasets.cifar10.load_data()
     color_jitter = keras_cv.layers.RandomColorJitter(
             value_range=(0, 255),
             brightness_factor=(-0.2, 0.5),

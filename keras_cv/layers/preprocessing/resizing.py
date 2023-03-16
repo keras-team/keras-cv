@@ -255,7 +255,7 @@ class Resizing(BaseImageAugmentationLayer):
         def resize_with_crop_to_aspect(x):
             if isinstance(x, tf.RaggedTensor):
                 x = x.to_tensor()
-            return keras.preprocessing.image.smart_resize(
+            return tf.keras.preprocessing.image.smart_resize(
                 x, size=size, interpolation=self._interpolation_method
             )
 

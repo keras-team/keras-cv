@@ -15,7 +15,6 @@
 
 import os
 
-import tensorflow as tf
 from tensorflow import keras
 
 from keras_cv.utils.python_utils import classproperty
@@ -31,6 +30,15 @@ class Backbone(keras.Model):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self._pyramid_level_inputs = {}
+
+    def get_config(self):
+        # Don't chain to super here. The default `get_config()` for functional
+        # models is nested and cannot be passed to our Backbone constructors.
+        return {
+            "name": self.name,
+            "trainable": self.trainable,
+        }
 
     @classmethod
     def from_config(cls, config):
@@ -145,20 +153,14 @@ class Backbone(keras.Model):
             )(cls.from_preset.__func__)
 
     @property
-    def backbone_level_outputs(self):
-        """Backbone outputs at each resolution level for transfer learning."""
-        return None
+    def pyramid_level_inputs(self):
+        """Intermediate model outputs for feature extraction.
 
-    @backbone_level_outputs.setter
-    def backbone_level_outputs(self, value):
-        self._backbone_level_outputs = value
-
-    def get_feature_extractor(self, min_level=None, max_level=None):
-        """Convert the application model into a model backbone for other tasks.
-
-        The backbone model will usually take same inputs as the original
-        application model, but produce multiple outputs, one for each feature
-        level. Those outputs can be feed to network downstream, like FPN and RPN.
+        Format is a dictionary with int as key and layer name as value.
+        The int key represent the level of the feature output. A typical feature
+        pyramid has five levels corresponding to scales P3, P4, P5, P6, P7 in
+        the backbone. Scale Pn represents a feature map 2^n times smaller in
+        width and height than the input image.
 
         The output of the backbone model will be a dict with int as key and
         tensor as value. The int key represent the level of the feature output.

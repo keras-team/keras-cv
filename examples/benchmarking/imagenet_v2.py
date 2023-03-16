@@ -69,7 +69,7 @@ model = model(
 model.compile(
     "adam",
     "sparse_categorical_crossentropy",
-    metrics=["accuracy", keras.metrics.SparseTopKCategoricalAccuracy(5)],
+    metrics=["accuracy", tf.keras.metrics.SparseTopKCategoricalAccuracy(5)],
 )
 
 

@@ -19,7 +19,7 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 from keras_cv.utils.preprocessing import transform_value_range
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class Posterization(BaseImageAugmentationLayer):
     """Reduces the number of bits for each color channel.
 
@@ -41,7 +41,7 @@ class Posterization(BaseImageAugmentationLayer):
 
      Usage:
     ```python
-    (images, labels), _ = keras.datasets.cifar10.load_data()
+    (images, labels), _ = tf.keras.datasets.cifar10.load_data()
     print(images[0, 0, 0])
     # [59 62 63]
     # Note that images are Tensors with values in the range [0, 255] and uint8 dtype

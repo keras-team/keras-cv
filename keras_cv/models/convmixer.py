@@ -59,25 +59,28 @@ MODEL_CONFIGS = {
     },
 }
 
-
 BASE_DOCSTRING = """Instantiates the {name} architecture.
+
     Reference:
         - [Patches Are All You Need?](https://arxiv.org/abs/2201.09792)
-    This function returns a Keras {name} model.
+
+    This class represents a Keras {name} model.
+
     For transfer learning use cases, make sure to read the [guide to transfer
         learning & fine-tuning](https://keras.io/guides/transfer_learning/).
+
     Args:
-        include_rescaling: whether or not to Rescale the inputs.If set to True,
+        include_rescaling: bool, whether or not to rescale the inputs. If set to True,
             inputs will be passed through a `Rescaling(1/255.0)` layer.
-        include_top: whether to include the fully-connected layer at the top of the
-            network.  If provided, num_classes must be provided.
-        num_classes: optional number of classes to classify images into, only to be
+        include_top: bool, whether to include the fully-connected layer at the top of the
+            network. If provided, num_classes must be provided.
+        num_classes: integer, optional number of classes to classify images into. Only to be
             specified if `include_top` is True.
         weights: one of `None` (random initialization), a pretrained weight file
             path, or a reference to pre-trained weights (e.g. 'imagenet/classification')
             (see available pre-trained weights in weights.py)
         input_shape: optional shape tuple, defaults to (None, None, 3).
-        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
+        input_tensor: optional Keras tensor (i.e., output of `layers.Input()`)
             to use as image input for the model.
         pooling: optional pooling mode for feature extraction
             when `include_top` is `False`.
@@ -87,87 +90,71 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
                 of the last convolutional block, and thus the output of the model will
                 be a 2D tensor.
             - `max` means that global max pooling will be applied.
-        name: (Optional) name to pass to the model.  Defaults to "{name}".
+        name: string, optional name to pass to the model, defaults to "{name}".
+
     Returns:
       A `keras.Model` instance.
 """
 
 
-def CovnMixer_Layer(dim, kernel_size):
-    """CovnMixer Layer module.
+def apply_conv_mixer_layer(x, dim, kernel_size):
+    """ConvMixerLayer module.
     Args:
-        inputs: Input tensor.
+        x: input tensor.
         dim: integer, filters of the layer in a block.
-        kernel_size: integer, kernel size of the Conv2d layers.
+        kernel_size: integer, kernel size of the Conv2D layers.
     Returns:
-        Output tensor for the CovnMixer Layer.
+        the updated input tensor.
     """
 
-    def apply(x):
-        residual = x
-        x = layers.DepthwiseConv2D(kernel_size=kernel_size, padding="same")(x)
-        x = tf.nn.gelu(x)
-        x = layers.BatchNormalization()(x)
-        x = layers.Add()([x, residual])
+    residual = x
+    x = layers.DepthwiseConv2D(kernel_size=kernel_size, padding="same")(x)
+    x = tf.nn.gelu(x)
+    x = layers.BatchNormalization()(x)
+    x = layers.Add()([x, residual])
 
-        x = layers.Conv2D(dim, kernel_size=1)(x)
-        x = tf.nn.gelu(x)
-        x = layers.BatchNormalization()(x)
-        return x
-
-    return apply
+    x = layers.Conv2D(dim, kernel_size=1)(x)
+    x = tf.nn.gelu(x)
+    x = layers.BatchNormalization()(x)
+    return x
 
 
-def patch_embed(dim, patch_size):
+def apply_patch_embed(x, dim, patch_size):
     """Implementation for Extracting Patch Embeddings.
     Args:
-        inputs: Input tensor.
+        x: input tensor.
+        dim: integer, filters of the layer in a block.
         patch_size: integer, Size of patches.
     Returns:
-        Output tensor for the patch embed.
+        the updated input tensor.
     """
 
-    def apply(x):
-        x = layers.Conv2D(
-            filters=dim, kernel_size=patch_size, strides=patch_size
-        )(x)
-        x = tf.nn.gelu(x)
-        x = layers.BatchNormalization()(x)
-        return x
-
-    return apply
+    x = layers.Conv2D(filters=dim, kernel_size=patch_size, strides=patch_size)(
+        x
+    )
+    x = tf.nn.gelu(x)
+    x = layers.BatchNormalization()(x)
+    return x
 
 
-def ConvMixer(
-    dim,
-    depth,
-    patch_size,
-    kernel_size,
-    include_top,
-    include_rescaling,
-    name="ConvMixer",
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    num_classes=None,
-    classifier_activation="softmax",
-):
+@keras.utils.register_keras_serializable(package="keras_cv.models")
+class ConvMixer(keras.Model):
     """Instantiates the ConvMixer architecture.
+
     Args:
-        dim: number of filters.
-        depth: number of CovnMixer Layer.
-        patch_size: Size of the patches.
-        kernel_size: kernel size for conv2d layers.
-        include_rescaling: whether or not to Rescale the inputs. If set to True,
-            inputs will be passed through a `Rescaling(1/255.0)` layer.
-            name: string, model name.
-        include_top: whether to include the fully-connected
+        dim: integer, number of filters.
+        depth: integer, number of ConvMixer Layer.
+        patch_size: integer, size of the patches.
+        kernel_size: integer, kernel size for Conv2D layers.
+        include_top: bool, whether to include the fully-connected
             layer at the top of the network.
-        weights: one of `None` (random initialization),
+        include_rescaling: bool, whether to rescale the inputs. If set to True,
+            inputs will be passed through a `Rescaling(1/255.0)` layer.
+        name: string, optional name to pass to the model, defaults to "ConvMixer".
+        weights: one of `None` (random initialization)
             or the path to the weights file to be loaded.
         input_shape: optional shape tuple, defaults to (None, None, 3).
-        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
+        input_tensor: optional Keras tensor (i.e., output of `layers.Input()`)
             to use as image input for the model.
         pooling: optional pooling mode for feature extraction
             when `include_top` is `False`.
@@ -180,60 +167,107 @@ def ConvMixer(
                 the output of the model will be a 2D tensor.
             - `max` means that global max pooling will
                 be applied.
-        num_classes: optional number of classes to classify images
-            into, only to be specified if `include_top` is True.
+        num_classes: integer, optional number of classes to classify images
+            into. Only to be specified if `include_top` is True.
         classifier_activation: A `str` or callable. The activation function to use
             on the "top" layer. Ignored unless `include_top=True`. Set
             `classifier_activation=None` to return the logits of the "top" layer.
-        **kwargs: Pass-through keyword arguments to `keras.Model`.
+        **kwargs: Pass-through keyword arguments to `tf.keras.Model`.
+
     Returns:
       A `keras.Model` instance.
     """
 
-    if weights and not tf.io.gfile.exists(weights):
-        raise ValueError(
-            "The `weights` argument should be either `None` or the path to the "
-            f"weights file to be loaded. Weights file not found at location: {weights}"
-        )
+    def __init__(
+        self,
+        dim,
+        depth,
+        patch_size,
+        kernel_size,
+        include_top,
+        include_rescaling,
+        name="ConvMixer",
+        weights=None,
+        input_shape=(None, None, 3),
+        input_tensor=None,
+        pooling=None,
+        num_classes=None,
+        classifier_activation="softmax",
+        **kwargs,
+    ):
+        if weights and not tf.io.gfile.exists(weights):
+            raise ValueError(
+                "The `weights` argument should be either `None` or the path to the "
+                f"weights file to be loaded. Weights file not found at location: {weights}"
+            )
 
-    if include_top and not num_classes:
-        raise ValueError(
-            "If `include_top` is True, you should specify `num_classes`. "
-            f"Received: num_classes={num_classes}"
-        )
+        if include_top and not num_classes:
+            raise ValueError(
+                "If `include_top` is True, you should specify `classes`. "
+                f"Received: classes={num_classes}"
+            )
 
-    if include_top and pooling:
-        raise ValueError(
-            f"`pooling` must be `None` when `include_top=True`."
-            f"Received pooling={pooling} and include_top={include_top}. "
-        )
+        if include_top and pooling:
+            raise ValueError(
+                f"`pooling` must be `None` when `include_top=True`."
+                f"Received pooling={pooling} and include_top={include_top}. "
+            )
 
-    inputs = utils.parse_model_inputs(input_shape, input_tensor)
-    x = inputs
+        inputs = utils.parse_model_inputs(input_shape, input_tensor)
+        x = inputs
 
-    if include_rescaling:
-        x = layers.Rescaling(1 / 255.0)(x)
-    x = patch_embed(dim, patch_size)(x)
+        if include_rescaling:
+            x = layers.Rescaling(1 / 255.0)(x)
+        x = apply_patch_embed(x, dim, patch_size)
 
-    for _ in range(depth):
-        x = CovnMixer_Layer(dim, kernel_size)(x)
+        for _ in range(depth):
+            x = apply_conv_mixer_layer(x, dim, kernel_size)
 
-    if include_top:
-        x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-        x = layers.Dense(
-            num_classes, activation=classifier_activation, name="predictions"
-        )(x)
-    else:
-        if pooling == "avg":
+        if include_top:
             x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-        elif pooling == "max":
-            x = layers.GlobalMaxPooling2D(name="max_pool")(x)
+            x = layers.Dense(
+                num_classes,
+                activation=classifier_activation,
+                name="predictions",
+            )(x)
+        else:
+            if pooling == "avg":
+                x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
+            elif pooling == "max":
+                x = layers.GlobalMaxPooling2D(name="max_pool")(x)
 
-    model = keras.Model(inputs, x, name=name)
-    if weights is not None:
-        model.load_weights(weights)
+        super().__init__(inputs=inputs, outputs=x, name=name, **kwargs)
 
-    return model
+        if weights is not None:
+            self.load_weights(weights)
+
+        self.dim = dim
+        self.depth = depth
+        self.patch_size = patch_size
+        self.kernel_size = kernel_size
+        self.include_top = include_top
+        self.include_rescaling = include_rescaling
+        self.input_tensor = input_tensor
+        self.pooling = pooling
+        self.num_classes = num_classes
+        self.classifier_activation = classifier_activation
+
+    def get_config(self):
+        return {
+            "dim": self.dim,
+            "depth": self.depth,
+            "patch_size": self.patch_size,
+            "kernel_size": self.kernel_size,
+            "include_top": self.include_top,
+            "include_rescaling": self.include_rescaling,
+            "name": self.name,
+            "input_shape": self.input_shape[1:],
+            "input_tensor": self.input_tensor,
+            "pooling": self.pooling,
+            "num_classes": self.num_classes,
+            "classifier_activation": self.classifier_activation,
+            "trainable": self.trainable,
+        }
 
 
 def ConvMixer_1536_20(

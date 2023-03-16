@@ -85,11 +85,11 @@ class OldSolarization(BaseImageAugmentationLayer):
         if isinstance(config["threshold_factor"], dict):
             config[
                 "threshold_factor"
-            ] = keras.utils.deserialize_keras_object(
+            ] = tf.keras.utils.deserialize_keras_object(
                 config["threshold_factor"]
             )
         if isinstance(config["addition_factor"], dict):
-            config["addition_factor"] = keras.utils.deserialize_keras_object(
+            config["addition_factor"] = tf.keras.utils.deserialize_keras_object(
                 config["addition_factor"]
             )
         return cls(**config)
@@ -115,7 +115,7 @@ class SolarizationTest(tf.test.TestCase):
 
 if __name__ == "__main__":
     # Run benchmark
-    (x_train, _), _ = keras.datasets.cifar10.load_data()
+    (x_train, _), _ = tf.keras.datasets.cifar10.load_data()
     x_train = x_train.astype(np.float32)
 
     num_images = [1000, 2000, 5000, 10000]

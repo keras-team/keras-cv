@@ -20,7 +20,7 @@ from keras_cv.bounding_box import iou as iou_lib
 from keras_cv.metrics.coco import utils
 
 
-class _COCOMeanAveragePrecision(keras.metrics.Metric):
+class _COCOMeanAveragePrecision(tf.keras.metrics.Metric):
     """_COCOMeanAveragePrecision computes an approximation of MaP.
 
     A usage guide is available on keras.io:

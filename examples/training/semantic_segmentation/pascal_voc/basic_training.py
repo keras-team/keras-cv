@@ -66,7 +66,7 @@ FLAGS(sys.argv)
 
 if FLAGS.mixed_precision:
     logging.info("mixed precision training enabled")
-    keras.mixed_precision.set_global_policy("mixed_float16")
+    tf.keras.mixed_precision.set_global_policy("mixed_float16")
 
 # Try to detect an available TPU. If none is present, default to MirroredStrategy
 try:
@@ -91,7 +91,7 @@ base_lr = 0.007 * global_batch / 16
 train_ds = load(split="sbd_train", data_dir=None)
 eval_ds = load(split="sbd_eval", data_dir=None)
 
-resize_layer = keras.layers.Resizing(512, 512, interpolation="nearest")
+resize_layer = tf.keras.layers.Resizing(512, 512, interpolation="nearest")
 
 image_size = [512, 512, 3]
 
@@ -143,7 +143,7 @@ train_ds = train_ds.shuffle(8)
 train_ds = train_ds.prefetch(2)
 
 with strategy.scope():
-    lr_decay = keras.optimizers.schedules.PiecewiseConstantDecay(
+    lr_decay = tf.keras.optimizers.schedules.PiecewiseConstantDecay(
         boundaries=[30000 * 16 / global_batch],
         values=[base_lr, 0.1 * base_lr],
     )
@@ -157,25 +157,25 @@ with strategy.scope():
     )
     model = models.__dict__[FLAGS.model_name]
     model = model(num_classes=21, backbone=backbone, **eval(FLAGS.model_kwargs))
-    optimizer = keras.optimizers.SGD(
+    optimizer = tf.keras.optimizers.SGD(
         learning_rate=lr_decay, momentum=0.9, clipnorm=10.0
     )
     # ignore 255 as the class for semantic boundary.
-    loss_fn = keras.losses.SparseCategoricalCrossentropy(ignore_class=255)
+    loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(ignore_class=255)
     metrics = [
-        keras.metrics.SparseCategoricalCrossentropy(ignore_class=255),
-        keras.metrics.MeanIoU(num_classes=21, sparse_y_pred=False),
-        keras.metrics.SparseCategoricalAccuracy(),
+        tf.keras.metrics.SparseCategoricalCrossentropy(ignore_class=255),
+        tf.keras.metrics.MeanIoU(num_classes=21, sparse_y_pred=False),
+        tf.keras.metrics.SparseCategoricalAccuracy(),
     ]
 
 callbacks = [
-    keras.callbacks.ModelCheckpoint(
+    tf.keras.callbacks.ModelCheckpoint(
         filepath=FLAGS.weights_path,
         monitor="val_mean_io_u",
         save_best_only=True,
         save_weights_only=True,
     ),
-    keras.callbacks.TensorBoard(
+    tf.keras.callbacks.TensorBoard(
         log_dir=FLAGS.tensorboard_path, write_steps_per_second=True
     ),
 ]

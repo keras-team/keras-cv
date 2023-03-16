@@ -18,7 +18,7 @@ import tensorflow as tf
 from tensorflow.keras import layers
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class PatchingAndEmbedding(layers.Layer):
     """
 

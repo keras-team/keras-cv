@@ -141,7 +141,7 @@ def parse_factor(
         # For all classes missing a `from_config` implementation.
         # (RandomHue, RandomShear, etc.)
         # To be removed with addition of `keras.__internal__` namespace support
-        param = keras.utils.deserialize_keras_object(param)
+        param = tf.keras.utils.deserialize_keras_object(param)
 
     if isinstance(param, core.FactorSampler):
         return param

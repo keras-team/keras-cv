@@ -19,10 +19,10 @@ from keras_cv.layers.object_detection_3d.voxelization import DynamicVoxelization
 
 class VoxelizationTest(tf.test.TestCase):
     def get_point_net(self):
-        return keras.Sequential(
+        return tf.keras.Sequential(
             [
-                keras.layers.Dense(10),
-                keras.layers.Dense(20),
+                tf.keras.layers.Dense(10),
+                tf.keras.layers.Dense(20),
             ]
         )
 
@@ -74,7 +74,7 @@ class VoxelizationTest(tf.test.TestCase):
         self.assertEqual(output.shape, [1, 400, 400, 30, 20])
 
     def test_voxelization_numerical(self):
-        point_net = keras.layers.Lambda(lambda x: x)
+        point_net = tf.keras.layers.Lambda(lambda x: x)
         layer = DynamicVoxelization(
             point_net=point_net,
             voxel_size=[1.0, 1.0, 10.0],

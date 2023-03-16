@@ -18,7 +18,7 @@ import tensorflow as tf
 from keras_cv import bounding_box
 
 
-class GIoULoss(keras.losses.Loss):
+class GIoULoss(tf.keras.losses.Loss):
     """Implements the Generalized IoU Loss
 
     GIoU loss is a modified IoU loss commonly used for object detection. This loss aims

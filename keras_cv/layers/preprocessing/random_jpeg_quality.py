@@ -20,7 +20,7 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 from keras_cv.utils import preprocessing
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class RandomJpegQuality(BaseImageAugmentationLayer):
     """Applies Random Jpeg compression artifacts to an image.
 
@@ -36,7 +36,7 @@ class RandomJpegQuality(BaseImageAugmentationLayer):
     Usage:
     ```python
     layer = keras_cv.RandomJpegQuality(factor=(75, 100)))
-    (images, labels), _ = keras.datasets.cifar10.load_data()
+    (images, labels), _ = tf.keras.datasets.cifar10.load_data()
     augmented_images = layer(images)
     ```
     """

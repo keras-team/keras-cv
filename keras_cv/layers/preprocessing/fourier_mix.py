@@ -18,7 +18,7 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 )
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class FourierMix(BaseImageAugmentationLayer):
     """FourierMix implements the FMix data augmentation technique.
 
@@ -35,7 +35,7 @@ class FourierMix(BaseImageAugmentationLayer):
 
     Sample usage:
     ```python
-    (images, labels), _ = keras.datasets.cifar10.load_data()
+    (images, labels), _ = tf.keras.datasets.cifar10.load_data()
     fourier_mix = keras_cv.layers.preprocessing.FourierMix(0.5)
     augmented_images, updated_labels = fourier_mix({'images': images, 'labels': labels})
     # output == {'images': updated_images, 'labels': updated_labels}

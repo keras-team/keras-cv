@@ -19,7 +19,7 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 )
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class MixUp(BaseImageAugmentationLayer):
     """MixUp implements the MixUp data augmentation technique.
 
@@ -36,7 +36,7 @@ class MixUp(BaseImageAugmentationLayer):
 
     Sample usage:
     ```python
-    (images, labels), _ = keras.datasets.cifar10.load_data()
+    (images, labels), _ = tf.keras.datasets.cifar10.load_data()
     images, labels = images[:10], labels[:10]
     # Labels must be floating-point and one-hot encoded
     labels = tf.cast(tf.one_hot(labels, 10), tf.float32)

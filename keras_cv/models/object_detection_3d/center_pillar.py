@@ -20,7 +20,7 @@ import tensorflow as tf
 from keras_cv.layers.object_detection_3d.heatmap_decoder import HeatmapDecoder
 
 
-class MultiClassDetectionHead(keras.layers.Layer):
+class MultiClassDetectionHead(tf.keras.layers.Layer):
     """Multi-class object detection head."""
 
     def __init__(
@@ -53,13 +53,13 @@ class MultiClassDetectionHead(keras.layers.Layer):
         if not share_head:
             for i in range(num_class):
                 # 1x1 conv for each voxel/pixel.
-                self._heads[self._head_names[i]] = keras.layers.Conv2D(
+                self._heads[self._head_names[i]] = tf.keras.layers.Conv2D(
                     filters=self._per_class_prediction_size[i],
                     kernel_size=(1, 1),
                     name=f"head_{i + 1}",
                 )
         else:
-            shared_layer = keras.layers.Conv2D(
+            shared_layer = tf.keras.layers.Conv2D(
                 filters=self._per_class_prediction_size[0],
                 kernel_size=(1, 1),
                 name="shared_head",
@@ -75,7 +75,7 @@ class MultiClassDetectionHead(keras.layers.Layer):
         return outputs
 
 
-class MultiClassHeatmapDecoder(keras.layers.Layer):
+class MultiClassHeatmapDecoder(tf.keras.layers.Layer):
     def __init__(
         self,
         num_class,
@@ -118,7 +118,7 @@ class MultiClassHeatmapDecoder(keras.layers.Layer):
         return decoded_predictions
 
 
-class MultiHeadCenterPillar(keras.Model):
+class MultiHeadCenterPillar(tf.keras.Model):
     """Multi headed model based on CenterNet heatmap and PointPillar.
 
     This model builds box classification and regression for each class
@@ -158,7 +158,12 @@ class MultiHeadCenterPillar(keras.Model):
         self._prediction_decoder = prediction_decoder
         self._head_names = self._multiclass_head._head_names
 
-    def call(self, point_xyz, point_feature, point_mask, training=None):
+    def call(self, input_dict, training=None):
+        point_xyz, point_feature, point_mask = (
+            input_dict["point_xyz"],
+            input_dict["point_feature"],
+            input_dict["point_mask"],
+        )
         voxel_feature = self._voxelization_layer(
             point_xyz, point_feature, point_mask, training=training
         )
@@ -169,9 +174,11 @@ class MultiHeadCenterPillar(keras.Model):
         # returns dict {"class_1": concat_pred_1, "class_2": concat_pred_2}
         return predictions
 
-    def compute_loss(
-        self, predictions, box_dict, heatmap_dict, top_k_index_dict
-    ):
+    def compute_loss(self, predictions, targets):
+        box_dict = targets["box_3d"]
+        heatmap_dict = targets["heatmap"]
+        top_k_index_dict = targets["top_k_index"]
+
         y_pred = {}
         y_true = {}
         sample_weight = {}
@@ -199,26 +206,9 @@ class MultiHeadCenterPillar(keras.Model):
         )
 
     def train_step(self, data):
-        x, y, sample_weight = keras.utils.unpack_x_y_sample_weight(data)
-        box_3d_dict = y["box_3d"]
-        heatmap_dict = y["heatmap"]
-        top_k_index_dict = y["top_k_index"]
-        losses = []
+        x, y, sample_weight = tf.keras.utils.unpack_x_y_sample_weight(data)
         with tf.GradientTape() as tape:
-            predictions = self(
-                x["point_xyz"],
-                x["point_feature"],
-                x["point_mask"],
-                training=True,
-            )
-            losses.append(
-                self.compute_loss(
-                    predictions, box_3d_dict, heatmap_dict, top_k_index_dict
-                )
-            )
-            if self.weight_decay:
-                for var in self.trainable_variables:
-                    losses.append(self.weight_decay * tf.nn.l2_loss(var))
-            total_loss = tf.math.add_n(losses)
-        self.optimizer.minimize(total_loss, self.trainable_variables, tape=tape)
+            predictions = self(x, training=True)
+            loss = self.compute_loss(predictions, y)
+        self.optimizer.minimize(loss, self.trainable_variables, tape=tape)
         return self.compute_metrics({}, {}, {}, sample_weight={})

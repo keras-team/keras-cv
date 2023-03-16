@@ -16,8 +16,8 @@ import tensorflow as tf
 import tensorflow.keras.backend as K
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
-class FocalLoss(keras.losses.Loss):
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
+class FocalLoss(tf.keras.losses.Loss):
     """Implements Focal loss
 
     Focal loss is a modified cross-entropy designed to perform better with

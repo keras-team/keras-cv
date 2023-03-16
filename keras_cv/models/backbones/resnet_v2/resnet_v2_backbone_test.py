@@ -19,11 +19,12 @@ from absl.testing import parameterized
 from tensorflow import keras
 
 from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
-    ResNet18V2Backbone,
+    ResNet50V2Backbone,
 )
 from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
     ResNetV2Backbone,
 )
+from keras_cv.utils.train import get_feature_extractor
 
 
 class ResNetV2BackboneTest(tf.test.TestCase, parameterized.TestCase):
@@ -39,8 +40,8 @@ class ResNetV2BackboneTest(tf.test.TestCase, parameterized.TestCase):
         )
         model(self.input_batch)
 
-    def test_valid_call_alias_model(self):
-        model = ResNet18V2Backbone()
+    def test_valid_call_applications_model(self):
+        model = ResNet50V2Backbone()
         model(self.input_batch)
 
     def test_valid_call_with_rescaling(self):
@@ -80,14 +81,14 @@ class ResNetV2BackboneTest(tf.test.TestCase, parameterized.TestCase):
         ("keras_format", "keras_v3", "model.keras"),
     )
     def test_saved_alias_model(self, save_format, filename):
-        model = ResNet18V2Backbone()
+        model = ResNet50V2Backbone()
         model_output = model(self.input_batch)
         save_path = os.path.join(self.get_temp_dir(), filename)
         model.save(save_path, save_format=save_format)
         restored_model = keras.models.load_model(save_path)
 
         # Check we got the real object back.
-        # Note that these aliases create the base case
+        # Note that these aliases serialized as the base class
         self.assertIsInstance(restored_model, ResNetV2Backbone)
 
         # Check that output matches.
@@ -114,16 +115,21 @@ class ResNetV2BackboneTest(tf.test.TestCase, parameterized.TestCase):
                 continue
             self.assertEquals(layers_1[i].name, layers_2[i].name)
 
-    def test_create_backbone_model_from_application_model(self):
-        # ResNet50 style model
-        model = ResNetV2Backbone(
-            stackwise_filters=[64, 128, 256, 512],
-            stackwise_blocks=[3, 4, 6, 3],
-            stackwise_strides=[1, 2, 2, 2],
+    def test_create_backbone_model_from_alias_model(self):
+        model = ResNet50V2Backbone(
             include_rescaling=False,
         )
+<<<<<<< HEAD
         backbone_model = model.get_feature_extractor()
         inputs = keras.Input(shape=[256, 256, 3])
+=======
+        backbone_model = get_feature_extractor(
+            model,
+            model.pyramid_level_inputs.values(),
+            model.pyramid_level_inputs.keys(),
+        )
+        inputs = tf.keras.Input(shape=[256, 256, 3])
+>>>>>>> upstream/master
         outputs = backbone_model(inputs)
         # Resnet50 backbone has 4 level of features (2 ~ 5)
         self.assertLen(outputs, 4)
@@ -141,8 +147,15 @@ class ResNetV2BackboneTest(tf.test.TestCase, parameterized.TestCase):
             include_rescaling=False,
             input_shape=[256, 256, 3],
         )
+<<<<<<< HEAD
         backbone_model = model.get_feature_extractor(min_level=3, max_level=4)
         inputs = keras.Input(shape=[256, 256, 3])
+=======
+        levels = [3, 4]
+        layer_names = [model.pyramid_level_inputs[level] for level in [3, 4]]
+        backbone_model = get_feature_extractor(model, layer_names, levels)
+        inputs = tf.keras.Input(shape=[256, 256, 3])
+>>>>>>> upstream/master
         outputs = backbone_model(inputs)
         self.assertLen(outputs, 2)
         self.assertEquals(list(outputs.keys()), [3, 4])

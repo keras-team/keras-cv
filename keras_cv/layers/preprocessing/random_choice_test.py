@@ -17,7 +17,7 @@ from absl.testing import parameterized
 from keras_cv import layers
 
 
-class AddOneToInputs(keras.layers.Layer):
+class AddOneToInputs(tf.keras.layers.Layer):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.call_counter = tf.Variable(initial_value=0)

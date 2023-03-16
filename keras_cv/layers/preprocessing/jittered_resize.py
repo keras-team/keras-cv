@@ -25,7 +25,7 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 )
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class JitteredResize(BaseImageAugmentationLayer):
     """JitteredResize implements resize with scale distortion.
 

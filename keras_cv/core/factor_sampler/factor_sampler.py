@@ -15,7 +15,7 @@
 import tensorflow as tf
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class FactorSampler:
     """FactorSampler represents a strength factor for use in an augmentation layer.
 

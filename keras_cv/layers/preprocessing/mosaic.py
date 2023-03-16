@@ -21,7 +21,7 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 from keras_cv.utils import preprocessing
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class Mosaic(BaseImageAugmentationLayer):
     """Mosaic implements the mosaic data augmentation technique.
 
@@ -56,7 +56,7 @@ class Mosaic(BaseImageAugmentationLayer):
 
     Sample usage:
     ```python
-    (images, labels), _ = keras.datasets.cifar10.load_data()
+    (images, labels), _ = tf.keras.datasets.cifar10.load_data()
     labels = tf.one_hot(labels,10)
     labels = tf.cast(tf.squeeze(labels), tf.float32)
     mosaic = keras_cv.layers.preprocessing.Mosaic()

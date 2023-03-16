@@ -19,7 +19,7 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 from keras_cv.utils import fill_utils
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class CutMix(BaseImageAugmentationLayer):
     """CutMix implements the CutMix data augmentation technique.
 
@@ -34,7 +34,7 @@ class CutMix(BaseImageAugmentationLayer):
 
     Sample usage:
     ```python
-    (images, labels), _ = keras.datasets.cifar10.load_data()
+    (images, labels), _ = tf.keras.datasets.cifar10.load_data()
     labels = tf.one_hot(labels.squeeze(), 10)
 
     cutmix = keras_cv.layers.preprocessing.cut_mix.CutMix(10)

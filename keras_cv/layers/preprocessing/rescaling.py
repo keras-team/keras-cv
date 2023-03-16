@@ -24,7 +24,7 @@ H_AXIS = -3
 W_AXIS = -2
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class Rescaling(BaseImageAugmentationLayer):
     """A preprocessing layer which rescales input values to a new range.
 

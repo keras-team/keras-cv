@@ -42,7 +42,7 @@ class FrustumRandomPointFeatureNoiseTest(tf.test.TestCase):
         )
 
     def test_augment_specific_point_clouds_and_bounding_boxes(self):
-        keras.utils.set_random_seed(2)
+        tf.keras.utils.set_random_seed(2)
         add_layer = FrustumRandomPointFeatureNoise(
             r_distance=10,
             theta_width=np.pi,
@@ -87,7 +87,7 @@ class FrustumRandomPointFeatureNoiseTest(tf.test.TestCase):
         self.assertAllClose(outputs[POINT_CLOUDS], augmented_point_clouds)
 
     def test_augment_only_one_valid_point_point_clouds_and_bounding_boxes(self):
-        keras.utils.set_random_seed(2)
+        tf.keras.utils.set_random_seed(2)
         add_layer = FrustumRandomPointFeatureNoise(
             r_distance=10,
             theta_width=np.pi,

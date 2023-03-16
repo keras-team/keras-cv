@@ -39,7 +39,7 @@ class DeepLabV3(keras.Model):
         spatial_pyramid_pooling: also known as Atrous Spatial Pyramid Pooling (ASPP).
             Performs spatial pooling on different spatial levels in the pyramid, with
             dilation.
-        segmentation_head: an optional `keras.Layer` that predict the segmentation
+        segmentation_head: an optional `tf.keras.Layer` that predict the segmentation
             mask based on feature from backbone and feature from decoder.
     """
 
@@ -47,7 +47,7 @@ class DeepLabV3(keras.Model):
         height = input_shape[1]
         width = input_shape[2]
         feature_map_shape = self.backbone.compute_output_shape(input_shape)
-        self.up_layer = keras.layers.UpSampling2D(
+        self.up_layer = tf.keras.layers.UpSampling2D(
             size=(
                 height // feature_map_shape[1],
                 width // feature_map_shape[2],
@@ -67,9 +67,9 @@ class DeepLabV3(keras.Model):
         weights=None,
         **kwargs,
     ):
-        if not isinstance(backbone, keras.layers.Layer):
+        if not isinstance(backbone, tf.keras.layers.Layer):
             raise ValueError(
-                "Backbone need to be a `keras.layers.Layer`, "
+                "Backbone need to be a `tf.keras.layers.Layer`, "
                 f"received {backbone}"
             )
 
@@ -104,7 +104,7 @@ class DeepLabV3(keras.Model):
             )
 
         output = spatial_pyramid_pooling(feature_map)
-        output = keras.layers.UpSampling2D(
+        output = tf.keras.layers.UpSampling2D(
             size=(
                 height // feature_map.shape[1],
                 width // feature_map.shape[2],
@@ -151,7 +151,7 @@ class DeepLabV3(keras.Model):
         super().compile(**kwargs)
 
     def train_step(self, data):
-        images, y_true, sample_weight = keras.utils.unpack_x_y_sample_weight(
+        images, y_true, sample_weight = tf.keras.utils.unpack_x_y_sample_weight(
             data
         )
         with tf.GradientTape() as tape:
@@ -183,7 +183,7 @@ class DeepLabV3(keras.Model):
         }
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class SegmentationHead(layers.Layer):
     """Prediction head for the segmentation model
 
@@ -197,7 +197,7 @@ class SegmentationHead(layers.Layer):
             classification layer. Default to 2.
         filters: int, the number of filter/channels for the the conv2D layers. Default
             to 256.
-        activations: str or 'keras.activations', activation functions between the
+        activations: str or 'tf.keras.activations', activation functions between the
             conv2D layers and the final classification layer. Default to 'relu'
         output_scale_factor: int, or a pair of ints, for upsample the output mask.
             This is useful to scale the output mask back to same size as the input
@@ -269,7 +269,7 @@ class SegmentationHead(layers.Layer):
         for i in range(self.convs):
             conv_name = "segmentation_head_conv_{}".format(i)
             self._conv_layers.append(
-                keras.layers.Conv2D(
+                tf.keras.layers.Conv2D(
                     name=conv_name,
                     filters=self.filters,
                     kernel_size=self.kernel_size,
@@ -279,10 +279,10 @@ class SegmentationHead(layers.Layer):
             )
             norm_name = "segmentation_head_norm_{}".format(i)
             self._bn_layers.append(
-                keras.layers.BatchNormalization(name=norm_name)
+                tf.keras.layers.BatchNormalization(name=norm_name)
             )
 
-        self._classification_layer = keras.layers.Conv2D(
+        self._classification_layer = tf.keras.layers.Conv2D(
             name="segmentation_output",
             filters=self.num_classes,
             kernel_size=1,
@@ -294,7 +294,7 @@ class SegmentationHead(layers.Layer):
             dtype=tf.float32,
         )
 
-        self.dropout_layer = keras.layers.Dropout(self.dropout)
+        self.dropout_layer = tf.keras.layers.Dropout(self.dropout)
 
     def call(self, inputs):
         """Forward path for the segmentation head.
@@ -313,7 +313,7 @@ class SegmentationHead(layers.Layer):
         for conv_layer, bn_layer in zip(self._conv_layers, self._bn_layers):
             x = conv_layer(x)
             x = bn_layer(x)
-            x = keras.activations.get(self.activations)(x)
+            x = tf.keras.activations.get(self.activations)(x)
             if self.dropout:
                 x = self.dropout_layer(x)
 

@@ -28,9 +28,9 @@ class EqualizationTest(tf.test.TestCase, parameterized.TestCase):
 
     def test_return_shapes_inside_model(self):
         layer = Equalization(value_range=(0, 255))
-        inp = keras.layers.Input(shape=[512, 512, 5])
+        inp = tf.keras.layers.Input(shape=[512, 512, 5])
         out = layer(inp)
-        model = keras.models.Model(inp, out)
+        model = tf.keras.models.Model(inp, out)
 
         self.assertEqual(model.layers[-1].output_shape, (None, 512, 512, 5))
 

@@ -19,7 +19,7 @@ from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer impo
 )
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class Grayscale(VectorizedBaseImageAugmentationLayer):
     """Grayscale is a preprocessing layer that transforms RGB images to Grayscale images.
     Input images should have values in the range of [0, 255].
@@ -41,7 +41,7 @@ class Grayscale(VectorizedBaseImageAugmentationLayer):
 
     Usage:
     ```python
-    (images, labels), _ = keras.datasets.cifar10.load_data()
+    (images, labels), _ = tf.keras.datasets.cifar10.load_data()
     to_grayscale = keras_cv.layers.preprocessing.Grayscale()
     augmented_images = to_grayscale(images)
     ```

@@ -29,7 +29,7 @@ class ModelsTest:
     def cleanup_global_session(self):
         # Code before yield runs before the test
         yield
-        keras.backend.clear_session()
+        tf.keras.backend.clear_session()
 
     def _test_application_base(self, app, _, args):
         # Can be instantiated with default arguments

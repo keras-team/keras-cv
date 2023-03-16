@@ -51,3 +51,29 @@ def convert_inputs_to_tf_dataset(
     if batch_size is not None:
         dataset = dataset.batch(batch_size)
     return dataset
+
+
+def get_feature_extractor(model, layer_names, output_keys=None):
+    """Create a feature extractor model with augmented output.
+
+    This method produces a new `keras.Model` with the same input signature
+    as the source but with the layers in `layer_names` as the output.
+    This is useful for downstream tasks that require more output than the
+    final layer of the backbone.
+
+    Args:
+        model: keras.Model. The source model.
+        layer_names: list of strings. Names of layers to include in the
+            output signature.
+        output_keys: optional, list of strings. Key to use for each layer in
+            the model's output dictionary.
+
+    Returns:
+        `tf.keras.Model` which has dict as outputs.
+    """
+
+    if not output_keys:
+        output_keys = layer_names
+    items = zip(output_keys, layer_names)
+    outputs = {key: model.get_layer(name).output for key, name in items}
+    return tf.keras.Model(inputs=model.inputs, outputs=outputs)
