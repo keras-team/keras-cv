@@ -24,7 +24,7 @@ import sys
 import tensorflow as tf
 import tensorflow_datasets as tfds
 from absl import flags
-from tensorflow import keras
+import keras
 
 import keras_cv
 from keras_cv.callbacks import PyCOCOCallback

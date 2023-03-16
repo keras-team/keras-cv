@@ -19,9 +19,9 @@ Reference:
 
 import copy
 
-from tensorflow import keras
-from tensorflow.keras import backend
-from tensorflow.keras import layers
+import keras
+from keras import backend
+from keras import layers
 
 from keras_cv.models import utils
 from keras_cv.models.backbones.backbone import Backbone

@@ -23,9 +23,9 @@ The current implementation is a rewrite of the initial TF/Keras port by Divam Gu
 
 import math
 
+import keras
 import numpy as np
 import tensorflow as tf
-from tensorflow import keras
 
 from keras_cv.models.stable_diffusion.clip_tokenizer import SimpleTokenizer
 from keras_cv.models.stable_diffusion.constants import _ALPHAS_CUMPROD

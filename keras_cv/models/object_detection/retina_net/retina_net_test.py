@@ -16,7 +16,7 @@ import os
 
 import pytest
 import tensorflow as tf
-from tensorflow.keras import optimizers
+from keras import optimizers
 
 import keras_cv
 from keras_cv.models.object_detection.__test_utils__ import (

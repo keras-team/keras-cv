@@ -13,9 +13,9 @@
 # limitations under the License.
 
 import tensorflow as tf
-from tensorflow import keras
-from tensorflow.keras import layers
-from tensorflow.keras import optimizers
+from keras import layers
+from keras import optimizers
+import keras
 
 from keras_cv.losses import SimCLRLoss
 from keras_cv.models import ResNet50V2Backbone
