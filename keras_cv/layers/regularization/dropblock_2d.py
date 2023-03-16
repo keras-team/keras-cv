@@ -17,7 +17,7 @@ from tensorflow.keras.__internal__.layers import BaseRandomLayer
 from keras_cv.utils import conv_utils
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class DropBlock2D(BaseRandomLayer):
     """Applies DropBlock regularization to input features.
 
@@ -50,7 +50,7 @@ class DropBlock2D(BaseRandomLayer):
         name: string. The name of the layer.
 
     Usage:
-    DropBlock2D can be used inside a `tf.keras.Model`:
+    DropBlock2D can be used inside a `keras.Model`:
     ```python
     # (...)
     x = Conv2D(32, (1, 1))(x)

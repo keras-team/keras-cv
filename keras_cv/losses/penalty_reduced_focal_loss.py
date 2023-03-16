@@ -17,8 +17,8 @@ import tensorflow as tf
 
 # TODO(tanzhenyu): consider inherit from LossFunctionWrapper to
 # get the dimension squeeze.
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
-class BinaryPenaltyReducedFocalCrossEntropy(tf.keras.losses.Loss):
+@keras.utils.register_keras_serializable(package="keras_cv")
+class BinaryPenaltyReducedFocalCrossEntropy(keras.losses.Loss):
     """Implements CenterNet modified Focal loss.
 
     Compared with `keras.losses.BinaryFocalCrossentropy`, this loss discounts for negative
@@ -55,7 +55,7 @@ class BinaryPenaltyReducedFocalCrossEntropy(tf.keras.losses.Loss):
         positive_threshold=0.99,
         positive_weight=1.0,
         negative_weight=1.0,
-        reduction=tf.keras.losses.Reduction.AUTO,
+        reduction=keras.losses.Reduction.AUTO,
         name="binary_penalty_reduced_focal_cross_entropy",
     ):
         super().__init__(reduction=reduction, name=name)

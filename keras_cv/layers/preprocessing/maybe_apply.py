@@ -18,7 +18,7 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 )
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class MaybeApply(BaseImageAugmentationLayer):
     """Apply provided layer to random elements in a batch.
 
@@ -42,7 +42,7 @@ class MaybeApply(BaseImageAugmentationLayer):
     Example usage:
     ```
     # Let's declare an example layer that will set all image pixels to zero.
-    zero_out = tf.keras.layers.Lambda(lambda x: {"images": 0 * x["images"]})
+    zero_out = keras.layers.Lambda(lambda x: {"images": 0 * x["images"]})
 
     # Create a small batch of random, single-channel, 2x2 images:
     images = tf.random.stateless_uniform(shape=(5, 2, 2, 1), seed=[0, 1])

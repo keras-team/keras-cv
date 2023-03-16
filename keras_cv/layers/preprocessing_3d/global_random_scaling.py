@@ -21,7 +21,7 @@ POINT_CLOUDS = base_augmentation_layer_3d.POINT_CLOUDS
 BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class GlobalRandomScaling(base_augmentation_layer_3d.BaseAugmentationLayer3D):
     """A preprocessing layer which randomly scales point clouds and bounding boxes along
     X, Y, and Z axes during training.
@@ -183,7 +183,7 @@ class GlobalRandomScaling(base_augmentation_layer_3d.BaseAugmentationLayer3D):
         bounding_boxes = tf.concat(
             [
                 bounding_boxes_xyzdxdydz,
-                bounding_boxes[..., CENTER_XYZ_DXDYDZ_PHI.PHI :],
+                bounding_boxes[..., CENTER_XYZ_DXDYDZ_PHI.PHI:],
             ],
             axis=-1,
         )

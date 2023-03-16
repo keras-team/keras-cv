@@ -56,7 +56,7 @@ class RandomCropTest(tf.test.TestCase, parameterized.TestCase):
         actual_output = layer(inp)
         # In this case, output should equal resizing with crop_to_aspect
         # ratio.
-        resizing_layer = tf.keras.layers.Resizing(height, width)
+        resizing_layer = keras.layers.Resizing(height, width)
         expected_output = resizing_layer(inp)
         self.assertAllEqual(expected_output, actual_output)
 
@@ -76,8 +76,8 @@ class RandomCropTest(tf.test.TestCase, parameterized.TestCase):
             actual_output = layer(inp, training=True)
             expected_output = inp[
                 :,
-                height_offset : (height_offset + height),
-                width_offset : (width_offset + width),
+                height_offset: (height_offset + height),
+                width_offset: (width_offset + width),
                 :,
             ]
             self.assertAllClose(expected_output, actual_output)

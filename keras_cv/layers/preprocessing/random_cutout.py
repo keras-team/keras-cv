@@ -20,7 +20,7 @@ from keras_cv.utils import fill_utils
 from keras_cv.utils import preprocessing
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class RandomCutout(BaseImageAugmentationLayer):
     """Randomly cut out rectangles from images and fill them.
 
@@ -55,7 +55,7 @@ class RandomCutout(BaseImageAugmentationLayer):
 
     Sample usage:
     ```python
-    (images, labels), _ = tf.keras.datasets.cifar10.load_data()
+    (images, labels), _ = keras.datasets.cifar10.load_data()
     random_cutout = keras_cv.layers.preprocessing.RandomCutout(0.5, 0.5)
     augmented_images = random_cutout(images)
     ```

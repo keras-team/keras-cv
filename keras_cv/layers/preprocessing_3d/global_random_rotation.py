@@ -23,7 +23,7 @@ POINT_CLOUDS = base_augmentation_layer_3d.POINT_CLOUDS
 BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class GlobalRandomRotation(base_augmentation_layer_3d.BaseAugmentationLayer3D):
     """A preprocessing layer which randomly rotates point clouds and bounding boxes along
     X, Y and Z axes during training.
@@ -142,10 +142,10 @@ class GlobalRandomRotation(base_augmentation_layer_3d.BaseAugmentationLayer3D):
             [
                 bounding_boxes_xyz,
                 bounding_boxes[
-                    ..., CENTER_XYZ_DXDYDZ_PHI.DX : CENTER_XYZ_DXDYDZ_PHI.DZ + 1
+                    ..., CENTER_XYZ_DXDYDZ_PHI.DX: CENTER_XYZ_DXDYDZ_PHI.DZ + 1
                 ],
                 bounding_boxes_heading,
-                bounding_boxes[..., CENTER_XYZ_DXDYDZ_PHI.CLASS :],
+                bounding_boxes[..., CENTER_XYZ_DXDYDZ_PHI.CLASS:],
             ],
             axis=-1,
         )

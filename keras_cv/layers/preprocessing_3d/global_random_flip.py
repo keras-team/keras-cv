@@ -22,7 +22,7 @@ POINT_CLOUDS = base_augmentation_layer_3d.POINT_CLOUDS
 BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class GlobalRandomFlip(base_augmentation_layer_3d.BaseAugmentationLayer3D):
     """A preprocessing layer which flips point clouds and bounding boxes with respect to the specified axis during training.
 
@@ -74,16 +74,16 @@ class GlobalRandomFlip(base_augmentation_layer_3d.BaseAugmentationLayer3D):
         )
         # Flip boxes.
         bounding_boxes_y = -bounding_boxes[
-            ..., CENTER_XYZ_DXDYDZ_PHI.Y : CENTER_XYZ_DXDYDZ_PHI.Y + 1
+            ..., CENTER_XYZ_DXDYDZ_PHI.Y: CENTER_XYZ_DXDYDZ_PHI.Y + 1
         ]
         bounding_boxes_xyz = tf.concat(
             [
                 bounding_boxes[
-                    ..., CENTER_XYZ_DXDYDZ_PHI.X : CENTER_XYZ_DXDYDZ_PHI.X + 1
+                    ..., CENTER_XYZ_DXDYDZ_PHI.X: CENTER_XYZ_DXDYDZ_PHI.X + 1
                 ],
                 bounding_boxes_y,
                 bounding_boxes[
-                    ..., CENTER_XYZ_DXDYDZ_PHI.Z : CENTER_XYZ_DXDYDZ_PHI.Z + 1
+                    ..., CENTER_XYZ_DXDYDZ_PHI.Z: CENTER_XYZ_DXDYDZ_PHI.Z + 1
                 ],
             ],
             axis=-1,
@@ -92,17 +92,17 @@ class GlobalRandomFlip(base_augmentation_layer_3d.BaseAugmentationLayer3D):
         # Compensate rotation.
         bounding_boxes_heading = wrap_angle_radians(
             -bounding_boxes[
-                ..., CENTER_XYZ_DXDYDZ_PHI.PHI : CENTER_XYZ_DXDYDZ_PHI.PHI + 1
+                ..., CENTER_XYZ_DXDYDZ_PHI.PHI: CENTER_XYZ_DXDYDZ_PHI.PHI + 1
             ]
         )
         bounding_boxes = tf.concat(
             [
                 bounding_boxes_xyz,
                 bounding_boxes[
-                    ..., CENTER_XYZ_DXDYDZ_PHI.DX : CENTER_XYZ_DXDYDZ_PHI.DZ + 1
+                    ..., CENTER_XYZ_DXDYDZ_PHI.DX: CENTER_XYZ_DXDYDZ_PHI.DZ + 1
                 ],
                 bounding_boxes_heading,
-                bounding_boxes[..., CENTER_XYZ_DXDYDZ_PHI.CLASS :],
+                bounding_boxes[..., CENTER_XYZ_DXDYDZ_PHI.CLASS:],
             ],
             axis=-1,
         )

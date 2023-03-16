@@ -30,7 +30,7 @@ class RetinaNetTest(tf.test.TestCase):
         yield
         # Reset soft device placement to not interfere with other unit test files
         tf.config.set_soft_device_placement(True)
-        tf.keras.backend.clear_session()
+        keras.backend.clear_session()
 
     def test_fit_coco_metrics(self):
         retina_net = keras_cv.models.RetinaNet(
@@ -47,7 +47,7 @@ class RetinaNetTest(tf.test.TestCase):
 
         # BatchNormalization makes it really hard to overfit a miniature dataset
         for layer in retina_net.backbone.layers:
-            if isinstance(layer, tf.keras.layers.BatchNormalization):
+            if isinstance(layer, keras.layers.BatchNormalization):
                 layer.trainable = False
 
         retina_net.compile(
@@ -65,7 +65,7 @@ class RetinaNetTest(tf.test.TestCase):
             ],
         )
 
-        class StopWhenMetricAboveThreshold(tf.keras.callbacks.Callback):
+        class StopWhenMetricAboveThreshold(keras.callbacks.Callback):
             def __init__(self, metric, threshold):
                 self.metric = metric
                 self.threshold = threshold

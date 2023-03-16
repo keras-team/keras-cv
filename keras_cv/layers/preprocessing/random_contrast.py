@@ -20,7 +20,7 @@ from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer impo
 from keras_cv.utils import preprocessing as preprocessing_utils
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class RandomContrast(VectorizedBaseImageAugmentationLayer):
     """RandomContrast randomly adjusts contrast during training.
 
@@ -55,7 +55,7 @@ class RandomContrast(VectorizedBaseImageAugmentationLayer):
 
     Usage:
     ```python
-    (images, labels), _ = tf.keras.datasets.cifar10.load_data()
+    (images, labels), _ = keras.datasets.cifar10.load_data()
     random_contrast = keras_cv.layers.preprocessing.RandomContrast()
     augmented_images = random_contrast(images)
     ```

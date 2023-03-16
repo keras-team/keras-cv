@@ -173,7 +173,7 @@ def correct_pad(inputs, kernel_size):
         A tuple.
     """
     img_dim = 1
-    input_size = backend.int_shape(inputs)[img_dim : (img_dim + 2)]
+    input_size = backend.int_shape(inputs)[img_dim: (img_dim + 2)]
     if isinstance(kernel_size, int):
         kernel_size = (kernel_size, kernel_size)
     if input_size[0] is None:
@@ -293,8 +293,8 @@ def apply_efficient_net_lite_block(
     return x
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv.models")
-class EfficientNetLite(tf.keras.Model):
+@keras.utils.register_keras_serializable(package="keras_cv.models")
+class EfficientNetLite(keras.Model):
     """Instantiates the EfficientNetLite architecture using given scaling coefficients.
 
     Args:

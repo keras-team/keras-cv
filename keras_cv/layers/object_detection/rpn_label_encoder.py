@@ -23,8 +23,8 @@ from keras_cv.layers.object_detection import sampling
 from keras_cv.utils import target_gather
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
-class _RpnLabelEncoder(tf.keras.layers.Layer):
+@keras.utils.register_keras_serializable(package="keras_cv")
+class _RpnLabelEncoder(keras.layers.Layer):
     """Transforms the raw labels into training targets for region proposal network (RPN).
 
     # TODO(tanzhenyu): consider unifying with _ROISampler.
@@ -81,7 +81,7 @@ class _RpnLabelEncoder(tf.keras.layers.Layer):
         )
         self.box_variance = box_variance
         self.built = True
-        self._positives = tf.keras.metrics.Mean(name="percent_boxes_matched")
+        self._positives = keras.metrics.Mean(name="percent_boxes_matched")
 
     def call(
         self,
@@ -194,11 +194,11 @@ class _RpnLabelEncoder(tf.keras.layers.Layer):
             num_anchors_lvl = anchors.get_shape().as_list()[0]
             if target_shape == 2:
                 unpacked_targets[level] = targets[
-                    count : count + num_anchors_lvl, ...
+                    count: count + num_anchors_lvl, ...
                 ]
             else:
                 unpacked_targets[level] = targets[
-                    :, count : count + num_anchors_lvl, ...
+                    :, count: count + num_anchors_lvl, ...
                 ]
             count += num_anchors_lvl
         return unpacked_targets

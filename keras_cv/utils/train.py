@@ -69,11 +69,11 @@ def get_feature_extractor(model, layer_names, output_keys=None):
             the model's output dictionary.
 
     Returns:
-        `tf.keras.Model` which has dict as outputs.
+        `keras.Model` which has dict as outputs.
     """
 
     if not output_keys:
         output_keys = layer_names
     items = zip(output_keys, layer_names)
     outputs = {key: model.get_layer(name).output for key, name in items}
-    return tf.keras.Model(inputs=model.inputs, outputs=outputs)
+    return keras.Model(inputs=model.inputs, outputs=outputs)

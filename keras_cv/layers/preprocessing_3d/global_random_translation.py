@@ -22,7 +22,7 @@ POINT_CLOUDS = base_augmentation_layer_3d.POINT_CLOUDS
 BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class GlobalRandomTranslation(
     base_augmentation_layer_3d.BaseAugmentationLayer3D
 ):
@@ -113,7 +113,7 @@ class GlobalRandomTranslation(
         bounding_boxes = tf.concat(
             [
                 bounding_boxes_xyz,
-                bounding_boxes[..., CENTER_XYZ_DXDYDZ_PHI.DX :],
+                bounding_boxes[..., CENTER_XYZ_DXDYDZ_PHI.DX:],
             ],
             axis=-1,
         )

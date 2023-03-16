@@ -55,7 +55,7 @@ def decode_bin_heading(predictions: tf.Tensor, num_bin: int) -> tf.Tensor:
         )
         bin_idx_float = tf.cast(bin_idx, dtype=predictions.dtype)
         residual_norm = tf.gather(
-            predictions[:, num_bin : num_bin * 2],
+            predictions[:, num_bin: num_bin * 2],
             bin_idx[:, tf.newaxis],
             axis=-1,
             batch_dims=1,
@@ -87,7 +87,7 @@ def decode_bin_box(pd, num_head_bin, anchor_size):
         heading = decode_bin_heading(pd[:, start:], num_head_bin)
         start = start + num_head_bin * 2
 
-        size_res_norm = pd[:, start : start + 3]
+        size_res_norm = pd[:, start: start + 3]
         # [N,3]
         lwh = size_res_norm * list(anchor_size) + list(anchor_size)
 
@@ -96,7 +96,7 @@ def decode_bin_box(pd, num_head_bin, anchor_size):
         return box
 
 
-class HeatmapDecoder(tf.keras.layers.Layer):
+class HeatmapDecoder(keras.layers.Layer):
     """A Keras layer that decodes predictions of an 3d object detection model.
 
     Arg:

@@ -44,9 +44,9 @@ def _meshgrid(
     dim = len(m)
     assert dim == 2 or dim == 3
     if dim == 2:
-        mesh = np.mgrid[-m[0] : m[0] + 1, -m[1] : m[1] + 1]
+        mesh = np.mgrid[-m[0]: m[0] + 1, -m[1]: m[1] + 1]
     else:
-        mesh = np.mgrid[-m[0] : m[0] + 1, -m[1] : m[1] + 1, -m[2] : m[2] + 1]
+        mesh = np.mgrid[-m[0]: m[0] + 1, -m[1]: m[1] + 1, -m[2]: m[2] + 1]
     mesh = np.concatenate(mesh[..., np.newaxis], axis=-1)
     mesh = np.reshape(mesh, [-1, dim])
     return mesh * voxel_size
@@ -318,7 +318,7 @@ def compute_top_k_heatmap_idx(heatmap: tf.Tensor, k: int) -> tf.Tensor:
     return res
 
 
-class CenterNetLabelEncoder(tf.keras.layers.Layer):
+class CenterNetLabelEncoder(keras.layers.Layer):
     """Transforms the raw sparse labels into class specific dense training labels.
 
     This layer takes the box locations, box classes and box masks, voxelizes

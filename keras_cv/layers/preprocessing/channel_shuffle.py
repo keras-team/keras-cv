@@ -19,7 +19,7 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 )
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class ChannelShuffle(BaseImageAugmentationLayer):
     """Shuffle channels of an input image.
 
@@ -45,7 +45,7 @@ class ChannelShuffle(BaseImageAugmentationLayer):
 
     Usage:
     ```python
-    (images, labels), _ = tf.keras.datasets.cifar10.load_data()
+    (images, labels), _ = keras.datasets.cifar10.load_data()
     channel_shuffle = keras_cv.layers.ChannelShuffle()
     augmented_images = channel_shuffle(images)
     ```

@@ -25,7 +25,7 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 )
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class JitteredResize(BaseImageAugmentationLayer):
     """JitteredResize implements resize with scale distortion.
 
@@ -177,8 +177,8 @@ class JitteredResize(BaseImageAugmentationLayer):
             image, tf.cast(scaled_size, tf.int32), method=self.interpolation
         )
         scaled_image = scaled_image[
-            offset[0] : offset[0] + crop_size[0],
-            offset[1] : offset[1] + crop_size[1],
+            offset[0]: offset[0] + crop_size[0],
+            offset[1]: offset[1] + crop_size[1],
             :,
         ]
         scaled_image = tf.image.pad_to_bounding_box(

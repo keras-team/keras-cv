@@ -66,7 +66,7 @@ class DeeplabTest(tf.test.TestCase):
         self.assertEquals(output["output"].shape, [1, 64, 64, 11])
 
     def test_mixed_precision(self):
-        tf.keras.mixed_precision.set_global_policy("mixed_float16")
+        keras.mixed_precision.set_global_policy("mixed_float16")
         backbone = ResNet50V2Backbone(
             input_shape=[64, 64, 3],
         )
@@ -78,11 +78,11 @@ class DeeplabTest(tf.test.TestCase):
         output = model(input_image, training=True)
 
         self.assertEquals(output["output"].dtype, tf.float32)
-        tf.keras.mixed_precision.set_global_policy("float32")
+        keras.mixed_precision.set_global_policy("float32")
 
     def test_invalid_backbone_model(self):
         with self.assertRaisesRegex(
-            ValueError, "Backbone need to be a `tf.keras.layers.Layer`"
+            ValueError, "Backbone need to be a `keras.layers.Layer`"
         ):
             segmentation.DeepLabV3(
                 num_classes=11,
@@ -129,10 +129,10 @@ class DeeplabTest(tf.test.TestCase):
         output_res = [96, 96]
         num_images = 11788
 
-        image_resizing = tf.keras.layers.Resizing(
+        image_resizing = keras.layers.Resizing(
             target_size[1], target_size[0]
         )
-        labels_resizing = tf.keras.layers.Resizing(output_res[1], output_res[0])
+        labels_resizing = keras.layers.Resizing(output_res[1], output_res[0])
 
         def resize_images_and_masks(data):
             image = tf.image.convert_image_dtype(
@@ -161,7 +161,7 @@ class DeeplabTest(tf.test.TestCase):
         epochs = 1
         model.compile(
             optimizer="adam",
-            loss=tf.keras.losses.BinaryCrossentropy(from_logits=True),
+            loss=keras.losses.BinaryCrossentropy(from_logits=True),
             metrics=["accuracy"],
         )
 
