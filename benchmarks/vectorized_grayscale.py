@@ -13,9 +13,9 @@
 # limitations under the License.
 import time
 
+import keras
 import matplotlib.pyplot as plt
 import tensorflow as tf
-import tensorflow.keras as keras
 
 from keras_cv.layers import Grayscale
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (

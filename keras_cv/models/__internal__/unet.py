@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from tensorflow import keras
-from tensorflow.keras import initializers
-from tensorflow.keras import layers
-from tensorflow.keras import regularizers
+import keras
+from keras import initializers
+from keras import layers
+from keras import regularizers
 
 
 def Block(filters, downsample, sync_bn):

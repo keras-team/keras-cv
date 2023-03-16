@@ -13,10 +13,10 @@
 # limitations under the License.
 import time
 
+import keras
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
-from tensorflow import keras
 
 from keras_cv.layers import RandomSaturation
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (

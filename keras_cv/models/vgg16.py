@@ -18,9 +18,9 @@ Reference:
   - [Very Deep Convolutional Networks for Large-Scale Image Recognition](https://arxiv.org/abs/1409.1556) (ICLR 2015)
 """
 
+import keras
 import tensorflow as tf
-from tensorflow import keras
-from tensorflow.keras import layers
+from keras import layers
 
 from keras_cv.models import utils
 

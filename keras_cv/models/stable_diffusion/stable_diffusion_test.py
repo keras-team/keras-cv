@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import tensorflow as tf
-from tensorflow.keras import mixed_precision
+from keras import mixed_precision
 
 from keras_cv.models import StableDiffusion
 

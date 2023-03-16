@@ -17,9 +17,9 @@ Reference:
   - [How to train your ViT? Data, Augmentation, and Regularization in Vision Transformers](https://arxiv.org/abs/2106.10270) (CoRR 2021)
 """
 
+import keras
 import tensorflow as tf
-from tensorflow import keras
-from tensorflow.keras import layers
+from keras import layers
 
 from keras_cv.layers import TransformerEncoder
 from keras_cv.layers.vit_layers import PatchingAndEmbedding
