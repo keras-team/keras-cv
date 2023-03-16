@@ -23,6 +23,7 @@ from keras_cv.models.weights import parse_weights
 
 @keras.utils.register_keras_serializable(package="keras_cv")
 class DeepLabV3(keras.Model):
+    # TODO: add a code example in the docstring.
     """A segmentation model based on DeepLab v3.
 
     Args:
@@ -42,18 +43,6 @@ class DeepLabV3(keras.Model):
             mask based on feature from backbone and feature from decoder.
     """
 
-    def build(self, input_shape):
-        height = input_shape[1]
-        width = input_shape[2]
-        feature_map_shape = self.backbone.compute_output_shape(input_shape)
-        self.up_layer = keras.layers.UpSampling2D(
-            size=(
-                height // feature_map_shape[1],
-                width // feature_map_shape[2],
-            ),
-            interpolation="bilinear",
-        )
-
     def __init__(
         self,
         num_classes,
@@ -61,6 +50,7 @@ class DeepLabV3(keras.Model):
         spatial_pyramid_pooling=None,
         segmentation_head=None,
         segmentation_head_activation="softmax",
+        weight_decay=0.0001,
         input_shape=(None, None, 3),
         input_tensor=None,
         weights=None,
@@ -68,7 +58,7 @@ class DeepLabV3(keras.Model):
     ):
         if not isinstance(backbone, keras.layers.Layer):
             raise ValueError(
-                "Argument `backbone` need to be a `keras.layers.Layer` instance. "
+                "Argument `backbone` must be a `keras.layers.Layer` instance. "
                 f"Received instead backbone={backbone} (of type {type(backbone)})."
             )
 
@@ -143,11 +133,19 @@ class DeepLabV3(keras.Model):
         self.spatial_pyramid_pooling = spatial_pyramid_pooling
         self.segmentation_head = segmentation_head
         self.segmentation_head_activation = segmentation_head_activation
-
-    # TODO(tanzhenyu): consolidate how regularization should be applied to KerasCV.
-    def compile(self, weight_decay=0.0001, **kwargs):
         self.weight_decay = weight_decay
-        super().compile(**kwargs)
+
+    def build(self, input_shape):
+        height = input_shape[1]
+        width = input_shape[2]
+        feature_map_shape = self.backbone.compute_output_shape(input_shape)
+        self.up_layer = keras.layers.UpSampling2D(
+            size=(
+                height // feature_map_shape[1],
+                width // feature_map_shape[2],
+            ),
+            interpolation="bilinear",
+        )
 
     def train_step(self, data):
         images, y_true, sample_weight = keras.utils.unpack_x_y_sample_weight(
@@ -179,6 +177,7 @@ class DeepLabV3(keras.Model):
             "spatial_pyramid_pooling": self.spatial_pyramid_pooling,
             "segmentation_head": self.segmentation_head,
             "segmentation_head_activation": self.segmentation_head_activation,
+            "weight_decay": self.weight_decay,
         }
 
 
