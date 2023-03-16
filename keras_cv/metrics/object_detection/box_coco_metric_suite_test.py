@@ -53,6 +53,22 @@ def load_samples(fname):
     return y_true, y_pred, categories
 
 
+golden_metrics = {
+    "AP": 0.6194297,
+    "AP50": 1.0,
+    "AP75": 0.7079766,
+    "APs": 0.6045385,
+    "APm": 0.6283987,
+    "APl": 0.6143586,
+    "ARmax1": 0.47537246,
+    "ARmax10": 0.6450954,
+    "ARmax100": 0.6484465,
+    "ARs": 0.62842655,
+    "ARm": 0.65336424,
+    "ARl": 0.6405466,
+}
+
+
 class AnchorGeneratorTest(tf.test.TestCase):
     def test_coco_metric_suite_returns_all_coco_metrics(self):
         suite = ObjectDetectionMetricSuite(bounding_box_format="xyxy")
@@ -60,4 +76,5 @@ class AnchorGeneratorTest(tf.test.TestCase):
 
         suite.update_state(y_true, y_pred)
         metrics = suite.result()
-        print(metrics)
+
+        self.assertAllEqual(metrics, golden_metrics)

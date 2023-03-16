@@ -160,7 +160,6 @@ class ObjectDetectionMetricSuite(keras.metrics.Metric):
         results = []
         for key in METRIC_NAMES:
             results.append(metrics[key])
-        print(results)
         return results
 
 
