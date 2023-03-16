@@ -18,7 +18,7 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 )
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class RandomChoice(BaseImageAugmentationLayer):
     """RandomChoice constructs a pipeline based on provided arguments.
 

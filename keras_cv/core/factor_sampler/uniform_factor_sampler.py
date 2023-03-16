@@ -16,7 +16,7 @@ import tensorflow as tf
 from keras_cv.core.factor_sampler.factor_sampler import FactorSampler
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class UniformFactorSampler(FactorSampler):
     """UniformFactorSampler samples factors uniformly from a range.
 

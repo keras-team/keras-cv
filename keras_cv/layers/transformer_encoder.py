@@ -16,7 +16,7 @@ import tensorflow as tf
 from tensorflow.keras import layers
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class TransformerEncoder(layers.Layer):
     """
     Transformer encoder block implementation as a Keras Layer.
@@ -53,7 +53,7 @@ class TransformerEncoder(layers.Layer):
         mlp_dim,
         mlp_dropout=0.1,
         attention_dropout=0.1,
-        activation=tf.keras.activations.gelu,
+        activation=keras.activations.gelu,
         layer_norm_epsilon=1e-06,
         **kwargs,
     ):
@@ -103,7 +103,7 @@ class TransformerEncoder(layers.Layer):
         y = self.layer_norm2(x)
 
         y = self.dense1(y)
-        if self.activation == tf.keras.activations.gelu:
+        if self.activation == keras.activations.gelu:
             y = self.activation(y, approximate=True)
         else:
             y = self.activation(y)
@@ -119,7 +119,7 @@ class TransformerEncoder(layers.Layer):
         config = super().get_config()
         activation = self.activation
         if not isinstance(activation, (str, dict)):
-            activation = tf.keras.activations.serialize(activation)
+            activation = keras.activations.serialize(activation)
         config.update(
             {
                 "project_dim": self.project_dim,
@@ -137,5 +137,5 @@ class TransformerEncoder(layers.Layer):
     def from_config(cls, config, custom_objects=None):
         activation = config.pop("activation")
         if isinstance(activation, (str, dict)):
-            activation = tf.keras.activations.deserialize(activation)
+            activation = keras.activations.deserialize(activation)
         return cls(activation=activation, **config)

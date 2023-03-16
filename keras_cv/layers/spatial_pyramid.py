@@ -18,8 +18,8 @@ from typing import Mapping
 import tensorflow as tf
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
-class SpatialPyramidPooling(tf.keras.layers.Layer):
+@keras.utils.register_keras_serializable(package="keras_cv")
+class SpatialPyramidPooling(keras.layers.Layer):
     """Implements the Atrous Spatial Pyramid Pooling.
 
     References:
@@ -28,8 +28,8 @@ class SpatialPyramidPooling(tf.keras.layers.Layer):
     [Encoder-Decoder with Atrous Separable Convolution for Semantic Image
         Segmentation](https://arxiv.org/pdf/1802.02611.pdf)
 
-    inp = tf.keras.layers.Input((384, 384, 3))
-    backbone = tf.keras.applications.EfficientNetB0(input_tensor=inp, include_top=False)
+    inp = keras.layers.Input((384, 384, 3))
+    backbone = keras.applications.EfficientNetB0(input_tensor=inp, include_top=False)
     output = backbone(inp)
     output = keras_cv.layers.SpatialPyramidPooling(
         dilation_rates=[6, 12, 18])(output)
@@ -74,15 +74,15 @@ class SpatialPyramidPooling(tf.keras.layers.Layer):
         self.aspp_parallel_channels = []
 
         # Channel1 with Conv2D and 1x1 kernel size.
-        conv_sequential = tf.keras.Sequential(
+        conv_sequential = keras.Sequential(
             [
-                tf.keras.layers.Conv2D(
+                keras.layers.Conv2D(
                     filters=self.num_channels,
                     kernel_size=(1, 1),
                     use_bias=False,
                 ),
-                tf.keras.layers.BatchNormalization(),
-                tf.keras.layers.Activation(self.activation),
+                keras.layers.BatchNormalization(),
+                keras.layers.Activation(self.activation),
             ]
         )
         self.aspp_parallel_channels.append(conv_sequential)
@@ -90,34 +90,34 @@ class SpatialPyramidPooling(tf.keras.layers.Layer):
         # Channel 2 and afterwards are based on self.dilation_rates, and each of them
         # will have conv2D with 3x3 kernel size.
         for dilation_rate in self.dilation_rates:
-            conv_sequential = tf.keras.Sequential(
+            conv_sequential = keras.Sequential(
                 [
-                    tf.keras.layers.Conv2D(
+                    keras.layers.Conv2D(
                         filters=self.num_channels,
                         kernel_size=(3, 3),
                         padding="same",
                         dilation_rate=dilation_rate,
                         use_bias=False,
                     ),
-                    tf.keras.layers.BatchNormalization(),
-                    tf.keras.layers.Activation(self.activation),
+                    keras.layers.BatchNormalization(),
+                    keras.layers.Activation(self.activation),
                 ]
             )
             self.aspp_parallel_channels.append(conv_sequential)
 
         # Last channel is the global average pooling with conv2D 1x1 kernel.
-        pool_sequential = tf.keras.Sequential(
+        pool_sequential = keras.Sequential(
             [
-                tf.keras.layers.GlobalAveragePooling2D(),
-                tf.keras.layers.Reshape((1, 1, channels)),
-                tf.keras.layers.Conv2D(
+                keras.layers.GlobalAveragePooling2D(),
+                keras.layers.Reshape((1, 1, channels)),
+                keras.layers.Conv2D(
                     filters=self.num_channels,
                     kernel_size=(1, 1),
                     use_bias=False,
                 ),
-                tf.keras.layers.BatchNormalization(),
-                tf.keras.layers.Activation(self.activation),
-                tf.keras.layers.Resizing(
+                keras.layers.BatchNormalization(),
+                keras.layers.Activation(self.activation),
+                keras.layers.Resizing(
                     height, width, interpolation="bilinear"
                 ),
             ]
@@ -125,16 +125,16 @@ class SpatialPyramidPooling(tf.keras.layers.Layer):
         self.aspp_parallel_channels.append(pool_sequential)
 
         # Final projection layers
-        self.projection = tf.keras.Sequential(
+        self.projection = keras.Sequential(
             [
-                tf.keras.layers.Conv2D(
+                keras.layers.Conv2D(
                     filters=self.num_channels,
                     kernel_size=(1, 1),
                     use_bias=False,
                 ),
-                tf.keras.layers.BatchNormalization(),
-                tf.keras.layers.Activation(self.activation),
-                tf.keras.layers.Dropout(rate=self.dropout),
+                keras.layers.BatchNormalization(),
+                keras.layers.Activation(self.activation),
+                keras.layers.Dropout(rate=self.dropout),
             ],
         )
 

@@ -30,7 +30,7 @@ VERTICAL = "vertical"
 HORIZONTAL_AND_VERTICAL = "horizontal_and_vertical"
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class RandomFlip(BaseImageAugmentationLayer):
     """A preprocessing layer which randomly flips images during training.
 

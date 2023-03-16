@@ -32,7 +32,7 @@ class RetinaNetTest(tf.test.TestCase):
         yield
         # Reset soft device placement to not interfere with other unit test files
         tf.config.set_soft_device_placement(True)
-        tf.keras.backend.clear_session()
+        keras.backend.clear_session()
 
     def test_retina_net_construction(self):
         retina_net = keras_cv.models.RetinaNet(

@@ -502,7 +502,7 @@ def EfficientNet(
     inputs = img_input
 
     # Create model.
-    model = tf.keras.Model(inputs, x, name=model_name)
+    model = keras.Model(inputs, x, name=model_name)
 
     # Load weights.
     if weights is not None:

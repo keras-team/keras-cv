@@ -28,7 +28,7 @@ class SpatialPyramidPoolingTest(tf.test.TestCase):
 
     def test_with_keras_tensor(self):
         layer = SpatialPyramidPooling(dilation_rates=[6, 12, 18])
-        c4 = tf.keras.layers.Input([16, 16, 3])
+        c4 = keras.layers.Input([16, 16, 3])
 
         inputs = c4
         output = layer(inputs, training=True)

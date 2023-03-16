@@ -33,7 +33,7 @@ BOX_VARIANCE = [0.1, 0.1, 0.2, 0.2]
 # decoder/etc.
 # TODO(lukewood): link to keras.io guide on creating custom backbone and FPN.
 @keras.utils.register_keras_serializable(package="keras_cv")
-class RetinaNet(tf.keras.Model):
+class RetinaNet(keras.Model):
     """A Keras model implementing the RetinaNet architecture.
 
     Implements the RetinaNet architecture for object detection.  The constructor
@@ -57,7 +57,7 @@ class RetinaNet(tf.keras.Model):
         bounding_box_format: The format of bounding boxes of input dataset. Refer
             [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
             for more details on supported bounding box formats.
-        backbone: backbone: an optional `tf.keras.Model` custom backbone model. Defaults
+        backbone: backbone: an optional `keras.Model` custom backbone model. Defaults
             to a keras_cv.models.ResNet50 with include_rescaling=True
         anchor_generator: (Optional) a `keras_cv.layers.AnchorGenerator`.  If provided,
             the anchor generator will be passed to both the `label_encoder` and the
@@ -460,10 +460,10 @@ def _parse_box_loss(loss):
     # case insensitive comparison
     if loss.lower() == "smoothl1":
         return keras_cv.losses.SmoothL1Loss(
-            l1_cutoff=1.0, reduction=tf.keras.losses.Reduction.SUM
+            l1_cutoff=1.0, reduction=keras.losses.Reduction.SUM
         )
     if loss.lower() == "huber":
-        return keras.losses.Huber(reduction=tf.keras.losses.Reduction.SUM)
+        return keras.losses.Huber(reduction=keras.losses.Reduction.SUM)
 
     raise ValueError(
         "Expected `box_loss` to be either a Keras Loss, "
@@ -479,7 +479,7 @@ def _parse_classification_loss(loss):
     # case insensitive comparison
     if loss.lower() == "focal":
         return keras_cv.losses.FocalLoss(
-            from_logits=True, reduction=tf.keras.losses.Reduction.SUM
+            from_logits=True, reduction=keras.losses.Reduction.SUM
         )
 
     raise ValueError(

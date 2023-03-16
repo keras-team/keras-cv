@@ -19,7 +19,7 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 from keras_cv.utils import preprocessing
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class RandomSharpness(BaseImageAugmentationLayer):
     """Randomly performs the sharpness operation on given images.
 

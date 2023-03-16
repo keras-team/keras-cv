@@ -790,7 +790,7 @@ def RegNet(
         elif pooling == "max":
             x = layers.GlobalMaxPooling2D()(x)
 
-    model = tf.keras.Model(
+    model = keras.Model(
         inputs=img_input, outputs=x, name=model_name, **kwargs
     )
 

@@ -33,7 +33,7 @@ USE_TARGETS = "use_targets"
 
 
 class VectorizedBaseImageAugmentationLayer(
-    tf.keras.__internal__.layers.BaseRandomLayer
+    keras.__internal__.layers.BaseRandomLayer
 ):
     """Abstract base layer for vectorized image augmentaion.
 
@@ -73,7 +73,7 @@ class VectorizedBaseImageAugmentationLayer(
     to the same structure as the inputs.
 
     Note that since the randomness is also a common functionality, this layer
-    also includes a tf.keras.backend.RandomGenerator, which can be used to
+    also includes a keras.backend.RandomGenerator, which can be used to
     produce the random numbers.  The random number generator is stored in the
     `self._random_generator` attribute.
     """

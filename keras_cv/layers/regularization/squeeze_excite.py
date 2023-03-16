@@ -16,7 +16,7 @@ import tensorflow as tf
 from tensorflow.keras import layers
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class SqueezeAndExcite2D(layers.Layer):
     """
     Implements Squeeze and Excite block as in
@@ -38,18 +38,18 @@ class SqueezeAndExcite2D(layers.Layer):
             output filters is same.
         ratio: Ratio for bottleneck filters. Number of bottleneck filters =
             filters * ratio. Defaults to 0.25.
-        squeeze_activation: (Optional) String, callable (or tf.keras.layers.Layer) or
-            tf.keras.activations.Activation instance denoting activation to
+        squeeze_activation: (Optional) String, callable (or keras.layers.Layer) or
+            keras.activations.Activation instance denoting activation to
             be applied after squeeze convolution. Defaults to `relu`.
-        excite_activation: (Optional) String, callable (or tf.keras.layers.Layer) or
-            tf.keras.activations.Activation instance denoting activation to
+        excite_activation: (Optional) String, callable (or keras.layers.Layer) or
+            keras.activations.Activation instance denoting activation to
             be applied after excite convolution. Defaults to `sigmoid`.
     Usage:
 
     ```python
     # (...)
     input = tf.ones((1, 5, 5, 16), dtype=tf.float32)
-    x = tf.keras.layers.Conv2D(16, (3, 3))(input)
+    x = keras.layers.Conv2D(16, (3, 3))(input)
     output = keras_cv.layers.SqueezeAndExciteBlock(16)(x)
     # (...)
     ```
@@ -115,13 +115,13 @@ class SqueezeAndExcite2D(layers.Layer):
         if isinstance(config["squeeze_activation"], dict):
             config[
                 "squeeze_activation"
-            ] = tf.keras.utils.deserialize_keras_object(
+            ] = keras.utils.deserialize_keras_object(
                 config["squeeze_activation"]
             )
         if isinstance(config["excite_activation"], dict):
             config[
                 "excite_activation"
-            ] = tf.keras.utils.deserialize_keras_object(
+            ] = keras.utils.deserialize_keras_object(
                 config["excite_activation"]
             )
         return cls(**config)

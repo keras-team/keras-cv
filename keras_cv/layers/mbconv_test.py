@@ -25,7 +25,7 @@ class MBConvTest(tf.test.TestCase):
         yield
         # Reset soft device placement to not interfere with other unit test files
         tf.config.set_soft_device_placement(True)
-        tf.keras.backend.clear_session()
+        keras.backend.clear_session()
 
     def test_same_input_output_shapes(self):
         inputs = tf.random.normal(shape=(1, 64, 64, 32), dtype=tf.float32)

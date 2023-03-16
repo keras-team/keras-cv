@@ -29,7 +29,7 @@ CONV_KERNEL_INITIALIZER = {
 }
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class MBConvBlock(layers.Layer):
     def __init__(
         self,

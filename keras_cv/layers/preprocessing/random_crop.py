@@ -26,7 +26,7 @@ H_AXIS = -3
 W_AXIS = -2
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class RandomCrop(BaseImageAugmentationLayer):
     """A preprocessing layer which randomly crops images during training.
     During training, this layer will randomly choose a location to crop images
@@ -141,7 +141,7 @@ class RandomCrop(BaseImageAugmentationLayer):
         )
 
     def _resize(self, image):
-        resizing_layer = tf.keras.layers.Resizing(self.height, self.width)
+        resizing_layer = keras.layers.Resizing(self.height, self.width)
         outputs = resizing_layer(image)
         # smart_resize will always output float32, so we need to re-cast.
         return tf.cast(outputs, self.compute_dtype)
