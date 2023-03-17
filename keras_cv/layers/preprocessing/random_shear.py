@@ -19,15 +19,16 @@ from tensorflow import keras
 
 import keras_cv
 from keras_cv import bounding_box
-from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
-    BaseImageAugmentationLayer,
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
+    VectorizedBaseImageAugmentationLayer,
 )
 from keras_cv.utils import preprocessing
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
-class RandomShear(BaseImageAugmentationLayer):
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
+class RandomShear(VectorizedBaseImageAugmentationLayer):
     """A preprocessing layer which randomly shears images during training.
+
     This layer will apply random shearings to each image, filling empty space
     according to `fill_mode`.
     By default, random shears are only applied during training.
@@ -99,8 +100,8 @@ class RandomShear(BaseImageAugmentationLayer):
             self.y_factor = y_factor
         if x_factor is None and y_factor is None:
             warnings.warn(
-                "RandomShear received both `x_factor=None` and `y_factor=None`.  As a "
-                "result, the layer will perform no augmentation."
+                "RandomShear received both `x_factor=None` and `y_factor=None`."
+                " As a result, the layer will perform no augmentation."
             )
         self.interpolation = interpolation
         self.fill_mode = fill_mode
@@ -108,55 +109,107 @@ class RandomShear(BaseImageAugmentationLayer):
         self.seed = seed
         self.bounding_box_format = bounding_box_format
 
-    def get_random_transformation(self, **kwargs):
-        x = self._get_shear_amount(self.x_factor)
-        y = self._get_shear_amount(self.y_factor)
-        return (x, y)
-
-    def _get_shear_amount(self, constraint):
-        if constraint is None:
-            return None
-
-        invert = preprocessing.random_inversion(self._random_generator)
-        return invert * constraint()
-
-    def augment_image(self, image, transformation=None, **kwargs):
-        image = tf.expand_dims(image, axis=0)
-
-        x, y = transformation
-
-        if x is not None:
-            transform_x = RandomShear._format_transform(
-                [1.0, x, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0]
+    def get_random_transformation_batch(self, batch_size, **kwargs):
+        transformations = {"shear_x": None, "shear_y": None}
+        if self.x_factor is not None:
+            invert = preprocessing.batch_random_inversion(
+                self._random_generator, batch_size
             )
-            image = preprocessing.transform(
-                images=image,
-                transforms=transform_x,
+            transformations["shear_x"] = (
+                self.x_factor(shape=(batch_size, 1)) * invert
+            )
+
+        if self.y_factor is not None:
+            invert = preprocessing.batch_random_inversion(
+                self._random_generator, batch_size
+            )
+            transformations["shear_y"] = (
+                self.y_factor(shape=(batch_size, 1)) * invert
+            )
+
+        return transformations
+
+    def augment_ragged_image(self, image, transformation, **kwargs):
+        images = tf.expand_dims(image, axis=0)
+        new_transformation = {"shear_x": None, "shear_y": None}
+        shear_x = transformation["shear_x"]
+        if shear_x is not None:
+            new_transformation["shear_x"] = tf.expand_dims(shear_x, axis=0)
+
+        shear_y = transformation["shear_y"]
+        if shear_y is not None:
+            new_transformation["shear_y"] = tf.expand_dims(shear_y, axis=0)
+
+        output = self.augment_images(images, new_transformation)
+        return tf.squeeze(output, axis=0)
+
+    def augment_images(self, images, transformations, **kwargs):
+        x, y = transformations["shear_x"], transformations["shear_y"]
+        batch_size = tf.shape(images)[0]
+
+        base_transforms = [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0]
+        base_transforms = tf.repeat(
+            [base_transforms], repeats=batch_size, axis=0
+        )
+        if x is not None:
+            # insert x into the 2nd column of base_transforms
+            # aka stack N vectors of [1.0, x, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0]
+            transforms_x = tf.concat(
+                [
+                    tf.expand_dims(base_transforms[:, 0], axis=-1),
+                    x,
+                    base_transforms[:, 2:],
+                ],
+                axis=-1,
+            )
+            images = preprocessing.transform(
+                images=images,
+                transforms=transforms_x,
                 interpolation=self.interpolation,
                 fill_mode=self.fill_mode,
                 fill_value=self.fill_value,
             )
 
         if y is not None:
-            transform_y = RandomShear._format_transform(
-                [1.0, 0.0, 0.0, y, 1.0, 0.0, 0.0, 0.0]
+            # insert y into the 4th column of base_transforms
+            # aka stack N vectors of [1.0, 0.0, 0.0, y, 1.0, 0.0, 0.0, 0.0]
+            transforms_y = tf.concat(
+                [base_transforms[:, :3], y, base_transforms[:, 4:]], axis=-1
             )
-            image = preprocessing.transform(
-                images=image,
-                transforms=transform_y,
+
+            images = preprocessing.transform(
+                images=images,
+                transforms=transforms_y,
                 interpolation=self.interpolation,
                 fill_mode=self.fill_mode,
                 fill_value=self.fill_value,
             )
 
-        return tf.squeeze(image, axis=0)
+        return images
 
-    def augment_label(self, label, transformation=None, **kwargs):
-        return label
+    def augment_labels(self, labels, transformations, **kwargs):
+        return labels
 
     def augment_bounding_boxes(
-        self, bounding_boxes, transformation, image=None, **kwargs
+        self, bounding_boxes, transformations, images=None, **kwargs
     ):
+        """Augments bounding boxes after a shear operations.
+
+        The algorithm to update (x,y) point coordinates after shearing, tells us
+        to matrix multiply them with inverted transform matrix. This is:
+        ```
+        # for shear x              # for shear_y
+        (1.0, -shear_x) (x)        (1.0,      0.0) (x)
+        (0.0, 1.0     ) (y)        (-shear_y, 1.0) (y)
+        ```
+        We can simplify this equation: any new coordinate can be calculated by
+        `x = x - (shear_x * y)` and `(y = y - (shear_y * x)`
+
+        Notice that each coordinate has to be calculated twice, e.g. `x1` will
+        be affected differently by y1 (top) and y2 (bottom). Therefore, we
+        calculate both `x1_top` and `x1_bottom` and choose the final x1
+        depending on the sign of the used shear value.
+        """
         if self.bounding_box_format is None:
             raise ValueError(
                 "`RandomShear()` was called with bounding boxes,"
@@ -164,42 +217,75 @@ class RandomShear(BaseImageAugmentationLayer):
                 "Please specify a bounding box format in the constructor. i.e."
                 "`RandomShear(bounding_box_format='xyxy')`"
             )
+
+        # Edge case: boxes is a tf.RaggedTensor
+        if isinstance(bounding_boxes["boxes"], tf.RaggedTensor):
+            bounding_boxes = bounding_box.to_dense(
+                bounding_boxes, default_value=0
+            )
+
         bounding_boxes = keras_cv.bounding_box.convert_format(
             bounding_boxes,
             source=self.bounding_box_format,
             target="rel_xyxy",
-            images=image,
+            images=images,
             dtype=self.compute_dtype,
         )
-        x, y = transformation
-        extended_boxes = self._convert_to_extended_corners_format(
-            bounding_boxes["boxes"]
-        )
-        if x is not None:
-            extended_boxes = (
-                self._apply_horizontal_transformation_to_bounding_box(
-                    extended_boxes, x
-                )
-            )
-        # apply vertical shear
-        if y is not None:
-            extended_boxes = (
-                self._apply_vertical_transformation_to_bounding_box(
-                    extended_boxes, y
-                )
-            )
 
-        boxes = self._convert_to_four_coordinate(extended_boxes, x, y)
+        shear_x_amount = transformations["shear_x"]
+        shear_y_amount = transformations["shear_y"]
+        x1, y1, x2, y2 = tf.split(bounding_boxes["boxes"], 4, axis=-1)
+
+        # Squeeze redundant extra dimension as it messes multiplication
+        # [num_batches, num_boxes, 1] -> [num_batches, num_boxes]
+        x1 = tf.squeeze(x1, axis=-1)
+        y1 = tf.squeeze(y1, axis=-1)
+        x2 = tf.squeeze(x2, axis=-1)
+        y2 = tf.squeeze(y2, axis=-1)
+
+        # Apply horizontal shear
+        if shear_x_amount is not None:
+            x1_top = x1 - (shear_x_amount * y1)
+            x1_bottom = x1 - (shear_x_amount * y2)
+            x1 = tf.where(shear_x_amount < 0, x1_top, x1_bottom)
+
+            x2_top = x2 - (shear_x_amount * y1)
+            x2_bottom = x2 - (shear_x_amount * y2)
+            x2 = tf.where(shear_x_amount < 0, x2_bottom, x2_top)
+
+        # Apply vertical shear
+        if shear_y_amount is not None:
+            y1_left = y1 - (shear_y_amount * x1)
+            y1_right = y1 - (shear_y_amount * x2)
+            y1 = tf.where(shear_y_amount > 0, y1_right, y1_left)
+
+            y2_left = y2 - (shear_y_amount * x1)
+            y2_right = y2 - (shear_y_amount * x2)
+            y2 = tf.where(shear_y_amount > 0, y2_left, y2_right)
+
+        # Join the results:
+        boxes = tf.concat(
+            [
+                # Add dummy last axis for concat:
+                # (num_batches, num_boxes) -> (num_batches, num_boxes, 1)
+                x1[..., tf.newaxis],
+                y1[..., tf.newaxis],
+                x2[..., tf.newaxis],
+                y2[..., tf.newaxis],
+            ],
+            axis=-1,
+        )
+
         bounding_boxes = bounding_boxes.copy()
         bounding_boxes["boxes"] = boxes
         bounding_boxes = bounding_box.clip_to_image(
-            bounding_boxes, images=image, bounding_box_format="rel_xyxy"
+            bounding_boxes, images=images, bounding_box_format="rel_xyxy"
         )
         bounding_boxes = keras_cv.bounding_box.convert_format(
             bounding_boxes,
             source="rel_xyxy",
             target=self.bounding_box_format,
-            images=image,
+            images=images,
             dtype=self.compute_dtype,
         )
         return bounding_boxes
@@ -218,107 +304,3 @@ class RandomShear(BaseImageAugmentationLayer):
             }
         )
         return config
-
-    @staticmethod
-    def _format_transform(transform):
-        transform = tf.convert_to_tensor(transform, dtype=tf.float32)
-        return transform[tf.newaxis]
-
-    @staticmethod
-    def _convert_to_four_coordinate(extended_bboxes, x, y):
-        """convert from extended coordinates to 4 coordinates system"""
-        (
-            top_left_x,
-            top_left_y,
-            bottom_right_x,
-            bottom_right_y,
-            top_right_x,
-            top_right_y,
-            bottom_left_x,
-            bottom_left_y,
-        ) = tf.split(extended_bboxes, 8, axis=1)
-
-        # choose x1,x2 when x>0
-        def positive_case_x():
-            final_x1 = bottom_left_x
-            final_x2 = top_right_x
-            return final_x1, final_x2
-
-        # choose x1,x2 when x<0
-        def negative_case_x():
-            final_x1 = top_left_x
-            final_x2 = bottom_right_x
-            return final_x1, final_x2
-
-        if x is not None:
-            final_x1, final_x2 = tf.cond(
-                tf.less(x, 0), negative_case_x, positive_case_x
-            )
-        else:
-            final_x1, final_x2 = top_left_x, bottom_right_x
-
-        # choose y1,y2 when y > 0
-        def positive_case_y():
-            final_y1 = top_right_y
-            final_y2 = bottom_left_y
-            return final_y1, final_y2
-
-        # choose y1,y2 when y < 0
-        def negative_case_y():
-            final_y1 = top_left_y
-            final_y2 = bottom_right_y
-            return final_y1, final_y2
-
-        if y is not None:
-            final_y1, final_y2 = tf.cond(
-                tf.less(y, 0), negative_case_y, positive_case_y
-            )
-        else:
-            final_y1, final_y2 = top_left_y, bottom_right_y
-        return tf.concat(
-            [final_x1, final_y1, final_x2, final_y2],
-            axis=1,
-        )
-
-    @staticmethod
-    def _apply_horizontal_transformation_to_bounding_box(
-        extended_bounding_boxes, x
-    ):
-        # create transformation matrix [1,4]
-        matrix = tf.stack([1.0, -x, 0, 1.0], axis=0)
-        # reshape it to [2,2]
-        matrix = tf.reshape(matrix, (2, 2))
-        # reshape unnormalized bboxes from [N,8] -> [N*4,2]
-        new_bboxes = tf.reshape(extended_bounding_boxes, (-1, 2))
-        # [[1,x`],[y`,1]]*[x,y]->[new_x,new_y]
-        transformed_bboxes = tf.reshape(
-            tf.einsum("ij,kj->ki", matrix, new_bboxes), (-1, 8)
-        )
-        return transformed_bboxes
-
-    @staticmethod
-    def _apply_vertical_transformation_to_bounding_box(
-        extended_bounding_boxes, y
-    ):
-        # create transformation matrix [1,4]
-        matrix = tf.stack([1.0, 0, -y, 1.0], axis=0)
-        # reshape it to [2,2]
-        matrix = tf.reshape(matrix, (2, 2))
-        # reshape unnormalized bboxes from [N,8] -> [N*4,2]
-        new_bboxes = tf.reshape(extended_bounding_boxes, (-1, 2))
-        # [[1,x`],[y`,1]]*[x,y]->[new_x,new_y]
-        transformed_bboxes = tf.reshape(
-            tf.einsum("ij,kj->ki", matrix, new_bboxes), (-1, 8)
-        )
-        return transformed_bboxes
-
-    @staticmethod
-    def _convert_to_extended_corners_format(boxes):
-        """splits corner boxes top left,bottom right to 4 corners top left,
-        bottom right,top right and bottom left"""
-        x1, y1, x2, y2 = tf.split(boxes, [1, 1, 1, 1], axis=-1)
-        new_boxes = tf.concat(
-            [x1, y1, x2, y2, x2, y1, x1, y2],
-            axis=-1,
-        )
-        return new_boxes

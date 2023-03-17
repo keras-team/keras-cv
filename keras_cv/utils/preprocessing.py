@@ -187,6 +187,15 @@ def random_inversion(random_generator):
     return negate
 
 
+def batch_random_inversion(random_generator, batch_size):
+    """Same as `random_inversion` but for batched inputs."""
+    negate = random_generator.random_uniform(
+        (batch_size, 1), 0, 1, dtype=tf.float32
+    )
+    negate = tf.where(negate > 0.5, -1.0, 1.0)
+    return negate
+
+
 def get_rotation_matrix(angles, image_height, image_width, name=None):
     """Returns projective transform(s) for the given angle(s).
     Args:
