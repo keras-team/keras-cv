@@ -42,16 +42,6 @@ then
 fi
 [ $# -eq 0  ] && echo "no issues with black"
 
-#verify clang
-git diff > clang_format.patch
-# Delete if 0 size
-if [ ! -s clang_format.patch ]
-then
-  rm clang_format.patch
-fi
-[ $# -eq 0  ] && echo "no issues with clang"
-
-
 for i in $(find keras_cv -name '*.py') # or whatever other pattern...
 do
   if ! grep -q Copyright $i
