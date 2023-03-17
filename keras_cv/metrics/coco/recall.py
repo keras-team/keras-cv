@@ -14,8 +14,8 @@
 import warnings
 
 import tensorflow as tf
-from tensorflow import keras
 import tensorflow.keras.initializers as initializers
+from tensorflow import keras
 
 from keras_cv import bounding_box
 from keras_cv.bounding_box import iou as iou_lib
