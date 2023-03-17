@@ -255,14 +255,43 @@ class CSPDarkNet(keras.Model):
         elif pooling == "max":
             x = layers.GlobalMaxPooling2D(name="max_pool")(x)
 
-        model = keras.Model(inputs, x, name=name, **kwargs)
-        model._backbone_level_outputs = _backbone_level_outputs
+        super().__init__(inputs=inputs, outputs=x, name=name, **kwargs)
+        self._backbone_level_outputs = _backbone_level_outputs
         # Bind the `to_backbone_model` method to the application model.
-        model.as_backbone = types.MethodType(utils.as_backbone, model)
+        self.as_backbone = types.MethodType(utils.as_backbone, self)
 
         if weights is not None:
-            model.load_weights(weights)
-        return model
+            self.load_weights(weights)
+
+        self.depth_multiplier = depth_multiplier
+        self.width_multiplier = width_multiplier
+        self.include_rescaling = include_rescaling
+        self.include_top = include_top
+        self.use_depthwise = use_depthwise
+        self.num_classes = num_classes
+        self.input_tensor = input_tensor
+        self.pooling = pooling
+        self.classifier_activation = classifier_activation
+
+    def get_config(self):
+        return {
+            "depth_multiplier": self.depth_multiplier,
+            "width_multiplier": self.width_multiplier,
+            "include_rescaling": self.include_rescaling,
+            "include_top": self.include_top,
+            "use_depthwise": self.use_depthwise,
+            "num_classes": self.num_classes,
+            "input_shape": self.input_shape[1:],
+            "input_tensor": self.input_tensor,
+            "pooling": self.pooling,
+            "classifier_activation": self.classifier_activation,
+            "name": self.name,
+            "trainable": self.trainable,
+        }
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)
 
 
 def CSPDarkNetTiny(
