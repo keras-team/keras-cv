@@ -71,7 +71,8 @@ class RandomTranslation(VectorizedBaseImageAugmentationLayer):
           boundaries when `fill_mode="constant"`.
       bounding_box_format: The format of bounding boxes of input dataset. Refer to
           https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box/converters.py
-          for more details on supported bounding box formats.
+          for more details on supported bounding box formats. This is required when 
+          augmenting data which includes bounding boxes.
 
     Input shape:
         3D (unbatched) or 4D (batched) tensor with shape:
