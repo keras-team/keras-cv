@@ -14,7 +14,7 @@
 import warnings
 
 import tensorflow as tf
-import tensorflow.keras as keras
+from tensorflow import keras
 import tensorflow.keras.initializers as initializers
 
 from keras_cv import bounding_box

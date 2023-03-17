@@ -18,7 +18,7 @@ import time
 
 import matplotlib.pyplot as plt
 import tensorflow as tf
-import tensorflow.keras as keras
+from tensorflow import keras
 import tensorflow.keras.layers as layers
 from tensorflow.keras import backend
 
