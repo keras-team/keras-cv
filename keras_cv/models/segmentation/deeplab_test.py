@@ -47,7 +47,7 @@ class DeeplabTest(tf.test.TestCase):
     def test_missing_input_shapes(self):
         with self.assertRaisesRegex(
             ValueError,
-            "Input shapes for both the backbone and DeepLabV3 are `None`.",
+            "Input shapes for both the backbone and DeepLabV3 cannot be `None`.",
         ):
             backbone = ResNet50V2Backbone()
             segmentation.DeepLabV3(num_classes=11, backbone=backbone)
@@ -83,7 +83,7 @@ class DeeplabTest(tf.test.TestCase):
 
     def test_invalid_backbone_model(self):
         with self.assertRaisesRegex(
-            ValueError, "Backbone need to be a `keras.layers.Layer`"
+            ValueError, "Argument `backbone` must be a `keras.layers.Layer`"
         ):
             segmentation.DeepLabV3(
                 num_classes=11,
