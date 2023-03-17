@@ -45,9 +45,9 @@ fi
 #verify clang
 git diff > clang_format.patch
 # Delete if 0 size
-if [ -s clang_format.patch ]
-  then
-    rm clang_format.patch
+if [ ! -s clang_format.patch ]
+then
+  rm clang_format.patch
 fi
 [ $# -eq 0  ] && echo "no issues with clang"
 
