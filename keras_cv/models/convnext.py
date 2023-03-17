@@ -63,7 +63,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
             to `True`, inputs will be passed through a `Rescaling(1/255.0)`
             layer.
         include_top: bool, whether to include the fully-connected layer at
-            the top of the network.  If provided, `num_classes` must be provided.
+            the top of the network. If provided, `num_classes` must be provided.
         depths: an iterable containing depths for each individual stages.
         projection_dims: An iterable containing output number of channels of
             each individual stages.
@@ -90,7 +90,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
         classifier_activation: A `str` or callable. The activation function to use
             on the "top" layer. Ignored unless `include_top=True`. Set
             `classifier_activation=None` to return the logits of the "top" layer.
-        name: (Optional) name to pass to the model.  Defaults to "{name}".
+        name: (Optional) name to pass to the model. Defaults to "{name}".
 
     Returns:
       A `keras.Model` instance.
@@ -221,7 +221,7 @@ class ConvNeXt(keras.Model):
             to `True`, inputs will be passed through a `Rescaling(1/255.0)`
             layer.
         include_top: bool, whether to include the fully-connected layer at
-            the top of the network.  If provided, `num_classes` must be provided.
+            the top of the network. If provided, `num_classes` must be provided.
       depths: An iterable containing depths for each individual stages.
       projection_dims: An iterable containing output number of channels of
       each individual stages.
@@ -248,7 +248,7 @@ class ConvNeXt(keras.Model):
       classifier_activation: A `str` or callable. The activation function to use
             on the "top" layer. Ignored unless `include_top=True`. Set
             `classifier_activation=None` to return the logits of the "top" layer.
-      name: (Optional) name to pass to the model.  Defaults to "convnext".
+      name: (Optional) name to pass to the model. Defaults to "convnext".
     Returns:
       A `keras.Model` instance.
     Raises:
