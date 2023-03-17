@@ -25,8 +25,8 @@ class IoULoss(tf.keras.losses.Loss):
     optimize the IoU score between true boxes and predicted boxes. The length of the
     last dimension should be 4 to represent the bounding boxes. This loss
     uses IoUs according to box pairs and therefore, the number of boxes in both y_true
-    and y_pred are expected to be equal i.e. the i<sup>th</sup> y_true box in a batch
-    will be compared the i<sup>th</sup> y_pred box.
+    and y_pred are expected to be equal i.e. the i-th y_true box in a batch
+    will be compared the i-th y_pred box.
 
     Args:
         bounding_box_format: a case-insensitive string (for example, "xyxy").
@@ -35,9 +35,8 @@ class IoULoss(tf.keras.losses.Loss):
             [KerasCV bounding box documentation](https://keras.io/api/keras_cv/bounding_box/formats/).
         mode: must be one of
             - `"linear"`. The loss will be calculated as 1 - iou
-            - `"quadratic"`. The loss will be calculated as 1 - iou<sup>2</sup>
-            - `"log"`. The loss will be calculated as -ln(iou)
-            Defaults to "log".
+            - `"quadratic"`. The loss will be calculated as 1 - (iou^2)
+            - `"log"`. The loss will be calculated as -ln(iou). Defaults to "log".
         axis: the axis along which to mean the ious. Defaults to -1.
 
     References:
