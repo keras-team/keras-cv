@@ -53,14 +53,14 @@ def transform_value_range(
 ):
     """transforms values in input tensor from original_range to target_range.
     This function is intended to be used in preprocessing layers that
-    rely upon color values.  This allows us to assume internally that
+    rely upon color values. This allows us to assume internally that
     the input tensor is always in the range [0, 255].
 
     Args:
-        images: the set of images to transform to the target range range.
+        images: the set of images to transform to the target range.
         original_range: the value range to transform from.
         target_range: the value range to transform to.
-        dtype: the dtype to compute the conversion with.  Defaults to tf.float32.
+        dtype: the dtype to compute the conversion with. Defaults to tf.float32.
 
     Returns:
         a new Tensor with values in the target range.
@@ -115,10 +115,10 @@ def _unwrap_value_range(value_range, dtype=tf.float32):
 def blend(image1: tf.Tensor, image2: tf.Tensor, factor: float) -> tf.Tensor:
     """Blend image1 and image2 using 'factor'.
 
-    FactorSampler should be in the range [0, 1].  A value of 0.0 means only image1
-    is used. A value of 1.0 means only image2 is used.  A value between 0.0
+    FactorSampler should be in the range [0, 1]. A value of 0.0 means only image1
+    is used. A value of 1.0 means only image2 is used. A value between 0.0
     and 1.0 means we linearly interpolate the pixel values between the two
-    images.  A value greater than 1.0 "extrapolates" the difference
+    images. A value greater than 1.0 "extrapolates" the difference
     between the two pixel values, and we clip the results to values
     between 0 and 255.
     Args:
@@ -174,7 +174,7 @@ def random_inversion(random_generator):
     This can be used by KPLs to randomly invert sampled values.
 
     Args:
-        random_generator: a Keras random number generator.  An instance can be passed
+        random_generator: a Keras random number generator. An instance can be passed
         from the `self._random_generator` attribute of a `BaseImageAugmentationLayer`.
 
     Returns:
