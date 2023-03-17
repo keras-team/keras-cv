@@ -199,7 +199,7 @@ class RandomTranslation(VectorizedBaseImageAugmentationLayer):
         return labels
 
     def augment_bounding_boxes(
-        self, bounding_boxes, transformation, image=None, **kwargs
+        self, bounding_boxes, transformations, images=None, **kwargs
     ):
         if self.bounding_box_format is None:
             raise ValueError(
@@ -212,30 +212,32 @@ class RandomTranslation(VectorizedBaseImageAugmentationLayer):
             bounding_boxes,
             source=self.bounding_box_format,
             target="rel_xyxy",
-            images=image,
+            images=images,
             dtype=self.compute_dtype,
         )
 
         boxes = bounding_boxes["boxes"]
-        x1, y1, x2, y2 = tf.split(boxes, [1, 1, 1, 1], axis=1)
-        x1 += transformation["width_translation"]
-        x2 += transformation["width_translation"]
-        y1 += transformation["height_translation"]
-        y2 += transformation["height_translation"]
+        x1, y1, x2, y2 = tf.split(boxes, [1, 1, 1, 1], axis=-1)
+        x1 += tf.expand_dims(transformations["width_translations"], axis = 1)
+        x2 += tf.expand_dims(transformations["width_translations"], axis = 1)
+        y1 += tf.expand_dims(transformations["height_translations"], axis = 1)
+        y2 += tf.expand_dims(transformations["height_translations"], axis = 1)
 
         bounding_boxes["boxes"] = tf.concat([x1, y1, x2, y2], axis=-1)
+        bounding_boxes = keras_cv.bounding_box.to_dense(bounding_boxes)
 
         bounding_boxes = keras_cv.bounding_box.clip_to_image(
             bounding_boxes,
             bounding_box_format="rel_xyxy",
-            images=image,
+            images=images,
         )
+        bounding_boxes = keras_cv.bounding_box.to_ragged(bounding_boxes)
 
         bounding_boxes = keras_cv.bounding_box.convert_format(
             bounding_boxes,
             source="rel_xyxy",
             target=self.bounding_box_format,
-            images=image,
+            images=images,
             dtype=self.compute_dtype,
         )
         return bounding_boxes
