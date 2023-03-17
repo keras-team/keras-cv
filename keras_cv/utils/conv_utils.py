@@ -16,7 +16,7 @@
 def normalize_tuple(value, n, name, allow_zero=False):
     """Transforms non-negative/positive integer/integers into an integer tuple.
     Args:
-      value: The value to validate and convert. Could an int, or any iterable of
+      value: The value to validate and convert. Could be an int, or any iterable of
         ints.
       n: The size of the tuple to be returned.
       name: The name of the argument being validated, e.g. "strides" or
@@ -27,8 +27,7 @@ def normalize_tuple(value, n, name, allow_zero=False):
       A tuple of n integers.
     Raises:
       ValueError: If something else than an int/long or iterable thereof or a
-      negative value is
-        passed.
+      negative value is passed.
     """
     error_msg = (
         f"The `{name}` argument must be a tuple of {n} "
