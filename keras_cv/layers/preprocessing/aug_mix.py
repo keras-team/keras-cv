@@ -46,7 +46,9 @@ class AugMix(BaseImageAugmentationLayer):
         num_chains: an integer representing the number of different chains to
             be mixed. Defaults to 3.
         chain_depth: an integer or range representing the number of transformations in
-            the chains. Defaults to [1,3].
+            the chains. 
+            In case a range is passed, a random `chain_depth` value sampled from a uniform distribution over the given range is called at the start of the chain. 
+            Defaults to closed interval [1,3].
         alpha: a float value used as the probability coefficients for the
             Beta and Dirichlet distributions. Defaults to 1.0.
         seed: Integer. Used to create a random seed.
@@ -298,25 +300,6 @@ class AugMix(BaseImageAugmentationLayer):
         return augmented
 
     def augment_image(self, image, transformation=None, **kwargs):
-        
-        """ Applies AugMix data augmentation to an image.
-
-        This method takes the input image and initializes it to a null target tensor of the same shape.
-        Then it applies `num_chains` number of updates to the input image.
-        By the end of each update, 
-           *The input image is augmented to a sample amount of times within `chain_depth` range of values.
-           *The target tensor is updated by adding it to the augmented input image.
-        Finally, it adds the modified target tensor to the input image with a random sample from the beta distribution.
-
-        Args:
-            image: A 4D image input tensor to the layer. This is expected to have the shape [B, H, W, C].
-            transformation: Optional. Defaults to None.
-            **kwargs: Additional keyword arguments.
-
-        Returns:
-            Augmented image
-        """
-        
         chain_mixing_weights = self._sample_from_dirichlet(
             tf.ones([self.num_chains]) * self.alpha
         )
