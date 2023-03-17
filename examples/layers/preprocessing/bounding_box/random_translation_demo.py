@@ -30,7 +30,9 @@ def main():
         fill_mode="constant",
         fill_value=114,
     )
-    result = dataset.map(random_translation, num_parallel_calls=tf.data.AUTOTUNE)
+    result = dataset.map(
+        random_translation, num_parallel_calls=tf.data.AUTOTUNE
+    )
     demo_utils.visualize_data(result, bounding_box_format="xywh")
 
 

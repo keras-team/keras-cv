@@ -218,10 +218,10 @@ class RandomTranslation(VectorizedBaseImageAugmentationLayer):
 
         boxes = bounding_boxes["boxes"]
         x1, y1, x2, y2 = tf.split(boxes, [1, 1, 1, 1], axis=-1)
-        x1 += tf.expand_dims(transformations["width_translations"], axis = 1)
-        x2 += tf.expand_dims(transformations["width_translations"], axis = 1)
-        y1 += tf.expand_dims(transformations["height_translations"], axis = 1)
-        y2 += tf.expand_dims(transformations["height_translations"], axis = 1)
+        x1 += tf.expand_dims(transformations["width_translations"], axis=1)
+        x2 += tf.expand_dims(transformations["width_translations"], axis=1)
+        y1 += tf.expand_dims(transformations["height_translations"], axis=1)
+        y2 += tf.expand_dims(transformations["height_translations"], axis=1)
 
         bounding_boxes["boxes"] = tf.concat([x1, y1, x2, y2], axis=-1)
         bounding_boxes = keras_cv.bounding_box.to_dense(bounding_boxes)
