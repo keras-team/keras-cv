@@ -67,11 +67,17 @@ def visualize_bounding_boxes(image, bounding_boxes, bounding_box_format):
     bounding_boxes = bounding_box.convert_format(
         bounding_boxes,
         source=bounding_box_format,
-        target="rel_yxyx",
+        target="yxyx",
         images=image,
     )
     if isinstance(image, tf.RaggedTensor):
         image = image.to_tensor(0)
+    bounding_boxes = bounding_box.convert_format(
+        bounding_boxes,
+        source='yxyx',
+        target="rel_yxyx",
+        images=image,
+    )
     bounding_boxes = bounding_boxes["boxes"]
     return tf.image.draw_bounding_boxes(image, bounding_boxes, color, name=None)
 
