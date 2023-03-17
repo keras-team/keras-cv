@@ -1,4 +1,4 @@
-# Copyright 2022 The KerasCV Authors
+# Copyright 2023 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -24,10 +24,8 @@ class ChannelShuffle(VectorizedBaseImageAugmentationLayer):
     """Shuffle channels of an input image.
 
     Input shape:
-        The expected images should be [0-255] pixel ranges.
         3D (unbatched) or 4D (batched) tensor with shape:
         `(..., height, width, channels)`, in `"channels_last"` format
-
     Output shape:
         3D (unbatched) or 4D (batched) tensor with shape:
         `(..., height, width, channels)`, in `"channels_last"` format
@@ -36,17 +34,10 @@ class ChannelShuffle(VectorizedBaseImageAugmentationLayer):
         groups: Number of groups to divide the input channels. Default 3.
         seed: Integer. Used to create a random seed.
 
-    Call arguments:
-        inputs: Tensor representing images of shape
-            `(batch_size, width, height, channels)`, with dtype tf.float32 / tf.uint8,
-            ` or (width, height, channels)`, with dtype tf.float32 / tf.uint8
-        training: A boolean argument that determines whether the call should be run
-            in inference mode or training mode. Default: True.
-
     Usage:
     ```python
     (images, labels), _ = tf.keras.datasets.cifar10.load_data()
-    channel_shuffle = keras_cv.layers.ChannelShuffle()
+    channel_shuffle = ChannelShuffle(groups=3)
     augmented_images = channel_shuffle(images)
     ```
     """
@@ -63,8 +54,8 @@ class ChannelShuffle(VectorizedBaseImageAugmentationLayer):
         #     [0, 2, 3, 4, 1],
         #     [4, 1, 0, 2, 3]
         # ]
-        indices_distribution = tf.random.uniform(
-            (batch_size, self.groups), seed=self.seed
+        indices_distribution = self._random_generator.random_uniform(
+            (batch_size, self.groups)
         )
         indices = tf.argsort(indices_distribution, axis=-1)
         return indices
@@ -81,16 +72,14 @@ class ChannelShuffle(VectorizedBaseImageAugmentationLayer):
         return tf.squeeze(image, axis=0)
 
     def augment_images(self, images, transformations, **kwargs):
-        batch_size = images.shape[0]
+        batch_size = tf.shape(images)[0]
         height, width = images.shape[1], images.shape[2]
         num_channels = images.shape[3]
         indices = transformations
 
         # append batch indexes next to shuffled indices
-        batch_indexs = tf.reshape(
-            tf.repeat(tf.range(batch_size), self.groups),
-            (batch_size, self.groups),
-        )
+        batch_indexs = tf.repeat(tf.range(batch_size), self.groups)
+        batch_indexs = tf.reshape(batch_indexs, (batch_size, self.groups))
         indices = tf.stack([batch_indexs, indices], axis=-1)
 
         if not num_channels % self.groups == 0:
