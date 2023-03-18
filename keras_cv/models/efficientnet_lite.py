@@ -24,7 +24,7 @@ import copy
 import math
 
 import tensorflow as tf
-from tf import Keras
+from tensorflow import Keras
 from keras import backend
 from keras import layers
 
