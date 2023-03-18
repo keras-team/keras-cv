@@ -212,12 +212,17 @@ class AugMix(BaseImageAugmentationLayer):
     def _shear_y(self, image):
         y = tf.cast(self.severity_factor() * 0.3, tf.float32)
         y *= preprocessing.random_inversion(self._random_generator)
-        transform_x = layers.RandomShear._format_transform(
+        transform_x = self._format_random_shear_transform(
             [1.0, 0.0, 0.0, y, 1.0, 0.0, 0.0, 0.0]
         )
         return preprocessing.transform(
             images=tf.expand_dims(image, 0), transforms=transform_x
         )[0]
+
+    @staticmethod
+    def _format_random_shear_transform(transform):
+        transform = tf.convert_to_tensor(transform, dtype=tf.float32)
+        return transform[tf.newaxis]
 
     def _translate_x(self, image):
         shape = tf.cast(tf.shape(image), tf.float32)

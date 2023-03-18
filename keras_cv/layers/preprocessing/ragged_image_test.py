@@ -72,7 +72,7 @@ CONSISTENT_OUTPUT_TEST_CONFIGURATIONS = [
         layers.RandomSharpness,
         {"factor": 0.5, "value_range": (0, 255)},
     ),
-    ("RandomShear", layers.RandomShear, {"x_factor": 0.3, "x_factor": 0.3}),
+    ("RandomShear", layers.RandomShear, {"x_factor": 0.3, "y_factor": 0.3}),
     (
         "RandomTranslation",
         layers.RandomTranslation,
