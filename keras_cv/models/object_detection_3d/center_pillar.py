@@ -130,13 +130,13 @@ class MultiHeadCenterPillar(tf.keras.Model):
       backbone: the backbone to apply to voxelized features.
       voxel_net: the voxel_net that takes point cloud feature and convert
         to voxelized features.
-      multiclass_head: a multi class head which returns a dict of heatmap prediction
-        and regression prediction per class.
+      multiclass_head: a multi class head which returns a dict of heatmap
+        prediction and regression prediction per class.
       label_encoder: a LabelEncoder that takes point cloud xyz and point cloud
         features and returns a multi class labels which is a dict of heatmap,
         box location and top_k heatmap index per class.
-      prediction_decoder: a multi class heatmap prediction decoder that returns a dict
-        of decoded boxes, box class, and box confidence score per class.
+      prediction_decoder: a multi class heatmap prediction decoder that returns
+        a dict of decoded boxes, box class, and box confidence score per class.
 
 
     """
@@ -193,7 +193,10 @@ class MultiHeadCenterPillar(tf.keras.Model):
             y_pred["heatmap_" + head_name] = heatmap_pred
             y_true["heatmap_" + head_name] = heatmap
             sample_weight["heatmap_" + head_name] = tf.ones_like(heatmap)
-            # heatmap_groundtruth_gather = tf.gather_nd(heatmap, index, batch_dims=1)
+            # heatmap_groundtruth_gather = tf.gather_nd(
+            #                                   heatmap,
+            #                                   index,
+            #                                   batch_dims=1)
             # TODO(tanzhenyu): loss heatmap threshold be configurable.
             # box_regression_mask = heatmap_groundtruth_gather >= 0.95
             box = tf.gather_nd(box, index, batch_dims=1)

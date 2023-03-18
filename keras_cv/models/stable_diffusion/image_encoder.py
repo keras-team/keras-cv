@@ -14,7 +14,7 @@
 
 from tensorflow import keras
 
-from keras_cv.models.stable_diffusion.__internal__.layers.attention_block import (
+from keras_cv.models.stable_diffusion.__internal__.layers.attention_block import (  # noqa: E501
     AttentionBlock,
 )
 from keras_cv.models.stable_diffusion.__internal__.layers.padded_conv2d import (
@@ -51,16 +51,18 @@ class ImageEncoder(keras.Sequential):
                 keras.layers.Activation("swish"),
                 PaddedConv2D(8, 3, padding=1),
                 PaddedConv2D(8, 1),
-                # TODO(lukewood): can this be refactored to be a Rescaling layer?
+                # TODO(lukewood): can this be refactored to be a Rescaling
+                #                 layer?
                 # Perhaps some sort of rescale and gather?
-                # Either way, we may need a lambda to gather the first 4 dimensions.
+                # Either way, we may need a lambda to gather the first 4
+                # dimensions.
                 keras.layers.Lambda(lambda x: x[..., :4] * 0.18215),
             ]
         )
 
         if download_weights:
             image_encoder_weights_fpath = keras.utils.get_file(
-                origin="https://huggingface.co/fchollet/stable-diffusion/resolve/main/vae_encoder.h5",
-                file_hash="c60fb220a40d090e0f86a6ab4c312d113e115c87c40ff75d11ffcf380aab7ebb",
+                origin="https://huggingface.co/fchollet/stable-diffusion/resolve/main/vae_encoder.h5",  # noqa: E501
+                file_hash="c60fb220a40d090e0f86a6ab4c312d113e115c87c40ff75d11ffcf380aab7ebb",  # noqa: E501
             )
             self.load_weights(image_encoder_weights_fpath)

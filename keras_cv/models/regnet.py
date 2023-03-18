@@ -13,9 +13,10 @@
 # limitations under the License.
 """RegNet models for KerasCV.
 References:
-    - [Designing Network Design Spaces](https://arxiv.org/abs/2003.13678)
-    (CVPR 2020)
-    - [Based on the Original keras.applications RegNet](https://github.com/keras-team/keras/blob/master/keras/applications/regnet.py)
+    - [Designing Network Design Spaces]
+    (https://arxiv.org/abs/2003.13678) (CVPR 2020)
+    - [Based on the Original keras.applications RegNet]
+      (https://github.com/keras-team/keras/blob/master/keras/applications/regnet.py)  # noqa: E501
 """
 
 import tensorflow as tf
@@ -210,9 +211,11 @@ BASE_DOCSTRING = """This class represents the {name} architecture.
     - [Designing Network Design Spaces](https://arxiv.org/abs/2003.13678)
     (CVPR 2020)
 
-  For image classification use cases, see [this page for detailed examples](https://keras.io/api/applications/#usage-examples-for-image-classification-models).
+  For image classification use cases, see [this page for detailed examples]
+  (https://keras.io/api/applications/#usage-examples-for-image-classification-models).  # noqa: E501
 
-  For transfer learning use cases, make sure to read the [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
+  For transfer learning use cases, make sure to read the [guide to transfer
+  learning & fine-tuning](https://keras.io/guides/transfer_learning/).
 
 
   The naming of models is as follows: `RegNet<block_type><flops>` where
@@ -673,15 +676,15 @@ class RegNet(tf.keras.Model):
         depths: iterable, Contains depths for each individual stages.
         widths: iterable, Contains output channel width of each individual
             stages
-        group_width: int, Number of channels to be used in each group. See grouped
-            convolutions for more information.
+        group_width: int, Number of channels to be used in each group. See
+            grouped convolutions for more information.
         block_type: Must be one of `{"X", "Y", "Z"}`. For more details see the
             papers "Designing network design spaces" and "Fast and Accurate
             Model Scaling"
         default_size: tuple (or) list, Default input image size.
         model_name: str, An optional name for the model.
-        include_rescaling: bool, whether or not to Rescale the inputs.If set to True,
-            inputs will be passed through a `Rescaling(1/255.0)` layer.
+        include_rescaling: bool, whether or not to Rescale the inputs. If set to
+            True, inputs will be passed through a `Rescaling(1/255.0)` layer.
         include_top: bool, Whether to include the fully-connected
             layer at the top of the network.
         num_classes: int, Optional number of classes to classify images
@@ -689,8 +692,8 @@ class RegNet(tf.keras.Model):
             if no `weights` argument is specified.
         weights: str, One of `None` (random initialization), or the path to the
             weights file to be loaded. Defaults to `None`.
-        input_tensor: Tensor, Optional Keras tensor (i.e. output of `layers.Input()`)
-            to use as image input for the model.
+        input_tensor: Tensor, Optional Keras tensor (i.e. output of
+            `layers.Input()`) to use as image input for the model.
         input_shape: Optional shape tuple, defaults to (None, None, 3).
             It should have exactly 3 inputs channels.
         pooling: Optional pooling mode for feature extraction

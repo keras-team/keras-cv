@@ -47,7 +47,8 @@ class DeeplabTest(tf.test.TestCase):
     def test_missing_input_shapes(self):
         with self.assertRaisesRegex(
             ValueError,
-            "Input shapes for both the backbone and DeepLabV3 cannot be `None`.",
+            "Input shapes for both the backbone and DeepLabV3 "
+            "cannot be `None`.",
         ):
             backbone = ResNet50V2Backbone()
             segmentation.DeepLabV3(num_classes=11, backbone=backbone)

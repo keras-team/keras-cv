@@ -20,11 +20,12 @@ from keras_cv import core
 
 
 def exhaustive_compare(obj1, obj2):
-    """Exhaustively compared config of any two python or Keras objects recursively.
+    """Exhaustively compared config of any two python
+    or Keras objects recursively.
 
-    If objects are python objects, a standard equality check is run.  If the objects are
-    Keras objects a `get_config()` call is made.  The subsequent configs are then
-    compared to determine if equality holds.
+    If objects are python objects, a standard equality check is run.
+    If the objects are Keras objects a `get_config()` call is made.
+    The subsequent configs are then compared to determine if equality holds.
 
     Args:
         obj1: any object, can be a Keras object or python object.

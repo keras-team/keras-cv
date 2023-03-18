@@ -13,7 +13,7 @@
 # limitations under the License.
 """StableDiffusion Noise scheduler
 
-Adapted from https://github.com/huggingface/diffusers/blob/v0.3.0/src/diffusers/schedulers/scheduling_ddpm.py#L56
+Adapted from https://github.com/huggingface/diffusers/blob/v0.3.0/src/diffusers/schedulers/scheduling_ddpm.py#L56  # noqa: E501
 """
 
 import tensorflow as tf
@@ -25,15 +25,16 @@ class NoiseScheduler:
         train_timesteps: number of diffusion steps used to train the model.
         beta_start: the starting `beta` value of inference.
         beta_end: the final `beta` value.
-        beta_schedule:
-            the beta schedule, a mapping from a beta range to a sequence of betas for stepping the model. Choose from
-            `linear` or `quadratic`.
-        betas: a complete set of betas, in lieu of using one of the existing schedules.
-        variance_type:
-            options to clip the variance used when adding noise to the denoised sample. Choose from `fixed_small`,
-            `fixed_small_log`, `fixed_large`, `fixed_large_log`, `learned` or `learned_range`.
-        clip_sample:
-            option to clip predicted sample between -1 and 1 for numerical stability.
+        beta_schedule: the beta schedule, a mapping from a beta range to a
+            sequence of betas for stepping the model. Choose from `linear` or
+            `quadratic`.
+        betas: a complete set of betas, in lieu of using one of the existing
+            schedules.
+        variance_type: options to clip the variance used when adding noise to
+            the denoised sample. Choose from `fixed_small`, `fixed_small_log`,
+            `fixed_large`, `fixed_large_log`, `learned` or `learned_range`.
+        clip_sample: option to clip predicted sample between -1 and 1 for
+            numerical stability.
     """
 
     def __init__(
@@ -111,13 +112,17 @@ class NoiseScheduler:
         predict_epsilon=True,
     ):
         """
-        Predict the sample at the previous timestep by reversing the SDE. Core function to propagate the diffusion
-        process from the learned model outputs (usually the predicted noise).
+        Predict the sample at the previous timestep by reversing the SDE. Core
+        function to propagate the diffusion process from the learned model
+        outputs (usually the predicted noise).
         Args:
-            model_output: a Tensor containing direct output from learned diffusion model
+            model_output: a Tensor containing direct output from learned
+                diffusion model
             timestep: current discrete timestep in the diffusion chain.
-            sample: a Tensor containing the current instance of sample being created by diffusion process.
-            predict_epsilon: whether the model is predicting noise (epsilon) or samples
+            sample: a Tensor containing the current instance of sample being
+                created by diffusion process.
+            predict_epsilon: whether the model is predicting noise (epsilon) or
+                samples
         Returns:
             The predicted sample at the previous timestep
         """
@@ -143,7 +148,7 @@ class NoiseScheduler:
         beta_prod_prev = 1 - alpha_prod_prev
 
         # 2. compute predicted original sample from predicted noise also called
-        # "predicted x_0" of formula (15) from https://arxiv.org/pdf/2006.11239.pdf
+        # "predicted x_0" of formula (15) from https://arxiv.org/pdf/2006.11239.pdf  # noqa: E501
         if predict_epsilon:
             pred_original_sample = (
                 sample - beta_prod ** (0.5) * model_output
@@ -155,7 +160,8 @@ class NoiseScheduler:
         if self.clip_sample:
             pred_original_sample = tf.clip_by_value(pred_original_sample, -1, 1)
 
-        # 4. Compute coefficients for pred_original_sample x_0 and current sample x_t
+        # 4. Compute coefficients for pred_original_sample x_0 and current
+        # sample x_t
         # See formula (7) from https://arxiv.org/pdf/2006.11239.pdf
         pred_original_sample_coeff = (
             alpha_prod_prev ** (0.5) * self.betas[timestep]

@@ -13,8 +13,10 @@
 # limitations under the License.
 """ResNet models for KerasCV.
 Reference:
-  - [Deep Residual Learning for Image Recognition](https://arxiv.org/abs/1512.03385) (CVPR 2015)
-  - [Based on the original keras.applications ResNet](https://github.com/keras-team/keras/blob/master/keras/applications/resnet.py)
+  - [Deep Residual Learning for Image Recognition]
+    (https://arxiv.org/abs/1512.03385) (CVPR 2015)
+  - [Based on the original keras.applications ResNet]
+    (https://github.com/keras-team/keras/blob/master/keras/applications/resnet.py)  # noqa: E501
 """
 
 import types
@@ -60,8 +62,10 @@ BN_EPSILON = 1.001e-5
 
 BASE_DOCSTRING = """Instantiates the {name} architecture.
     Reference:
-        - [Deep Residual Learning for Image Recognition](https://arxiv.org/abs/1512.03385)
-        - [Identity Mappings in Deep Residual Networks](https://arxiv.org/abs/1603.05027) (ECCV 2016)
+        - [Deep Residual Learning for Image Recognition]
+          (https://arxiv.org/abs/1512.03385)
+        - [Identity Mappings in Deep Residual Networks]
+          (https://arxiv.org/abs/1603.05027) (ECCV 2016)
     This function returns a Keras {name} model.
 
     The difference in Resnet and ResNetV2 rests in the structure of their
@@ -78,27 +82,29 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
             to `True`, inputs will be passed through a `Rescaling(1/255.0)`
             layer.
         include_top: bool, whether to include the fully-connected layer at
-            the top of the network.  If provided, `num_classes` must be provided.
-        num_classes: optional int, number of classes to classify images into (only
-            to be specified if `include_top` is `True`).
+            the top of the network. If provided, `num_classes` must be provided.
+        num_classes: optional int, number of classes to classify images into
+            (only to be specified if `include_top` is `True`).
         weights: one of `None` (random initialization), a pretrained weight file
-            path, or a reference to pre-trained weights (e.g. 'imagenet/classification')
-            (see available pre-trained weights in weights.py)
+            path, or a reference to pre-trained weights (e.g.
+            'imagenet/classification') (see available pre-trained weights in
+            weights.py)
         input_shape: optional shape tuple, defaults to (None, None, 3).
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
             to use as image input for the model.
         pooling: optional pooling mode for feature extraction
             when `include_top` is `False`.
-            - `None` means that the output of the model will be the 4D tensor output
-                of the last convolutional block.
-            - `avg` means that global average pooling will be applied to the output
-                of the last convolutional block, and thus the output of the model will
-                be a 2D tensor.
+            - `None` means that the output of the model will be the 4D tensor
+                output of the last convolutional block.
+            - `avg` means that global average pooling will be applied to the
+                output of the last convolutional block, and thus the output of
+                the model will be a 2D tensor.
             - `max` means that global max pooling will be applied.
         name: (Optional) name to pass to the model.  Defaults to "{name}".
-        classifier_activation: A `str` or callable. The activation function to use
-            on the "top" layer. Ignored unless `include_top=True`. Set
-            `classifier_activation=None` to return the logits of the "top" layer.
+        classifier_activation: A `str` or callable. The activation function to
+            use on the "top" layer. Ignored unless `include_top=True`. Set
+            `classifier_activation=None` to return the logits of the "top"
+            layer.
 
     Returns:
       A `keras.Model` instance.
@@ -117,6 +123,7 @@ def apply_basic_block(
         stride: int, stride of the first layer. Defaults to 1.
         conv_shortcut: bool, uses convolution shortcut if `True`. If `False`
             (default), uses identity or pooling shortcut, based on stride.
+        name: string, model name.
 
     Returns:
       Output tensor for the residual block.
@@ -180,6 +187,7 @@ def apply_block(
         stride: int, stride of the first layer. Defaults to 1.
         conv_shortcut: bool, uses convolution shortcut if `True`. If `False`
             (default), uses identity or pooling shortcut, based on stride.
+        name: string, model name.
 
     Returns:
       Output tensor for the residual block.
@@ -252,6 +260,7 @@ def apply_stack(
             stack. Use "basic_block" for ResNet18 and ResNet34.
       first_shortcut: bool. Use convolution shortcut if `True` (default),
             otherwise uses identity or pooling shortcut, based on stride.
+      name: string, model name.
 
     Returns:
       Output tensor for the stacked blocks.
@@ -348,8 +357,9 @@ class ResNet(keras.Model):
     ):
         if weights and not tf.io.gfile.exists(weights):
             raise ValueError(
-                "The `weights` argument should be either `None` or the path to the "
-                f"weights file to be loaded. Weights file not found at location: {weights}"
+                "The `weights` argument should be either `None` or the path to "
+                "the weights file to be loaded. Weights file not found at "
+                "location: {weights}"
             )
 
         if include_top and not num_classes:
