@@ -24,6 +24,7 @@ import copy
 import math
 
 import tensorflow as tf
+from tf import Keras
 from keras import backend
 from keras import layers
 
@@ -294,7 +295,7 @@ def apply_efficient_net_lite_block(
 
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv.models")
-class EfficientNetLite(tf.keras.Model):
+class EfficientNetLite(keras.Model):
     """Instantiates the EfficientNetLite architecture using given scaling coefficients.
 
     Args:
