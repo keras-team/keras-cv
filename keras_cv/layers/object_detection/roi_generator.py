@@ -22,8 +22,8 @@ import tensorflow as tf
 from keras_cv import bounding_box
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
-class ROIGenerator(tf.keras.layers.Layer):
+@keras.utils.register_keras_serializable(package="keras_cv")
+class ROIGenerator(keras.layers.Layer):
     """
     Generates region of interests (ROI, or proposal) from scores.
 

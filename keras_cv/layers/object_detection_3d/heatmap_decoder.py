@@ -96,7 +96,7 @@ def decode_bin_box(pd, num_head_bin, anchor_size):
         return box
 
 
-class HeatmapDecoder(tf.keras.layers.Layer):
+class HeatmapDecoder(keras.layers.Layer):
     """A Keras layer that decodes predictions of an 3d object detection model.
 
     Arg:

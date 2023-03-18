@@ -71,7 +71,7 @@ class ClassificationTrainingBenchmark(
                 include_rescaling=True,
             )
             model.compile(
-                optimizer=tf.keras.optimizers.SGD(
+                optimizer=keras.optimizers.SGD(
                     learning_rate=0.1, momentum=0.9
                 ),
                 loss="categorical_crossentropy",

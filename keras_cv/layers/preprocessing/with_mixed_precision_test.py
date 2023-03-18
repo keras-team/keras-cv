@@ -158,7 +158,7 @@ class WithMixedPrecisionTest(tf.test.TestCase, parameterized.TestCase):
                     "Skipping."
                 )
 
-        tf.keras.mixed_precision.set_global_policy("mixed_float16")
+        keras.mixed_precision.set_global_policy("mixed_float16")
 
         img = tf.random.uniform(
             shape=(3, 512, 512, 3), minval=0, maxval=255, dtype=tf.float32
@@ -172,7 +172,7 @@ class WithMixedPrecisionTest(tf.test.TestCase, parameterized.TestCase):
     @classmethod
     def tearDownClass(cls) -> None:
         # Do not affect other tests
-        tf.keras.mixed_precision.set_global_policy("float32")
+        keras.mixed_precision.set_global_policy("float32")
 
 
 if __name__ == "__main__":

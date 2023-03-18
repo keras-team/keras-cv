@@ -21,7 +21,7 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 from keras_cv.utils import preprocessing
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class AugMix(BaseImageAugmentationLayer):
     """Performs the AugMix data augmentation technique.
 
@@ -58,7 +58,7 @@ class AugMix(BaseImageAugmentationLayer):
 
     Sample Usage:
     ```python
-    (images, labels), _ = tf.keras.datasets.cifar10.load_data()
+    (images, labels), _ = keras.datasets.cifar10.load_data()
     augmix = keras_cv.layers.AugMix([0, 255])
     augmented_images = augmix(images[:100])
     ```

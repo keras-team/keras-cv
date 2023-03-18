@@ -25,7 +25,7 @@ ADDITIONAL_BOUNDING_BOXES = base_augmentation_layer_3d.ADDITIONAL_BOUNDING_BOXES
 POINTCLOUD_LABEL_INDEX = base_augmentation_layer_3d.POINTCLOUD_LABEL_INDEX
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class SwapBackground(base_augmentation_layer_3d.BaseAugmentationLayer3D):
     """A preprocessing layer which swaps the backgrounds of two scenes during training.
 

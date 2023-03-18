@@ -19,7 +19,7 @@ from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer impo
 from keras_cv.utils import preprocessing
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class Solarization(VectorizedBaseImageAugmentationLayer):
     """Applies (max_value - pixel + min_value) for each pixel in the image.
 
@@ -53,7 +53,7 @@ class Solarization(VectorizedBaseImageAugmentationLayer):
 
     Usage:
     ```python
-    (images, labels), _ = tf.keras.datasets.cifar10.load_data()
+    (images, labels), _ = keras.datasets.cifar10.load_data()
     print(images[0, 0, 0])
     # [59 62 63]
     # Note that images are Tensor with values in the range [0, 255]
@@ -155,11 +155,11 @@ class Solarization(VectorizedBaseImageAugmentationLayer):
         if isinstance(config["threshold_factor"], dict):
             config[
                 "threshold_factor"
-            ] = tf.keras.utils.deserialize_keras_object(
+            ] = keras.utils.deserialize_keras_object(
                 config["threshold_factor"]
             )
         if isinstance(config["addition_factor"], dict):
-            config["addition_factor"] = tf.keras.utils.deserialize_keras_object(
+            config["addition_factor"] = keras.utils.deserialize_keras_object(
                 config["addition_factor"]
             )
         return cls(**config)

@@ -21,7 +21,7 @@ from keras_cv.layers.preprocessing.random_augmentation_pipeline import (
 from keras_cv.utils import preprocessing as preprocessing_utils
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class RandAugment(RandomAugmentationPipeline):
     """RandAugment performs the Rand Augment operation on input images.
 
@@ -67,7 +67,7 @@ class RandAugment(RandomAugmentationPipeline):
             set to False when performing object detection.  Defaults to True.
     Usage:
     ```python
-    (x_test, y_test), _ = tf.keras.datasets.cifar10.load_data()
+    (x_test, y_test), _ = keras.datasets.cifar10.load_data()
     rand_augment = keras_cv.layers.RandAugment(
         value_range=(0, 255), augmentations_per_image=3, magnitude=0.5
     )

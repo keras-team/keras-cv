@@ -14,8 +14,8 @@
 import tensorflow as tf
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
-class StochasticDepth(tf.keras.layers.Layer):
+@keras.utils.register_keras_serializable(package="keras_cv")
+class StochasticDepth(keras.layers.Layer):
     """
     Implements the Stochastic Depth layer. It randomly drops residual branches
     in residual architectures. It is used as a drop-in replacement for addition
@@ -35,7 +35,7 @@ class StochasticDepth(tf.keras.layers.Layer):
     ```python
     # (...)
     input = tf.ones((1, 3, 3, 1), dtype=tf.float32)
-    residual = tf.keras.layers.Conv2D(1, 1)(input)
+    residual = keras.layers.Conv2D(1, 1)(input)
     output = keras_cv.layers.StochasticDepth()([input, residual])
     # (...)
     ```
@@ -66,7 +66,7 @@ class StochasticDepth(tf.keras.layers.Layer):
 
         shortcut, residual = x
 
-        b_l = tf.keras.backend.random_bernoulli([], p=self.survival_probability)
+        b_l = keras.backend.random_bernoulli([], p=self.survival_probability)
 
         if training:
             return shortcut + b_l * residual

@@ -16,7 +16,7 @@ import tensorflow as tf
 
 
 # --- Implementing Smooth L1 loss and Focal Loss as keras custom losses ---
-class SmoothL1Loss(tf.keras.losses.Loss):
+class SmoothL1Loss(keras.losses.Loss):
     """Implements Smooth L1 loss.
 
     SmoothL1Loss implements the SmoothL1 function, where values less than `l1_cutoff`
@@ -41,7 +41,7 @@ class SmoothL1Loss(tf.keras.losses.Loss):
             0.5 * squared_difference,
             absolute_difference - 0.5,
         )
-        return tf.keras.backend.mean(loss, axis=-1)
+        return keras.backend.mean(loss, axis=-1)
 
     def get_config(self):
         config = {

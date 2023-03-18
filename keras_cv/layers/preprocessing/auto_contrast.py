@@ -20,7 +20,7 @@ from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer impo
 from keras_cv.utils import preprocessing
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class AutoContrast(VectorizedBaseImageAugmentationLayer):
     """Performs the AutoContrast operation on an image.
 

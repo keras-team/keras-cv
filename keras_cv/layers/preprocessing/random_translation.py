@@ -23,7 +23,7 @@ H_AXIS = -3
 W_AXIS = -2
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class RandomTranslation(VectorizedBaseImageAugmentationLayer):
     """A preprocessing layer which randomly translates images during training.
 
