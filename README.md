@@ -148,7 +148,7 @@ a simple `1/255` rescaling layer.
 This can be seen in all KerasCV training pipelines and code examples.
 
 ## Custom Ops
-Note that in some the 3D Object Detection layers, custom TF ops are used. The
+Note that in some of the 3D Object Detection layers, custom TF ops are used. The
 binaries for these ops are not shipped in our PyPi package in order to keep our
 wheels pure-Python.
 

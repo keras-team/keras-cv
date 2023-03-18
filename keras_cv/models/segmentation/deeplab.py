@@ -23,37 +23,25 @@ from keras_cv.models.weights import parse_weights
 
 @keras.utils.register_keras_serializable(package="keras_cv")
 class DeepLabV3(keras.Model):
-    """
-    A segmentation model based on the DeepLab v3.
+    # TODO: add a code example in the docstring.
+    """A segmentation model based on DeepLab v3.
 
     Args:
         num_classes: int, the number of classes for the detection model. Note that
             the num_classes doesn't contain the background class, and the classes
             from the data should be represented by integers with range
             [0, num_classes).
-        backbone: an optional backbone network for the model. Should be a KerasCV model.
-        weights: weights for the complete DeepLabV3 model. one of `None` (random
+        backbone: Optional backbone network for the model. Should be a KerasCV model.
+        weights: Weights for the complete DeepLabV3 model. one of `None` (random
             initialization), a pretrained weight file path, or a reference to
             pre-trained weights (e.g. 'imagenet/classification' or 'voc/segmentation') (see available
             pre-trained weights in weights.py)
-        spatial_pyramid_pooling: also known as Atrous Spatial Pyramid Pooling (ASPP).
+        spatial_pyramid_pooling: Also known as Atrous Spatial Pyramid Pooling (ASPP).
             Performs spatial pooling on different spatial levels in the pyramid, with
             dilation.
-        segmentation_head: an optional `tf.keras.Layer` that predict the segmentation
+        segmentation_head: Optional `keras.Layer` that predict the segmentation
             mask based on feature from backbone and feature from decoder.
     """
-
-    def build(self, input_shape):
-        height = input_shape[1]
-        width = input_shape[2]
-        feature_map_shape = self.backbone.compute_output_shape(input_shape)
-        self.up_layer = tf.keras.layers.UpSampling2D(
-            size=(
-                height // feature_map_shape[1],
-                width // feature_map_shape[2],
-            ),
-            interpolation="bilinear",
-        )
 
     def __init__(
         self,
@@ -62,15 +50,16 @@ class DeepLabV3(keras.Model):
         spatial_pyramid_pooling=None,
         segmentation_head=None,
         segmentation_head_activation="softmax",
+        weight_decay=0.0001,
         input_shape=(None, None, 3),
         input_tensor=None,
         weights=None,
         **kwargs,
     ):
-        if not isinstance(backbone, tf.keras.layers.Layer):
+        if not isinstance(backbone, keras.layers.Layer):
             raise ValueError(
-                "Backbone need to be a `tf.keras.layers.Layer`, "
-                f"received {backbone}"
+                "Argument `backbone` must be a `keras.layers.Layer` instance. "
+                f"Received instead backbone={backbone} (of type {type(backbone)})."
             )
 
         if weights and not tf.io.gfile.exists(
@@ -89,22 +78,22 @@ class DeepLabV3(keras.Model):
 
         if input_shape[0] is None and input_shape[1] is None:
             raise ValueError(
-                "Input shapes for both the backbone and DeepLabV3 are `None`."
+                "Input shapes for both the backbone and DeepLabV3 cannot be `None`. "
+                f"Received: input_shape={input_shape} and "
+                f"backbone.input_shape={backbone.input_shape[1:]}"
             )
 
         height = input_shape[0]
         width = input_shape[1]
 
-        x = inputs
-
-        feature_map = backbone(x)
+        feature_map = backbone(inputs)
         if spatial_pyramid_pooling is None:
             spatial_pyramid_pooling = SpatialPyramidPooling(
                 dilation_rates=[6, 12, 18]
             )
 
         output = spatial_pyramid_pooling(feature_map)
-        output = tf.keras.layers.UpSampling2D(
+        output = keras.layers.UpSampling2D(
             size=(
                 height // feature_map.shape[1],
                 width // feature_map.shape[2],
@@ -116,7 +105,7 @@ class DeepLabV3(keras.Model):
             segmentation_head = SegmentationHead(
                 num_classes=num_classes,
                 name="segmentation_head",
-                convs=1,
+                convolutions=1,
                 dropout=0.2,
                 kernel_size=1,
                 activation=segmentation_head_activation,
@@ -144,14 +133,22 @@ class DeepLabV3(keras.Model):
         self.spatial_pyramid_pooling = spatial_pyramid_pooling
         self.segmentation_head = segmentation_head
         self.segmentation_head_activation = segmentation_head_activation
-
-    # TODO(tanzhenyu): consolidate how regularization should be applied to KerasCV.
-    def compile(self, weight_decay=0.0001, **kwargs):
         self.weight_decay = weight_decay
-        super().compile(**kwargs)
+
+    def build(self, input_shape):
+        height = input_shape[1]
+        width = input_shape[2]
+        feature_map_shape = self.backbone.compute_output_shape(input_shape)
+        self.up_layer = keras.layers.UpSampling2D(
+            size=(
+                height // feature_map_shape[1],
+                width // feature_map_shape[2],
+            ),
+            interpolation="bilinear",
+        )
 
     def train_step(self, data):
-        images, y_true, sample_weight = tf.keras.utils.unpack_x_y_sample_weight(
+        images, y_true, sample_weight = keras.utils.unpack_x_y_sample_weight(
             data
         )
         with tf.GradientTape() as tape:
@@ -180,10 +177,11 @@ class DeepLabV3(keras.Model):
             "spatial_pyramid_pooling": self.spatial_pyramid_pooling,
             "segmentation_head": self.segmentation_head,
             "segmentation_head_activation": self.segmentation_head_activation,
+            "weight_decay": self.weight_decay,
         }
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class SegmentationHead(layers.Layer):
     """Prediction head for the segmentation model
 
@@ -191,28 +189,30 @@ class SegmentationHead(layers.Layer):
     segmentation mask (pixel level classifications) as the output for the model.
 
     Args:
-        num_classes: int, the number of output classes for the prediction. This should
+        num_classes: int, number of output classes for the prediction. This should
             include all the classes (e.g. background) for the model to predict.
-        convs: int, the number of conv2D layers that are stacked before the final
-            classification layer. Default to 2.
-        filters: int, the number of filter/channels for the the conv2D layers. Default
-            to 256.
-        activations: str or 'tf.keras.activations', activation functions between the
-            conv2D layers and the final classification layer. Default to 'relu'
-        output_scale_factor: int, or a pair of ints, for upsample the output mask.
+        convolutions: int, number of `Conv2D` layers that are stacked before the final
+            classification layer. Defaults to 2.
+        filters: int, number of filter/channels for the the conv2D layers.
+            Defaults to 256.
+        activations: str or function, activation functions between the
+            conv2D layers and the final classification layer. Defaults to `"relu"`.
+        output_scale_factor: int, or a pair of ints. Factor for upsampling the output mask.
             This is useful to scale the output mask back to same size as the input
             image. When single int is provided, the mask will be scaled with same
             ratio on both width and height. When a pair of ints are provided, they will
-            be parsed as (height_factor, width_factor). Default to None, which means
+            be parsed as `(height_factor, width_factor)`. Defaults to `None`, which means
             no resize will happen to the output mask tensor.
-        kernel_size: default 3; the kernel_size to be used in each of the `convs` blocks
-        use_bias: default False; whether to use bias or not in each of the `convs` blocks
-                Defaults to none since the blocks use `BatchNormalization` after each conv, rendering
-                bias obsolete
-        activation: default 'softmax', the activation to apply in the classification
-            layer (output of the head)
+        kernel_size: int, the kernel size to be used in each of the convolutional blocks.
+            Defaults to 3.
+        use_bias: boolean, whether to use bias or not in each of the convolutional blocks.
+            Defaults to False since the blocks use `BatchNormalization`
+            after each convolution, rendering bias obsolete.
+        activation: str or function, activation to apply in the classification
+            layer (output of the head). Defaults to `"softmax"`.
 
-    Sample code
+    Examples:
+
     ```python
     # Mimic a FPN output dict
     p3 = tf.ones([2, 32, 32, 3])
@@ -230,7 +230,7 @@ class SegmentationHead(layers.Layer):
     def __init__(
         self,
         num_classes,
-        convs=2,
+        convolutions=2,
         filters=256,
         activations="relu",
         dropout=0.0,
@@ -239,24 +239,9 @@ class SegmentationHead(layers.Layer):
         use_bias=False,
         **kwargs,
     ):
-        """
-        Args:
-            num_classes: the number of possible classes for the segmentation map
-            convs: default 2; the number of conv blocks to use in the head (conv2d-batch_norm-activation blocks)
-            filters: default 256; the number of filters in each Conv2D layer
-            activations: default 'relu'; the activation to apply in conv blocks
-            dropout: default 0.0; the dropout to apply between each conv block
-            kernel_size: default 3; the kernel_size to be used in each of the `convs` blocks
-            use_bias: default False; whether to use bias or not in each of the `convs` blocks
-                Defaults to none since the blocks use `BatchNormalization` after each conv, rendering
-                bias obsolete
-            activation: default 'softmax', the activation to apply in the classification
-                layer (output of the head)
-            **kwargs:
-        """
         super().__init__(**kwargs)
         self.num_classes = num_classes
-        self.convs = convs
+        self.convolutions = convolutions
         self.filters = filters
         self.activations = activations
         self.dropout = dropout
@@ -266,10 +251,10 @@ class SegmentationHead(layers.Layer):
 
         self._conv_layers = []
         self._bn_layers = []
-        for i in range(self.convs):
+        for i in range(self.convolutions):
             conv_name = "segmentation_head_conv_{}".format(i)
             self._conv_layers.append(
-                tf.keras.layers.Conv2D(
+                keras.layers.Conv2D(
                     name=conv_name,
                     filters=self.filters,
                     kernel_size=self.kernel_size,
@@ -279,10 +264,10 @@ class SegmentationHead(layers.Layer):
             )
             norm_name = "segmentation_head_norm_{}".format(i)
             self._bn_layers.append(
-                tf.keras.layers.BatchNormalization(name=norm_name)
+                keras.layers.BatchNormalization(name=norm_name)
             )
 
-        self._classification_layer = tf.keras.layers.Conv2D(
+        self._classification_layer = keras.layers.Conv2D(
             name="segmentation_output",
             filters=self.num_classes,
             kernel_size=1,
@@ -294,7 +279,7 @@ class SegmentationHead(layers.Layer):
             dtype=tf.float32,
         )
 
-        self.dropout_layer = tf.keras.layers.Dropout(self.dropout)
+        self.dropout_layer = keras.layers.Dropout(self.dropout)
 
     def call(self, inputs):
         """Forward path for the segmentation head.
@@ -305,7 +290,7 @@ class SegmentationHead(layers.Layer):
         """
         if not isinstance(inputs, dict):
             raise ValueError(
-                f"Expect the inputs to be a dict, but received {inputs}"
+                f"Expect inputs to be a dict. Received instead inputs={inputs}"
             )
 
         lowest_level = next(iter(sorted(inputs)))
@@ -313,17 +298,15 @@ class SegmentationHead(layers.Layer):
         for conv_layer, bn_layer in zip(self._conv_layers, self._bn_layers):
             x = conv_layer(x)
             x = bn_layer(x)
-            x = tf.keras.activations.get(self.activations)(x)
+            x = keras.activations.get(self.activations)(x)
             if self.dropout:
                 x = self.dropout_layer(x)
-
-        x = self._classification_layer(x)
-        return x
+        return self._classification_layer(x)
 
     def get_config(self):
         config = {
             "num_classes": self.num_classes,
-            "convs": self.convs,
+            "convolutions": self.convolutions,
             "filters": self.filters,
             "activations": self.activations,
             "dropout": self.dropout,
