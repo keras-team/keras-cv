@@ -16,7 +16,7 @@ Reference:
   - [Deep Residual Learning for Image Recognition]
     (https://arxiv.org/abs/1512.03385) (CVPR 2015)
   - [Based on the original keras.applications ResNet]
-    (https://github.com/keras-team/keras/blob/master/keras/applications/resnet.py)  # noqa: E501
+    (https://github.com/keras-team/keras/blob/master/keras/applications/resnet.py)
 """
 
 import types

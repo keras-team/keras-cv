@@ -28,20 +28,23 @@ class RetinaNetLabelEncoder(layers.Layer):
     their class ids.
 
     Args:
-        bounding_box_format:  The format of bounding boxes of input dataset. Refer
-            [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
-            for more details on supported bounding box formats.
-        anchor_generator: `keras_cv.layers.AnchorGenerator` instance to produce anchor
-            boxes.  Boxes are then used to encode labels on a per-image basis.
-        positive_threshold: the float threshold to set an anchor to positive match to gt box.
-            values above it are positive matches.
-        negative_threshold: the float threshold to set an anchor to negative match to gt box.
-            values below it are negative matches.
-        box_variance: The scaling factors used to scale the bounding box targets.
-            Defaults to (0.1, 0.1, 0.2, 0.2).
+        bounding_box_format: The format of bounding boxes of input dataset.
+            Refer [to the keras.io docs]
+            (https://keras.io/api/keras_cv/bounding_box/formats/) for more
+            details on supported bounding box formats.
+        anchor_generator: `keras_cv.layers.AnchorGenerator` instance to produce
+            anchor boxes. Boxes are then used to encode labels on a per-image
+            basis.
+        positive_threshold: the float threshold to set an anchor to positive
+            match to gt box. Values above it are positive matches.
+        negative_threshold: the float threshold to set an anchor to negative
+            match to gt box. Values below it are negative matches.
+        box_variance: The scaling factors used to scale the bounding box
+            targets. Defaults to (0.1, 0.1, 0.2, 0.2).
         background_class: (Optional) The class ID used for the background class.
             Defaults to -1.
-        ignore_class: (Optional) The class ID used for the ignore class. Defaults to -2.
+        ignore_class: (Optional) The class ID used for the ignore class.
+            Defaults to -2.
     """
 
     def __init__(
@@ -133,11 +136,11 @@ class RetinaNetLabelEncoder(layers.Layer):
         )
         label = tf.concat([box_target, cls_target], axis=-1)
 
-        # In the case that a box in the corner of an image matches with an all -1 box
-        # that is outside of the image, we should assign the box to the ignore class
-        # There are rare cases where a -1 box can be matched, resulting in a NaN during
-        # training.  The unit test passing all -1s to the label encoder ensures that we
-        # properly handle this edge-case.
+        # In the case that a box in the corner of an image matches with an all
+        # -1 box that is outside the image, we should assign the box to the
+        # ignore class. There are rare cases where a -1 box can be matched,
+        # resulting in a NaN during training. The unit test passing all -1s to
+        # the label encoder ensures that we properly handle this edge-case.
         label = tf.where(
             tf.expand_dims(
                 tf.math.reduce_any(tf.math.is_nan(label), axis=-1), axis=-1
@@ -173,13 +176,13 @@ class RetinaNetLabelEncoder(layers.Layer):
         Args:
           images: a batched [batch_size, H, W, C] image float `tf.Tensor`.
           box_labels: a batched KerasCV style bounding box dictionary containing
-            bounding boxes and class labels.  Should be in `bounding_box_format`.
+            bounding boxes and class labels. Should be in `bounding_box_format`.
         """
         if isinstance(images, tf.RaggedTensor):
             raise ValueError(
                 "`RetinaNetLabelEncoder`'s `call()` method does not "
-                "support RaggedTensor inputs for the `images` argument.  Received "
-                f"`type(images)={type(images)}`."
+                "support RaggedTensor inputs for the `images` argument. "
+                f"Received `type(images)={type(images)}`."
             )
 
         box_labels = bounding_box.to_dense(box_labels)

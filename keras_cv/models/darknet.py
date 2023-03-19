@@ -33,8 +33,8 @@ from keras_cv.models.weights import parse_weights
 BASE_DOCSTRING = """Represents the {name} architecture.
 
     Although the {name} architecture is commonly used for detection tasks, it is
-    possible to extract the intermediate dark2 to dark5 layers from the model for
-    creating a feature pyramid Network.
+    possible to extract the intermediate dark2 to dark5 layers from the model
+    for creating a feature pyramid Network.
 
     Reference:
         - [YoloV3 Paper](https://arxiv.org/abs/1804.02767)
@@ -45,12 +45,12 @@ BASE_DOCSTRING = """Represents the {name} architecture.
         https://keras.io/guides/transfer_learning/).
 
     Args:
-        include_rescaling: bool, whether or not to rescale the inputs. If set to True,
-            inputs will be passed through a `Rescaling(1/255.0)` layer.
-        include_top: bool, whether to include the fully-connected layer at the top of
-            the network.  If provided, `num_classes` must be provided.
-        num_classes: integer, optional number of classes to classify images into. Only to be
-            specified if `include_top` is True.
+        include_rescaling: bool, whether or not to rescale the inputs. If set to
+            True, inputs will be passed through a `Rescaling(1/255.0)` layer.
+        include_top: bool, whether to include the fully-connected layer at the
+            top of the network. If provided, `num_classes` must be provided.
+        num_classes: integer, optional number of classes to classify images
+            into. Only to be specified if `include_top` is True.
         weights: one of `None` (random initialization), or a pretrained weight
             file path.
         input_shape: optional shape tuple, defaults to (None, None, 3).
@@ -58,11 +58,11 @@ BASE_DOCSTRING = """Represents the {name} architecture.
             to use as image input for the model.
         pooling: optional pooling mode for feature extraction when `include_top`
             is `False`.
-            - `None` means that the output of the model will be the 4D tensor output
-                of the last convolutional block.
+            - `None` means that the output of the model will be the 4D tensor
+                output of the last convolutional block.
             - `avg` means that global average pooling will be applied to the
-                output of the last convolutional block, and thus the output of the
-                model will be a 2D tensor.
+                output of the last convolutional block, and thus the output of
+                the model will be a 2D tensor.
             - `max` means that global max pooling will be applied.
         name: string, optional name to pass to the model, defaults to "{name}".
 
@@ -77,24 +77,25 @@ class DarkNet(keras.Model):
     """Represents the DarkNet architecture.
 
     The DarkNet architecture is commonly used for detection tasks. It is
-    possible to extract the intermediate dark2 to dark5 layers from the model for
-    creating a feature pyramid Network.
+    possible to extract the intermediate dark2 to dark5 layers from the model
+    for creating a feature pyramid Network.
 
     Reference:
         - [YoloV3 Paper](https://arxiv.org/abs/1804.02767)
         - [YoloV3 implementation](https://github.com/ultralytics/yolov3)
     For transfer learning use cases, make sure to read the
-    [guide to transfer learning & fine-tuning](
-        https://keras.io/guides/transfer_learning/).
+    [guide to transfer learning & fine-tuning]
+    (https://keras.io/guides/transfer_learning/).
 
     Args:
-        blocks: integer, numbers of building blocks from the layer dark2 to layer dark5.
+        blocks: integer, numbers of building blocks from the layer dark2 to
+            layer dark5.
         include_rescaling: bool, whether to rescale the inputs. If set to True,
             inputs will be passed through a `Rescaling(1/255.0)` layer.
-        include_top: bool, whether to include the fully-connected layer at the top of
-            the network.  If provided, `num_classes` must be provided.
-        num_classes: integer, optional number of classes to classify images into. Only to be
-            specified if `include_top` is True.
+        include_top: bool, whether to include the fully-connected layer at the
+            top of the network. If provided, `num_classes` must be provided.
+        num_classes: integer, optional number of classes to classify images
+            into. Only to be specified if `include_top` is True.
         weights: one of `None` (random initialization) or a pretrained weight
             file path.
         input_shape: optional shape tuple, defaults to (None, None, 3).
@@ -102,15 +103,16 @@ class DarkNet(keras.Model):
             to use as image input for the model.
         pooling: optional pooling mode for feature extraction when `include_top`
             is `False`.
-            - `None` means that the output of the model will be the 4D tensor output
-                of the last convolutional block.
+            - `None` means that the output of the model will be the 4D tensor
+                output of the last convolutional block.
             - `avg` means that global average pooling will be applied to the
-                output of the last convolutional block, and thus the output of the
-                model will be a 2D tensor.
+                output of the last convolutional block, and thus the output of
+                the model will be a 2D tensor.
             - `max` means that global max pooling will be applied.
-        classifier_activation: A `str` or callable. The activation function to use
-            on the "top" layer. Ignored unless `include_top=True`. Set
-            `classifier_activation=None` to return the logits of the "top" layer.
+        classifier_activation: A `str` or callable. The activation function to
+            use on the "top" layer. Ignored unless `include_top=True`. Set
+            `classifier_activation=None` to return the logits of the "top"
+            layer.
         name: string, optional name to pass to the model, defaults to "DarkNet".
 
     Returns:
@@ -133,14 +135,15 @@ class DarkNet(keras.Model):
     ):
         if weights and not tf.io.gfile.exists(weights):
             raise ValueError(
-                "The `weights` argument should be either `None` or the path to the "
-                f"weights file to be loaded. Weights file not found at location: {weights}"
+                "The `weights` argument should be either `None` or the path to "
+                "the weights file to be loaded. Weights file not found at "
+                f"location: {weights}"
             )
 
         if include_top and not num_classes:
             raise ValueError(
-                "If `include_top` is True, you should specify `num_classes`. Received: "
-                f"num_classes={num_classes}"
+                "If `include_top` is True, you should specify `num_classes`. "
+                f"Received: num_classes={num_classes}"
             )
 
         inputs = utils.parse_model_inputs(input_shape, input_tensor)
@@ -164,7 +167,8 @@ class DarkNet(keras.Model):
         # filters for the ResidualBlock outputs
         filters = [128, 256, 512, 1024]
 
-        # layer_num is used for naming the residual blocks (starts with dark2, hence 2)
+        # layer_num is used for naming the residual blocks
+        # (starts with dark2, hence 2)
         layer_num = 2
 
         for filter, block in zip(filters, blocks):

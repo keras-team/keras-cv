@@ -62,8 +62,8 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
         include_rescaling: bool, whether or not to Rescale the inputs. If set
             to `True`, inputs will be passed through a `Rescaling(1/255.0)`
             layer.
-        include_top: bool, whether to include the fully-connected layer at
-            the top of the network.  If provided, `num_classes` must be provided.
+        include_top: bool, whether to include the fully-connected layer at the
+            top of the network. If provided, `num_classes` must be provided.
         depths: an iterable containing depths for each individual stages.
         projection_dims: An iterable containing output number of channels of
             each individual stages.
@@ -72,24 +72,26 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
         layer_scale_init_value: layer scale coefficient, if 0.0, layer scaling
             won't be used.
         weights: one of `None` (random initialization), a pretrained weight file
-            path, or a reference to pre-trained weights (e.g. 'imagenet/classification')
-            (see available pre-trained weights in weights.py)
+            path, or a reference to pre-trained weights (e.g.
+            'imagenet/classification')(see available pre-trained weights in
+            weights.py)
         input_shape: optional shape tuple, defaults to (None, None, 3).
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
             to use as image input for the model.
         pooling: optional pooling mode for feature extraction
             when `include_top` is `False`.
-            - `None` means that the output of the model will be the 4D tensor output
-                of the last convolutional block.
-            - `avg` means that global average pooling will be applied to the output
-                of the last convolutional block, and thus the output of the model will
-                be a 2D tensor.
+            - `None` means that the output of the model will be the 4D tensor
+                output of the last convolutional block.
+            - `avg` means that global average pooling will be applied to the
+                output of the last convolutional block, and thus the output of
+                the model will be a 2D tensor.
             - `max` means that global max pooling will be applied.
-        num_classes: optional int, number of classes to classify images into (only
-            to be specified if `include_top` is `True`).
-        classifier_activation: A `str` or callable. The activation function to use
-            on the "top" layer. Ignored unless `include_top=True`. Set
-            `classifier_activation=None` to return the logits of the "top" layer.
+        num_classes: optional int, number of classes to classify images into
+            (only to be specified if `include_top` is `True`).
+        classifier_activation: A `str` or callable. The activation function to
+            use on the "top" layer. Ignored unless `include_top=True`. Set
+            `classifier_activation=None` to return the logits of the "top"
+            layer.
         name: (Optional) name to pass to the model.  Defaults to "{name}".
 
     Returns:
@@ -144,7 +146,7 @@ def apply_block(
     """ConvNeXt block.
     References:
       - https://arxiv.org/abs/2201.03545
-      - https://github.com/facebookresearch/ConvNeXt/blob/main/models/convnext.py
+      - https://github.com/facebookresearch/ConvNeXt/blob/main/models/convnext.py  # noqa: E501
     Notes:
       In the original ConvNeXt implementation (linked above), the authors use
       `Dense` layers for pointwise convolutions for increased efficiency.
@@ -217,45 +219,47 @@ def apply_head(x, num_classes, activation="softmax", name=None):
 class ConvNeXt(keras.Model):
     """Instantiates ConvNeXt architecture given specific configuration.
     Args:
-      include_rescaling: bool, whether or not to Rescale the inputs. If set
+        include_rescaling: bool, whether or not to Rescale the inputs. If set
             to `True`, inputs will be passed through a `Rescaling(1/255.0)`
             layer.
-        include_top: bool, whether to include the fully-connected layer at
-            the top of the network.  If provided, `num_classes` must be provided.
-      depths: An iterable containing depths for each individual stages.
-      projection_dims: An iterable containing output number of channels of
-      each individual stages.
-      drop_path_rate: Stochastic depth probability. If 0.0, then stochastic
+        include_top: bool, whether to include the fully-connected layer at the
+            top of the network. If provided, `num_classes` must be provided.
+        depths: An iterable containing depths for each individual stages.
+        projection_dims: An iterable containing output number of channels of
+        each individual stages.
+        drop_path_rate: Stochastic depth probability. If 0.0, then stochastic
         depth won't be used.
-      layer_scale_init_value: Layer scale coefficient. If 0.0, layer scaling
+        layer_scale_init_value: Layer scale coefficient. If 0.0, layer scaling
         won't be used.
-      weights: one of `None` (random initialization), a pretrained weight file
-            path, or a reference to pre-trained weights (e.g. 'imagenet/classification')
-            (see available pre-trained weights in weights.py)
-      input_shape: optional shape tuple, defaults to (None, None, 3).
+        weights: one of `None` (random initialization), a pretrained weight file
+            path, or a reference to pre-trained weights (e.g.
+            'imagenet/classification')(see available pre-trained weights in
+            weights.py)
+        input_shape: optional shape tuple, defaults to (None, None, 3).
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
             to use as image input for the model.
-      pooling: optional pooling mode for feature extraction
+        pooling: optional pooling mode for feature extraction
             when `include_top` is `False`.
-            - `None` means that the output of the model will be the 4D tensor output
-                of the last convolutional block.
-            - `avg` means that global average pooling will be applied to the output
-                of the last convolutional block, and thus the output of the model will
-                be a 2D tensor.
+            - `None` means that the output of the model will be the 4D tensor
+                output of the last convolutional block.
+            - `avg` means that global average pooling will be applied to the
+                output of the last convolutional block, and thus the output of
+                the model will be a 2D tensor.
             - `max` means that global max pooling will be applied.
-      num_classes: optional int, number of classes to classify images into (only
-            to be specified if `include_top` is `True`).
-      classifier_activation: A `str` or callable. The activation function to use
-            on the "top" layer. Ignored unless `include_top=True`. Set
-            `classifier_activation=None` to return the logits of the "top" layer.
-      name: (Optional) name to pass to the model.  Defaults to "convnext".
+        num_classes: optional int, number of classes to classify images into
+            (only to be specified if `include_top` is `True`).
+        classifier_activation: A `str` or callable. The activation function to
+            use on the "top" layer. Ignored unless `include_top=True`. Set
+            `classifier_activation=None` to return the logits of the "top"
+            layer.
+        name: (Optional) name to pass to the model.  Defaults to "convnext".
     Returns:
       A `keras.Model` instance.
     Raises:
-        ValueError: in case of invalid argument for `weights`,
-          or invalid input shape.
-        ValueError: if `classifier_activation` is not `softmax`, or `None`
-          when using a pretrained top layer.
+        ValueError: in case of invalid argument for `weights`, or invalid input
+            shape.
+        ValueError: if `classifier_activation` is not `softmax`, or `None` when
+            using a pretrained top layer.
         ValueError: if `include_top` is True but `num_classes` is not specified.
     """
 

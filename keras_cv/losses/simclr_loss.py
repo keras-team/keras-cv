@@ -24,7 +24,8 @@ class SimCLRLoss(tf.keras.losses.Loss):
     SimCLR loss is used for contrastive self-supervised learning.
 
     Args:
-        temperature: a float value between 0 and 1, used as a scaling factor for cosine similarity.
+        temperature: a float value between 0 and 1, used as a scaling factor for
+            cosine similarity.
 
     References:
         - [SimCLR paper](https://arxiv.org/pdf/2002.05709)
@@ -35,14 +36,18 @@ class SimCLRLoss(tf.keras.losses.Loss):
         self.temperature = temperature
 
     def call(self, projections_1, projections_2):
-        """Computes SimCLR loss for a pair of projections in a contrastive learning trainer.
+        """Computes SimCLR loss for a pair of projections in a contrastive
+        learning trainer.
 
-        Note that unlike most loss functions, this should not be called with y_true and y_pred,
-        but with two unlabeled projections. It can otherwise be treated as a normal loss function.
+        Note that unlike most loss functions, this should not be called with
+        y_true and y_pred, but with two unlabeled projections. It can otherwise
+        be treated as a normal loss function.
 
         Args:
-            projections_1: a tensor with the output of the first projection model in a contrastive learning trainer
-            projections_2: a tensor with the output of the second projection model in a contrastive learning trainer
+            projections_1: a tensor with the output of the first projection
+                model in a contrastive learning trainer
+            projections_2: a tensor with the output of the second projection
+                model in a contrastive learning trainer
 
         Returns:
             A tensor with the SimCLR loss computed from the input projections

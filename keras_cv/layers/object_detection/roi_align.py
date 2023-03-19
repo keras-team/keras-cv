@@ -343,7 +343,7 @@ def multilevel_crop_and_resize(
         )
 
         # TODO(tanzhenyu): replace tf.gather with tf.gather_nd and try to get similar
-        # performance.
+        #  performance.
         features_per_box = tf.reshape(
             tf.gather(features_r2, indices),
             [
@@ -362,9 +362,9 @@ def multilevel_crop_and_resize(
         return features_per_box
 
 
-# TODO(tanzhenyu): Remove this implementation once roi_pool has better performance.
-# as this is mostly a duplicate of
-# https://github.com/tensorflow/models/blob/master/official/legacy/detection/ops/spatial_transform_ops.py#L324
+# TODO(tanzhenyu): Remove this implementation once roi_pool has better
+#  performance as this is mostly a duplicate of
+#  https://github.com/tensorflow/models/blob/master/official/legacy/detection/ops/spatial_transform_ops.py#L324
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
 class _ROIAligner(tf.keras.layers.Layer):
     """Performs ROIAlign for the second stage processing."""

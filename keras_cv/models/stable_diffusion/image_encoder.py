@@ -52,10 +52,9 @@ class ImageEncoder(keras.Sequential):
                 PaddedConv2D(8, 3, padding=1),
                 PaddedConv2D(8, 1),
                 # TODO(lukewood): can this be refactored to be a Rescaling
-                #                 layer?
-                # Perhaps some sort of rescale and gather?
-                # Either way, we may need a lambda to gather the first 4
-                # dimensions.
+                #  layer? Perhaps some sort of rescale and gather?
+                #  Either way, we may need a lambda to gather the first 4
+                #  dimensions.
                 keras.layers.Lambda(lambda x: x[..., :4] * 0.18215),
             ]
         )

@@ -25,7 +25,7 @@ from keras_cv.metrics.coco import utils
 class _BoxRecall(keras.metrics.Metric):
     """_BoxRecall computes recall based on varying true positive IoU thresholds.
 
-    _BoxRecall is analagous to traditional Recall.  The primary distinction is
+    _BoxRecall is analogous to traditional Recall. The primary distinction is
     that when operating in the problem domain of object detection there exists
     ambiguity in what is considered a true positive.  The _BoxRecall metric
     works by using the Intersection over Union (IoU) metric to determine whether
@@ -40,9 +40,9 @@ class _BoxRecall(keras.metrics.Metric):
         class_ids: The class IDs to evaluate the metric for.  To evaluate for
             all classes in over a set of sequentially labelled classes, pass
             `range(num_classes)`.
-        bounding_box_format: Format of the incoming bounding boxes.  Supported values
-            are "xywh", "center_xywh", "xyxy".
-        iou_thresholds: IoU thresholds over which to evaluate the recall.  Must
+        bounding_box_format: Format of the incoming bounding boxes. Supported
+            values are "xywh", "center_xywh", "xyxy".
+        iou_thresholds: IoU thresholds over which to evaluate the recall. Must
             be a tuple of floats, defaults to [0.5:0.05:0.95].
         area_range: area range to constrict the considered bounding boxes in
             metric computation. Defaults to `None`, which makes the metric

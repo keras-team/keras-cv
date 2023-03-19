@@ -27,26 +27,26 @@ POINTCLOUD_FEATURE_INDEX = 4
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
 class BaseAugmentationLayer3D(tf.keras.__internal__.layers.BaseRandomLayer):
-    """Abstract base layer for data augmentaion for 3D preception.
+    """Abstract base layer for data augmentation for 3D perception.
 
     This layer contains base functionalities for preprocessing layers which
-    augment 3D preception related data, eg. point_clouds and in future, images.
-    The subclasses could avoid making certain mistakes and reduce code
+    augment 3D perception related data, e.g. point_clouds and in the future,
+    images. The subclasses could avoid making certain mistakes and reduce code
     duplications.
 
     This layer requires you to implement one method: `augment_point_clouds()`,
-    which augments one or a sequence of point clouds during the training. There are a few
-    additional methods that you can implement for added functionality on the
-    layer:
+    which augments one or a sequence of point clouds during the training. There
+    are a few additional methods that you can implement for added functionality
+    on the layer:
 
     `augment_bounding_boxes()`, which handles the bounding box augmentation, if
     the layer supports that.
 
     `get_random_transformation()`, which should produce a random transformation
-    setting. The tranformation object, which could be any type, will be passed
-    to `augment_point_clouds` and `augment_bounding_boxes`, to
-    coodinate the randomness behavior, eg, in the RotateZ layer, the point_clouds
-    and bounding_boxes should be changed in the same way.
+    setting. The transformation object, which could be any type, will be passed
+    to `augment_point_clouds` and `augment_bounding_boxes`, to coordinate the
+    randomness behavior, eg, in the RotateZ layer, the point_clouds and
+    bounding_boxes should be changed in the same way.
 
     The `call()` method support two formats of inputs:
     1. A dict of tensors with stable keys. The supported keys are:
@@ -60,10 +60,10 @@ class BaseAugmentationLayer3D(tf.keras.__internal__.layers.BaseRandomLayer):
     unpack the inputs, forward to the correct function, and pack the output back
     to the same structure as the inputs.
 
-    By default the `call()` method leverages the `tf.vectorized_map()` function.
-    Auto-vectorization can be disabled by setting `self.auto_vectorize = False`
-    in your `__init__()` method.  When disabled, `call()` instead relies
-    on `tf.map_fn()`. For example:
+    By default, the `call()` method leverages the `tf.vectorized_map()`
+    function. Auto-vectorization can be disabled by setting
+    `self.auto_vectorize = False` in your `__init__()` method. When disabled,
+    `call()` instead relies on `tf.map_fn()`. For example:
 
     ```python
     class SubclassLayer(keras_cv.BaseImageAugmentationLayer):
@@ -89,7 +89,7 @@ class BaseAugmentationLayer3D(tf.keras.__internal__.layers.BaseRandomLayer):
         return pointcloud, boxes
     ```
 
-    Note that since the randomness is also a common functionnality, this layer
+    Note that since the randomness is also a common functionality, this layer
     also includes a tf.keras.backend.RandomGenerator, which can be used to
     produce the random numbers.  The random number generator is stored in the
     `self._random_generator` attribute.
@@ -103,7 +103,7 @@ class BaseAugmentationLayer3D(tf.keras.__internal__.layers.BaseRandomLayer):
     def auto_vectorize(self):
         """Control whether automatic vectorization occurs.
 
-        By default the `call()` method leverages the `tf.vectorized_map()`
+        By default, the `call()` method leverages the `tf.vectorized_map()`
         function.  Auto-vectorization can be disabled by setting
         `self.auto_vectorize = False` in your `__init__()` method.  When
         disabled, `call()` instead relies on `tf.map_fn()`. For example:
@@ -155,7 +155,7 @@ class BaseAugmentationLayer3D(tf.keras.__internal__.layers.BaseRandomLayer):
 
         Args:
           point_clouds: 3D point clouds tensor from inputs.
-          bounding_box: 3D bounding boxes tensor from inputs.
+          bounding_boxes: 3D bounding boxes tensor from inputs.
 
         Returns:
           Any type of object, which will be forwarded to `augment_point_clouds`,
@@ -175,8 +175,10 @@ class BaseAugmentationLayer3D(tf.keras.__internal__.layers.BaseRandomLayer):
                 return self._batch_augment(inputs)
             else:
                 raise ValueError(
-                    "Point clouds augmentation layers are expecting inputs point clouds and bounding boxes to "
-                    "be rank 3D (Frame, Point, Feature) or 4D (Batch, Frame, Point, Feature) tensors. Got shape: {} and {}".format(
+                    "Point clouds augmentation layers are expecting inputs "
+                    "point clouds and bounding boxes to be rank 3D (Frame, "
+                    "Point, Feature) or 4D (Batch, Frame, Point, Feature) "
+                    "tensors. Got shape: {} and {}".format(
                         point_clouds.shape, bounding_boxes.shape
                     )
                 )

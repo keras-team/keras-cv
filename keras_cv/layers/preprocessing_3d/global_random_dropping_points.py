@@ -27,7 +27,8 @@ class GlobalRandomDroppingPoints(
     """A preprocessing layer which randomly drops point during training.
 
     This layer will randomly drop points based on keep_probability.
-    During inference time, the output will be identical to input. Call the layer with `training=True` to drop the input points.
+    During inference time, the output will be identical to input. Call the layer
+    with `training=True` to drop the input points.
 
     Input shape:
       point_clouds: 3D (multi frames) float32 Tensor with shape
@@ -43,8 +44,10 @@ class GlobalRandomDroppingPoints(
       A dictionary of Tensors with the same shape as input Tensors.
 
     Arguments:
-      drop_rate: A float scalar sets the probability threshold for dropping the points.
-      exclude_classes: An optional int scalar or a list of ints. Points with the specified class(es) will not be dropped.
+      drop_rate: A float scalar sets the probability threshold for dropping the
+        points.
+      exclude_classes: An optional int scalar or a list of ints. Points with the
+        specified class(es) will not be dropped.
 
     """
 
@@ -84,8 +87,8 @@ class GlobalRandomDroppingPoints(
     ):
         point_mask = transformation["point_mask"]
 
-        # Do not add noise to points that are protected by setting the corresponding
-        # point_noise = 1.0.
+        # Do not add noise to points that are protected by setting the
+        # corresponding point_noise = 1.0.
         protected_points = tf.zeros_like(point_clouds[0, :, -1], dtype=tf.bool)
         for excluded_class in self._exclude_classes:
             protected_points |= point_clouds[0, :, -1] == excluded_class

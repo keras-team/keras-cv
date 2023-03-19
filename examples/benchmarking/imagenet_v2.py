@@ -80,8 +80,8 @@ def preprocess_image(img, label):
 
 
 # Todo
-# Include imagenet_val and imagenet_real as well and report
-# results for all three
+#  Include imagenet_val and imagenet_real as well and report
+#  results for all three
 (test_set), info = tfds.load(
     "imagenet_v2", split=["test"], as_supervised=True, with_info=True
 )
@@ -94,8 +94,8 @@ test_set = (
 )
 
 # Todo
-# Create a nicer report, include inference time
-# model size, etc.
+#  Create a nicer report, include inference time
+#  model size, etc.
 loss, acc, top_5 = model.evaluate(test_set, verbose=0)
 print(
     f"Benchmark results:\n{'='*25}\n{FLAGS.model_name} achieves: \n - Top-1 Accuracy: {acc*100} \n - Top-5 Accuracy: {top_5*100} \non ImageNetV2 with setup:"

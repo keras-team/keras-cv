@@ -25,15 +25,15 @@ SAMPLE_FILE = os.path.dirname(os.path.abspath(__file__)) + "/sample_boxes.npz"
 
 
 class RecallCorrectnessTest(tf.test.TestCase):
-    """Unit tests that test Keras COCO metric results against the known good ones of
-    cocoeval.py.  The bounding boxes in sample_boxes.npz were given to cocoeval.py
-    which output the following values:
-    Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=  1 ] = 0.478
-    Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 10 ] = 0.645
-    Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.648
-    Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.628
-    Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.653
-    Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.641
+    """Unit tests that test Keras COCO metric results against the known good
+    ones of cocoeval.py. The bounding boxes in sample_boxes.npz were given to
+    cocoeval.py which output the following values:
+    Average Recall   (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=  1 ] = 0.478
+    Average Recall   (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 10 ] = 0.645
+    Average Recall   (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.648
+    Average Recall   (AR) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.628
+    Average Recall   (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.653
+    Average Recall   (AR) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.641
     """
 
     def test_recall_correctness_maxdets_1(self):

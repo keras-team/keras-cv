@@ -44,7 +44,7 @@ class FrustumRandomDroppingPointTest(tf.test.TestCase):
         outputs = add_layer(inputs)
         self.assertAllClose(inputs, outputs)
 
-    def test_not_augment_drop_rate1_frustum_empty_point_clouds_and_bounding_boxes(
+    def test_not_augment_drop_rate1_frustum_empty_point_clouds_and_bounding_boxes(  # noqa: E501
         self,
     ):
         add_layer = FrustumRandomDroppingPoints(

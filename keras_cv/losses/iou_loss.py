@@ -22,17 +22,18 @@ class IoULoss(tf.keras.losses.Loss):
     """Implements the IoU Loss
 
     IoU loss is commonly used for object detection. This loss aims to directly
-    optimize the IoU score between true boxes and predicted boxes. The length of the
-    last dimension should be 4 to represent the bounding boxes. This loss
-    uses IoUs according to box pairs and therefore, the number of boxes in both y_true
-    and y_pred are expected to be equal i.e. the i<sup>th</sup> y_true box in a batch
-    will be compared the i<sup>th</sup> y_pred box.
+    optimize the IoU score between true boxes and predicted boxes. The length of
+    the last dimension should be 4 to represent the bounding boxes. This loss
+    uses IoUs according to box pairs and therefore, the number of boxes in both
+    y_true and y_pred are expected to be equal i.e. the i<sup>th</sup>
+    y_true box in a batch will be compared the i<sup>th</sup> y_pred box.
 
     Args:
         bounding_box_format: a case-insensitive string (for example, "xyxy").
             Each bounding box is defined by these 4 values. For detailed
             information on the supported formats, see the
-            [KerasCV bounding box documentation](https://keras.io/api/keras_cv/bounding_box/formats/).
+            [KerasCV bounding box documentation]
+            (https://keras.io/api/keras_cv/bounding_box/formats/).
         mode: must be one of
             - `"linear"`. The loss will be calculated as 1 - iou
             - `"quadratic"`. The loss will be calculated as 1 - iou<sup>2</sup>
@@ -45,8 +46,16 @@ class IoULoss(tf.keras.losses.Loss):
 
     Sample Usage:
     ```python
-    y_true = tf.random.uniform((5, 10, 5), minval=0, maxval=10, dtype=tf.dtypes.int32)
-    y_pred = tf.random.uniform((5, 10, 4), minval=0, maxval=10, dtype=tf.dtypes.int32)
+    y_true = tf.random.uniform(
+        (5, 10, 5),
+        minval=0,
+        maxval=10,
+        dtype=tf.dtypes.int32)
+    y_pred = tf.random.uniform(
+        (5, 10, 4),
+        minval=0,
+        maxval=10,
+        dtype=tf.dtypes.int32)
     loss = IoULoss(bounding_box_format = "xyWH")
     loss(y_true, y_pred).numpy()
     ```
@@ -65,8 +74,8 @@ class IoULoss(tf.keras.losses.Loss):
 
         if self.mode not in ["linear", "quadratic", "log"]:
             raise ValueError(
-                "IoULoss expects mode to be one of 'linear', 'quadratic' or 'log' "
-                f"Received mode={self.mode}, "
+                "IoULoss expects mode to be one of 'linear', 'quadratic' or "
+                f"'log' Received mode={self.mode}, "
             )
 
     def call(self, y_true, y_pred):
@@ -75,21 +84,22 @@ class IoULoss(tf.keras.losses.Loss):
 
         if y_pred.shape[-1] != 4:
             raise ValueError(
-                "IoULoss expects y_pred.shape[-1] to be 4 to represent "
-                f"the bounding boxes. Received y_pred.shape[-1]={y_pred.shape[-1]}."
+                "IoULoss expects y_pred.shape[-1] to be 4 to represent the "
+                f"bounding boxes. Received y_pred.shape[-1]={y_pred.shape[-1]}."
             )
 
         if y_true.shape[-1] != 4:
             raise ValueError(
-                "IoULoss expects y_true.shape[-1] to be 4 to represent "
-                f"the bounding boxes. Received y_true.shape[-1]={y_true.shape[-1]}."
+                "IoULoss expects y_true.shape[-1] to be 4 to represent the "
+                f"bounding boxes. Received y_true.shape[-1]={y_true.shape[-1]}."
             )
 
         if y_true.shape[-2] != y_pred.shape[-2]:
             raise ValueError(
-                "IoULoss expects number of boxes in y_pred to be equal to the number "
-                f"of boxes in y_true. Received number of boxes in y_true={y_true.shape[-2]} "
-                f"and number of boxes in y_pred={y_pred.shape[-2]}."
+                "IoULoss expects number of boxes in y_pred to be equal to the "
+                "number of boxes in y_true. Received number of boxes in "
+                f"y_true={y_true.shape[-2]} and number of boxes in "
+                f"y_pred={y_pred.shape[-2]}."
             )
 
         iou = bounding_box.compute_iou(y_true, y_pred, self.bounding_box_format)

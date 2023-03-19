@@ -22,13 +22,19 @@ class TransformerEncoder(layers.Layer):
     Transformer encoder block implementation as a Keras Layer.
 
     Args:
-        project_dim: the dimensionality of the projection of the encoder, and output of the `MultiHeadAttention`
-        mlp_dim: the intermediate dimensionality of the MLP head before projecting to `project_dim`
+        project_dim: the dimensionality of the projection of the encoder, and
+            output of the `MultiHeadAttention`
+        mlp_dim: the intermediate dimensionality of the MLP head before
+            projecting to `project_dim`
         num_heads: the number of heads for the `MultiHeadAttention` layer
-        mlp_dropout: default 0.1, the dropout rate to apply between the layers of the MLP head of the encoder
-        attention_dropout: default 0.1, the dropout rate to apply in the MultiHeadAttention layer
-        activation: default 'tf.activations.gelu', the activation function to apply in the MLP head - should be a function
-        layer_norm_epsilon: default 1e-06, the epsilon for `LayerNormalization` layers
+        mlp_dropout: default 0.1, the dropout rate to apply between the layers
+            of the MLP head of the encoder
+        attention_dropout: default 0.1, the dropout rate to apply in the
+            MultiHeadAttention layer
+        activation: default 'tf.activations.gelu', the activation function to
+            apply in the MLP head - should be a function
+        layer_norm_epsilon: default 1e-06, the epsilon for `LayerNormalization`
+            layers
 
     Basic usage:
 
@@ -37,10 +43,12 @@ class TransformerEncoder(layers.Layer):
     mlp_dim = 3072
     num_heads = 4
 
-    encoded_patches = keras_cv.layers.PatchingAndEmbedding(project_dim=project_dim, patch_size=16)(img_batch)
+    encoded_patches = keras_cv.layers.PatchingAndEmbedding(
+        project_dim=project_dim,
+        patch_size=16)(img_batch)
     trans_encoded = keras_cv.layers.TransformerEncoder(project_dim=project_dim,
-                                                       mlp_dim = mlp_dim,
-                                                       num_heads=num_heads)(encoded_patches)
+        mlp_dim = mlp_dim,
+        num_heads=num_heads)(encoded_patches)
 
     print(trans_encoded.shape) # (1, 197, 1024)
     ```
@@ -92,7 +100,9 @@ class TransformerEncoder(layers.Layer):
 
         if inputs.shape[-1] != self.project_dim:
             raise ValueError(
-                f"The input and output dimensionality must be the same, but the TransformerEncoder was provided with {inputs.shape[-1]} and {self.project_dim}"
+                "The input and output dimensionality must be the same, but the "
+                f"TransformerEncoder was provided with {inputs.shape[-1]} and "
+                f"{self.project_dim}"
             )
 
         x = self.layer_norm1(inputs)

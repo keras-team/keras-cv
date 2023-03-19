@@ -24,7 +24,8 @@ class _COCOMeanAveragePrecision(tf.keras.metrics.Metric):
     """_COCOMeanAveragePrecision computes an approximation of MaP.
 
     A usage guide is available on keras.io:
-    [Using KerasCV COCO metrics](https://keras.io/guides/keras_cv/coco_metrics/).
+    [Using KerasCV COCO metrics]
+    (https://keras.io/guides/keras_cv/coco_metrics/).
     Full implementation details are available in the
     [KerasCV COCO metrics whitepaper](https://arxiv.org/abs/2207.12120).
 
@@ -32,9 +33,9 @@ class _COCOMeanAveragePrecision(tf.keras.metrics.Metric):
         class_ids: The class IDs to evaluate the metric for.  To evaluate for
             all classes in over a set of sequentially labelled classes, pass
             `range(num_classes)`.
-        bounding_box_format: Format of the incoming bounding boxes.  Supported values
-            are "xywh", "center_xywh", "xyxy".
-        iou_thresholds: IoU thresholds over which to evaluate the recall.  Must
+        bounding_box_format: Format of the incoming bounding boxes. Supported
+            values are "xywh", "center_xywh", "xyxy".
+        iou_thresholds: IoU thresholds over which to evaluate the recall. Must
             be a tuple of floats, defaults to [0.5:0.05:0.95].
         area_range: area range to constrict the considered bounding boxes in
             metric computation. Defaults to `None`, which makes the metric
@@ -79,10 +80,12 @@ class _COCOMeanAveragePrecision(tf.keras.metrics.Metric):
         class_ids=[1]
     )
 
-    y_true = np.array([[[0, 0, 10, 10, 1], [20, 20, 10, 10, 1]]]).astype(np.float32)
-    y_pred = np.array([[[0, 0, 10, 10, 1, 1.0], [5, 5, 10, 10, 1, 0.9]]]).astype(
-        np.float32
-    )
+    y_true = np.array(
+        [[[0, 0, 10, 10, 1], [20, 20, 10, 10, 1]]]
+            ).astype(np.float32)
+    y_pred = np.array(
+        [[[0, 0, 10, 10, 1, 1.0], [5, 5, 10, 10, 1, 0.9]]]
+            ).astype(np.float32)
     coco_map.update_state(y_true, y_pred)
     coco_map.result()
     # 0.24752477

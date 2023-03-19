@@ -28,15 +28,15 @@ class MeanAveragePrecisionTest(tf.test.TestCase):
     """Numerical testing for _COCOMeanAveragePrecision.
 
     Unit tests that test Keras COCO metric results against the known values of
-    cocoeval.py.  The bounding boxes in sample_boxes.npz were given to
+    cocoeval.py. The bounding boxes in sample_boxes.npz were given to
     cocoeval.py, which computed the following values:
 
-    Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.617
-    Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = 1.000
-    Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=100 ] = 0.707
-    Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.604
-    Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.626
-    Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.610
+    Average Precision(AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.617
+    Average Precision(AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = 1.000
+    Average Precision(AP) @[ IoU=0.75      | area=   all | maxDets=100 ] = 0.707
+    Average Precision(AP) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.604
+    Average Precision(AP) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.626
+    Average Precision(AP) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.610
     """
 
     def DISABLE_test_mean_average_precision_correctness_default(self):

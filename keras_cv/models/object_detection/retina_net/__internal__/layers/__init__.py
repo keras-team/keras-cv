@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from keras_cv.models.object_detection.retina_net.__internal__.layers.feature_pyramid import (
+from keras_cv.models.object_detection.retina_net.__internal__.layers.feature_pyramid import (  # noqa: E501
     FeaturePyramid,
 )
-from keras_cv.models.object_detection.retina_net.__internal__.layers.prediction_head import (
+from keras_cv.models.object_detection.retina_net.__internal__.layers.prediction_head import (  # noqa: E501
     PredictionHead,
 )

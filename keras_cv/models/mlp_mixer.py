@@ -15,7 +15,8 @@
 """MLP Mixer models for KerasCV.
 
 Reference:
-  - [MLP-Mixer: An all-MLP Architecture for Vision](https://arxiv.org/abs/2105.01601)
+  - [MLP-Mixer: An all-MLP Architecture for Vision]
+    (https://arxiv.org/abs/2105.01601)
 """
 
 import tensorflow as tf
@@ -52,7 +53,8 @@ MODEL_CONFIGS = {
 BASE_DOCSTRING = """Instantiates the {name} architecture.
 
     Reference:
-        - [MLP-Mixer: An all-MLP Architecture for Vision](https://arxiv.org/abs/2105.01601)
+        - [MLP-Mixer: An all-MLP Architecture for Vision]
+          (https://arxiv.org/abs/2105.01601)
 
     This class represents a Keras {name} model.
 
@@ -60,30 +62,32 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
         learning & fine-tuning](https://keras.io/guides/transfer_learning/).
 
     Args:
-        include_rescaling: bool, whether or not to rescale the inputs. If set to True,
-            inputs will be passed through a `Rescaling(1/255.0)` layer.
-        include_top: bool, whether to include the fully-connected layer at the top of the
-            network.  If provided, num_classes must be provided.
-        num_classes: integer, optional number of classes to classify images into. Only to be
-            specified if `include_top` is True.
+        include_rescaling: bool, whether or not to rescale the inputs. If set to
+            True, inputs will be passed through a `Rescaling(1/255.0)` layer.
+        include_top: bool, whether to include the fully-connected layer at the
+            top of the network. If provided, num_classes must be provided.
+        num_classes: integer, optional number of classes to classify images
+            into. Only to be specified if `include_top` is True.
         weights: one of `None` (random initialization), a pretrained weight file
-            path, or a reference to pre-trained weights (e.g. 'imagenet/classification')
-            (see available pre-trained weights in weights.py)
+            path, or a reference to pre-trained weights (e.g.
+            'imagenet/classification')(see available pre-trained weights in
+            weights.py)
         input_shape: optional shape tuple, defaults to (None, None, 3).
         input_tensor: optional Keras tensor (i.e., output of `layers.Input()`)
             to use as image input for the model.
         pooling: optional pooling mode for feature extraction
             when `include_top` is `False`.
-            - `None` means that the output of the model will be the 4D tensor output
-                of the last convolutional block.
-            - `avg` means that global average pooling will be applied to the output
-                of the last convolutional block, and thus the output of the model will
-                be a 2D tensor.
+            - `None` means that the output of the model will be the 4D tensor
+                output of the last convolutional block.
+            - `avg` means that global average pooling will be applied to the
+                output of the last convolutional block, and thus the output of
+                the model will be a 2D tensor.
             - `max` means that global max pooling will be applied.
         name: string, optional name to pass to the model, defaults to "{name}".
-        classifier_activation: A `str` or callable. The activation function to use
-            on the "top" layer. Ignored unless `include_top=True`. Set
-            `classifier_activation=None` to return the logits of the "top" layer.
+        classifier_activation: A `str` or callable. The activation function to
+            use on the "top" layer. Ignored unless `include_top=True`. Set
+            `classifier_activation=None` to return the logits of the "top"
+            layer.
 
     Returns:
       A `keras.Model` instance.
@@ -149,13 +153,17 @@ class MLPMixer(keras.Model):
       patch_size: integer denoting the size of the patches to be extracted
         from the inputs (16 for extracting 16x16 patches for example).
       num_blocks: integer, number of mixer blocks.
-      hidden_dim: integer, dimension to which the patches will be linearly projected.
-      tokens_mlp_dim: integer, dimension of the MLP block responsible for tokens.
-      channels_mlp_dim: integer, dimension of the MLP block responsible for channels.
+      hidden_dim: integer, dimension to which the patches will be linearly
+        projected.
+      tokens_mlp_dim: integer, dimension of the MLP block responsible for
+        tokens.
+      channels_mlp_dim: integer, dimension of the MLP block responsible for
+        channels.
       include_rescaling: whether to rescale the inputs. If set to True,
         inputs will be passed through a `Rescaling(1/255.0)` layer.
       include_top: bool, whether to include the fully-connected
-        layer at the top of the network. If provided, num_classes must be provided.
+        layer at the top of the network. If provided, num_classes must be
+        provided.
       num_classes: integer, optional number of classes to classify images
         into. Only to be specified if `include_top` is True.
       weights: one of `None` (random initialization) or a pretrained

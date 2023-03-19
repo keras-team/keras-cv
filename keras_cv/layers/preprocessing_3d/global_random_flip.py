@@ -24,11 +24,13 @@ BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
 class GlobalRandomFlip(base_augmentation_layer_3d.BaseAugmentationLayer3D):
-    """A preprocessing layer which flips point clouds and bounding boxes with respect to the specified axis during training.
+    """A preprocessing layer which flips point clouds and bounding boxes with
+    respect to the specified axis during training.
 
     This layer will flip the whole scene with respect to the specified axes.
     Note that this layer currently only supports flipping over the Y axis.
-    During inference time, the output will be identical to input. Call the layer with `training=True` to flip the input.
+    During inference time, the output will be identical to input. Call the layer
+    with `training=True` to flip the input.
 
     Input shape:
       point_clouds: 3D (multi frames) float32 Tensor with shape
@@ -53,7 +55,8 @@ class GlobalRandomFlip(base_augmentation_layer_3d.BaseAugmentationLayer3D):
         if flip_x or flip_z:
             raise ValueError(
                 "GlobalRandomFlip currently only supports flipping over the Y "
-                f"axis. Received flip_x={flip_x}, flip_y={flip_y}, flip_z={flip_z}."
+                f"axis. Received flip_x={flip_x}, flip_y={flip_y}, "
+                f"flip_z={flip_z}."
             )
 
         if not (flip_x or flip_y or flip_z):

@@ -37,7 +37,8 @@ class ModelGardenFocalLoss(tf.keras.losses.Loss):
             )
             probs = tf.sigmoid(y_pred)
             probs_gt = tf.where(positive_label_mask, probs, 1.0 - probs)
-            # With small gamma, the implementation could produce NaN during back prop.
+            # With small gamma, the implementation could produce NaN during back
+            # prop.
             modulator = tf.pow(1.0 - probs_gt, self._gamma)
             loss = modulator * cross_entropy
             weighted_loss = tf.where(

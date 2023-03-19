@@ -24,13 +24,17 @@ BOX_LABEL_INDEX = base_augmentation_layer_3d.BOX_LABEL_INDEX
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
 class RandomDropBox(base_augmentation_layer_3d.BaseAugmentationLayer3D):
-    """A preprocessing layer which randomly drops object bounding boxes and points during training.
+    """A preprocessing layer which randomly drops object bounding boxes and
+    points during training.
 
-    This layer will randomly drop object point clouds and bounding boxes. Number of dropped bounding boxes
-    is sampled uniformly sampled between 0 and max_drop_bounding_boxes. If label_index is set, only bounding boxes with
-    box class == label_index will be sampled and dropped; otherwise, all valid bounding boxes (box class > 0) will be sampled and dropped.
+    This layer will randomly drop object point clouds and bounding boxes. Number
+    of dropped bounding boxes is sampled uniformly sampled between 0 and
+    max_drop_bounding_boxes. If label_index is set, only bounding boxes with box
+    class == label_index will be sampled and dropped; otherwise, all valid
+    bounding boxes (box class > 0) will be sampled and dropped.
 
-    During inference time, the output will be identical to input. Call the layer with `training=True` to drop object bounding boxes and points.
+    During inference time, the output will be identical to input. Call the layer
+    with `training=True` to drop object bounding boxes and points.
 
     Input shape:
       point_clouds: 3D (multi frames) float32 Tensor with shape
@@ -42,14 +46,18 @@ class RandomDropBox(base_augmentation_layer_3d.BaseAugmentationLayer3D):
 
 
     Output shape:
-      A tuple of two Tensors (point_clouds, bounding_boxes) with the same shape as input Tensors.
+      A tuple of two Tensors (point_clouds, bounding_boxes) with the same shape
+      as input Tensors.
 
     Arguments:
-      max_drop_bounding_boxes: A int non negative scalar sets the maximum number of dropped bounding boxes.
-        Do not drop any bounding boxe when max_drop_bounding_boxes = 0.
+      max_drop_bounding_boxes: A int non-negative scalar sets the maximum number
+        of dropped bounding boxes. Do not drop any bounding boxes when
+        max_drop_bounding_boxes = 0.
       label_index: An optional int scalar sets the target object index.
-        If label index is set, randomly drop bounding boxes, where box class == label_index.
-        If label index is None, randomly drop bounding boxes, where box class > 0.
+        If label index is set, randomly drop bounding boxes, where box
+        class == label_index.
+        If label index is None, randomly drop bounding boxes, where box
+        class > 0.
 
     """
 

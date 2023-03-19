@@ -86,17 +86,27 @@ class SwapBackgroundTest(tf.test.TestCase):
         }
         outputs = add_layer(inputs)
         # The following points in additional_point_clouds.
-        # [0, 2, 1, 3, 4], -> kept because it is in additional_point_clouds [0, 0, 1, 4, 4, 4, 0, 1].
-        # [0, 0, 2, 0, 2] -> removed because it is a background point (not in any bounding_boxes and additional_point_clouds).
-        # [0, 11, 2, 3, 4] -> removed because it is a background point (not in any bounding_boxes and additional_point_clouds).
-        # [100, 101, 2, 3, 4] -> kept because it is in additional_point_clouds [100, 100, 2, 5, 5, 5, 0, 1].
-        # [10, 10, 10, 10, 10] -> removed because it is a background point (not in any bounding_boxes and additional_point_clouds).
+        # [0, 2, 1, 3, 4], -> kept because it is in additional_point_clouds
+        #               [0, 0, 1, 4, 4, 4, 0, 1].
+        # [0, 0, 2, 0, 2] -> removed because it is a background point (not in
+        #               any bounding_boxes and additional_point_clouds).
+        # [0, 11, 2, 3, 4] -> removed because it is a background point (not in
+        #               any bounding_boxes and additional_point_clouds).
+        # [100, 101, 2, 3, 4] -> kept because it is in additional_point_clouds
+        #               [100, 100, 2, 5, 5, 5, 0, 1].
+        # [10, 10, 10, 10, 10] -> removed because it is a background point (not
+        #               in any bounding_boxes and additional_point_clouds).
         # The following points in point_clouds.
-        # [0, 1, 2, 3, 4] -> removed because it is in bounding_boxes [0, 0, 0, 4, 4, 4, 0, 1].
-        # [10, 1, 2, 3, 4] -> kept because it is a background point (not in any bounding_boxes and additional_point_clouds).
-        # [0, -1, 2, 3, 4] -> removed becuase it overlaps with additional_bounding_boxes [0, 0, 1, 4, 4, 4, 0, 1].
-        # [100, 100, 2, 3, 4] -> removed becuase it overlaps with additional_bounding_boxes [100, 100, 2, 5, 5, 5, 0, 1].
-        # [20, 20, 21, 1, 0] -> kept because it is a background point (not in any bounding_boxes and additional_point_clouds).
+        # [0, 1, 2, 3, 4] -> removed because it is in bounding_boxes
+        #               [0, 0, 0, 4, 4, 4, 0, 1].
+        # [10, 1, 2, 3, 4] -> kept because it is a background point (not in any
+        #               bounding_boxes and additional_point_clouds).
+        # [0, -1, 2, 3, 4] -> removed because it overlaps with
+        #               additional_bounding_boxes [0, 0, 1, 4, 4, 4, 0, 1].
+        # [100, 100, 2, 3, 4] -> removed because it overlaps with
+        #               additional_bounding_boxes [100, 100, 2, 5, 5, 5, 0, 1].
+        # [20, 20, 21, 1, 0] -> kept because it is a background point (not in
+        #               any bounding_boxes and additional_point_clouds).
         augmented_point_clouds = np.array(
             [
                 [
@@ -204,17 +214,27 @@ class SwapBackgroundTest(tf.test.TestCase):
         }
         outputs = add_layer(inputs)
         # The following points in additional_point_clouds.
-        # [0, 2, 1, 3, 4], -> kept because it is in additional_point_clouds [0, 0, 1, 4, 4, 4, 0, 1].
-        # [0, 0, 2, 0, 2] -> removed because it is a background point (not in any bounding_boxes and additional_point_clouds).
-        # [0, 11, 2, 3, 4] -> removed because it is a background point (not in any bounding_boxes and additional_point_clouds).
-        # [100, 101, 2, 3, 4] -> kept because it is in additional_point_clouds [100, 100, 2, 5, 5, 5, 0, 1].
-        # [10, 10, 10, 10, 10] -> removed because it is a background point (not in any bounding_boxes and additional_point_clouds).
+        # [0, 2, 1, 3, 4], -> kept because it is in additional_point_clouds
+        #               [0, 0, 1, 4, 4, 4, 0, 1].
+        # [0, 0, 2, 0, 2] -> removed because it is a background point (not in
+        #               any bounding_boxes and additional_point_clouds).
+        # [0, 11, 2, 3, 4] -> removed because it is a background point (not in
+        #               any bounding_boxes and additional_point_clouds).
+        # [100, 101, 2, 3, 4] -> kept because it is in additional_point_clouds
+        #               [100, 100, 2, 5, 5, 5, 0, 1].
+        # [10, 10, 10, 10, 10] -> removed because it is a background point (not
+        #               in any bounding_boxes and additional_point_clouds).
         # The following points in point_clouds.
-        # [0, 1, 2, 3, 4] -> removed because it is in bounding_boxes [0, 0, 0, 4, 4, 4, 0, 1].
-        # [10, 1, 2, 3, 4] -> kept because it is a background point (not in any bounding_boxes and additional_point_clouds).
-        # [0, -1, 2, 3, 4] -> removed becuase it overlaps with additional_bounding_boxes [0, 0, 1, 4, 4, 4, 0, 1].
-        # [100, 100, 2, 3, 4] -> removed becuase it overlaps with additional_bounding_boxes [100, 100, 2, 5, 5, 5, 0, 1].
-        # [20, 20, 21, 1, 0] -> kept because it is a background point (not in any bounding_boxes and additional_point_clouds).
+        # [0, 1, 2, 3, 4] -> removed because it is in bounding_boxes\
+        #               [0, 0, 0, 4, 4, 4, 0, 1].
+        # [10, 1, 2, 3, 4] -> kept because it is a background point (not in any
+        #               bounding_boxes and additional_point_clouds).
+        # [0, -1, 2, 3, 4] -> removed because it overlaps with
+        #               additional_bounding_boxes [0, 0, 1, 4, 4, 4, 0, 1].
+        # [100, 100, 2, 3, 4] -> removed because it overlaps with
+        #               additional_bounding_boxes [100, 100, 2, 5, 5, 5, 0, 1].
+        # [20, 20, 21, 1, 0] -> kept because it is a background point (not in
+        #               any bounding_boxes and additional_point_clouds).
         augmented_point_clouds = np.array(
             [
                 [

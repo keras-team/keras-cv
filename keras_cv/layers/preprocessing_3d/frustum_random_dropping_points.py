@@ -26,13 +26,16 @@ POINTCLOUD_LABEL_INDEX = base_augmentation_layer_3d.POINTCLOUD_LABEL_INDEX
 class FrustumRandomDroppingPoints(
     base_augmentation_layer_3d.BaseAugmentationLayer3D
 ):
-    """A preprocessing layer which randomly drops point within a randomly generated frustum during training.
+    """A preprocessing layer which randomly drops point within a randomly
+    generated frustum during training.
 
-    This layer will randomly select a point from the point cloud as the center of a frustum then generate a frustum based
-    on r_distance, theta_width, and phi_width. Points inside the selected frustum are randomly dropped (setting all features to zero)
-    based on drop_rate.
-    The point_clouds tensor shape must be specific and cannot be dynamic.
-    During inference time, the output will be identical to input. Call the layer with `training=True` to drop the input points.
+    This layer will randomly select a point from the point cloud as the center
+    of a frustum then generate a frustum based on r_distance, theta_width, and
+    phi_width. Points inside the selected frustum are randomly dropped
+    (setting all features to zero) based on drop_rate. The point_clouds tensor
+    shape must be specific and cannot be dynamic. During inference time, the
+    output will be identical to input. Call the layer with `training=True` to
+    drop the input points.
 
     Input shape:
       point_clouds: 3D (multi frames) float32 Tensor with shape
@@ -49,8 +52,10 @@ class FrustumRandomDroppingPoints(
       r_distance: A float scalar sets the starting distance of a frustum.
       theta_width: A float scalar sets the theta width of a frustum.
       phi_width: A float scalar sets the phi width of a frustum.
-      drop_rate: A float scalar sets the probability threshold for dropping the points.
-      exclude_classes: An optional int scalar or a list of ints. Points with the specified class(es) will not be dropped.
+      drop_rate: A float scalar sets the probability threshold for dropping the
+        points.
+      exclude_classes: An optional int scalar or a list of ints. Points with the
+        specified class(es) will not be dropped.
 
     """
 
@@ -103,7 +108,8 @@ class FrustumRandomDroppingPoints(
         }
 
     def get_random_transformation(self, point_clouds, **kwargs):
-        # Randomly select a point from the first frame as the center of the frustum.
+        # Randomly select a point from the first frame as the center of the
+        # frustum.
         valid_points = point_clouds[0, :, POINTCLOUD_LABEL_INDEX] > 0
         num_valid_points = tf.math.reduce_sum(tf.cast(valid_points, tf.int32))
         randomly_select_point_index = tf.random.uniform(

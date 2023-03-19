@@ -25,8 +25,8 @@ class SqueezeAndExcite2D(layers.Layer):
     weights adaptively. It first squeezes the feature maps into a single value
     using global average pooling, which are then fed into two Conv1D layers,
     which act like fully-connected layers. The first layer reduces the
-    dimensionality of the feature maps by a factor of `ratio`, whereas the second
-    layer restores it to its original value.
+    dimensionality of the feature maps by a factor of `ratio`, whereas the
+    second layer restores it to its original value.
 
     The resultant values are the adaptive weights for each channel. These
     weights are then multiplied with the original inputs to scale the outputs
@@ -38,12 +38,14 @@ class SqueezeAndExcite2D(layers.Layer):
             output filters is same.
         ratio: Ratio for bottleneck filters. Number of bottleneck filters =
             filters * ratio. Defaults to 0.25.
-        squeeze_activation: (Optional) String, callable (or tf.keras.layers.Layer) or
-            tf.keras.activations.Activation instance denoting activation to
-            be applied after squeeze convolution. Defaults to `relu`.
-        excite_activation: (Optional) String, callable (or tf.keras.layers.Layer) or
-            tf.keras.activations.Activation instance denoting activation to
-            be applied after excite convolution. Defaults to `sigmoid`.
+        squeeze_activation: (Optional) String, callable (or
+            tf.keras.layers.Layer) or tf.keras.activations.Activation instance
+            denoting activation to be applied after squeeze convolution.
+            Defaults to `relu`.
+        excite_activation: (Optional) String, callable (or
+            tf.keras.layers.Layer) or tf.keras.activations.Activation instance
+            denoting activation to be applied after excite convolution.
+            Defaults to `sigmoid`.
     Usage:
 
     ```python

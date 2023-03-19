@@ -34,7 +34,8 @@ class RetinaNetTest(tf.test.TestCase):
         # Code before yield runs before the test
         tf.config.set_soft_device_placement(False)
         yield
-        # Reset soft device placement to not interfere with other unit test files
+        # Reset soft device placement to not interfere with other unit test
+        # files
         tf.config.set_soft_device_placement(True)
         # Clear global session to prevent OOM between test runs
         tf.keras.backend.clear_session()
@@ -160,7 +161,8 @@ class RetinaNetTest(tf.test.TestCase):
             ):
                 self.assertAllEqual(weight, weight_new)
 
-        # manually check layers to make sure nothing is missed in `get_weights()`
+        # manually check layers to make sure nothing is missed in
+        # `get_weights()`
         for layer_original, layer_new in zip(
             pretrained_retina_net.layers, new_retina_net.layers
         ):
@@ -218,8 +220,8 @@ def _create_retina_nets(x, y, epochs=1, custom_decoder=False):
         optimizer="adam",
     )
     pretrained_retina_net.build((None, None, None, 3))
-    # we need to fit the pretrained retina net to ensure the classification_head and
-    # regression head get updated.
+    # we need to fit the pretrained retina net to ensure the classification_head
+    # and regression head get updated.
     if epochs != 0:
         pretrained_retina_net.fit(x, y, epochs=epochs)
 
@@ -260,8 +262,8 @@ def _create_retina_nets(x, y, epochs=1, custom_decoder=False):
 
 
 def _create_bounding_box_dataset(bounding_box_format):
-    # Just about the easiest dataset you can have, all classes are 0, all boxes are
-    # exactly the same.  [1, 1, 2, 2] are the coordinates in xyxy
+    # Just about the easiest dataset you can have, all classes are 0, all boxes
+    # are exactly the same. [1, 1, 2, 2] are the coordinates in xyxy
     xs = tf.ones((10, 512, 512, 3), dtype=tf.float32)
     y_classes = tf.zeros((10, 10, 1), dtype=tf.float32)
 

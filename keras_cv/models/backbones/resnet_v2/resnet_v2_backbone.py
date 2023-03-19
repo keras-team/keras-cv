@@ -13,8 +13,10 @@
 # limitations under the License.
 """ResNet models for Keras.
 Reference:
-  - [Identity Mappings in Deep Residual Networks](https://arxiv.org/abs/1603.05027) (ECCV 2016)
-  - [Based on the original keras.applications ResNet](https://github.com/keras-team/keras/blob/master/keras/applications/resnet_v2.py)
+  - [Identity Mappings in Deep Residual Networks]
+    (https://arxiv.org/abs/1603.05027) (ECCV 2016)
+  - [Based on the original keras.applications ResNet]
+    (https://github.com/keras-team/keras/blob/master/keras/applications/resnet_v2.py)
 """
 
 import copy
@@ -209,9 +211,11 @@ def apply_stack(
         x: input tensor.
         filters: int, filters of the layer in a block.
         blocks: int, blocks in the stacked blocks.
-        stride: int, stride of the first layer in the first block. Defaults to 2.
-        dilation: int, the dilation rate to use for dilated convolution.
+        stride: int, stride of the first layer in the first block. Defaults
+            to 2.
+        dilations: int, the dilation rate to use for dilated convolution.
             Defaults to 1.
+        name: str, name of the model
         block_type: string, one of "basic_block" or "block". The block type to
             stack. Use "basic_block" for ResNet18 and ResNet34.
         first_shortcut: bool. Use convolution shortcut if `True` (default),
@@ -256,7 +260,8 @@ class ResNetV2Backbone(Backbone):
     """Instantiates the ResNetV2 architecture.
 
     Reference:
-        - [Identity Mappings in Deep Residual Networks](https://arxiv.org/abs/1603.05027) (ECCV 2016)
+        - [Identity Mappings in Deep Residual Networks]
+          (https://arxiv.org/abs/1603.05027) (ECCV 2016)
 
     The difference in Resnet and ResNetV2 rests in the structure of their
     individual building blocks. In ResNetV2, the batch normalization and
@@ -265,7 +270,8 @@ class ResNetV2Backbone(Backbone):
     convolution layers.
 
     For transfer learning use cases, make sure to read the
-    [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
+    [guide to transfer learning & fine-tuning]
+    (https://keras.io/guides/transfer_learning/).
 
     Args:
         stackwise_filters: list of ints, number of filters for each stack in
@@ -396,14 +402,16 @@ class ResNetV2Backbone(Backbone):
 
     @classproperty
     def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include weights."""
+        """Dictionary of preset names and configurations that include
+        weights."""
         return copy.deepcopy(backbone_presets_with_weights)
 
 
 ALIAS_DOCSTRING = """ResNetV2Backbone model with {num_layers} layers.
 
     Reference:
-        - [Identity Mappings in Deep Residual Networks](https://arxiv.org/abs/1603.05027) (ECCV 2016)
+        - [Identity Mappings in Deep Residual Networks]
+          (https://arxiv.org/abs/1603.05027) (ECCV 2016)
 
     The difference in ResNet and ResNetV2 rests in the structure of their
     individual building blocks. In ResNetV2, the batch normalization and
@@ -412,7 +420,8 @@ ALIAS_DOCSTRING = """ResNetV2Backbone model with {num_layers} layers.
     convolution layers.
 
     For transfer learning use cases, make sure to read the
-    [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
+    [guide to transfer learning & fine-tuning]
+    (https://keras.io/guides/transfer_learning/).
 
     Args:
         include_rescaling: bool, whether or not to Rescale the inputs. If set
@@ -458,7 +467,8 @@ class ResNet18V2Backbone(ResNetV2Backbone):
 
     @classproperty
     def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include weights."""
+        """Dictionary of preset names and configurations that include
+        weights."""
         return {}
 
 
@@ -487,7 +497,8 @@ class ResNet34V2Backbone(ResNetV2Backbone):
 
     @classproperty
     def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include weights."""
+        """Dictionary of preset names and configurations that include
+        weights."""
         return {}
 
 
@@ -520,7 +531,8 @@ class ResNet50V2Backbone(ResNetV2Backbone):
 
     @classproperty
     def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include weights."""
+        """Dictionary of preset names and configurations that include
+        weights."""
         return cls.presets
 
 
@@ -549,7 +561,8 @@ class ResNet101V2Backbone(ResNetV2Backbone):
 
     @classproperty
     def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include weights."""
+        """Dictionary of preset names and configurations that include
+        weights."""
         return {}
 
 
@@ -578,7 +591,8 @@ class ResNet152V2Backbone(ResNetV2Backbone):
 
     @classproperty
     def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include weights."""
+        """Dictionary of preset names and configurations that include
+        weights."""
         return {}
 
 

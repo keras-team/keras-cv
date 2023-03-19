@@ -34,9 +34,9 @@ class FocalLoss(tf.keras.losses.Loss):
             default, `y_pred` is assumed to encode a probability distribution.
             Default to `False`.
         label_smoothing: Float in `[0, 1]`. If higher than 0 then smooth the
-            labels by squeezing them towards `0.5`, i.e., using `1. - 0.5 * label_smoothing`
-            for the target class and `0.5 * label_smoothing` for the non-target
-            class.
+            labels by squeezing them towards `0.5`, i.e., using
+            `1. - 0.5 * label_smoothing` for the target class and
+            `0.5 * label_smoothing` for the non-target class.
 
     References:
         - [Focal Loss paper](https://arxiv.org/abs/1708.02002)

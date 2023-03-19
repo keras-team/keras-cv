@@ -17,15 +17,16 @@ import tensorflow as tf
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
 class DropPath(tf.keras.__internal__.layers.BaseRandomLayer):
     """
-    Implements the DropPath layer. DropPath randomly drops samples during training
-     with a probability of `rate`. Note that this layer drops individual samples
-    within a batch and not the entire batch. DropPath randomly drops some of the
-    individual samples from a batch, whereas StachasticDepth randomly drops the
-    entire batch.
+    Implements the DropPath layer. DropPath randomly drops samples during
+    training with a probability of `rate`. Note that this layer drops individual
+    samples within a batch and not the entire batch. DropPath randomly drops
+    some of the individual samples from a batch, whereas StachasticDepth
+    randomly drops the entire batch.
 
     References:
         - [FractalNet](https://arxiv.org/abs/1605.07648v4).
-        - [rwightman/pytorch-image-models](https://github.com/rwightman/pytorch-image-models/blob/7c67d6aca992f039eece0af5f7c29a43d48c00e4/timm/models/layers/drop.py#L135)
+        - [rwightman/pytorch-image-models]
+          (https://github.com/rwightman/pytorch-image-models/blob/7c67d6aca992f039eece0af5f7c29a43d48c00e4/timm/models/layers/drop.py#L135)
 
     Args:
         rate: float, the probability of the residual branch being dropped.

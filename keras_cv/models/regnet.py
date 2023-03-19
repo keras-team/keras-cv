@@ -16,7 +16,7 @@ References:
     - [Designing Network Design Spaces]
     (https://arxiv.org/abs/2003.13678) (CVPR 2020)
     - [Based on the Original keras.applications RegNet]
-      (https://github.com/keras-team/keras/blob/master/keras/applications/regnet.py)  # noqa: E501
+      (https://github.com/keras-team/keras/blob/master/keras/applications/regnet.py)
 """
 
 import tensorflow as tf
@@ -212,7 +212,7 @@ BASE_DOCSTRING = """This class represents the {name} architecture.
     (CVPR 2020)
 
   For image classification use cases, see [this page for detailed examples]
-  (https://keras.io/api/applications/#usage-examples-for-image-classification-models).  # noqa: E501
+  (https://keras.io/api/applications/#usage-examples-for-image-classification-models).
 
   For transfer learning use cases, make sure to read the [guide to transfer
   learning & fine-tuning](https://keras.io/guides/transfer_learning/).

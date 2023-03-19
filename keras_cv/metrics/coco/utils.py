@@ -67,7 +67,7 @@ def select_boxes_of_class(bounding_boxes, class_id):
     'class_id'.
 
     Args:
-        boxes: Tensor of bounding boxes in KerasCV format.
+        bounding_boxes: Tensor of bounding boxes in KerasCV format.
         class_id: class_id the specified axis must match
     Returns:
         boxes: A new Tensor of bounding boxes, where boxes[axis]==class_id
@@ -90,12 +90,12 @@ def select_boxes_of_class(bounding_boxes, class_id):
 
 def to_sentinel_padded_bounding_box_tensor(box_sets):
     """pad_with_sentinels returns a Tensor of bounding_boxes padded with -1s
-    to ensure that each bounding_box set has identical dimensions.  This is to
-    be used before passing bounding_box predictions, or bounding_box ground truths to
-    the keras COCO metrics.
+    to ensure that each bounding_box set has identical dimensions. This is to be
+    used before passing bounding_box predictions, or bounding_box ground truths
+    to the keras COCO metrics.
     Args:
-        box_sets: List of Tensors representing bounding boxes, or a list of lists of
-            Tensors.
+        box_sets: List of Tensors representing bounding boxes, or a list of
+            lists of Tensors.
     Returns:
         boxes: A new Tensor where each value missing is populated with -1.
     """
@@ -121,7 +121,7 @@ def order_by_confidence(bounding_boxes):
     """order_by_confidence is used to sort a batch of bounding boxes.
 
     Args:
-        bounding_boxes: dictionarity containing the bounding boxes.
+        bounding_boxes: dictionary containing the bounding boxes.
     Returns:
         boxes: A new Tensor of Bounding boxes, sorted on an image-wise basis.
     """
