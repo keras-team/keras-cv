@@ -294,7 +294,7 @@ def apply_efficient_net_lite_block(
     return x
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv.models")
+@keras.utils.register_keras_serializable(package="keras_cv.models")
 class EfficientNetLite(keras.Model):
     """Instantiates the EfficientNetLite architecture using given scaling coefficients.
 
