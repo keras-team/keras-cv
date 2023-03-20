@@ -13,7 +13,8 @@
 # limitations under the License.
 """
 Title: Train an Object Detection Model on Pascal VOC 2007 using KerasCV
-Author: [lukewood](https://github.com/LukeWood), [tanzhenyu](https://github.com/tanzhenyu)
+Author: [lukewood](https://github.com/LukeWood),
+        [tanzhenyu](https://github.com/tanzhenyu)
 Date created: 2022/09/27
 Last modified: 2022/12/08
 Description: Use KerasCV to train a RetinaNet on Pascal VOC 2007.
@@ -50,7 +51,8 @@ FLAGS(sys.argv)
 # parameters from RetinaNet [paper](https://arxiv.org/abs/1708.02002)
 
 
-# Try to detect an available TPU. If none is present, default to MirroredStrategy
+# Try to detect an available TPU. If none is present, default to
+# MirroredStrategy
 try:
     tpu = tf.distribute.cluster_resolver.TPUClusterResolver.connect()
     strategy = tf.distribute.TPUStrategy(tpu)
@@ -80,7 +82,7 @@ train_ds = train_ds.concatenate(
 eval_ds = tfds.load("voc/2007", split="test", with_info=False)
 
 
-# TODO (lukewood): migrate to KPL, as this is mostly a duplciate of
+# TODO (lukewood): migrate to KPL, as this is mostly a duplicate of
 # https://github.com/tensorflow/models/blob/master/official/vision/ops/preprocess_ops.py#L138
 def resize_and_crop_image(
     image,
@@ -323,10 +325,11 @@ eval_ds = eval_ds.prefetch(tf.data.AUTOTUNE)
 """
 ## Model creation
 
-We'll use the KerasCV API to construct a RetinaNet model.  In this tutorial we use
-a pretrained ResNet50 backbone using weights.  In order to perform fine-tuning, we
-freeze the backbone before training.  When `include_rescaling=True` is set, inputs to
-the model are expected to be in the range `[0, 255]`.
+We'll use the KerasCV API to construct a RetinaNet model.  In this tutorial we
+use a pretrained ResNet50 backbone using weights.  In order to perform
+fine-tuning, we freeze the backbone before training.  When
+`include_rescaling=True` is set, inputs to the model are expected to be in the
+range `[0, 255]`.
 """
 
 with strategy.scope():

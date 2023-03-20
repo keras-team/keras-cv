@@ -14,20 +14,22 @@
 
 """Data loader for Pascal VOC 2012 segmentation dataset.
 
-The image classification and object detection (bounding box) data is covered by existing
-TF datasets in https://www.tensorflow.org/datasets/catalog/voc. The segmentation data (
-both class segmentation and instance segmentation) are included in the VOC 2012, but not
-offered by TF-DS yet. This module is trying to fill this gap while TFDS team can
-address this feature (b/252870855, https://github.com/tensorflow/datasets/issues/27 and
+The image classification and object detection (bounding box) data is covered by
+existing TF datasets in https://www.tensorflow.org/datasets/catalog/voc. The
+segmentation data (both class segmentation and instance segmentation) are
+included in the VOC 2012, but not offered by TF-DS yet. This module is trying to
+fill this gap while TFDS team can address this feature (b/252870855,
+https://github.com/tensorflow/datasets/issues/27 and
 https://github.com/tensorflow/datasets/pull/1198).
 
-The schema design is similar to the existing design of TFDS, but trimmed to fit the need
-of Keras CV models.
+The schema design is similar to the existing design of TFDS, but trimmed to fit
+the need of Keras CV models.
 
 This module contains following functionalities:
 
 1. Download and unpack original data from Pascal VOC.
-2. Reprocess and build up dataset that include image, class label, object bounding boxes,
+2. Reprocess and build up dataset that include image, class label, object
+   bounding boxes,
    class and instance segmentation masks.
 3. Produce tfrecords from the dataset.
 4. Load existing tfrecords from result in 3.
@@ -43,9 +45,7 @@ import numpy as np
 import tensorflow as tf
 import tensorflow_datasets as tfds
 
-VOC_URL = (
-    "http://host.robots.ox.ac.uk/pascal/VOC/voc2012/VOCtrainval_11-May-2012.tar"
-)
+VOC_URL = "https://host.robots.ox.ac.uk/pascal/VOC/voc2012/VOCtrainval_11-May-2012.tar"  # noqa: E501
 
 """
 @InProceedings{{BharathICCV2011,
@@ -53,13 +53,14 @@ VOC_URL = (
     title = "Semantic Contours from Inverse Detectors",
     booktitle = "International Conference on Computer Vision (ICCV)",
     year = "2011"}}
-"""
-SBD_URL = "http://www.eecs.berkeley.edu/Research/Projects/CS/vision/grouping/semantic_contours/benchmark.tgz"
+"""  # noqa: E501
+SBD_URL = "https://www.eecs.berkeley.edu/Research/Projects/CS/vision/grouping/semantic_contours/benchmark.tgz"  # noqa: E501
 
 
-# Note that this list doesn't contain the background class. In the classification use
-# case, the label is 0 based (aeroplane -> 0), whereas in segmentation use case, the 0 is
-# reserved for background, so aeroplane maps to 1.
+# Note that this list doesn't contain the background class. In the
+# classification use case, the label is 0 based (aeroplane -> 0), whereas in
+# segmentation use case, the 0 is reserved for background, so aeroplane maps to
+# 1.
 CLASSES = [
     "aeroplane",
     "bicycle",
@@ -85,11 +86,11 @@ CLASSES = [
 # This is used to map between string class to index.
 CLASS_TO_INDEX = {name: index for index, name in enumerate(CLASSES)}
 
-# For the mask data in the PNG file, the encoded raw pixel value need be to converted
-# to the proper class index. In the following map, [0, 0, 0] will be convert to 0, and
-# [128, 0, 0] will be conveted to 1, so on so forth. Also note that the mask class is 1
-# base since class 0 is reserved for the background. The [128, 0, 0] (class 1) is mapped
-# to `aeroplane`.
+# For the mask data in the PNG file, the encoded raw pixel value need to be
+# converted to the proper class index. In the following map, [0, 0, 0] will be
+# convert to 0, and [128, 0, 0] will be converted to 1, so on so forth. Also
+# note that the mask class is 1 base since class 0 is reserved for the
+# background. The [128, 0, 0] (class 1) is mapped to `aeroplane`.
 VOC_PNG_COLOR_VALUE = [
     [0, 0, 0],
     [128, 0, 0],
@@ -138,7 +139,8 @@ def _download_data_file(
     """Fetch the original VOC or Semantic Boundaries Dataset from remote URL.
 
     Args:
-        data_url: string, the URL for the data to be downloaded, should be in a zipped tar package.
+        data_url: string, the URL for the data to be downloaded, should be in a
+            zipped tar package.
         local_dir_path: string, the local directory path to save the data.
     Returns:
         the path to the folder of extracted data.
@@ -169,7 +171,8 @@ def _download_data_file(
 def _parse_annotation_data(annotation_file_path):
     """Parse the annotation XML file for the image.
 
-    The annotation contains the metadata, as well as the object bounding box information.
+    The annotation contains the metadata, as well as the object bounding box
+    information.
 
     """
     with tf.io.gfile.GFile(annotation_file_path, "r") as f:
@@ -338,13 +341,16 @@ def _build_sbd_metadata(data_dir, image_ids):
     return result
 
 
-# With jit_compile=True, there will be 0.4 sec compilation overhead, but save about 0.2
-# sec per 1000 images. See https://github.com/keras-team/keras-cv/pull/943#discussion_r1001092882
+# With jit_compile=True, there will be 0.4 sec compilation overhead, but save
+# about 0.2 sec per 1000 images. See
+# https://github.com/keras-team/keras-cv/pull/943#discussion_r1001092882
 # for more details.
 @tf.function(jit_compile=True)
 def _decode_png_mask(mask):
-    """Decode the raw PNG image and convert it to 2D tensor with probably class."""
-    # Cast the mask to int32 since the original uint8 will overflow when multiple with 256
+    """Decode the raw PNG image and convert it to 2D tensor with probably
+    class."""
+    # Cast the mask to int32 since the original uint8 will overflow when
+    # multiplied with 256
     mask = tf.cast(mask, tf.int32)
     mask = mask[:, :, 0] * 256 * 256 + mask[:, :, 1] * 256 + mask[:, :, 2]
     mask = tf.expand_dims(tf.gather(VOC_PNG_COLOR_MAPPING, mask), -1)
@@ -461,21 +467,23 @@ def load(
 ):
     """Load the Pacal VOC 2012 dataset.
 
-    This function will download the data tar file from remote if needed, and untar to
-    the local `data_dir`, and build dataset from it.
+    This function will download the data tar file from remote if needed, and
+    untar to the local `data_dir`, and build dataset from it.
 
     It supports both VOC2012 and Semantic Boundaries Dataset (SBD).
 
-    The returned segmentation masks will be int ranging from [0, num_classes), as well as
-    255 which is the boundary mask.
+    The returned segmentation masks will be int ranging from [0, num_classes),
+    as well as 255 which is the boundary mask.
 
     Args:
-        split: string, can be 'train', 'eval', 'trainval", 'sbd_train', or 'sbd_eval'.
-            'sbd_train' represents the training dataset for SBD dataset, while 'train' represents
-            the training dataset for VOC2012 dataset. Default to `sbd_train`.
-        data_dir: string, local directory path for the loaded data. This will be used to
-            download the data file, and unzip. It will be used as a cach directory.
-            Default to None, and `~/.keras/pascal_voc_2012` will be used.
+        split: string, can be 'train', 'eval', 'trainval", 'sbd_train', or
+            'sbd_eval'. 'sbd_train' represents the training dataset for SBD
+            dataset, while 'train' represents the training dataset for VOC2012
+            dataset. Defaults to `sbd_train`.
+        data_dir: string, local directory path for the loaded data. This will be
+            used to download the data file, and unzip. It will be used as a
+            cache directory. Defaults to None, and `~/.keras/pascal_voc_2012`
+            will be used.
     """
     supported_split_value = [
         "train",

@@ -16,7 +16,8 @@ Title: Benchmarking a KerasCV model against ImageNetV2
 Author: [DavidLandup0](https://github.com/DavidLandup0)
 Date created: 2022/12/14
 Last modified: 2022/12/14
-Description: Use KerasCV architectures and benchmark them against ImageNetV2 from TensorFlow Datasets
+Description: Use KerasCV architectures and benchmark them against ImageNetV2
+from TensorFlow Datasets
 """
 
 import sys
@@ -38,7 +39,8 @@ flags.DEFINE_boolean(
 flags.DEFINE_string(
     "model_kwargs",
     "{}",
-    "Keyword argument dictionary to pass to the constructor of the model being evaluated.",
+    "Keyword argument dictionary to pass to the constructor of the model being"
+    " evaluated.",
 )
 
 flags.DEFINE_integer(
@@ -98,7 +100,9 @@ test_set = (
 #  model size, etc.
 loss, acc, top_5 = model.evaluate(test_set, verbose=0)
 print(
-    f"Benchmark results:\n{'='*25}\n{FLAGS.model_name} achieves: \n - Top-1 Accuracy: {acc*100} \n - Top-5 Accuracy: {top_5*100} \non ImageNetV2 with setup:"
+    f"Benchmark results:\n{'='*25}\n{FLAGS.model_name} achieves: \n - Top-1 "
+    f"Accuracy: {acc*100} \n - Top-5 Accuracy: {top_5*100} \non ImageNetV2 "
+    "with setup:"
 )
 print(
     f"- model_name: {FLAGS.model_name}\n"

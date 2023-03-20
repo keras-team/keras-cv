@@ -65,12 +65,12 @@ def convert_format(keypoints, source, target, images=None, dtype=None):
     - `"xy"`, absolute pixel positions.
     - `"rel_xyxy"`.  relative pixel positions.
 
-    Formats are case insensitive.  It is recommended that you
+    Formats are case-insensitive.  It is recommended that you
     capitalize width and height to maximize the visual difference
     between `"xyWH"` and `"xyxy"`.
 
     Relative formats, abbreviated `rel`, make use of the shapes of the
-    `images` passsed.  In these formats, the coordinates, widths, and
+    `images` passed.  In these formats, the coordinates, widths, and
     heights are all specified as percentages of the host image.
     `images` may be a ragged Tensor.  Note that using a ragged Tensor
     for images may cause a substantial performance loss, as each image
@@ -169,8 +169,9 @@ def _format_inputs(keypoints, images):
         images_include_batch = images_rank == 4
         if keypoints_includes_batch != images_include_batch:
             raise ValueError(
-                "convert_format() expects both `keypoints` and `images` to be batched "
-                f"or both unbatched. Received len(keypoints.shape)={keypoints_rank}, "
+                "convert_format() expects both `keypoints` and `images` to be "
+                "batched or both unbatched. Received "
+                f"len(keypoints.shape)={keypoints_rank}, "
                 f"len(images.shape)={images_rank}. Expected either "
                 "len(keypoints.shape)=2 and len(images.shape)=3, or "
                 "len(keypoints.shape)>=3 and len(images.shape)=4."

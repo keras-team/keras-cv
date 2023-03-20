@@ -69,9 +69,11 @@ def compute_heatmap(
       max_radius: the maximum radius on each voxel dimension (xyz)
 
     Returns:
-      point_xyz: the point location w.r.t. vehicle frame, [B, boxes, max_voxels_per_box, 3]
+      point_xyz: the point location w.r.t. vehicle frame, [B, boxes,
+        max_voxels_per_box, 3]
       mask: point mask, [B, boxes, max_voxels_per_box]
-      heatmap: the returned heatmap w.r.t box frame, [B, boxes, max_voxels_per_box]
+      heatmap: the returned heatmap w.r.t box frame, [B, boxes,
+        max_voxels_per_box]
       box_id: the box id each point belongs to, [B, boxes, max_voxels_per_box]
 
     """
@@ -116,8 +118,8 @@ def compute_heatmap(
         point_xyz_rot
         + voxel_utils.inv_loc(rot, box_center)[:, :, tf.newaxis, :]
     )
-    # Due to the transform above, z=0 can be transformed to a non-zero value. For
-    # 2d headmap, we do not want to use z.
+    # Due to the transform above, z=0 can be transformed to a non-zero value.
+    # For 2d heatmap, we do not want to use z.
     if voxel_size[2] > INF_VOXEL_SIZE:
         point_xyz_transform = tf.concat(
             [
@@ -190,17 +192,17 @@ def scatter_to_dense_heatmap(
     Args:
       point_xyz: [B, N, 3] 3d points, point coordinate in vehicle frame.
       point_mask: [B, N] valid point mask.
-      point_box_id: [B, N] box id of each point. The ID indexes into the input box
-        tensors. See compute_heatmap for more details.
+      point_box_id: [B, N] box id of each point. The ID indexes into the input
+        box tensors. See compute_heatmap for more details.
       heatmap: [B, N] heatmap value of each point.
       voxel_size: voxel size.
       spatial_size: the spatial size.
 
     Returns:
       dense_heatmap: [B, H, W] heatmap value.
-      dense_box_id: [B, H, W] box id associated with each feature map pixel. Only
-        pixels with positive heatmap value have valid box id set. Other locations
-        have random values.
+      dense_box_id: [B, H, W] box id associated with each feature map pixel.
+        Only pixels with positive heatmap value have valid box id set. Other
+        locations have random values.
 
     """
     # [B, N, 3]
@@ -245,7 +247,8 @@ def scatter_to_dense_heatmap(
         heatmap_i = tf.gather_nd(heatmap_i, mask_index)
         point_box_id_i = tf.gather_nd(point_box_id_i, mask_index)
 
-        # scatter from local heatmap to global heatmap based on point_xyz voxel units
+        # scatter from local heatmap to global heatmap based on point_xyz voxel
+        # units
         dense_heatmap_i = tf.tensor_scatter_nd_update(
             tf.zeros(voxel_spatial_size, dtype=heatmap_i.dtype),
             point_voxel_xyz_i,
@@ -277,7 +280,8 @@ def decode_tensor(
       dims: list of ints., [H, W, Z]
 
     Returns:
-      t_decoded: int32 or int64 decoded tensor of shape [shape, len(dims)], [B, k, 3]
+      t_decoded: int32 or int64 decoded tensor of shape [shape, len(dims)],
+        [B, k, 3]
     """
     with tf.name_scope("decode_tensor"):
         multipliers = []
@@ -312,24 +316,25 @@ def compute_top_k_heatmap_idx(heatmap: tf.Tensor, k: int) -> tf.Tensor:
     # each index in the range of [0, H*W*Z)
     _, indices = tf.math.top_k(heatmap_reshape, k=k, sorted=False)
     # [B, k, 2] or [B, k, 3]
-    # shape[1:] = [H, W, Z], convert the indices from 1 dimension to 3 dimensions
-    # in the range of [0, H), [0, W), [0, Z)
+    # shape[1:] = [H, W, Z], convert the indices from 1 dimension to 3
+    # dimensions in the range of [0, H), [0, W), [0, Z)
     res = decode_tensor(indices, shape[1:])
     return res
 
 
 class CenterNetLabelEncoder(tf.keras.layers.Layer):
-    """Transforms the raw sparse labels into class specific dense training labels.
+    """Transforms the raw sparse labels into class specific dense training
+    labels.
 
     This layer takes the box locations, box classes and box masks, voxelizes
     and compute the Gaussian radius for each box, then computes class specific
-    heatmap for classification and class specific box offset w.r.t to feature map
-    for regression.
+    heatmap for classification and class specific box offset w.r.t to feature
+    map for regression.
 
     Args:
       voxel_size: the x, y, z dimension (in meters) of each voxel.
-      min_radius: minimum Gasussian radius in each dimension in meters.
-      max_radius: maximum Gasussian radius in each dimension in meters.
+      min_radius: minimum Gaussian radius in each dimension in meters.
+      max_radius: maximum Gaussian radius in each dimension in meters.
       spatial_size: the x, y, z boundary of voxels
       num_classes: number of object classes.
       top_k_heatmap: A sequence of integers, top k for each class. Can be None.
@@ -357,12 +362,17 @@ class CenterNetLabelEncoder(tf.keras.layers.Layer):
         """
         Args:
           box_3d: [B, num_boxes, 7] 3d boxes in vehicle frame.
-          box_classes: [B, num_boxes, 1] 3d box classes, 0 represents background.
-          box_mask: [B, num_boxes] 3d box masks, True means valid box, False means invalid box.
+          box_classes: [B, num_boxes, 1] 3d box classes, 0 represents
+            background.
+          box_mask: [B, num_boxes] 3d box masks, True means valid box, False
+            means invalid box.
         Returns:
-          heatmap: dict of class specific float Tensor in [B, H, W, Z] or [B, H, W]
-          dense_box_3d:  dict of class specific float Tensor in [B, H, W, Z, 7] or [B, H, W, 7]
-          top_k_heatmap_feature_idx_dict: dict of int Tensor in [B, k, 3] or [B, k, 2].
+          heatmap: dict of class specific float Tensor in [B, H, W, Z] or
+            [B, H, W]
+          dense_box_3d:  dict of class specific float Tensor in [B, H, W, Z, 7]
+            or [B, H, W, 7]
+          top_k_heatmap_feature_idx_dict: dict of int Tensor in [B, k, 3] or
+            [B, k, 2].
         where:
           H: number of voxels in y dimension
           W: number of voxels in x dimension
@@ -407,7 +417,8 @@ class CenterNetLabelEncoder(tf.keras.layers.Layer):
         feature_map_ref_xyz = voxel_utils.compute_feature_map_ref_xyz(
             self._voxel_size, self._spatial_size, global_xyz
         )
-        # convert from global box point xyz to offset w.r.t center of feature map.
+        # convert from global box point xyz to offset w.r.t center of feature
+        # map.
         # [B, H, W, Z, 3]
         dense_box_3d_center = dense_box_3d[..., :3] - feature_map_ref_xyz
         # [B, H, W, Z, 7]

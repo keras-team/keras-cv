@@ -38,20 +38,21 @@ class RandomChannelShift(BaseImageAugmentationLayer):
         value_range: The range of values the incoming images will have.
             Represented as a two number tuple written [low, high].
             This is typically either `[0, 1]` or `[0, 255]` depending
-            on how your preprocessing pipeline is setup.
+            on how your preprocessing pipeline is set up.
         factor: A scalar value, or tuple/list of two floating values in
             the range `[0.0, 1.0]`. If `factor` is a single value, it will
             interpret as equivalent to the tuple `(0.0, factor)`. The `factor`
-            will sampled between its range for every image to augment.
-        channels: integer, the number of channels to shift.  Defaults to 3 which
-            corresponds to an RGB shift.  In some cases, there may ber more or less
-            channels.
+            will sample between its range for every image to augment.
+        channels: integer, the number of channels to shift. Defaults to 3 which
+            corresponds to an RGB shift. In some cases, there may ber more or
+            less channels.
         seed: Integer. Used to create a random seed.
 
     Usage:
     ```python
     (images, labels), _ = tf.keras.datasets.cifar10.load_data()
-    rgb_shift = keras_cv.layers.RandomChannelShift(value_range=(0, 255), factor=0.5)
+    rgb_shift = keras_cv.layers.RandomChannelShift(value_range=(0, 255),
+        factor=0.5)
     augmented_images = rgb_shift(images)
     ```
     """

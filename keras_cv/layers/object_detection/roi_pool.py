@@ -20,20 +20,24 @@ from keras_cv import bounding_box
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
 class ROIPooler(tf.keras.layers.Layer):
     """
-    Pooling feature map of dynamic shape into region of interest (ROI) of fixed shape.
+    Pooling feature map of dynamic shape into region of interest (ROI) of fixed
+    shape.
 
     Mainly used in Region CNN (RCNN) networks. This works for a single-level
     input feature map.
 
-    This layer splits the feature map into [target_size[0], target_size[1]] areas,
-    and performs max pooling for each area. The area coordinates will be quantized.
+    This layer splits the feature map into [target_size[0], target_size[1]]
+    areas, and performs max pooling for each area. The area coordinates will be
+    quantized.
 
     Args:
         bounding_box_format: a case-insensitive string.
             For detailed information on the supported format, see the
-            [KerasCV bounding box documentation](https://keras.io/api/keras_cv/bounding_box/formats/).
+            [KerasCV bounding box documentation]
+            (https://keras.io/api/keras_cv/bounding_box/formats/).
         target_size: List or Tuple of 2 integers of the pooled shape
-        image_shape: List of Tuple of 3 integers, or `TensorShape` of the input image shape.
+        image_shape: List of Tuple of 3 integers, or `TensorShape` of the input
+            image shape.
 
     Usage:
     ```python
@@ -55,7 +59,8 @@ class ROIPooler(tf.keras.layers.Layer):
     ):
         if not isinstance(target_size, (tuple, list)):
             raise ValueError(
-                f"Expected `target_size` to be tuple or list, got {type(target_size)}"
+                "Expected `target_size` to be tuple or list, got "
+                f"{type(target_size)}"
             )
         if len(target_size) != 2:
             raise ValueError(
@@ -79,8 +84,10 @@ class ROIPooler(tf.keras.layers.Layer):
     def call(self, feature_map, rois):
         """
         Args:
-          feature_map: [batch_size, H, W, C] float Tensor, the feature map extracted from image.
-          rois: [batch_size, N, 4] float Tensor, the region of interests to be pooled.
+          feature_map: [batch_size, H, W, C] float Tensor, the feature map
+            extracted from image.
+          rois: [batch_size, N, 4] float Tensor, the region of interests to be
+            pooled.
         Returns:
           pooled_feature_map: [batch_size, N, target_size, C] float Tensor
         """

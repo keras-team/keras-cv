@@ -25,28 +25,29 @@ from keras_cv.utils import preprocessing
 class AugMix(BaseImageAugmentationLayer):
     """Performs the AugMix data augmentation technique.
 
-    AugMix aims to produce images with variety while preserving the
-    image semantics and local statistics.  During the augmentation process, each image
-    is augmented `num_chains` different ways, each way consisting of `chain_depth`
-    augmentations. Augmentations are sampled from the list: translation, shearing,
-    rotation, posterization, histogram equalization, solarization and auto contrast.
-    The results of each chain are then mixed together with the original
-    image based on random samples from a Dirichlet distribution.
+    AugMix aims to produce images with variety while preserving the image
+    semantics and local statistics.  During the augmentation process, each image
+    is augmented `num_chains` different ways, each way consisting of
+    `chain_depth` augmentations. Augmentations are sampled from the list:
+    translation, shearing, rotation, posterization, histogram equalization,
+    solarization and auto contrast. The results of each chain are then mixed
+    together with the original image based on random samples from a Dirichlet
+    distribution.
 
     Args:
         value_range: the range of values the incoming images will have.
             Represented as a two number tuple written (low, high).
             This is typically either `(0, 1)` or `(0, 255)` depending
-            on how your preprocessing pipeline is setup.
-        severity: A tuple of two floats, a single float or a `keras_cv.FactorSampler`.
-            A value is sampled from the provided range.  If a float is passed, the
-            range is interpreted as `(0, severity)`. This value represents the
-            level of strength of augmentations and is in the range [0, 1].
-            Defaults to 0.3.
+            on how your preprocessing pipeline is set up.
+        severity: A tuple of two floats, a single float or a
+            `keras_cv.FactorSampler`. A value is sampled from the provided
+            range. If a float is passed, the range is interpreted as
+            `(0, severity)`. This value represents the level of strength of
+            augmentations and is in the range [0, 1]. Defaults to 0.3.
         num_chains: an integer representing the number of different chains to
             be mixed. Defaults to 3.
-        chain_depth: an integer or range representing the number of transformations in
-            the chains. Defaults to [1,3].
+        chain_depth: an integer or range representing the number of
+            transformations in the chains. Defaults to [1,3].
         alpha: a float value used as the probability coefficients for the
             Beta and Dirichlet distributions. Defaults to 1.0.
         seed: Integer. Used to create a random seed.
@@ -54,7 +55,7 @@ class AugMix(BaseImageAugmentationLayer):
     References:
         - [AugMix paper](https://arxiv.org/pdf/1912.02781)
         - [Official Code](https://github.com/google-research/augmix)
-        - [Unoffial TF Code](https://github.com/szacho/augmix-tf)
+        - [Unofficial TF Code](https://github.com/szacho/augmix-tf)
 
     Sample Usage:
     ```python

@@ -46,7 +46,8 @@ class VoxelizationTest(tf.test.TestCase):
         )
         output = layer(point_xyz, point_feature, point_mask)
         # (20 - (-20)) / 0.1 = 400, (20 - (-20) ) / 1000 = 0.4
-        # the last dimension is replaced with MLP dimension, z dimension is skipped
+        # the last dimension is replaced with MLP dimension, z dimension is
+        # skipped
         self.assertEqual(output.shape, [1, 400, 400, 20])
 
     def test_voxelization_output_shape_with_z(self):
@@ -70,7 +71,8 @@ class VoxelizationTest(tf.test.TestCase):
         output = layer(point_xyz, point_feature, point_mask)
         # (20 - (-20)) / 0.1 = 400, (20 - (-20) ) / 1000 = 0.4
         # (15 - (-15)) / 1 = 30
-        # the last dimension is replaced with MLP dimension, z dimension is skipped
+        # the last dimension is replaced with MLP dimension, z dimension is
+        # skipped
         self.assertEqual(output.shape, [1, 400, 400, 30, 20])
 
     def test_voxelization_numerical(self):

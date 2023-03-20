@@ -32,9 +32,10 @@ class WaymoEvaluationCallback(Callback):
         validation dataset.
 
         Args:
-            validation_data: a tf.data.Dataset containing validation data. Entries
-                should have the form `(point_clouds, {"bounding_boxes": bounding_boxes}`.
-                Padded bounding box should have a class of -1 to be correctly filtered out.
+            validation_data: a tf.data.Dataset containing validation data.
+                Entries should have the form `(point_clouds, {"bounding_boxes":
+                bounding_boxes}`. Padded bounding box should have a class of -1
+                to be correctly filtered out.
             config: an optional `metrics_pb2.Config` object from WOD to specify
                 what metrics should be evaluated.
         """
@@ -56,9 +57,9 @@ class WaymoEvaluationCallback(Callback):
 
         metrics_dict = {
             "average_precision": metrics.average_precision,
-            "average_precision_ha_weighted": metrics.average_precision_ha_weighted,
+            "average_precision_ha_weighted": metrics.average_precision_ha_weighted,  # noqa: E501
             "precision_recall": metrics.precision_recall,
-            "precision_recall_ha_weighted": metrics.precision_recall_ha_weighted,
+            "precision_recall_ha_weighted": metrics.precision_recall_ha_weighted,  # noqa: E501
             "breakdown": metrics.breakdown,
         }
 
@@ -81,7 +82,8 @@ class WaymoEvaluationCallback(Callback):
 
         gt_boxes = tf.reshape(gt_boxes, (num_frames * boxes_per_gt_frame, 9))
 
-        # Remove boxes with class of -1 (these are non-boxes that come from padding)
+        # Remove boxes with class of -1 (these are non-boxes that come from
+        # padding)
         gt_real_boxes = tf.not_equal(
             gt_boxes[:, CENTER_XYZ_DXDYDZ_PHI.CLASS], -1
         )
@@ -89,19 +91,18 @@ class WaymoEvaluationCallback(Callback):
 
         frame_ids = tf.cast(tf.linspace(1, num_frames, num_frames), tf.int64)
 
-        ground_truth = {}
-        ground_truth["ground_truth_frame_id"] = tf.boolean_mask(
-            tf.repeat(frame_ids, boxes_per_gt_frame), gt_real_boxes
-        )
-        ground_truth["ground_truth_bbox"] = gt_boxes[
-            :, : CENTER_XYZ_DXDYDZ_PHI.PHI + 1
-        ]
-        ground_truth["ground_truth_type"] = tf.cast(
-            gt_boxes[:, CENTER_XYZ_DXDYDZ_PHI.CLASS], tf.uint8
-        )
-        ground_truth["ground_truth_difficulty"] = tf.cast(
-            gt_boxes[:, CENTER_XYZ_DXDYDZ_PHI.CLASS + 1], tf.uint8
-        )
+        ground_truth = {
+            "ground_truth_frame_id": tf.boolean_mask(
+                tf.repeat(frame_ids, boxes_per_gt_frame), gt_real_boxes
+            ),
+            "ground_truth_bbox": gt_boxes[:, : CENTER_XYZ_DXDYDZ_PHI.PHI + 1],
+            "ground_truth_type": tf.cast(
+                gt_boxes[:, CENTER_XYZ_DXDYDZ_PHI.CLASS], tf.uint8
+            ),
+            "ground_truth_difficulty": tf.cast(
+                gt_boxes[:, CENTER_XYZ_DXDYDZ_PHI.CLASS + 1], tf.uint8
+            ),
+        }
 
         boxes_per_pred_frame = predicted_boxes.shape[1]
         total_predicted_boxes = boxes_per_pred_frame * num_frames
@@ -111,25 +112,24 @@ class WaymoEvaluationCallback(Callback):
         predicted_classes = tf.reshape(
             predicted_classes, (total_predicted_boxes, 2)
         )
-        # Remove boxes with class of -1 (these are non-boxes that come from padding)
+        # Remove boxes with class of -1 (these are non-boxes that come from
+        # padding)
         pred_real_boxes = tf.reduce_all(predicted_classes != -1, axis=[-1])
         predicted_boxes = tf.boolean_mask(predicted_boxes, pred_real_boxes)
         predicted_classes = tf.boolean_mask(predicted_classes, pred_real_boxes)
 
-        predictions = {}
-
-        predictions["prediction_frame_id"] = tf.boolean_mask(
-            tf.repeat(frame_ids, boxes_per_pred_frame), pred_real_boxes
-        )
-        predictions["prediction_bbox"] = predicted_boxes
-        predictions["prediction_type"] = tf.cast(
-            tf.argmax(predicted_classes, axis=-1), tf.uint8
-        )
-        predictions["prediction_score"] = tf.reduce_max(
-            predicted_classes, axis=-1
-        )
-        predictions["prediction_overlap_nlz"] = tf.cast(
-            tf.zeros(predicted_boxes.shape[0]), tf.bool
-        )
+        predictions = {
+            "prediction_frame_id": tf.boolean_mask(
+                tf.repeat(frame_ids, boxes_per_pred_frame), pred_real_boxes
+            ),
+            "prediction_bbox": predicted_boxes,
+            "prediction_type": tf.cast(
+                tf.argmax(predicted_classes, axis=-1), tf.uint8
+            ),
+            "prediction_score": tf.reduce_max(predicted_classes, axis=-1),
+            "prediction_overlap_nlz": tf.cast(
+                tf.zeros(predicted_boxes.shape[0]), tf.bool
+            ),
+        }
 
         return ground_truth, predictions

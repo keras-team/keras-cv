@@ -108,8 +108,8 @@ class PointToVoxel(tf.keras.layers.Layer):
 
         Returns:
           point_voxel_feature: [B, N, dim] voxel feature (delta_{x,y,z}).
-          point_voxel_id: [B, N] voxel ID of each point. Invalid voxels have Id's
-            set to 0.
+          point_voxel_id: [B, N] voxel ID of each point. Invalid voxels have
+            Id's set to 0.
           point_voxel_mask: [B, N] validpoint voxel boolean mask.
         """
         # [B, N, dim]
@@ -138,7 +138,7 @@ class PointToVoxel(tf.keras.layers.Layer):
         )
 
         # [B, N]
-        # remove points outside of the voxel boundary
+        # remove points outside the voxel boundary
         point_voxel_mask = tf.logical_and(
             point_voxel_xyz >= 0,
             point_voxel_xyz
@@ -151,7 +151,8 @@ class PointToVoxel(tf.keras.layers.Layer):
 
         # [B, N]
         point_voxel_mask_int = tf.cast(point_voxel_mask, dtype=tf.int32)
-        # [B, N] for voxel_id, int constant for num_voxels, in the range of [0, B * num_voxels]
+        # [B, N] for voxel_id, int constant for num_voxels, in the range of
+        # [0, B * num_voxels]
         point_voxel_id = compute_point_voxel_id(
             point_voxel_xyz, self._voxel_spatial_size
         )
@@ -169,7 +170,8 @@ class DynamicVoxelization(tf.keras.layers.Layer):
     and max pools all point features inside each voxel.
 
     Args:
-      point_net: a keras Layer that project point feature into another dimension.
+      point_net: a keras Layer that project point feature into another
+        dimension.
       voxel_size: the x, y, z dimension of each voxel.
       spatial_size: the x, y, z boundary of voxels
 
@@ -227,7 +229,8 @@ class DynamicVoxelization(tf.keras.layers.Layer):
             point_voxel_id,
             point_voxel_mask,
         ) = self._voxelization_layer(point_xyz=point_xyz, point_mask=point_mask)
-        # TODO(tanzhenyu): move compute_point_voxel_id to here, so PointToVoxel layer is more generic.
+        # TODO(tanzhenyu): move compute_point_voxel_id to here, so PointToVoxel
+        #  layer is more generic.
         point_feature = tf.concat([point_feature, point_voxel_feature], axis=-1)
         batch_size = (
             point_feature.shape.as_list()[0] or tf.shape(point_feature)[0]

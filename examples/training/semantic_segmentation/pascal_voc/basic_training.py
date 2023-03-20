@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Title: Train an Semantic Segmentation Model on Pascal VOC 2012 using KerasCV
+Title: Train a Semantic Segmentation Model on Pascal VOC 2012 using KerasCV
 Author: [tanzhenyu](https://github.com/tanzhenyu)
 Date created: 2022/10/25
 Last modified: 2022/10/25
@@ -58,7 +58,8 @@ flags.DEFINE_string(
 flags.DEFINE_string(
     "model_kwargs",
     "{}",
-    "Keyword argument dictionary to pass to the constructor of the model being trained",
+    "Keyword argument dictionary to pass to the constructor of the model being"
+    " trained",
 )
 
 FLAGS = flags.FLAGS
@@ -68,7 +69,8 @@ if FLAGS.mixed_precision:
     logging.info("mixed precision training enabled")
     tf.keras.mixed_precision.set_global_policy("mixed_float16")
 
-# Try to detect an available TPU. If none is present, default to MirroredStrategy
+# Try to detect an available TPU. If none is present, default to
+# MirroredStrategy
 try:
     tpu = tf.distribute.cluster_resolver.TPUClusterResolver.connect()
     strategy = tf.distribute.TPUStrategy(tpu)

@@ -25,9 +25,9 @@ from keras_cv.utils import preprocessing as preprocessing_utils
 class RandAugment(RandomAugmentationPipeline):
     """RandAugment performs the Rand Augment operation on input images.
 
-    This layer can be thought of as an all in one image augmentation layer.  The policy
-    implemented by this layer has been benchmarked extensively and is effective on a
-    wide variety of datasets.
+    This layer can be thought of as an all-in-one image augmentation layer. The
+    policy implemented by this layer has been benchmarked extensively and is
+    effective on a wide variety of datasets.
 
     The policy operates as follows:
 
@@ -43,28 +43,30 @@ class RandAugment(RandomAugmentationPipeline):
         value_range: the range of values the incoming images will have.
             Represented as a two number tuple written [low, high].
             This is typically either `[0, 1]` or `[0, 255]` depending
-            on how your preprocessing pipeline is setup.
-        augmentations_per_image: the number of layers to use in the rand augment policy.
-            Defaults to `3`.
-        magnitude: magnitude is the mean of the normal distribution used to sample the
-            magnitude used for each data augmentation.  magnitude should
-            be a float in the range `[0, 1]`.  A magnitude of `0` indicates that the
-            augmentations are as weak as possible (not recommended), while a value of
-            `1.0` implies use of the strongest possible augmentation.  All magnitudes
-            are clipped to the range `[0, 1]` after sampling.  Defaults to `0.5`.
-        magnitude_stddev: the standard deviation to use when drawing values
-            for the perturbations.  Keep in mind magnitude will still be clipped to the
-            range `[0, 1]` after samples are drawn from the normal distribution.
-            Defaults to `0.15`.
-        rate:  the rate at which to apply each augmentation.  This parameter is applied
-            on a per-distortion layer, per image.  Should be in the range `[0, 1]`.
-            To reproduce the original RandAugment paper results, set this to `10/11`.
-            The original `RandAugment` paper includes an Identity transform.  By setting
-            the rate to 10/11 in our implementation, the behavior is identical to
-            sampling an Identity augmentation 10/11th of the time.
-            Defaults to `1.0`.
-        geometric: whether or not to include geometric augmentations.  This should be
-            set to False when performing object detection.  Defaults to True.
+            on how your preprocessing pipeline is set up.
+        augmentations_per_image: the number of layers to use in the rand augment
+            policy. Defaults to `3`.
+        magnitude: magnitude is the mean of the normal distribution used to
+            sample the magnitude used for each data augmentation. Magnitude
+            should be a float in the range `[0, 1]`. A magnitude of `0`
+            indicates that the augmentations are as weak as possible (not
+            recommended), while a value of `1.0` implies use of the strongest
+            possible augmentation. All magnitudes are clipped to the range
+            `[0, 1]` after sampling. Defaults to `0.5`.
+        magnitude_stddev: the standard deviation to use when drawing values for
+            the perturbations. Keep in mind magnitude will still be clipped to
+            the range `[0, 1]` after samples are drawn from the normal
+            distribution. Defaults to `0.15`.
+        rate: the rate at which to apply each augmentation. This parameter is
+            applied on a per-distortion layer, per image. Should be in the range
+            `[0, 1]`. To reproduce the original RandAugment paper results, set
+            this to `10/11`. The original `RandAugment` paper includes an
+            Identity transform. By setting the rate to 10/11 in our
+            implementation, the behavior is identical to sampling an Identity
+            augmentation 10/11th of the time. Defaults to `1.0`.
+        geometric: whether or not to include geometric augmentations. This
+            should be set to False when performing object detection. Defaults to
+            True.
     Usage:
     ```python
     (x_test, y_test), _ = tf.keras.datasets.cifar10.load_data()
@@ -86,11 +88,12 @@ class RandAugment(RandomAugmentationPipeline):
         seed=None,
         **kwargs,
     ):
-        # As an optimization RandAugment makes all internal layers use (0, 255) while
+        # As an optimization RandAugment makes all internal layers use (0, 255)
         # and we handle range transformation at the _augment level.
         if magnitude < 0.0 or magnitude > 1:
             raise ValueError(
-                f"`magnitude` must be in the range [0, 1], got `magnitude={magnitude}`"
+                "`magnitude` must be in the range [0, 1], got "
+                f"`magnitude={magnitude}`"
             )
         if magnitude_stddev < 0.0 or magnitude_stddev > 1:
             raise ValueError(
@@ -208,7 +211,8 @@ def equalize_policy(magnitude, magnitude_stddev):
 
 def solarize_policy(magnitude, magnitude_stddev):
     # We cap additions at 110, because if we add more than 110 we will be nearly
-    # nullifying the information contained in the image, making the model train on noise
+    # nullifying the information contained in the image, making the model train
+    # on noise
     maximum_addition_value = 110
     addition_factor = core.NormalFactorSampler(
         mean=magnitude * maximum_addition_value,

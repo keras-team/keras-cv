@@ -69,15 +69,16 @@ def clip_to_image(
 ):
     """clips bounding boxes to image boundaries.
 
-    `clip_to_image()` clips bounding boxes that have coordinates out of bounds of an
-    image down to the boundaries of the image.  This is done by converting the bounding
-    box to relative formats, then clipping them to the `[0, 1]` range.  Additionally,
-    bounding boxes that end up with a zero area have their class ID set to -1,
-    indicating that there is no object present in them.
+    `clip_to_image()` clips bounding boxes that have coordinates out of bounds
+    of an image down to the boundaries of the image.  This is done by converting
+    the bounding box to relative formats, then clipping them to the `[0, 1]`
+    range. Additionally, bounding boxes that end up with a zero area have their
+    class ID set to -1, indicating that there is no object present in them.
 
     Args:
         bounding_boxes: bounding box tensor to clip.
-        bounding_box_format: the KerasCV bounding box format the bounding boxes are in.
+        bounding_box_format: the KerasCV bounding box format the bounding boxes
+            are in.
         images: list of images to clip the bounding boxes to.
         image_shape: the shape of the images to clip the bounding boxes to.
     """
@@ -170,10 +171,12 @@ def _format_inputs(boxes, classes, images):
         images_include_batch = images_rank == 4
         if boxes_includes_batch != images_include_batch:
             raise ValueError(
-                "clip_to_image() expects both boxes and images to be batched, or both "
-                f"boxes and images to be unbatched.  Received len(boxes.shape)={boxes_rank}, "
-                f"len(images.shape)={images_rank}.  Expected either len(boxes.shape)=2 AND "
-                "len(images.shape)=3, or len(boxes.shape)=3 AND len(images.shape)=4."
+                "clip_to_image() expects both boxes and images to be batched, "
+                "or both boxes and images to be unbatched. Received "
+                f"len(boxes.shape)={boxes_rank}, "
+                f"len(images.shape)={images_rank}. Expected either "
+                "len(boxes.shape)=2 AND len(images.shape)=3, or "
+                "len(boxes.shape)=3 AND len(images.shape)=4."
             )
         if not images_include_batch:
             images = tf.expand_dims(images, axis=0)

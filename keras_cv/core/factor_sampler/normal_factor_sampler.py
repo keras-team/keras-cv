@@ -20,8 +20,8 @@ from keras_cv.core.factor_sampler.factor_sampler import FactorSampler
 class NormalFactorSampler(FactorSampler):
     """NormalFactorSampler samples factors from a normal distribution.
 
-    This is useful in cases where a user wants to always ensure that an augmentation
-    layer performs augmentations of the same strength.
+    This is useful in cases where a user wants to always ensure that an
+    augmentation layer performs augmentations of the same strength.
 
     Args:
         mean: mean value for the distribution.
@@ -38,8 +38,8 @@ class NormalFactorSampler(FactorSampler):
         upper=1
     )
     random_sharpness = keras_cv.layers.RandomSharpness(factor=factor)
-    # random_sharpness will now sample normally around 0.5, with a lower of 0 and upper
-    # bound of 1.
+    # random_sharpness will now sample normally around 0.5, with a lower of 0
+    # and upper bound of 1.
     ```
     """
 

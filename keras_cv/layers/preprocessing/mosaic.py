@@ -25,28 +25,31 @@ from keras_cv.utils import preprocessing
 class Mosaic(BaseImageAugmentationLayer):
     """Mosaic implements the mosaic data augmentation technique.
 
-    Mosaic data augmentation first takes 4 images from the batch and makes a grid.
-    After that based on the offset, a crop is taken to form the mosaic image. Labels
-    are in the same ratio as the the area of their images in the output image. Bounding
-    boxes are translated according to the position of the 4 images.
+    Mosaic data augmentation first takes 4 images from the batch and makes a
+    grid. After that based on the offset, a crop is taken to form the mosaic
+    image. Labels are in the same ratio as the area of their images in the
+    output image. Bounding boxes are translated according to the position of the
+    4 images.
 
     Args:
-        offset: A tuple of two floats, a single float or `keras_cv.FactorSampler`.
-            `offset` is used to determine the offset of the mosaic center from the
-            top-left corner of the mosaic. If a tuple is used, the x and y coordinates
-            of the mosaic center are sampled between the two values for every image
-            augmented. If a single float is used, a value between `0.0` and the passed
-            float is sampled.  In order to ensure the value is always the same, please
+        offset: A tuple of two floats, a single float or
+            `keras_cv.FactorSampler`. `offset` is used to determine the offset
+            of the mosaic center from the top-left corner of the mosaic. If a
+            tuple is used, the x and y coordinates of the mosaic center are
+            sampled between the two values for every image augmented. If a
+            single float is used, a value between `0.0` and the passed float is
+            sampled. In order to ensure the value is always the same, please
             pass a tuple with two identical floats: `(0.5, 0.5)`. Defaults to
             (0.25, 0.75).
-        bounding_box_format: a case-insensitive string (for example, "xyxy") to be
-            passed if bounding boxes are being augmented by this layer.
-            Each bounding box is defined by at least these 4 values. The inputs
-            may contain additional information such as classes and confidence after
-            these 4 values but these values will be ignored and returned as is. For
-            detailed information on the supported formats, see the
-            [KerasCV bounding box documentation](https://keras.io/api/keras_cv/bounding_box/formats/).
-            Defualts to None.
+        bounding_box_format: a case-insensitive string (for example, "xyxy") to
+            be passed if bounding boxes are being augmented by this layer. Each
+            bounding box is defined by at least these 4 values. The inputs may
+            contain additional information such as classes and confidence after
+            these 4 values but these values will be ignored and returned as is.
+            For detailed information on the supported formats, see the [KerasCV
+            bounding box documentation]
+            (https://keras.io/api/keras_cv/bounding_box/formats/).
+            Defaults to None.
         seed: Integer. Used to create a random seed.
 
     References:
@@ -91,7 +94,8 @@ class Mosaic(BaseImageAugmentationLayer):
             dtype=tf.int32,
             seed=self._random_generator.make_legacy_seed(),
         )
-        # concatenate the batches with permutation order to get all 4 images of the mosaic
+        # concatenate the batches with permutation order to get all 4 images of
+        # the mosaic
         permutation_order = tf.concat(
             [tf.expand_dims(tf.range(batch_size), axis=-1), permutation_order],
             axis=-1,
@@ -202,16 +206,17 @@ class Mosaic(BaseImageAugmentationLayer):
         x2 = x1 + (input_width) / (input_width * 2 - 1)
         y2 = y1 + (input_height) / (input_height * 2 - 1)
 
-        # helps avoid retracing caused by slicing, inspired by RRC implementation
+        # helps avoid retracing caused by slicing, inspired by RRC
+        # implementation.
         output = tf.image.crop_and_resize(
             tf.expand_dims(output, axis=0),
             [[y1, x1, y2, x2]],
             [0],
             [input_height, input_width],
         )
-        # tf.image.crop_and_resize will always output float32, so we need to recast
-        # tf.image.crop_and_resize outputs [num_boxes, crop_height, crop_width, depth]
-        # since num_boxes is always one we squeeze axis 0
+        # tf.image.crop_and_resize will always output float32, so we need to
+        # recast tf.image.crop_and_resize outputs [num_boxes, crop_height,
+        # crop_width, depth] since num_boxes is always one we squeeze axis 0.
         output = tf.cast(output, self.compute_dtype)
         output = tf.squeeze(output, axis=0)
         return output
@@ -264,7 +269,8 @@ class Mosaic(BaseImageAugmentationLayer):
         classes_for_mosaic = tf.gather(classes, permutation_order[index])
         boxes_for_mosaic = tf.gather(boxes, permutation_order[index])
 
-        # stacking translate values such that the shape is (4, 1, 4) or (num_images, broadcast dim, coordinates)
+        # stacking translate values such that the shape is (4, 1, 4) or
+        # (num_images, broadcast dim, coordinates)
         translate_values = tf.stack(
             [
                 translate_x[index],

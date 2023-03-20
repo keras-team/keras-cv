@@ -14,7 +14,7 @@
 
 import tensorflow as tf
 
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     VectorizedBaseImageAugmentationLayer,
 )
 from keras_cv.utils import preprocessing as preprocessing_utils
@@ -30,7 +30,7 @@ class RandomBrightness(VectorizedBaseImageAugmentationLayer):
     Call the layer with `training=True` to adjust the brightness of the input.
 
     Note that different brightness adjustment factors
-    will be apply to each the images in the batch.
+    will be applied to each the images in the batch.
 
     Args:
       factor: Float or a list/tuple of 2 floats between -1.0 and 1.0. The

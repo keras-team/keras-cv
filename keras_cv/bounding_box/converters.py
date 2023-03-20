@@ -20,8 +20,8 @@ from typing import Union
 import tensorflow as tf
 
 
-# Internal exception to propagate the fact images was not passed to a converter that
-# needs it
+# Internal exception to propagate the fact images was not passed to a converter
+# that needs it.
 class RequiresImagesException(Exception):
     pass
 
@@ -299,35 +299,36 @@ def convert_format(
     f"""Converts bounding_boxes from one format to another.
 
     Supported formats are:
-    - `"xyxy"`, also known as `corners` format.  In this format the first four axes
-        represent `[left, top, right, bottom]` in that order.
+    - `"xyxy"`, also known as `corners` format.  In this format the first four
+        axes represent `[left, top, right, bottom]` in that order.
     - `"rel_xyxy"`.  In this format, the axes are the same as `"xyxy"` but the x
-        coordinates are normalized using the image width, and the y axes the image
-        height.  All values in `rel_xyxy` are in the range `(0, 1)`.
+        coordinates are normalized using the image width, and the y axes the
+        image height.  All values in `rel_xyxy` are in the range `(0, 1)`.
     - `"xywh"`.  In this format the first four axes represent
         `[left, top, width, height]`.
     - `"rel_xywh".  In this format the first four axes represent
-        [left, top, width, height], just like `"xywh"`.  Unlike `"xywh"`, the values
-        are in the range (0, 1) instead of absolute pixel values.
-    - `"center_xyWH"`.  In this format the first two coordinates represent the x and y
-        coordinates of the center of the bounding box, while the last two represent
-        the width and height of the bounding box.
-    - `"center_yxHW"`.  In this format the first two coordinates represent the y and x
-        coordinates of the center of the bounding box, while the last two represent
-        the height and width of the bounding box.
-    - `"yxyx"`.  In this format the first four axes represent [top, left, bottom, right]
-        in that order.
+        [left, top, width, height], just like `"xywh"`.  Unlike `"xywh"`, the
+        values are in the range (0, 1) instead of absolute pixel values.
+    - `"center_xyWH"`.  In this format the first two coordinates represent the x
+        and y coordinates of the center of the bounding box, while the last two
+        represent the width and height of the bounding box.
+    - `"center_yxHW"`.  In this format the first two coordinates represent the y
+        and x coordinates of the center of the bounding box, while the last two
+        represent the height and width of the bounding box.
+    - `"yxyx"`.  In this format the first four axes represent
+        [top, left, bottom, right] in that order.
     - `"rel_yxyx"`.  In this format, the axes are the same as `"yxyx"` but the x
-        coordinates are normalized using the image width, and the y axes the image
-        height.  All values in `rel_yxyx` are in the range (0, 1).
-    Formats are case insensitive.  It is recommended that you capitalize width and
-    height to maximize the visual difference between `"xyWH"` and `"xyxy"`.
+        coordinates are normalized using the image width, and the y axes the
+        image height.  All values in `rel_yxyx` are in the range (0, 1).
+    Formats are case insensitive.  It is recommended that you capitalize width
+    and height to maximize the visual difference between `"xyWH"` and `"xyxy"`.
 
-    Relative formats, abbreviated `rel`, make use of the shapes of the `images` passed.
-    In these formats, the coordinates, widths, and heights are all specified as
-    percentages of the host image.  `images` may be a ragged Tensor.  Note that using a
-    ragged Tensor for images may cause a substantial performance loss, as each image
-    will need to be processed separately due to the mismatching image shapes.
+    Relative formats, abbreviated `rel`, make use of the shapes of the `images`
+    passed.  In these formats, the coordinates, widths, and heights are all
+    specified as percentages of the host image.  `images` may be a ragged
+    Tensor.  Note that using a ragged Tensor for images may cause a substantial
+    performance loss, as each image will need to be processed separately due to
+    the mismatching image shapes.
 
     Usage:
 
@@ -341,21 +342,22 @@ def convert_format(
     ```
 
     Args:
-        boxes: tf.Tensor representing bounding boxes in the format specified in the
-            `source` parameter.  `boxes` can optionally have extra dimensions stacked on
-             the final axis to store metadata.  boxes should be a 3D Tensor, with the
-             shape `[batch_size, num_boxes, 4]`.  Alternatively, boxes can be a
-             dictionary with key 'boxes' containing a Tensor matching the aforementioned
-             spec.
-        source: One of {" ".join([f'"{f}"' for f in TO_XYXY_CONVERTERS.keys()])}.  Used
-            to specify the original format of the `boxes` parameter.
-        target: One of {" ".join([f'"{f}"' for f in TO_XYXY_CONVERTERS.keys()])}.  Used
-            to specify the destination format of the `boxes` parameter.
-        images: (Optional) a batch of images aligned with `boxes` on the first axis.
-            Should be at least 3 dimensions, with the first 3 dimensions representing:
-            `[batch_size, height, width]`.  Used in some converters to compute relative
-            pixel values of the bounding box dimensions.  Required when transforming
-            from a rel format to a non-rel format.
+        boxes: tf.Tensor representing bounding boxes in the format specified in
+            the `source` parameter.  `boxes` can optionally have extra
+            dimensions stacked on the final axis to store metadata.  boxes
+            should be a 3D Tensor, with the shape `[batch_size, num_boxes, 4]`.
+            Alternatively, boxes can be a dictionary with key 'boxes' containing
+            a Tensor matching the aforementioned spec.
+        source:One of {" ".join([f'"{f}"' for f in TO_XYXY_CONVERTERS.keys()])}.
+            Used to specify the original format of the `boxes` parameter.
+        target:One of {" ".join([f'"{f}"' for f in TO_XYXY_CONVERTERS.keys()])}.
+            Used to specify the destination format of the `boxes` parameter.
+        images: (Optional) a batch of images aligned with `boxes` on the first
+            axis. Should be at least 3 dimensions, with the first 3 dimensions
+            representing: `[batch_size, height, width]`.  Used in some
+            converters to compute relative pixel values of the bounding box
+            dimensions.  Required when transforming from a rel format to a
+            non-rel format.
         dtype: the data type to use when transforming the boxes.  Defaults to
             `tf.float32`.
     """
@@ -372,13 +374,13 @@ def convert_format(
 
     if boxes.shape[-1] != 4:
         raise ValueError(
-            "Expected `boxes` to be a Tensor with a "
-            f"final dimension of `4`. Instead, got `boxes.shape={boxes.shape}`."
+            "Expected `boxes` to be a Tensor with a final dimension of "
+            f"`4`. Instead, got `boxes.shape={boxes.shape}`."
         )
     if images is not None and image_shape is not None:
         raise ValueError(
-            "convert_format() expects either `images` or `image_shape`, "
-            f"but not both.  Received images={images} image_shape={image_shape}"
+            "convert_format() expects either `images` or `image_shape`, but "
+            f"not both.  Received images={images} image_shape={image_shape}"
         )
 
     _validate_image_shape(image_shape)
@@ -387,15 +389,15 @@ def convert_format(
     target = target.lower()
     if source not in TO_XYXY_CONVERTERS:
         raise ValueError(
-            f"`convert_format()` received an unsupported format for the argument "
-            f"`source`.  `source` should be one of {TO_XYXY_CONVERTERS.keys()}. "
-            f"Got source={source}"
+            "`convert_format()` received an unsupported format for the "
+            "argument `source`.  `source` should be one of "
+            f"{TO_XYXY_CONVERTERS.keys()}. Got source={source}"
         )
     if target not in FROM_XYXY_CONVERTERS:
         raise ValueError(
-            f"`convert_format()` received an unsupported format for the argument "
-            f"`target`.  `target` should be one of {FROM_XYXY_CONVERTERS.keys()}. "
-            f"Got target={target}"
+            "`convert_format()` received an unsupported format for the "
+            "argument `target`.  `target` should be one of "
+            f"{FROM_XYXY_CONVERTERS.keys()}. Got target={target}"
         )
 
     boxes = tf.cast(boxes, dtype)
@@ -416,8 +418,8 @@ def convert_format(
         result = from_xyxy_fn(in_xyxy, images=images, image_shape=image_shape)
     except RequiresImagesException:
         raise ValueError(
-            "convert_format() must receive `images` or `image_shape` when transforming "
-            f"between relative and absolute formats."
+            "convert_format() must receive `images` or `image_shape` when "
+            "transforming between relative and absolute formats."
             f"convert_format() received source=`{format}`, target=`{format}, "
             f"but images={images} and image_shape={image_shape}."
         )
@@ -444,10 +446,12 @@ def _format_inputs(boxes, images):
         images_include_batch = images_rank == 4
         if boxes_includes_batch != images_include_batch:
             raise ValueError(
-                "convert_format() expects both boxes and images to be batched, or both "
-                f"boxes and images to be unbatched.  Received len(boxes.shape)={boxes_rank}, "
-                f"len(images.shape)={images_rank}.  Expected either len(boxes.shape)=2 AND "
-                "len(images.shape)=3, or len(boxes.shape)=3 AND len(images.shape)=4."
+                "convert_format() expects both boxes and images to be batched, "
+                "or both boxes and images to be unbatched.  Received "
+                f"len(boxes.shape)={boxes_rank}, "
+                f"len(images.shape)={images_rank}.  Expected either "
+                "len(boxes.shape)=2 AND len(images.shape)=3, or "
+                "len(boxes.shape)=3 AND len(images.shape)=4."
             )
         if not images_include_batch:
             images = tf.expand_dims(images, axis=0)

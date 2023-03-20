@@ -21,33 +21,33 @@ class FeaturePyramid(tf.keras.layers.Layer):
     """Implements a Feature Pyramid Network.
 
     This implements the paper:
-      Tsung-Yi Lin, Piotr Dollar, Ross Girshick, Kaiming He, Bharath Hariharan, and
-      Serge Belongie.
-      Feature Pyramid Networks for Object Detection.
+      Tsung-Yi Lin, Piotr Dollar, Ross Girshick, Kaiming He, Bharath Hariharan,
+      and Serge Belongie. Feature Pyramid Networks for Object Detection.
       (https://arxiv.org/pdf/1612.03144)
 
     Feature Pyramid Networks (FPNs) are basic components that are added to an
-    existing feature extractor (CNN) to combine features at different scales. For the
-    basic FPN, the inputs are features `Ci` from different levels of a CNN, which is
-    usually the last block for each level, where the feature is scaled from the image
-    by a factor of `1/2^i`.
+    existing feature extractor (CNN) to combine features at different scales.
+    For the basic FPN, the inputs are features `Ci` from different levels of a
+    CNN, which is usually the last block for each level, where the feature is
+    scaled from the image by a factor of `1/2^i`.
 
-    There is an output associated with each level in the basic FPN. The output Pi
-    at level `i` (corresponding to Ci) is given by performing a merge operation on
-    the outputs of:
+    There is an output associated with each level in the basic FPN. The output
+    Pi at level `i` (corresponding to Ci) is given by performing a merge
+    operation on the outputs of:
 
-    1) a lateral operation on Ci (usually a conv2D layer with kernel = 1 and strides = 1)
+    1) a lateral operation on Ci (usually a conv2D layer with kernel = 1 and
+       strides = 1)
     2) a top-down upsampling operation from Pi+1 (except for the top most level)
 
     The final output of each level will also have a conv2D operation
-    (usually with kernel = 3 and strides = 1).
+    (typically with kernel = 3 and strides = 1).
 
     The inputs to the layer should be a dict with int keys should match the
-    pyramid_levels, e.g. for `pyramid_levels` = [2,3,4,5], the expected input dict should
-    be `{2:c2, 3:c3, 4:c4, 5:c5}`.
+    pyramid_levels, e.g. for `pyramid_levels` = [2,3,4,5], the expected input
+    dict should be `{2:c2, 3:c3, 4:c4, 5:c5}`.
 
-    The output of the layer will have same structures as the inputs, a dict with int keys
-    and value for each of the level.
+    The output of the layer will have same structures as the inputs, a dict with
+    int keys and value for each of the level.
 
     Args:
         min_level: a python int for the lowest level of the pyramid for
@@ -56,30 +56,40 @@ class FeaturePyramid(tf.keras.layers.Layer):
             feature extraction.
         num_channels: an integer representing the number of channels for the FPN
             operations. Defaults to 256.
-        lateral_layers: a python dict with int keys that matches to each of the pyramid
-            level. The values of the dict should be `keras.Layer`, which will be called
-            with feature activation outputs from backbone at each level. Default to
-            None, and a `keras.Conv2D` layer with kernel 1x1 will be created for each
-            pyramid level.
-        output_layers: a python dict with int keys that matches to each of the pyramid
-            level. The values of the dict should be `keras.Layer`, which will be called
-            with feature inputs and merged result from upstream levels. Default to None,
-            and a `keras.Conv2D` layer with kernel 3x3 will be created for each pyramid
-            level.
+        lateral_layers: a python dict with int keys that matches to each of the
+            pyramid level. The values of the dict should be `keras.Layer`, which
+            will be called with feature activation outputs from backbone at each
+            level. Defaults to None, and a `keras.Conv2D` layer with kernel 1x1
+            will be created for each pyramid level.
+        output_layers: a python dict with int keys that matches to each of the
+            pyramid level. The values of the dict should be `keras.Layer`, which
+            will be called with feature inputs and merged result from upstream
+            levels. Defaults to None, and a `keras.Conv2D` layer with kernel 3x3
+            will be created for each pyramid level.
 
     Sample Usage:
     ```python
 
     inp = tf.keras.layers.Input((384, 384, 3))
-    backbone = tf.keras.applications.EfficientNetB0(input_tensor=inp, include_top=False)
-    layer_names = ['block2b_add', 'block3b_add', 'block5c_add', 'top_activation']
+    backbone = tf.keras.applications.EfficientNetB0(
+        input_tensor=inp,
+        include_top=False
+    )
+    layer_names = ['block2b_add',
+        'block3b_add',
+        'block5c_add',
+        'top_activation'
+    ]
 
     backbone_outputs = {}
     for i, layer_name in enumerate(layer_names):
         backbone_outputs[i+2] = backbone.get_layer(layer_name).output
 
     # output_dict is a dict with 2, 3, 4, 5 as keys
-    output_dict = keras_cv.layers.FeaturePyramid(min_level=2, max_level=5)(backbone_outputs)
+    output_dict = keras_cv.layers.FeaturePyramid(
+        min_level=2,
+        max_level=5
+    )(backbone_outputs)
     ```
     """
 
@@ -148,22 +158,23 @@ class FeaturePyramid(tf.keras.layers.Layer):
             )
 
     def call(self, features):
-        # Note that this assertion might not be true for all the subclasses. It is
-        # possible to have FPN that has high levels than the height of backbone outputs.
+        # Note that this assertion might not be true for all the subclasses. It
+        # is possible to have FPN that has high levels than the height of
+        # backbone outputs.
         if (
             not isinstance(features, dict)
             or sorted(features.keys()) != self.pyramid_levels
         ):
             raise ValueError(
-                "FeaturePyramid expects input features to be a dict with int keys "
-                "that match the values provided in pyramid_levels. "
+                "FeaturePyramid expects input features to be a dict with int "
+                "keys that match the values provided in pyramid_levels. "
                 f"Expect feature keys: {self.pyramid_levels}, got: {features}"
             )
         return self.build_feature_pyramid(features)
 
     def build_feature_pyramid(self, input_features):
-        # To illustrate the connection/topology, the basic flow for a FPN with level
-        # 3, 4, 5 is like below:
+        # To illustrate the connection/topology, the basic flow for a FPN with
+        # level 3, 4, 5 is like below:
         #
         # input_l5 -> conv2d_1x1_l5 ----V---> conv2d_3x3_l5 -> output_l5
         #                               V
@@ -181,13 +192,14 @@ class FeaturePyramid(tf.keras.layers.Layer):
         for level in reversed_levels:
             output = self.lateral_layers[level](input_features[level])
             if level < top_level:
-                # for the top most output, it doesn't need to merge with any upper stream
-                # outputs
+                # for the top most output, it doesn't need to merge with any
+                # upper stream outputs
                 upstream_output = self.top_down_op(output_features[level + 1])
                 output = self.merge_op([output, upstream_output])
             output_features[level] = output
 
-        # Post apply the output layers so that we don't leak them to the down stream level
+        # Post apply the output layers so that we don't leak them to the down
+        # stream level
         for level in reversed_levels:
             output_features[level] = self.output_layers[level](
                 output_features[level]

@@ -24,12 +24,12 @@ class Equalization(BaseImageAugmentationLayer):
     """Equalization performs histogram equalization on a channel-wise basis.
 
     Args:
-        value_range: a tuple or a list of two elements. The first value represents
-            the lower bound for values in passed images, the second represents the
-            upper bound. Images passed to the layer should have values within
-            `value_range`.
-        bins: Integer indicating the number of bins to use in histogram equalization.
-            Should be in the range [0, 256].
+        value_range: a tuple or a list of two elements. The first value
+            represents the lower bound for values in passed images, the second
+            represents the upper bound. Images passed to the layer should have
+            values within `value_range`.
+        bins: Integer indicating the number of bins to use in histogram
+            equalization. Should be in the range [0, 256].
 
     Usage:
     ```python
@@ -62,9 +62,10 @@ class Equalization(BaseImageAugmentationLayer):
         # Compute the histogram of the image channel.
         histogram = tf.histogram_fixed_width(image, [0, 255], nbins=self.bins)
 
-        # For the purposes of computing the step, filter out the nonzeros.
-        # Zeroes are replaced by a big number while calculating min to keep shape
-        # constant across input sizes for compatibility with vectorized_map
+        # For the purposes of computing the step, filter out the non-zeros.
+        # Zeroes are replaced by a big number while calculating min to keep
+        # shape constant across input sizes for compatibility with
+        # vectorized_map
 
         big_number = 1410065408
         histogram_without_zeroes = tf.where(

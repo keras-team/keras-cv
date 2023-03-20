@@ -18,10 +18,11 @@ from keras_cv.core.factor_sampler.factor_sampler import FactorSampler
 
 @tf.keras.utils.register_keras_serializable(package="keras_cv")
 class ConstantFactorSampler(FactorSampler):
-    """ConstantFactorSampler samples the same factor for every call to `__call__()`.
+    """ConstantFactorSampler samples the same factor for every call to
+    `__call__()`.
 
-    This is useful in cases where a user wants to always ensure that an augmentation
-    layer performs augmentations of the same strength.
+    This is useful in cases where a user wants to always ensure that an
+    augmentation layer performs augmentations of the same strength.
 
     Args:
         value: the value to return from `__call__()`.

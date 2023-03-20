@@ -73,26 +73,34 @@ def compute_iou(
 ):
     """Computes a lookup table vector containing the ious for a given set boxes.
 
-    The lookup vector is to be indexed by [`boxes1_index`,`boxes2_index`] if boxes
-    are unbatched and by [`batch`, `boxes1_index`,`boxes2_index`] if the boxes are
-    batched.
+    The lookup vector is to be indexed by [`boxes1_index`,`boxes2_index`] if
+    boxes are unbatched and by [`batch`, `boxes1_index`,`boxes2_index`] if the
+    boxes are batched.
 
     The users can pass `boxes1` and `boxes2` to be different ranks. For example:
-    1) `boxes1`: [batch_size, M, 4], `boxes2`: [batch_size, N, 4] -> return [batch_size, M, N].
-    2) `boxes1`: [batch_size, M, 4], `boxes2`: [N, 4] -> return [batch_size, M, N]
-    3) `boxes1`: [M, 4], `boxes2`: [batch_size, N, 4] -> return [batch_size, M, N]
+    1) `boxes1`: [batch_size, M, 4], `boxes2`: [batch_size, N, 4] -> return
+        [batch_size, M, N].
+    2) `boxes1`: [batch_size, M, 4], `boxes2`: [N, 4] -> return
+        [batch_size, M, N]
+    3) `boxes1`: [M, 4], `boxes2`: [batch_size, N, 4] -> return
+        [batch_size, M, N]
     4) `boxes1`: [M, 4], `boxes2`: [N, 4] -> return [M, N]
 
     Args:
-      boxes1: a list of bounding boxes in 'corners' format. Can be batched or unbatched.
-      boxes2: a list of bounding boxes in 'corners' format. Can be batched or unbatched.
+      boxes1: a list of bounding boxes in 'corners' format. Can be batched or
+        unbatched.
+      boxes2: a list of bounding boxes in 'corners' format. Can be batched or
+        unbatched.
       bounding_box_format: a case-insensitive string which is one of `"xyxy"`,
         `"rel_xyxy"`, `"xyWH"`, `"center_xyWH"`, `"yxyx"`, `"rel_yxyx"`.
         For detailed information on the supported format, see the
-        [KerasCV bounding box documentation](https://keras.io/api/keras_cv/bounding_box/formats/).
-    use_masking: whether masking will be applied. This will mask all `boxes1` or `boxes2` that
-        have values less then 0 in all its 4 dimensions. Default to `False`.
-    mask_val: int to mask those returned IOUs if the masking is True. Default to -1.
+        [KerasCV bounding box documentation]
+        (https://keras.io/api/keras_cv/bounding_box/formats/).
+      use_masking: whether masking will be applied. This will mask all `boxes1`
+        or `boxes2` that have values less than 0 in all its 4 dimensions.
+        Default to `False`.
+      mask_val: int to mask those returned IOUs if the masking is True. Default
+        to -1.
 
     Returns:
       iou_lookup_table: a vector containing the pairwise ious of boxes1 and
@@ -104,17 +112,17 @@ def compute_iou(
 
     if boxes1_rank not in [2, 3]:
         raise ValueError(
-            "compute_iou() expects boxes1 to be batched, or "
-            f"to be unbatched. Received len(boxes1.shape)={boxes1_rank}, "
-            f"len(boxes2.shape)={boxes2_rank}. Expected either len(boxes1.shape)=2 AND "
-            "or len(boxes1.shape)=3."
+            "compute_iou() expects boxes1 to be batched, or to be unbatched. "
+            f"Received len(boxes1.shape)={boxes1_rank}, "
+            f"len(boxes2.shape)={boxes2_rank}. Expected either "
+            "len(boxes1.shape)=2 AND or len(boxes1.shape)=3."
         )
     if boxes2_rank not in [2, 3]:
         raise ValueError(
-            "compute_iou() expects boxes2 to be batched, or "
-            f"to be unbatched. Received len(boxes1.shape)={boxes1_rank}, "
-            f"len(boxes2.shape)={boxes2_rank}. Expected either len(boxes2.shape)=2 AND "
-            "or len(boxes2.shape)=3."
+            "compute_iou() expects boxes2 to be batched, or to be unbatched. "
+            f"Received len(boxes1.shape)={boxes1_rank}, "
+            f"len(boxes2.shape)={boxes2_rank}. Expected either "
+            "len(boxes2.shape)=2 AND or len(boxes2.shape)=3."
         )
 
     target_format = "yxyx"

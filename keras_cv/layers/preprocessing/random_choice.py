@@ -22,9 +22,9 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 class RandomChoice(BaseImageAugmentationLayer):
     """RandomChoice constructs a pipeline based on provided arguments.
 
-    The implemented policy does the following: for each inputs provided in `call`(), the
-    policy selects a random layer from the provided list of `layers`.  It then calls the
-    `layer()` on the inputs.
+    The implemented policy does the following: for each input provided in
+    `call`(), the policy selects a random layer from the provided list of
+    `layers`. It then calls the `layer()` on the inputs.
 
     Usage:
     ```python
@@ -32,7 +32,8 @@ class RandomChoice(BaseImageAugmentationLayer):
     layers = keras_cv.layers.RandAugment.get_standard_policy(
         value_range=(0, 255), magnitude=0.75, magnitude_stddev=0.3
     )
-    layers = layers[:4]  # slice out some layers you don't want for whatever reason
+    layers = layers[:4]  # slice out some layers you don't want for whatever
+                           reason
     layers = layers + [keras_cv.layers.GridMask()]
 
     # create the pipeline.
@@ -42,13 +43,13 @@ class RandomChoice(BaseImageAugmentationLayer):
     ```
 
     Args:
-        layers: a list of `keras.Layers`.  These are randomly inputs during
-            augmentation to augment the inputs passed in `call()`.  The layers passed
-            should subclass `BaseImageAugmentationLayer`.
+        layers: a list of `keras.Layers`. These are randomly inputs during
+            augmentation to augment the inputs passed in `call()`. The layers
+            passed should subclass `BaseImageAugmentationLayer`.
         auto_vectorize: whether to use `tf.vectorized_map` or `tf.map_fn` to
-            apply the augmentations.  This offers a significant performance boost, but
-            can only be used if all the layers provided to the `layers` argument
-            support auto vectorization.
+            apply the augmentations. This offers a significant performance
+            boost, but can only be used if all the layers provided to the
+            `layers` argument support auto vectorization.
         seed: Integer. Used to create a random seed.
     """
 

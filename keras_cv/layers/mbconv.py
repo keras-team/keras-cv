@@ -45,36 +45,46 @@ class MBConvBlock(layers.Layer):
         **kwargs
     ):
         """
-        Implementation of the MBConv block (Mobile Inverted Residual Bottleneck) from:
-            (MobileNetV2: Inverted Residuals and Linear Bottlenecks)[https://arxiv.org/abs/1801.04381v4].
+        Implementation of the MBConv block (Mobile Inverted Residual Bottleneck)
+        from:
+            (MobileNetV2: Inverted Residuals and Linear Bottlenecks)
+            [https://arxiv.org/abs/1801.04381v4].
 
-        MBConv blocks are common blocks used in mobile-oriented and efficient architectures,
-        present in architectures such as MobileNet, EfficientNet, MaxViT, etc.
+        MBConv blocks are common blocks used in mobile-oriented and efficient
+        architectures, present in architectures such as MobileNet, EfficientNet,
+        MaxViT, etc.
 
-        MBConv blocks follow a narrow-wide-narrow structure - expanding a 1x1 convolution, applying
-        depthwise convolution, and narrowing back to a 1x1 convolution, which is a more efficient operation
-        than conventional wide-narrow-wide structures.
+        MBConv blocks follow a narrow-wide-narrow structure - expanding a 1x1
+        convolution, applying depthwise convolution, and narrowing back to a 1x1
+        convolution, which is a more efficient operation than conventional
+        wide-narrow-wide structures.
 
-        As they're frequently used for models to be deployed to edge devices, they're
-        implemented as a layer for ease of use and re-use.
+        As they're frequently used for models to be deployed to edge devices,
+        they're implemented as a layer for ease of use and re-use.
 
         Args:
             input_filters: int, the number of input filters
-            output_filters: int, the optional number of output filters after Squeeze-Excitation
-            expand_ratio: default 1, the ratio by which input_filters are multiplied to expand
-                the structure in the middle expansion phase
-            kernel_size: default 3, the kernel_size to apply to the expansion phase convolutions
-            strides: default 1, the strides to apply to the expansion phase convolutions
-            se_ratio: default 0.0, Squeeze-Excitation happens before depthwise convolution
-                and before output convolution only if the se_ratio is above 0.
-                The filters used in this phase are chosen as the maximum between 1 and input_filters*se_ratio
+            output_filters: int, the optional number of output filters after
+                Squeeze-Excitation
+            expand_ratio: default 1, the ratio by which input_filters are
+                multiplied to expand the structure in the middle expansion phase
+            kernel_size: default 3, the kernel_size to apply to the expansion
+                phase convolutions
+            strides: default 1, the strides to apply to the expansion phase
+                convolutions
+            se_ratio: default 0.0, Squeeze-Excitation happens before depthwise
+                convolution and before output convolution only if the se_ratio
+                is above 0. The filters used in this phase are chosen as the
+                maximum between 1 and input_filters*se_ratio
             bn_momentum: default 0.9, the BatchNormalization momentum
-            activation: default "swish", the activation function used between convolution operations
-            survival_probability: float, default 0.8, the optional dropout rate to apply before the output
-                convolution
+            activation: default "swish", the activation function used between
+                convolution operations
+            survival_probability: float, default 0.8, the optional dropout rate
+                to apply before the output convolution
 
         Returns:
-            A `tf.Tensor` representing a feature map, passed through the MBConv block
+            A `tf.Tensor` representing a feature map, passed through the MBConv
+            block
 
 
         Example usage:

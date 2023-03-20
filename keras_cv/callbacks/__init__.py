@@ -15,7 +15,8 @@ try:
     from keras_cv.callbacks.pycoco_callback import PyCOCOCallback
 except ImportError:
     print(
-        "You do not have pyococotools installed, so the `PyCOCOCallback` API is not available."
+        "You do not have pyococotools installed, so the `PyCOCOCallback` API is"
+        "not available."
     )
 
 try:
@@ -24,5 +25,6 @@ try:
     )
 except ImportError:
     print(
-        "You do not have Waymo Open Dataset installed, so KerasCV Waymo metrics are not available."
+        "You do not have Waymo Open Dataset installed, so KerasCV Waymo metrics"
+        "are not available."
     )

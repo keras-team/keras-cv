@@ -24,32 +24,33 @@ class Posterization(BaseImageAugmentationLayer):
     """Reduces the number of bits for each color channel.
 
     References:
-    - [AutoAugment: Learning Augmentation Policies from Data](
-        https://arxiv.org/abs/1805.09501
-    )
-    - [RandAugment: Practical automated data augmentation with a reduced search space](
-        https://arxiv.org/abs/1909.13719
-    )
+    - [AutoAugment: Learning Augmentation Policies from Data]
+      (https://arxiv.org/abs/1805.09501)
+    - [RandAugment: Practical automated data augmentation with a reduced search
+        space]
+      (https://arxiv.org/abs/1909.13719)
 
     Args:
-        value_range: a tuple or a list of two elements. The first value represents
-            the lower bound for values in passed images, the second represents the
-            upper bound. Images passed to the layer should have values within
-            `value_range`. Defaults to `(0, 255)`.
-        bits: integer. The number of bits to keep for each channel. Must be a value
-            between 1-8.
+        value_range: a tuple or a list of two elements. The first value
+            represents the lower bound for values in passed images, the second
+            represents the upper bound. Images passed to the layer should have
+            values within `value_range`. Defaults to `(0, 255)`.
+        bits: integer. The number of bits to keep for each channel. Must be a
+            value between 1-8.
 
      Usage:
     ```python
     (images, labels), _ = tf.keras.datasets.cifar10.load_data()
     print(images[0, 0, 0])
     # [59 62 63]
-    # Note that images are Tensors with values in the range [0, 255] and uint8 dtype
+    # Note that images are Tensors with values in the range [0, 255] and uint8
+    dtype
     posterization = Posterization(bits=4, value_range=[0, 255])
     images = posterization(images)
     print(images[0, 0, 0])
     # [48., 48., 48.]
-    # NOTE: the layer will output values in tf.float32, regardless of input dtype.
+    # NOTE: the layer will output values in tf.float32, regardless of input
+        dtype.
     ```
 
      Call arguments:
@@ -102,8 +103,8 @@ class Posterization(BaseImageAugmentationLayer):
         return segmentation_mask
 
     def _batch_augment(self, inputs):
-        # Skip the use of vectorized_map or map_fn as the implementation is already
-        # vectorized
+        # Skip the use of vectorized_map or map_fn as the implementation is
+        # already vectorized
         return self._augment(inputs)
 
     def _posterize(self, image):

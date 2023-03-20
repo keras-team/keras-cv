@@ -29,14 +29,14 @@ def decode_bin_heading(predictions: tf.Tensor, num_bin: int) -> tf.Tensor:
     and corresponding bin residuals (the following num_bin scores).
 
     Args:
-      predictions: Prediction scores tensor with size [N, num_bin*2] predictions =
-        [:, bin_1, bin_2, ..., bin_k, res_1, res_2, ..., res_k], where k is the
-        number of bins and N is the number of boxes
+      predictions: Prediction scores tensor with size [N, num_bin*2]
+        predictions = [:, bin_1, bin_2, ..., bin_k, res_1, res_2, ..., res_k],
+        where k is the number of bins and N is the number of boxes.
       num_bin: A constant showing the number of bins used in heading bin loss.
 
     Returns:
-      heading: Decoded heading tensor with size [N] in which heading values are in
-        the [-pi, pi] range.
+      heading: Decoded heading tensor with size [N] in which heading values are
+        in the [-pi, pi] range.
 
     Raises:
       ValueError: If the rank of `predictions` is not 2 or `predictions` tensor
@@ -45,11 +45,12 @@ def decode_bin_heading(predictions: tf.Tensor, num_bin: int) -> tf.Tensor:
     with tf.name_scope("decode_bin_heading"):
         if len(predictions.shape) != 2:
             raise ValueError(
-                f"The rank of the prediction tensor is expected to be 2. Instead "
-                f"it is : {len(predictions.shape)}."
+                "The rank of the prediction tensor is expected to be 2. "
+                f"Instead it is : {len(predictions.shape)}."
             )
 
-        # Get the index of the bin with the maximum score to build a tensor of [N].
+        # Get the index of the bin with the maximum score to build a tensor of
+        # [N].
         bin_idx = tf.math.argmax(
             predictions[:, 0:num_bin], axis=-1, output_type=tf.int32
         )
@@ -66,7 +67,8 @@ def decode_bin_heading(predictions: tf.Tensor, num_bin: int) -> tf.Tensor:
         residual_angle = residual_norm * (angle_per_class / 2)
 
         # bin_center is computed using the bin_idx and angle_per class,
-        # (e.g., 0, 30, 60, 90, 120, ..., 270, 300, 330). Then residual is added.
+        # (e.g., 0, 30, 60, 90, 120, ..., 270, 300, 330). Then residual is
+        # added.
         heading = tf.math.floormod(
             bin_idx_float * angle_per_class + residual_angle, 2 * np.pi
         )
@@ -97,14 +99,14 @@ def decode_bin_box(pd, num_head_bin, anchor_size):
 
 
 class HeatmapDecoder(tf.keras.layers.Layer):
-    """A Keras layer that decodes predictions of an 3d object detection model.
+    """A Keras layer that decodes predictions of a 3d object detection model.
 
     Arg:
-      class_id: the integer index for a parcitular class.
+      class_id: the integer index for a particular class.
       num_head_bin: number of bin classes divided by [-2pi, 2pi].
       anchor_size: the size of anchor at each xyz dimension.
       max_pool_size: the 2d pooling size for heatmap.
-      max_num_box: top number of boxes selectd from heatmap.
+      max_num_box: top number of boxes select from heatmap.
       heatmap_threshold: the threshold to set a heatmap as positive.
       voxel_size: the x, y, z dimension of each voxel.
       spatial_size: the x, y, z boundary of voxels.
