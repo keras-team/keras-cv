@@ -36,7 +36,7 @@ def _target_gather(
        Tensor representing the masking for each target. `True` means the corresponding
        entity should be masked to `mask_val`, `False` means the corresponding entity
        should be the target value.
-     mask_val: optinal float representing the masking value if `mask` is True on
+     mask_val: optional float representing the masking value if `mask` is True on
        the entity.
 
      Returns:

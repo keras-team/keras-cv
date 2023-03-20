@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv import bounding_box
 from keras_cv.bounding_box import iou
@@ -21,8 +22,8 @@ from keras_cv.layers.object_detection import sampling
 from keras_cv.utils import target_gather
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
-class _ROISampler(tf.keras.layers.Layer):
+@keras.utils.register_keras_serializable(package="keras_cv")
+class _ROISampler(keras.layers.Layer):
     """
     Sample ROIs for loss related calucation.
 
@@ -75,8 +76,8 @@ class _ROISampler(tf.keras.layers.Layer):
         self.append_gt_boxes = append_gt_boxes
         self.built = True
         # for debugging.
-        self._positives = tf.keras.metrics.Mean()
-        self._negatives = tf.keras.metrics.Mean()
+        self._positives = keras.metrics.Mean()
+        self._negatives = keras.metrics.Mean()
 
     def call(
         self,

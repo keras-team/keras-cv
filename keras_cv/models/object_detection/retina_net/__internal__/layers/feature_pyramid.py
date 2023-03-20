@@ -16,7 +16,7 @@ import tensorflow as tf
 from tensorflow import keras
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class FeaturePyramid(keras.layers.Layer):
     """Builds the Feature Pyramid with the feature maps from the backbone."""
 

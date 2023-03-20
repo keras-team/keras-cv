@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv.layers.object_detection_3d.voxelization import DynamicVoxelization
 from keras_cv.models.__internal__.unet import Block
@@ -33,33 +34,33 @@ up_block_configs = [512, 256, 256]
 
 class CenterPillarTest(tf.test.TestCase):
     def get_point_net(self):
-        return tf.keras.Sequential(
+        return keras.Sequential(
             [
-                tf.keras.layers.Dense(10),
-                tf.keras.layers.Dense(20),
+                keras.layers.Dense(10),
+                keras.layers.Dense(20),
             ]
         )
 
     def build_centerpillar_unet(self, input_shape):
-        input = tf.keras.layers.Input(shape=input_shape)
-        x = tf.keras.layers.Conv2D(
+        input = keras.layers.Input(shape=input_shape)
+        x = keras.layers.Conv2D(
             128,
             1,
             1,
             padding="same",
-            kernel_initializer=tf.keras.initializers.VarianceScaling(),
-            kernel_regularizer=tf.keras.regularizers.L2(l2=1e-4),
+            kernel_initializer=keras.initializers.VarianceScaling(),
+            kernel_regularizer=keras.regularizers.L2(l2=1e-4),
         )(input)
-        x = tf.keras.layers.BatchNormalization(
-            beta_regularizer=tf.keras.regularizers.L2(l2=1e-8),
-            gamma_regularizer=tf.keras.regularizers.L2(l2=1e-8),
+        x = keras.layers.BatchNormalization(
+            beta_regularizer=keras.regularizers.L2(l2=1e-8),
+            gamma_regularizer=keras.regularizers.L2(l2=1e-8),
         )(x)
-        x = tf.keras.layers.ReLU()(x)
+        x = keras.layers.ReLU()(x)
         x = Block(128, downsample=False, sync_bn=False)(x)
         output = UNet(
             x.shape[1:], down_block_configs, up_block_configs, sync_bn=False
         )(x)
-        return tf.keras.Model(input, output)
+        return keras.Model(input, output)
 
     def test_center_pillar_call(self):
         voxel_net = DynamicVoxelization(
@@ -93,7 +94,14 @@ class CenterPillarTest(tf.test.TestCase):
         point_xyz = tf.random.normal([2, 1000, 3])
         point_feature = tf.random.normal([2, 1000, 4])
         point_mask = tf.constant(True, shape=[2, 1000])
-        outputs = model(point_xyz, point_feature, point_mask, training=True)
+        outputs = model(
+            {
+                "point_xyz": point_xyz,
+                "point_feature": point_feature,
+                "point_mask": point_mask,
+            },
+            training=True,
+        )
         self.assertEqual(outputs["class_1"].shape, [2, 400, 400, 12])
         self.assertEqual(outputs["class_2"].shape, [2, 400, 400, 12])
 
@@ -129,7 +137,14 @@ class CenterPillarTest(tf.test.TestCase):
         point_xyz = tf.random.normal([2, 1000, 3])
         point_feature = tf.random.normal([2, 1000, 4])
         point_mask = tf.constant(True, shape=[2, 1000])
-        outputs = model(point_xyz, point_feature, point_mask, training=False)
+        outputs = model(
+            {
+                "point_xyz": point_xyz,
+                "point_feature": point_feature,
+                "point_mask": point_mask,
+            },
+            training=False,
+        )
         # max number boxes is 3
         self.assertEqual(outputs["class_1"][0].shape, [2, 3, 7])
         self.assertEqual(outputs["class_1"][1].shape, [2, 3])

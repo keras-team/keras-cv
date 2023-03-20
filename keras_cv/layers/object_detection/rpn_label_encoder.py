@@ -15,6 +15,7 @@
 from typing import Mapping
 
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv import bounding_box
 from keras_cv.bounding_box import iou
@@ -23,8 +24,8 @@ from keras_cv.layers.object_detection import sampling
 from keras_cv.utils import target_gather
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
-class _RpnLabelEncoder(tf.keras.layers.Layer):
+@keras.utils.register_keras_serializable(package="keras_cv")
+class _RpnLabelEncoder(keras.layers.Layer):
     """Transforms the raw labels into training targets for region proposal network (RPN).
 
     # TODO(tanzhenyu): consider unifying with _ROISampler.
@@ -81,7 +82,7 @@ class _RpnLabelEncoder(tf.keras.layers.Layer):
         )
         self.box_variance = box_variance
         self.built = True
-        self._positives = tf.keras.metrics.Mean(name="percent_boxes_matched")
+        self._positives = keras.metrics.Mean(name="percent_boxes_matched")
 
     def call(
         self,

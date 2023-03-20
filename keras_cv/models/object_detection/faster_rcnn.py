@@ -14,6 +14,7 @@
 
 import tensorflow as tf
 from absl import logging
+from tensorflow import keras
 
 import keras_cv
 from keras_cv import bounding_box
@@ -32,23 +33,23 @@ from keras_cv.models.object_detection.__internal__ import unpack_input
 BOX_VARIANCE = [0.1, 0.1, 0.2, 0.2]
 
 
-class FeaturePyramid(tf.keras.layers.Layer):
+class FeaturePyramid(keras.layers.Layer):
     """Builds the Feature Pyramid with the feature maps from the backbone."""
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.conv_c2_1x1 = tf.keras.layers.Conv2D(256, 1, 1, "same")
-        self.conv_c3_1x1 = tf.keras.layers.Conv2D(256, 1, 1, "same")
-        self.conv_c4_1x1 = tf.keras.layers.Conv2D(256, 1, 1, "same")
-        self.conv_c5_1x1 = tf.keras.layers.Conv2D(256, 1, 1, "same")
+        self.conv_c2_1x1 = keras.layers.Conv2D(256, 1, 1, "same")
+        self.conv_c3_1x1 = keras.layers.Conv2D(256, 1, 1, "same")
+        self.conv_c4_1x1 = keras.layers.Conv2D(256, 1, 1, "same")
+        self.conv_c5_1x1 = keras.layers.Conv2D(256, 1, 1, "same")
 
-        self.conv_c2_3x3 = tf.keras.layers.Conv2D(256, 3, 1, "same")
-        self.conv_c3_3x3 = tf.keras.layers.Conv2D(256, 3, 1, "same")
-        self.conv_c4_3x3 = tf.keras.layers.Conv2D(256, 3, 1, "same")
-        self.conv_c5_3x3 = tf.keras.layers.Conv2D(256, 3, 1, "same")
-        self.conv_c6_3x3 = tf.keras.layers.Conv2D(256, 3, 1, "same")
-        self.conv_c6_pool = tf.keras.layers.MaxPool2D()
-        self.upsample_2x = tf.keras.layers.UpSampling2D(2)
+        self.conv_c2_3x3 = keras.layers.Conv2D(256, 3, 1, "same")
+        self.conv_c3_3x3 = keras.layers.Conv2D(256, 3, 1, "same")
+        self.conv_c4_3x3 = keras.layers.Conv2D(256, 3, 1, "same")
+        self.conv_c5_3x3 = keras.layers.Conv2D(256, 3, 1, "same")
+        self.conv_c6_3x3 = keras.layers.Conv2D(256, 3, 1, "same")
+        self.conv_c6_pool = keras.layers.MaxPool2D()
+        self.upsample_2x = keras.layers.UpSampling2D(2)
 
     def call(self, inputs, training=None):
         c2_output = inputs[2]
@@ -87,7 +88,7 @@ class FeaturePyramid(tf.keras.layers.Layer):
         return dict(list(base_config.items()) + list(config.items()))
 
 
-class RPNHead(tf.keras.layers.Layer):
+class RPNHead(keras.layers.Layer):
     def __init__(
         self,
         num_anchors_per_location=3,
@@ -101,7 +102,7 @@ class RPNHead(tf.keras.layers.Layer):
             input_shape = tf.nest.flatten(input_shape)
             input_shape = input_shape[0]
         filters = input_shape[-1]
-        self.conv = tf.keras.layers.Conv2D(
+        self.conv = keras.layers.Conv2D(
             filters=filters,
             kernel_size=3,
             strides=1,
@@ -109,14 +110,14 @@ class RPNHead(tf.keras.layers.Layer):
             activation="relu",
             kernel_initializer="truncated_normal",
         )
-        self.objectness_logits = tf.keras.layers.Conv2D(
+        self.objectness_logits = keras.layers.Conv2D(
             filters=self.num_anchors * 1,
             kernel_size=1,
             strides=1,
             padding="same",
             kernel_initializer="truncated_normal",
         )
-        self.anchor_deltas = tf.keras.layers.Conv2D(
+        self.anchor_deltas = keras.layers.Conv2D(
             filters=self.num_anchors * 4,
             kernel_size=1,
             strides=1,
@@ -167,21 +168,21 @@ class RPNHead(tf.keras.layers.Layer):
 
 
 # class agnostic regression
-class RCNNHead(tf.keras.layers.Layer):
+class RCNNHead(keras.layers.Layer):
     def __init__(
         self,
-        classes,
+        num_classes,
         conv_dims=[],
         fc_dims=[1024, 1024],
         **kwargs,
     ):
         super().__init__(**kwargs)
-        self.num_classes = classes
+        self.num_classes = num_classes
         self.conv_dims = conv_dims
         self.fc_dims = fc_dims
         self.convs = []
         for conv_dim in conv_dims:
-            layer = tf.keras.layers.Conv2D(
+            layer = keras.layers.Conv2D(
                 filters=conv_dim,
                 kernel_size=3,
                 strides=1,
@@ -191,11 +192,11 @@ class RCNNHead(tf.keras.layers.Layer):
             self.convs.append(layer)
         self.fcs = []
         for fc_dim in fc_dims:
-            layer = tf.keras.layers.Dense(units=fc_dim, activation="relu")
+            layer = keras.layers.Dense(units=fc_dim, activation="relu")
             self.fcs.append(layer)
-        self.box_pred = tf.keras.layers.Dense(units=4)
-        self.cls_score = tf.keras.layers.Dense(
-            units=classes + 1, activation="softmax"
+        self.box_pred = keras.layers.Dense(units=4)
+        self.cls_score = keras.layers.Dense(
+            units=num_classes + 1, activation="softmax"
         )
 
     def call(self, feature_map, training=None):
@@ -210,7 +211,7 @@ class RCNNHead(tf.keras.layers.Layer):
 
     def get_config(self):
         config = {
-            "classes": self.num_classes,
+            "num_classes": self.num_classes,
             "conv_dims": self.conv_dims,
             "fc_dims": self.fc_dims,
         }
@@ -219,12 +220,12 @@ class RCNNHead(tf.keras.layers.Layer):
 
 
 # TODO(tanzheny): add more configurations
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
-class FasterRCNN(tf.keras.Model):
+@keras.utils.register_keras_serializable(package="keras_cv")
+class FasterRCNN(keras.Model):
     """A Keras model implementing the FasterRCNN architecture.
 
     Implements the FasterRCNN architecture for object detection.  The constructor
-    requires `classes`, `bounding_box_format` and a `backbone`.
+    requires `num_classes`, `bounding_box_format` and a `backbone`.
 
     References:
         - [FasterRCNN](https://arxiv.org/pdf/1506.01497.pdf)
@@ -232,20 +233,20 @@ class FasterRCNN(tf.keras.Model):
     Usage:
     ```python
     retina_net = keras_cv.models.FasterRCNN(
-        classes=20,
+        num_classes=20,
         bounding_box_format="xywh",
         backbone=None,
     )
     ```
 
     Args:
-        classes: the number of classes in your dataset excluding the background
-            class.  Classes should be represented by integers in the range
-            [0, classes).
+        num_classes: the number of classes in your dataset excluding the background
+            class.  classes should be represented by integers in the range
+            [0, num_classes).
         bounding_box_format: The format of bounding boxes of model output. Refer
             [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
             for more details on supported bounding box formats.
-        backbone: a `tf.keras.Model` custom backbone model. For now, only a backbone
+        backbone: a `keras.Model` custom backbone model. For now, only a backbone
             with per level dict output is supported, for example, ResNet50 with FPN, which
             uses the last conv block from stage 2 to stage 6 and add a max pooling at
             stage 7. Defaults to `keras_cv.models.ResNet50`.
@@ -276,7 +277,7 @@ class FasterRCNN(tf.keras.Model):
 
     def __init__(
         self,
-        classes,
+        num_classes,
         bounding_box_format,
         backbone=None,
         anchor_generator=None,
@@ -313,11 +314,11 @@ class FasterRCNN(tf.keras.Model):
         self.roi_sampler = _ROISampler(
             bounding_box_format="yxyx",
             roi_matcher=self.box_matcher,
-            background_class=classes,
+            background_class=num_classes,
             num_sampled_rois=512,
         )
         self.roi_pooler = _ROIAligner(bounding_box_format="yxyx")
-        self.rcnn_head = rcnn_head or RCNNHead(classes)
+        self.rcnn_head = rcnn_head or RCNNHead(num_classes)
         self.backbone = (
             backbone
             or keras_cv.models.ResNet50(
@@ -430,8 +431,8 @@ class FasterRCNN(tf.keras.Model):
         )
         rpn_box_loss = _validate_and_get_loss(rpn_box_loss, "rpn_box_loss")
         if rpn_classification_loss == "BinaryCrossentropy":
-            rpn_classification_loss = tf.keras.losses.BinaryCrossentropy(
-                from_logits=True, reduction=tf.keras.losses.Reduction.SUM
+            rpn_classification_loss = keras.losses.BinaryCrossentropy(
+                from_logits=True, reduction=keras.losses.Reduction.SUM
             )
         rpn_classification_loss = _validate_and_get_loss(
             rpn_classification_loss, "rpn_cls_loss"
@@ -586,7 +587,7 @@ class FasterRCNN(tf.keras.Model):
 
     def get_config(self):
         return {
-            "classes": self.classes,
+            "num_classes": self.num_classes,
             "bounding_box_format": self.bounding_box_format,
             "backbone": self.backbone,
             "anchor_generator": self.anchor_generator,
@@ -600,14 +601,14 @@ class FasterRCNN(tf.keras.Model):
 
 def _validate_and_get_loss(loss, loss_name):
     if isinstance(loss, str):
-        loss = tf.keras.losses.get(loss)
-    if loss is None or not isinstance(loss, tf.keras.losses.Loss):
+        loss = keras.losses.get(loss)
+    if loss is None or not isinstance(loss, keras.losses.Loss):
         raise ValueError(
-            f"FasterRCNN only accepts `tf.keras.losses.Loss` for {loss_name}, got {loss}"
+            f"FasterRCNN only accepts `keras.losses.Loss` for {loss_name}, got {loss}"
         )
-    if loss.reduction != tf.keras.losses.Reduction.SUM:
+    if loss.reduction != keras.losses.Reduction.SUM:
         logging.info(
             f"FasterRCNN only accepts `SUM` reduction, got {loss.reduction}, automatically converted."
         )
-        loss.reduction = tf.keras.losses.Reduction.SUM
+        loss.reduction = keras.losses.Reduction.SUM
     return loss

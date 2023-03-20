@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv import bounding_box
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
@@ -21,7 +22,7 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 from keras_cv.utils import preprocessing
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class Mosaic(BaseImageAugmentationLayer):
     """Mosaic implements the mosaic data augmentation technique.
 
@@ -56,7 +57,7 @@ class Mosaic(BaseImageAugmentationLayer):
 
     Sample usage:
     ```python
-    (images, labels), _ = tf.keras.datasets.cifar10.load_data()
+    (images, labels), _ = keras.datasets.cifar10.load_data()
     labels = tf.one_hot(labels,10)
     labels = tf.cast(tf.squeeze(labels), tf.float32)
     mosaic = keras_cv.layers.preprocessing.Mosaic()
@@ -210,8 +211,11 @@ class Mosaic(BaseImageAugmentationLayer):
             [input_height, input_width],
         )
         # tf.image.crop_and_resize will always output float32, so we need to recast
+        # tf.image.crop_and_resize outputs [num_boxes, crop_height, crop_width, depth]
+        # since num_boxes is always one we squeeze axis 0
         output = tf.cast(output, self.compute_dtype)
-        return tf.squeeze(output)
+        output = tf.squeeze(output, axis=0)
+        return output
 
     def _update_label(
         self, images, labels, permutation_order, mosaic_centers, index

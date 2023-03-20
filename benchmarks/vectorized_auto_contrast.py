@@ -15,7 +15,7 @@ import time
 
 import matplotlib.pyplot as plt
 import tensorflow as tf
-import tensorflow.keras as keras
+from tensorflow import keras
 
 from keras_cv.layers import AutoContrast
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (

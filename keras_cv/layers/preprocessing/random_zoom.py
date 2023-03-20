@@ -15,6 +15,7 @@
 
 import tensorflow as tf
 from keras import backend
+from tensorflow import keras
 
 from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
     VectorizedBaseImageAugmentationLayer,
@@ -27,7 +28,7 @@ H_AXIS = -3
 W_AXIS = -2
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class RandomZoom(VectorizedBaseImageAugmentationLayer):
     """A preprocessing layer which randomly zooms images during training.
 
@@ -156,9 +157,17 @@ class RandomZoom(VectorizedBaseImageAugmentationLayer):
         return {"height_zooms": height_zooms, "width_zooms": width_zooms}
 
     def augment_ragged_image(self, image, transformation, **kwargs):
-        return self.augment_images(
+        image = tf.expand_dims(image, axis=0)
+        width_zooms = transformation["width_zooms"]
+        height_zooms = transformation["height_zooms"]
+        transformation = {
+            "height_zooms": tf.expand_dims(height_zooms, axis=0),
+            "width_zooms": tf.expand_dims(width_zooms, axis=0),
+        }
+        image = self.augment_images(
             images=image, transformations=transformation, **kwargs
         )
+        return tf.squeeze(image, axis=0)
 
     def augment_images(self, images, transformations, **kwargs):
         images = preprocessing_utils.ensure_tensor(images, self.compute_dtype)

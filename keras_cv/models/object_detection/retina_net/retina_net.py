@@ -25,40 +25,64 @@ from keras_cv.models.object_detection.__internal__ import unpack_input
 from keras_cv.models.object_detection.retina_net.__internal__ import (
     layers as layers_lib,
 )
+from keras_cv.utils.train import get_feature_extractor
 
 BOX_VARIANCE = [0.1, 0.1, 0.2, 0.2]
 
 
 # TODO(lukewood): update docstring to include documentation on creating a custom label
 # decoder/etc.
-# TODO(lukewood): link to keras.io guide on creating custom backbone and FPN.
+# TODO(jbischof): Generalize `FeaturePyramid` class to allow for any P-levels and
+# add `feature_pyramid_levels` param.
 @keras.utils.register_keras_serializable(package="keras_cv")
-class RetinaNet(tf.keras.Model):
+class RetinaNet(keras.Model):
     """A Keras model implementing the RetinaNet architecture.
 
     Implements the RetinaNet architecture for object detection.  The constructor
-    requires `classes`, `bounding_box_format` and a `backbone`.  Optionally, a
-    custom label encoder, feature pyramid network, and prediction decoder may all be
-    provided.
+    requires `num_classes`, and `bounding_box_format`.  Optionally, a backbone,
+    custom label encoder, and prediction decoder may all be provided.
 
     Usage:
     ```python
-    retina_net = keras_cv.models.RetinaNet(
-        classes=20,
+    images = tf.ones(shape=(1, 512, 512, 3))
+    labels = {
+        "boxes": [
+            [
+                [0, 0, 100, 100],
+                [100, 100, 200, 200],
+                [300, 300, 400, 400],
+            ]
+        ],
+        "classes": [[1, 1, 1]],
+    }
+    model = keras_cv.models.RetinaNet(
+        num_classes=20,
         bounding_box_format="xywh",
-        backbone=backbone,
     )
+
+    # Evaluate model
+    model(images)
+
+    # Train model
+    model.compile(
+        classification_loss='focal',
+        box_loss='smoothl1',
+        optimizer=tf.optimizers.SGD(global_clipnorm=10.0),
+        jit_compile=False,
+    )
+    model.fit(images, labels)
     ```
 
     Args:
-        classes: the number of classes in your dataset excluding the background
-            class.  Classes should be represented by integers in the range
-            [0, classes).
+        num_classes: the number of classes in your dataset excluding the background
+            class.  classes should be represented by integers in the range
+            [0, num_classes).
         bounding_box_format: The format of bounding boxes of input dataset. Refer
             [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
             for more details on supported bounding box formats.
-        backbone: backbone: an optional `tf.keras.Model` custom backbone model. Defaults
-            to a keras_cv.models.ResNet50 with include_rescaling=True
+        backbone: optional `keras.Model`. Must implement the `pyramid_level_inputs`
+            property with keys 3, 4, and 5 and layer names as values. If
+            `None`, defaults to `keras_cv.models.ResNet50V2Backbone()`.
         anchor_generator: (Optional) a `keras_cv.layers.AnchorGenerator`.  If provided,
             the anchor generator will be passed to both the `label_encoder` and the
             `prediction_decoder`.  Only to be used when both `label_encoder` and
@@ -69,20 +93,14 @@ class RetinaNet(tf.keras.Model):
             and `aspect_ratios=[0.5, 1.0, 2.0]`.
         label_encoder: (Optional) a keras.Layer that accepts an image Tensor, a
             bounding box Tensor and a bounding box class Tensor to its `call()` method,
-            and returns RetinaNet training targets.  By default, a KerasCV standard LabelEncoder is created and used.
-            Results of this `call()` method are passed to the `loss` object passed into
-            `compile()` as the `y_true` argument.
+            and returns RetinaNet training targets.  By default, a KerasCV standard
+            LabelEncoder is created and used.  Results of this `call()` method
+            are passed to the `loss` object passed into `compile()` as the `y_true`
+            argument.
         prediction_decoder: (Optional)  A `keras.layer` that is responsible for
             transforming RetinaNet predictions into usable bounding box Tensors.  If
             not provided, a default is provided.  The default `prediction_decoder`
             layer uses a `MultiClassNonMaxSuppression` operation for box pruning.
-        feature_pyramid: (Optional) A `keras.Model` representing a feature pyramid
-            network (FPN).  The feature pyramid network is called on the outputs of the
-            `backbone`.  The KerasCV default backbones return three outputs in a list,
-            but custom backbones may be written and used with custom feature pyramid
-            networks.  If not provided, a default feature pyramid neetwork is produced
-            by the library.  The default feature pyramid network is compatible with all
-            standard keras_cv backbones.
         classification_head: (Optional) A `keras.Layer` that performs classification of
             the bounding boxes.  If not provided, a simple ConvNet with 1 layer will be
             used.
@@ -93,13 +111,12 @@ class RetinaNet(tf.keras.Model):
 
     def __init__(
         self,
-        classes,
+        num_classes,
         bounding_box_format,
         backbone=None,
         anchor_generator=None,
         label_encoder=None,
         prediction_decoder=None,
-        feature_pyramid=None,
         classification_head=None,
         box_head=None,
         name="RetinaNet",
@@ -122,10 +139,13 @@ class RetinaNet(tf.keras.Model):
             anchor_generator
             or RetinaNet.default_anchor_generator(bounding_box_format)
         )
-        label_encoder = label_encoder or cv_layers.RetinaNetLabelEncoder(
-            bounding_box_format=bounding_box_format,
-            anchor_generator=anchor_generator,
-            box_variance=BOX_VARIANCE,
+        label_encoder = (
+            label_encoder
+            or keras_cv.models.object_detection.retina_net.RetinaNetLabelEncoder(
+                bounding_box_format=bounding_box_format,
+                anchor_generator=anchor_generator,
+                box_variance=BOX_VARIANCE,
+            )
         )
         super().__init__(
             name=name,
@@ -142,13 +162,19 @@ class RetinaNet(tf.keras.Model):
             )
 
         self.bounding_box_format = bounding_box_format
-        self.classes = classes
-        self.backbone = (
-            backbone
-            or keras_cv.models.ResNet50(
-                include_top=False, include_rescaling=True
-            ).as_backbone()
-        )
+        self.num_classes = num_classes
+        if num_classes == 1:
+            raise ValueError(
+                "RetinaNet must always have at least 2 classes. "
+                "This is because logits are passed through a `tf.softmax()` call "
+                "before `MultiClassNonMaxSuppression()` is applied.  If only "
+                "a single class is present, the model will always give a score of "
+                "`1` for the single present class."
+            )
+        if backbone is None:
+            self.backbone = keras_cv.models.ResNet50V2Backbone()
+        else:
+            self.backbone = backbone
 
         self._prediction_decoder = (
             prediction_decoder
@@ -159,13 +185,21 @@ class RetinaNet(tf.keras.Model):
         )
 
         # initialize trainable networks
-        self.feature_pyramid = feature_pyramid or layers_lib.FeaturePyramid()
+        extractor_levels = [3, 4, 5]
+        extractor_layer_names = [
+            self.backbone.pyramid_level_inputs[i] for i in extractor_levels
+        ]
+        self.feature_extractor = get_feature_extractor(
+            self.backbone, extractor_layer_names, extractor_levels
+        )
+        self.feature_pyramid = layers_lib.FeaturePyramid()
         prior_probability = tf.constant_initializer(-np.log((1 - 0.01) / 0.01))
 
         self.classification_head = (
             classification_head
             or layers_lib.PredictionHead(
-                output_filters=9 * classes, bias_initializer=prior_probability
+                output_filters=9 * num_classes,
+                bias_initializer=prior_probability,
             )
         )
 
@@ -182,8 +216,19 @@ class RetinaNet(tf.keras.Model):
 
     @prediction_decoder.setter
     def prediction_decoder(self, prediction_decoder):
+        if prediction_decoder.bounding_box_format != self.bounding_box_format:
+            raise ValueError(
+                "Expected `prediction_decoder` and RetinaNet to "
+                "use the same `bounding_box_format`, but got "
+                "`prediction_decoder.bounding_box_format="
+                f"{prediction_decoder.bounding_box_format}`, and "
+                "`self.bounding_box_format="
+                f"{self.bounding_box_format}`."
+            )
         self._prediction_decoder = prediction_decoder
         self.make_predict_function(force=True)
+        self.make_train_function(force=True)
+        self.make_test_function(force=True)
 
     @staticmethod
     def default_anchor_generator(bounding_box_format):
@@ -200,8 +245,15 @@ class RetinaNet(tf.keras.Model):
             clip_boxes=True,
         )
 
-    def _forward(self, images, training=None):
-        backbone_outputs = self.backbone(images, training=training)
+    def call(self, images, training=None):
+        if isinstance(images, tf.RaggedTensor):
+            raise ValueError(
+                "`RetinaNet()` does not yet support inputs of type `RaggedTensor` for input images. "
+                "To correctly resize your images for object detection tasks, we recommend resizing using "
+                "`keras_cv.layers.Resizing(pad_to_aspect_ratio=True, bounding_box_format=your_format)`"
+                "on your inputs."
+            )
+        backbone_outputs = self.feature_extractor(images, training=training)
         features = self.feature_pyramid(backbone_outputs, training=training)
 
         N = tf.shape(images)[0]
@@ -216,40 +268,27 @@ class RetinaNet(tf.keras.Model):
             cls_pred.append(
                 tf.reshape(
                     self.classification_head(feature, training=training),
-                    [N, -1, self.classes],
+                    [N, -1, self.num_classes],
                 )
             )
 
         cls_pred = tf.concat(cls_pred, axis=1)
         box_pred = tf.concat(box_pred, axis=1)
-
-        return box_pred, cls_pred
-
-    def call(self, images, training=None):
-        if isinstance(images, tf.RaggedTensor):
-            raise ValueError(
-                "`RetinaNet()` does not yet support inputs of type `RaggedTensor` for input images. "
-                "To correctly resize your images for object detection tasks, we recommend resizing using "
-                "`keras_cv.layers.Resizing(pad_to_aspect_ratio=True, bounding_box_format=your_format)`"
-                "on your inputs."
-            )
-        box_pred, cls_pred = self._forward(images, training=training)
-        if not training:
-            # box_pred is on "center_yxhw" format, convert to target format.
-            anchors = self.anchor_generator(images[0])
-            anchors = tf.concat(tf.nest.flatten(anchors), axis=0)
-            box_pred = _decode_deltas_to_boxes(
-                anchors=anchors,
-                boxes_delta=box_pred,
-                anchor_format=self.anchor_generator.bounding_box_format,
-                box_format=self.bounding_box_format,
-                variance=BOX_VARIANCE,
-            )
         return box_pred, cls_pred
 
     def decode_predictions(self, predictions, images):
         # no-op if default decoder is used.
         box_pred, cls_pred = predictions
+        # box_pred is on "center_yxhw" format, convert to target format.
+        anchors = self.anchor_generator(images[0])
+        anchors = tf.concat(tf.nest.flatten(anchors), axis=0)
+        box_pred = _decode_deltas_to_boxes(
+            anchors=anchors,
+            boxes_delta=box_pred,
+            anchor_format=self.anchor_generator.bounding_box_format,
+            box_format=self.bounding_box_format,
+            variance=BOX_VARIANCE,
+        )
         box_pred = bounding_box.convert_format(
             box_pred,
             source=self.bounding_box_format,
@@ -272,6 +311,7 @@ class RetinaNet(tf.keras.Model):
         classification_loss=None,
         weight_decay=0.0001,
         loss=None,
+        metrics=None,
         **kwargs,
     ):
         """compiles the RetinaNet.
@@ -287,15 +327,24 @@ class RetinaNet(tf.keras.Model):
                 A preconfigured `FocalLoss` is provided when the string "focal" is
                 passed.
             weight_decay: a float for variable weight decay.
+            metrics: KerasCV object detection metrics that accept decoded
+                bounding boxes as their inputs.  Examples of this metric type are
+                `keras_cv.metrics.BoxRecall()` and
+                `keras_cv.metrics.BoxMeanAveragePrecision()`.  When `metrics` are
+                included in the call to `compile()`, the RetinaNet will perform
+                non max suppression decoding during the forward pass.  By
+                default the RetinaNet uses a
+                `keras_cv.layers.MultiClassNonMaxSuppression()` layer to
+                perform decoding.  This behavior can be customized by passing in a
+                `prediction_decoder` to the constructor or by modifying the
+                `prediction_decoder` attribute on the model. It should be noted
+                that the default non max suppression operation does not have
+                TPU support, and thus when training on TPU metrics must be
+                evaluated in a `keras.utils.SidecarEvaluator` or a
+                `keras.callbacks.Callback`.
             kwargs: most other `keras.Model.compile()` arguments are supported and
                 propagated to the `keras.Model` class.
         """
-        if "metrics" in kwargs.keys():
-            raise ValueError(
-                "`RetinaNet` does not currently support the use of "
-                "`metrics` due to performance and distribution concerns. Please us the "
-                "`PyCOCOCallback` to evaluate COCO metrics."
-            )
         if loss is not None:
             raise ValueError(
                 "`RetinaNet` does not accept a `loss` to `compile()`. "
@@ -329,10 +378,11 @@ class RetinaNet(tf.keras.Model):
             "box": self.box_loss,
             "classification": self.classification_loss,
         }
+        self._has_user_metrics = metrics is not None and len(metrics) != 0
+        self._user_metrics = metrics
         super().compile(loss=losses, **kwargs)
 
-    def compute_loss(self, images, boxes, classes, training):
-        box_pred, cls_pred = self._forward(images, training=training)
+    def compute_loss(self, x, box_pred, cls_pred, boxes, classes):
         if boxes.shape[-1] != 4:
             raise ValueError(
                 "boxes should have shape (None, None, 4).  Got "
@@ -342,19 +392,19 @@ class RetinaNet(tf.keras.Model):
         if box_pred.shape[-1] != 4:
             raise ValueError(
                 "box_pred should have shape (None, None, 4). "
-                f"Got box_pred.shape={tuple(box_pred.shape)}.  Does your model's `classes` "
-                "parameter match your losses `classes` parameter?"
+                f"Got box_pred.shape={tuple(box_pred.shape)}.  Does your model's `num_classes` "
+                "parameter match your losses `num_classes` parameter?"
             )
-        if cls_pred.shape[-1] != self.classes:
+        if cls_pred.shape[-1] != self.num_classes:
             raise ValueError(
                 "cls_pred should have shape (None, None, 4). "
-                f"Got cls_pred.shape={tuple(cls_pred.shape)}.  Does your model's `classes` "
-                "parameter match your losses `classes` parameter?"
+                f"Got cls_pred.shape={tuple(cls_pred.shape)}.  Does your model's `num_classes` "
+                "parameter match your losses `num_classes` parameter?"
             )
 
         cls_labels = tf.one_hot(
             tf.cast(classes, dtype=tf.int32),
-            depth=self.classes,
+            depth=self.num_classes,
             dtype=tf.float32,
         )
 
@@ -378,19 +428,18 @@ class RetinaNet(tf.keras.Model):
             "classification": cls_weights,
         }
         return super().compute_loss(
-            x=images, y=y_true, y_pred=y_pred, sample_weight=sample_weights
+            x=x, y=y_true, y_pred=y_pred, sample_weight=sample_weights
         )
 
     def train_step(self, data):
         x, y = unpack_input(data)
-
-        y = bounding_box.convert_format(
+        y_for_label_encoder = bounding_box.convert_format(
             y,
             source=self.bounding_box_format,
             target=self.label_encoder.bounding_box_format,
             images=x,
         )
-        boxes, classes = self.label_encoder(x, y)
+        boxes, classes = self.label_encoder(x, y_for_label_encoder)
         boxes = bounding_box.convert_format(
             boxes,
             source=self.label_encoder.bounding_box_format,
@@ -399,7 +448,10 @@ class RetinaNet(tf.keras.Model):
         )
 
         with tf.GradientTape() as tape:
-            total_loss = self.compute_loss(x, boxes, classes, training=True)
+            box_pred, cls_pred = self(x, training=True)
+            total_loss = self.compute_loss(
+                x, box_pred, cls_pred, boxes, classes
+            )
 
             reg_losses = []
             if self.weight_decay:
@@ -415,32 +467,56 @@ class RetinaNet(tf.keras.Model):
         gradients = tape.gradient(total_loss, trainable_vars)
         self.optimizer.apply_gradients(zip(gradients, trainable_vars))
 
-        return self.compute_metrics(x, {}, {}, sample_weight={})
+        if not self._has_user_metrics:
+            return super().compute_metrics(x, {}, {}, sample_weight={})
+
+        y_pred = self.decode_predictions((box_pred, cls_pred), x)
+        return self.compute_metrics(x, y, y_pred, sample_weight=None)
 
     def test_step(self, data):
         x, y = unpack_input(data)
-
-        y = bounding_box.convert_format(
+        y_for_label_encoder = bounding_box.convert_format(
             y,
             source=self.bounding_box_format,
             target=self.label_encoder.bounding_box_format,
             images=x,
         )
-        boxes, classes = self.label_encoder(x, y)
+        boxes, classes = self.label_encoder(x, y_for_label_encoder)
         boxes = bounding_box.convert_format(
             boxes,
             source=self.label_encoder.bounding_box_format,
             target=self.bounding_box_format,
             images=x,
         )
-        _ = self.compute_loss(x, boxes, classes, training=False)
 
-        return self.compute_metrics(x, {}, {}, sample_weight={})
+        box_pred, cls_pred = self(x, training=False)
+        _ = self.compute_loss(x, box_pred, cls_pred, boxes, classes)
+
+        if not self._has_user_metrics:
+            return super().compute_metrics(x, {}, {}, sample_weight={})
+        y_pred = self.decode_predictions((box_pred, cls_pred), x)
+        return self.compute_metrics(x, y, y_pred, sample_weight=None)
+
+    def compute_metrics(self, x, y, y_pred, sample_weight):
+        metrics = {}
+        metrics.update(super().compute_metrics(x, {}, {}, sample_weight={}))
+
+        for metric in self._user_metrics:
+            metric.update_state(y, y_pred, sample_weight=sample_weight)
+
+        for metric in self._user_metrics:
+            result = metric.result()
+            if isinstance(result, dict):
+                metrics.update(result)
+            else:
+                metrics[metric.name] = result
+        return metrics
 
     def get_config(self):
         return {
-            "classes": self.classes,
+            "num_classes": self.num_classes,
             "bounding_box_format": self.bounding_box_format,
+            # TODO(bischof): actually serialize the backbone
             "backbone": self.backbone,
             "anchor_generator": self.anchor_generator,
             "label_encoder": self.label_encoder,
@@ -459,10 +535,10 @@ def _parse_box_loss(loss):
     # case insensitive comparison
     if loss.lower() == "smoothl1":
         return keras_cv.losses.SmoothL1Loss(
-            l1_cutoff=1.0, reduction=tf.keras.losses.Reduction.SUM
+            l1_cutoff=1.0, reduction=keras.losses.Reduction.SUM
         )
     if loss.lower() == "huber":
-        return keras.losses.Huber(reduction=tf.keras.losses.Reduction.SUM)
+        return keras.losses.Huber(reduction=keras.losses.Reduction.SUM)
 
     raise ValueError(
         "Expected `box_loss` to be either a Keras Loss, "
@@ -478,7 +554,7 @@ def _parse_classification_loss(loss):
     # case insensitive comparison
     if loss.lower() == "focal":
         return keras_cv.losses.FocalLoss(
-            from_logits=True, reduction=tf.keras.losses.Reduction.SUM
+            from_logits=True, reduction=keras.losses.Reduction.SUM
         )
 
     raise ValueError(

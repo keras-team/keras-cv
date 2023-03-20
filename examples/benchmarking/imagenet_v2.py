@@ -24,6 +24,7 @@ import sys
 import tensorflow as tf
 import tensorflow_datasets as tfds
 from absl import flags
+from tensorflow import keras
 
 from keras_cv import models
 
@@ -60,7 +61,7 @@ model = models.__dict__[FLAGS.model_name]
 model = model(
     include_rescaling=FLAGS.include_rescaling,
     include_top=True,
-    classes=1000,
+    num_classes=1000,
     input_shape=(224, 224, 3),
     weights=FLAGS.weights,
     **eval(FLAGS.model_kwargs),
@@ -69,7 +70,7 @@ model = model(
 model.compile(
     "adam",
     "sparse_categorical_crossentropy",
-    metrics=["accuracy", tf.keras.metrics.SparseTopKCategoricalAccuracy(5)],
+    metrics=["accuracy", keras.metrics.SparseTopKCategoricalAccuracy(5)],
 )
 
 

@@ -15,10 +15,11 @@
 import math
 
 import tensorflow as tf
+from tensorflow import keras
 from tensorflow.keras import layers
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class PatchingAndEmbedding(layers.Layer):
     """
 

@@ -16,6 +16,7 @@ import inspect
 
 import tensorflow as tf
 from absl.testing import parameterized
+from tensorflow import keras
 
 from keras_cv import layers as cv_layers
 from keras_cv.layers.vit_layers import PatchingAndEmbedding
@@ -175,8 +176,8 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             {
                 "filters": 16,
                 "ratio": 0.25,
-                "squeeze_activation": tf.keras.layers.ReLU(),
-                "excite_activation": tf.keras.activations.relu,
+                "squeeze_activation": keras.layers.ReLU(),
+                "excite_activation": keras.activations.relu,
             },
         ),
         (
@@ -388,10 +389,10 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
         config = layer.get_config()
         self.assertAllInitParametersAreInConfig(layer_cls, config)
 
-        model = tf.keras.models.Sequential(layer)
+        model = keras.models.Sequential(layer)
         model_config = model.get_config()
 
-        reconstructed_model = tf.keras.Sequential().from_config(model_config)
+        reconstructed_model = keras.Sequential().from_config(model_config)
         reconstructed_layer = reconstructed_model.layers[0]
 
         self.assertTrue(

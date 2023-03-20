@@ -202,7 +202,6 @@ def apply_stack(
     name=None,
     block_type="block",
     first_shortcut=True,
-    stack_index=1,
 ):
     """A set of stacked blocks.
 
@@ -223,7 +222,7 @@ def apply_stack(
     """
 
     if name is None:
-        name = f"v2_stack_{stack_index}"
+        name = "v2_stack"
 
     if block_type == "basic_block":
         block_fn = apply_basic_block
@@ -277,8 +276,8 @@ class ResNetV2Backbone(Backbone):
         include_rescaling: bool, whether or not to Rescale the inputs. If set
             to `True`, inputs will be passed through a `Rescaling(1/255.0)`
             layer.
-        stackwise_dialations: list of ints, dialation for each stack in the
-            model. If `None` (default), dialation will not be used.
+        stackwise_dilations: list of ints, dilation for each stack in the
+            model. If `None` (default), dilation will not be used.
         input_shape: optional shape tuple, defaults to (None, None, 3).
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
             to use as image input for the model.
@@ -341,7 +340,7 @@ class ResNetV2Backbone(Backbone):
         if stackwise_dilations is None:
             stackwise_dilations = [1] * num_stacks
 
-        stack_level_outputs = {}
+        pyramid_level_inputs = {}
         for stack_index in range(num_stacks):
             x = apply_stack(
                 x,
@@ -351,9 +350,9 @@ class ResNetV2Backbone(Backbone):
                 dilations=stackwise_dilations[stack_index],
                 block_type=block_type,
                 first_shortcut=(block_type == "block" or stack_index > 0),
-                stack_index=stack_index,
+                name=f"v2_stack_{stack_index}",
             )
-            stack_level_outputs[stack_index + 2] = x
+            pyramid_level_inputs[stack_index + 2] = x.node.layer.name
 
         x = layers.BatchNormalization(
             axis=BN_AXIS, epsilon=BN_EPSILON, name="post_bn"
@@ -364,9 +363,7 @@ class ResNetV2Backbone(Backbone):
         super().__init__(inputs=inputs, outputs=x, **kwargs)
 
         # All references to `self` below this line
-        # Backbone outputs at each resolution level for transfer learning.
-        self.backbone_level_outputs = stack_level_outputs
-
+        self.pyramid_level_inputs = pyramid_level_inputs
         self.stackwise_filters = stackwise_filters
         self.stackwise_blocks = stackwise_blocks
         self.stackwise_strides = stackwise_strides
@@ -376,19 +373,21 @@ class ResNetV2Backbone(Backbone):
         self.block_type = block_type
 
     def get_config(self):
-        return {
-            "stackwise_filters": self.stackwise_filters,
-            "stackwise_blocks": self.stackwise_blocks,
-            "stackwise_strides": self.stackwise_strides,
-            "include_rescaling": self.include_rescaling,
-            # Remove batch dimension from `input_shape`
-            "input_shape": self.input_shape[1:],
-            "stackwise_dilations": self.stackwise_dilations,
-            "input_tensor": self.input_tensor,
-            "block_type": self.block_type,
-            "name": self.name,
-            "trainable": self.trainable,
-        }
+        config = super().get_config()
+        config.update(
+            {
+                "stackwise_filters": self.stackwise_filters,
+                "stackwise_blocks": self.stackwise_blocks,
+                "stackwise_strides": self.stackwise_strides,
+                "include_rescaling": self.include_rescaling,
+                # Remove batch dimension from `input_shape`
+                "input_shape": self.input_shape[1:],
+                "stackwise_dilations": self.stackwise_dilations,
+                "input_tensor": self.input_tensor,
+                "block_type": self.block_type,
+            }
+        )
+        return config
 
     @classproperty
     def presets(cls):

@@ -11,9 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import keras
+
 import pytest
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv.callbacks import WaymoEvaluationCallback
 
@@ -65,7 +66,7 @@ class WaymoEvaluationCallbackTest(tf.test.TestCase):
         self.assertAllInSet(METRIC_KEYS, history.history.keys())
 
     def build_model(self):
-        inputs = tf.keras.Input(shape=(POINT_FEATURES, NUM_POINTS))
+        inputs = keras.Input(shape=(POINT_FEATURES, NUM_POINTS))
         x = keras.layers.Flatten()(inputs)
         x = keras.layers.Dense(BOX_FEATURES * NUM_BOXES)(x)
         x = keras.layers.Reshape((NUM_BOXES, BOX_FEATURES))(x)
@@ -75,7 +76,7 @@ class WaymoEvaluationCallbackTest(tf.test.TestCase):
             def call(self, y_true, y_pred):
                 return tf.reduce_mean(y_pred, axis=-1)
 
-        model = tf.keras.Model(inputs=inputs, outputs=x)
+        model = keras.Model(inputs=inputs, outputs=x)
         model.compile(loss=MeanLoss())
 
         return model

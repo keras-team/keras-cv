@@ -17,6 +17,7 @@ import time
 
 import tensorflow.compat.v2 as tf
 import tensorflow_datasets as tfds
+from tensorflow import keras
 
 from keras_cv import models
 
@@ -66,14 +67,12 @@ class ClassificationTrainingBenchmark(
 
             model = app(
                 include_top=True,
-                classes=self.num_classes,
+                num_classes=self.num_classes,
                 input_shape=(56, 56, 1),
                 include_rescaling=True,
             )
             model.compile(
-                optimizer=tf.keras.optimizers.SGD(
-                    learning_rate=0.1, momentum=0.9
-                ),
+                optimizer=keras.optimizers.SGD(learning_rate=0.1, momentum=0.9),
                 loss="categorical_crossentropy",
                 metrics=["accuracy"],
             )

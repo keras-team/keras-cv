@@ -17,6 +17,7 @@ import tempfile
 
 import pytest
 import tensorflow as tf
+from tensorflow import keras
 
 import keras_cv
 
@@ -37,7 +38,7 @@ class RetinaNetTest(tf.test.TestCase):
         # Reset soft device placement to not interfere with other unit test files
         tf.config.set_soft_device_placement(True)
         # Clear global session to prevent OOM between test runs
-        tf.keras.backend.clear_session()
+        keras.backend.clear_session()
 
     def test_weight_setting(self):
         x, y = _create_bounding_box_dataset(bounding_box_format="xywh")
@@ -130,7 +131,7 @@ class RetinaNetTest(tf.test.TestCase):
             suppression_layer=keras_cv.layers.MultiClassNonMaxSuppression(
                 iou_threshold=0.75,
                 bounding_box_format="xywh",
-                classes=20,
+                num_classes=20,
                 confidence_threshold=0.85,
             ),
         )
@@ -203,7 +204,7 @@ def _create_retina_nets(x, y, epochs=1, custom_decoder=False):
         include_top=False, weights="imagenet", include_rescaling=False
     ).as_backbone()
     pretrained_retina_net = keras_cv.models.RetinaNet(
-        classes=20,
+        num_classes=20,
         bounding_box_format="xywh",
         backbone=backbone,
         backbone_weights="imagenet",
@@ -235,12 +236,12 @@ def _create_retina_nets(x, y, epochs=1, custom_decoder=False):
             suppression_layer=keras_cv.layers.MultiClassNonMaxSuppression(
                 iou_threshold=0.75,
                 bounding_box_format="xywh",
-                classes=20,
+                num_classes=20,
                 confidence_threshold=0.85,
             ),
         )
     new_retina_net = keras_cv.models.RetinaNet(
-        classes=20,
+        num_classes=20,
         bounding_box_format="xywh",
         backbone=backbone,
         backbone_weights=None,

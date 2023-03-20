@@ -1,4 +1,4 @@
-# Copyright 2022 The KerasCV Authors
+# Copyright 2023 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,12 +20,14 @@ Reference:
         https://arxiv.org/abs/1905.11946) (ICML 2019)
     - [Based on the original EfficientNet Lite's](https://github.com/tensorflow/tpu/tree/master/models/official/efficientnet/lite)
 """
+
 import copy
 import math
 
 import tensorflow as tf
 from keras import backend
 from keras import layers
+from tensorflow import keras
 
 from keras_cv.models import utils
 from keras_cv.models.weights import parse_weights
@@ -119,47 +121,41 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
     - [EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks](
         https://arxiv.org/abs/1905.11946) (ICML 2019)
 
-    This function returns a Keras image classification model.
+    This function returns a Keras {name} model.
 
     For image classification use cases, see
     [this page for detailed examples](
     https://keras.io/api/applications/#usage-examples-for-image-classification-models).
 
-    For transfer learning use cases, make sure to read the
-    [guide to transfer learning & fine-tuning](
-    https://keras.io/guides/transfer_learning/).
+    For transfer learning use cases, make sure to read the [guide to transfer
+        learning & fine-tuning](https://keras.io/guides/transfer_learning/).
 
     Args:
-        include_rescaling: whether or not to Rescale the inputs.If set to True,
-                    inputs will be passed through a `Rescaling(1/255.0)` layer.
-        include_top: Whether to include the fully-connected
-            layer at the top of the network.
-        weights: One of `None` (random initialization),
-                or the path to the weights file to be loaded.
-        input_shape: Optional shape tuple.
-            It should have exactly 3 inputs channels.
+        include_rescaling: bool, whether or not to Rescale the inputs. If set
+            to `True`, inputs will be passed through a `Rescaling(1/255.0)`
+            layer.
+        include_top: bool, whether to include the fully-connected layer at
+            the top of the network.  If provided, `num_classes` must be provided.
+        num_classes: optional int, number of classes to classify images into (only
+            to be specified if `include_top` is `True`).
+        weights: one of `None` (random initialization), a pretrained weight file
+            path, or a reference to pre-trained weights (e.g. 'imagenet/classification')
+            (see available pre-trained weights in weights.py)
+        input_shape: optional shape tuple, defaults to (None, None, 3).
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
             to use as image input for the model.
-        pooling: Optional pooling mode for feature extraction
-            when `include_top` is `False`. Defaults to None.
-            - `None` means that the output of the model will be
-                the 4D tensor output of the
-                last convolutional layer.
-            - `avg` means that global average pooling
-                will be applied to the output of the
-                last convolutional layer, and thus
-                the output of the model will be a 2D tensor.
-            - `max` means that global max pooling will
-                be applied.
-        classes: Optional number of classes to classify images
-            into, only to be specified if `include_top` is True, and
-            if no `weights` argument is specified. Defaults to None.
+        pooling: optional pooling mode for feature extraction
+            when `include_top` is `False`.
+            - `None` means that the output of the model will be the 4D tensor output
+                of the last convolutional block.
+            - `avg` means that global average pooling will be applied to the output
+                of the last convolutional block, and thus the output of the model will
+                be a 2D tensor.
+            - `max` means that global max pooling will be applied.
         classifier_activation: A `str` or callable. The activation function to use
             on the "top" layer. Ignored unless `include_top=True`. Set
             `classifier_activation=None` to return the logits of the "top" layer.
-            Defaults to 'softmax'.
-            When loading pretrained weights, `classifier_activation` can only
-            be `None` or `"softmax"`.
+        name: (Optional) name to pass to the model.  Defaults to "{name}".
 
     Returns:
         A `keras.Model` instance.
@@ -170,11 +166,13 @@ BN_AXIS = 3
 
 def correct_pad(inputs, kernel_size):
     """Returns a tuple for zero-padding for 2D convolution with downsampling.
+
     Args:
-      inputs: Input tensor.
-      kernel_size: An integer or tuple/list of 2 integers.
+        inputs: Input tensor.
+        kernel_size: An integer or tuple/list of 2 integers.
+
     Returns:
-      A tuple.
+        A tuple.
     """
     img_dim = 1
     input_size = backend.int_shape(inputs)[img_dim : (img_dim + 2)]
@@ -209,10 +207,11 @@ def round_repeats(repeats, depth_coefficient):
     return int(math.ceil(depth_coefficient * repeats))
 
 
-def EfficientNetLiteBlock(
+def apply_efficient_net_lite_block(
+    inputs,
     activation="relu6",
     drop_rate=0.0,
-    name="",
+    name=None,
     filters_in=32,
     filters_out=16,
     kernel_size=3,
@@ -237,89 +236,67 @@ def EfficientNetLiteBlock(
     Returns:
         output tensor for the block.
     """
+    if name is None:
+        name = f"block_{backend.get_uid('block_')}_"
 
-    def apply(inputs):
-        # Expansion phase
-        filters = filters_in * expand_ratio
-        if expand_ratio != 1:
-            x = layers.Conv2D(
-                filters,
-                1,
-                padding="same",
-                use_bias=False,
-                kernel_initializer=CONV_KERNEL_INITIALIZER,
-                name=name + "expand_conv",
-            )(inputs)
-            x = layers.BatchNormalization(
-                axis=BN_AXIS, name=name + "expand_bn"
-            )(x)
-            x = layers.Activation(activation, name=name + "expand_activation")(
-                x
-            )
-        else:
-            x = inputs
-
-        # Depthwise Convolution
-        if strides == 2:
-            x = layers.ZeroPadding2D(
-                padding=correct_pad(x, kernel_size),
-                name=name + "dwconv_pad",
-            )(x)
-            conv_pad = "valid"
-        else:
-            conv_pad = "same"
-        x = layers.DepthwiseConv2D(
-            kernel_size,
-            strides=strides,
-            padding=conv_pad,
-            use_bias=False,
-            depthwise_initializer=CONV_KERNEL_INITIALIZER,
-            name=name + "dwconv",
-        )(x)
-        x = layers.BatchNormalization(axis=BN_AXIS, name=name + "bn")(x)
-        x = layers.Activation(activation, name=name + "activation")(x)
-
-        # Skip SE block
-        # Output phase
+    # Expansion phase
+    filters = filters_in * expand_ratio
+    if expand_ratio != 1:
         x = layers.Conv2D(
-            filters_out,
+            filters,
             1,
             padding="same",
             use_bias=False,
             kernel_initializer=CONV_KERNEL_INITIALIZER,
-            name=name + "project_conv",
+            name=name + "expand_conv",
+        )(inputs)
+        x = layers.BatchNormalization(axis=BN_AXIS, name=name + "expand_bn")(x)
+        x = layers.Activation(activation, name=name + "expand_activation")(x)
+    else:
+        x = inputs
+
+    # Depthwise Convolution
+    if strides == 2:
+        x = layers.ZeroPadding2D(
+            padding=correct_pad(x, kernel_size),
+            name=name + "dwconv_pad",
         )(x)
-        x = layers.BatchNormalization(axis=BN_AXIS, name=name + "project_bn")(x)
-        if id_skip and strides == 1 and filters_in == filters_out:
-            if drop_rate > 0:
-                x = layers.Dropout(
-                    drop_rate, noise_shape=(None, 1, 1, 1), name=name + "drop"
-                )(x)
-            x = layers.add([x, inputs], name=name + "add")
-        return x
+        conv_pad = "valid"
+    else:
+        conv_pad = "same"
+    x = layers.DepthwiseConv2D(
+        kernel_size,
+        strides=strides,
+        padding=conv_pad,
+        use_bias=False,
+        depthwise_initializer=CONV_KERNEL_INITIALIZER,
+        name=name + "dwconv",
+    )(x)
+    x = layers.BatchNormalization(axis=BN_AXIS, name=name + "bn")(x)
+    x = layers.Activation(activation, name=name + "activation")(x)
 
-    return apply
+    # Skip SE block
+    # Output phase
+    x = layers.Conv2D(
+        filters_out,
+        1,
+        padding="same",
+        use_bias=False,
+        kernel_initializer=CONV_KERNEL_INITIALIZER,
+        name=name + "project_conv",
+    )(x)
+    x = layers.BatchNormalization(axis=BN_AXIS, name=name + "project_bn")(x)
+    if id_skip and strides == 1 and filters_in == filters_out:
+        if drop_rate > 0:
+            x = layers.Dropout(
+                drop_rate, noise_shape=(None, 1, 1, 1), name=name + "drop"
+            )(x)
+        x = layers.add([x, inputs], name=name + "add")
+    return x
 
 
-def EfficientNetLite(
-    include_rescaling,
-    include_top,
-    width_coefficient,
-    depth_coefficient,
-    default_size,
-    dropout_rate=0.2,
-    drop_connect_rate=0.2,
-    depth_divisor=8,
-    activation="relu6",
-    blocks_args="default",
-    model_name="efficientnetlite",
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    classes=None,
-    classifier_activation="softmax",
-):
+@keras.utils.register_keras_serializable(package="keras_cv.models")
+class EfficientNetLite(keras.Model):
     """Instantiates the EfficientNetLite architecture using given scaling coefficients.
 
     Args:
@@ -353,7 +330,7 @@ def EfficientNetLite(
                 the output of the model will be a 2D tensor.
             - `max` means that global max pooling will
                 be applied.
-        classes: optional number of classes to classify images
+        num_classes: optional number of classes to classify images
             into, only to be specified if `include_top` is True, and
             if no `weights` argument is specified.
         classifier_activation: A `str` or callable. The activation function to use
@@ -364,142 +341,213 @@ def EfficientNetLite(
             A `keras.Model` instance.
 
         Raises:
+            ValueError: if `blocks_args` is invalid.
             ValueError: in case of invalid argument for `weights`,
                 or invalid input shape.
             ValueError: if `classifier_activation` is not `softmax` or `None` when
                 using a pretrained top layer.
     """
 
-    if blocks_args == "default":
-        blocks_args = DEFAULT_BLOCKS_ARGS
+    def __init__(
+        self,
+        include_rescaling,
+        include_top,
+        width_coefficient,
+        depth_coefficient,
+        default_size,
+        dropout_rate=0.2,
+        drop_connect_rate=0.2,
+        depth_divisor=8,
+        activation="relu6",
+        blocks_args=None,
+        weights=None,
+        input_shape=(None, None, 3),
+        input_tensor=None,
+        pooling=None,
+        num_classes=None,
+        classifier_activation="softmax",
+        **kwargs,
+    ):
+        if blocks_args is None:
+            blocks_args = DEFAULT_BLOCKS_ARGS
+        if not isinstance(blocks_args, list):
+            raise ValueError(
+                "The `blocks_args` argument should be either `None` or valid"
+                "list of dicts for building blocks. "
+                f"Received: blocks_args={blocks_args}"
+            )
+        intact_blocks_args = copy.deepcopy(blocks_args)  # for configs
+        blocks_args = copy.deepcopy(blocks_args)
 
-    if weights and not tf.io.gfile.exists(weights):
-        raise ValueError(
-            "The `weights` argument should be either `None` or the path to the "
-            "weights file to be loaded. Weights file not found at location: {weights}"
-        )
-
-    if include_top and not classes:
-        raise ValueError(
-            "If `include_top` is True, you should specify `classes`. "
-            f"Received: classes={classes}"
-        )
-
-    if include_top and pooling:
-        raise ValueError(
-            f"`pooling` must be `None` when `include_top=True`."
-            f"Received pooling={pooling} and include_top={include_top}. "
-        )
-
-    img_input = utils.parse_model_inputs(input_shape, input_tensor)
-
-    # Build stem
-    x = img_input
-
-    if include_rescaling:
-        # Use common rescaling strategy across keras_cv
-        x = layers.Rescaling(1.0 / 255.0)(x)
-
-    x = layers.ZeroPadding2D(padding=correct_pad(x, 3), name="stem_conv_pad")(x)
-    x = layers.Conv2D(
-        32,
-        3,
-        strides=2,
-        padding="valid",
-        use_bias=False,
-        kernel_initializer=CONV_KERNEL_INITIALIZER,
-        name="stem_conv",
-    )(x)
-    x = layers.BatchNormalization(axis=BN_AXIS, name="stem_bn")(x)
-    x = layers.Activation(activation, name="stem_activation")(x)
-
-    # Build blocks
-    blocks_args = copy.deepcopy(blocks_args)
-
-    b = 0
-    blocks = float(sum(args["repeats"] for args in blocks_args))
-
-    for i, args in enumerate(blocks_args):
-        assert args["repeats"] > 0
-        # Update block input and output filters based on depth multiplier.
-        args["filters_in"] = round_filters(
-            filters=args["filters_in"],
-            width_coefficient=width_coefficient,
-            depth_divisor=depth_divisor,
-        )
-        args["filters_out"] = round_filters(
-            filters=args["filters_out"],
-            width_coefficient=width_coefficient,
-            depth_divisor=depth_divisor,
-        )
-
-        if i == 0 or i == (len(blocks_args) - 1):
-            repeats = args.pop("repeats")
-        else:
-            repeats = round_repeats(
-                repeats=args.pop("repeats"), depth_coefficient=depth_coefficient
+        if weights and not tf.io.gfile.exists(weights):
+            raise ValueError(
+                "The `weights` argument should be either `None` or the path to "
+                "the weights file to be loaded. "
+                f"Weights file not found at location: {weights}"
             )
 
-        for j in range(repeats):
-            # The first block needs to take care of stride and filter size
-            # increase.
-            if j > 0:
-                args["strides"] = 1
-                args["filters_in"] = args["filters_out"]
-            x = EfficientNetLiteBlock(
-                activation=activation,
-                drop_rate=drop_connect_rate * b / blocks,
-                name="block{}{}_".format(i + 1, chr(j + 97)),
-                **args,
-            )(x)
+        if include_top and not num_classes:
+            raise ValueError(
+                "If `include_top` is True, you should specify `num_classes`. "
+                f"Received: num_classes={num_classes}"
+            )
 
-            b += 1
+        if include_top and pooling:
+            raise ValueError(
+                f"`pooling` must be `None` when `include_top=True`."
+                f"Received pooling={pooling} and include_top={include_top}. "
+            )
 
-    # Build top
-    x = layers.Conv2D(
-        1280,
-        1,
-        padding="same",
-        use_bias=False,
-        kernel_initializer=CONV_KERNEL_INITIALIZER,
-        name="top_conv",
-    )(x)
-    x = layers.BatchNormalization(axis=BN_AXIS, name="top_bn")(x)
-    x = layers.Activation(activation, name="top_activation")(x)
+        img_input = utils.parse_model_inputs(input_shape, input_tensor)
 
-    if include_top:
-        x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-        if dropout_rate > 0:
-            x = layers.Dropout(dropout_rate, name="top_dropout")(x)
-        x = layers.Dense(
-            classes,
-            activation=classifier_activation,
-            kernel_initializer=DENSE_KERNEL_INITIALIZER,
-            name="predictions",
+        # Build stem
+        x = img_input
+
+        if include_rescaling:
+            # Use common rescaling strategy across keras_cv
+            x = layers.Rescaling(1.0 / 255.0)(x)
+
+        x = layers.ZeroPadding2D(
+            padding=correct_pad(x, 3), name="stem_conv_pad"
         )(x)
-    else:
-        if pooling == "avg":
+        x = layers.Conv2D(
+            32,
+            3,
+            strides=2,
+            padding="valid",
+            use_bias=False,
+            kernel_initializer=CONV_KERNEL_INITIALIZER,
+            name="stem_conv",
+        )(x)
+        x = layers.BatchNormalization(axis=BN_AXIS, name="stem_bn")(x)
+        x = layers.Activation(activation, name="stem_activation")(x)
+
+        # Build blocks
+        b = 0
+        blocks = float(sum(args["repeats"] for args in blocks_args))
+
+        for i, args in enumerate(blocks_args):
+            assert args["repeats"] > 0
+            # Update block input and output filters based on depth multiplier.
+            args["filters_in"] = round_filters(
+                filters=args["filters_in"],
+                width_coefficient=width_coefficient,
+                depth_divisor=depth_divisor,
+            )
+            args["filters_out"] = round_filters(
+                filters=args["filters_out"],
+                width_coefficient=width_coefficient,
+                depth_divisor=depth_divisor,
+            )
+
+            if i == 0 or i == (len(blocks_args) - 1):
+                repeats = args.pop("repeats")
+            else:
+                repeats = round_repeats(
+                    repeats=args.pop("repeats"),
+                    depth_coefficient=depth_coefficient,
+                )
+
+            for j in range(repeats):
+                # The first block needs to take care of stride and filter size
+                # increase.
+                if j > 0:
+                    args["strides"] = 1
+                    args["filters_in"] = args["filters_out"]
+                x = apply_efficient_net_lite_block(
+                    x,
+                    activation=activation,
+                    drop_rate=drop_connect_rate * b / blocks,
+                    name="block{}{}_".format(i + 1, chr(j + 97)),
+                    **args,
+                )
+
+                b += 1
+
+        # Build top
+        x = layers.Conv2D(
+            1280,
+            1,
+            padding="same",
+            use_bias=False,
+            kernel_initializer=CONV_KERNEL_INITIALIZER,
+            name="top_conv",
+        )(x)
+        x = layers.BatchNormalization(axis=BN_AXIS, name="top_bn")(x)
+        x = layers.Activation(activation, name="top_activation")(x)
+
+        if include_top:
             x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-        elif pooling == "max":
-            x = layers.GlobalMaxPooling2D(name="max_pool")(x)
+            if dropout_rate > 0:
+                x = layers.Dropout(dropout_rate, name="top_dropout")(x)
+            x = layers.Dense(
+                num_classes,
+                activation=classifier_activation,
+                kernel_initializer=DENSE_KERNEL_INITIALIZER,
+                name="predictions",
+            )(x)
+        else:
+            if pooling == "avg":
+                x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
+            elif pooling == "max":
+                x = layers.GlobalMaxPooling2D(name="max_pool")(x)
 
-    inputs = img_input
+        inputs = img_input
 
-    # Create model.
-    model = tf.keras.Model(inputs, x, name=model_name)
+        # Create model.
+        super().__init__(inputs=inputs, outputs=x, **kwargs)
 
-    # Load weights.
-    if weights is not None:
-        model.load_weights(weights)
+        # Load weights.
+        if weights is not None:
+            self.load_weights(weights)
 
-    return model
+        self.include_rescaling = include_rescaling
+        self.include_top = include_top
+        self.width_coefficient = width_coefficient
+        self.depth_coefficient = depth_coefficient
+        self.default_size = default_size
+        self.dropout_rate = dropout_rate
+        self.drop_connect_rate = drop_connect_rate
+        self.depth_divisor = depth_divisor
+        self.activation = activation
+        self.blocks_args = intact_blocks_args
+        self.input_tensor = input_tensor
+        self.pooling = pooling
+        self.num_classes = num_classes
+        self.classifier_activation = classifier_activation
+
+    def get_config(self):
+        return {
+            "include_rescaling": self.include_rescaling,
+            "include_top": self.include_top,
+            "width_coefficient": self.width_coefficient,
+            "depth_coefficient": self.depth_coefficient,
+            "default_size": self.default_size,
+            "dropout_rate": self.dropout_rate,
+            "drop_connect_rate": self.drop_connect_rate,
+            "depth_divisor": self.depth_divisor,
+            "activation": self.activation,
+            "blocks_args": self.blocks_args,
+            # Remove batch dimension from `input_shape`
+            "input_shape": self.input_shape[1:],
+            "input_tensor": self.input_tensor,
+            "pooling": self.pooling,
+            "num_classes": self.num_classes,
+            "classifier_activation": self.classifier_activation,
+            "name": self.name,
+            "trainable": self.trainable,
+        }
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)
 
 
 def EfficientNetLiteB0(
     *,
     include_rescaling,
     include_top,
-    classes=None,
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -514,12 +562,12 @@ def EfficientNetLiteB0(
         depth_coefficient=1.0,
         default_size=224,
         dropout_rate=0.2,
-        model_name="efficientnetliteb0",
+        name="efficientnetliteb0",
         weights=parse_weights(weights, include_top, "efficientnetliteb0"),
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
-        classes=classes,
+        num_classes=num_classes,
         classifier_activation=classifier_activation,
         **kwargs,
     )
@@ -529,7 +577,7 @@ def EfficientNetLiteB1(
     *,
     include_rescaling,
     include_top,
-    classes=None,
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -544,12 +592,12 @@ def EfficientNetLiteB1(
         depth_coefficient=1.1,
         default_size=240,
         dropout_rate=0.2,
-        model_name="efficientnetliteb1",
+        name="efficientnetliteb1",
         weights=parse_weights(weights, include_top, "efficientnetliteb1"),
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
-        classes=classes,
+        num_classes=num_classes,
         classifier_activation=classifier_activation,
         **kwargs,
     )
@@ -559,7 +607,7 @@ def EfficientNetLiteB2(
     *,
     include_rescaling,
     include_top,
-    classes=None,
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -574,12 +622,12 @@ def EfficientNetLiteB2(
         depth_coefficient=1.2,
         default_size=260,
         dropout_rate=0.3,
-        model_name="efficientnetliteb2",
+        name="efficientnetliteb2",
         weights=parse_weights(weights, include_top, "efficientnetliteb2"),
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
-        classes=classes,
+        num_classes=num_classes,
         classifier_activation=classifier_activation,
         **kwargs,
     )
@@ -589,7 +637,7 @@ def EfficientNetLiteB3(
     *,
     include_rescaling,
     include_top,
-    classes=None,
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -604,12 +652,12 @@ def EfficientNetLiteB3(
         depth_coefficient=1.4,
         default_size=280,
         dropout_rate=0.3,
-        model_name="efficientnetliteb3",
+        name="efficientnetliteb3",
         weights=parse_weights(weights, include_top, "efficientnetliteb3"),
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
-        classes=classes,
+        num_classes=num_classes,
         classifier_activation=classifier_activation,
         **kwargs,
     )
@@ -619,7 +667,7 @@ def EfficientNetLiteB4(
     *,
     include_rescaling,
     include_top,
-    classes=None,
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -634,12 +682,12 @@ def EfficientNetLiteB4(
         depth_coefficient=1.8,
         default_size=300,
         dropout_rate=0.3,
-        model_name="efficientnetliteb4",
+        name="efficientnetliteb4",
         weights=parse_weights(weights, include_top, "efficientnetliteb4"),
         input_shape=input_shape,
         input_tensor=input_tensor,
         pooling=pooling,
-        classes=classes,
+        num_classes=num_classes,
         classifier_activation=classifier_activation,
         **kwargs,
     )

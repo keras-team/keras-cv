@@ -85,3 +85,14 @@ class SolarizationTest(tf.test.TestCase, parameterized.TestCase):
         output = layer(input)
 
         self.assertAllClose(output, expected_output)
+
+    def test_random_augmentation_applied_per_sample(self):
+        image = tf.random.uniform((16, 16, 3), minval=0, maxval=255)
+        images = tf.stack([image, image])
+        layer = Solarization(
+            value_range=(0, 255), threshold_factor=127, addition_factor=127
+        )
+
+        outputs = layer(images)
+
+        self.assertNotAllEqual(outputs[0], outputs[1])

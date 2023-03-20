@@ -11,14 +11,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 from typing import List
 from typing import Tuple
 
 import tensorflow as tf
+from tensorflow import keras
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
-class BoxMatcher(tf.keras.layers.Layer):
+@keras.utils.register_keras_serializable(package="keras_cv")
+class BoxMatcher(keras.layers.Layer):
     """Box matching logic based on argmax of highest value (e.g., IOU).
 
     This class computes matches from a similarity matrix. Each row will be

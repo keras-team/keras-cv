@@ -29,12 +29,12 @@ class ModelsTest:
     def cleanup_global_session(self):
         # Code before yield runs before the test
         yield
-        tf.keras.backend.clear_session()
+        keras.backend.clear_session()
 
     def _test_application_base(self, app, _, args):
         # Can be instantiated with default arguments
         model = app(
-            include_top=True, classes=1000, include_rescaling=False, **args
+            include_top=True, num_classes=1000, include_rescaling=False, **args
         )
 
         # Can be serialized and deserialized

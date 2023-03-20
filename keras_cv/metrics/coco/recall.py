@@ -14,8 +14,8 @@
 import warnings
 
 import tensorflow as tf
-import tensorflow.keras as keras
 import tensorflow.keras.initializers as initializers
+from tensorflow import keras
 
 from keras_cv import bounding_box
 from keras_cv.bounding_box import iou as iou_lib
@@ -39,7 +39,7 @@ class _BoxRecall(keras.metrics.Metric):
     Args:
         class_ids: The class IDs to evaluate the metric for.  To evaluate for
             all classes in over a set of sequentially labelled classes, pass
-            `range(classes)`.
+            `range(num_classes)`.
         bounding_box_format: Format of the incoming bounding boxes.  Supported values
             are "xywh", "center_xywh", "xyxy".
         iou_thresholds: IoU thresholds over which to evaluate the recall.  Must

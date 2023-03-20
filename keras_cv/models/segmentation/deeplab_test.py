@@ -17,6 +17,7 @@ import os
 import pytest
 import tensorflow as tf
 import tensorflow_datasets as tfds
+from tensorflow import keras
 
 from keras_cv.models import ResNet50V2Backbone
 from keras_cv.models import segmentation
@@ -27,7 +28,7 @@ class DeeplabTest(tf.test.TestCase):
         backbone = ResNet50V2Backbone(
             input_shape=[64, 64, 3],
         )
-        model = segmentation.DeepLabV3(classes=11, backbone=backbone)
+        model = segmentation.DeepLabV3(num_classes=11, backbone=backbone)
         input_image = tf.random.uniform(shape=[1, 64, 64, 3])
         output = model(input_image, training=True)
 
@@ -37,7 +38,7 @@ class DeeplabTest(tf.test.TestCase):
         backbone = ResNet50V2Backbone(
             input_shape=[64, 64, 1],
         )
-        model = segmentation.DeepLabV3(classes=11, backbone=backbone)
+        model = segmentation.DeepLabV3(num_classes=11, backbone=backbone)
         input_image = tf.random.uniform(shape=[1, 64, 64, 1])
         output = model(input_image, training=True)
 
@@ -46,17 +47,17 @@ class DeeplabTest(tf.test.TestCase):
     def test_missing_input_shapes(self):
         with self.assertRaisesRegex(
             ValueError,
-            "Input shapes for both the backbone and DeepLabV3 are `None`.",
+            "Input shapes for both the backbone and DeepLabV3 cannot be `None`.",
         ):
             backbone = ResNet50V2Backbone()
-            segmentation.DeepLabV3(classes=11, backbone=backbone)
+            segmentation.DeepLabV3(num_classes=11, backbone=backbone)
 
     def test_deeplab_model_with_components(self):
         backbone = ResNet50V2Backbone(
             input_shape=[64, 64, 3],
         )
         model = segmentation.DeepLabV3(
-            classes=11,
+            num_classes=11,
             backbone=backbone,
         )
 
@@ -66,26 +67,26 @@ class DeeplabTest(tf.test.TestCase):
         self.assertEquals(output["output"].shape, [1, 64, 64, 11])
 
     def test_mixed_precision(self):
-        tf.keras.mixed_precision.set_global_policy("mixed_float16")
+        keras.mixed_precision.set_global_policy("mixed_float16")
         backbone = ResNet50V2Backbone(
             input_shape=[64, 64, 3],
         )
         model = segmentation.DeepLabV3(
-            classes=11,
+            num_classes=11,
             backbone=backbone,
         )
         input_image = tf.random.uniform(shape=[1, 64, 64, 3])
         output = model(input_image, training=True)
 
         self.assertEquals(output["output"].dtype, tf.float32)
-        tf.keras.mixed_precision.set_global_policy("float32")
+        keras.mixed_precision.set_global_policy("float32")
 
     def test_invalid_backbone_model(self):
         with self.assertRaisesRegex(
-            ValueError, "Backbone need to be a `tf.keras.layers.Layer`"
+            ValueError, "Argument `backbone` must be a `keras.layers.Layer`"
         ):
             segmentation.DeepLabV3(
-                classes=11,
+                num_classes=11,
                 backbone=tf.Module(),
             )
 
@@ -99,7 +100,7 @@ class DeeplabTest(tf.test.TestCase):
         backbone = ResNet50V2Backbone(
             input_shape=[384, 384, 3],
         )
-        model = segmentation.DeepLabV3(classes=1, backbone=backbone)
+        model = segmentation.DeepLabV3(num_classes=1, backbone=backbone)
 
         gcs_data_pattern = "gs://caltech_birds2011_mask/0.1.1/*.tfrecord*"
         features = tfds.features.FeaturesDict(
@@ -129,10 +130,8 @@ class DeeplabTest(tf.test.TestCase):
         output_res = [96, 96]
         num_images = 11788
 
-        image_resizing = tf.keras.layers.Resizing(
-            target_size[1], target_size[0]
-        )
-        labels_resizing = tf.keras.layers.Resizing(output_res[1], output_res[0])
+        image_resizing = keras.layers.Resizing(target_size[1], target_size[0])
+        labels_resizing = keras.layers.Resizing(output_res[1], output_res[0])
 
         def resize_images_and_masks(data):
             image = tf.image.convert_image_dtype(
@@ -161,7 +160,7 @@ class DeeplabTest(tf.test.TestCase):
         epochs = 1
         model.compile(
             optimizer="adam",
-            loss=tf.keras.losses.BinaryCrossentropy(from_logits=True),
+            loss=keras.losses.BinaryCrossentropy(from_logits=True),
             metrics=["accuracy"],
         )
 
