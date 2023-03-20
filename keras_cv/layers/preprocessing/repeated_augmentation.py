@@ -11,14 +11,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class RepeatedAugmentation(BaseImageAugmentationLayer):
     """RepeatedAugmentation augments each image in a batch multiple times.
 
@@ -123,7 +125,7 @@ class RepeatedAugmentation(BaseImageAugmentationLayer):
     @classmethod
     def from_config(cls, config):
         if config["augmenters"] and isinstance(config["augmenters"][0], dict):
-            config["augmenters"] = tf.keras.utils.deserialize_keras_object(
+            config["augmenters"] = keras.utils.deserialize_keras_object(
                 config["augmenters"]
             )
         return cls(**config)

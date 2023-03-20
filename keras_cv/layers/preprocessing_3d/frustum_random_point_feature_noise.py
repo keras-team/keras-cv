@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv import point_cloud
 from keras_cv.layers.preprocessing_3d import base_augmentation_layer_3d
@@ -23,7 +24,7 @@ POINTCLOUD_LABEL_INDEX = base_augmentation_layer_3d.POINTCLOUD_LABEL_INDEX
 POINTCLOUD_FEATURE_INDEX = base_augmentation_layer_3d.POINTCLOUD_FEATURE_INDEX
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class FrustumRandomPointFeatureNoise(
     base_augmentation_layer_3d.BaseAugmentationLayer3D
 ):

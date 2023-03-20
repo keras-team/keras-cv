@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv import bounding_box
 from keras_cv.utils import preprocessing
@@ -33,7 +34,7 @@ USE_TARGETS = "use_targets"
 
 
 class VectorizedBaseImageAugmentationLayer(
-    tf.keras.__internal__.layers.BaseRandomLayer
+    keras.__internal__.layers.BaseRandomLayer
 ):
     """Abstract base layer for vectorized image augmentation.
 
@@ -73,7 +74,7 @@ class VectorizedBaseImageAugmentationLayer(
     to the same structure as the inputs.
 
     Note that since the randomness is also a common functionality, this layer
-    also includes a tf.keras.backend.RandomGenerator, which can be used to
+    also includes a keras.backend.RandomGenerator, which can be used to
     produce the random numbers.  The random number generator is stored in the
     `self._random_generator` attribute.
     """

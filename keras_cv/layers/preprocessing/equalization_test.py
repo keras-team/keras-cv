@@ -11,8 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import tensorflow as tf
 from absl.testing import parameterized
+from tensorflow import keras
 
 from keras_cv.layers.preprocessing.equalization import Equalization
 
@@ -28,9 +30,9 @@ class EqualizationTest(tf.test.TestCase, parameterized.TestCase):
 
     def test_return_shapes_inside_model(self):
         layer = Equalization(value_range=(0, 255))
-        inp = tf.keras.layers.Input(shape=[512, 512, 5])
+        inp = keras.layers.Input(shape=[512, 512, 5])
         out = layer(inp)
-        model = tf.keras.models.Model(inp, out)
+        model = keras.models.Model(inp, out)
 
         self.assertEqual(model.layers[-1].output_shape, (None, 512, 512, 5))
 

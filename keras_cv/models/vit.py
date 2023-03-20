@@ -233,7 +233,7 @@ class ViT(keras.Model):
             use on the "top" layer. Ignored unless `include_top=True`. Set
             `classifier_activation=None` to return the logits of the "top"
             layer.
-        **kwargs: Pass-through keyword arguments to `tf.keras.Model`.
+        **kwargs: Pass-through keyword arguments to `keras.Model`.
     """
 
     def __init__(
@@ -370,7 +370,7 @@ def ViTTiny16(
     input_tensor=None,
     pooling=None,
     num_classes=None,
-    activation=tf.keras.activations.gelu,
+    activation=keras.activations.gelu,
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -410,7 +410,7 @@ def ViTS16(
     input_tensor=None,
     pooling=None,
     num_classes=None,
-    activation=tf.keras.activations.gelu,
+    activation=keras.activations.gelu,
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -448,7 +448,7 @@ def ViTB16(
     input_tensor=None,
     pooling=None,
     num_classes=None,
-    activation=tf.keras.activations.gelu,
+    activation=keras.activations.gelu,
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -486,7 +486,7 @@ def ViTL16(
     input_tensor=None,
     pooling=None,
     num_classes=None,
-    activation=tf.keras.activations.gelu,
+    activation=keras.activations.gelu,
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -524,7 +524,7 @@ def ViTH16(
     input_tensor=None,
     pooling=None,
     num_classes=None,
-    activation=tf.keras.activations.gelu,
+    activation=keras.activations.gelu,
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -562,7 +562,7 @@ def ViTTiny32(
     input_tensor=None,
     pooling=None,
     num_classes=None,
-    activation=tf.keras.activations.gelu,
+    activation=keras.activations.gelu,
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -602,7 +602,7 @@ def ViTS32(
     input_tensor=None,
     pooling=None,
     num_classes=None,
-    activation=tf.keras.activations.gelu,
+    activation=keras.activations.gelu,
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -640,7 +640,7 @@ def ViTB32(
     input_tensor=None,
     pooling=None,
     num_classes=None,
-    activation=tf.keras.activations.gelu,
+    activation=keras.activations.gelu,
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -678,7 +678,7 @@ def ViTL32(
     input_tensor=None,
     pooling=None,
     num_classes=None,
-    activation=tf.keras.activations.gelu,
+    activation=keras.activations.gelu,
     classifier_activation="softmax",
     **kwargs,
 ):
@@ -716,7 +716,7 @@ def ViTH32(
     input_tensor=None,
     pooling=None,
     num_classes=None,
-    activation=tf.keras.activations.gelu,
+    activation=keras.activations.gelu,
     classifier_activation="softmax",
     **kwargs,
 ):

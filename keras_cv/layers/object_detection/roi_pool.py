@@ -13,12 +13,13 @@
 # limitations under the License.
 
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv import bounding_box
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
-class ROIPooler(tf.keras.layers.Layer):
+@keras.utils.register_keras_serializable(package="keras_cv")
+class ROIPooler(keras.layers.Layer):
     """
     Pooling feature map of dynamic shape into region of interest (ROI) of fixed
     shape.

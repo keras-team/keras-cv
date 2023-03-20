@@ -17,6 +17,7 @@ from typing import Tuple
 
 import numpy as np
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv.layers.object_detection_3d import voxel_utils
 
@@ -61,7 +62,7 @@ def compute_point_voxel_id(
     return point_voxel_id + batch_multiplier
 
 
-class PointToVoxel(tf.keras.layers.Layer):
+class PointToVoxel(keras.layers.Layer):
     """Voxelization layer."""
 
     def __init__(
@@ -162,7 +163,7 @@ class PointToVoxel(tf.keras.layers.Layer):
         return point_voxel_feature, point_voxel_id, point_voxel_mask
 
 
-class DynamicVoxelization(tf.keras.layers.Layer):
+class DynamicVoxelization(keras.layers.Layer):
     """Dynamic voxelization and pool layer.
 
     This layer assigns and pools points into voxels,
@@ -182,7 +183,7 @@ class DynamicVoxelization(tf.keras.layers.Layer):
 
     def __init__(
         self,
-        point_net: tf.keras.layers.Layer,
+        point_net: keras.layers.Layer,
         voxel_size: Sequence[float],
         spatial_size: Sequence[float],
         **kwargs,

@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
@@ -24,7 +25,7 @@ H_AXIS = -3
 W_AXIS = -2
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class Rescaling(BaseImageAugmentationLayer):
     """A preprocessing layer which rescales input values to a new range.
 

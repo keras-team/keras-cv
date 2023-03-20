@@ -11,11 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import unittest
 
 import numpy as np
 import tensorflow as tf
 from absl.testing import parameterized
+from tensorflow import keras
 
 from keras_cv.layers.preprocessing.random_crop import RandomCrop
 
@@ -56,7 +58,7 @@ class RandomCropTest(tf.test.TestCase, parameterized.TestCase):
         actual_output = layer(inp)
         # In this case, output should equal resizing with crop_to_aspect
         # ratio.
-        resizing_layer = tf.keras.layers.Resizing(height, width)
+        resizing_layer = keras.layers.Resizing(height, width)
         expected_output = resizing_layer(inp)
         self.assertAllEqual(expected_output, actual_output)
 

@@ -17,6 +17,7 @@ from typing import Tuple
 
 import numpy as np
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv.layers.object_detection_3d import voxel_utils
 
@@ -98,7 +99,7 @@ def decode_bin_box(pd, num_head_bin, anchor_size):
         return box
 
 
-class HeatmapDecoder(tf.keras.layers.Layer):
+class HeatmapDecoder(keras.layers.Layer):
     """A Keras layer that decodes predictions of a 3d object detection model.
 
     Arg:

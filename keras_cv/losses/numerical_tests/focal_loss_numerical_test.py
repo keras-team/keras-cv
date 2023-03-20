@@ -15,13 +15,14 @@
 import numpy as np
 import tensorflow as tf
 from absl.testing import parameterized
+from tensorflow import keras
 
 from keras_cv.losses import FocalLoss
 
 
-class ModelGardenFocalLoss(tf.keras.losses.Loss):
+class ModelGardenFocalLoss(keras.losses.Loss):
     def __init__(
-        self, alpha, gamma, reduction=tf.keras.losses.Reduction.AUTO, name=None
+        self, alpha, gamma, reduction=keras.losses.Reduction.AUTO, name=None
     ):
         self._alpha = alpha
         self._gamma = gamma

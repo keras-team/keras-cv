@@ -35,7 +35,7 @@ BOX_VARIANCE = [0.1, 0.1, 0.2, 0.2]
 # TODO(jbischof): Generalize `FeaturePyramid` class to allow for any P-levels
 #  and add `feature_pyramid_levels` param.
 @keras.utils.register_keras_serializable(package="keras_cv")
-class RetinaNet(tf.keras.Model):
+class RetinaNet(keras.Model):
     """A Keras model implementing the RetinaNet architecture.
 
     Implements the RetinaNet architecture for object detection.  The constructor
@@ -545,10 +545,10 @@ def _parse_box_loss(loss):
     # case insensitive comparison
     if loss.lower() == "smoothl1":
         return keras_cv.losses.SmoothL1Loss(
-            l1_cutoff=1.0, reduction=tf.keras.losses.Reduction.SUM
+            l1_cutoff=1.0, reduction=keras.losses.Reduction.SUM
         )
     if loss.lower() == "huber":
-        return keras.losses.Huber(reduction=tf.keras.losses.Reduction.SUM)
+        return keras.losses.Huber(reduction=keras.losses.Reduction.SUM)
 
     raise ValueError(
         "Expected `box_loss` to be either a Keras Loss, "
@@ -564,7 +564,7 @@ def _parse_classification_loss(loss):
     # case insensitive comparison
     if loss.lower() == "focal":
         return keras_cv.losses.FocalLoss(
-            from_logits=True, reduction=tf.keras.losses.Reduction.SUM
+            from_logits=True, reduction=keras.losses.Reduction.SUM
         )
 
     raise ValueError(

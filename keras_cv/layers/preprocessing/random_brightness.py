@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     VectorizedBaseImageAugmentationLayer,
@@ -20,7 +21,7 @@ from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer impo
 from keras_cv.utils import preprocessing as preprocessing_utils
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class RandomBrightness(VectorizedBaseImageAugmentationLayer):
     """A preprocessing layer which randomly adjusts brightness during training.
     This layer will randomly increase/reduce the brightness for the input RGB
@@ -55,7 +56,7 @@ class RandomBrightness(VectorizedBaseImageAugmentationLayer):
 
     Usage:
     ```python
-    (images, labels), _ = tf.keras.datasets.cifar10.load_data()
+    (images, labels), _ = keras.datasets.cifar10.load_data()
     random_brightness = keras_cv.layers.preprocessing.RandomBrightness()
     augmented_images = random_brightness(images)
     ```
@@ -120,7 +121,7 @@ class RandomBrightness(VectorizedBaseImageAugmentationLayer):
     @classmethod
     def from_config(cls, config):
         if isinstance(config["factor"], dict):
-            config["factor"] = tf.keras.utils.deserialize_keras_object(
+            config["factor"] = keras.utils.deserialize_keras_object(
                 config["factor"]
             )
         return cls(**config)

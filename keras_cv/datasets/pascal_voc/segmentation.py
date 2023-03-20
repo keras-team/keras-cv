@@ -34,6 +34,7 @@ This module contains following functionalities:
 3. Produce tfrecords from the dataset.
 4. Load existing tfrecords from result in 3.
 """
+
 import logging
 import multiprocessing
 import os.path
@@ -44,6 +45,7 @@ import xml
 import numpy as np
 import tensorflow as tf
 import tensorflow_datasets as tfds
+from tensorflow import keras
 
 VOC_URL = "https://host.robots.ox.ac.uk/pascal/VOC/voc2012/VOCtrainval_11-May-2012.tar"  # noqa: E501
 
@@ -159,7 +161,7 @@ def _download_data_file(
     if not override_extract and os.path.exists(data_directory):
         logging.info("data directory %s already exist", data_directory)
         return data_directory
-    data_file_path = tf.keras.utils.get_file(fname=fname, origin=data_url)
+    data_file_path = keras.utils.get_file(fname=fname, origin=data_url)
     # Extra the data into the same directory as the tar file.
     data_directory = os.path.dirname(data_file_path)
     logging.info("Extract data into %s", data_directory)

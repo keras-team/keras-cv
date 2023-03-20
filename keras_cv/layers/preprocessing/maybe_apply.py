@@ -11,14 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import tensorflow as tf
+
+from tensorflow import keras
 
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class MaybeApply(BaseImageAugmentationLayer):
     """Apply provided layer to random elements in a batch.
 
@@ -42,7 +43,7 @@ class MaybeApply(BaseImageAugmentationLayer):
     Example usage:
     ```
     # Let's declare an example layer that will set all image pixels to zero.
-    zero_out = tf.keras.layers.Lambda(lambda x: {"images": 0 * x["images"]})
+    zero_out = keras.layers.Lambda(lambda x: {"images": 0 * x["images"]})
 
     # Create a small batch of random, single-channel, 2x2 images:
     images = tf.random.stateless_uniform(shape=(5, 2, 2, 1), seed=[0, 1])

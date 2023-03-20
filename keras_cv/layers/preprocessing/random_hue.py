@@ -11,7 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     VectorizedBaseImageAugmentationLayer,
@@ -19,7 +21,7 @@ from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer impo
 from keras_cv.utils import preprocessing as preprocessing_utils
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class RandomHue(VectorizedBaseImageAugmentationLayer):
     """Randomly adjusts the hue on given images.
 
@@ -48,7 +50,7 @@ class RandomHue(VectorizedBaseImageAugmentationLayer):
 
     Usage:
     ```python
-    (images, labels), _ = tf.keras.datasets.cifar10.load_data()
+    (images, labels), _ = keras.datasets.cifar10.load_data()
     random_hue = keras_cv.layers.preprocessing.RandomHue()
     augmented_images = random_hue(images)
     ```
@@ -125,7 +127,7 @@ class RandomHue(VectorizedBaseImageAugmentationLayer):
     @classmethod
     def from_config(cls, config):
         if isinstance(config["factor"], dict):
-            config["factor"] = tf.keras.utils.deserialize_keras_object(
+            config["factor"] = keras.utils.deserialize_keras_object(
                 config["factor"]
             )
         return cls(**config)

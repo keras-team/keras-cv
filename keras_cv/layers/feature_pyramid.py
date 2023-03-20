@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import tensorflow as tf
+from tensorflow import keras
 
 
 # TODO(scottzhu): Register it later due to the conflict in the retina_net
-# @tf.keras.utils.register_keras_serializable(package="keras_cv")
-class FeaturePyramid(tf.keras.layers.Layer):
+# @keras.utils.register_keras_serializable(package="keras_cv")
+class FeaturePyramid(keras.layers.Layer):
     """Implements a Feature Pyramid Network.
 
     This implements the paper:
@@ -70,8 +70,8 @@ class FeaturePyramid(tf.keras.layers.Layer):
     Sample Usage:
     ```python
 
-    inp = tf.keras.layers.Input((384, 384, 3))
-    backbone = tf.keras.applications.EfficientNetB0(
+    inp = keras.layers.Input((384, 384, 3))
+    backbone = keras.applications.EfficientNetB0(
         input_tensor=inp,
         include_top=False
     )
@@ -116,7 +116,7 @@ class FeaturePyramid(tf.keras.layers.Layer):
             # populate self.lateral_ops with default FPN Conv2D 1X1 layers
             self.lateral_layers = {}
             for i in self.pyramid_levels:
-                self.lateral_layers[i] = tf.keras.layers.Conv2D(
+                self.lateral_layers[i] = keras.layers.Conv2D(
                     self.num_channels,
                     kernel_size=1,
                     strides=1,
@@ -131,7 +131,7 @@ class FeaturePyramid(tf.keras.layers.Layer):
         if not output_layers:
             self.output_layers = {}
             for i in self.pyramid_levels:
-                self.output_layers[i] = tf.keras.layers.Conv2D(
+                self.output_layers[i] = keras.layers.Conv2D(
                     self.num_channels,
                     kernel_size=3,
                     strides=1,
@@ -143,9 +143,9 @@ class FeaturePyramid(tf.keras.layers.Layer):
             self.output_layers = output_layers
 
         # the same upsampling layer is used for all levels
-        self.top_down_op = tf.keras.layers.UpSampling2D(size=2)
+        self.top_down_op = keras.layers.UpSampling2D(size=2)
         # the same merge layer is used for all levels
-        self.merge_op = tf.keras.layers.Add()
+        self.merge_op = keras.layers.Add()
 
     def _validate_user_layers(self, user_input, param_name):
         if (

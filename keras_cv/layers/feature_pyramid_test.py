@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv.layers import FeaturePyramid
 
@@ -61,10 +62,10 @@ class FeaturePyramidTest(tf.test.TestCase):
     def test_with_keras_input_tensor(self):
         # This mimic the model building with Backbone network
         layer = FeaturePyramid(min_level=2, max_level=5)
-        c2 = tf.keras.layers.Input([64, 64, 3])
-        c3 = tf.keras.layers.Input([32, 32, 3])
-        c4 = tf.keras.layers.Input([16, 16, 3])
-        c5 = tf.keras.layers.Input([8, 8, 3])
+        c2 = keras.layers.Input([64, 64, 3])
+        c3 = keras.layers.Input([32, 32, 3])
+        c4 = keras.layers.Input([16, 16, 3])
+        c5 = keras.layers.Input([8, 8, 3])
 
         inputs = {2: c2, 3: c3, 4: c4, 5: c5}
         output = layer(inputs)
@@ -74,7 +75,7 @@ class FeaturePyramidTest(tf.test.TestCase):
             self.assertEquals(output[level].shape[3], layer.num_channels)
 
     def test_invalid_lateral_layers(self):
-        lateral_layers = [tf.keras.layers.Conv2D(256, 1)] * 3
+        lateral_layers = [keras.layers.Conv2D(256, 1)] * 3
         with self.assertRaisesRegexp(
             ValueError, "Expect lateral_layers to be a dict"
         ):
@@ -82,9 +83,9 @@ class FeaturePyramidTest(tf.test.TestCase):
                 min_level=2, max_level=5, lateral_layers=lateral_layers
             )
         lateral_layers = {
-            2: tf.keras.layers.Conv2D(256, 1),
-            3: tf.keras.layers.Conv2D(256, 1),
-            4: tf.keras.layers.Conv2D(256, 1),
+            2: keras.layers.Conv2D(256, 1),
+            3: keras.layers.Conv2D(256, 1),
+            4: keras.layers.Conv2D(256, 1),
         }
         with self.assertRaisesRegexp(
             ValueError, "with keys as .* [2, 3, 4, 5]"
@@ -94,7 +95,7 @@ class FeaturePyramidTest(tf.test.TestCase):
             )
 
     def test_invalid_output_layers(self):
-        output_layers = [tf.keras.layers.Conv2D(256, 3)] * 3
+        output_layers = [keras.layers.Conv2D(256, 3)] * 3
         with self.assertRaisesRegexp(
             ValueError, "Expect output_layers to be a dict"
         ):
@@ -102,9 +103,9 @@ class FeaturePyramidTest(tf.test.TestCase):
                 min_level=2, max_level=5, output_layers=output_layers
             )
         output_layers = {
-            2: tf.keras.layers.Conv2D(256, 3),
-            3: tf.keras.layers.Conv2D(256, 3),
-            4: tf.keras.layers.Conv2D(256, 3),
+            2: keras.layers.Conv2D(256, 3),
+            3: keras.layers.Conv2D(256, 3),
+            4: keras.layers.Conv2D(256, 3),
         }
         with self.assertRaisesRegexp(
             ValueError, "with keys as .* [2, 3, 4, 5]"

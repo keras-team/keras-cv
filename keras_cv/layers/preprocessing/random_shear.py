@@ -11,9 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import warnings
 
 import tensorflow as tf
+from tensorflow import keras
 
 import keras_cv
 from keras_cv import bounding_box
@@ -23,7 +25,7 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 from keras_cv.utils import preprocessing
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class RandomShear(BaseImageAugmentationLayer):
     """A preprocessing layer which randomly shears images during training.
     This layer will apply random shearings to each image, filling empty space

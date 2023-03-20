@@ -11,7 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import tensorflow as tf
+from tensorflow import keras
 from tensorflow.keras import backend
 
 from keras_cv import core
@@ -141,7 +143,7 @@ def parse_factor(
         # For all classes missing a `from_config` implementation.
         # (RandomHue, RandomShear, etc.)
         # To be removed with addition of `keras.__internal__` namespace support
-        param = tf.keras.utils.deserialize_keras_object(param)
+        param = keras.utils.deserialize_keras_object(param)
 
     if isinstance(param, core.FactorSampler):
         return param

@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv import bounding_box
 from keras_cv import core
@@ -22,7 +23,7 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 from keras_cv.utils import preprocessing
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class RandomCropAndResize(BaseImageAugmentationLayer):
     """Randomly crops a part of an image and resizes it to provided size.
 
@@ -215,7 +216,7 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
         return bounding_boxes
 
     def _resize(self, image, **kwargs):
-        outputs = tf.keras.preprocessing.image.smart_resize(
+        outputs = keras.preprocessing.image.smart_resize(
             image, self.target_size, **kwargs
         )
         # smart_resize will always output float32, so we need to re-cast.
@@ -284,15 +285,13 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
     @classmethod
     def from_config(cls, config):
         if isinstance(config["crop_area_factor"], dict):
-            config[
-                "crop_area_factor"
-            ] = tf.keras.utils.deserialize_keras_object(
+            config["crop_area_factor"] = keras.utils.deserialize_keras_object(
                 config["crop_area_factor"]
             )
         if isinstance(config["aspect_ratio_factor"], dict):
             config[
                 "aspect_ratio_factor"
-            ] = tf.keras.utils.deserialize_keras_object(
+            ] = keras.utils.deserialize_keras_object(
                 config["aspect_ratio_factor"]
             )
         return cls(**config)

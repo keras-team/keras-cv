@@ -11,11 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import time
 
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv.layers import preprocessing
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
@@ -72,7 +74,7 @@ class OldRandomColorJitter(BaseImageAugmentationLayer):
 
     Usage:
     ```python
-    (images, labels), _ = tf.keras.datasets.cifar10.load_data()
+    (images, labels), _ = keras.datasets.cifar10.load_data()
     color_jitter = keras_cv.layers.RandomColorJitter(
             value_range=(0, 255),
             brightness_factor=(-0.2, 0.5),
@@ -162,7 +164,7 @@ class OldRandomColorJitter(BaseImageAugmentationLayer):
 
 if __name__ == "__main__":
     # Run benchmark
-    (x_train, _), _ = tf.keras.datasets.cifar10.load_data()
+    (x_train, _), _ = keras.datasets.cifar10.load_data()
     x_train = x_train.astype(np.float32)
 
     num_images = [1000, 2000, 5000, 10000]

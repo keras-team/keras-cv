@@ -18,6 +18,7 @@ from typing import Optional
 from typing import Tuple
 
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv import bounding_box
 
@@ -367,8 +368,8 @@ def multilevel_crop_and_resize(
 # TODO(tanzhenyu): Remove this implementation once roi_pool has better
 #  performance as this is mostly a duplicate of
 #  https://github.com/tensorflow/models/blob/master/official/legacy/detection/ops/spatial_transform_ops.py#L324
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
-class _ROIAligner(tf.keras.layers.Layer):
+@keras.utils.register_keras_serializable(package="keras_cv")
+class _ROIAligner(keras.layers.Layer):
     """Performs ROIAlign for the second stage processing."""
 
     def __init__(

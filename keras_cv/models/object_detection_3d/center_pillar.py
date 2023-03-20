@@ -16,11 +16,12 @@ from typing import List
 from typing import Sequence
 
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv.layers.object_detection_3d.heatmap_decoder import HeatmapDecoder
 
 
-class MultiClassDetectionHead(tf.keras.layers.Layer):
+class MultiClassDetectionHead(keras.layers.Layer):
     """Multi-class object detection head."""
 
     def __init__(
@@ -53,13 +54,13 @@ class MultiClassDetectionHead(tf.keras.layers.Layer):
         if not share_head:
             for i in range(num_class):
                 # 1x1 conv for each voxel/pixel.
-                self._heads[self._head_names[i]] = tf.keras.layers.Conv2D(
+                self._heads[self._head_names[i]] = keras.layers.Conv2D(
                     filters=self._per_class_prediction_size[i],
                     kernel_size=(1, 1),
                     name=f"head_{i + 1}",
                 )
         else:
-            shared_layer = tf.keras.layers.Conv2D(
+            shared_layer = keras.layers.Conv2D(
                 filters=self._per_class_prediction_size[0],
                 kernel_size=(1, 1),
                 name="shared_head",
@@ -75,7 +76,7 @@ class MultiClassDetectionHead(tf.keras.layers.Layer):
         return outputs
 
 
-class MultiClassHeatmapDecoder(tf.keras.layers.Layer):
+class MultiClassHeatmapDecoder(keras.layers.Layer):
     def __init__(
         self,
         num_class,
@@ -118,7 +119,7 @@ class MultiClassHeatmapDecoder(tf.keras.layers.Layer):
         return decoded_predictions
 
 
-class MultiHeadCenterPillar(tf.keras.Model):
+class MultiHeadCenterPillar(keras.Model):
     """Multi headed model based on CenterNet heatmap and PointPillar.
 
     This model builds box classification and regression for each class
@@ -209,7 +210,7 @@ class MultiHeadCenterPillar(tf.keras.Model):
         )
 
     def train_step(self, data):
-        x, y, sample_weight = tf.keras.utils.unpack_x_y_sample_weight(data)
+        x, y, sample_weight = keras.utils.unpack_x_y_sample_weight(data)
         with tf.GradientTape() as tape:
             predictions = self(x, training=True)
             loss = self.compute_loss(predictions, y)

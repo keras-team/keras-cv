@@ -13,7 +13,9 @@
 # limitations under the License.
 
 import tensorflow as tf
+from tensorflow import keras
 
+import keras_cv
 from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     VectorizedBaseImageAugmentationLayer,
 )
@@ -23,7 +25,7 @@ H_AXIS = -3
 W_AXIS = -2
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class RandomTranslation(VectorizedBaseImageAugmentationLayer):
     """A preprocessing layer which randomly translates images during training.
 
@@ -68,6 +70,11 @@ class RandomTranslation(VectorizedBaseImageAugmentationLayer):
       seed: Integer. Used to create a random seed.
       fill_value: a float represents the value to be filled outside the
           boundaries when `fill_mode="constant"`.
+      bounding_box_format: The format of bounding boxes of input dataset.
+          Refer to
+          https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box/converters.py
+          for more details on supported bounding box formats. This is required
+          when augmenting data which includes bounding boxes.
 
     Input shape:
         3D (unbatched) or 4D (batched) tensor with shape:
@@ -86,6 +93,7 @@ class RandomTranslation(VectorizedBaseImageAugmentationLayer):
         interpolation="bilinear",
         seed=None,
         fill_value=0.0,
+        bounding_box_format=None,
         **kwargs,
     ):
         super().__init__(seed=seed, force_generator=True, **kwargs)
@@ -133,6 +141,7 @@ class RandomTranslation(VectorizedBaseImageAugmentationLayer):
         self.fill_value = fill_value
         self.interpolation = interpolation
         self.seed = seed
+        self.bounding_box_format = bounding_box_format
 
     def get_random_transformation_batch(self, batch_size, **kwargs):
         height_translations = self._random_generator.random_uniform(
@@ -192,6 +201,53 @@ class RandomTranslation(VectorizedBaseImageAugmentationLayer):
     def augment_labels(self, labels, transformations, **kwargs):
         return labels
 
+    def augment_bounding_boxes(
+        self, bounding_boxes, transformations, images=None, **kwargs
+    ):
+        if self.bounding_box_format is None:
+            raise ValueError(
+                "`RandomTranslation()` was called with bounding boxes,"
+                "but no `bounding_box_format` was specified in the constructor."
+                "Please specify a bounding box format in the constructor. i.e."
+                "`RandomTranslation(bounding_box_format='xyxy')`"
+            )
+        bounding_boxes = keras_cv.bounding_box.convert_format(
+            bounding_boxes,
+            source=self.bounding_box_format,
+            target="rel_xyxy",
+            images=images,
+            dtype=self.compute_dtype,
+        )
+
+        boxes = bounding_boxes["boxes"]
+        x1, y1, x2, y2 = tf.split(boxes, [1, 1, 1, 1], axis=-1)
+        x1 += tf.expand_dims(transformations["width_translations"], axis=1)
+        x2 += tf.expand_dims(transformations["width_translations"], axis=1)
+        y1 += tf.expand_dims(transformations["height_translations"], axis=1)
+        y2 += tf.expand_dims(transformations["height_translations"], axis=1)
+
+        bounding_boxes["boxes"] = tf.concat([x1, y1, x2, y2], axis=-1)
+        bounding_boxes = keras_cv.bounding_box.to_dense(bounding_boxes)
+
+        bounding_boxes = keras_cv.bounding_box.clip_to_image(
+            bounding_boxes,
+            bounding_box_format="rel_xyxy",
+            images=images,
+        )
+        bounding_boxes = keras_cv.bounding_box.to_ragged(bounding_boxes)
+
+        bounding_boxes = keras_cv.bounding_box.convert_format(
+            bounding_boxes,
+            source="rel_xyxy",
+            target=self.bounding_box_format,
+            images=images,
+            dtype=self.compute_dtype,
+        )
+        return bounding_boxes
+
+    def compute_output_shape(self, input_shape):
+        return input_shape
+
     def get_config(self):
         config = {
             "height_factor": self.height_factor,
@@ -200,6 +256,7 @@ class RandomTranslation(VectorizedBaseImageAugmentationLayer):
             "fill_value": self.fill_value,
             "interpolation": self.interpolation,
             "seed": self.seed,
+            "bounding_box_format": self.bounding_box_format,
         }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))

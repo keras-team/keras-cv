@@ -14,11 +14,12 @@
 
 
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv import bounding_box
 
 
-class IoULoss(tf.keras.losses.Loss):
+class IoULoss(keras.losses.Loss):
     """Implements the IoU Loss
 
     IoU loss is commonly used for object detection. This loss aims to directly

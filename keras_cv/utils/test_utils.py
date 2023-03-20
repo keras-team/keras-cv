@@ -14,7 +14,7 @@
 
 import inspect
 
-import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv import core
 
@@ -34,8 +34,8 @@ def exhaustive_compare(obj1, obj2):
 
     classes_supporting_get_config = (
         core.FactorSampler,
-        tf.keras.layers.Layer,
-        tf.keras.losses.Loss,
+        keras.layers.Layer,
+        keras.losses.Loss,
     )
 
     # If both objects are either one of list or tuple then their individual
@@ -67,13 +67,13 @@ def exhaustive_compare(obj1, obj2):
     # or callables, since Layers and other unforeseen objects may also fit into
     # this category. Specifically for Keras activation functions.
     elif inspect.isfunction(obj1) and inspect.isfunction(obj2):
-        return tf.keras.utils.serialize_keras_object(
+        return keras.utils.serialize_keras_object(
             obj1
-        ) == tf.keras.utils.serialize_keras_object(obj2)
+        ) == keras.utils.serialize_keras_object(obj2)
     elif inspect.isfunction(obj1) and not inspect.isfunction(obj2):
-        return tf.keras.utils.serialize_keras_object(obj1) == obj2
+        return keras.utils.serialize_keras_object(obj1) == obj2
     elif inspect.isfunction(obj2) and not inspect.isfunction(obj1):
-        return obj1 == tf.keras.utils.serialize_keras_object(obj2)
+        return obj1 == keras.utils.serialize_keras_object(obj2)
 
     # Lastly check for primitive datatypes and objects that don't need
     # additional preprocessing.

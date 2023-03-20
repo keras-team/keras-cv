@@ -11,12 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv.core.factor_sampler.factor_sampler import FactorSampler
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class ConstantFactorSampler(FactorSampler):
     """ConstantFactorSampler samples the same factor for every call to
     `__call__()`.

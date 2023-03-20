@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv import bounding_box
 from keras_cv.utils import preprocessing
@@ -32,8 +33,8 @@ IS_DICT = "is_dict"
 USE_TARGETS = "use_targets"
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
-class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
+@keras.utils.register_keras_serializable(package="keras_cv")
+class BaseImageAugmentationLayer(keras.__internal__.layers.BaseRandomLayer):
     """Abstract base layer for image augmentation.
 
     This layer contains base functionalities for preprocessing layers which
@@ -108,7 +109,7 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
     ```
 
     Note that since the randomness is also a common functionality, this layer
-    also includes a tf.keras.backend.RandomGenerator, which can be used to
+    also includes a keras.backend.RandomGenerator, which can be used to
     produce the random numbers.  The random number generator is stored in the
     `self._random_generator` attribute.
     """

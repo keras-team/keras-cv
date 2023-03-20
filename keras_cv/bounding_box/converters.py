@@ -18,6 +18,7 @@ from typing import Optional
 from typing import Union
 
 import tensorflow as tf
+from tensorflow import keras
 
 
 # Internal exception to propagate the fact images was not passed to a converter
@@ -55,9 +56,9 @@ def _encode_box_to_deltas(
         target="center_yxhw",
     )
     anchor_dimensions = tf.maximum(
-        encoded_anchors[..., 2:], tf.keras.backend.epsilon()
+        encoded_anchors[..., 2:], keras.backend.epsilon()
     )
-    box_dimensions = tf.maximum(boxes[..., 2:], tf.keras.backend.epsilon())
+    box_dimensions = tf.maximum(boxes[..., 2:], keras.backend.epsilon())
     # anchors be unbatched, boxes can either be batched or unbatched.
     boxes_delta = tf.concat(
         [

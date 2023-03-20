@@ -14,7 +14,6 @@
 # ==============================================================================
 """Utility functions for models"""
 
-import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 
@@ -47,7 +46,7 @@ def as_backbone(self, min_level=None, max_level=None):
             the output. Default to model's highest feature level
             (based on the model structure).
     Returns:
-        a `tf.keras.Model` which has dict as outputs.
+        a `keras.Model` which has dict as outputs.
     Raises:
         ValueError: When the model is lack of information for feature level, and
         can't be converted to backbone model, or the min_level/max_level param
@@ -78,7 +77,7 @@ def as_backbone(self, min_level=None, max_level=None):
         for level in range(min_level, max_level + 1):
             outputs[level] = backbone_level_outputs[level]
 
-        return tf.keras.Model(inputs=self.inputs, outputs=outputs)
+        return keras.Model(inputs=self.inputs, outputs=outputs)
 
     else:
         raise ValueError(

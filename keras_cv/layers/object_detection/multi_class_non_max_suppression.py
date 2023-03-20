@@ -13,13 +13,14 @@
 # limitations under the License.
 
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv import bounding_box
 
 
 # TODO(tanzhenyu): provide a TPU compatible NMS decoder.
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
-class MultiClassNonMaxSuppression(tf.keras.layers.Layer):
+@keras.utils.register_keras_serializable(package="keras_cv")
+class MultiClassNonMaxSuppression(keras.layers.Layer):
     """A Keras layer that decodes predictions of an object detection model.
 
     Arguments:

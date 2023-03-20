@@ -18,11 +18,13 @@ Date created: 2022/09/27
 Last modified: 2022/09/27
 Description: Use KerasCV to train a RetinaNet on Pascal VOC 2007.
 """
+
 import sys
 
 import tensorflow as tf
 import tensorflow_datasets as tfds
 from absl import flags
+from tensorflow import keras
 
 import keras_cv
 from keras_cv.callbacks import PyCOCOCallback
@@ -70,11 +72,11 @@ train_ds = train_ds.concatenate(
 eval_ds = tfds.load("voc/2007", split="test", with_info=False)
 
 with strategy.scope():
-    inputs = tf.keras.layers.Input(shape=image_size)
+    inputs = keras.layers.Input(shape=image_size)
     x = inputs
-    x = tf.keras.applications.resnet.preprocess_input(x)
+    x = keras.applications.resnet.preprocess_input(x)
 
-    backbone = tf.keras.applications.ResNet50(
+    backbone = keras.applications.ResNet50(
         include_top=False, input_tensor=x, weights="imagenet"
     )
 
@@ -87,7 +89,7 @@ with strategy.scope():
             "conv5_block3_out",
         ]
     ]
-    backbone = tf.keras.Model(
+    backbone = keras.Model(
         inputs=inputs,
         outputs={2: c2_output, 3: c3_output, 4: c4_output, 5: c5_output},
     )
@@ -305,12 +307,12 @@ eval_ds = eval_ds.prefetch(2)
 
 
 with strategy.scope():
-    lr_decay = tf.keras.optimizers.schedules.PiecewiseConstantDecay(
+    lr_decay = keras.optimizers.schedules.PiecewiseConstantDecay(
         boundaries=[12000 * 16 / global_batch, 16000 * 16 / global_batch],
         values=[base_lr, 0.1 * base_lr, 0.01 * base_lr],
     )
 
-    optimizer = tf.keras.optimizers.SGD(
+    optimizer = keras.optimizers.SGD(
         learning_rate=lr_decay, momentum=0.9, global_clipnorm=10.0
     )
 
@@ -318,10 +320,8 @@ weight_decay = 0.0001
 step = 0
 
 callbacks = [
-    tf.keras.callbacks.ModelCheckpoint(
-        FLAGS.weights_path, save_weights_only=True
-    ),
-    tf.keras.callbacks.TensorBoard(
+    keras.callbacks.ModelCheckpoint(FLAGS.weights_path, save_weights_only=True),
+    keras.callbacks.TensorBoard(
         log_dir=FLAGS.tensorboard_path, write_steps_per_second=True
     ),
     PyCOCOCallback(eval_ds, bounding_box_format="yxyx"),

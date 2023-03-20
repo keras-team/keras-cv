@@ -669,7 +669,7 @@ def apply_head(x, num_classes=None, name=None, activation=None):
 
 
 @keras.utils.register_keras_serializable(package="keras_cv.models")
-class RegNet(tf.keras.Model):
+class RegNet(keras.Model):
     """
     This class represents the architecture of RegNet
     Args:

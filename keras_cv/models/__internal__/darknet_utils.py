@@ -234,7 +234,7 @@ def DarknetConvBlockDepthwise(
     return keras.Sequential(model_layers, name=name)
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class CrossStagePartial(layers.Layer):
     """A block used in Cross Stage Partial Darknet.
 
