@@ -43,18 +43,6 @@ class DeepLabV3(keras.Model):
             mask based on feature from backbone and feature from decoder.
     """
 
-    def build(self, input_shape):
-        height = input_shape[1]
-        width = input_shape[2]
-        feature_map_shape = self.backbone.compute_output_shape(input_shape)
-        self.up_layer = keras.layers.UpSampling2D(
-            size=(
-                height // feature_map_shape[1],
-                width // feature_map_shape[2],
-            ),
-            interpolation="bilinear",
-        )
-
     def __init__(
         self,
         num_classes,
@@ -146,6 +134,18 @@ class DeepLabV3(keras.Model):
         self.segmentation_head = segmentation_head
         self.segmentation_head_activation = segmentation_head_activation
         self.weight_decay = weight_decay
+
+    def build(self, input_shape):
+        height = input_shape[1]
+        width = input_shape[2]
+        feature_map_shape = self.backbone.compute_output_shape(input_shape)
+        self.up_layer = keras.layers.UpSampling2D(
+            size=(
+                height // feature_map_shape[1],
+                width // feature_map_shape[2],
+            ),
+            interpolation="bilinear",
+        )
 
     def train_step(self, data):
         images, y_true, sample_weight = keras.utils.unpack_x_y_sample_weight(
