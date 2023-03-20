@@ -78,12 +78,13 @@ def fill_single_rectangle(
     """Fill rectangles with fill value into images.
 
     Args:
-        images: Tensor of images to fill rectangles into.
+        image: Tensor of images to fill rectangles into.
         centers_x: Tensor of positions of the rectangle centers on the x-axis.
         centers_y: Tensor of positions of the rectangle centers on the y-axis.
         widths: Tensor of widths of the rectangles
         heights: Tensor of heights of the rectangles
-        fill_values: Tensor with same shape as images to get rectangle fill from.
+        fill_values: Tensor with same shape as images to get rectangle fill
+            from.
     Returns:
         images with filled rectangles.
     """
@@ -1234,7 +1235,7 @@ plt.show()
 # Extra notes
 
 ## Warnings
-it would be really annoying as a user to use an official keras_cv component and get
-warned that "RandomUniform" or "RandomUniformInt" inside pfor may not get the same
-output.
+it would be really annoying as a user to use an official keras_cv component and
+get warned that "RandomUniform" or "RandomUniformInt" inside pfor may not get
+the same output.
 """

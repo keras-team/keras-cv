@@ -26,7 +26,7 @@ POINTCLOUD_LABEL_INDEX = 3
 POINTCLOUD_FEATURE_INDEX = 4
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class BaseAugmentationLayer3D(keras.__internal__.layers.BaseRandomLayer):
     """Abstract base layer for data augmentation for 3D perception.
 
