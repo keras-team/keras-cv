@@ -13,13 +13,14 @@
 # limitations under the License.
 
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
     VectorizedBaseImageAugmentationLayer,
 )
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class ChannelShuffle(VectorizedBaseImageAugmentationLayer):
     """Shuffle channels of an input image.
 
@@ -36,7 +37,7 @@ class ChannelShuffle(VectorizedBaseImageAugmentationLayer):
 
     Usage:
     ```python
-    (images, labels), _ = tf.keras.datasets.cifar10.load_data()
+    (images, labels), _ = keras.datasets.cifar10.load_data()
     channel_shuffle = ChannelShuffle(groups=3)
     augmented_images = channel_shuffle(images)
     ```
