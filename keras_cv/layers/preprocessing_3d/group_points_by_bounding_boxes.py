@@ -97,8 +97,8 @@ class GroupPointsByBoundingBoxes(
     def get_config(self):
         return {
             "label_index": self._label_index,
-            "min_points_per_bounding_boxes": self._min_points_per_bounding_boxes,
-            "max_points_per_bounding_boxes": self._max_points_per_bounding_boxes,
+            "min_points_per_bounding_boxes": self._min_points_per_bounding_boxes,  # noqa: E501
+            "max_points_per_bounding_boxes": self._max_points_per_bounding_boxes,  # noqa: E501
         }
 
     def augment_point_clouds_bounding_boxes(

@@ -119,7 +119,8 @@ class RandomlyZoomedCropTest(tf.test.TestCase, parameterized.TestCase):
         with self.assertRaisesRegex(
             ValueError,
             "`aspect_ratio_factor` must be tuple of two positive floats or "
-            "keras_cv.core.FactorSampler instance. Received aspect_ratio_factor=(.*)",
+            "keras_cv.core.FactorSampler instance. Received "
+            "aspect_ratio_factor=(.*)",
         ):
             _ = preprocessing.RandomlyZoomedCrop(
                 height=self.target_size[0],

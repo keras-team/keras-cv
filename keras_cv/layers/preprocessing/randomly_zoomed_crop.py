@@ -29,22 +29,23 @@ class RandomlyZoomedCrop(BaseImageAugmentationLayer):
     amount of distortion in the image is proportional to the `zoom_factor`
     argument. To do this, we first sample a random value for `zoom_factor` and
     `aspect_ratio_factor`. Further we deduce a `crop_size` which abides by the
-    calculated aspect ratio. Finally we do the actual cropping operation and
+    calculated aspect ratio. Finally, we do the actual cropping operation and
     resize the image to `(height, width)`.
 
     Args:
         height: The height of the output shape.
         width: The width of the output shape.
         zoom_factor: A tuple of two floats, ConstantFactorSampler or
-            UniformFactorSampler. Represents the area relative to the original image
-            of the cropped image before resizing it to `(height, width)`.
+            UniformFactorSampler. Represents the area relative to the original
+            image of the cropped image before resizing it to `(height, width)`.
         aspect_ratio_factor: A tuple of two floats, ConstantFactorSampler or
             UniformFactorSampler. Aspect ratio means the ratio of width to
-            height of the cropped image. In the context of this layer, the aspect ratio
-            sampled represents a value to distort the aspect ratio by.
-            Represents the lower and upper bound for the aspect ratio of the
-            cropped image before resizing it to `(height, width)`.  For most tasks, this
-            should be `(3/4, 4/3)`.  To perform a no-op provide the value `(1.0, 1.0)`.
+            height of the cropped image. In the context of this layer, the
+            aspect ratio sampled represents a value to distort the aspect ratio
+            by. Represents the lower and upper bound for the aspect ratio of the
+            cropped image before resizing it to `(height, width)`. For most
+            tasks, this should be `(3/4, 4/3)`. To perform a no-op provide the
+            value `(1.0, 1.0)`.
         interpolation: (Optional) A string specifying the sampling method for
             resizing. Defaults to "bilinear".
         seed: (Optional) Used to create a random seed. Defaults to None.

@@ -146,7 +146,7 @@ class RetinaNet(tf.keras.Model):
         )
         label_encoder = (
             label_encoder
-            or keras_cv.models.object_detection.retina_net.RetinaNetLabelEncoder(
+            or keras_cv.models.object_detection.retina_net.RetinaNetLabelEncoder(  # noqa: E501
                 bounding_box_format=bounding_box_format,
                 anchor_generator=anchor_generator,
                 box_variance=BOX_VARIANCE,

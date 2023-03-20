@@ -153,9 +153,9 @@ class WithMixedPrecisionTest(tf.test.TestCase, parameterized.TestCase):
         if not tf.config.list_physical_devices("GPU"):
             if layer_cls in NO_CPU_FP16_KERNEL_LAYERS:
                 self.skipTest(
-                    "There is currently no float16 CPU kernel registered for operations"
-                    " `tf.image.adjust_saturation`, and `tf.image.adjust_hue`. "
-                    "Skipping."
+                    "There is currently no float16 CPU kernel registered for "
+                    "operations `tf.image.adjust_saturation`, and "
+                    "`tf.image.adjust_hue`. Skipping."
                 )
 
         tf.keras.mixed_precision.set_global_policy("mixed_float16")
