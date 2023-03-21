@@ -24,10 +24,10 @@ from keras_cv.layers import Mosaic
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     IMAGES,
 )
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     LABELS,
 )
 from keras_cv.utils import preprocessing as preprocessing_utils
@@ -38,7 +38,7 @@ class OldMosaic(BaseImageAugmentationLayer):
 
     Mosaic data augmentation first takes 4 images from the batch and makes a
     grid. After that based on the offset, a crop is taken to form the mosaic
-    image. Labels are in the same ratio as the the area of their images in the
+    image. Labels are in the same ratio as the area of their images in the
     output image. Bounding boxes are translated according to the position of
     the 4 images.
 
@@ -58,8 +58,9 @@ class OldMosaic(BaseImageAugmentationLayer):
             may contain additional information such as classes and confidence
             after these 4 values but these values will be ignored and returned
             as is. For detailed information on the supported formats, see the
-            [KerasCV bounding box documentation](https://keras.io/api/keras_cv/bounding_box/formats/).
-            Defualts to None.
+            [KerasCV bounding box documentation]
+            (https://keras.io/api/keras_cv/bounding_box/formats/).
+            Defaults to None.
         seed: Integer. Used to create a random seed.
 
     References:
@@ -196,9 +197,9 @@ class OldMosaic(BaseImageAugmentationLayer):
 
     def _augment(self, inputs):
         raise ValueError(
-            "Mosaic received a single image to `call`.  The layer relies on "
+            "Mosaic received a single image to `call`. The layer relies on "
             "combining multiple examples, and as such will not behave as "
-            "expected.  Please call the layer with 4 or more samples."
+            "expected. Please call the layer with 4 or more samples."
         )
 
     def _update_image(self, images, permutation_order, mosaic_centers, index):

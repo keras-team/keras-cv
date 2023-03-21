@@ -16,19 +16,19 @@ import tensorflow as tf
 from tensorflow import keras
 
 from keras_cv import bounding_box
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     BATCHED,
 )
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     BOUNDING_BOXES,
 )
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     IMAGES,
 )
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     LABELS,
 )
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     VectorizedBaseImageAugmentationLayer,
 )
 from keras_cv.utils import preprocessing as preprocessing_utils
@@ -150,12 +150,6 @@ class Mosaic(VectorizedBaseImageAugmentationLayer):
         cropping_boxes = tf.stack([y1s, x1s, y2s, x2s], axis=-1)
 
         # helps avoid retracing caused by slicing, inspired by RRC
-        # implementation.
-        output = tf.image.crop_and_resize(
-            tf.expand_dims(output, axis=0),
-            [[y1, x1, y2, x2]],
-            [0],
-        # helps avoid retracing caused by slicing, inspired by RRC
         # implementation
         # boxes must be type tf.float32
         outputs = tf.image.crop_and_resize(
@@ -164,12 +158,6 @@ class Mosaic(VectorizedBaseImageAugmentationLayer):
             tf.range(batch_size),
             [input_height, input_width],
         )
-        # tf.image.crop_and_resize will always output float32, so we need to
-        # recast tf.image.crop_and_resize outputs [num_boxes, crop_height,
-        # crop_width, depth] since num_boxes is always one we squeeze axis 0.
-        output = tf.cast(output, self.compute_dtype)
-        output = tf.squeeze(output, axis=0)
-        return output
         # tf.image.crop_and_resize will always output float32, so we need to
         # recast tf.image.crop_and_resize outputs
         # [num_boxes, crop_height, crop_width, depth] since num_boxes is always
