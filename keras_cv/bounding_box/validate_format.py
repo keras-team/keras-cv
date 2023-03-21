@@ -46,7 +46,7 @@ def validate_format(bounding_boxes, variable_name="bounding_boxes"):
     if not all([x in bounding_boxes for x in ["boxes", "classes"]]):
         raise ValueError(
             f"Expected `{variable_name}` to be a dictionary containing keys "
-            "`'classes'` and `'boxes'`.  Got "
+            "`'classes'` and `'boxes'`. Got "
             f"`{variable_name}.keys()={bounding_boxes.keys()}`."
         )
 

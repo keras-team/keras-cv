@@ -41,7 +41,7 @@ class OldRandomHue(BaseImageAugmentationLayer):
             `keras_cv.FactorSampler`. `factor` controls the extent to which the
             image hue is impacted. `factor=0.0` makes this layer perform a no-op
             operation, while a value of 1.0 performs the most aggressive
-            contrast adjustment available.  If a tuple is used, a `factor` is
+            contrast adjustment available. If a tuple is used, a `factor` is
             sampled between the two values for every image augmented. If a
             single float is used, a value between `0.0` and the passed float is
             sampled. In order to ensure the value is always the same, please

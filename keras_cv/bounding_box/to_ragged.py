@@ -40,7 +40,7 @@ def to_ragged(bounding_boxes, sentinel=-1, dtype=tf.float32):
     ```
 
     Args:
-        bounding_boxes: a Tensor of bounding boxes.  May be batched, or
+        bounding_boxes: a Tensor of bounding boxes. May be batched, or
             unbatched.
         sentinel: The value indicating that a bounding box does not exist at the
             current index, and the corresponding box is padding. Defaults to -1.

@@ -43,7 +43,7 @@ The agreement can be found at [https://cla.developers.google.com/clas](https://c
 
 ### Step 5. Code review
 
-CI tests will automatically be run directly on your pull request.  Their
+CI tests will automatically be run directly on your pull request. Their
 status will be reported back via GitHub actions.
 
 There may be
@@ -157,7 +157,7 @@ cp bazel-bin/keras_cv/custom_ops/*.so keras_cv/custom_ops/
 Tests which use custom ops are disabled by default, but can be run by setting the environment variable `TEST_CUSTOM_OPS=true`.
 
 ## Formatting the Code
-We use `flake8`, `isort` and `black` for code formatting.  You can run
+We use `flake8`, `isort` and `black` for code formatting. You can run
 the following commands manually every time you want to format your code:
 
 - Run `shell/format.sh` to format your code

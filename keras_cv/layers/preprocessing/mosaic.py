@@ -187,9 +187,9 @@ class Mosaic(BaseImageAugmentationLayer):
 
     def _augment(self, inputs):
         raise ValueError(
-            "Mosaic received a single image to `call`.  The layer relies on "
+            "Mosaic received a single image to `call`. The layer relies on "
             "combining multiple examples, and as such will not behave as "
-            "expected.  Please call the layer with 4 or more samples."
+            "expected. Please call the layer with 4 or more samples."
         )
 
     def _update_image(self, images, permutation_order, mosaic_centers, index):

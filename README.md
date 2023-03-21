@@ -109,9 +109,9 @@ We would like to leverage/outsource the Keras community not only for bug reporti
 but also for active development for feature delivery. To achieve this, here is the predefined
 process for how to contribute to this repository:
 
-1) Contributors are always welcome to help us fix an issue, add tests, better documentation.  
+1) Contributors are always welcome to help us fix an issue, add tests, better documentation. 
 2) If contributors would like to create a backbone, we usually require a pre-trained weight set
-with the model for one dataset as the first PR, and a training script as a follow-up. The training script will preferrably help us reproduce the results claimed from paper. The backbone should be generic but the training script can contain paper specific parameters such as learning rate schedules and weight decays. The training script will be used to produce leaderboard results.  
+with the model for one dataset as the first PR, and a training script as a follow-up. The training script will preferrably help us reproduce the results claimed from paper. The backbone should be generic but the training script can contain paper specific parameters such as learning rate schedules and weight decays. The training script will be used to produce leaderboard results. 
 Exceptions apply to large transformer-based models which are difficult to train. If this is the case,
 contributors should let us know so the team can help in training the model or providing GCP resources.
 3) If contributors would like to create a meta arch, please try to be aligned with our roadmap and create a PR for design review to make sure the meta arch is modular.
@@ -137,7 +137,7 @@ An example of this can be found in the ImageNet classification training
 All results are reproducible using the training scripts in this repository.
 
 Historically, many models have been trained on image datasets rescaled via manually
-crafted normalization schemes.  
+crafted normalization schemes. 
 The most common variant of manually crafted normalization scheme is subtraction of the
 imagenet mean pixel followed by standard deviation normalization based on the imagenet
 pixel standard deviation.
@@ -158,7 +158,7 @@ instructions below.
 ### Installing KerasCV with Custom Ops from Source
 
 Installing custom ops from source requires the [Bazel](https://bazel.build/) build
-system (version >= 5.4.0).  Steps to install Bazel can be [found here](https://github.com/keras-team/keras/blob/v2.11.0/.devcontainer/Dockerfile#L21-L23).
+system (version >= 5.4.0). Steps to install Bazel can be [found here](https://github.com/keras-team/keras/blob/v2.11.0/.devcontainer/Dockerfile#L21-L23).
 
 ```
 git clone https://github.com/keras-team/keras-cv.git

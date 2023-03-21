@@ -32,7 +32,7 @@ class Resizing(BaseImageAugmentationLayer):
 
     This layer resizes an image input to a target height and width. The input
     should be a 4D (batched) or 3D (unbatched) tensor in `"channels_last"`
-    format.  Input pixel values can be of any range (e.g. `[0., 1.)` or `[0,
+    format. Input pixel values can be of any range (e.g. `[0., 1.)` or `[0,
     255]`) and of integer or floating point dtype. By default, the layer will
     output floats.
 
@@ -98,7 +98,7 @@ class Resizing(BaseImageAugmentationLayer):
         if not pad_to_aspect_ratio and bounding_box_format:
             raise ValueError(
                 "Resizing() only supports bounding boxes when in "
-                "`pad_to_aspect_ratio=True` mode.  "
+                "`pad_to_aspect_ratio=True` mode. "
                 "Please pass `pad_to_aspect_ratio=True`"
                 "when processing bounding boxes with `Resizing()`"
             )

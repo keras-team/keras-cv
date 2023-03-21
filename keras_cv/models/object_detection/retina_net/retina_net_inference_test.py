@@ -25,7 +25,7 @@ import keras_cv
 @pytest.mark.skipif(
     "REGRESSION" not in os.environ or os.environ["REGRESSION"] != "true",
     reason="Takes a long time to run, only runs when REGRESSION "
-    "environment variable is set.  To run the test please run: \n"
+    "environment variable is set. To run the test please run: \n"
     "`REGRESSION=true pytest keras_cv/",
 )
 # TODO(lukewood): Should we remove this test file entirely?

@@ -55,7 +55,7 @@ def transform_value_range(
 ):
     """transforms values in input tensor from original_range to target_range.
     This function is intended to be used in preprocessing layers that
-    rely upon color values.  This allows us to assume internally that
+    rely upon color values. This allows us to assume internally that
     the input tensor is always in the range [0, 255].
 
     Args:
@@ -118,7 +118,7 @@ def blend(image1: tf.Tensor, image2: tf.Tensor, factor: float) -> tf.Tensor:
     """Blend image1 and image2 using 'factor'.
 
     FactorSampler should be in the range [0, 1]. A value of 0.0 means only
-    image1 is used. A value of 1.0 means only image2 is used.  A value between
+    image1 is used. A value of 1.0 means only image2 is used. A value between
     0.0 and 1.0 means we linearly interpolate the pixel values between the two
     images. A value greater than 1.0 "extrapolates" the difference
     between the two pixel values, and we clip the results to values
@@ -154,7 +154,7 @@ def parse_factor(
     if param[0] > param[1]:
         raise ValueError(
             f"`{param_name}[0] > {param_name}[1]`, `{param_name}[0]` must be "
-            f"<= `{param_name}[1]`.  Got `{param_name}={param}`"
+            f"<= `{param_name}[1]`. Got `{param_name}={param}`"
         )
     if (min_value is not None and param[0] < min_value) or (
         max_value is not None and param[1] > max_value

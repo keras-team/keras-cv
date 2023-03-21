@@ -52,7 +52,7 @@ class GridMask(BaseImageAugmentationLayer):
             Ratio determines the ratio from spacings to grid masks.
             Lower values make the grid
             size smaller, and higher values make the grid mask large.
-            Floats should be in the range [0, 1].  0.5 indicates that grid and
+            Floats should be in the range [0, 1]. 0.5 indicates that grid and
             spacing will be of equal size. To always use the same value, pass a
             `keras_cv.ConstantFactorSampler()`.
 
@@ -138,7 +138,7 @@ class GridMask(BaseImageAugmentationLayer):
         if fill_mode not in ["constant", "gaussian_noise", "random"]:
             raise ValueError(
                 '`fill_mode` should be "constant", '
-                f'"gaussian_noise", or "random".  Got `fill_mode`={fill_mode}'
+                f'"gaussian_noise", or "random". Got `fill_mode`={fill_mode}'
             )
 
     def get_random_transformation(

@@ -91,7 +91,7 @@ class FocalLoss(keras.losses.Loss):
         loss = alpha * tf.pow(1.0 - pt, self.gamma) * cross_entropy
         # In most losses you mean over the final axis to achieve a scalar
         # Focal loss however is a special case in that it is meant to focus on
-        # a small number of hard examples in a batch.  Most of the time this
+        # a small number of hard examples in a batch. Most of the time this
         # comes in the form of thousands of background class boxes and a few
         # positive boxes.
         # If you mean over the final axis you will get a number close to 0,

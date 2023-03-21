@@ -50,7 +50,7 @@ class RandomCopyPaste(base_augmentation_layer_3d.BaseAugmentationLayer3D):
         [num of frames, num of points, num of point features].
         The first 5 features are [x, y, z, class, range].
       bounding_boxes: 3D (multi frames) float32 Tensor with shape
-        [num of frames, num of boxes, num of box features].  Boxes are expected
+        [num of frames, num of boxes, num of box features]. Boxes are expected
         to follow the CENTER_XYZ_DXDYDZ_PHI format. Refer to
         https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box_3d/formats.py
 

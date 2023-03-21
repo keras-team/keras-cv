@@ -132,7 +132,7 @@ def order_by_confidence(bounding_boxes):
     if boxes.shape.rank != 2:
         raise ValueError(
             "`order_by_confidence()` should only accept a single "
-            f"batch of bounding boxes.  Received `boxes.shape={boxes.shape}`."
+            f"batch of bounding boxes. Received `boxes.shape={boxes.shape}`."
         )
     _, idx = tf.math.top_k(confidence, tf.shape(confidence)[0])
 
@@ -154,7 +154,7 @@ def match_boxes(ious, threshold):
         ious: lookup table from [y_true, y_pred] => IoU.
         threshold: minimum IoU for a pair to be considered a match.
     Returns:
-        a mapping from [y_pred] => matching y_true index.  Dimension
+        a mapping from [y_pred] => matching y_true index. Dimension
         of result tensor is equal to the number of boxes in y_pred.
     """
     num_true = tf.shape(ious)[0]

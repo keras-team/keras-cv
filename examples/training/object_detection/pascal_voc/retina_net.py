@@ -325,9 +325,9 @@ eval_ds = eval_ds.prefetch(tf.data.AUTOTUNE)
 """
 ## Model creation
 
-We'll use the KerasCV API to construct a RetinaNet model.  In this tutorial we
-use a pretrained ResNet50 backbone using weights.  In order to perform
-fine-tuning, we freeze the backbone before training.  When
+We'll use the KerasCV API to construct a RetinaNet model. In this tutorial we
+use a pretrained ResNet50 backbone using weights. In order to perform
+fine-tuning, we freeze the backbone before training. When
 `include_rescaling=True` is set, inputs to the model are expected to be in the
 range `[0, 255]`.
 """

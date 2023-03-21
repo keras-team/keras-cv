@@ -107,7 +107,7 @@ class JitteredResize(BaseImageAugmentationLayer):
         if not isinstance(target_size, tuple) or len(target_size) != 2:
             raise ValueError(
                 "JitteredResize() expects `target_size` to be a tuple of two "
-                f"integers.  Received `target_size={target_size}`"
+                f"integers. Received `target_size={target_size}`"
             )
 
         crop_size = crop_size or target_size

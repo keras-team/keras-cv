@@ -128,7 +128,7 @@ class VectorizedRandomCutout(layers.Layer):
         if fill_mode not in ["gaussian_noise", "constant"]:
             raise ValueError(
                 '`fill_mode` should be "gaussian_noise" '
-                f'or "constant".  Got `fill_mode`={fill_mode}'
+                f'or "constant". Got `fill_mode`={fill_mode}'
             )
 
         if not isinstance(self.height_lower, type(self.height_upper)):
@@ -308,7 +308,7 @@ class MapFnRandomCutout(layers.Layer):
         if fill_mode not in ["gaussian_noise", "constant"]:
             raise ValueError(
                 '`fill_mode` should be "gaussian_noise" '
-                f'or "constant".  Got `fill_mode`={fill_mode}'
+                f'or "constant". Got `fill_mode`={fill_mode}'
             )
 
         if not isinstance(self.height_lower, type(self.height_upper)):
@@ -482,7 +482,7 @@ class VMapRandomCutout(layers.Layer):
         if fill_mode not in ["gaussian_noise", "constant"]:
             raise ValueError(
                 '`fill_mode` should be "gaussian_noise" '
-                f'or "constant".  Got `fill_mode`={fill_mode}'
+                f'or "constant". Got `fill_mode`={fill_mode}'
             )
 
         if not isinstance(self.height_lower, type(self.height_upper)):
@@ -658,7 +658,7 @@ class JITVectorizedRandomCutout(layers.Layer):
         if fill_mode not in ["gaussian_noise", "constant"]:
             raise ValueError(
                 '`fill_mode` should be "gaussian_noise" '
-                f'or "constant".  Got `fill_mode`={fill_mode}'
+                f'or "constant". Got `fill_mode`={fill_mode}'
             )
 
         if not isinstance(self.height_lower, type(self.height_upper)):
@@ -838,7 +838,7 @@ class JITMapFnRandomCutout(layers.Layer):
         if fill_mode not in ["gaussian_noise", "constant"]:
             raise ValueError(
                 '`fill_mode` should be "gaussian_noise" '
-                f'or "constant".  Got `fill_mode`={fill_mode}'
+                f'or "constant". Got `fill_mode`={fill_mode}'
             )
 
         if not isinstance(self.height_lower, type(self.height_upper)):
@@ -1012,7 +1012,7 @@ class JITVMapRandomCutout(layers.Layer):
         if fill_mode not in ["gaussian_noise", "constant"]:
             raise ValueError(
                 '`fill_mode` should be "gaussian_noise" '
-                f'or "constant".  Got `fill_mode`={fill_mode}'
+                f'or "constant". Got `fill_mode`={fill_mode}'
             )
 
         if not isinstance(self.height_lower, type(self.height_upper)):

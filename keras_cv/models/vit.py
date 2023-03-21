@@ -172,7 +172,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
             - `max` means that global max pooling will be applied.
             - `token_pooling`, default, means that the token at the start of the
                 sequences is used instead of regular pooling.
-        name: (Optional) name to pass to the model.  Defaults to "{name}".
+        name: (Optional) name to pass to the model. Defaults to "{name}".
         classifier_activation: A `str` or callable. The activation function to
             use on the "top" layer. Ignored unless `include_top=True`. Set
             `classifier_activation=None` to return the logits of the "top"

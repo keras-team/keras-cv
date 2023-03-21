@@ -36,10 +36,10 @@ class RandomColorDegeneration(BaseImageAugmentationLayer):
             no-op operation, while a value of 1.0 uses the degenerated result
             entirely. Values between 0 and 1 result in linear interpolation
             between the original image and the sharpened image.
-            Values should be between `0.0` and `1.0`.  If a tuple is used, a
+            Values should be between `0.0` and `1.0`. If a tuple is used, a
             `factor` is sampled between the two values for every image
             augmented. If a single float is used, a value between `0.0` and the
-            passed float is sampled.  In order to ensure the value is always the
+            passed float is sampled. In order to ensure the value is always the
             same, please pass a tuple with two identical floats: `(0.5, 0.5)`.
         seed: Integer. Used to create a random seed.
     """

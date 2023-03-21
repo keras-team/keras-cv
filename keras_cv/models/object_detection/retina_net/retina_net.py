@@ -38,8 +38,8 @@ BOX_VARIANCE = [0.1, 0.1, 0.2, 0.2]
 class RetinaNet(keras.Model):
     """A Keras model implementing the RetinaNet architecture.
 
-    Implements the RetinaNet architecture for object detection.  The constructor
-    requires `num_classes`, and `bounding_box_format`.  Optionally, a backbone,
+    Implements the RetinaNet architecture for object detection. The constructor
+    requires `num_classes`, and `bounding_box_format`. Optionally, a backbone,
     custom label encoder, and prediction decoder may all be provided.
 
     Usage:
@@ -324,7 +324,7 @@ class RetinaNet(keras.Model):
         """compiles the RetinaNet.
 
         compile() mirrors the standard Keras compile() method, but has a few key
-        distinctions.  Primarily, all metrics must support bounding boxes, and
+        distinctions. Primarily, all metrics must support bounding boxes, and
         two losses must be provided: `box_loss` and `classification_loss`.
 
         Args:
@@ -393,7 +393,7 @@ class RetinaNet(keras.Model):
     def compute_loss(self, x, box_pred, cls_pred, boxes, classes):
         if boxes.shape[-1] != 4:
             raise ValueError(
-                "boxes should have shape (None, None, 4).  Got "
+                "boxes should have shape (None, None, 4). Got "
                 f"boxes.shape={tuple(boxes.shape)}"
             )
 
@@ -552,7 +552,7 @@ def _parse_box_loss(loss):
 
     raise ValueError(
         "Expected `box_loss` to be either a Keras Loss, "
-        f"callable, or the string 'SmoothL1'.  Got loss={loss}."
+        f"callable, or the string 'SmoothL1'. Got loss={loss}."
     )
 
 
@@ -569,5 +569,5 @@ def _parse_classification_loss(loss):
 
     raise ValueError(
         "Expected `classification_loss` to be either a Keras Loss, "
-        f"callable, or the string 'Focal'.  Got loss={loss}."
+        f"callable, or the string 'Focal'. Got loss={loss}."
     )

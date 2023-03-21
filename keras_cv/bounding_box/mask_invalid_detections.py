@@ -49,7 +49,7 @@ def mask_invalid_detections(bounding_boxes, output_ragged=False):
     if info["ragged"]:
         raise ValueError(
             "`bounding_box.mask_invalid_detections()` requires inputs to be "
-            "Dense tensors.  Please call "
+            "Dense tensors. Please call "
             "`bounding_box.to_dense(bounding_boxes)` before passing your boxes "
             "to `bounding_box.mask_invalid_detections()`."
         )

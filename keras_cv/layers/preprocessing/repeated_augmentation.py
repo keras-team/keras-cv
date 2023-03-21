@@ -36,7 +36,7 @@ class RepeatedAugmentation(BaseImageAugmentationLayer):
 
     Args:
         augmenters: the augmenters to use to augment the image
-        shuffle: whether or not to shuffle the result.  Essential when using an
+        shuffle: whether or not to shuffle the result. Essential when using an
             asynchronous distribution strategy such as ParameterServerStrategy.
 
     Usage:
@@ -112,7 +112,7 @@ class RepeatedAugmentation(BaseImageAugmentationLayer):
 
     def _augment(self, inputs):
         raise ValueError(
-            "RepeatedAugmentation() only works in batched mode.  If "
+            "RepeatedAugmentation() only works in batched mode. If "
             "you would like to create batches from a single image, use "
             "`x = tf.expand_dims(x, axis=0)` on your input images and labels."
         )

@@ -21,7 +21,7 @@ class FactorSampler:
     layer.
 
     FactorSampler should be subclassed and implement a `__call__()` method that
-    returns a tf.float32, or a float.  This method will be used by preprocessing
+    returns a tf.float32, or a float. This method will be used by preprocessing
     layers to determine the strength of their augmentation. The specific range
     of values supported may vary by layer, but for most layers is the range
     [0, 1].

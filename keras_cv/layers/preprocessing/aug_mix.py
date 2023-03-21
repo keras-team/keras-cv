@@ -27,7 +27,7 @@ class AugMix(BaseImageAugmentationLayer):
     """Performs the AugMix data augmentation technique.
 
     AugMix aims to produce images with variety while preserving the image
-    semantics and local statistics.  During the augmentation process, each image
+    semantics and local statistics. During the augmentation process, each image
     is augmented `num_chains` different ways, each way consisting of
     `chain_depth` augmentations. Augmentations are sampled from the list:
     translation, shearing, rotation, posterization, histogram equalization,

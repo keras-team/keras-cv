@@ -27,17 +27,17 @@ class _BoxRecall(keras.metrics.Metric):
 
     _BoxRecall is analogous to traditional Recall. The primary distinction is
     that when operating in the problem domain of object detection there exists
-    ambiguity in what is considered a true positive.  The _BoxRecall metric
+    ambiguity in what is considered a true positive. The _BoxRecall metric
     works by using the Intersection over Union (IoU) metric to determine whether
-    or not a detection is a true positive or a false positive.  For each
+    or not a detection is a true positive or a false positive. For each
     detection the IoU metric is computed for all ground truth boxes of the same
-    category.  If the IoU is above the selected threshold `t`, then the box is
-    considered a true positive.  If not, it is marked as a false positive. An
-    average is taken across many `t`, or IoU thresholds.  These thresholds are
+    category. If the IoU is above the selected threshold `t`, then the box is
+    considered a true positive. If not, it is marked as a false positive. An
+    average is taken across many `t`, or IoU thresholds. These thresholds are
     specified in the `iou_thresholds` argument.
 
     Args:
-        class_ids: The class IDs to evaluate the metric for.  To evaluate for
+        class_ids: The class IDs to evaluate the metric for. To evaluate for
             all classes in over a set of sequentially labelled classes, pass
             `range(num_classes)`.
         bounding_box_format: Format of the incoming bounding boxes. Supported
@@ -46,11 +46,11 @@ class _BoxRecall(keras.metrics.Metric):
             be a tuple of floats, defaults to [0.5:0.05:0.95].
         area_range: area range to constrict the considered bounding boxes in
             metric computation. Defaults to `None`, which makes the metric
-            count all bounding boxes.  Must be a tuple of floats.  The first
+            count all bounding boxes. Must be a tuple of floats. The first
             number in the tuple represents a lower bound for areas, while the
-            second value represents an upper bound.  For example, when
+            second value represents an upper bound. For example, when
             `(0, 32**2)` is passed to the metric, recall is only evaluated for
-            objects with areas less than `32*32`.  If `(32**2, 1000000**2)` is
+            objects with areas less than `32*32`. If `(32**2, 1000000**2)` is
             passed the metric will only be evaluated for boxes with areas larger
             than `32**2`, and smaller than `1000000**2`.
         max_detections: number of maximum detections a model is allowed to make.
@@ -101,7 +101,7 @@ class _BoxRecall(keras.metrics.Metric):
 
         if any([c < 0 for c in class_ids]):
             raise ValueError(
-                "class_ids must be positive.  Got " f"class_ids={class_ids}"
+                "class_ids must be positive. Got " f"class_ids={class_ids}"
             )
 
         self.true_positives = self.add_weight(

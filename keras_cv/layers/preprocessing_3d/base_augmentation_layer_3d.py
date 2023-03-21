@@ -92,7 +92,7 @@ class BaseAugmentationLayer3D(keras.__internal__.layers.BaseRandomLayer):
 
     Note that since the randomness is also a common functionality, this layer
     also includes a keras.backend.RandomGenerator, which can be used to
-    produce the random numbers.  The random number generator is stored in the
+    produce the random numbers. The random number generator is stored in the
     `self._random_generator` attribute.
     """
 
@@ -105,8 +105,8 @@ class BaseAugmentationLayer3D(keras.__internal__.layers.BaseRandomLayer):
         """Control whether automatic vectorization occurs.
 
         By default, the `call()` method leverages the `tf.vectorized_map()`
-        function.  Auto-vectorization can be disabled by setting
-        `self.auto_vectorize = False` in your `__init__()` method.  When
+        function. Auto-vectorization can be disabled by setting
+        `self.auto_vectorize = False` in your `__init__()` method. When
         disabled, `call()` instead relies on `tf.map_fn()`. For example:
 
         ```python

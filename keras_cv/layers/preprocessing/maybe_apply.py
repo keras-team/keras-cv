@@ -31,9 +31,9 @@ class MaybeApply(BaseImageAugmentationLayer):
             elements in a batch will be modified. 0.0 means no elements will be
             modified. Defaults to 0.5.
         batchwise: (Optional) bool, whether or not to pass entire batches to the
-            underlying layer.  When set to true, only a single random sample is
+            underlying layer. When set to true, only a single random sample is
             drawn to determine if the batch should be passed to the underlying
-            layer.  This is useful when using `MixUp()`, `CutMix()`, `Mosaic()`,
+            layer. This is useful when using `MixUp()`, `CutMix()`, `Mosaic()`,
             etc.
         auto_vectorize: bool, whether to use tf.vectorized_map or tf.map_fn for
             batched input. Setting this to True might give better performance

@@ -142,7 +142,7 @@ class CSPDarkNet(keras.Model):
             use on the "top" layer. Ignored unless `include_top=True`. Set
             `classifier_activation=None` to return the logits of the "top"
             layer.
-        name: (Optional) name to pass to the model.  Defaults to "CSPDarkNet".
+        name: (Optional) name to pass to the model. Defaults to "CSPDarkNet".
     Returns:
         A `keras.Model` instance.
     """

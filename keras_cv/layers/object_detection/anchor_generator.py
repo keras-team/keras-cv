@@ -169,7 +169,7 @@ class AnchorGenerator(keras.layers.Layer):
         if image is not None:
             if image.shape.rank != 3:
                 raise ValueError(
-                    "Expected `image` to be a Tensor of rank 3.  Got "
+                    "Expected `image` to be a Tensor of rank 3. Got "
                     f"image.shape.rank={image.shape.rank}"
                 )
             image_shape = tf.shape(image)

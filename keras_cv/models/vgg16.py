@@ -101,7 +101,7 @@ class VGG16(keras.Model):
         `classifier_activation=None` to return the logits of the "top" layer.
         When loading pretrained weights, `classifier_activation` can only
         be `None` or `"softmax"`.
-      name: (Optional) name to pass to the model.  Defaults to "VGG16".
+      name: (Optional) name to pass to the model. Defaults to "VGG16".
     Returns:
       A `keras.Model` instance.
     """

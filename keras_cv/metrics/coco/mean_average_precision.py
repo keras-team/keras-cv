@@ -32,7 +32,7 @@ class _COCOMeanAveragePrecision(keras.metrics.Metric):
     [KerasCV COCO metrics whitepaper](https://arxiv.org/abs/2207.12120).
 
     Args:
-        class_ids: The class IDs to evaluate the metric for.  To evaluate for
+        class_ids: The class IDs to evaluate the metric for. To evaluate for
             all classes in over a set of sequentially labelled classes, pass
             `range(num_classes)`.
         bounding_box_format: Format of the incoming bounding boxes. Supported
@@ -41,37 +41,37 @@ class _COCOMeanAveragePrecision(keras.metrics.Metric):
             be a tuple of floats, defaults to [0.5:0.05:0.95].
         area_range: area range to constrict the considered bounding boxes in
             metric computation. Defaults to `None`, which makes the metric
-            count all bounding boxes.  Must be a tuple of floats.  The first
+            count all bounding boxes. Must be a tuple of floats. The first
             number in the tuple represents a lower bound for areas, while the
-            second value represents an upper bound.  For example, when
+            second value represents an upper bound. For example, when
             `(0, 32**2)` is passed to the metric, recall is only evaluated for
-            objects with areas less than `32*32`.  If `(32**2, 1000000**2)` is
+            objects with areas less than `32*32`. If `(32**2, 1000000**2)` is
             passed the metric will only be evaluated for boxes with areas larger
             than `32**2`, and smaller than `1000000**2`.
         max_detections: number of maximum detections a model is allowed to make.
             Must be an integer, defaults to `100`.
         recall_thresholds: The list of thresholds to average over in the MaP
-            computation.  List of floats.  Defaults to [0:.01:1].
+            computation. List of floats. Defaults to [0:.01:1].
         num_buckets: num_buckets is used to select the number of confidence
-            buckets predictions are placed into.  Instead of computation MaP
+            buckets predictions are placed into. Instead of computation MaP
             over each incrementally selected set of bounding boxes, we instead
-            place them into buckets.  This makes distributed computation easier.
+            place them into buckets. This makes distributed computation easier.
             Increasing buckets improves accuracy of the metric, while decreasing
-            buckets improves performance.  This is a tradeoff you must weight
-            for your use case.  Defaults to 10,000 which is sufficiently large
+            buckets improves performance. This is a tradeoff you must weight
+            for your use case. Defaults to 10,000 which is sufficiently large
             for most use cases.
 
     Usage:
 
     _COCOMeanAveragePrecision accepts two Tensors as input to it's
-    `update_state()` method.  These Tensors represent bounding boxes in
-    `corners` format.  Utilities to convert Tensors from `xywh` to `corners`
+    `update_state()` method. These Tensors represent bounding boxes in
+    `corners` format. Utilities to convert Tensors from `xywh` to `corners`
     format can be found in `keras_cv.utils.bounding_box`.
 
     Each image in a dataset may have a different number of bounding boxes,
-    both in the ground truth dataset and the prediction set.  In order to
+    both in the ground truth dataset and the prediction set. In order to
     account for this, you may either pass a `tf.RaggedTensor`, or pad Tensors
-    with `-1`s to indicate unused boxes.  A utility function to perform this
+    with `-1`s to indicate unused boxes. A utility function to perform this
     padding is available at
     `keras_cv.bounding_box.to_dense()`.
 
@@ -124,7 +124,7 @@ class _COCOMeanAveragePrecision(keras.metrics.Metric):
 
         if any([c < 0 for c in class_ids]):
             raise ValueError(
-                "class_ids must be positive.  Got " f"class_ids={class_ids}"
+                "class_ids must be positive. Got " f"class_ids={class_ids}"
             )
 
         self.ground_truths = self.add_weight(

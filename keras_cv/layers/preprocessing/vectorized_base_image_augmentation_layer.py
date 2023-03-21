@@ -40,7 +40,7 @@ class VectorizedBaseImageAugmentationLayer(
 
     This layer contains base functionalities for preprocessing layers which
     augment image related data, e.g. image and in the future, label and bounding
-    boxes.  The subclasses could avoid making certain mistakes and reduce code
+    boxes. The subclasses could avoid making certain mistakes and reduce code
     duplications.
 
     This layer requires you to implement one method: `augment_images()`, which
@@ -75,7 +75,7 @@ class VectorizedBaseImageAugmentationLayer(
 
     Note that since the randomness is also a common functionality, this layer
     also includes a keras.backend.RandomGenerator, which can be used to
-    produce the random numbers.  The random number generator is stored in the
+    produce the random numbers. The random number generator is stored in the
     `self._random_generator` attribute.
     """
 
@@ -129,7 +129,7 @@ class VectorizedBaseImageAugmentationLayer(
 
         Args:
           images: 4D image input tensor to the layer. Forwarded from
-            `layer.call()`.  This should generally have the shape [B, H, W, C].
+            `layer.call()`. This should generally have the shape [B, H, W, C].
             Forwarded from `layer.call()`.
           transformations: The transformations object produced by
             `get_random_transformations`. Used to coordinate the randomness

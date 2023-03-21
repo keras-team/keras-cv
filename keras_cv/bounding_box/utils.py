@@ -27,7 +27,7 @@ def is_relative(bounding_box_format):
     ):
         raise ValueError(
             "`is_relative()` received an unsupported format for the argument "
-            f"`bounding_box_format`.  `bounding_box_format` should be one of "
+            f"`bounding_box_format`. `bounding_box_format` should be one of "
             f"{bounding_box.converters.TO_XYXY_CONVERTERS.keys()}. "
             f"Got bounding_box_format={bounding_box_format}"
         )
@@ -70,7 +70,7 @@ def clip_to_image(
     """clips bounding boxes to image boundaries.
 
     `clip_to_image()` clips bounding boxes that have coordinates out of bounds
-    of an image down to the boundaries of the image.  This is done by converting
+    of an image down to the boundaries of the image. This is done by converting
     the bounding box to relative formats, then clipping them to the `[0, 1]`
     range. Additionally, bounding boxes that end up with a zero area have their
     class ID set to -1, indicating that there is no object present in them.

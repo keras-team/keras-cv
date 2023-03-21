@@ -43,8 +43,8 @@ class Equalization(BaseImageAugmentationLayer):
     ```
 
     Call arguments:
-        images: Tensor of pixels in range [0, 255], in RGB format.  Can be
-            of type float or int.  Should be in NHWC format.
+        images: Tensor of pixels in range [0, 255], in RGB format. Can be
+            of type float or int. Should be in NHWC format.
     """
 
     def __init__(self, value_range, bins=256, **kwargs):
@@ -86,11 +86,11 @@ class Equalization(BaseImageAugmentationLayer):
             lookup_table = (tf.cumsum(histogram) + (step // 2)) // step
             # Shift lookup_table, prepending with 0.
             lookup_table = tf.concat([[0], lookup_table[:-1]], 0)
-            # Clip the counts to be in range.  This is done
+            # Clip the counts to be in range. This is done
             # in the C code for image.point.
             return tf.clip_by_value(lookup_table, 0, 255)
 
-        # If step is zero, return the original image.  Otherwise, build
+        # If step is zero, return the original image. Otherwise, build
         # lookup table from the full histogram and step and then index from it.
         result = tf.cond(
             tf.equal(step, 0),

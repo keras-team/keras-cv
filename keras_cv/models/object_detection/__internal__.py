@@ -48,7 +48,7 @@ def convert_inputs_to_tf_dataset(
         if y is not None or batch_size is not None:
             raise ValueError(
                 "When `x` is a `tf.data.Dataset`, please do not provide a "
-                f"value for `y` or `batch_size`.  Got `y={y}`, "
+                f"value for `y` or `batch_size`. Got `y={y}`, "
                 f"`batch_size={batch_size}`."
             )
         return x

@@ -85,9 +85,9 @@ class MixUp(BaseImageAugmentationLayer):
 
     def _augment(self, inputs):
         raise ValueError(
-            "MixUp received a single image to `call`.  The layer relies on "
+            "MixUp received a single image to `call`. The layer relies on "
             "combining multiple examples, and as such will not behave as "
-            "expected.  Please call the layer with 2 or more samples."
+            "expected. Please call the layer with 2 or more samples."
         )
 
     def _mixup(self, images):
