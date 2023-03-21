@@ -131,8 +131,6 @@ class WaymoEvaluationCallback(Callback):
         predicted_classes = tf.reshape(
             model_outputs["classes"], (total_predicted_boxes, 1)
         )
-        # Remove boxes with class of -1 (these are non-boxes that come from
-        # padding)
         prediction_scores = tf.reshape(
             model_outputs["confidence"], (total_predicted_boxes, 1)
         )

@@ -234,9 +234,6 @@ class Mosaic(VectorizedBaseImageAugmentationLayer):
             ],
             axis=-1,
         )
-
-        # stacking translate values such that the shape is (4, 1, 4) or
-        # (num_images, broadcast dim, coordinates)
         # updates bounding_boxes for one output mosaic
         permutation_order = transformations["permutation_order"]
         classes_for_mosaic = tf.gather(classes, permutation_order)
