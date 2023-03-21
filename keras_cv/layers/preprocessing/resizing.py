@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import tensorflow as tf
+from tensorflow import keras
 
 import keras_cv.utils
 from keras_cv import bounding_box
@@ -255,7 +256,7 @@ class Resizing(BaseImageAugmentationLayer):
         def resize_with_crop_to_aspect(x):
             if isinstance(x, tf.RaggedTensor):
                 x = x.to_tensor()
-            return tf.keras.preprocessing.image.smart_resize(
+            return keras.preprocessing.image.smart_resize(
                 x, size=size, interpolation=self._interpolation_method
             )
 
