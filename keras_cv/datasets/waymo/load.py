@@ -15,7 +15,6 @@
 import os
 
 import tensorflow as tf
-import tensorflow_datasets as tfds
 
 from keras_cv.datasets.waymo import transformer
 from keras_cv.utils import assert_waymo_open_dataset_installed
