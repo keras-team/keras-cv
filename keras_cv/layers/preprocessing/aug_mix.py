@@ -64,6 +64,7 @@ class AugMix(BaseImageAugmentationLayer):
     (images, labels), _ = keras.datasets.cifar10.load_data()
     augmix = keras_cv.layers.AugMix([0, 255])
     augmented_images = augmix(images[:100])
+    ```
     """
 
     def __init__(
