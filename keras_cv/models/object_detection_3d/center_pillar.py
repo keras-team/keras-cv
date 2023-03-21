@@ -113,10 +113,22 @@ class MultiClassHeatmapDecoder(keras.layers.Layer):
             )
 
     def call(self, predictions):
-        decoded_predictions = {}
+        box_predictions = []
+        class_predictions = []
+        box_confidence = []
         for k, v in predictions.items():
-            decoded_predictions[k] = self.decoders[k](v)
-        return decoded_predictions
+            boxes, classes, confidence = self.decoders[k](v)
+            box_predictions.append(boxes)
+            class_predictions.append(classes)
+            box_confidence.append(confidence)
+
+        return {
+            "3d_boxes": {
+                "boxes": tf.concat(box_predictions, axis=1),
+                "classes": tf.concat(class_predictions, axis=1),
+                "confidence": tf.concat(box_confidence, axis=1),
+            }
+        }
 
 
 class MultiHeadCenterPillar(keras.Model):

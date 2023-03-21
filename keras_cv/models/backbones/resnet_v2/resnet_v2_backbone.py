@@ -446,7 +446,7 @@ ALIAS_DOCSTRING = """ResNetV2Backbone model with {num_layers} layers.
 
 class ResNet18V2Backbone(ResNetV2Backbone):
     def __new__(
-        self,
+        cls,
         include_rescaling=True,
         input_shape=(None, None, 3),
         input_tensor=None,
@@ -476,7 +476,7 @@ class ResNet18V2Backbone(ResNetV2Backbone):
 
 class ResNet34V2Backbone(ResNetV2Backbone):
     def __new__(
-        self,
+        cls,
         include_rescaling=True,
         input_shape=(None, None, 3),
         input_tensor=None,
@@ -506,7 +506,7 @@ class ResNet34V2Backbone(ResNetV2Backbone):
 
 class ResNet50V2Backbone(ResNetV2Backbone):
     def __new__(
-        self,
+        cls,
         include_rescaling=True,
         input_shape=(None, None, 3),
         input_tensor=None,
@@ -540,7 +540,7 @@ class ResNet50V2Backbone(ResNetV2Backbone):
 
 class ResNet101V2Backbone(ResNetV2Backbone):
     def __new__(
-        self,
+        cls,
         include_rescaling=True,
         input_shape=(None, None, 3),
         input_tensor=None,
@@ -570,7 +570,7 @@ class ResNet101V2Backbone(ResNetV2Backbone):
 
 class ResNet152V2Backbone(ResNetV2Backbone):
     def __new__(
-        self,
+        cls,
         include_rescaling=True,
         input_shape=(None, None, 3),
         input_tensor=None,

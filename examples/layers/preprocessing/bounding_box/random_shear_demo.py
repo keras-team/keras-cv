@@ -22,14 +22,14 @@ from keras_cv.layers import preprocessing
 
 
 def main():
-    dataset = demo_utils.load_voc_dataset(bounding_box_format="rel_xyxy")
+    dataset = demo_utils.load_voc_dataset(bounding_box_format="xyxy")
     random_shear = preprocessing.RandomShear(
         x_factor=(0.1, 0.5),
         y_factor=(0.1, 0.5),
-        bounding_box_format="rel_xyxy",
+        bounding_box_format="xyxy",
     )
     dataset = dataset.map(random_shear, num_parallel_calls=tf.data.AUTOTUNE)
-    demo_utils.visualize_data(dataset, bounding_box_format="rel_xyxy")
+    demo_utils.visualize_data(dataset, bounding_box_format="xyxy")
 
 
 if __name__ == "__main__":

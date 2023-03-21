@@ -53,10 +53,10 @@ class BaseImageAugmentationLayer(keras.__internal__.layers.BaseRandomLayer):
     the layer supports that.
 
     `get_random_transformation()`, which should produce a random transformation
-    setting. The transformation object, which could be any type, will be passed
-    to `augment_image`, `augment_label` and `augment_bounding_boxes`, to
-    coordinate the randomness behavior, eg, in the RandomFlip layer, the image
-    and bounding_boxes should be changed in the same way.
+    setting. The transformation object, which could be of any type, will be
+    passed to `augment_image`, `augment_label` and `augment_bounding_boxes`, to
+    coordinate the randomness behaviour, e.g., in the RandomFlip layer, the
+    image and bounding_boxes should be changed in the same way.
 
     The `call()` method supports two formats of inputs:
     1. A single image tensor with shape (height, width, channels) or
