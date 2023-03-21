@@ -62,7 +62,7 @@ golden_metrics = {
 }
 
 
-class AnchorGeneratorTest(tf.test.TestCase):
+class ObjectDetectionMetricSuiteTest(tf.test.TestCase):
     def test_coco_metric_suite_returns_all_coco_metrics(self):
         suite = ObjectDetectionMetricSuite(
             bounding_box_format="xyxy", eval_steps=1
@@ -73,3 +73,21 @@ class AnchorGeneratorTest(tf.test.TestCase):
         metrics = suite.result()
 
         self.assertAllEqual(metrics, golden_metrics)
+
+    def test_coco_metric_suite_eval_steps(self):
+        suite = ObjectDetectionMetricSuite(
+            bounding_box_format="xyxy", eval_steps=2
+        )
+        y_true, y_pred, categories = load_samples(SAMPLE_FILE)
+
+        suite.update_state(y_true, y_pred)
+        metrics = suite.result()
+        self.assertAllEqual(metrics, {key: 0 for key in golden_metrics})
+
+        suite.update_state(y_true, y_pred)
+        metrics = suite.result()
+        #
+        for metric in metrics:
+            # The metrics do not match golden metrics because two batches were
+            # passed which actually modifies the final area under curve value.
+            self.assertNotEqual(metrics[metric], 0.0)

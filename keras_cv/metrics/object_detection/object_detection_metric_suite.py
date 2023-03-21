@@ -42,8 +42,13 @@ def _box_concat(b1, b2):
         return b1
 
     result = {}
-    for key in ["boxes", "classes", "confidence"]:
+    for key in ["boxes", "classes"]:
         result[key] = tf.concat([b1[key], b2[key]], axis=0)
+
+    if "confidence" in b2:
+        result["confidence"] = tf.concat(
+            [b1["confidence"], b2["confidence"]], axis=0
+        )
     return result
 
 
@@ -117,6 +122,7 @@ class ObjectDetectionMetricSuite(keras.metrics.Metric):
         self.bounding_box_format = bounding_box_format
         self.eval_steps = eval_steps
         self._eval_step_count = 0
+        self._cached_result = [0] * len(METRIC_NAMES)
 
     def __new__(cls, *args, **kwargs):
         obj = super(keras.metrics.Metric, cls).__new__(cls)
@@ -190,6 +196,7 @@ class ObjectDetectionMetricSuite(keras.metrics.Metric):
 
     def update_state(self, y_true, y_pred, sample_weight=None):
         self._eval_step_count += 1
+
         self.ground_truths = _box_concat(self.ground_truths, y_true)
         self.predictions = _box_concat(self.predictions, y_pred)
 
@@ -198,16 +205,15 @@ class ObjectDetectionMetricSuite(keras.metrics.Metric):
         # `0.0` until we get to `eval_steps`.
         if self._eval_step_count % self.eval_steps == 0:
             self._cached_result = self._compute_result()
-        self._eval_step_count += 1
 
     def reset_state(self):
         self.ground_truths = None
         self.predictions = None
         self._eval_step_count = 0
-        self._cached_result = {key: 0 for key in METRIC_NAMES}
+        self._cached_result = [0] * len(METRIC_NAMES)
 
     def result(self, force=False):
-        if force or self._cached_result is None:
+        if force:
             self._cached_result = self._compute_result()
         return self._cached_result
 
