@@ -115,8 +115,8 @@ class ObjectDetectionMetricSuite(keras.metrics.Metric):
     ```
     """
 
-    def __init__(self, bounding_box_format, eval_steps, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, bounding_box_format, eval_steps, name=None, **kwargs):
+        super().__init__(name=name, **kwargs)
         self.ground_truths = None
         self.predictions = None
         self.bounding_box_format = bounding_box_format
@@ -187,12 +187,17 @@ class ObjectDetectionMetricSuite(keras.metrics.Metric):
             )
             result = {}
             for i, key in enumerate(METRIC_NAMES):
-                result[key] = py_func_result[i]
+                result[self.name_prefix() + key] = py_func_result[i]
             return result
 
         obj.result = types.MethodType(result_fn, obj)
 
         return obj
+
+    def name_prefix(self):
+        if self.name == 'object_detection_metric_suite':
+            return ''
+        return self.name + '_'
 
     def update_state(self, y_true, y_pred, sample_weight=None):
         self._eval_step_count += 1
