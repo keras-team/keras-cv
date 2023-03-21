@@ -121,10 +121,9 @@ class Mosaic(VectorizedBaseImageAugmentationLayer):
 
     def augment_ragged_image(self, image, transformation, **kwargs):
         raise ValueError(
-            "Mosaic received a single ragged image to `call`. The "
-            "layer relies on combining multiple examples, and as such "
-            "will not behave as expected. Please call the layer with 4 "
-            "or more samples."
+            "Mosaic received ragged images to `call`. The layer relies on "
+            "combining multiple examples with same size, and as such will not "
+            "behave as expected. Please call the layer with dense images."
         )
 
     def augment_images(self, images, transformations, **kwargs):
