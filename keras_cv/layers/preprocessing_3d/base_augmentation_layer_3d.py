@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import tensorflow as tf
+from tensorflow import keras
 
 POINT_CLOUDS = "point_clouds"
 BOUNDING_BOXES = "bounding_boxes"
@@ -25,8 +26,8 @@ POINTCLOUD_LABEL_INDEX = 3
 POINTCLOUD_FEATURE_INDEX = 4
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
-class BaseAugmentationLayer3D(tf.keras.__internal__.layers.BaseRandomLayer):
+@keras.utils.register_keras_serializable(package="keras_cv")
+class BaseAugmentationLayer3D(keras.__internal__.layers.BaseRandomLayer):
     """Abstract base layer for data augmentaion for 3D preception.
 
     This layer contains base functionalities for preprocessing layers which
@@ -91,7 +92,7 @@ class BaseAugmentationLayer3D(tf.keras.__internal__.layers.BaseRandomLayer):
 
     Note that since the randomness is also a common functionality, this layer
     also includes a tf.keras.backend.RandomGenerator, which can be used to
-    produce the random numbers.  The random number generator is stored in the
+    produce the random numbers. The random number generator is stored in the
     `self._random_generator` attribute.
     """
 
