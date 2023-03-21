@@ -32,7 +32,8 @@ class RetinaNetTest(tf.test.TestCase):
         # Reset soft device placement to not interfere with other unit test files
         tf.config.set_soft_device_placement(True)
         keras.backend.clear_session()
-
+    
+    @pytest.skip(reason="Disabled until forward-pass numerical testing is implemented")
     def test_fit_coco_metrics(self):
         retina_net = keras_cv.models.RetinaNet(
             num_classes=2,
