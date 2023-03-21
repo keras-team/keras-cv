@@ -1,4 +1,4 @@
-# Copyright 2022 The KerasCV Authors
+# Copyright 2023 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import numpy as np
 import tensorflow as tf
 
 from keras_cv.layers.preprocessing.channel_shuffle import ChannelShuffle
@@ -94,3 +94,30 @@ class ChannelShuffleTest(tf.test.TestCase):
         layer = ChannelShuffle(groups=1)
         xs = layer(xs, training=True)
         self.assertTrue(tf.math.reduce_any(xs == 1.0))
+
+    def test_channel_shuffle_on_batched_images_independently(self):
+        image = tf.random.uniform((100, 100, 3))
+        batched_images = tf.stack((image, image), axis=0)
+        layer = ChannelShuffle(groups=3)
+
+        results = layer(batched_images)
+
+        self.assertNotAllClose(results[0], results[1])
+
+    def test_config_with_custom_name(self):
+        layer = ChannelShuffle(name="image_preproc")
+        config = layer.get_config()
+        layer_1 = ChannelShuffle.from_config(config)
+        self.assertEqual(layer_1.name, layer.name)
+
+    def test_output_dtypes(self):
+        inputs = np.array([[[1], [2]], [[3], [4]]], dtype="float64")
+        layer = ChannelShuffle(groups=1)
+        self.assertAllEqual(layer(inputs).dtype, "float32")
+        layer = ChannelShuffle(groups=1, dtype="uint8")
+        self.assertAllEqual(layer(inputs).dtype, "uint8")
+
+    def test_config(self):
+        layer = ChannelShuffle(groups=5)
+        config = layer.get_config()
+        self.assertEqual(config["groups"], 5)

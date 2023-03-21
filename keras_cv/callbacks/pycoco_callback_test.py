@@ -14,6 +14,7 @@
 
 import pytest
 import tensorflow as tf
+from tensorflow import keras
 
 import keras_cv
 from keras_cv.callbacks import PyCOCOCallback
@@ -28,13 +29,12 @@ class PyCOCOCallbackTest(tf.test.TestCase):
     def cleanup_global_session(self):
         # Code before yield runs before the test
         yield
-        tf.keras.backend.clear_session()
+        keras.backend.clear_session()
 
     def test_model_fit_retinanet(self):
         model = keras_cv.models.RetinaNet(
             num_classes=10,
             bounding_box_format="xywh",
-            backbone=keras_cv.models.ResNet50V2Backbone().get_feature_extractor(),
         )
         # all metric formats must match
         model.compile(
@@ -59,11 +59,15 @@ class PyCOCOCallbackTest(tf.test.TestCase):
             [f"val_{metric}" for metric in METRIC_NAMES], history.history.keys()
         )
 
+    @pytest.mark.skip(
+        reason="Causing OOMs on GitHub actions.  This is not a "
+        "user facing API and will be replaced in a matter of weeks, so we "
+        "shouldn't invest engineering resources into working around the OOMs here."
+    )
     def test_model_fit_rcnn(self):
         model = keras_cv.models.FasterRCNN(
             num_classes=10,
             bounding_box_format="xywh",
-            backbone=keras_cv.models.ResNet50V2Backbone().get_feature_extractor(),
         )
         model.compile(
             optimizer="adam",

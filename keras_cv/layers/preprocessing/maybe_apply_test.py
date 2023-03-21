@@ -11,8 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import tensorflow as tf
 from absl.testing import parameterized
+from tensorflow import keras
 
 from keras_cv import layers
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
@@ -107,7 +109,7 @@ class MaybeApplyTest(tf.test.TestCase, parameterized.TestCase):
 
     def test_works_with_native_keras_layers(self):
         dummy_inputs = self.rng.uniform(shape=(32, 224, 224, 3))
-        zero_out = tf.keras.layers.Lambda(lambda x: {"images": 0 * x["images"]})
+        zero_out = keras.layers.Lambda(lambda x: {"images": 0 * x["images"]})
         layer = MaybeApply(rate=1.0, layer=zero_out)
 
         outputs = layer(dummy_inputs)
