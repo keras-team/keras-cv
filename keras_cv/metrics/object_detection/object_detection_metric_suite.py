@@ -110,11 +110,13 @@ class ObjectDetectionMetricSuite(keras.metrics.Metric):
     ```
     """
 
-    def __init__(self, bounding_box_format, **kwargs):
+    def __init__(self, bounding_box_format, eval_steps, **kwargs):
         super().__init__(**kwargs)
         self.ground_truths = None
         self.predictions = None
         self.bounding_box_format = bounding_box_format
+        self.eval_steps = eval_steps
+        self._eval_step_count = 0
 
     def __new__(cls, *args, **kwargs):
         obj = super(keras.metrics.Metric, cls).__new__(cls)
@@ -187,14 +189,29 @@ class ObjectDetectionMetricSuite(keras.metrics.Metric):
         return obj
 
     def update_state(self, y_true, y_pred, sample_weight=None):
+        self._eval_step_count += 1
         self.ground_truths = _box_concat(self.ground_truths, y_true)
         self.predictions = _box_concat(self.predictions, y_pred)
+
+        # compute on first step so we don't have an inconsistent list of metrics
+        # in our train_step() results.  This will just populate the metrics with
+        # `0.0` until we get to `eval_steps`.
+        if self._eval_step_count % self.eval_steps == 0:
+            self._cached_result = self._compute_result()
+        self._eval_step_count += 1
 
     def reset_state(self):
         self.ground_truths = None
         self.predictions = None
+        self._eval_step_count = 0
+        self._cached_result = {key: 0 for key in METRIC_NAMES}
 
-    def result(self):
+    def result(self, force=False):
+        if force or self._cached_result is None:
+            self._cached_result = self._compute_result()
+        return self._cached_result
+
+    def _compute_result(self):
         if self.predictions is None or self.ground_truths is None:
             return dict([(key, 0) for key in METRIC_NAMES])
         with HidePrints():

@@ -64,7 +64,9 @@ golden_metrics = {
 
 class AnchorGeneratorTest(tf.test.TestCase):
     def test_coco_metric_suite_returns_all_coco_metrics(self):
-        suite = ObjectDetectionMetricSuite(bounding_box_format="xyxy")
+        suite = ObjectDetectionMetricSuite(
+            bounding_box_format="xyxy", eval_steps=1
+        )
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
 
         suite.update_state(y_true, y_pred)
