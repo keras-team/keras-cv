@@ -11,12 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import time
 
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
 from keras import backend
+from tensorflow import keras
 
 from keras_cv.layers import RandomZoom
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
@@ -278,7 +280,7 @@ class RandomZoomTest(tf.test.TestCase):
 
 if __name__ == "__main__":
     # Run benchmark
-    (x_train, _), _ = tf.keras.datasets.cifar10.load_data()
+    (x_train, _), _ = keras.datasets.cifar10.load_data()
     x_train = x_train.astype(np.float32)
 
     num_images = [100, 200, 500, 1000]

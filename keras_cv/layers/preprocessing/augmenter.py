@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import tensorflow as tf
+from tensorflow import keras
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
-class Augmenter(tf.keras.layers.Layer):
+@keras.utils.register_keras_serializable(package="keras_cv")
+class Augmenter(keras.layers.Layer):
     """Augmenter performs a series of preprocessing operations on input data.
     Args:
         layers: A list of Keras layers to be applied in sequence to input data.
@@ -39,7 +39,7 @@ class Augmenter(tf.keras.layers.Layer):
     @classmethod
     def from_config(cls, config):
         if config["layers"] and isinstance(config["layers"][0], dict):
-            config["layers"] = tf.keras.utils.deserialize_keras_object(
+            config["layers"] = keras.utils.deserialize_keras_object(
                 config["layers"]
             )
         return cls(**config)

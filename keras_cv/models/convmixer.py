@@ -172,7 +172,7 @@ class ConvMixer(keras.Model):
         classifier_activation: A `str` or callable. The activation function to use
             on the "top" layer. Ignored unless `include_top=True`. Set
             `classifier_activation=None` to return the logits of the "top" layer.
-        **kwargs: Pass-through keyword arguments to `tf.keras.Model`.
+        **kwargs: Pass-through keyword arguments to `keras.Model`.
 
     Returns:
       A `keras.Model` instance.

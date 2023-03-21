@@ -304,7 +304,7 @@ class MobileNetV3(keras.Model):
             drop, defaults to 0.2.
         classifier_activation: the activation function to use, defaults to softmax.
         name: string, optional name to pass to the model, defaults to "MobileNetV3".
-        **kwargs: Pass-through keyword arguments to `tf.keras.Model`.
+        **kwargs: Pass-through keyword arguments to `keras.Model`.
 
     Returns:
         A `keras.Model` instance.

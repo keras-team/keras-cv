@@ -11,14 +11,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class FourierMix(BaseImageAugmentationLayer):
     """FourierMix implements the FMix data augmentation technique.
 
@@ -35,7 +37,7 @@ class FourierMix(BaseImageAugmentationLayer):
 
     Sample usage:
     ```python
-    (images, labels), _ = tf.keras.datasets.cifar10.load_data()
+    (images, labels), _ = keras.datasets.cifar10.load_data()
     fourier_mix = keras_cv.layers.preprocessing.FourierMix(0.5)
     augmented_images, updated_labels = fourier_mix({'images': images, 'labels': labels})
     # output == {'images': updated_images, 'labels': updated_labels}

@@ -11,7 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
@@ -19,7 +21,7 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 from keras_cv.utils import preprocessing
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class RandomColorDegeneration(BaseImageAugmentationLayer):
     """Randomly performs the color degeneration operation on given images.
 
@@ -81,7 +83,7 @@ class RandomColorDegeneration(BaseImageAugmentationLayer):
     @classmethod
     def from_config(cls, config):
         if isinstance(config["factor"], dict):
-            config["factor"] = tf.keras.utils.deserialize_keras_object(
+            config["factor"] = keras.utils.deserialize_keras_object(
                 config["factor"]
             )
         return cls(**config)
