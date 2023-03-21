@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv.bounding_box_3d import CENTER_XYZ_DXDYDZ_PHI
 from keras_cv.layers.preprocessing_3d import base_augmentation_layer_3d
@@ -23,7 +24,7 @@ POINT_CLOUDS = base_augmentation_layer_3d.POINT_CLOUDS
 BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class GlobalRandomRotation(base_augmentation_layer_3d.BaseAugmentationLayer3D):
     """A preprocessing layer which randomly rotates point clouds and bounding boxes along
     X, Y and Z axes during training.

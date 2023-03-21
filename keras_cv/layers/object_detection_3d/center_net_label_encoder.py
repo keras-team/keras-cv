@@ -19,6 +19,7 @@ from typing import Union
 
 import numpy as np
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv.layers.object_detection_3d import voxel_utils
 
@@ -318,7 +319,7 @@ def compute_top_k_heatmap_idx(heatmap: tf.Tensor, k: int) -> tf.Tensor:
     return res
 
 
-class CenterNetLabelEncoder(tf.keras.layers.Layer):
+class CenterNetLabelEncoder(keras.layers.Layer):
     """Transforms the raw sparse labels into class specific dense training labels.
 
     This layer takes the box locations, box classes and box masks, voxelizes

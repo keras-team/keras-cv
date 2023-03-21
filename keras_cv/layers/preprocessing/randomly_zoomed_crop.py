@@ -14,6 +14,7 @@
 
 import tensorflow as tf
 from keras import backend
+from tensorflow import keras
 
 from keras_cv import core
 from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
@@ -295,13 +296,13 @@ class RandomlyZoomedCrop(VectorizedBaseImageAugmentationLayer):
     @classmethod
     def from_config(cls, config):
         if isinstance(config["zoom_factor"], dict):
-            config["zoom_factor"] = tf.keras.utils.deserialize_keras_object(
+            config["zoom_factor"] = keras.utils.deserialize_keras_object(
                 config["zoom_factor"]
             )
         if isinstance(config["aspect_ratio_factor"], dict):
             config[
                 "aspect_ratio_factor"
-            ] = tf.keras.utils.deserialize_keras_object(
+            ] = keras.utils.deserialize_keras_object(
                 config["aspect_ratio_factor"]
             )
         return cls(**config)

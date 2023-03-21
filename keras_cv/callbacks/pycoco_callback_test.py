@@ -14,6 +14,7 @@
 
 import pytest
 import tensorflow as tf
+from tensorflow import keras
 
 import keras_cv
 from keras_cv.callbacks import PyCOCOCallback
@@ -28,7 +29,7 @@ class PyCOCOCallbackTest(tf.test.TestCase):
     def cleanup_global_session(self):
         # Code before yield runs before the test
         yield
-        tf.keras.backend.clear_session()
+        keras.backend.clear_session()
 
     def test_model_fit_retinanet(self):
         model = keras_cv.models.RetinaNet(
