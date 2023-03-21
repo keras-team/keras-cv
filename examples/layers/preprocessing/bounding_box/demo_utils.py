@@ -74,7 +74,7 @@ def visualize_bounding_boxes(image, bounding_boxes, bounding_box_format):
         image = image.to_tensor(0)
     bounding_boxes = bounding_box.convert_format(
         bounding_boxes,
-        source='yxyx',
+        source="yxyx",
         target="rel_yxyx",
         images=image,
     )
