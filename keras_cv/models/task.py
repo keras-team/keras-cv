@@ -25,6 +25,10 @@ from keras_cv.utils.python_utils import format_docstring
 class Task(keras.Model):
     """Base class for Task models."""
 
+    def __init__(self, *args, **kwargs):
+        self._backbone = None
+        super().__init__(*args, **kwargs)
+
     @property
     def backbone(self):
         """A `keras.Model` instance providing the backbone submodel."""
