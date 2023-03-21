@@ -47,8 +47,8 @@ class AugMix(BaseImageAugmentationLayer):
         num_chains: an integer representing the number of different chains to
             be mixed. Defaults to 3.
         chain_depth: an integer or range representing the number of transformations in
-            the chains. 
-            In case a range is passed, a random `chain_depth` value sampled from a uniform distribution over the given range is called at the start of the chain. 
+            the chains.
+            In case a range is passed, a random `chain_depth` value sampled from a uniform distribution over the given range is called at the start of the chain.
             Defaults to closed interval [1,3].
         alpha: a float value used as the probability coefficients for the
             Beta and Dirichlet distributions. Defaults to 1.0.
@@ -64,7 +64,6 @@ class AugMix(BaseImageAugmentationLayer):
     (images, labels), _ = keras.datasets.cifar10.load_data()
     augmix = keras_cv.layers.AugMix([0, 255])
     augmented_images = augmix(images[:100])
-    ```
     """
 
     def __init__(
