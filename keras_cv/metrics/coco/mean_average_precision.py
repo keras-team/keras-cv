@@ -11,16 +11,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import warnings
 
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv import bounding_box
 from keras_cv.bounding_box import iou as iou_lib
 from keras_cv.metrics.coco import utils
 
 
-class _COCOMeanAveragePrecision(tf.keras.metrics.Metric):
+class _COCOMeanAveragePrecision(keras.metrics.Metric):
     """_COCOMeanAveragePrecision computes an approximation of MaP.
 
     A usage guide is available on keras.io:

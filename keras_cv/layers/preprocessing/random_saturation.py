@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
     VectorizedBaseImageAugmentationLayer,
@@ -20,7 +21,7 @@ from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer impo
 from keras_cv.utils import preprocessing as preprocessing_utils
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class RandomSaturation(VectorizedBaseImageAugmentationLayer):
     """Randomly adjusts the saturation on given images.
 
@@ -43,7 +44,7 @@ class RandomSaturation(VectorizedBaseImageAugmentationLayer):
 
     Usage:
     ```python
-    (images, labels), _ = tf.keras.datasets.cifar10.load_data()
+    (images, labels), _ = keras.datasets.cifar10.load_data()
     random_saturation = keras_cv.layers.preprocessing.RandomSaturation()
     augmented_images = random_saturation(images)
     ```
@@ -119,7 +120,7 @@ class RandomSaturation(VectorizedBaseImageAugmentationLayer):
     @classmethod
     def from_config(cls, config):
         if isinstance(config["factor"], dict):
-            config["factor"] = tf.keras.utils.deserialize_keras_object(
+            config["factor"] = keras.utils.deserialize_keras_object(
                 config["factor"]
             )
         return cls(**config)

@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import tensorflow as tf
+from tensorflow import keras
 from tensorflow.keras import layers
 
 from keras_cv import bounding_box
@@ -61,7 +62,7 @@ class RetinaNetLabelEncoder(layers.Layer):
         self.box_variance = tf.convert_to_tensor(box_variance, dtype=self.dtype)
         self.background_class = background_class
         self.ignore_class = ignore_class
-        self.matched_boxes_metric = tf.keras.metrics.BinaryAccuracy(
+        self.matched_boxes_metric = keras.metrics.BinaryAccuracy(
             name="percent_boxes_matched_with_anchor"
         )
         self.positive_threshold = positive_threshold
