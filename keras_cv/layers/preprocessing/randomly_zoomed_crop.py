@@ -29,7 +29,7 @@ H_AXIS = -3
 W_AXIS = -2
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class RandomlyZoomedCrop(VectorizedBaseImageAugmentationLayer):
     """Randomly crops a part of an image and zooms it by a provided amount size.
 
@@ -273,7 +273,7 @@ class RandomlyZoomedCrop(VectorizedBaseImageAugmentationLayer):
             )
 
     def _resize(self, images, **kwargs):
-        outputs = tf.keras.preprocessing.image.smart_resize(
+        outputs = keras.preprocessing.image.smart_resize(
             images, (self.height, self.width), **kwargs
         )
         # smart_resize will always output float32, so we need to re-cast.

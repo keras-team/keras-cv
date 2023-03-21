@@ -16,6 +16,7 @@ import time
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv import core
 from keras_cv.layers import RandomlyZoomedCrop
@@ -181,7 +182,7 @@ class OldRandomlyZoomedCrop(BaseImageAugmentationLayer):
         return transform[tf.newaxis]
 
     def _resize(self, image):
-        outputs = tf.keras.preprocessing.image.smart_resize(
+        outputs = keras.preprocessing.image.smart_resize(
             image, (self.height, self.width)
         )
         # smart_resize will always output float32, so we need to re-cast.
@@ -244,13 +245,13 @@ class OldRandomlyZoomedCrop(BaseImageAugmentationLayer):
     @classmethod
     def from_config(cls, config):
         if isinstance(config["zoom_factor"], dict):
-            config["zoom_factor"] = tf.keras.utils.deserialize_keras_object(
+            config["zoom_factor"] = keras.utils.deserialize_keras_object(
                 config["zoom_factor"]
             )
         if isinstance(config["aspect_ratio_factor"], dict):
             config[
                 "aspect_ratio_factor"
-            ] = tf.keras.utils.deserialize_keras_object(
+            ] = keras.utils.deserialize_keras_object(
                 config["aspect_ratio_factor"]
             )
         return cls(**config)
@@ -305,7 +306,7 @@ class RandomlyZoomedCropTest(tf.test.TestCase):
 
 if __name__ == "__main__":
     # Run benchmark
-    (x_train, _), _ = tf.keras.datasets.cifar10.load_data()
+    (x_train, _), _ = keras.datasets.cifar10.load_data()
     x_train = x_train.astype(np.float32)
 
     num_images = [1000, 2000, 5000, 10000]
