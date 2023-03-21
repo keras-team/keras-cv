@@ -26,9 +26,9 @@ class MixUp(BaseImageAugmentationLayer):
     """MixUp implements the MixUp data augmentation technique.
 
     Args:
-        alpha: Float between 0 and 1.  Inverse scale parameter for the gamma
-            distribution.  This controls the shape of the distribution from which the
-            smoothing values are sampled.  Defaults 0.2, which is a recommended value
+        alpha: Float between 0 and 1. Inverse scale parameter for the gamma
+            distribution. This controls the shape of the distribution from which the
+            smoothing values are sampled. Defaults to 0.2, which is a recommended value
             when training an imagenet1k classification model.
         seed: Integer. Used to create a random seed.
 
@@ -83,9 +83,9 @@ class MixUp(BaseImageAugmentationLayer):
 
     def _augment(self, inputs):
         raise ValueError(
-            "MixUp received a single image to `call`.  The layer relies on "
+            "MixUp received a single image to `call`. The layer relies on "
             "combining multiple examples, and as such will not behave as "
-            "expected.  Please call the layer with 2 or more samples."
+            "expected. Please call the layer with 2 or more samples."
         )
 
     def _mixup(self, images):
