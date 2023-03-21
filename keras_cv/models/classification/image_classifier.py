@@ -85,8 +85,7 @@ class ImageClassifier(Task):
         activation: A `str` or callable. The activation function to
             use on the Dense layer. Set `classifier_activation=None` to return
             the logits of the "top" layer.
-        head: str or keras.layers.Layer. Prediction head for classifier. If
-            string, must be "pooled_dense". If a keras.layers.Layer, must take
+        head: keras.layers.Layer. Prediction head for classifier. Must take
             arguments "num_classes" and "activation" and have no other
             positional arguments.
 
@@ -105,6 +104,7 @@ class ImageClassifier(Task):
     model = keras_cv.models.ImageClassifier(
         backbone=keras_cv.models.ResNet50V2Backbone(),
         num_classes=4,
+        head=keras_cv.models.classification.PooledDenseHead,
     )
     output = model(input_data)
     ```
@@ -115,7 +115,7 @@ class ImageClassifier(Task):
         backbone,
         num_classes=2,
         activation="softmax",
-        head="pooled_dense",
+        head=PooledDenseHead,
         **kwargs,
     ):
         if isinstance(head, str):
@@ -141,7 +141,7 @@ class ImageClassifier(Task):
         # All references to `self` below this line
         self.backbone = backbone
         self.num_classes = num_classes
-        self.head_fn = head_fn
+        self.head = head
         self.activation = activation
 
         # Default compilation
@@ -155,18 +155,20 @@ class ImageClassifier(Task):
         config = super().get_config()
         config.update(
             {
+                "backbone": layers.serialize(self.backbone),
                 "num_classes": self.num_classes,
-                "head_fn": layers.serialize(self.head_fn),
+                "head": keras.utils.get_registered_name(self.head),
                 "activation": self.activation,
             }
         )
         return config
-    
+
     @classmethod
     def from_config(cls, config):
-        if "head_fn" in config:
-            head_fn = config.pop("head_fn")
-            config["head"] = layers.deserialize(head_fn)
+        if "backbone" in config and isinstance(config["backbone"], dict):
+            config["backbone"] = layers.deserialize(config["backbone"])
+        if "head" in config and isinstance(config["head"], str):
+            config["head"] = keras.utils.get_registered_object(config["head"])
         return cls(**config)
 
     @classproperty
