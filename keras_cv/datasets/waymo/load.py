@@ -15,7 +15,6 @@
 import os
 
 import tensorflow as tf
-import tensorflow_datasets as tfds
 
 from keras_cv.datasets.waymo import transformer
 from keras_cv.utils import assert_waymo_open_dataset_installed
@@ -28,9 +27,9 @@ except ImportError:
 
 def _generate_frames(segments, transformer):
     def _generator():
-        for record in tfds.as_numpy(segments):
+        for record in segments:
             frame = waymo_open_dataset.dataset_pb2.Frame()
-            frame.ParseFromString(record)
+            frame.ParseFromString(record.numpy())
             yield transformer(frame)
 
     return _generator
