@@ -1,8 +1,8 @@
 """
 Title: Plot a bounding box gallery
 Author: [lukewood](https://lukewood.xyz)
-Date created: 2022/10/16
-Last modified: 2022/10/16
+Date created: 2023/03/22
+Last modified: 2023/03/22
 Description: Visualize ground truth and predicted bounding boxes for a given dataset.
 """
 
