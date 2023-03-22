@@ -195,9 +195,9 @@ class ObjectDetectionMetricSuite(keras.metrics.Metric):
         return obj
 
     def name_prefix(self):
-        if self.name == 'object_detection_metric_suite':
-            return ''
-        return self.name + '_'
+        if self.name == "object_detection_metric_suite":
+            return ""
+        return self.name + "_"
 
     def update_state(self, y_true, y_pred, sample_weight=None):
         self._eval_step_count += 1
@@ -230,8 +230,10 @@ class ObjectDetectionMetricSuite(keras.metrics.Metric):
         )
         results = []
         for key in METRIC_NAMES:
-            results.append(metrics[key])
+            # Workaround for the state where there are 0 boxes in a category.
+            results.append(max(metrics[key], 0.0))
         return results
+
 
 def compute_pycocotools_metric(y_true, y_pred, bounding_box_format):
     box_pred = y_pred["boxes"]
@@ -256,10 +258,6 @@ def compute_pycocotools_metric(y_true, y_pred, bounding_box_format):
 
     ground_truth = {}
     ground_truth["source_id"] = [source_ids]
-    #
-    # # Hack to force PyCOCOTools to work with non-relative formats
-    # ground_truth["width"] = [tf.tile(tf.constant([MAXIMUM_IMAGE_DIM]), [total_images])]
-    # ground_truth["height"] = [tf.tile(tf.constant([MAXIMUM_IMAGE_DIM]), [total_images])]
 
     ground_truth["num_detections"] = [
         tf.math.reduce_sum(tf.cast(y_true["classes"] != -1, tf.int32), axis=-1)

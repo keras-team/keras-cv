@@ -92,15 +92,15 @@ class ObjectDetectionMetricSuiteTest(tf.test.TestCase):
             # passed which actually modifies the final area under curve value.
             self.assertNotEqual(metrics[metric], 0.0)
 
-
     def test_name_parameter(self):
         suite = ObjectDetectionMetricSuite(
-            bounding_box_format="xyxy", eval_steps=1,
-            name='coco_metrics'
+            bounding_box_format="xyxy", eval_steps=1, name="coco_metrics"
         )
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
         suite.update_state(y_true, y_pred)
         metrics = suite.result()
 
         for metric in golden_metrics:
-            self.assertEqual(metrics['coco_metrics_' + metric], golden_metrics[metric])
+            self.assertEqual(
+                metrics["coco_metrics_" + metric], golden_metrics[metric]
+            )
