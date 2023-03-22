@@ -1,4 +1,4 @@
-# Copyright 2022 The KerasCV Authors
+# Copyright 2023 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-random_shear_demo.py shows how to use the RandomShear preprocessing layer
-for object detection.
+random_translation_demo.py shows how to use the RandomTranslation preprocessing layer for
+object detection.
 """
 import demo_utils
 import tensorflow as tf
@@ -22,14 +22,18 @@ from keras_cv.layers import preprocessing
 
 
 def main():
-    dataset = demo_utils.load_voc_dataset(bounding_box_format="xyxy")
-    random_shear = preprocessing.RandomShear(
-        x_factor=(0.1, 0.5),
-        y_factor=(0.1, 0.5),
-        bounding_box_format="xyxy",
+    dataset = demo_utils.load_voc_dataset(bounding_box_format="xywh")
+    random_translation = preprocessing.RandomTranslation(
+        height_factor=(-0.2, 0.2),
+        width_factor=(-0.2, 0.2),
+        bounding_box_format="xywh",
+        fill_mode="constant",
+        fill_value=114,
     )
-    dataset = dataset.map(random_shear, num_parallel_calls=tf.data.AUTOTUNE)
-    demo_utils.visualize_data(dataset, bounding_box_format="xyxy")
+    result = dataset.map(
+        random_translation, num_parallel_calls=tf.data.AUTOTUNE
+    )
+    demo_utils.visualize_data(result, bounding_box_format="xywh")
 
 
 if __name__ == "__main__":
