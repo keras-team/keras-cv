@@ -26,9 +26,9 @@ class CutMix(BaseImageAugmentationLayer):
     """CutMix implements the CutMix data augmentation technique.
 
     Args:
-        alpha: Float between 0 and 1.  Inverse scale parameter for the gamma
-            distribution.  This controls the shape of the distribution from which the
-            smoothing values are sampled.  Defaults 1.0, which is a recommended value
+        alpha: Float between 0 and 1. Inverse scale parameter for the gamma
+            distribution. This controls the shape of the distribution from which the
+            smoothing values are sampled. Defaults to 1.0, which is a recommended value
             when training an imagenet1k classification model.
         seed: Integer. Used to create a random seed.
     References:
@@ -77,9 +77,9 @@ class CutMix(BaseImageAugmentationLayer):
 
     def _augment(self, inputs):
         raise ValueError(
-            "CutMix received a single image to `call`.  The layer relies on "
+            "CutMix received a single image to `call`. The layer relies on "
             "combining multiple examples, and as such will not behave as "
-            "expected.  Please call the layer with 2 or more samples."
+            "expected. Please call the layer with 2 or more samples."
         )
 
     def _cutmix(self, images, labels):
