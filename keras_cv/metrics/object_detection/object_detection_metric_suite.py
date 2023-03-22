@@ -230,9 +230,10 @@ class ObjectDetectionMetricSuite(keras.metrics.Metric):
     def _compute_result(self):
         if self.predictions is None or self.ground_truths is None:
             return dict([(key, 0) for key in METRIC_NAMES])
-        metrics = compute_pycocotools_metric(
-            self.ground_truths, self.predictions, self.bounding_box_format
-        )
+        with HidePrints():
+            metrics = compute_pycocotools_metric(
+                self.ground_truths, self.predictions, self.bounding_box_format
+            )
         results = []
         for key in METRIC_NAMES:
             # Workaround for the state where there are 0 boxes in a category.
