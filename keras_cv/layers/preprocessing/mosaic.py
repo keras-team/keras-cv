@@ -123,7 +123,10 @@ class Mosaic(VectorizedBaseImageAugmentationLayer):
         raise ValueError(
             "Mosaic received ragged images to `call`. The layer relies on "
             "combining multiple examples with same size, and as such will not "
-            "behave as expected. Please call the layer with dense images."
+            "behave as expected. Please call the layer with dense images with "
+            "same size. This is an implementation constraint, not an algorithm "
+            "constraint. If you find this method helpful, please open an issue "
+            "on KerasCV."
         )
 
     def augment_images(self, images, transformations, **kwargs):
