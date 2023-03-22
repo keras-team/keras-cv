@@ -78,11 +78,6 @@ from keras_cv.models.mobilenet_v3 import MobileNetV3Large
 from keras_cv.models.mobilenet_v3 import MobileNetV3Small
 from keras_cv.models.object_detection.faster_rcnn import FasterRCNN
 from keras_cv.models.object_detection.retina_net.retina_net import RetinaNet
-from keras_cv.models.object_detection.yolox.yolox import YoloX_l
-from keras_cv.models.object_detection.yolox.yolox import YoloX_m
-from keras_cv.models.object_detection.yolox.yolox import YoloX_s
-from keras_cv.models.object_detection.yolox.yolox import YoloX_tiny
-from keras_cv.models.object_detection.yolox.yolox import YoloX_x
 from keras_cv.models.object_detection_3d.center_pillar import (
     MultiHeadCenterPillar,
 )
@@ -110,11 +105,6 @@ from keras_cv.models.regnet import RegNetY080
 from keras_cv.models.regnet import RegNetY120
 from keras_cv.models.regnet import RegNetY160
 from keras_cv.models.regnet import RegNetY320
-from keras_cv.models.object_detection.yolox.yolox import YoloX_tiny
-from keras_cv.models.object_detection.yolox.yolox import YoloX_s
-from keras_cv.models.object_detection.yolox.yolox import YoloX_m
-from keras_cv.models.object_detection.yolox.yolox import YoloX_l
-from keras_cv.models.object_detection.yolox.yolox import YoloX_x
 from keras_cv.models.resnet_v1 import ResNet18
 from keras_cv.models.resnet_v1 import ResNet34
 from keras_cv.models.resnet_v1 import ResNet50
