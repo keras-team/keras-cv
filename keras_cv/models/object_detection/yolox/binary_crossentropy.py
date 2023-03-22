@@ -1,4 +1,4 @@
-# Copyright 2022 The KerasCV Authors
+# Copyright 2023 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -34,13 +34,15 @@ class BinaryCrossentropy(tf.keras.losses.Loss):
     Sample Usage:
     ```python
     model.compile(
-      loss=keras_cv.models.object_detection.yolox.__internal__.binary_crossentropy.BinaryCrossentropy(from_logits=True)
+      loss=keras_cv.models.object_detection.yolox.binary_crossentropy.BinaryCrossentropy(from_logits=True)
       ....
     )
     ```
     """
 
-    def __init__(self, from_logits=False, label_smoothing=0.0, axis=None, **kwargs):
+    def __init__(
+        self, from_logits=False, label_smoothing=0.0, axis=None, **kwargs
+    ):
         super().__init__(**kwargs)
         self.from_logits = from_logits
         self.label_smoothing = label_smoothing
@@ -49,7 +51,9 @@ class BinaryCrossentropy(tf.keras.losses.Loss):
     def call(self, y_true, y_pred):
         y_pred = tf.convert_to_tensor(y_pred)
         y_true = tf.cast(y_true, y_pred.dtype)
-        label_smoothing = tf.convert_to_tensor(self.label_smoothing, dtype=y_pred.dtype)
+        label_smoothing = tf.convert_to_tensor(
+            self.label_smoothing, dtype=y_pred.dtype
+        )
 
         def _smooth_labels():
             return y_true * (1.0 - label_smoothing) + 0.5 * label_smoothing

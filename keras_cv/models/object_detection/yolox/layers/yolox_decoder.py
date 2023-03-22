@@ -1,4 +1,4 @@
-# Copyright 2022 The KerasCV Authors
+# Copyright 2023 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import keras_cv.layers as cv_layers
 from keras_cv import bounding_box
 
 
-class DecodePredictions(keras.layers.Layer):
+class YoloXPredictionDecoder(keras.layers.Layer):
     """Decodes the predictions from YoloX head.
 
     This layer is similar to the decoding code in `YoloX.compute_losses`. This is
@@ -31,14 +31,15 @@ class DecodePredictions(keras.layers.Layer):
             [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
             for more details on supported bounding box formats.
         classes: The number of classes to be considered for the classification head.
-            Defaults to None.
         suppression_layer: A `keras.layers.Layer` that follows the same API
             signature of the `keras_cv.layers.MultiClassNonMaxSuppression` layer.
             This layer should perform a suppression operation such as Non Max Suppression,
             or Soft Non-Max Suppression.
     """
 
-    def __init__(self, bounding_box_format, classes, suppression_layer=None, **kwargs):
+    def __init__(
+        self, bounding_box_format, classes, suppression_layer=None, **kwargs
+    ):
         super().__init__(**kwargs)
         self.bounding_box_format = bounding_box_format
         self.classes = classes
@@ -54,18 +55,20 @@ class DecodePredictions(keras.layers.Layer):
                 max_detections_per_class=100,
             )
         )
-        if self.suppression_layer.bounding_box_format != self.bounding_box_format:
+        if (
+            self.suppression_layer.bounding_box_format
+            != self.bounding_box_format
+        ):
             raise ValueError(
                 "`suppression_layer` must have the same `bounding_box_format` "
-                "as the `DecodePredictions()` layer. "
-                "Received `DecodePredictions.bounding_box_format="
+                "as the `YoloXPredictionDecoder()` layer. "
+                "Received `YoloXPredictionDecoder.bounding_box_format="
                 f"{self.bounding_box_format}`, `suppression_layer={suppression_layer}`."
             )
         self.built = True
 
     def call(self, images, predictions):
-        image_shape = tf.cast(tf.shape(images), dtype=tf.float32)[1:-1]
-        # predictions = tf.cast(predictions, dtype=tf.float32)
+        image_shape = tf.cast(tf.shape(images), dtype=self.compute_dtype)[1:-1]
 
         batch_size = tf.shape(predictions[0])[0]
 
@@ -74,9 +77,15 @@ class DecodePredictions(keras.layers.Layer):
 
         shapes = [x.shape[1:3] for x in predictions]
         predictions = [
-            tf.reshape(x, [batch_size, -1, 5 + self.classes]) for x in predictions
+            tf.reshape(x, [batch_size, -1, 5 + self.classes])
+            for x in predictions
         ]
-        predictions = tf.concat(predictions, axis=1)
+        predictions = tf.cast(
+            tf.concat(predictions, axis=1), dtype=self.compute_dtype
+        )
+        predictions_shape = tf.cast(
+            tf.shape(predictions), dtype=self.compute_dtype
+        )
 
         for i in range(len(shapes)):
             shape_x, shape_y = shapes[i]
@@ -84,11 +93,11 @@ class DecodePredictions(keras.layers.Layer):
             grid = tf.reshape(tf.stack((grid_x, grid_y), 2), (1, -1, 2))
             shape = grid.shape[:2]
 
-            grids.append(tf.cast(grid, predictions.dtype))
+            grids.append(tf.cast(grid, self.compute_dtype))
             strides.append(
                 tf.ones((shape[0], shape[1], 1))
                 * image_shape[0]
-                / tf.cast(shape_x, tf.float32)
+                / tf.cast(shape_x, self.compute_dtype)
             )
 
         grids = tf.concat(grids, axis=1)
@@ -98,22 +107,24 @@ class DecodePredictions(keras.layers.Layer):
             (predictions[..., :2] + grids) * strides / image_shape, axis=-2
         )
         box_xy = tf.broadcast_to(
-            box_xy, [batch_size, tf.shape(predictions)[1], self.classes, 2]
+            box_xy, [batch_size, predictions_shape[1], self.classes, 2]
         )
         box_wh = tf.expand_dims(
             tf.exp(predictions[..., 2:4]) * strides / image_shape, axis=-2
         )
         box_wh = tf.broadcast_to(
-            box_wh, [batch_size, tf.shape(predictions)[1], self.classes, 2]
+            box_wh, [batch_size, predictions_shape[1], self.classes, 2]
         )
 
         box_confidence = tf.math.sigmoid(predictions[..., 4:5])
         box_class_probs = tf.math.sigmoid(predictions[..., 5:])
 
         # create and broadcast classes for every box before nms
-        box_classes = tf.expand_dims(tf.range(self.classes, dtype=tf.float32), axis=-1)
+        box_classes = tf.expand_dims(
+            tf.range(self.classes, dtype=self.compute_dtype), axis=-1
+        )
         box_classes = tf.broadcast_to(
-            box_classes, [batch_size, tf.shape(predictions)[1], self.classes, 1]
+            box_classes, [batch_size, predictions_shape[1], self.classes, 1]
         )
 
         box_scores = tf.expand_dims(box_confidence * box_class_probs, axis=-1)
@@ -147,6 +158,8 @@ class DecodePredictions(keras.layers.Layer):
         class_predictions = tf.cast(outputs["classes"], tf.int32)
         class_predictions = tf.one_hot(class_predictions, self.classes)
 
-        scores = tf.expand_dims(outputs["confidence"], axis=-1) * class_predictions
+        scores = (
+            tf.expand_dims(outputs["confidence"], axis=-1) * class_predictions
+        )
 
         return self.suppression_layer(outputs["boxes"], scores)

@@ -1,4 +1,4 @@
-# Copyright 2022 The KerasCV Authors
+# Copyright 2023 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,6 +22,9 @@ from keras_cv.models.__internal__.darknet_utils import DarknetConvBlockDepthwise
 
 class YoloXPAFPN(keras.layers.Layer):
     """The YoloX PAFPN.
+
+    YoloX PAFPN is an FPN layer used in YoloX models. The YoloX PAFPN is based on the
+    feature pyramid module used in Path Aggregation networks (PANet).
 
     Arguments:
         depth_multiplier: A float value used to calculate the base depth of the model
@@ -49,7 +52,9 @@ class YoloXPAFPN(keras.layers.Layer):
         super().__init__(**kwargs)
         self.in_channels = in_channels
 
-        ConvBlock = DarknetConvBlockDepthwise if use_depthwise else DarknetConvBlock
+        ConvBlock = (
+            DarknetConvBlockDepthwise if use_depthwise else DarknetConvBlock
+        )
 
         self.lateral_conv0 = DarknetConvBlock(
             filters=int(in_channels[1] * width_multiplier),

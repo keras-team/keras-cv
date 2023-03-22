@@ -67,7 +67,12 @@ train_ds = tfds.load(
     "voc/2007", split="train+validation", with_info=False, shuffle_files=True
 )
 train_ds = train_ds.concatenate(
-    tfds.load("voc/2012", split="train+validation", with_info=False, shuffle_files=True)
+    tfds.load(
+        "voc/2012",
+        split="train+validation",
+        with_info=False,
+        shuffle_files=True,
+    )
 )
 eval_ds = tfds.load("voc/2007", split="test", with_info=False)
 
@@ -98,10 +103,10 @@ augmenter = keras_cv.layers.Augmenter(
         ),
         keras_cv.layers.RandomColorJitter(
             value_range=(0, 255),
-            brightness_factor=(0.4,0.4),
+            brightness_factor=(0.4, 0.4),
             contrast_factor=0.0,
-            saturation_factor=(0.7,0.7),
-            hue_factor=(0.1,0.1),
+            saturation_factor=(0.7, 0.7),
+            hue_factor=(0.1, 0.1),
         ),
         keras_cv.layers.MixUp(alpha=0.5),
         keras_cv.layers.Mosaic(bounding_box_format="xywh"),
@@ -197,7 +202,9 @@ train_ds = train_ds.map(
 )
 
 train_ds = train_ds.apply(
-    tf.data.experimental.dense_to_ragged_batch(GLOBAL_BATCH_SIZE, drop_remainder=True)
+    tf.data.experimental.dense_to_ragged_batch(
+        GLOBAL_BATCH_SIZE, drop_remainder=True
+    )
 )
 train_ds = train_ds.map(apply_augmenter, num_parallel_calls=tf.data.AUTOTUNE)
 train_ds = train_ds.map(pad_fn, num_parallel_calls=tf.data.AUTOTUNE)
@@ -209,7 +216,9 @@ eval_ds = eval_ds.map(
     num_parallel_calls=tf.data.AUTOTUNE,
 )
 eval_ds = eval_ds.apply(
-    tf.data.experimental.dense_to_ragged_batch(GLOBAL_BATCH_SIZE, drop_remainder=True)
+    tf.data.experimental.dense_to_ragged_batch(
+        GLOBAL_BATCH_SIZE, drop_remainder=True
+    )
 )
 eval_ds = eval_ds.map(pad_fn, num_parallel_calls=tf.data.AUTOTUNE)
 eval_ds = eval_ds.prefetch(tf.data.AUTOTUNE)
@@ -261,7 +270,9 @@ def get_lr_callback(batch_size=8):
 
     def lrfn(epoch):
         if epoch <= warmup_epochs:
-            lr = (lr_max - lr_start) * pow((epoch / warmup_epochs), 2) + lr_start
+            lr = (lr_max - lr_start) * pow(
+                (epoch / warmup_epochs), 2
+            ) + lr_start
 
         elif epoch >= EPOCHS - no_aug_iter:
             lr = lr_min

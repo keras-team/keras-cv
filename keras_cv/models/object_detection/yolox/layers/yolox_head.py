@@ -1,4 +1,4 @@
-# Copyright 2022 The KerasCV Authors
+# Copyright 2023 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -56,7 +56,9 @@ class YoloXHead(keras.layers.Layer):
         self.regression_preds = []
         self.objectness_preds = []
 
-        ConvBlock = DarknetConvBlockDepthwise if use_depthwise else DarknetConvBlock
+        ConvBlock = (
+            DarknetConvBlockDepthwise if use_depthwise else DarknetConvBlock
+        )
 
         for _ in range(num_level):
             self.stems.append(
@@ -146,6 +148,8 @@ class YoloXHead(keras.layers.Layer):
             boxes = self.regression_preds[i](boxes_feat)
             objectness = self.objectness_preds[i](boxes_feat)
 
-            output = tf.keras.layers.Concatenate(axis=-1)([boxes, objectness, classes])
+            output = tf.keras.layers.Concatenate(axis=-1)(
+                [boxes, objectness, classes]
+            )
             outputs.append(output)
         return outputs

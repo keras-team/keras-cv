@@ -1,4 +1,4 @@
-# Copyright 2022 The KerasCV Authors
+# Copyright 2023 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,19 +19,19 @@ import tensorflow.keras.backend as K
 import keras_cv
 from keras_cv import bounding_box
 from keras_cv.models.object_detection import predict_utils
-from keras_cv.models.object_detection.yolox.__internal__.binary_crossentropy import (
+from keras_cv.models.object_detection.yolox.binary_crossentropy import (
     BinaryCrossentropy,
 )
-from keras_cv.models.object_detection.yolox.__internal__.layers.yolox_decoder import (
-    DecodePredictions,
+from keras_cv.models.object_detection.yolox.layers.yolox_decoder import (
+    YoloXPredictionDecoder,
 )
-from keras_cv.models.object_detection.yolox.__internal__.layers.yolox_head import (
+from keras_cv.models.object_detection.yolox.layers.yolox_head import (
     YoloXHead,
 )
-from keras_cv.models.object_detection.yolox.__internal__.layers.yolox_label_encoder import (
+from keras_cv.models.object_detection.yolox.layers.yolox_label_encoder import (
     YoloXLabelEncoder,
 )
-from keras_cv.models.object_detection.yolox.__internal__.layers.yolox_pafpn import (
+from keras_cv.models.object_detection.yolox.layers.yolox_pafpn import (
     YoloXPAFPN,
 )
 
@@ -51,8 +51,7 @@ WIDTH_MULTIPLIERS = {
 }
 
 
-# TODO(quantumalaviya): Register
-# @keras.utils.register_keras_serializable(package="keras_cv")
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class YoloX(tf.keras.Model):
     """Instantiates the YoloX architecture using the given phi value.
 
@@ -73,7 +72,7 @@ class YoloX(tf.keras.Model):
             LabelEncoder is created and used.
         prediction_decoder: (Optional)  A `keras.layer` that is responsible for
             transforming YoloX predictions into usable bounding box Tensors.  If
-            not provided, a default DecodePredictions is provided. The default layer
+            not provided, a default YoloXPredictionDecoder is provided. The default layer
             uses a `NonMaxSuppression` operation for box pruning.
         feature_pyramid: (Optional) A `keras.layer` representing a feature pyramid
             network (FPN).  The feature pyramid network is called on the outputs of the
@@ -101,9 +100,7 @@ class YoloX(tf.keras.Model):
         name="YoloX",
         **kwargs,
     ):
-        label_encoder = label_encoder or YoloXLabelEncoder(
-            bounding_box_format=bounding_box_format
-        )
+        label_encoder = label_encoder or YoloXLabelEncoder()
 
         super().__init__(name=name, **kwargs)
         self.label_encoder = label_encoder
@@ -130,7 +127,11 @@ class YoloX(tf.keras.Model):
                 max_detections_per_class=100,
             )
         )
-        self._prediction_decoder = DecodePredictions(
+
+        # the prediction decoder is used only at inference time.
+        # During training, YoloX uses the SimOTA algorithm to
+        # assign boxes, as shown in the paper
+        self._prediction_decoder = YoloXPredictionDecoder(
             bounding_box_format=bounding_box_format,
             classes=classes,
             suppression_layer=suppression_layer,
@@ -148,7 +149,9 @@ class YoloX(tf.keras.Model):
         self.classification_loss_metric = tf.keras.metrics.Mean(
             name="classification_loss"
         )
-        self.objectness_loss_metric = tf.keras.metrics.Mean(name="objectness_loss")
+        self.objectness_loss_metric = tf.keras.metrics.Mean(
+            name="objectness_loss"
+        )
         self.box_loss_metric = tf.keras.metrics.Mean(name="box_loss")
 
     def make_predict_function(self, force=False):
@@ -313,18 +316,20 @@ class YoloX(tf.keras.Model):
         for i in range(num_levels):
             output = y_pred[i]
 
-            grid_shape = tf.shape(output)[1:3]
+            output_shape = tf.shape(output)
+            grid_shape = output_shape[1:3]
             stride = input_shape[0] / tf.cast(grid_shape[0], tf.float32)
 
             grid_x, grid_y = tf.meshgrid(
                 tf.range(grid_shape[1]), tf.range(grid_shape[0])
             )
             grid = tf.cast(
-                tf.reshape(tf.stack((grid_x, grid_y), 2), (1, -1, 2)), tf.float32
+                tf.reshape(tf.stack((grid_x, grid_y), 2), (1, -1, 2)),
+                tf.float32,
             )
 
             output = tf.reshape(
-                output, [tf.shape(y_pred[i])[0], grid_shape[0] * grid_shape[1], -1]
+                output, [output_shape[0], grid_shape[0] * grid_shape[1], -1]
             )
             output_xy = (output[..., :2] + grid) * stride
             # exponential to ensure that both the width and height are positive
@@ -347,8 +352,11 @@ class YoloX(tf.keras.Model):
 
         # this calculation would exclude the -1 boxes used to pad the input
         # RaggedTensor in label encoder.
-        nlabel = tf.reduce_sum(tf.cast(tf.reduce_sum(y_true, -1) > 0, tf.float32), -1)
-        num_anchor_points = tf.shape(outputs)[1]
+        nlabel = tf.reduce_sum(
+            tf.cast(tf.reduce_sum(y_true, -1) > 0, tf.float32), -1
+        )
+        outputs_shape = tf.shape(outputs)
+        num_anchor_points = outputs_shape[1]
 
         num_fg = 0.0
         loss_obj = 0.0
@@ -365,9 +373,15 @@ class YoloX(tf.keras.Model):
             obj_preds_per_image = obj_preds[b]
             cls_preds_per_image = cls_preds[b]
 
-            gt_bboxes_per_image = tf.ensure_shape(gt_bboxes_per_image, [None, 4])
-            bboxes_preds_per_image = tf.ensure_shape(bboxes_preds_per_image, [None, 4])
-            obj_preds_per_image = tf.ensure_shape(obj_preds_per_image, [None, 1])
+            gt_bboxes_per_image = tf.ensure_shape(
+                gt_bboxes_per_image, [None, 4]
+            )
+            bboxes_preds_per_image = tf.ensure_shape(
+                bboxes_preds_per_image, [None, 4]
+            )
+            obj_preds_per_image = tf.ensure_shape(
+                obj_preds_per_image, [None, 1]
+            )
             cls_preds_per_image = tf.ensure_shape(
                 cls_preds_per_image, [None, self.classes]
             )
@@ -403,9 +417,13 @@ class YoloX(tf.keras.Model):
                 reg_target = tf.gather_nd(
                     gt_bboxes_per_image, tf.reshape(matched_indices, [-1, 1])
                 )
-                pred_ious_this_matching = tf.expand_dims(pred_ious_this_matching, -1)
+                pred_ious_this_matching = tf.expand_dims(
+                    pred_ious_this_matching, -1
+                )
                 cls_target = tf.cast(
-                    tf.one_hot(tf.cast(gt_matched_classes, tf.int32), self.classes)
+                    tf.one_hot(
+                        tf.cast(gt_matched_classes, tf.int32), self.classes
+                    )
                     * pred_ious_this_matching,
                     tf.float32,
                 )
@@ -415,12 +433,16 @@ class YoloX(tf.keras.Model):
             # if no ground truths for this image, there are 0 boxes
             # else we perform the label assignment
             num_fg_img, cls_target, reg_target, obj_target, fg_mask = tf.cond(
-                tf.equal(num_gt, 0), return_empty_boxes, perform_label_assignment
+                tf.equal(num_gt, 0),
+                return_empty_boxes,
+                perform_label_assignment,
             )
             loss_iou_this_image = self.box_loss(
                 reg_target, tf.boolean_mask(bboxes_preds_per_image, fg_mask)
             )
-            loss_obj_this_image = self.objectness_loss(obj_target, obj_preds_per_image)
+            loss_obj_this_image = self.objectness_loss(
+                obj_target, obj_preds_per_image
+            )
             loss_cls_this_image = self.classification_loss(
                 cls_target, tf.boolean_mask(cls_preds_per_image, fg_mask)
             )
@@ -433,7 +455,7 @@ class YoloX(tf.keras.Model):
             return b + 1, num_fg, loss_iou, loss_obj, loss_cls
 
         _, num_fg, loss_iou, loss_obj, loss_cls = tf.while_loop(
-            lambda b, *args: b < tf.shape(outputs)[0],
+            lambda b, *args: b < outputs_shape[0],
             loop_across_batch,
             [0, num_fg, loss_iou, loss_obj, loss_cls],
         )
@@ -448,7 +470,6 @@ class YoloX(tf.keras.Model):
 
         loss /= num_fg
 
-        # TODO: loss_metric removed
         self.loss_metric.update_state(loss)
         return loss
 
@@ -486,14 +507,18 @@ class YoloX(tf.keras.Model):
         )
         pair_wise_ious_loss = -tf.math.log(pair_wise_ious + 1e-8)
         gt_cls_per_image = tf.tile(
-            tf.expand_dims(tf.one_hot(tf.cast(gt_classes, tf.int32), num_classes), 1),
+            tf.expand_dims(
+                tf.one_hot(tf.cast(gt_classes, tf.int32), num_classes), 1
+            ),
             (1, num_in_boxes_anchor, 1),
         )
         obj_preds_ = tf.math.sigmoid(
             tf.tile(tf.expand_dims(obj_preds_, 0), (num_gt, 1, 1))
         )
         cls_preds_ = (
-            tf.math.sigmoid(tf.tile(tf.expand_dims(cls_preds_, 0), (num_gt, 1, 1)))
+            tf.math.sigmoid(
+                tf.tile(tf.expand_dims(cls_preds_, 0), (num_gt, 1, 1))
+            )
             * obj_preds_
         )
         pair_wise_cls_loss = tf.reduce_sum(
@@ -522,11 +547,15 @@ class YoloX(tf.keras.Model):
     ):
         expanded_strides_per_image = expanded_strides[0]
         x_centers_per_image = tf.tile(
-            tf.expand_dims(((x_offsets[0] + 0.5) * expanded_strides_per_image), 0),
+            tf.expand_dims(
+                ((x_offsets[0] + 0.5) * expanded_strides_per_image), 0
+            ),
             [num_gt, 1],
         )
         y_centers_per_image = tf.tile(
-            tf.expand_dims(((y_offsets[0] + 0.5) * expanded_strides_per_image), 0),
+            tf.expand_dims(
+                ((y_offsets[0] + 0.5) * expanded_strides_per_image), 0
+            ),
             [num_gt, 1],
         )
 
@@ -562,7 +591,9 @@ class YoloX(tf.keras.Model):
         bbox_deltas = tf.stack([b_l, b_t, b_r, b_b], 2)
 
         is_in_boxes = tf.reduce_min(bbox_deltas, axis=-1) > 0.0
-        is_in_boxes_all = tf.reduce_sum(tf.cast(is_in_boxes, tf.float32), axis=0) > 0.0
+        is_in_boxes_all = (
+            tf.reduce_sum(tf.cast(is_in_boxes, tf.float32), axis=0) > 0.0
+        )
 
         gt_bboxes_per_image_l = tf.tile(
             tf.expand_dims(gt_bboxes_per_image[:, 0], 1), [1, num_anchor_points]
@@ -596,7 +627,9 @@ class YoloX(tf.keras.Model):
 
         return fg_mask, is_in_boxes_and_center
 
-    def dynamic_k_matching(self, cost, pair_wise_ious, fg_mask, gt_classes, num_gt):
+    def dynamic_k_matching(
+        self, cost, pair_wise_ious, fg_mask, gt_classes, num_gt
+    ):
         matching_matrix = tf.zeros_like(cost)
 
         n_candidate_k = tf.minimum(10, tf.shape(pair_wise_ious)[1])
@@ -604,12 +637,17 @@ class YoloX(tf.keras.Model):
         dynamic_ks = tf.maximum(tf.reduce_sum(topk_ious, 1), 1)
 
         def loop_across_batch_1(b, matching_matrix):
-            _, pos_idx = tf.nn.top_k(-cost[b], k=tf.cast(dynamic_ks[b], tf.int32))
+            _, pos_idx = tf.nn.top_k(
+                -cost[b], k=tf.cast(dynamic_ks[b], tf.int32)
+            )
             matching_matrix = tf.concat(
                 [
                     matching_matrix[:b],
                     tf.expand_dims(
-                        tf.reduce_max(tf.one_hot(pos_idx, tf.shape(cost)[1]), 0), 0
+                        tf.reduce_max(
+                            tf.one_hot(pos_idx, tf.shape(cost)[1]), 0
+                        ),
+                        0,
                     ),
                     matching_matrix[b + 1 :],
                 ],
@@ -632,7 +670,9 @@ class YoloX(tf.keras.Model):
             matching_matrix = tf.concat(
                 [
                     matching_matrix[:, :anchor_index],
-                    tf.expand_dims(tf.one_hot(gt_index, tf.cast(num_gt, tf.int32)), 1),
+                    tf.expand_dims(
+                        tf.one_hot(gt_index, tf.cast(num_gt, tf.int32)), 1
+                    ),
                     matching_matrix[:, anchor_index + 1 :],
                 ],
                 axis=-1,
@@ -650,9 +690,13 @@ class YoloX(tf.keras.Model):
 
         fg_mask_indices = tf.reshape(tf.where(fg_mask), [-1])
         fg_mask_inboxes_indices = tf.reshape(tf.where(fg_mask_inboxes), [-1, 1])
-        fg_mask_select_indices = tf.gather_nd(fg_mask_indices, fg_mask_inboxes_indices)
+        fg_mask_select_indices = tf.gather_nd(
+            fg_mask_indices, fg_mask_inboxes_indices
+        )
         fg_mask = tf.cast(
-            tf.reduce_max(tf.one_hot(fg_mask_select_indices, tf.shape(fg_mask)[0]), 0),
+            tf.reduce_max(
+                tf.one_hot(fg_mask_select_indices, tf.shape(fg_mask)[0]), 0
+            ),
             K.dtype(fg_mask),
         )
 
@@ -720,7 +764,9 @@ def _parse_box_loss(loss):
         )
     if loss.lower() == "giou":
         return keras_cv.losses.GIoULoss(
-            bounding_box_format="center_xywh", reduction="none", axis="no_reduction"
+            bounding_box_format="center_xywh",
+            reduction="none",
+            axis="no_reduction",
         )
 
     raise ValueError(
@@ -781,7 +827,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture using the given phi val
             LabelEncoder is created and used.
         prediction_decoder: (Optional)  A `keras.layer` that is responsible for
             transforming {name} predictions into usable bounding box Tensors.  If
-            not provided, a default DecodePredictions is provided. The default layer
+            not provided, a default YoloXPredictionDecoder is provided. The default layer
             uses a `NonMaxSuppression` operation for box pruning.
         feature_pyramid: (Optional) A `keras.Model` representing a feature pyramid
             network (FPN).  The feature pyramid network is called on the outputs of the

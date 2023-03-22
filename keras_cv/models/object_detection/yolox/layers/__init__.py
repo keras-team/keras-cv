@@ -1,4 +1,4 @@
-# Copyright 2022 The KerasCV Authors
+# Copyright 2023 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,15 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from keras_cv.models.object_detection.yolox.__internal__.layers.yolox_decoder import (
-    DecodePredictions,
+from keras_cv.models.object_detection.yolox.layers.yolox_decoder import (
+    YoloXPredictionDecoder,
 )
-from keras_cv.models.object_detection.yolox.__internal__.layers.yolox_head import (
+from keras_cv.models.object_detection.yolox.layers.yolox_head import (
     YoloXHead,
 )
-from keras_cv.models.object_detection.yolox.__internal__.layers.yolox_label_encoder import (
+from keras_cv.models.object_detection.yolox.layers.yolox_label_encoder import (
     YoloXLabelEncoder,
 )
-from keras_cv.models.object_detection.yolox.__internal__.layers.yolox_pafpn import (
+from keras_cv.models.object_detection.yolox.layers.yolox_pafpn import (
     YoloXPAFPN,
 )
