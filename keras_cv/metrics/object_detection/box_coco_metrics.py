@@ -68,8 +68,8 @@ METRIC_NAMES = [
 ]
 
 
-class COCOMetrics(keras.metrics.Metric):
-    """COCOMetrics computes standard object deteciton metrics.
+class BoxCOCOMetrics(keras.metrics.Metric):
+    """BoxCOCOMetrics computes standard object deteciton metrics.
 
     Args:
         bounding_box_format: the bounding box format for inputs.
@@ -80,7 +80,7 @@ class COCOMetrics(keras.metrics.Metric):
             allow for higher numerical precision in metric reporting.
 
     Usage:
-    `COCOMetrics()` can be used like any standard metric with any
+    `BoxCOCOMetrics()` can be used like any standard metric with any
     KerasCV object detection model.  Inputs to `y_true` must be KerasCV bounding
     box dictionaries, `{"classes": classes, "boxes": boxes}`, and `y_pred` must
     follow the same format with an additional `confidence` key.
@@ -114,7 +114,7 @@ class COCOMetrics(keras.metrics.Metric):
         box_loss='smoothl1',
         optimizer=tf.optimizers.SGD(global_clipnorm=10.0),
         jit_compile=False,
-        metrics=[keras_cv.metrics.COCOMetrics('xywh')]
+        metrics=[keras_cv.metrics.BoxCOCOMetrics('xywh')]
     )
     model.fit(images, labels)
     ```
@@ -200,7 +200,7 @@ class COCOMetrics(keras.metrics.Metric):
         return obj
 
     def name_prefix(self):
-        if self.name == "object_detection_metric_suite":
+        if self.name.startswith("box_coco_metrics"):
             return ""
         return self.name + "_"
 

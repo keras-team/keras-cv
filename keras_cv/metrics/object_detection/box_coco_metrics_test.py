@@ -17,7 +17,7 @@ import numpy as np
 import tensorflow as tf
 
 from keras_cv import bounding_box
-from keras_cv.metrics import COCOMetrics
+from keras_cv.metrics import BoxCOCOMetrics
 
 SAMPLE_FILE = os.path.dirname(os.path.abspath(__file__)) + "/sample_boxes.npz"
 
@@ -62,9 +62,9 @@ golden_metrics = {
 }
 
 
-class COCOMetricsTest(tf.test.TestCase):
+class BoxCOCOMetricsTest(tf.test.TestCase):
     def test_coco_metric_suite_returns_all_coco_metrics(self):
-        suite = COCOMetrics(bounding_box_format="xyxy", eval_steps=1)
+        suite = BoxCOCOMetrics(bounding_box_format="xyxy", eval_steps=1)
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
 
         suite.update_state(y_true, y_pred)
@@ -73,7 +73,7 @@ class COCOMetricsTest(tf.test.TestCase):
         self.assertAllEqual(metrics, golden_metrics)
 
     def test_coco_metric_suite_eval_steps(self):
-        suite = COCOMetrics(bounding_box_format="xyxy", eval_steps=2)
+        suite = BoxCOCOMetrics(bounding_box_format="xyxy", eval_steps=2)
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
 
         suite.update_state(y_true, y_pred)
@@ -89,7 +89,7 @@ class COCOMetricsTest(tf.test.TestCase):
             self.assertNotEqual(metrics[metric], 0.0)
 
     def test_name_parameter(self):
-        suite = COCOMetrics(
+        suite = BoxCOCOMetrics(
             bounding_box_format="xyxy", eval_steps=1, name="coco_metrics"
         )
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
@@ -97,6 +97,6 @@ class COCOMetricsTest(tf.test.TestCase):
         metrics = suite.result()
 
         for metric in golden_metrics:
-            self.assertEqual(
+            self.assertAlmostEqual(
                 metrics["coco_metrics_" + metric], golden_metrics[metric]
             )

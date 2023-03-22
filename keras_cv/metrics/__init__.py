@@ -12,4 +12,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from keras_cv.metrics.object_detection.coco_metrics import COCOMetrics
+from keras_cv.metrics.object_detection.box_coco_metrics import BoxCOCOMetrics
