@@ -110,7 +110,9 @@ from keras_cv.models.object_detection.yolox.yolox import YoloX_m
 from keras_cv.models.object_detection.yolox.yolox import YoloX_s
 from keras_cv.models.object_detection.yolox.yolox import YoloX_tiny
 from keras_cv.models.object_detection.yolox.yolox import YoloX_x
-from keras_cv.models.object_detection_3d.center_pillar import MultiHeadCenterPillar
+from keras_cv.models.object_detection_3d.center_pillar import (
+    MultiHeadCenterPillar,
+)
 from keras_cv.models.regnet import RegNetX002
 from keras_cv.models.regnet import RegNetX004
 from keras_cv.models.regnet import RegNetX006

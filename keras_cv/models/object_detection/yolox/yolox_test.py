@@ -1,4 +1,4 @@
-# Copyright 2022 The KerasCV Authors
+# Copyright 2023 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import tensorflow as tf
 from tensorflow.keras import optimizers
 
 import keras_cv
-from keras_cv.models.object_detection.yolox.__internal__.binary_crossentropy import (
+from keras_cv.models.object_detection.yolox.binary_crossentropy import (
     BinaryCrossentropy,
 )
 
@@ -123,9 +123,13 @@ class YoloXTest(tf.test.TestCase):
         yolox.compile(
             optimizer="adam",
             box_loss=keras_cv.losses.IoULoss(
-                bounding_box_format="center_xywh", mode="squared", reduction="none"
+                bounding_box_format="center_xywh",
+                mode="squared",
+                reduction="none",
             ),
-            classification_loss=BinaryCrossentropy(from_logits=True, reduction="sum"),
+            classification_loss=BinaryCrossentropy(
+                from_logits=True, reduction="sum"
+            ),
             objectness_loss="binary_crossentropy",
         )
 
@@ -138,10 +142,16 @@ class YoloXTest(tf.test.TestCase):
         yolox.compile(
             optimizer="adam",
             box_loss=keras_cv.losses.IoULoss(
-                bounding_box_format="center_xywh", mode="squared", reduction="sum"
+                bounding_box_format="center_xywh",
+                mode="squared",
+                reduction="sum",
             ),
-            classification_loss=BinaryCrossentropy(from_logits=True, reduction="none"),
-            objectness_loss=BinaryCrossentropy(from_logits=True, reduction="none"),
+            classification_loss=BinaryCrossentropy(
+                from_logits=True, reduction="none"
+            ),
+            objectness_loss=BinaryCrossentropy(
+                from_logits=True, reduction="none"
+            ),
         )
         with self.assertRaisesRegex(ValueError, "output shape of `box_loss`"):
             yolox.fit(x=xs, y=ys, epochs=1)
@@ -290,6 +300,10 @@ def _create_bounding_box_dataset(bounding_box_format):
     ys = tf.concat([ys, y_classes], axis=-1)
 
     ys = keras_cv.bounding_box.convert_format(
-        ys, source="rel_xywh", target=bounding_box_format, images=xs, dtype=tf.float32
+        ys,
+        source="rel_xywh",
+        target=bounding_box_format,
+        images=xs,
+        dtype=tf.float32,
     )
     return xs, ys

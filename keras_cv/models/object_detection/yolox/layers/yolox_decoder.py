@@ -23,27 +23,26 @@ from keras_cv import bounding_box
 class YoloXPredictionDecoder(keras.layers.Layer):
     """Decodes the predictions from YoloX head.
 
-    This layer is similar to the decoding code in `YoloX.compute_losses`. This
-    is followed by a bounding box suppression layer.
+    This layer is similar to the decoding code in `YoloX.compute_losses`. This is
+    followed by a bounding box suppression layer.
 
     Arguments:
-        bounding_box_format:  The format of bounding boxes of input dataset.
-            Refer to https://keras.io/api/keras_cv/bounding_box/formats/
+        bounding_box_format:  The format of bounding boxes of input dataset. Refer
+            [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
             for more details on supported bounding box formats.
-        num_classes: The number of classes to be considered for the
-            classification head.
+        classes: The number of classes to be considered for the classification head.
         suppression_layer: A `keras.layers.Layer` that follows the same API
-            signature of the `keras_cv.layers.MultiClassNonMaxSuppression`
-            layer. This layer should perform a suppression operation such as Non
-            Max Suppression, or Soft Non-Max Suppression.
+            signature of the `keras_cv.layers.MultiClassNonMaxSuppression` layer.
+            This layer should perform a suppression operation such as Non Max Suppression,
+            or Soft Non-Max Suppression.
     """
 
     def __init__(
-        self, bounding_box_format, num_classes, suppression_layer=None, **kwargs
+        self, bounding_box_format, classes, suppression_layer=None, **kwargs
     ):
         super().__init__(**kwargs)
         self.bounding_box_format = bounding_box_format
-        self.num_classes = num_classes
+        self.classes = classes
 
         self.suppression_layer = (
             suppression_layer
