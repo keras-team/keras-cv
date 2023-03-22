@@ -18,7 +18,6 @@ except:
     cv2 = None
 
 import numpy as np
-import tensorflow as tf
 
 from keras_cv import bounding_box
 from keras_cv import utils

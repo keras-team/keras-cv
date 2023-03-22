@@ -77,7 +77,6 @@ def plot_gallery(
                 x = inputs
             total += x.shape[0]
             images.append(x)
-            boxes.append(y)
         images = tf.concatenate(images, axis=0)
 
     fig = plt.figure(figsize=(cols * scale, rows * scale))
