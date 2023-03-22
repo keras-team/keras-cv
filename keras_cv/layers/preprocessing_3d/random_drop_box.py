@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv.layers.preprocessing_3d import base_augmentation_layer_3d
 from keras_cv.point_cloud import is_within_any_box3d
@@ -22,7 +23,7 @@ BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
 BOX_LABEL_INDEX = base_augmentation_layer_3d.BOX_LABEL_INDEX
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class RandomDropBox(base_augmentation_layer_3d.BaseAugmentationLayer3D):
     """A preprocessing layer which randomly drops object bounding boxes and points during training.
 
@@ -86,7 +87,9 @@ class RandomDropBox(base_augmentation_layer_3d.BaseAugmentationLayer3D):
         )
         # Randomly remove max_drop_bounding_boxes number of bounding boxes.
         num_bounding_boxes = bounding_boxes.get_shape().as_list()[1]
-        random_scores_for_selected_boxes = tf.random.uniform(shape=[num_bounding_boxes])
+        random_scores_for_selected_boxes = tf.random.uniform(
+            shape=[num_bounding_boxes]
+        )
         random_scores_for_selected_boxes = tf.where(
             selected_boxes_mask, random_scores_for_selected_boxes, 0.0
         )

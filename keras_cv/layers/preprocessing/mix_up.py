@@ -11,7 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv import bounding_box
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
@@ -19,14 +21,14 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 )
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class MixUp(BaseImageAugmentationLayer):
     """MixUp implements the MixUp data augmentation technique.
 
     Args:
-        alpha: Float between 0 and 1.  Inverse scale parameter for the gamma
-            distribution.  This controls the shape of the distribution from which the
-            smoothing values are sampled.  Defaults 0.2, which is a recommended value
+        alpha: Float between 0 and 1. Inverse scale parameter for the gamma
+            distribution. This controls the shape of the distribution from which the
+            smoothing values are sampled. Defaults to 0.2, which is a recommended value
             when training an imagenet1k classification model.
         seed: Integer. Used to create a random seed.
 
@@ -36,7 +38,7 @@ class MixUp(BaseImageAugmentationLayer):
 
     Sample usage:
     ```python
-    (images, labels), _ = tf.keras.datasets.cifar10.load_data()
+    (images, labels), _ = keras.datasets.cifar10.load_data()
     images, labels = images[:10], labels[:10]
     # Labels must be floating-point and one-hot encoded
     labels = tf.cast(tf.one_hot(labels, 10), tf.float32)
@@ -53,10 +55,10 @@ class MixUp(BaseImageAugmentationLayer):
 
     def _sample_from_beta(self, alpha, beta, shape):
         sample_alpha = tf.random.gamma(
-            shape, 1.0, beta=alpha, seed=self._random_generator.make_legacy_seed()
+            shape, alpha=alpha, seed=self._random_generator.make_legacy_seed()
         )
         sample_beta = tf.random.gamma(
-            shape, 1.0, beta=beta, seed=self._random_generator.make_legacy_seed()
+            shape, alpha=beta, seed=self._random_generator.make_legacy_seed()
         )
         return sample_alpha / (sample_alpha + sample_beta)
 
@@ -67,7 +69,9 @@ class MixUp(BaseImageAugmentationLayer):
         bounding_boxes = inputs.get("bounding_boxes", None)
         images, lambda_sample, permutation_order = self._mixup(images)
         if labels is not None:
-            labels = self._update_labels(labels, lambda_sample, permutation_order)
+            labels = self._update_labels(
+                labels, lambda_sample, permutation_order
+            )
             inputs["labels"] = labels
         if bounding_boxes is not None:
             bounding_boxes = self._update_bounding_boxes(
@@ -79,16 +83,20 @@ class MixUp(BaseImageAugmentationLayer):
 
     def _augment(self, inputs):
         raise ValueError(
-            "MixUp received a single image to `call`.  The layer relies on "
+            "MixUp received a single image to `call`. The layer relies on "
             "combining multiple examples, and as such will not behave as "
-            "expected.  Please call the layer with 2 or more samples."
+            "expected. Please call the layer with 2 or more samples."
         )
 
     def _mixup(self, images):
         batch_size = tf.shape(images)[0]
-        permutation_order = tf.random.shuffle(tf.range(0, batch_size), seed=self.seed)
+        permutation_order = tf.random.shuffle(
+            tf.range(0, batch_size), seed=self.seed
+        )
 
-        lambda_sample = self._sample_from_beta(self.alpha, self.alpha, (batch_size,))
+        lambda_sample = self._sample_from_beta(
+            self.alpha, self.alpha, (batch_size,)
+        )
         lambda_sample = tf.cast(
             tf.reshape(lambda_sample, [-1, 1, 1, 1]), dtype=self.compute_dtype
         )
@@ -106,7 +114,9 @@ class MixUp(BaseImageAugmentationLayer):
 
         lambda_sample = tf.reshape(lambda_sample, [-1, 1])
 
-        labels = lambda_sample * labels + (1.0 - lambda_sample) * labels_for_mixup
+        labels = (
+            lambda_sample * labels + (1.0 - lambda_sample) * labels_for_mixup
+        )
 
         return labels
 

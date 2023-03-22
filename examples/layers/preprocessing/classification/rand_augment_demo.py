@@ -26,7 +26,10 @@ from keras_cv.layers import preprocessing
 def main():
     ds = demo_utils.load_oxford_dataset()
     rand_augment = preprocessing.RandAugment(
-        value_range=(0, 255), augmentations_per_image=3, magnitude=0.5, rate=0.875
+        value_range=(0, 255),
+        augmentations_per_image=3,
+        magnitude=0.5,
+        rate=0.875,
     )
     ds = ds.map(rand_augment, num_parallel_calls=tf.data.AUTOTUNE)
     demo_utils.visualize_dataset(ds)

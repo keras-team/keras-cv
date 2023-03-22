@@ -18,8 +18,8 @@ import time
 
 import matplotlib.pyplot as plt
 import tensorflow as tf
-import tensorflow.keras as keras
 import tensorflow.keras.layers as layers
+from tensorflow import keras
 from tensorflow.keras import backend
 
 from keras_cv.utils import bounding_box
@@ -72,7 +72,9 @@ def single_rectangle_mask(corners, mask_shape):
     return masks
 
 
-def fill_single_rectangle(image, centers_x, centers_y, widths, heights, fill_values):
+def fill_single_rectangle(
+    image, centers_x, centers_y, widths, heights, fill_values
+):
     """Fill rectangles with fill value into images.
 
     Args:

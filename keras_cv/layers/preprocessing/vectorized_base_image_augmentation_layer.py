@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv import bounding_box
 from keras_cv.utils import preprocessing
@@ -33,7 +34,7 @@ USE_TARGETS = "use_targets"
 
 
 class VectorizedBaseImageAugmentationLayer(
-    tf.keras.__internal__.layers.BaseRandomLayer
+    keras.__internal__.layers.BaseRandomLayer
 ):
     """Abstract base layer for vectorized image augmentaion.
 
@@ -73,7 +74,7 @@ class VectorizedBaseImageAugmentationLayer(
     to the same structure as the inputs.
 
     Note that since the randomness is also a common functionality, this layer
-    also includes a tf.keras.backend.RandomGenerator, which can be used to
+    also includes a keras.backend.RandomGenerator, which can be used to
     produce the random numbers.  The random number generator is stored in the
     `self._random_generator` attribute.
     """
@@ -195,7 +196,9 @@ class VectorizedBaseImageAugmentationLayer(
         """
         raise NotImplementedError()
 
-    def augment_segmentation_masks(self, segmentation_masks, transformations, **kwargs):
+    def augment_segmentation_masks(
+        self, segmentation_masks, transformations, **kwargs
+    ):
         """Augment a batch of images' segmentation masks during training.
 
         Args:
@@ -279,7 +282,9 @@ class VectorizedBaseImageAugmentationLayer(
         if isinstance(images, tf.RaggedTensor):
             inputs_for_raggeds = {"transformations": transformations, **inputs}
             print("inputs_for_raggeds", inputs_for_raggeds)
-            print("self._unwrap_ragged_image_call", self._unwrap_ragged_image_call)
+            print(
+                "self._unwrap_ragged_image_call", self._unwrap_ragged_image_call
+            )
             images = tf.map_fn(
                 self._unwrap_ragged_image_call,
                 inputs_for_raggeds,
@@ -341,7 +346,9 @@ class VectorizedBaseImageAugmentationLayer(
             inputs, metadata = self._format_inputs(inputs)
             images = inputs[IMAGES]
             if images.shape.rank == 3 or images.shape.rank == 4:
-                return self._format_output(self._batch_augment(inputs), metadata)
+                return self._format_output(
+                    self._batch_augment(inputs), metadata
+                )
             else:
                 raise ValueError(
                     "Image augmentation layers are expecting inputs to be "
@@ -369,7 +376,9 @@ class VectorizedBaseImageAugmentationLayer(
             )
 
         if BOUNDING_BOXES in inputs:
-            inputs[BOUNDING_BOXES] = self._format_bounding_boxes(inputs[BOUNDING_BOXES])
+            inputs[BOUNDING_BOXES] = self._format_bounding_boxes(
+                inputs[BOUNDING_BOXES]
+            )
 
         if isinstance(inputs, dict) and TARGETS in inputs:
             # TODO(scottzhu): Check if it only contains the valid keys

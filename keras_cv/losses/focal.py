@@ -14,10 +14,11 @@
 
 import tensorflow as tf
 import tensorflow.keras.backend as K
+from tensorflow import keras
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
-class FocalLoss(tf.keras.losses.Loss):
+@keras.utils.register_keras_serializable(package="keras_cv")
+class FocalLoss(keras.losses.Loss):
     """Implements Focal loss
 
     Focal loss is a modified cross-entropy designed to perform better with
@@ -69,7 +70,9 @@ class FocalLoss(tf.keras.losses.Loss):
         self.label_smoothing = label_smoothing
 
     def _smooth_labels(self, y_true):
-        return y_true * (1.0 - self.label_smoothing) + 0.5 * self.label_smoothing
+        return (
+            y_true * (1.0 - self.label_smoothing) + 0.5 * self.label_smoothing
+        )
 
     def call(self, y_true, y_pred):
         y_pred = tf.convert_to_tensor(y_pred)

@@ -22,7 +22,9 @@ from keras_cv.layers import preprocessing
 class RandomTranslationTest(tf.test.TestCase, parameterized.TestCase):
     def test_random_translation_up_numeric_reflect(self):
         for dtype in (np.int64, np.float32):
-            input_image = np.reshape(np.arange(0, 25), (1, 5, 5, 1)).astype(dtype)
+            input_image = np.reshape(np.arange(0, 25), (1, 5, 5, 1)).astype(
+                dtype
+            )
             # Shifting by -.2 * 5 = 1 pixel.
             layer = preprocessing.RandomTranslation(
                 height_factor=(-0.2, -0.2), width_factor=0.0
@@ -42,7 +44,9 @@ class RandomTranslationTest(tf.test.TestCase, parameterized.TestCase):
 
     def test_random_translation_up_numeric_constant(self):
         for dtype in (np.int64, np.float32):
-            input_image = np.reshape(np.arange(0, 25), (1, 5, 5, 1)).astype(dtype)
+            input_image = np.reshape(np.arange(0, 25), (1, 5, 5, 1)).astype(
+                dtype
+            )
             # Shifting by -.2 * 5 = 1 pixel.
             layer = preprocessing.RandomTranslation(
                 height_factor=(-0.2, -0.2),
@@ -64,7 +68,9 @@ class RandomTranslationTest(tf.test.TestCase, parameterized.TestCase):
 
     def test_random_translation_down_numeric_reflect(self):
         for dtype in (np.int64, np.float32):
-            input_image = np.reshape(np.arange(0, 25), (1, 5, 5, 1)).astype(dtype)
+            input_image = np.reshape(np.arange(0, 25), (1, 5, 5, 1)).astype(
+                dtype
+            )
             # Shifting by .2 * 5 = 1 pixel.
             layer = preprocessing.RandomTranslation(
                 height_factor=(0.2, 0.2), width_factor=0.0
@@ -84,7 +90,9 @@ class RandomTranslationTest(tf.test.TestCase, parameterized.TestCase):
 
     def test_random_translation_asymmetric_size_numeric_reflect(self):
         for dtype in (np.int64, np.float32):
-            input_image = np.reshape(np.arange(0, 16), (1, 8, 2, 1)).astype(dtype)
+            input_image = np.reshape(np.arange(0, 16), (1, 8, 2, 1)).astype(
+                dtype
+            )
             # Shifting by .5 * 8 = 1 pixel.
             layer = preprocessing.RandomTranslation(
                 height_factor=(0.5, 0.5), width_factor=0.0
@@ -109,7 +117,9 @@ class RandomTranslationTest(tf.test.TestCase, parameterized.TestCase):
 
     def test_random_translation_down_numeric_constant(self):
         for dtype in (np.int64, np.float32):
-            input_image = np.reshape(np.arange(0, 25), (1, 5, 5, 1)).astype(dtype)
+            input_image = np.reshape(np.arange(0, 25), (1, 5, 5, 1)).astype(
+                dtype
+            )
             # Shifting by -.2 * 5 = 1 pixel.
             layer = preprocessing.RandomTranslation(
                 height_factor=(0.2, 0.2),
@@ -131,7 +141,9 @@ class RandomTranslationTest(tf.test.TestCase, parameterized.TestCase):
 
     def test_random_translation_left_numeric_reflect(self):
         for dtype in (np.int64, np.float32):
-            input_image = np.reshape(np.arange(0, 25), (1, 5, 5, 1)).astype(dtype)
+            input_image = np.reshape(np.arange(0, 25), (1, 5, 5, 1)).astype(
+                dtype
+            )
             # Shifting by .2 * 5 = 1 pixel.
             layer = preprocessing.RandomTranslation(
                 height_factor=0.0, width_factor=(-0.2, -0.2)
@@ -151,7 +163,9 @@ class RandomTranslationTest(tf.test.TestCase, parameterized.TestCase):
 
     def test_random_translation_left_numeric_constant(self):
         for dtype in (np.int64, np.float32):
-            input_image = np.reshape(np.arange(0, 25), (1, 5, 5, 1)).astype(dtype)
+            input_image = np.reshape(np.arange(0, 25), (1, 5, 5, 1)).astype(
+                dtype
+            )
             # Shifting by -.2 * 5 = 1 pixel.
             layer = preprocessing.RandomTranslation(
                 height_factor=0.0,
@@ -177,6 +191,17 @@ class RandomTranslationTest(tf.test.TestCase, parameterized.TestCase):
         layer = preprocessing.RandomTranslation(0.5, 0.5)
         actual_output = layer(input_images, training=False)
         self.assertAllClose(expected_output, actual_output)
+
+    def test_random_translation_on_batched_images_independently(self):
+        image = tf.random.uniform(shape=(100, 100, 3))
+        input_images = tf.stack([image, image], axis=0)
+
+        layer = preprocessing.RandomTranslation(
+            height_factor=0.5, width_factor=0.5
+        )
+
+        results = layer(input_images)
+        self.assertNotAllClose(results[0], results[1])
 
     def test_config_with_custom_name(self):
         layer = preprocessing.RandomTranslation(0.5, 0.6, name="image_preproc")

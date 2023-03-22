@@ -11,7 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
@@ -19,7 +21,7 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 from keras_cv.utils import preprocessing
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class Equalization(BaseImageAugmentationLayer):
     """Equalization performs histogram equalization on a channel-wise basis.
 
@@ -35,7 +37,7 @@ class Equalization(BaseImageAugmentationLayer):
     ```python
     equalize = Equalization()
 
-    (images, labels), _ = tf.keras.datasets.cifar10.load_data()
+    (images, labels), _ = keras.datasets.cifar10.load_data()
     # Note that images are an int8 Tensor with values in the range [0, 255]
     images = equalize(images)
     ```
@@ -73,9 +75,9 @@ class Equalization(BaseImageAugmentationLayer):
             histogram,
         )
 
-        step = (tf.reduce_sum(histogram) - tf.reduce_min(histogram_without_zeroes)) // (
-            self.bins - 1
-        )
+        step = (
+            tf.reduce_sum(histogram) - tf.reduce_min(histogram_without_zeroes)
+        ) // (self.bins - 1)
 
         def build_mapping(histogram, step):
             # Compute the cumulative sum, shifting by step // 2
@@ -120,7 +122,9 @@ class Equalization(BaseImageAugmentationLayer):
     def augment_label(self, label, transformation=None, **kwargs):
         return label
 
-    def augment_segmentation_mask(self, segmentation_mask, transformation, **kwargs):
+    def augment_segmentation_mask(
+        self, segmentation_mask, transformation, **kwargs
+    ):
         return segmentation_mask
 
     def get_config(self):

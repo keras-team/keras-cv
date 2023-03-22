@@ -17,16 +17,29 @@ import tensorflow as tf
 from keras_cv import bounding_box
 
 
-def filter_boxes_by_area_range(boxes, min_area, max_area):
+def filter_boxes_by_area_range(bounding_boxes, min_area, max_area):
+    boxes, classes = bounding_boxes["boxes"], bounding_boxes["classes"]
+    confidence = bounding_boxes.get("confidence", None)
+
     areas = bounding_box_area(boxes)
     inds = tf.where(tf.math.logical_and(areas >= min_area, areas < max_area))
-    return tf.gather_nd(boxes, inds)
+
+    boxes = tf.gather_nd(boxes, inds)
+    classes = tf.gather_nd(classes, inds)
+    result = {"boxes": boxes, "classes": classes}
+
+    if confidence is not None:
+        confidence = tf.gather_nd(bounding_boxes["confidence"], inds)
+        result["confidence"] = confidence
+
+    return result
 
 
 def bounding_box_area(boxes):
     """box_areas returns the area of the provided bounding boxes.
+
     Args:
-        boxes: Tensor of bounding boxes of shape `[..., 4+]` in corners format.
+        boxes: Tensor of bounding boxes of shape `[..., 4]` in corners format.
     Returns:
         areas: Tensor of areas of shape `[...]`.
     """
@@ -35,18 +48,44 @@ def bounding_box_area(boxes):
     return tf.math.multiply(w, h)
 
 
-def filter_boxes(boxes, value, axis=4):
-    """filter_boxes is used to select only boxes matching a given class.
+def slice(bounding_boxes, idx):
+    boxes, classes = bounding_boxes["boxes"], bounding_boxes["classes"]
+    confidence = bounding_boxes.get("confidence", None)
+
+    result = {
+        "boxes": boxes[:idx],
+        "classes": classes[:idx],
+    }
+    if confidence is not None:
+        result["confidence"] = confidence[:idx]
+    return result
+
+
+def select_boxes_of_class(bounding_boxes, class_id):
+    """select_boxes_of_class is used to select only boxes matching a class.
     The most common use case for this is to filter to accept only a specific
-    bounding_box.CLASS.
+    'class_id'.
+
     Args:
-        boxes: Tensor of bounding boxes in format `[images, bounding_boxes, 6]`
-        value: Value the specified axis must match
-        axis: Integer identifying the axis on which to sort, default 4
+        boxes: Tensor of bounding boxes in KerasCV format.
+        class_id: class_id the specified axis must match
     Returns:
-        boxes: A new Tensor of bounding boxes, where boxes[axis]==value
+        boxes: A new Tensor of bounding boxes, where boxes[axis]==class_id
     """
-    return tf.gather_nd(boxes, tf.where(boxes[:, axis] == value))
+
+    boxes, classes = bounding_boxes["boxes"], bounding_boxes["classes"]
+    confidence = bounding_boxes.get("confidence", None)
+    indices = tf.where(classes == tf.cast(class_id, classes.dtype))
+
+    result = {
+        "boxes": tf.gather_nd(boxes, indices),
+        "classes": tf.gather_nd(classes, indices),
+    }
+
+    if confidence is not None:
+        result["confidence"] = tf.gather_nd(confidence, indices)
+
+    return result
 
 
 def to_sentinel_padded_bounding_box_tensor(box_sets):
@@ -63,40 +102,49 @@ def to_sentinel_padded_bounding_box_tensor(box_sets):
     return tf.ragged.stack(box_sets).to_tensor(default_value=-1)
 
 
-def filter_out_sentinels(boxes):
-    """filter_out_sentinels to filter out boxes that were padded on to the prediction
-    or ground truth bounding_box tensor to ensure dimensions match.
+def get_boxes_for_image(bounding_boxes, index):
+    boxes = bounding_boxes["boxes"]
+    classes = bounding_boxes["classes"]
+    result = {
+        "boxes": boxes[index, ...],
+        "classes": classes[index, ...],
+    }
+
+    if "confidence" in bounding_boxes:
+        confidence = bounding_boxes["confidence"]
+        result["confidence"] = confidence[index, ...]
+
+    return result
+
+
+def order_by_confidence(bounding_boxes):
+    """order_by_confidence is used to sort a batch of bounding boxes.
+
     Args:
-        boxes: Tensor of bounding boxes in format `[bounding_boxes, 6]`, usually from a
-            single image.
-    Returns:
-        boxes: A new Tensor of bounding boxes, where boxes[axis]!=-1.
-    """
-    return tf.gather_nd(boxes, tf.where(boxes[:, bounding_box.XYXY.CLASS] != -1))
-
-
-def sort_bounding_boxes(boxes, axis=5):
-    """sort_bounding_boxes is used to sort a list of bounding boxes by a given axis.
-
-    The most common use case for this is to sort by bounding_box.XYXY.CONFIDENCE, as
-    this is a part of computing both _COCORecall and _COCOMeanAveragePrecision.
-    Args:
-        boxes: Tensor of bounding boxes in format `[images, bounding_boxes, 6]`
-        axis: Integer identifying the axis on which to sort, default 5
+        bounding_boxes: dictionarity containing the bounding boxes.
     Returns:
         boxes: A new Tensor of Bounding boxes, sorted on an image-wise basis.
     """
-    num_images = tf.shape(boxes)[0]
-    boxes_sorted_list = tf.TensorArray(tf.float32, size=num_images, dynamic_size=False)
-    for img in tf.range(num_images):
-        preds_for_img = boxes[img, :, :]
-        prediction_scores = preds_for_img[:, axis]
-        _, idx = tf.math.top_k(prediction_scores, tf.shape(preds_for_img)[0])
-        boxes_sorted_list = boxes_sorted_list.write(
-            img, tf.gather(preds_for_img, idx, axis=0)
-        )
+    boxes = bounding_boxes["boxes"]
+    classes = bounding_boxes["classes"]
+    confidence = bounding_boxes["confidence"]
 
-    return boxes_sorted_list.stack()
+    if boxes.shape.rank != 2:
+        raise ValueError(
+            "`order_by_confidence()` should only accept a single "
+            f"batch of bounding boxes.  Received `boxes.shape={boxes.shape}`."
+        )
+    _, idx = tf.math.top_k(confidence, tf.shape(confidence)[0])
+
+    boxes = bounding_boxes["boxes"]
+    classes = bounding_boxes["classes"]
+    confidence = bounding_boxes["confidence"]
+
+    boxes = tf.gather(boxes, idx, axis=0)
+    classes = tf.gather(classes, idx, axis=0)
+    confidence = tf.gather(confidence, idx, axis=0)
+
+    return {"boxes": boxes, "classes": classes, "confidence": confidence}
 
 
 def match_boxes(ious, threshold):

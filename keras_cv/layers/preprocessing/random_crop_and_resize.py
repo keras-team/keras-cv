@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv import bounding_box
 from keras_cv import core
@@ -22,7 +23,7 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 from keras_cv.utils import preprocessing
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class RandomCropAndResize(BaseImageAugmentationLayer):
     """Randomly crops a part of an image and resizes it to provided size.
 
@@ -70,7 +71,9 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
     ):
         super().__init__(seed=seed, **kwargs)
 
-        self._check_class_arguments(target_size, crop_area_factor, aspect_ratio_factor)
+        self._check_class_arguments(
+            target_size, crop_area_factor, aspect_ratio_factor
+        )
         self.target_size = target_size
         self.aspect_ratio_factor = preprocessing.parse_factor(
             aspect_ratio_factor,
@@ -100,7 +103,9 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
         new_height = tf.clip_by_value(
             tf.sqrt(crop_area_factor / aspect_ratio), 0.0, 1.0
         )  # to avoid unwanted/unintuitive effects
-        new_width = tf.clip_by_value(tf.sqrt(crop_area_factor * aspect_ratio), 0.0, 1.0)
+        new_width = tf.clip_by_value(
+            tf.sqrt(crop_area_factor * aspect_ratio), 0.0, 1.0
+        )
 
         height_offset = self._random_generator.random_uniform(
             (),
@@ -158,7 +163,9 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
         t_y1, t_x1, t_y2, t_x2 = transformation[0]
         t_dx = t_x2 - t_x1
         t_dy = t_y2 - t_y1
-        x1, y1, x2, y2 = tf.split(bounding_boxes["boxes"], [1, 1, 1, 1], axis=-1)
+        x1, y1, x2, y2 = tf.split(
+            bounding_boxes["boxes"], [1, 1, 1, 1], axis=-1
+        )
         output = tf.concat(
             [
                 (x1 - t_x1) / t_dx,
@@ -208,7 +215,7 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
         return bounding_boxes
 
     def _resize(self, image, **kwargs):
-        outputs = tf.keras.preprocessing.image.smart_resize(
+        outputs = keras.preprocessing.image.smart_resize(
             image, self.target_size, **kwargs
         )
         # smart_resize will always output float32, so we need to re-cast.
@@ -241,7 +248,9 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
             )
 
         if (
-            not isinstance(aspect_ratio_factor, (tuple, list, core.FactorSampler))
+            not isinstance(
+                aspect_ratio_factor, (tuple, list, core.FactorSampler)
+            )
             or isinstance(aspect_ratio_factor, float)
             or isinstance(aspect_ratio_factor, int)
         ):
@@ -251,7 +260,9 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
                 f"aspect_ratio_factor={aspect_ratio_factor}"
             )
 
-    def augment_segmentation_mask(self, segmentation_mask, transformation, **kwargs):
+    def augment_segmentation_mask(
+        self, segmentation_mask, transformation, **kwargs
+    ):
         return self._crop_and_resize(
             segmentation_mask, transformation, method="nearest"
         )
@@ -269,6 +280,20 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
             }
         )
         return config
+
+    @classmethod
+    def from_config(cls, config):
+        if isinstance(config["crop_area_factor"], dict):
+            config["crop_area_factor"] = keras.utils.deserialize_keras_object(
+                config["crop_area_factor"]
+            )
+        if isinstance(config["aspect_ratio_factor"], dict):
+            config[
+                "aspect_ratio_factor"
+            ] = keras.utils.deserialize_keras_object(
+                config["aspect_ratio_factor"]
+            )
+        return cls(**config)
 
     def _crop_and_resize(self, image, transformation, method=None):
         image = tf.expand_dims(image, axis=0)

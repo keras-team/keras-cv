@@ -19,7 +19,9 @@ from keras_cv.layers import preprocessing
 
 class RandomGaussianBlurTest(tf.test.TestCase):
     def test_return_shapes(self):
-        layer = preprocessing.RandomGaussianBlur(kernel_size=(3, 7), factor=(0, 2))
+        layer = preprocessing.RandomGaussianBlur(
+            kernel_size=(3, 7), factor=(0, 2)
+        )
 
         # RGB
         xs = tf.ones((2, 512, 512, 3))
@@ -32,7 +34,9 @@ class RandomGaussianBlurTest(tf.test.TestCase):
         self.assertEqual(xs.shape, [2, 512, 512, 1])
 
     def test_in_single_image(self):
-        layer = preprocessing.RandomGaussianBlur(kernel_size=(3, 7), factor=(0, 2))
+        layer = preprocessing.RandomGaussianBlur(
+            kernel_size=(3, 7), factor=(0, 2)
+        )
 
         # RGB
         xs = tf.cast(
@@ -53,7 +57,9 @@ class RandomGaussianBlurTest(tf.test.TestCase):
         self.assertEqual(xs.shape, [512, 512, 1])
 
     def test_non_square_images(self):
-        layer = preprocessing.RandomGaussianBlur(kernel_size=(3, 7), factor=(0, 2))
+        layer = preprocessing.RandomGaussianBlur(
+            kernel_size=(3, 7), factor=(0, 2)
+        )
 
         # RGB
         xs = tf.ones((2, 256, 512, 3))
@@ -79,7 +85,9 @@ class RandomGaussianBlurTest(tf.test.TestCase):
         self.assertEqual(xs.shape, [2, 512, 512, 1])
 
     def test_numerical(self):
-        layer = preprocessing.RandomGaussianBlur(kernel_size=3, factor=(1.0, 1.0))
+        layer = preprocessing.RandomGaussianBlur(
+            kernel_size=3, factor=(1.0, 1.0)
+        )
 
         xs = tf.expand_dims(
             tf.constant([[0, 0, 0], [0, 1, 0], [0, 0, 0]]),

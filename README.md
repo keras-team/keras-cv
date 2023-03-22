@@ -31,9 +31,22 @@ To learn more about the future project direction, please check the [roadmap](.gi
 - [Roadmap](.github/ROADMAP.md)
 - [API Design Guidelines](.github/API_DESIGN.md)
 
-## Quickstart
+## Installation
 
-Create a preprocessing pipeline:
+To install the latest official release:
+
+```
+pip install keras-cv tensorflow --upgrade
+```
+
+To install the latest unreleased changes to the library, we recommend using
+pip to install directly from the master branch on github:
+
+```
+pip install git+https://github.com/keras-team/keras-cv.git tensorflow --upgrade
+```
+
+## Quickstart
 
 ```python
 import keras_cv
@@ -41,49 +54,50 @@ import tensorflow as tf
 from tensorflow import keras
 import tensorflow_datasets as tfds
 
+# Create a preprocessing pipeline
 augmenter = keras_cv.layers.Augmenter(
-  layers=[
-      keras_cv.layers.RandomFlip(),
-      keras_cv.layers.RandAugment(value_range=(0, 255)),
-      keras_cv.layers.CutMix(),
-      keras_cv.layers.MixUp()
+    layers=[
+        keras_cv.layers.RandomFlip(),
+        keras_cv.layers.RandAugment(value_range=(0, 255)),
+        keras_cv.layers.CutMix(),
+        keras_cv.layers.MixUp()
     ]
 )
 
-def augment_data(images, labels):
-  labels = tf.one_hot(labels, 3)
-  inputs = {"images": images, "labels": labels}
-  outputs = augmenter(inputs)
-  return outputs['images'], outputs['labels']
-```
+def preprocess_data(images, labels, augment=False):
+    labels = tf.one_hot(labels, 3)
+    inputs = {"images": images, "labels": labels}
+    outputs = augmenter(inputs) if augment else inputs
+    return outputs['images'], outputs['labels']
 
-Augment a `tf.data.Dataset`:
+# Augment a `tf.data.Dataset`
+train_dataset, test_dataset = tfds.load(
+    'rock_paper_scissors',
+    as_supervised=True,
+    split=['train', 'test'],
+)
+train_dataset = train_dataset.batch(16).map(
+    lambda x, y: preprocess_data(x, y, augment=True),
+        num_parallel_calls=tf.data.AUTOTUNE).prefetch(
+            tf.data.AUTOTUNE)
+test_dataset = test_dataset.batch(16).map(
+    preprocess_data, num_parallel_calls=tf.data.AUTOTUNE).prefetch(
+        tf.data.AUTOTUNE)
 
-```python
-dataset = tfds.load('rock_paper_scissors', as_supervised=True, split='train')
-dataset = dataset.batch(64)
-dataset = dataset.map(augment_data, num_parallel_calls=tf.data.AUTOTUNE)
-```
-
-Create a model:
-
-```python
+# Create a model
 densenet = keras_cv.models.DenseNet121(
-  include_rescaling=True,
-  include_top=True,
-  classes=3
+    include_rescaling=True,
+    include_top=True,
+    num_classes=3
 )
 densenet.compile(
-  loss='categorical_crossentropy',
-  optimizer='adam',
-  metrics=['accuracy']
+    loss='categorical_crossentropy',
+    optimizer='adam',
+    metrics=['accuracy']
 )
-```
 
-Train your model:
-
-```python
-densenet.fit(dataset)
+# Train your model
+densenet.fit(train_dataset, validation_data=test_dataset)
 ```
 
 ## Contributors
@@ -134,7 +148,7 @@ a simple `1/255` rescaling layer.
 This can be seen in all KerasCV training pipelines and code examples.
 
 ## Custom Ops
-Note that in some the 3D Object Detection layers, custom TF ops are used. The
+Note that in some of the 3D Object Detection layers, custom TF ops are used. The
 binaries for these ops are not shipped in our PyPi package in order to keep our
 wheels pure-Python.
 

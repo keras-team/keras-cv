@@ -45,7 +45,9 @@ def load_voc_dataset(
         lambda x: preprocess_voc(x, format=bounding_box_format),
         num_parallel_calls=tf.data.AUTOTUNE,
     )
-    dataset = dataset.apply(tf.data.experimental.dense_to_ragged_batch(batch_size))
+    dataset = dataset.apply(
+        tf.data.experimental.dense_to_ragged_batch(batch_size)
+    )
     return dataset
 
 
@@ -62,11 +64,17 @@ def visualize_data(data, bounding_box_format):
 def visualize_bounding_boxes(image, bounding_boxes, bounding_box_format):
     color = np.array([[255.0, 0.0, 0.0]])
     bounding_boxes = bounding_box.to_dense(bounding_boxes)
+    bounding_boxes = bounding_box.convert_format(
+        bounding_boxes,
+        source=bounding_box_format,
+        target="yxyx",
+        images=image,
+    )
     if isinstance(image, tf.RaggedTensor):
         image = image.to_tensor(0)
     bounding_boxes = bounding_box.convert_format(
         bounding_boxes,
-        source=bounding_box_format,
+        source="yxyx",
         target="rel_yxyx",
         images=image,
     )

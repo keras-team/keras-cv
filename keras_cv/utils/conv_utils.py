@@ -31,7 +31,8 @@ def normalize_tuple(value, n, name, allow_zero=False):
         passed.
     """
     error_msg = (
-        f"The `{name}` argument must be a tuple of {n} " f"integers. Received: {value}"
+        f"The `{name}` argument must be a tuple of {n} "
+        f"integers. Received: {value}"
     )
 
     if isinstance(value, int):
@@ -48,7 +49,8 @@ def normalize_tuple(value, n, name, allow_zero=False):
                 int(single_value)
             except (ValueError, TypeError):
                 error_msg += (
-                    f"including element {single_value} of " f"type {type(single_value)}"
+                    f"including element {single_value} of "
+                    f"type {type(single_value)}"
                 )
                 raise ValueError(error_msg)
 

@@ -28,7 +28,8 @@ OBJECT_BOUNDING_BOXES = base_augmentation_layer_3d.OBJECT_BOUNDING_BOXES
 
 class RandomCopyPasteTest(tf.test.TestCase):
     @pytest.mark.skipif(
-        "TEST_CUSTOM_OPS" not in os.environ or os.environ["TEST_CUSTOM_OPS"] != "true",
+        "TEST_CUSTOM_OPS" not in os.environ
+        or os.environ["TEST_CUSTOM_OPS"] != "true",
         reason="Requires binaries compiled from source",
     )
     def test_augment_point_clouds_and_bounding_boxes(self):
@@ -118,7 +119,9 @@ class RandomCopyPasteTest(tf.test.TestCase):
             ]
             * 2
         ).astype("float32")
-        self.assertAllClose(inputs[OBJECT_POINT_CLOUDS], outputs[OBJECT_POINT_CLOUDS])
+        self.assertAllClose(
+            inputs[OBJECT_POINT_CLOUDS], outputs[OBJECT_POINT_CLOUDS]
+        )
         self.assertAllClose(
             inputs[OBJECT_BOUNDING_BOXES], outputs[OBJECT_BOUNDING_BOXES]
         )
@@ -126,7 +129,8 @@ class RandomCopyPasteTest(tf.test.TestCase):
         self.assertAllClose(outputs[BOUNDING_BOXES], augmented_bounding_boxes)
 
     @pytest.mark.skipif(
-        "TEST_CUSTOM_OPS" not in os.environ or os.environ["TEST_CUSTOM_OPS"] != "true",
+        "TEST_CUSTOM_OPS" not in os.environ
+        or os.environ["TEST_CUSTOM_OPS"] != "true",
         reason="Requires binaries compiled from source",
     )
     def test_augment_batch_point_clouds_and_bounding_boxes(self):
@@ -228,7 +232,9 @@ class RandomCopyPasteTest(tf.test.TestCase):
             ]
             * 3
         ).astype("float32")
-        self.assertAllClose(inputs[OBJECT_POINT_CLOUDS], outputs[OBJECT_POINT_CLOUDS])
+        self.assertAllClose(
+            inputs[OBJECT_POINT_CLOUDS], outputs[OBJECT_POINT_CLOUDS]
+        )
         self.assertAllClose(
             inputs[OBJECT_BOUNDING_BOXES], outputs[OBJECT_BOUNDING_BOXES]
         )

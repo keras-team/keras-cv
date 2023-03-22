@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv import core
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
@@ -21,7 +22,7 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 from keras_cv.utils import preprocessing
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class RandomlyZoomedCrop(BaseImageAugmentationLayer):
     """Randomly crops a part of an image and zooms it by a provided amount size.
 
@@ -78,7 +79,9 @@ class RandomlyZoomedCrop(BaseImageAugmentationLayer):
             seed=seed,
         )
 
-        self._check_class_arguments(height, width, zoom_factor, aspect_ratio_factor)
+        self._check_class_arguments(
+            height, width, zoom_factor, aspect_ratio_factor
+        )
         self.force_output_dense_images = True
         self.interpolation = interpolation
         self.seed = seed
@@ -174,18 +177,24 @@ class RandomlyZoomedCrop(BaseImageAugmentationLayer):
         return transform[tf.newaxis]
 
     def _resize(self, image):
-        outputs = tf.keras.preprocessing.image.smart_resize(
+        outputs = keras.preprocessing.image.smart_resize(
             image, (self.height, self.width)
         )
         # smart_resize will always output float32, so we need to re-cast.
         return tf.cast(outputs, self.compute_dtype)
 
-    def _check_class_arguments(self, height, width, zoom_factor, aspect_ratio_factor):
+    def _check_class_arguments(
+        self, height, width, zoom_factor, aspect_ratio_factor
+    ):
         if not isinstance(height, int):
-            raise ValueError("`height` must be an integer. Received height={height}")
+            raise ValueError(
+                "`height` must be an integer. Received height={height}"
+            )
 
         if not isinstance(width, int):
-            raise ValueError("`width` must be an integer. Received width={width}")
+            raise ValueError(
+                "`width` must be an integer. Received width={width}"
+            )
 
         if (
             not isinstance(zoom_factor, (tuple, list, core.FactorSampler))
@@ -199,7 +208,9 @@ class RandomlyZoomedCrop(BaseImageAugmentationLayer):
             )
 
         if (
-            not isinstance(aspect_ratio_factor, (tuple, list, core.FactorSampler))
+            not isinstance(
+                aspect_ratio_factor, (tuple, list, core.FactorSampler)
+            )
             or isinstance(aspect_ratio_factor, float)
             or isinstance(aspect_ratio_factor, int)
         ):
@@ -225,6 +236,20 @@ class RandomlyZoomedCrop(BaseImageAugmentationLayer):
             }
         )
         return config
+
+    @classmethod
+    def from_config(cls, config):
+        if isinstance(config["zoom_factor"], dict):
+            config["zoom_factor"] = keras.utils.deserialize_keras_object(
+                config["zoom_factor"]
+            )
+        if isinstance(config["aspect_ratio_factor"], dict):
+            config[
+                "aspect_ratio_factor"
+            ] = keras.utils.deserialize_keras_object(
+                config["aspect_ratio_factor"]
+            )
+        return cls(**config)
 
     def _crop_and_resize(self, image, transformation, method=None):
         image = tf.expand_dims(image, axis=0)

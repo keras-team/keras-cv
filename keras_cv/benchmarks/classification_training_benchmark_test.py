@@ -17,6 +17,7 @@ import time
 
 import tensorflow.compat.v2 as tf
 import tensorflow_datasets as tfds
+from tensorflow import keras
 
 from keras_cv import models
 
@@ -32,7 +33,8 @@ class ClassificationTrainingBenchmark(
     """Benchmarks for classification models using `tf.test.Benchmark`."""
 
     _benchmark_parameters = [
-        ("ResNet50V2", models.ResNet50V2),
+        # TODO(jbischof): revert to ResNetV2 once classification head ready
+        ("ResNet50", models.ResNet50),
         ("DenseNet121", models.DenseNet121),
     ]
 
@@ -65,12 +67,12 @@ class ClassificationTrainingBenchmark(
 
             model = app(
                 include_top=True,
-                classes=self.num_classes,
+                num_classes=self.num_classes,
                 input_shape=(56, 56, 1),
                 include_rescaling=True,
             )
             model.compile(
-                optimizer=tf.keras.optimizers.SGD(learning_rate=0.1, momentum=0.9),
+                optimizer=keras.optimizers.SGD(learning_rate=0.1, momentum=0.9),
                 loss="categorical_crossentropy",
                 metrics=["accuracy"],
             )
@@ -89,10 +91,15 @@ class ClassificationTrainingBenchmark(
 
         metrics = []
         metrics.append({"name": "compile_time", "value": compile_time})
-        metrics.append({"name": "avg_epoch_time", "value": training_time / self.epochs})
+        metrics.append(
+            {"name": "avg_epoch_time", "value": training_time / self.epochs}
+        )
         metrics.append({"name": "epochs", "value": self.epochs})
         metrics.append(
-            {"name": "accuracy", "value": training_results.history["accuracy"][0]}
+            {
+                "name": "accuracy",
+                "value": training_results.history["accuracy"][0],
+            }
         )
 
         self.report_benchmark(wall_time=total_time, metrics=metrics)

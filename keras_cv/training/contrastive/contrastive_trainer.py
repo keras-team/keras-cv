@@ -46,7 +46,7 @@ class ContrastiveTrainer(keras.Model):
     encoder = keras_cv.models.DenseNet121(include_rescaling=True, include_top=False, pooling="avg")
     augmenter = keras_cv.layers.preprocessing.RandomFlip()
     projector = keras.layers.Dense(64)
-    probe = keras_cv.training.ContrastiveTrainer.linear_probe(classes=10)
+    probe = keras_cv.training.ContrastiveTrainer.linear_probe(num_classes=10)
 
     trainer = keras_cv.training.ContrastiveTrainer(
         encoder=encoder,
@@ -133,7 +133,9 @@ class ContrastiveTrainer(keras.Model):
             )
 
         if self.probe and not probe_loss:
-            raise ValueError("`probe_loss` must be specified when a probe is included.")
+            raise ValueError(
+                "`probe_loss` must be specified when a probe is included."
+            )
 
         if "loss" in kwargs:
             raise ValueError(
@@ -177,7 +179,9 @@ class ContrastiveTrainer(keras.Model):
             x=x, y=y, sample_weight=sample_weight, batch_size=batch_size
         )
 
-        dataset = dataset.map(self.run_augmenters, num_parallel_calls=tf.data.AUTOTUNE)
+        dataset = dataset.map(
+            self.run_augmenters, num_parallel_calls=tf.data.AUTOTUNE
+        )
         dataset = dataset.prefetch(tf.data.AUTOTUNE)
 
         return super().fit(x=dataset, **kwargs)
@@ -206,7 +210,9 @@ class ContrastiveTrainer(keras.Model):
             projections_1 = self.projectors[1](features_1, training=True)
 
             loss = self.compiled_loss(
-                projections_0, projections_1, regularization_losses=self.encoder.losses
+                projections_0,
+                projections_1,
+                regularization_losses=self.encoder.losses,
             )
 
         gradients = tape.gradient(
@@ -228,9 +234,13 @@ class ContrastiveTrainer(keras.Model):
 
         if self.probe:
             if labels is None:
-                raise ValueError("Targets must be provided when a probe is specified")
+                raise ValueError(
+                    "Targets must be provided when a probe is specified"
+                )
             with tf.GradientTape() as tape:
-                features = tf.stop_gradient(self.encoder(images, training=False))
+                features = tf.stop_gradient(
+                    self.encoder(images, training=False)
+                )
                 class_logits = self.probe(features, training=True)
                 probe_loss = self.probe_loss(labels, class_logits)
             gradients = tape.gradient(probe_loss, self.probe.trainable_weights)
@@ -249,5 +259,5 @@ class ContrastiveTrainer(keras.Model):
         )
 
     @staticmethod
-    def linear_probe(classes, **kwargs):
-        return keras.Sequential(keras.layers.Dense(classes), **kwargs)
+    def linear_probe(num_classes, **kwargs):
+        return keras.Sequential(keras.layers.Dense(num_classes), **kwargs)

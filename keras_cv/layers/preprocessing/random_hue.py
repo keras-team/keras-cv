@@ -1,4 +1,4 @@
-# Copyright 2022 The KerasCV Authors
+# Copyright 2023 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,16 +11,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import tensorflow as tf
+from tensorflow import keras
 
-from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
-    BaseImageAugmentationLayer,
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
+    VectorizedBaseImageAugmentationLayer,
 )
-from keras_cv.utils import preprocessing
+from keras_cv.utils import preprocessing as preprocessing_utils
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
-class RandomHue(BaseImageAugmentationLayer):
+@keras.utils.register_keras_serializable(package="keras_cv")
+class RandomHue(VectorizedBaseImageAugmentationLayer):
     """Randomly adjusts the hue on given images.
 
     This layer will randomly increase/reduce the hue for the input RGB
@@ -45,45 +47,71 @@ class RandomHue(BaseImageAugmentationLayer):
             on how your preprocessing pipeline is setup.
         seed: Integer. Used to create a random seed.
 
+    Usage:
+    ```python
+    (images, labels), _ = keras.datasets.cifar10.load_data()
+    random_hue = keras_cv.layers.preprocessing.RandomHue()
+    augmented_images = random_hue(images)
+    ```
     """
 
     def __init__(self, factor, value_range, seed=None, **kwargs):
         super().__init__(seed=seed, **kwargs)
-        self.factor = preprocessing.parse_factor(
+        self.factor = preprocessing_utils.parse_factor(
             factor,
         )
         self.value_range = value_range
         self.seed = seed
 
-    def get_random_transformation(self, **kwargs):
-        invert = preprocessing.random_inversion(self._random_generator)
+    def get_random_transformation_batch(self, batch_size, **kwargs):
+        invert = self._random_generator.random_uniform(
+            (batch_size,), 0, 1, tf.float32
+        )
+        invert = tf.where(
+            invert > 0.5, -tf.ones_like(invert), tf.ones_like(invert)
+        )
         # We must scale self.factor() to the range [-0.5, 0.5].  This is because the
         # tf.image operation performs rotation on the hue saturation value orientation.
         # This can be thought of as an angle in the range [-180, 180]
-        return invert * self.factor() * 0.5
+        return invert * self.factor(shape=(batch_size,)) * 0.5
 
-    def augment_image(self, image, transformation=None, **kwargs):
-        image = preprocessing.transform_value_range(
-            image, self.value_range, (0, 1), dtype=self.compute_dtype
+    def augment_ragged_image(self, image, transformation, **kwargs):
+        return self.augment_images(
+            images=image, transformations=transformation, **kwargs
         )
+
+    def augment_images(self, images, transformations, **kwargs):
+        images = preprocessing_utils.transform_value_range(
+            images, self.value_range, (0, 1), dtype=self.compute_dtype
+        )
+        adjust_factors = tf.cast(transformations, images.dtype)
+        # broadcast
+        adjust_factors = adjust_factors[..., tf.newaxis, tf.newaxis]
 
         # tf.image.adjust_hue expects floats to be in range [0, 1]
-        image = tf.image.adjust_hue(image, delta=transformation)
+        images = tf.image.rgb_to_hsv(images)
+        h_channel = images[..., 0] + adjust_factors
+        h_channel = tf.where(h_channel > 1.0, h_channel - 1.0, h_channel)
+        h_channel = tf.where(h_channel < 0.0, h_channel + 1.0, h_channel)
+        images = tf.stack([h_channel, images[..., 1], images[..., 2]], axis=-1)
+        images = tf.image.hsv_to_rgb(images)
         # RandomHue is one of the rare KPLs that needs to clip
-        image = tf.clip_by_value(image, 0, 1)
-        image = preprocessing.transform_value_range(
-            image, (0, 1), self.value_range, dtype=self.compute_dtype
+        images = tf.clip_by_value(images, 0, 1)
+        images = preprocessing_utils.transform_value_range(
+            images, (0, 1), self.value_range, dtype=self.compute_dtype
         )
-        return image
+        return images
 
-    def augment_bounding_boxes(self, bounding_boxes, **kwargs):
+    def augment_labels(self, labels, transformations, **kwargs):
+        return labels
+
+    def augment_segmentation_masks(
+        self, segmentation_masks, transformations, **kwargs
+    ):
+        return segmentation_masks
+
+    def augment_bounding_boxes(self, bounding_boxes, transformations, **kwargs):
         return bounding_boxes
-
-    def augment_label(self, label, transformation=None, **kwargs):
-        return label
-
-    def augment_segmentation_mask(self, segmentation_mask, transformation, **kwargs):
-        return segmentation_mask
 
     def get_config(self):
         config = {
@@ -93,3 +121,11 @@ class RandomHue(BaseImageAugmentationLayer):
         }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
+
+    @classmethod
+    def from_config(cls, config):
+        if isinstance(config["factor"], dict):
+            config["factor"] = keras.utils.deserialize_keras_object(
+                config["factor"]
+            )
+        return cls(**config)

@@ -20,8 +20,12 @@ from absl.testing import parameterized
 
 from keras_cv import bounding_box
 
-xyxy_box = tf.constant([[[10, 20, 110, 120], [20, 30, 120, 130]]], dtype=tf.float32)
-yxyx_box = tf.constant([[[20, 10, 120, 110], [30, 20, 130, 120]]], dtype=tf.float32)
+xyxy_box = tf.constant(
+    [[[10, 20, 110, 120], [20, 30, 120, 130]]], dtype=tf.float32
+)
+yxyx_box = tf.constant(
+    [[[20, 10, 120, 110], [30, 20, 130, 120]]], dtype=tf.float32
+)
 rel_xyxy_box = tf.constant(
     [[[0.01, 0.02, 0.11, 0.12], [0.02, 0.03, 0.12, 0.13]]], dtype=tf.float32
 )
@@ -37,7 +41,9 @@ rel_yxyx_box_ragged_images = tf.constant(
 center_xywh_box = tf.constant(
     [[[60, 70, 100, 100], [70, 80, 100, 100]]], dtype=tf.float32
 )
-xywh_box = tf.constant([[[10, 20, 100, 100], [20, 30, 100, 100]]], dtype=tf.float32)
+xywh_box = tf.constant(
+    [[[10, 20, 100, 100], [20, 30, 100, 100]]], dtype=tf.float32
+)
 rel_xywh_box = tf.constant(
     [[[0.01, 0.02, 0.1, 0.1], [0.02, 0.03, 0.1, 0.1]]], dtype=tf.float32
 )
@@ -79,7 +85,9 @@ test_cases = [
 
 test_image_ragged = [
     (f"{source}_{target}", source, target)
-    for (source, target) in itertools.permutations(boxes_ragged_images.keys(), 2)
+    for (source, target) in itertools.permutations(
+        boxes_ragged_images.keys(), 2
+    )
 ] + [("xyxy_xyxy", "xyxy", "xyxy")]
 
 
@@ -130,7 +138,9 @@ class ConvertersTestCase(tf.test.TestCase, parameterized.TestCase):
         source_box = boxes["xyxy"]
         target_box = boxes["xywh"]
         self.assertAllClose(
-            bounding_box.convert_format(source_box, source="xyxy", target="xywh"),
+            bounding_box.convert_format(
+                source_box, source="xyxy", target="xywh"
+            ),
             target_box,
         )
 
@@ -172,7 +182,10 @@ class ConvertersTestCase(tf.test.TestCase, parameterized.TestCase):
         target_box = _raggify(boxes[target])
         self.assertAllClose(
             bounding_box.convert_format(
-                source_box, source=source, target=target, image_shape=(1000, 1000, 3)
+                source_box,
+                source=source,
+                target=target,
+                image_shape=(1000, 1000, 3),
             ),
             target_box,
         )

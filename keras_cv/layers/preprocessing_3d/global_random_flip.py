@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv.bounding_box_3d import CENTER_XYZ_DXDYDZ_PHI
 from keras_cv.layers.preprocessing_3d import base_augmentation_layer_3d
@@ -22,7 +23,7 @@ POINT_CLOUDS = base_augmentation_layer_3d.POINT_CLOUDS
 BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class GlobalRandomFlip(base_augmentation_layer_3d.BaseAugmentationLayer3D):
     """A preprocessing layer which flips point clouds and bounding boxes with respect to the specified axis during training.
 
@@ -69,7 +70,8 @@ class GlobalRandomFlip(base_augmentation_layer_3d.BaseAugmentationLayer3D):
     ):
         point_clouds_y = -point_clouds[..., 1:2]
         point_clouds = tf.concat(
-            [point_clouds[..., 0:1], point_clouds_y, point_clouds[..., 2:]], axis=-1
+            [point_clouds[..., 0:1], point_clouds_y, point_clouds[..., 2:]],
+            axis=-1,
         )
         # Flip boxes.
         bounding_boxes_y = -bounding_boxes[

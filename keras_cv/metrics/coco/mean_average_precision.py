@@ -11,16 +11,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import warnings
 
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv import bounding_box
 from keras_cv.bounding_box import iou as iou_lib
 from keras_cv.metrics.coco import utils
 
 
-class _COCOMeanAveragePrecision(tf.keras.metrics.Metric):
+class _COCOMeanAveragePrecision(keras.metrics.Metric):
     """_COCOMeanAveragePrecision computes an approximation of MaP.
 
     A usage guide is available on keras.io:
@@ -31,7 +33,7 @@ class _COCOMeanAveragePrecision(tf.keras.metrics.Metric):
     Args:
         class_ids: The class IDs to evaluate the metric for.  To evaluate for
             all classes in over a set of sequentially labelled classes, pass
-            `range(classes)`.
+            `range(num_classes)`.
         bounding_box_format: Format of the incoming bounding boxes.  Supported values
             are "xywh", "center_xywh", "xyxy".
         iou_thresholds: IoU thresholds over which to evaluate the recall.  Must
@@ -103,11 +105,15 @@ class _COCOMeanAveragePrecision(tf.keras.metrics.Metric):
         super().__init__(**kwargs)
         # Initialize parameter values
         self.bounding_box_format = bounding_box_format
-        self.iou_thresholds = iou_thresholds or [x / 100.0 for x in range(50, 100, 5)]
+        self.iou_thresholds = iou_thresholds or [
+            x / 100.0 for x in range(50, 100, 5)
+        ]
         self.area_range = area_range
         self.max_detections = max_detections
         self.class_ids = list(class_ids)
-        self.recall_thresholds = recall_thresholds or [x / 100 for x in range(0, 101)]
+        self.recall_thresholds = recall_thresholds or [
+            x / 100 for x in range(0, 101)
+        ]
         self.num_buckets = num_buckets
 
         self.num_iou_thresholds = len(self.iou_thresholds)
@@ -146,8 +152,12 @@ class _COCOMeanAveragePrecision(tf.keras.metrics.Metric):
         )
 
     def reset_state(self):
-        self.true_positive_buckets.assign(tf.zeros_like(self.true_positive_buckets))
-        self.false_positive_buckets.assign(tf.zeros_like(self.false_positive_buckets))
+        self.true_positive_buckets.assign(
+            tf.zeros_like(self.true_positive_buckets)
+        )
+        self.false_positive_buckets.assign(
+            tf.zeros_like(self.false_positive_buckets)
+        )
         self.ground_truths.assign(tf.zeros_like(self.ground_truths))
 
     @tf.function()
@@ -178,15 +188,21 @@ class _COCOMeanAveragePrecision(tf.keras.metrics.Metric):
         )
 
         class_ids = tf.constant(self.class_ids, dtype=self.compute_dtype)
-        iou_thresholds = tf.constant(self.iou_thresholds, dtype=self.compute_dtype)
+        iou_thresholds = tf.constant(
+            self.iou_thresholds, dtype=self.compute_dtype
+        )
 
         num_images = tf.shape(y_true)[0]
 
-        y_pred = utils.sort_bounding_boxes(y_pred, axis=bounding_box.XYXY.CONFIDENCE)
+        y_pred = utils.sort_bounding_boxes(
+            y_pred, axis=bounding_box.XYXY.CONFIDENCE
+        )
 
         ground_truth_boxes_update = tf.zeros_like(self.ground_truths)
         true_positive_buckets_update = tf.zeros_like(self.true_positive_buckets)
-        false_positive_buckets_update = tf.zeros_like(self.false_positive_buckets)
+        false_positive_buckets_update = tf.zeros_like(
+            self.false_positive_buckets
+        )
 
         for img in tf.range(num_images):
             ground_truths = utils.filter_out_sentinels(y_true[img])
@@ -209,12 +225,16 @@ class _COCOMeanAveragePrecision(tf.keras.metrics.Metric):
             false_positives_update = tf.TensorArray(
                 tf.int32, size=self.num_class_ids * self.num_iou_thresholds
             )
-            ground_truths_update = tf.TensorArray(tf.int32, size=self.num_class_ids)
+            ground_truths_update = tf.TensorArray(
+                tf.int32, size=self.num_class_ids
+            )
 
             for c_i in tf.range(self.num_class_ids):
                 category_id = class_ids[c_i]
                 ground_truths_by_category = utils.filter_boxes(
-                    ground_truths, value=category_id, axis=bounding_box.XYXY.CLASS
+                    ground_truths,
+                    value=category_id,
+                    axis=bounding_box.XYXY.CLASS,
                 )
                 detections_by_category = utils.filter_boxes(
                     detections, value=category_id, axis=bounding_box.XYXY.CLASS
@@ -236,7 +256,9 @@ class _COCOMeanAveragePrecision(tf.keras.metrics.Metric):
                     iou_threshold = iou_thresholds[iou_i]
                     pred_matches = utils.match_boxes(ious, iou_threshold)
 
-                    dt_scores = detections_by_category[:, bounding_box.XYXY.CONFIDENCE]
+                    dt_scores = detections_by_category[
+                        :, bounding_box.XYXY.CONFIDENCE
+                    ]
 
                     true_positives = pred_matches != -1
                     false_positives = pred_matches == -1
@@ -244,7 +266,9 @@ class _COCOMeanAveragePrecision(tf.keras.metrics.Metric):
                     dt_scores_clipped = tf.clip_by_value(dt_scores, 0.0, 1.0)
                     # We must divide by 1.01 to prevent off by one errors.
                     confidence_buckets = tf.cast(
-                        tf.math.floor(self.num_buckets * (dt_scores_clipped / 1.01)),
+                        tf.math.floor(
+                            self.num_buckets * (dt_scores_clipped / 1.01)
+                        ),
                         tf.int32,
                     )
                     true_positives_by_bucket = tf.gather_nd(
@@ -306,7 +330,9 @@ class _COCOMeanAveragePrecision(tf.keras.metrics.Metric):
         true_positives_sum = tf.cumsum(true_positives, axis=-1)
         false_positives_sum = tf.cumsum(false_positives, axis=-1)
 
-        present_categories = tf.math.reduce_sum(tf.cast(ground_truths != 0, tf.int32))
+        present_categories = tf.math.reduce_sum(
+            tf.cast(ground_truths != 0, tf.int32)
+        )
 
         if present_categories == 0:
             return 0.0
@@ -314,7 +340,9 @@ class _COCOMeanAveragePrecision(tf.keras.metrics.Metric):
         recalls = tf.math.divide_no_nan(
             true_positives_sum, ground_truths[:, None, None]
         )
-        precisions = true_positives_sum / (false_positives_sum + true_positives_sum)
+        precisions = true_positives_sum / (
+            false_positives_sum + true_positives_sum
+        )
 
         result = tf.TensorArray(
             tf.float32, size=self.num_class_ids * self.num_iou_thresholds
@@ -348,8 +376,12 @@ class _COCOMeanAveragePrecision(tf.keras.metrics.Metric):
                 precisions_i = tf.concat([precisions_i, zero_pad], axis=-1)
                 precision_per_recall_threshold = tf.gather(precisions_i, inds)
 
-                result_ij = tf.math.reduce_mean(precision_per_recall_threshold, axis=-1)
-                result = result.write(j + i * self.num_iou_thresholds, result_ij)
+                result_ij = tf.math.reduce_mean(
+                    precision_per_recall_threshold, axis=-1
+                )
+                result = result.write(
+                    j + i * self.num_iou_thresholds, result_ij
+                )
 
         result = tf.reshape(
             result.stack(), (self.num_class_ids, self.num_iou_thresholds)

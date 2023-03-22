@@ -11,14 +11,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 from typing import List
 from typing import Tuple
 
 import tensorflow as tf
+from tensorflow import keras
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
-class BoxMatcher(tf.keras.layers.Layer):
+@keras.utils.register_keras_serializable(package="keras_cv")
+class BoxMatcher(keras.layers.Layer):
     """Box matching logic based on argmax of highest value (e.g., IOU).
 
     This class computes matches from a similarity matrix. Each row will be
@@ -133,8 +135,12 @@ class BoxMatcher(tf.keras.layers.Layer):
                   or ignored match).
             """
             with tf.name_scope("empty_boxes"):
-                matched_columns = tf.zeros([batch_size, num_rows], dtype=tf.int32)
-                matched_values = -tf.ones([batch_size, num_rows], dtype=tf.int32)
+                matched_columns = tf.zeros(
+                    [batch_size, num_rows], dtype=tf.int32
+                )
+                matched_values = -tf.ones(
+                    [batch_size, num_rows], dtype=tf.int32
+                )
                 return matched_columns, matched_values
 
         def _match_when_cols_are_non_empty():
@@ -183,11 +189,14 @@ class BoxMatcher(tf.keras.layers.Layer):
                     # [batch_size, num_rows], for each row (anchor), find the matched
                     # column (groundtruth_box).
                     force_matched_columns = tf.argmax(
-                        input=column_to_row_match_mapping, axis=1, output_type=tf.int32
+                        input=column_to_row_match_mapping,
+                        axis=1,
+                        output_type=tf.int32,
                     )
                     # [batch_size, num_rows]
                     force_matched_column_mask = tf.cast(
-                        tf.reduce_max(column_to_row_match_mapping, axis=1), tf.bool
+                        tf.reduce_max(column_to_row_match_mapping, axis=1),
+                        tf.bool,
                     )
                     # [batch_size, num_rows]
                     matched_columns = tf.where(
@@ -205,7 +214,8 @@ class BoxMatcher(tf.keras.layers.Layer):
                 return matched_columns, matched_values
 
         num_boxes = (
-            similarity_matrix.shape.as_list()[-1] or tf.shape(similarity_matrix)[-1]
+            similarity_matrix.shape.as_list()[-1]
+            or tf.shape(similarity_matrix)[-1]
         )
         matched_columns, matched_values = tf.cond(
             pred=tf.greater(num_boxes, 0),

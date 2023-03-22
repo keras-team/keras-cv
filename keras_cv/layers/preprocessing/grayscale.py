@@ -13,13 +13,14 @@
 # limitations under the License.
 
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
     VectorizedBaseImageAugmentationLayer,
 )
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class Grayscale(VectorizedBaseImageAugmentationLayer):
     """Grayscale is a preprocessing layer that transforms RGB images to Grayscale images.
     Input images should have values in the range of [0, 255].
@@ -41,7 +42,7 @@ class Grayscale(VectorizedBaseImageAugmentationLayer):
 
     Usage:
     ```python
-    (images, labels), _ = tf.keras.datasets.cifar10.load_data()
+    (images, labels), _ = keras.datasets.cifar10.load_data()
     to_grayscale = keras_cv.layers.preprocessing.Grayscale()
     augmented_images = to_grayscale(images)
     ```
@@ -69,7 +70,9 @@ class Grayscale(VectorizedBaseImageAugmentationLayer):
         return ragged_spec
 
     def augment_ragged_image(self, image, transformation, **kwargs):
-        return self.augment_images(image, transformations=transformation, **kwargs)
+        return self.augment_images(
+            image, transformations=transformation, **kwargs
+        )
 
     def augment_images(self, images, transformations=None, **kwargs):
         grayscale = tf.image.rgb_to_grayscale(images)
@@ -86,7 +89,9 @@ class Grayscale(VectorizedBaseImageAugmentationLayer):
     def augment_labels(self, labels, transformations=None, **kwargs):
         return labels
 
-    def augment_segmentation_masks(self, segmentation_masks, transformations, **kwargs):
+    def augment_segmentation_masks(
+        self, segmentation_masks, transformations, **kwargs
+    ):
         return segmentation_masks
 
     def get_config(self):

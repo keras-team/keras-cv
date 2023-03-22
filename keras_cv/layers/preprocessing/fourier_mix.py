@@ -11,14 +11,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class FourierMix(BaseImageAugmentationLayer):
     """FourierMix implements the FMix data augmentation technique.
 
@@ -35,7 +37,7 @@ class FourierMix(BaseImageAugmentationLayer):
 
     Sample usage:
     ```python
-    (images, labels), _ = tf.keras.datasets.cifar10.load_data()
+    (images, labels), _ = keras.datasets.cifar10.load_data()
     fourier_mix = keras_cv.layers.preprocessing.FourierMix(0.5)
     augmented_images, updated_labels = fourier_mix({'images': images, 'labels': labels})
     # output == {'images': updated_images, 'labels': updated_labels}
@@ -50,10 +52,10 @@ class FourierMix(BaseImageAugmentationLayer):
 
     def _sample_from_beta(self, alpha, beta, shape):
         sample_alpha = tf.random.gamma(
-            shape, 1.0, beta=alpha, seed=self._random_generator.make_legacy_seed()
+            shape, alpha=alpha, seed=self._random_generator.make_legacy_seed()
         )
         sample_beta = tf.random.gamma(
-            shape, 1.0, beta=beta, seed=self._random_generator.make_legacy_seed()
+            shape, alpha=beta, seed=self._random_generator.make_legacy_seed()
         )
         return sample_alpha / (sample_alpha + sample_beta)
 
@@ -85,7 +87,9 @@ class FourierMix(BaseImageAugmentationLayer):
     def _get_spectrum(self, freqs, decay_power, channel, h, w):
         # Function to apply a low pass filter by decaying its high frequency components.
         scale = tf.ones(1) / tf.cast(
-            tf.math.maximum(freqs, tf.convert_to_tensor([1 / tf.reduce_max([w, h])]))
+            tf.math.maximum(
+                freqs, tf.convert_to_tensor([1 / tf.reduce_max([w, h])])
+            )
             ** decay_power,
             tf.float32,
         )
@@ -116,7 +120,9 @@ class FourierMix(BaseImageAugmentationLayer):
         # Create the final mask from the sampled values.
         idx = tf.argsort(tf.reshape(mask, [-1]), direction="DESCENDING")
         mask = tf.reshape(mask, [-1])
-        num = tf.cast(tf.math.round(lam * tf.cast(tf.size(mask), tf.float32)), tf.int32)
+        num = tf.cast(
+            tf.math.round(lam * tf.cast(tf.size(mask), tf.float32)), tf.int32
+        )
 
         updates = tf.concat(
             [
@@ -144,7 +150,9 @@ class FourierMix(BaseImageAugmentationLayer):
             )
         images, lambda_sample, permutation_order = self._fourier_mix(images)
         if labels is not None:
-            labels = self._update_labels(labels, lambda_sample, permutation_order)
+            labels = self._update_labels(
+                labels, lambda_sample, permutation_order
+            )
             inputs["labels"] = labels
         inputs["images"] = images
         return inputs
@@ -158,19 +166,27 @@ class FourierMix(BaseImageAugmentationLayer):
 
     def _fourier_mix(self, images):
         shape = tf.shape(images)
-        permutation_order = tf.random.shuffle(tf.range(0, shape[0]), seed=self.seed)
+        permutation_order = tf.random.shuffle(
+            tf.range(0, shape[0]), seed=self.seed
+        )
 
-        lambda_sample = self._sample_from_beta(self.alpha, self.alpha, (shape[0],))
+        lambda_sample = self._sample_from_beta(
+            self.alpha, self.alpha, (shape[0],)
+        )
 
         # generate masks utilizing mapped calls
         masks = tf.map_fn(
-            lambda x: self._sample_mask_from_transform(self.decay_power, shape[1:-1]),
+            lambda x: self._sample_mask_from_transform(
+                self.decay_power, shape[1:-1]
+            ),
             tf.range(shape[0], dtype=tf.float32),
         )
 
         # binarise masks utilizing mapped calls
         masks = tf.map_fn(
-            lambda i: self._binarise_mask(masks[i], lambda_sample[i], shape[1:-1]),
+            lambda i: self._binarise_mask(
+                masks[i], lambda_sample[i], shape[1:-1]
+            ),
             tf.range(shape[0], dtype=tf.int32),
             fn_output_signature=tf.float32,
         )
@@ -187,10 +203,14 @@ class FourierMix(BaseImageAugmentationLayer):
         # for broadcasting
         batch_size = tf.expand_dims(tf.shape(labels)[0], -1)
         labels_rank = tf.rank(labels)
-        broadcast_shape = tf.concat([batch_size, tf.ones(labels_rank - 1, tf.int32)], 0)
+        broadcast_shape = tf.concat(
+            [batch_size, tf.ones(labels_rank - 1, tf.int32)], 0
+        )
         lambda_sample = tf.reshape(lambda_sample, broadcast_shape)
 
-        labels = lambda_sample * labels + (1.0 - lambda_sample) * labels_for_fmix
+        labels = (
+            lambda_sample * labels + (1.0 - lambda_sample) * labels_for_fmix
+        )
         return labels
 
     def get_config(self):

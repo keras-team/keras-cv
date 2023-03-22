@@ -11,7 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
@@ -19,7 +21,7 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 from keras_cv.utils import preprocessing
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class RandomSharpness(BaseImageAugmentationLayer):
     """Randomly performs the sharpness operation on given images.
 
@@ -125,12 +127,18 @@ class RandomSharpness(BaseImageAugmentationLayer):
     def augment_label(self, label, transformation=None, **kwargs):
         return label
 
-    def augment_segmentation_mask(self, segmentation_mask, transformation, **kwargs):
+    def augment_segmentation_mask(
+        self, segmentation_mask, transformation, **kwargs
+    ):
         return segmentation_mask
 
     def get_config(self):
         config = super().get_config()
         config.update(
-            {"factor": self.factor, "value_range": self.value_range, "seed": self.seed}
+            {
+                "factor": self.factor,
+                "value_range": self.value_range,
+                "seed": self.seed,
+            }
         )
         return config

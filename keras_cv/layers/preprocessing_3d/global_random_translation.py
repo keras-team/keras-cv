@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv.bounding_box_3d import CENTER_XYZ_DXDYDZ_PHI
 from keras_cv.layers.preprocessing_3d import base_augmentation_layer_3d
@@ -22,8 +23,10 @@ POINT_CLOUDS = base_augmentation_layer_3d.POINT_CLOUDS
 BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
-class GlobalRandomTranslation(base_augmentation_layer_3d.BaseAugmentationLayer3D):
+@keras.utils.register_keras_serializable(package="keras_cv")
+class GlobalRandomTranslation(
+    base_augmentation_layer_3d.BaseAugmentationLayer3D
+):
     """A preprocessing layer which randomly translates point clouds and bounding boxes along
     X, Y, and Z axes during training.
 
@@ -71,13 +74,16 @@ class GlobalRandomTranslation(base_augmentation_layer_3d.BaseAugmentationLayer3D
 
     def get_random_transformation(self, **kwargs):
         random_x_translation = self._random_generator.random_normal(
-            (), mean=0.0, stddev=self._x_stddev
+            (), mean=0.0, stddev=self._x_stddev, dtype=self.compute_dtype
         )
         random_y_translation = self._random_generator.random_normal(
-            (), mean=0.0, stddev=self._y_stddev
+            (), mean=0.0, stddev=self._y_stddev, dtype=self.compute_dtype
         )
         random_z_translation = self._random_generator.random_normal(
-            (), mean=0.0, stddev=self._z_stddev
+            (),
+            mean=0.0,
+            stddev=self._z_stddev,
+            dtype=self.compute_dtype,
         )
         return {
             "pose": tf.stack(
@@ -85,9 +91,9 @@ class GlobalRandomTranslation(base_augmentation_layer_3d.BaseAugmentationLayer3D
                     random_x_translation,
                     random_y_translation,
                     random_z_translation,
-                    0,
-                    0,
-                    0,
+                    0.0,
+                    0.0,
+                    0.0,
                 ],
                 axis=0,
             )
@@ -98,13 +104,18 @@ class GlobalRandomTranslation(base_augmentation_layer_3d.BaseAugmentationLayer3D
     ):
         pose = transformation["pose"]
         point_clouds_xyz = coordinate_transform(point_clouds[..., :3], pose)
-        point_clouds = tf.concat([point_clouds_xyz, point_clouds[..., 3:]], axis=-1)
+        point_clouds = tf.concat(
+            [point_clouds_xyz, point_clouds[..., 3:]], axis=-1
+        )
 
         bounding_boxes_xyz = coordinate_transform(
             bounding_boxes[..., : CENTER_XYZ_DXDYDZ_PHI.Z + 1], pose
         )
         bounding_boxes = tf.concat(
-            [bounding_boxes_xyz, bounding_boxes[..., CENTER_XYZ_DXDYDZ_PHI.DX :]],
+            [
+                bounding_boxes_xyz,
+                bounding_boxes[..., CENTER_XYZ_DXDYDZ_PHI.DX :],
+            ],
             axis=-1,
         )
 

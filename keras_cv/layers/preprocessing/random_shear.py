@@ -11,9 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import warnings
 
 import tensorflow as tf
+from tensorflow import keras
 
 import keras_cv
 from keras_cv import bounding_box
@@ -23,7 +25,7 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 from keras_cv.utils import preprocessing
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class RandomShear(BaseImageAugmentationLayer):
     """A preprocessing layer which randomly shears images during training.
     This layer will apply random shearings to each image, filling empty space
@@ -174,13 +176,17 @@ class RandomShear(BaseImageAugmentationLayer):
             bounding_boxes["boxes"]
         )
         if x is not None:
-            extended_boxes = self._apply_horizontal_transformation_to_bounding_box(
-                extended_boxes, x
+            extended_boxes = (
+                self._apply_horizontal_transformation_to_bounding_box(
+                    extended_boxes, x
+                )
             )
         # apply vertical shear
         if y is not None:
-            extended_boxes = self._apply_vertical_transformation_to_bounding_box(
-                extended_boxes, y
+            extended_boxes = (
+                self._apply_vertical_transformation_to_bounding_box(
+                    extended_boxes, y
+                )
             )
 
         boxes = self._convert_to_four_coordinate(extended_boxes, x, y)
@@ -275,7 +281,9 @@ class RandomShear(BaseImageAugmentationLayer):
         )
 
     @staticmethod
-    def _apply_horizontal_transformation_to_bounding_box(extended_bounding_boxes, x):
+    def _apply_horizontal_transformation_to_bounding_box(
+        extended_bounding_boxes, x
+    ):
         # create transformation matrix [1,4]
         matrix = tf.stack([1.0, -x, 0, 1.0], axis=0)
         # reshape it to [2,2]
@@ -289,7 +297,9 @@ class RandomShear(BaseImageAugmentationLayer):
         return transformed_bboxes
 
     @staticmethod
-    def _apply_vertical_transformation_to_bounding_box(extended_bounding_boxes, y):
+    def _apply_vertical_transformation_to_bounding_box(
+        extended_bounding_boxes, y
+    ):
         # create transformation matrix [1,4]
         matrix = tf.stack([1.0, 0, -y, 1.0], axis=0)
         # reshape it to [2,2]

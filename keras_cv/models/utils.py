@@ -14,7 +14,6 @@
 # ==============================================================================
 """Utility functions for models"""
 
-import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 
@@ -31,25 +30,21 @@ def parse_model_inputs(input_shape, input_tensor):
 
 def as_backbone(self, min_level=None, max_level=None):
     """Convert the application model into a model backbone for other tasks.
-
     The backbone model will usually take same inputs as the original application
     model, but produce multiple outputs, one for each feature level. Those outputs
     can be feed to network downstream, like FPN and RPN.
-
     The output of the backbone model will be a dict with int as key and tensor as
     value. The int key represent the level of the feature output.
     A typical feature pyramid has five levels corresponding to scales P3, P4, P5,
     P6, P7 in the backbone. Scale Pn represents a feature map 2n times smaller in
     width and height than the input image.
-
     Args:
         min_level: optional int, the lowest level of feature to be included in the
             output. Default to model's lowest feature level (based on the model structure).
         max_level: optional int, the highest level of feature to be included in the
             output. Default to model's highest feature level (based on the model structure).
-
     Returns:
-        a `tf.keras.Model` which has dict as outputs.
+        a `keras.Model` which has dict as outputs.
     Raises:
         ValueError: When the model is lack of information for feature level, and can't
         be converted to backbone model, or the min_level/max_level param is out of
@@ -80,7 +75,7 @@ def as_backbone(self, min_level=None, max_level=None):
         for level in range(min_level, max_level + 1):
             outputs[level] = backbone_level_outputs[level]
 
-        return tf.keras.Model(inputs=self.inputs, outputs=outputs)
+        return keras.Model(inputs=self.inputs, outputs=outputs)
 
     else:
         raise ValueError(

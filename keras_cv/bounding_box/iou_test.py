@@ -81,8 +81,16 @@ class IoUTest(tf.test.TestCase):
         )
         sample_y_pred = tf.constant(
             [
-                [bb1_off_by_1_pred, top_left_bounding_box, another_far_away_pred],
-                [bb1_off_by_1_pred, top_left_bounding_box, another_far_away_pred],
+                [
+                    bb1_off_by_1_pred,
+                    top_left_bounding_box,
+                    another_far_away_pred,
+                ],
+                [
+                    bb1_off_by_1_pred,
+                    top_left_bounding_box,
+                    another_far_away_pred,
+                ],
             ],
             dtype=tf.float32,
         )
@@ -147,8 +155,16 @@ class IoUTest(tf.test.TestCase):
         )
         sample_y_pred = tf.constant(
             [
-                [bb1_off_by_1_pred, top_left_bounding_box, another_far_away_pred],
-                [bb1_off_by_1_pred, top_left_bounding_box, another_far_away_pred],
+                [
+                    bb1_off_by_1_pred,
+                    top_left_bounding_box,
+                    another_far_away_pred,
+                ],
+                [
+                    bb1_off_by_1_pred,
+                    top_left_bounding_box,
+                    another_far_away_pred,
+                ],
             ],
             dtype=tf.float32,
         )

@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import tensorflow as tf
+from tensorflow import keras
 from tensorflow.keras import layers
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class TransformerEncoder(layers.Layer):
     """
     Transformer encoder block implementation as a Keras Layer.
@@ -53,7 +53,7 @@ class TransformerEncoder(layers.Layer):
         mlp_dim,
         mlp_dropout=0.1,
         attention_dropout=0.1,
-        activation=tf.keras.activations.gelu,
+        activation=keras.activations.gelu,
         layer_norm_epsilon=1e-06,
         **kwargs,
     ):
@@ -67,8 +67,12 @@ class TransformerEncoder(layers.Layer):
         self.layer_norm_epsilon = layer_norm_epsilon
         self.mlp_units = [mlp_dim, project_dim]
 
-        self.layer_norm1 = layers.LayerNormalization(epsilon=self.layer_norm_epsilon)
-        self.layer_norm2 = layers.LayerNormalization(epsilon=self.layer_norm_epsilon)
+        self.layer_norm1 = layers.LayerNormalization(
+            epsilon=self.layer_norm_epsilon
+        )
+        self.layer_norm2 = layers.LayerNormalization(
+            epsilon=self.layer_norm_epsilon
+        )
         self.attn = layers.MultiHeadAttention(
             num_heads=self.num_heads,
             key_dim=self.project_dim // self.num_heads,
@@ -99,7 +103,7 @@ class TransformerEncoder(layers.Layer):
         y = self.layer_norm2(x)
 
         y = self.dense1(y)
-        if self.activation == tf.keras.activations.gelu:
+        if self.activation == keras.activations.gelu:
             y = self.activation(y, approximate=True)
         else:
             y = self.activation(y)
@@ -113,6 +117,9 @@ class TransformerEncoder(layers.Layer):
 
     def get_config(self):
         config = super().get_config()
+        activation = self.activation
+        if not isinstance(activation, (str, dict)):
+            activation = keras.activations.serialize(activation)
         config.update(
             {
                 "project_dim": self.project_dim,
@@ -120,7 +127,7 @@ class TransformerEncoder(layers.Layer):
                 "num_heads": self.num_heads,
                 "attention_dropout": self.attention_dropout,
                 "mlp_dropout": self.mlp_dropout,
-                "activation": self.activation,
+                "activation": activation,
                 "layer_norm_epsilon": self.layer_norm_epsilon,
             }
         )
@@ -129,5 +136,6 @@ class TransformerEncoder(layers.Layer):
     @classmethod
     def from_config(cls, config, custom_objects=None):
         activation = config.pop("activation")
-        activation = tf.keras.activations.deserialize(activation)
+        if isinstance(activation, (str, dict)):
+            activation = keras.activations.deserialize(activation)
         return cls(activation=activation, **config)

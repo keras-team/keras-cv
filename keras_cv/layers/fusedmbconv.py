@@ -13,8 +13,8 @@
 # limitations under the License.
 
 
-import tensorflow as tf
 from keras import backend
+from tensorflow import keras
 from tensorflow.keras import layers
 
 BN_AXIS = 3
@@ -29,7 +29,7 @@ CONV_KERNEL_INITIALIZER = {
 }
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class FusedMBConvBlock(layers.Layer):
     """
     Implementation of the FusedMBConv block (Fused Mobile Inverted Residual Bottleneck) from:
@@ -155,7 +155,9 @@ class FusedMBConvBlock(layers.Layer):
         )
 
         self.bn3 = layers.BatchNormalization(
-            axis=BN_AXIS, momentum=self.bn_momentum, name=self.name + "project_bn"
+            axis=BN_AXIS,
+            momentum=self.bn_momentum,
+            name=self.name + "project_bn",
         )
 
     def build(self, input_shape):

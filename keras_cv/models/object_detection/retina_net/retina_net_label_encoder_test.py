@@ -15,6 +15,7 @@
 import tensorflow as tf
 
 from keras_cv import layers as cv_layers
+from keras_cv.models.object_detection.retina_net import RetinaNetLabelEncoder
 
 
 class RetinaNetLabelEncoderTest(tf.test.TestCase):
@@ -42,7 +43,7 @@ class RetinaNetLabelEncoderTest(tf.test.TestCase):
             scales=scales,
             strides=strides,
         )
-        encoder = cv_layers.RetinaNetLabelEncoder(
+        encoder = RetinaNetLabelEncoder(
             anchor_generator=anchor_generator,
             bounding_box_format="xyxy",
         )
@@ -73,7 +74,7 @@ class RetinaNetLabelEncoderTest(tf.test.TestCase):
             scales=scales,
             strides=strides,
         )
-        encoder = cv_layers.RetinaNetLabelEncoder(
+        encoder = RetinaNetLabelEncoder(
             anchor_generator=anchor_generator,
             bounding_box_format="xyxy",
         )
@@ -95,7 +96,10 @@ class RetinaNetLabelEncoderTest(tf.test.TestCase):
             ]
         )
         classes = tf.ragged.stack(
-            [tf.constant([[1], [1]], tf.float32), tf.constant([[1]], tf.float32)]
+            [
+                tf.constant([[1], [1]], tf.float32),
+                tf.constant([[1]], tf.float32),
+            ]
         )
         strides = [2**i for i in range(3, 8)]
         scales = [2**x for x in [0, 1 / 3, 2 / 3]]
@@ -109,7 +113,7 @@ class RetinaNetLabelEncoderTest(tf.test.TestCase):
             scales=scales,
             strides=strides,
         )
-        encoder = cv_layers.RetinaNetLabelEncoder(
+        encoder = RetinaNetLabelEncoder(
             anchor_generator=anchor_generator,
             bounding_box_format="xywh",
         )

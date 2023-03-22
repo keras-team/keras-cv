@@ -23,7 +23,6 @@ REGISTER_OP("KcvWithinBox")
     .Input("boxes: float")
     .Output("box_indices: int32")
     .SetShapeFn([](tensorflow::shape_inference::InferenceContext* c) {
-      c->set_output(
-          0, c->MakeShape({c->Dim(c->input(0), 0)}));
+      c->set_output(0, c->MakeShape({c->Dim(c->input(0), 0)}));
       return tensorflow::Status();
     });

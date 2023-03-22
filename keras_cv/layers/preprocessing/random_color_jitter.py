@@ -1,4 +1,4 @@
-# Copyright 2022 The KerasCV Authors
+# Copyright 2023 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,17 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv.layers import preprocessing
-from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
-    BaseImageAugmentationLayer,
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
+    VectorizedBaseImageAugmentationLayer,
 )
 from keras_cv.utils import preprocessing as preprocessing_utils
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
-class RandomColorJitter(BaseImageAugmentationLayer):
+@keras.utils.register_keras_serializable(package="keras_cv")
+class RandomColorJitter(VectorizedBaseImageAugmentationLayer):
     """RandomColorJitter class randomly apply brightness, contrast, saturation
     and hue image processing operation sequentially and randomly on the
     input. It expects input as RGB image. The expected image should be
@@ -70,7 +70,7 @@ class RandomColorJitter(BaseImageAugmentationLayer):
 
     Usage:
     ```python
-    (images, labels), _ = tf.keras.datasets.cifar10.load_data()
+    (images, labels), _ = keras.datasets.cifar10.load_data()
     color_jitter = keras_cv.layers.RandomColorJitter(
             value_range=(0, 255),
             brightness_factor=(-0.2, 0.5),
@@ -113,33 +113,40 @@ class RandomColorJitter(BaseImageAugmentationLayer):
             factor=self.hue_factor, value_range=(0, 255), seed=self.seed
         )
 
-    def augment_image(self, image, transformation=None, **kwargs):
-        image = preprocessing_utils.transform_value_range(
-            image,
+    def augment_ragged_image(self, image, transformation, **kwargs):
+        return self.augment_images(
+            images=image, transformations=transformation, **kwargs
+        )
+
+    def augment_images(self, images, transformations=None, **kwargs):
+        images = preprocessing_utils.transform_value_range(
+            images,
             original_range=self.value_range,
             target_range=(0, 255),
             dtype=self.compute_dtype,
         )
-        image = self.random_brightness(image)
-        image = self.random_contrast(image)
-        image = self.random_saturation(image)
-        image = self.random_hue(image)
-        image = preprocessing_utils.transform_value_range(
-            image,
+        images = self.random_brightness(images)
+        images = self.random_contrast(images)
+        images = self.random_saturation(images)
+        images = self.random_hue(images)
+        images = preprocessing_utils.transform_value_range(
+            images,
             original_range=(0, 255),
             target_range=self.value_range,
             dtype=self.compute_dtype,
         )
-        return image
+        return images
 
-    def augment_bounding_boxes(self, bounding_boxes, **kwargs):
+    def augment_labels(self, labels, transformations, **kwargs):
+        return labels
+
+    def augment_segmentation_masks(
+        self, segmentation_masks, transformations, **kwargs
+    ):
+        return segmentation_masks
+
+    def augment_bounding_boxes(self, bounding_boxes, transformations, **kwargs):
         return bounding_boxes
-
-    def augment_label(self, label, transformation=None, **kwargs):
-        return label
-
-    def augment_segmentation_mask(self, segmentation_mask, transformation, **kwargs):
-        return segmentation_mask
 
     def get_config(self):
         config = super().get_config()
@@ -154,3 +161,7 @@ class RandomColorJitter(BaseImageAugmentationLayer):
             }
         )
         return config
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)

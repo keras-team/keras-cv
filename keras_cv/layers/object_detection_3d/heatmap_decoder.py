@@ -17,6 +17,7 @@ from typing import Tuple
 
 import numpy as np
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv.layers.object_detection_3d import voxel_utils
 
@@ -96,7 +97,7 @@ def decode_bin_box(pd, num_head_bin, anchor_size):
         return box
 
 
-class HeatmapDecoder(tf.keras.layers.Layer):
+class HeatmapDecoder(keras.layers.Layer):
     """A Keras layer that decodes predictions of an 3d object detection model.
 
     Arg:
@@ -133,7 +134,9 @@ class HeatmapDecoder(tf.keras.layers.Layer):
         self.spatial_size = spatial_size
         self.built = True
 
-    def call(self, prediction: tf.Tensor) -> Tuple[tf.Tensor, tf.Tensor, tf.Tensor]:
+    def call(
+        self, prediction: tf.Tensor
+    ) -> Tuple[tf.Tensor, tf.Tensor, tf.Tensor]:
         """Accepts raw predictions, and returns decoded boxes.
 
         Args:
@@ -144,7 +147,9 @@ class HeatmapDecoder(tf.keras.layers.Layer):
         heatmap_mask = heatmap > self.heatmap_threshold
         heatmap_local_maxima_mask = tf.math.equal(heatmap, heatmap_pool)
         # [B, H, W, 1]
-        heatmap_mask = tf.math.logical_and(heatmap_mask, heatmap_local_maxima_mask)
+        heatmap_mask = tf.math.logical_and(
+            heatmap_mask, heatmap_local_maxima_mask
+        )
         # [B, H, W, 1]
         heatmap = tf.where(heatmap_mask, heatmap, 0)
         # [B, H, W]
@@ -166,7 +171,9 @@ class HeatmapDecoder(tf.keras.layers.Layer):
         box_class = tf.ones_like(box_score, dtype=tf.int32) * self.class_id
         # [B*max_num_box, ?]
         f = box_prediction.get_shape().as_list()[-1]
-        box_prediction_reshape = tf.reshape(box_prediction, [b * self.max_num_box, f])
+        box_prediction_reshape = tf.reshape(
+            box_prediction, [b * self.max_num_box, f]
+        )
         # [B*max_num_box, 7]
         box_decoded = decode_bin_box(
             box_prediction_reshape, self.num_head_bin, self.anchor_size
@@ -185,7 +192,9 @@ class HeatmapDecoder(tf.keras.layers.Layer):
         ref_xyz = tf.gather(ref_xyz, top_index, batch_dims=1)
 
         box_decoded_cxyz = ref_xyz + box_decoded[:, :, :3]
-        box_decoded = tf.concat([box_decoded_cxyz, box_decoded[:, :, 3:]], axis=-1)
+        box_decoded = tf.concat(
+            [box_decoded_cxyz, box_decoded[:, :, 3:]], axis=-1
+        )
         return box_decoded, box_class, box_score
 
     def get_config(self):

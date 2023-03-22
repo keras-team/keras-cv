@@ -60,7 +60,9 @@ class BoundingBoxUtilTest(tf.test.TestCase):
         height = 256
         width = 256
         bounding_boxes = {
-            "boxes": tf.convert_to_tensor([[257, 257, 400, 400], [100, 100, 300, 300]]),
+            "boxes": tf.convert_to_tensor(
+                [[257, 257, 400, 400], [100, 100, 300, 300]]
+            ),
             "classes": tf.convert_to_tensor([0, 0]),
         }
         image = tf.ones(shape=(height, width, 3))
@@ -82,7 +84,9 @@ class BoundingBoxUtilTest(tf.test.TestCase):
         height = 256
         width = 256
         bounding_boxes = {
-            "boxes": tf.convert_to_tensor([[110, 120, 100, 100], [100, 100, 300, 300]]),
+            "boxes": tf.convert_to_tensor(
+                [[110, 120, 100, 100], [100, 100, 300, 300]]
+            ),
             "classes": [0, 0],
         }
         image = tf.ones(shape=(height, width, 3))

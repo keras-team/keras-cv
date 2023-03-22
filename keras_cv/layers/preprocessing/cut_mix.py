@@ -11,7 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
@@ -19,14 +21,14 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 from keras_cv.utils import fill_utils
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class CutMix(BaseImageAugmentationLayer):
     """CutMix implements the CutMix data augmentation technique.
 
     Args:
-        alpha: Float between 0 and 1.  Inverse scale parameter for the gamma
-            distribution.  This controls the shape of the distribution from which the
-            smoothing values are sampled.  Defaults 1.0, which is a recommended value
+        alpha: Float between 0 and 1. Inverse scale parameter for the gamma
+            distribution. This controls the shape of the distribution from which the
+            smoothing values are sampled. Defaults to 1.0, which is a recommended value
             when training an imagenet1k classification model.
         seed: Integer. Used to create a random seed.
     References:
@@ -34,7 +36,7 @@ class CutMix(BaseImageAugmentationLayer):
 
     Sample usage:
     ```python
-    (images, labels), _ = tf.keras.datasets.cifar10.load_data()
+    (images, labels), _ = keras.datasets.cifar10.load_data()
     labels = tf.one_hot(labels.squeeze(), 10)
 
     cutmix = keras_cv.layers.preprocessing.cut_mix.CutMix(10)
@@ -50,10 +52,10 @@ class CutMix(BaseImageAugmentationLayer):
 
     def _sample_from_beta(self, alpha, beta, shape):
         sample_alpha = tf.random.gamma(
-            shape, 1.0, beta=alpha, seed=self._random_generator.make_legacy_seed()
+            shape, alpha=alpha, seed=self._random_generator.make_legacy_seed()
         )
         sample_beta = tf.random.gamma(
-            shape, 1.0, beta=beta, seed=self._random_generator.make_legacy_seed()
+            shape, alpha=beta, seed=self._random_generator.make_legacy_seed()
         )
         return sample_alpha / (sample_alpha + sample_beta)
 
@@ -75,9 +77,9 @@ class CutMix(BaseImageAugmentationLayer):
 
     def _augment(self, inputs):
         raise ValueError(
-            "CutMix received a single image to `call`.  The layer relies on "
+            "CutMix received a single image to `call`. The layer relies on "
             "combining multiple examples, and as such will not behave as "
-            "expected.  Please call the layer with 2 or more samples."
+            "expected. Please call the layer with 2 or more samples."
         )
 
     def _cutmix(self, images, labels):
@@ -89,8 +91,12 @@ class CutMix(BaseImageAugmentationLayer):
             input_shape[2],
         )
 
-        permutation_order = tf.random.shuffle(tf.range(0, batch_size), seed=self.seed)
-        lambda_sample = self._sample_from_beta(self.alpha, self.alpha, (batch_size,))
+        permutation_order = tf.random.shuffle(
+            tf.range(0, batch_size), seed=self.seed
+        )
+        lambda_sample = self._sample_from_beta(
+            self.alpha, self.alpha, (batch_size,)
+        )
 
         ratio = tf.math.sqrt(1 - lambda_sample)
 
@@ -98,7 +104,7 @@ class CutMix(BaseImageAugmentationLayer):
             ratio * tf.cast(image_height, dtype=tf.float32), dtype=tf.int32
         )
         cut_width = tf.cast(
-            ratio * tf.cast(image_height, dtype=tf.float32), dtype=tf.int32
+            ratio * tf.cast(image_width, dtype=tf.float32), dtype=tf.int32
         )
 
         random_center_height = tf.random.uniform(

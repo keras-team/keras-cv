@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
@@ -20,7 +21,7 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 from keras_cv.utils import preprocessing
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class RandomGaussianBlur(BaseImageAugmentationLayer):
     """Applies a Gaussian Blur with random strength to an image.
 
@@ -92,7 +93,9 @@ class RandomGaussianBlur(BaseImageAugmentationLayer):
     def augment_label(self, label, transformation=None, **kwargs):
         return label
 
-    def augment_segmentation_mask(self, segmentation_mask, transformation, **kwargs):
+    def augment_segmentation_mask(
+        self, segmentation_mask, transformation, **kwargs
+    ):
         return segmentation_mask
 
     @staticmethod
@@ -100,10 +103,12 @@ class RandomGaussianBlur(BaseImageAugmentationLayer):
         # We are running this in float32, regardless of layer's self.compute_dtype.
         # Calculating blur_filter in lower precision will corrupt the final results.
         x = tf.cast(
-            tf.range(-filter_size // 2 + 1, filter_size // 2 + 1), dtype=tf.float32
+            tf.range(-filter_size // 2 + 1, filter_size // 2 + 1),
+            dtype=tf.float32,
         )
         blur_filter = tf.exp(
-            -tf.pow(x, 2.0) / (2.0 * tf.pow(tf.cast(factor, dtype=tf.float32), 2.0))
+            -tf.pow(x, 2.0)
+            / (2.0 * tf.pow(tf.cast(factor, dtype=tf.float32), 2.0))
         )
         blur_filter /= tf.reduce_sum(blur_filter)
         return blur_filter

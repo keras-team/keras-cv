@@ -1,4 +1,4 @@
-# Copyright 2022 The KerasCV Authors
+# Copyright 2023 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,11 +15,12 @@
 
 import tensorflow as tf
 from keras import backend
+from tensorflow import keras
 
-from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
-    BaseImageAugmentationLayer,
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
+    VectorizedBaseImageAugmentationLayer,
 )
-from keras_cv.utils import preprocessing
+from keras_cv.utils import preprocessing as preprocessing_utils
 
 # In order to support both unbatched and batched inputs, the horizontal
 # and verticle axis is reverse indexed
@@ -27,8 +28,8 @@ H_AXIS = -3
 W_AXIS = -2
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
-class RandomZoom(BaseImageAugmentationLayer):
+@keras.utils.register_keras_serializable(package="keras_cv")
+class RandomZoom(VectorizedBaseImageAugmentationLayer):
     """A preprocessing layer which randomly zooms images during training.
 
     This layer will randomly zoom in or out on each axis of an image
@@ -129,65 +130,68 @@ class RandomZoom(BaseImageAugmentationLayer):
                     f"got {width_factor}"
                 )
 
-        preprocessing.check_fill_mode_and_interpolation(fill_mode, interpolation)
+        preprocessing_utils.check_fill_mode_and_interpolation(
+            fill_mode, interpolation
+        )
 
         self.fill_mode = fill_mode
         self.fill_value = fill_value
         self.interpolation = interpolation
         self.seed = seed
 
-    def get_random_transformation(self, image=None, **kwargs):
-        height_zoom = self._random_generator.random_uniform(
-            shape=[1, 1],
+    def get_random_transformation_batch(self, batch_size, **kwargs):
+        height_zooms = self._random_generator.random_uniform(
+            shape=[batch_size, 1],
             minval=1.0 + self.height_lower,
             maxval=1.0 + self.height_upper,
         )
         if self.width_factor is not None:
-            width_zoom = self._random_generator.random_uniform(
-                shape=[1, 1],
+            width_zooms = self._random_generator.random_uniform(
+                shape=[batch_size, 1],
                 minval=1.0 + self.width_lower,
                 maxval=1.0 + self.width_upper,
             )
         else:
-            width_zoom = height_zoom
+            width_zooms = height_zooms
 
-        return {"height_zoom": height_zoom, "width_zoom": width_zoom}
+        return {"height_zooms": height_zooms, "width_zooms": width_zooms}
 
-    def augment_image(self, image, transformation, **kwargs):
-        image = preprocessing.ensure_tensor(image, self.compute_dtype)
-        original_shape = image.shape
-        image = tf.expand_dims(image, 0)
-        image_shape = tf.shape(image)
+    def augment_ragged_image(self, image, transformation, **kwargs):
+        image = tf.expand_dims(image, axis=0)
+        width_zooms = transformation["width_zooms"]
+        height_zooms = transformation["height_zooms"]
+        transformation = {
+            "height_zooms": tf.expand_dims(height_zooms, axis=0),
+            "width_zooms": tf.expand_dims(width_zooms, axis=0),
+        }
+        image = self.augment_images(
+            images=image, transformations=transformation, **kwargs
+        )
+        return tf.squeeze(image, axis=0)
+
+    def augment_images(self, images, transformations, **kwargs):
+        images = preprocessing_utils.ensure_tensor(images, self.compute_dtype)
+        original_shape = images.shape
+        image_shape = tf.shape(images)
         img_hd = tf.cast(image_shape[H_AXIS], tf.float32)
         img_wd = tf.cast(image_shape[W_AXIS], tf.float32)
-        width_zoom = transformation["width_zoom"]
-        height_zoom = transformation["height_zoom"]
-        zooms = tf.cast(tf.concat([width_zoom, height_zoom], axis=1), dtype=tf.float32)
-        output = preprocessing.transform(
-            image,
+        width_zooms = transformations["width_zooms"]
+        height_zooms = transformations["height_zooms"]
+        zooms = tf.cast(
+            tf.concat([width_zooms, height_zooms], axis=1), dtype=tf.float32
+        )
+        outputs = preprocessing_utils.transform(
+            images,
             self.get_zoom_matrix(zooms, img_hd, img_wd),
             fill_mode=self.fill_mode,
             fill_value=self.fill_value,
             interpolation=self.interpolation,
         )
-        output = tf.squeeze(output, 0)
-        output.set_shape(original_shape)
-        return output
+        outputs.set_shape(original_shape)
+        return outputs
 
-    def augment_label(self, label, transformation, **kwargs):
-        return label
-
-    def get_config(self):
-        config = {
-            "height_factor": self.height_factor,
-            "width_factor": self.width_factor,
-            "fill_mode": self.fill_mode,
-            "fill_value": self.fill_value,
-            "interpolation": self.interpolation,
-            "seed": self.seed,
-        }
-        base_config = super().get_config()
-        return dict(list(base_config.items()) + list(config.items()))
+    def augment_labels(self, labels, transformations, **kwargs):
+        return labels
 
     def get_zoom_matrix(self, zooms, image_height, image_width, name=None):
         """Returns projective transform(s) for the given zoom(s).
@@ -230,3 +234,19 @@ class RandomZoom(BaseImageAugmentationLayer):
                 ],
                 axis=1,
             )
+
+    def get_config(self):
+        config = {
+            "height_factor": self.height_factor,
+            "width_factor": self.width_factor,
+            "fill_mode": self.fill_mode,
+            "fill_value": self.fill_value,
+            "interpolation": self.interpolation,
+            "seed": self.seed,
+        }
+        base_config = super().get_config()
+        return dict(list(base_config.items()) + list(config.items()))
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)

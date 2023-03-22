@@ -11,13 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import tensorflow as tf
+from tensorflow import keras
 from tensorflow.keras.__internal__.layers import BaseRandomLayer
 
 from keras_cv.utils import conv_utils
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class DropBlock2D(BaseRandomLayer):
     """Applies DropBlock regularization to input features.
 
@@ -50,7 +52,7 @@ class DropBlock2D(BaseRandomLayer):
         name: string. The name of the layer.
 
     Usage:
-    DropBlock2D can be used inside a `tf.keras.Model`:
+    DropBlock2D can be used inside a `keras.Model`:
     ```python
     # (...)
     x = Conv2D(32, (1, 1))(x)
@@ -146,7 +148,10 @@ class DropBlock2D(BaseRandomLayer):
             )
 
         self._rate = rate
-        self._dropblock_height, self._dropblock_width = conv_utils.normalize_tuple(
+        (
+            self._dropblock_height,
+            self._dropblock_width,
+        ) = conv_utils.normalize_tuple(
             value=block_size, n=2, name="block_size", allow_zero=False
         )
         self.seed = seed
@@ -209,10 +214,12 @@ class DropBlock2D(BaseRandomLayer):
         )
 
         # Slightly scale the values, to account for magnitude change
-        percent_ones = tf.cast(tf.reduce_sum(block_pattern), tf.float32) / tf.cast(
-            tf.size(block_pattern), tf.float32
+        percent_ones = tf.cast(
+            tf.reduce_sum(block_pattern), tf.float32
+        ) / tf.cast(tf.size(block_pattern), tf.float32)
+        return (
+            x / tf.cast(percent_ones, x.dtype) * tf.cast(block_pattern, x.dtype)
         )
-        return x / tf.cast(percent_ones, x.dtype) * tf.cast(block_pattern, x.dtype)
 
     def get_config(self):
         config = {

@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import tensorflow as tf
+from tensorflow import keras
 from tensorflow.keras import layers
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class PredictionHead(layers.Layer):
     """The class/box predictions head.
 
@@ -29,7 +29,9 @@ class PredictionHead(layers.Layer):
         or the box regression head depending on `output_filters`.
     """
 
-    def __init__(self, output_filters, bias_initializer, num_conv_layers=3, **kwargs):
+    def __init__(
+        self, output_filters, bias_initializer, num_conv_layers=3, **kwargs
+    ):
         super().__init__(**kwargs)
         self.output_filters = output_filters
         self.bias_initializer = bias_initializer
@@ -40,7 +42,7 @@ class PredictionHead(layers.Layer):
                 256,
                 kernel_size=3,
                 padding="same",
-                kernel_initializer=tf.keras.initializers.Orthogonal(),
+                kernel_initializer=keras.initializers.Orthogonal(),
                 activation="relu",
             )
             for _ in range(num_conv_layers)
@@ -50,7 +52,7 @@ class PredictionHead(layers.Layer):
             kernel_size=3,
             strides=1,
             padding="same",
-            kernel_initializer=tf.keras.initializers.Orthogonal(),
+            kernel_initializer=keras.initializers.Orthogonal(),
             bias_initializer=self.bias_initializer,
         )
 

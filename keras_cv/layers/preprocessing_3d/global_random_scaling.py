@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv.bounding_box_3d import CENTER_XYZ_DXDYDZ_PHI
 from keras_cv.layers.preprocessing_3d import base_augmentation_layer_3d
@@ -21,7 +22,7 @@ POINT_CLOUDS = base_augmentation_layer_3d.POINT_CLOUDS
 BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class GlobalRandomScaling(base_augmentation_layer_3d.BaseAugmentationLayer3D):
     """A preprocessing layer which randomly scales point clouds and bounding boxes along
     X, Y, and Z axes during training.
@@ -138,13 +139,22 @@ class GlobalRandomScaling(base_augmentation_layer_3d.BaseAugmentationLayer3D):
 
     def get_random_transformation(self, **kwargs):
         random_scaling_x = self._random_generator.random_uniform(
-            (), minval=self._min_x_factor, maxval=self._max_x_factor
+            (),
+            minval=self._min_x_factor,
+            maxval=self._max_x_factor,
+            dtype=self.compute_dtype,
         )
         random_scaling_y = self._random_generator.random_uniform(
-            (), minval=self._min_y_factor, maxval=self._max_y_factor
+            (),
+            minval=self._min_y_factor,
+            maxval=self._max_y_factor,
+            dtype=self.compute_dtype,
         )
         random_scaling_z = self._random_generator.random_uniform(
-            (), minval=self._min_z_factor, maxval=self._max_z_factor
+            (),
+            minval=self._min_z_factor,
+            maxval=self._max_z_factor,
+            dtype=self.compute_dtype,
         )
         if not self._preserve_aspect_ratio:
             return {
@@ -164,7 +174,9 @@ class GlobalRandomScaling(base_augmentation_layer_3d.BaseAugmentationLayer3D):
     ):
         scale = transformation["scale"][tf.newaxis, tf.newaxis, :]
         point_clouds_xyz = point_clouds[..., :3] * scale
-        point_clouds = tf.concat([point_clouds_xyz, point_clouds[..., 3:]], axis=-1)
+        point_clouds = tf.concat(
+            [point_clouds_xyz, point_clouds[..., 3:]], axis=-1
+        )
 
         bounding_boxes_xyzdxdydz = bounding_boxes[
             ..., : CENTER_XYZ_DXDYDZ_PHI.DZ + 1

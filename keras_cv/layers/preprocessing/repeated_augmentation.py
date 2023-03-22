@@ -11,14 +11,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class RepeatedAugmentation(BaseImageAugmentationLayer):
     """RepeatedAugmentation augments each image in a batch multiple times.
 
@@ -87,14 +89,18 @@ class RepeatedAugmentation(BaseImageAugmentationLayer):
 
         outputs = {}
         for k in inputs.keys():
-            outputs[k] = tf.concat([output[k] for output in augmenter_outputs], axis=0)
+            outputs[k] = tf.concat(
+                [output[k] for output in augmenter_outputs], axis=0
+            )
 
         if not self.shuffle:
             return outputs
         return self.shuffle_outputs(outputs)
 
     def shuffle_outputs(self, result):
-        indices = tf.range(start=0, limit=tf.shape(result["images"])[0], dtype=tf.int32)
+        indices = tf.range(
+            start=0, limit=tf.shape(result["images"])[0], dtype=tf.int32
+        )
         indices = tf.random.shuffle(indices)
         for key in result:
             result[key] = tf.gather(result[key], indices)
@@ -111,3 +117,11 @@ class RepeatedAugmentation(BaseImageAugmentationLayer):
         config = super().get_config()
         config.update({"augmenters": self.augmenters, "shuffle": self.shuffle})
         return config
+
+    @classmethod
+    def from_config(cls, config):
+        if config["augmenters"] and isinstance(config["augmenters"][0], dict):
+            config["augmenters"] = keras.utils.deserialize_keras_object(
+                config["augmenters"]
+            )
+        return cls(**config)

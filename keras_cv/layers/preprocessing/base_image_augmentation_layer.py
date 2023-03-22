@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv import bounding_box
 from keras_cv.utils import preprocessing
@@ -32,13 +33,13 @@ IS_DICT = "is_dict"
 USE_TARGETS = "use_targets"
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
-class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
+@keras.utils.register_keras_serializable(package="keras_cv")
+class BaseImageAugmentationLayer(keras.__internal__.layers.BaseRandomLayer):
     """Abstract base layer for image augmentaion.
 
     This layer contains base functionalities for preprocessing layers which
     augment image related data, eg. image and in future, label and bounding
-    boxes.  The subclasses could avoid making certain mistakes and reduce code
+    boxes. The subclasses could avoid making certain mistakes and reduce code
     duplications.
 
     This layer requires you to implement one method: `augment_image()`, which
@@ -52,9 +53,9 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
     the layer supports that.
 
     `get_random_transformation()`, which should produce a random transformation
-    setting. The tranformation object, which could be any type, will be passed
+    setting. The transformation object, which could be of any type, will be passed
     to `augment_image`, `augment_label` and `augment_bounding_boxes`, to
-    coodinate the randomness behavior, eg, in the RandomFlip layer, the image
+    coordinate the randomness behaviour, e.g., in the RandomFlip layer, the image
     and bounding_boxes should be changed in the same way.
 
     The `call()` method supports two formats of inputs:
@@ -82,7 +83,7 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
 
     By default the `call()` method leverages the `tf.vectorized_map()` function.
     Auto-vectorization can be disabled by setting `self.auto_vectorize = False`
-    in your `__init__()` method.  When disabled, `call()` instead relies
+    in your `__init__()` method. When disabled, `call()` instead relies
     on `tf.map_fn()`. For example:
 
     ```python
@@ -108,8 +109,8 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
     ```
 
     Note that since the randomness is also a common functionality, this layer
-    also includes a tf.keras.backend.RandomGenerator, which can be used to
-    produce the random numbers.  The random number generator is stored in the
+    also includes a keras.backend.RandomGenerator, which can be used to
+    produce the random numbers. The random number generator is stored in the
     `self._random_generator` attribute.
     """
 
@@ -165,7 +166,9 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
         """
         if self.force_output_dense_images:
             return tf.TensorSpec(images.shape[1:], self.compute_dtype)
-        if self.force_output_ragged_images or isinstance(images, tf.RaggedTensor):
+        if self.force_output_ragged_images or isinstance(
+            images, tf.RaggedTensor
+        ):
             ragged_spec = tf.RaggedTensorSpec(
                 shape=images.shape[1:],
                 ragged_rank=1,
@@ -182,7 +185,9 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
                 ragged_rank=1,
                 dtype=self.compute_dtype,
             ),
-            "classes": tf.RaggedTensorSpec(shape=[None], dtype=self.compute_dtype),
+            "classes": tf.RaggedTensorSpec(
+                shape=[None], dtype=self.compute_dtype
+            ),
         }
 
     # TODO(lukewood): promote to user facing API if needed
@@ -205,19 +210,21 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
         return tf.TensorSpec(targets.shape[1:], self.compute_dtype)
 
     def _compute_output_signature(self, inputs):
-        fn_output_signature = {IMAGES: self.compute_image_signature(inputs[IMAGES])}
+        fn_output_signature = {
+            IMAGES: self.compute_image_signature(inputs[IMAGES])
+        }
         bounding_boxes = inputs.get(BOUNDING_BOXES, None)
 
         if bounding_boxes is not None:
-            fn_output_signature[BOUNDING_BOXES] = self._compute_bounding_box_signature(
-                bounding_boxes
-            )
+            fn_output_signature[
+                BOUNDING_BOXES
+            ] = self._compute_bounding_box_signature(bounding_boxes)
 
         segmentation_masks = inputs.get(SEGMENTATION_MASKS, None)
         if segmentation_masks is not None:
-            fn_output_signature[SEGMENTATION_MASKS] = self.compute_image_signature(
-                segmentation_masks
-            )
+            fn_output_signature[
+                SEGMENTATION_MASKS
+            ] = self.compute_image_signature(segmentation_masks)
 
         keypoints = inputs.get(KEYPOINTS, None)
         if keypoints is not None:
@@ -249,7 +256,9 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
         """
         if self._any_ragged(inputs) or self.force_output_ragged_images:
             return tf.map_fn(
-                func, inputs, fn_output_signature=self._compute_output_signature(inputs)
+                func,
+                inputs,
+                fn_output_signature=self._compute_output_signature(inputs),
             )
         if self.auto_vectorize:
             return tf.vectorized_map(func, inputs)
@@ -330,7 +339,9 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
         """
         raise NotImplementedError()
 
-    def augment_segmentation_mask(self, segmentation_mask, transformation, **kwargs):
+    def augment_segmentation_mask(
+        self, segmentation_mask, transformation, **kwargs
+    ):
         """Augment a single image's segmentation mask during training.
 
         Args:
@@ -380,7 +391,9 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
             if images.shape.rank == 3:
                 return self._format_output(self._augment(inputs), metadata)
             elif images.shape.rank == 4:
-                return self._format_output(self._batch_augment(inputs), metadata)
+                return self._format_output(
+                    self._batch_augment(inputs), metadata
+                )
             else:
                 raise ValueError(
                     "Image augmentation layers are expecting inputs to be "
@@ -486,7 +499,9 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
             )
 
         if BOUNDING_BOXES in inputs:
-            inputs[BOUNDING_BOXES] = self._format_bounding_boxes(inputs[BOUNDING_BOXES])
+            inputs[BOUNDING_BOXES] = self._format_bounding_boxes(
+                inputs[BOUNDING_BOXES]
+            )
 
         if isinstance(inputs, dict) and TARGETS in inputs:
             # TODO(scottzhu): Check if it only contains the valid keys
@@ -527,12 +542,7 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
             self.compute_dtype,
         )
         if BOUNDING_BOXES in inputs:
-            inputs[BOUNDING_BOXES]["boxes"] = preprocessing.ensure_tensor(
-                inputs[BOUNDING_BOXES]["boxes"],
-                self.compute_dtype,
-            )
-            inputs[BOUNDING_BOXES]["classes"] = preprocessing.ensure_tensor(
-                inputs[BOUNDING_BOXES]["classes"],
-                self.compute_dtype,
+            inputs[BOUNDING_BOXES] = bounding_box.ensure_tensor(
+                inputs[BOUNDING_BOXES], dtype=self.compute_dtype
             )
         return inputs

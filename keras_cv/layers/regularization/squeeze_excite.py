@@ -13,10 +13,11 @@
 # limitations under the License.
 
 import tensorflow as tf
+from tensorflow import keras
 from tensorflow.keras import layers
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class SqueezeAndExcite2D(layers.Layer):
     """
     Implements Squeeze and Excite block as in
@@ -38,18 +39,18 @@ class SqueezeAndExcite2D(layers.Layer):
             output filters is same.
         ratio: Ratio for bottleneck filters. Number of bottleneck filters =
             filters * ratio. Defaults to 0.25.
-        squeeze_activation: (Optional) String, callable (or tf.keras.layers.Layer) or
-            tf.keras.activations.Activation instance denoting activation to
+        squeeze_activation: (Optional) String, callable (or keras.layers.Layer) or
+            keras.activations.Activation instance denoting activation to
             be applied after squeeze convolution. Defaults to `relu`.
-        excite_activation: (Optional) String, callable (or tf.keras.layers.Layer) or
-            tf.keras.activations.Activation instance denoting activation to
+        excite_activation: (Optional) String, callable (or keras.layers.Layer) or
+            keras.activations.Activation instance denoting activation to
             be applied after excite convolution. Defaults to `sigmoid`.
     Usage:
 
     ```python
     # (...)
     input = tf.ones((1, 5, 5, 16), dtype=tf.float32)
-    x = tf.keras.layers.Conv2D(16, (3, 3))(input)
+    x = keras.layers.Conv2D(16, (3, 3))(input)
     output = keras_cv.layers.SqueezeAndExciteBlock(16)(x)
     # (...)
     ```
@@ -68,10 +69,14 @@ class SqueezeAndExcite2D(layers.Layer):
         self.filters = filters
 
         if ratio <= 0.0 or ratio >= 1.0:
-            raise ValueError(f"`ratio` should be a float between 0 and 1. Got {ratio}")
+            raise ValueError(
+                f"`ratio` should be a float between 0 and 1. Got {ratio}"
+            )
 
         if filters <= 0 or not isinstance(filters, int):
-            raise ValueError(f"`filters` should be a positive integer. Got {filters}")
+            raise ValueError(
+                f"`filters` should be a positive integer. Got {filters}"
+            )
 
         self.ratio = ratio
         self.bottleneck_filters = int(self.filters * self.ratio)
@@ -105,3 +110,15 @@ class SqueezeAndExcite2D(layers.Layer):
         }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
+
+    @classmethod
+    def from_config(cls, config):
+        if isinstance(config["squeeze_activation"], dict):
+            config["squeeze_activation"] = keras.utils.deserialize_keras_object(
+                config["squeeze_activation"]
+            )
+        if isinstance(config["excite_activation"], dict):
+            config["excite_activation"] = keras.utils.deserialize_keras_object(
+                config["excite_activation"]
+            )
+        return cls(**config)

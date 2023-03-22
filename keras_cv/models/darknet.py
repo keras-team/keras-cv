@@ -25,10 +25,12 @@ from tensorflow.keras import layers
 from keras_cv.models import utils
 from keras_cv.models.__internal__.darknet_utils import DarknetConvBlock
 from keras_cv.models.__internal__.darknet_utils import ResidualBlocks
-from keras_cv.models.__internal__.darknet_utils import SpatialPyramidPoolingBottleneck
+from keras_cv.models.__internal__.darknet_utils import (
+    SpatialPyramidPoolingBottleneck,
+)
 from keras_cv.models.weights import parse_weights
 
-BASE_DOCSTRING = """Instantiates the {name} architecture.
+BASE_DOCSTRING = """Represents the {name} architecture.
 
     Although the {name} architecture is commonly used for detection tasks, it is
     possible to extract the intermediate dark2 to dark5 layers from the model for
@@ -37,21 +39,22 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
     Reference:
         - [YoloV3 Paper](https://arxiv.org/abs/1804.02767)
         - [YoloV3 implementation](https://github.com/ultralytics/yolov3)
+
     For transfer learning use cases, make sure to read the
     [guide to transfer learning & fine-tuning](
         https://keras.io/guides/transfer_learning/).
 
     Args:
-        include_rescaling: whether or not to Rescale the inputs.If set to True,
+        include_rescaling: bool, whether or not to rescale the inputs. If set to True,
             inputs will be passed through a `Rescaling(1/255.0)` layer.
-        include_top: whether to include the fully-connected layer at the top of
-            the network.  If provided, `classes` must be provided.
-        classes: optional number of classes to classify images into, only to be
+        include_top: bool, whether to include the fully-connected layer at the top of
+            the network.  If provided, `num_classes` must be provided.
+        num_classes: integer, optional number of classes to classify images into. Only to be
             specified if `include_top` is True.
         weights: one of `None` (random initialization), or a pretrained weight
             file path.
         input_shape: optional shape tuple, defaults to (None, None, 3).
-        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
+        input_tensor: optional Keras tensor (i.e., output of `layers.Input()`)
             to use as image input for the model.
         pooling: optional pooling mode for feature extraction when `include_top`
             is `False`.
@@ -61,26 +64,17 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
                 output of the last convolutional block, and thus the output of the
                 model will be a 2D tensor.
             - `max` means that global max pooling will be applied.
-        name: (Optional) name to pass to the model.  Defaults to "{name}".
+        name: string, optional name to pass to the model, defaults to "{name}".
+
     Returns:
         A `keras.Model` instance.
 """
 
 
-def DarkNet(
-    blocks,
-    include_rescaling,
-    include_top,
-    classes=None,
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    classifier_activation="softmax",
-    name="DarkNet",
-    **kwargs,
-):
-    """Instantiates the DarkNet architecture.
+@keras.utils.register_keras_serializable(package="keras_cv.models")
+class DarkNet(keras.Model):
+
+    """Represents the DarkNet architecture.
 
     The DarkNet architecture is commonly used for detection tasks. It is
     possible to extract the intermediate dark2 to dark5 layers from the model for
@@ -94,17 +88,17 @@ def DarkNet(
         https://keras.io/guides/transfer_learning/).
 
     Args:
-        blocks: numbers of building blocks from the layer dark2 to layer dark5.
-        include_rescaling: whether or not to Rescale the inputs.If set to True,
+        blocks: integer, numbers of building blocks from the layer dark2 to layer dark5.
+        include_rescaling: bool, whether to rescale the inputs. If set to True,
             inputs will be passed through a `Rescaling(1/255.0)` layer.
-        include_top: whether to include the fully-connected layer at the top of
-            the network.  If provided, `classes` must be provided.
-        classes: optional number of classes to classify imagesinto, only to be
+        include_top: bool, whether to include the fully-connected layer at the top of
+            the network.  If provided, `num_classes` must be provided.
+        num_classes: integer, optional number of classes to classify images into. Only to be
             specified if `include_top` is True.
-        weights: one of `None` (random initialization), or a pretrained weight
+        weights: one of `None` (random initialization) or a pretrained weight
             file path.
         input_shape: optional shape tuple, defaults to (None, None, 3).
-        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
+        input_tensor: optional Keras tensor (i.e., output of `layers.Input()`)
             to use as image input for the model.
         pooling: optional pooling mode for feature extraction when `include_top`
             is `False`.
@@ -117,102 +111,152 @@ def DarkNet(
         classifier_activation: A `str` or callable. The activation function to use
             on the "top" layer. Ignored unless `include_top=True`. Set
             `classifier_activation=None` to return the logits of the "top" layer.
+        name: string, optional name to pass to the model, defaults to "DarkNet".
 
-        name: (Optional) name to pass to the model.  Defaults to "DarkNet".
     Returns:
         A `keras.Model` instance.
     """
-    if weights and not tf.io.gfile.exists(weights):
-        raise ValueError(
-            "The `weights` argument should be either `None` or the path to the "
-            f"weights file to be loaded. Weights file not found at location: {weights}"
-        )
 
-    if include_top and not classes:
-        raise ValueError(
-            "If `include_top` is True, you should specify `classes`. Received: "
-            f"classes={classes}"
-        )
+    def __init__(
+        self,
+        blocks,
+        include_rescaling,
+        include_top,
+        num_classes=None,
+        weights=None,
+        input_shape=(None, None, 3),
+        input_tensor=None,
+        pooling=None,
+        classifier_activation="softmax",
+        name="DarkNet",
+        **kwargs,
+    ):
+        if weights and not tf.io.gfile.exists(weights):
+            raise ValueError(
+                "The `weights` argument should be either `None` or the path to the "
+                f"weights file to be loaded. Weights file not found at location: {weights}"
+            )
 
-    inputs = utils.parse_model_inputs(input_shape, input_tensor)
+        if include_top and not num_classes:
+            raise ValueError(
+                "If `include_top` is True, you should specify `num_classes`. Received: "
+                f"num_classes={num_classes}"
+            )
 
-    x = inputs
-    if include_rescaling:
-        x = layers.Rescaling(1 / 255.0)(x)
+        inputs = utils.parse_model_inputs(input_shape, input_tensor)
 
-    # stem
-    x = DarknetConvBlock(
-        filters=32, kernel_size=3, strides=1, activation="leaky_relu", name="stem_conv"
-    )(x)
-    x = ResidualBlocks(filters=64, num_blocks=1, name="stem_residual_block")(x)
+        x = inputs
+        if include_rescaling:
+            x = layers.Rescaling(1 / 255.0)(x)
 
-    # filters for the ResidualBlock outputs
-    filters = [128, 256, 512, 1024]
-
-    # layer_num is used for naming the residual blocks (starts with dark2, hence 2)
-    layer_num = 2
-
-    for filter, block in zip(filters, blocks):
-        x = ResidualBlocks(
-            filters=filter, num_blocks=block, name=f"dark{layer_num}_residual_block"
+        # stem
+        x = DarknetConvBlock(
+            filters=32,
+            kernel_size=3,
+            strides=1,
+            activation="leaky_relu",
+            name="stem_conv",
         )(x)
-        layer_num += 1
+        x = ResidualBlocks(
+            filters=64, num_blocks=1, name="stem_residual_block"
+        )(x)
 
-    # remaining dark5 layers
-    x = DarknetConvBlock(
-        filters=512,
-        kernel_size=1,
-        strides=1,
-        activation="leaky_relu",
-        name="dark5_conv1",
-    )(x)
-    x = DarknetConvBlock(
-        filters=1024,
-        kernel_size=3,
-        strides=1,
-        activation="leaky_relu",
-        name="dark5_conv2",
-    )(x)
-    x = SpatialPyramidPoolingBottleneck(512, activation="leaky_relu", name="dark5_spp")(
-        x
-    )
-    x = DarknetConvBlock(
-        filters=1024,
-        kernel_size=3,
-        strides=1,
-        activation="leaky_relu",
-        name="dark5_conv3",
-    )(x)
-    x = DarknetConvBlock(
-        filters=512,
-        kernel_size=1,
-        strides=1,
-        activation="leaky_relu",
-        name="dark5_conv4",
-    )(x)
+        # filters for the ResidualBlock outputs
+        filters = [128, 256, 512, 1024]
 
-    if include_top:
-        x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-        x = layers.Dense(classes, activation=classifier_activation, name="predictions")(
-            x
-        )
-    elif pooling == "avg":
-        x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-    elif pooling == "max":
-        x = layers.GlobalMaxPooling2D(name="max_pool")(x)
+        # layer_num is used for naming the residual blocks (starts with dark2, hence 2)
+        layer_num = 2
 
-    model = keras.Model(inputs, x, name=name, **kwargs)
+        for filter, block in zip(filters, blocks):
+            x = ResidualBlocks(
+                filters=filter,
+                num_blocks=block,
+                name=f"dark{layer_num}_residual_block",
+            )(x)
+            layer_num += 1
 
-    if weights is not None:
-        model.load_weights(weights)
-    return model
+        # remaining dark5 layers
+        x = DarknetConvBlock(
+            filters=512,
+            kernel_size=1,
+            strides=1,
+            activation="leaky_relu",
+            name="dark5_conv1",
+        )(x)
+        x = DarknetConvBlock(
+            filters=1024,
+            kernel_size=3,
+            strides=1,
+            activation="leaky_relu",
+            name="dark5_conv2",
+        )(x)
+        x = SpatialPyramidPoolingBottleneck(
+            512, activation="leaky_relu", name="dark5_spp"
+        )(x)
+        x = DarknetConvBlock(
+            filters=1024,
+            kernel_size=3,
+            strides=1,
+            activation="leaky_relu",
+            name="dark5_conv3",
+        )(x)
+        x = DarknetConvBlock(
+            filters=512,
+            kernel_size=1,
+            strides=1,
+            activation="leaky_relu",
+            name="dark5_conv4",
+        )(x)
+
+        if include_top:
+            x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
+            x = layers.Dense(
+                num_classes,
+                activation=classifier_activation,
+                name="predictions",
+            )(x)
+        elif pooling == "avg":
+            x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
+        elif pooling == "max":
+            x = layers.GlobalMaxPooling2D(name="max_pool")(x)
+
+        super().__init__(inputs=inputs, outputs=x, name=name, **kwargs)
+
+        if weights is not None:
+            self.load_weights(weights)
+
+        self.blocks = blocks
+        self.include_rescaling = include_rescaling
+        self.include_top = include_top
+        self.num_classes = num_classes
+        self.input_tensor = input_tensor
+        self.pooling = pooling
+        self.classifier_activation = classifier_activation
+
+    def get_config(self):
+        return {
+            "blocks": self.blocks,
+            "include_rescaling": self.include_rescaling,
+            "include_top": self.include_top,
+            "num_classes": self.num_classes,
+            "input_shape": self.input_shape[1:],
+            "input_tensor": self.input_tensor,
+            "pooling": self.pooling,
+            "classifier_activation": self.classifier_activation,
+            "name": self.name,
+            "trainable": self.trainable,
+        }
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)
 
 
 def DarkNet21(
     *,
     include_rescaling,
     include_top,
-    classes=None,
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -224,7 +268,7 @@ def DarkNet21(
         [1, 2, 2, 1],
         include_rescaling=include_rescaling,
         include_top=include_top,
-        classes=classes,
+        num_classes=num_classes,
         weights=parse_weights(weights, include_top, "darknet"),
         input_shape=input_shape,
         input_tensor=input_tensor,
@@ -238,7 +282,7 @@ def DarkNet53(
     *,
     include_rescaling,
     include_top,
-    classes=None,
+    num_classes=None,
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -250,7 +294,7 @@ def DarkNet53(
         [2, 8, 8, 4],
         include_rescaling=include_rescaling,
         include_top=include_top,
-        classes=classes,
+        num_classes=num_classes,
         weights=parse_weights(weights, include_top, "darknet53"),
         input_shape=input_shape,
         input_tensor=input_tensor,

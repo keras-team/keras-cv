@@ -18,6 +18,7 @@ from typing import Optional
 from typing import Union
 
 import tensorflow as tf
+from tensorflow import keras
 
 
 # Internal exception to propagate the fact images was not passed to a converter that
@@ -54,8 +55,10 @@ def _encode_box_to_deltas(
         source=box_format,
         target="center_yxhw",
     )
-    anchor_dimensions = tf.maximum(encoded_anchors[..., 2:], tf.keras.backend.epsilon())
-    box_dimensions = tf.maximum(boxes[..., 2:], tf.keras.backend.epsilon())
+    anchor_dimensions = tf.maximum(
+        encoded_anchors[..., 2:], keras.backend.epsilon()
+    )
+    box_dimensions = tf.maximum(boxes[..., 2:], keras.backend.epsilon())
     # anchors be unbatched, boxes can either be batched or unbatched.
     boxes_delta = tf.concat(
         [
@@ -97,7 +100,8 @@ def _decode_deltas_to_boxes(
         # anchors be unbatched, boxes can either be batched or unbatched.
         box = tf.concat(
             [
-                box_delta[..., :2] * encoded_anchor[..., 2:] + encoded_anchor[..., :2],
+                box_delta[..., :2] * encoded_anchor[..., 2:]
+                + encoded_anchor[..., :2],
                 tf.math.exp(box_delta[..., 2:]) * encoded_anchor[..., 2:],
             ],
             axis=-1,
@@ -138,7 +142,12 @@ def _xywh_to_xyxy(boxes, images=None, image_shape=None):
 def _xyxy_to_center_yxhw(boxes, images=None, image_shape=None):
     left, top, right, bottom = tf.split(boxes, ALL_AXES, axis=-1)
     return tf.concat(
-        [(top + bottom) / 2.0, (left + right) / 2.0, bottom - top, right - left],
+        [
+            (top + bottom) / 2.0,
+            (left + right) / 2.0,
+            bottom - top,
+            right - left,
+        ],
         axis=-1,
     )
 
@@ -186,7 +195,12 @@ def _xyxy_to_rel_xywh(boxes, images=None, image_shape=None):
 def _xyxy_to_center_xywh(boxes, images=None, image_shape=None):
     left, top, right, bottom = tf.split(boxes, ALL_AXES, axis=-1)
     return tf.concat(
-        [(left + right) / 2.0, (top + bottom) / 2.0, right - left, bottom - top],
+        [
+            (left + right) / 2.0,
+            (top + bottom) / 2.0,
+            right - left,
+            bottom - top,
+        ],
         axis=-1,
     )
 
@@ -494,7 +508,9 @@ def _image_shape(images, image_shape, boxes):
             height, width = image_shape[1], image_shape[2]
         else:
             height = tf.reshape(images.row_lengths(), (-1, 1))
-            width = tf.reshape(tf.reduce_max(images.row_lengths(axis=2), 1), (-1, 1))
+            width = tf.reshape(
+                tf.reduce_max(images.row_lengths(axis=2), 1), (-1, 1)
+            )
             if isinstance(boxes, tf.RaggedTensor):
                 height = tf.expand_dims(height, axis=-1)
                 width = tf.expand_dims(width, axis=-1)

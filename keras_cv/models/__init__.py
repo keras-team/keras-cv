@@ -12,6 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
+    ResNet18V2Backbone,
+)
+from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
+    ResNet34V2Backbone,
+)
+from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
+    ResNet50V2Backbone,
+)
+from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
+    ResNet101V2Backbone,
+)
+from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
+    ResNet152V2Backbone,
+)
+from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
+    ResNetV2Backbone,
+)
 from keras_cv.models.convmixer import ConvMixer_512_16
 from keras_cv.models.convmixer import ConvMixer_768_32
 from keras_cv.models.convmixer import ConvMixer_1024_16
@@ -61,7 +79,9 @@ from keras_cv.models.mobilenet_v3 import MobileNetV3Large
 from keras_cv.models.mobilenet_v3 import MobileNetV3Small
 from keras_cv.models.object_detection.faster_rcnn import FasterRCNN
 from keras_cv.models.object_detection.retina_net.retina_net import RetinaNet
-from keras_cv.models.object_detection_3d.center_pillar import MultiHeadCenterPillar
+from keras_cv.models.object_detection_3d.center_pillar import (
+    MultiHeadCenterPillar,
+)
 from keras_cv.models.regnet import RegNetX002
 from keras_cv.models.regnet import RegNetX004
 from keras_cv.models.regnet import RegNetX006
@@ -91,9 +111,6 @@ from keras_cv.models.resnet_v1 import ResNet34
 from keras_cv.models.resnet_v1 import ResNet50
 from keras_cv.models.resnet_v1 import ResNet101
 from keras_cv.models.resnet_v1 import ResNet152
-from keras_cv.models.resnet_v2 import ResNet50V2
-from keras_cv.models.resnet_v2 import ResNet101V2
-from keras_cv.models.resnet_v2 import ResNet152V2
 from keras_cv.models.segmentation.deeplab import DeepLabV3
 from keras_cv.models.stable_diffusion import StableDiffusion
 from keras_cv.models.stable_diffusion import StableDiffusionV2

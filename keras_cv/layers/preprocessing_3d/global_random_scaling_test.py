@@ -15,7 +15,9 @@ import numpy as np
 import tensorflow as tf
 
 from keras_cv.layers.preprocessing_3d import base_augmentation_layer_3d
-from keras_cv.layers.preprocessing_3d.global_random_scaling import GlobalRandomScaling
+from keras_cv.layers.preprocessing_3d.global_random_scaling import (
+    GlobalRandomScaling,
+)
 
 POINT_CLOUDS = base_augmentation_layer_3d.POINT_CLOUDS
 BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
@@ -65,18 +67,20 @@ class GlobalScalingTest(tf.test.TestCase):
             y_factor=(2.0, 2.0),
             z_factor=(2.0, 2.0),
         )
-        point_clouds = np.array([[[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]] * 2] * 2).astype(
+        point_clouds = np.array(
+            [[[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]] * 2] * 2
+        ).astype("float32")
+        bounding_boxes = np.array([[[0, 1, 2, 3, 4, 5, 6]] * 2] * 2).astype(
             "float32"
         )
-        bounding_boxes = np.array([[[0, 1, 2, 3, 4, 5, 6]] * 2] * 2).astype("float32")
         inputs = {POINT_CLOUDS: point_clouds, BOUNDING_BOXES: bounding_boxes}
         outputs = add_layer(inputs)
         scaled_point_clouds = np.array(
             [[[0, 2, 4, 3, 4, 5, 6, 7, 8, 9]] * 2] * 2
         ).astype("float32")
-        scaled_bounding_boxes = np.array([[[0, 2, 4, 6, 8, 10, 6]] * 2] * 2).astype(
-            "float32"
-        )
+        scaled_bounding_boxes = np.array(
+            [[[0, 2, 4, 6, 8, 10, 6]] * 2] * 2
+        ).astype("float32")
         self.assertAllClose(outputs[POINT_CLOUDS], scaled_point_clouds)
         self.assertAllClose(outputs[BOUNDING_BOXES], scaled_bounding_boxes)
 

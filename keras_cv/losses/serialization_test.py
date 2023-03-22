@@ -44,7 +44,9 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
         reconstructed_loss = loss_cls.from_config(config)
 
         self.assertTrue(
-            test_utils.config_equals(loss.get_config(), reconstructed_loss.get_config())
+            test_utils.config_equals(
+                loss.get_config(), reconstructed_loss.get_config()
+            )
         )
 
     def assertAllInitParametersAreInConfig(self, loss_cls, config):
@@ -55,6 +57,8 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             if v not in excluded_name
         }
 
-        intersection_with_config = {v for v in config.keys() if v in parameter_names}
+        intersection_with_config = {
+            v for v in config.keys() if v in parameter_names
+        }
 
         self.assertSetEqual(parameter_names, intersection_with_config)

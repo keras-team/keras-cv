@@ -19,6 +19,7 @@ from typing import Union
 
 import numpy as np
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv.layers.object_detection_3d import voxel_utils
 
@@ -90,10 +91,14 @@ def compute_heatmap(
     # [B, N, max_num_voxels_per_box, 3]
     point_xyz = (
         box_center[:, :, tf.newaxis, :]
-        + tf.constant(points_numpy, dtype=tf.float32)[tf.newaxis, tf.newaxis, :, :]
+        + tf.constant(points_numpy, dtype=tf.float32)[
+            tf.newaxis, tf.newaxis, :, :
+        ]
     )
     # [B, N, max_num_voxels_per_box, 3]
-    point_xyz = voxel_utils.point_to_voxel_coord(point_xyz, voxel_size, dtype=tf.int32)
+    point_xyz = voxel_utils.point_to_voxel_coord(
+        point_xyz, voxel_size, dtype=tf.int32
+    )
     # Map voxel back to xyz to get quantized version.
     # [B, N, max_num_voxels_per_box, 3]
     point_xyz = voxel_utils.voxel_coord_to_point(
@@ -109,13 +114,17 @@ def compute_heatmap(
     # convert from box frame to vehicle frame.
     # [B, N, max_num_voxels_per_box, 3]
     point_xyz_transform = (
-        point_xyz_rot + voxel_utils.inv_loc(rot, box_center)[:, :, tf.newaxis, :]
+        point_xyz_rot
+        + voxel_utils.inv_loc(rot, box_center)[:, :, tf.newaxis, :]
     )
     # Due to the transform above, z=0 can be transformed to a non-zero value. For
     # 2d headmap, we do not want to use z.
     if voxel_size[2] > INF_VOXEL_SIZE:
         point_xyz_transform = tf.concat(
-            [point_xyz_transform[..., :2], tf.zeros_like(point_xyz_transform[..., :1])],
+            [
+                point_xyz_transform[..., :2],
+                tf.zeros_like(point_xyz_transform[..., :1]),
+            ],
             axis=-1,
         )
 
@@ -151,11 +160,16 @@ def compute_heatmap(
     ) = voxel_utils.combined_static_and_dynamic_shape(point_xyz)
     box_id = tf.range(num_box, dtype=tf.int32)
     box_id = tf.tile(
-        box_id[tf.newaxis, :, tf.newaxis], [batch_size, 1, max_num_voxels_per_box]
+        box_id[tf.newaxis, :, tf.newaxis],
+        [batch_size, 1, max_num_voxels_per_box],
     )
 
-    point_xyz = tf.reshape(point_xyz, [batch_size, num_box * max_num_voxels_per_box, 3])
-    heatmap = tf.reshape(heatmap, [batch_size, num_box * max_num_voxels_per_box])
+    point_xyz = tf.reshape(
+        point_xyz, [batch_size, num_box * max_num_voxels_per_box, 3]
+    )
+    heatmap = tf.reshape(
+        heatmap, [batch_size, num_box * max_num_voxels_per_box]
+    )
     box_id = tf.reshape(box_id, [batch_size, num_box * max_num_voxels_per_box])
     mask = tf.reshape(mask, [batch_size, num_box * max_num_voxels_per_box])
 
@@ -205,11 +219,15 @@ def scatter_to_dense_heatmap(
     )
     # [B, N]
     point_voxel_valid_mask = tf.math.reduce_all(
-        tf.math.logical_and(point_voxel_xyz >= 0, point_voxel_xyz < voxel_spatial_size),
+        tf.math.logical_and(
+            point_voxel_xyz >= 0, point_voxel_xyz < voxel_spatial_size
+        ),
         axis=-1,
     )
     # [B, N]
-    point_voxel_valid_mask = tf.math.logical_and(point_voxel_valid_mask, point_mask)
+    point_voxel_valid_mask = tf.math.logical_and(
+        point_voxel_valid_mask, point_mask
+    )
     # [B, N]
     point_voxel_xyz = point_voxel_xyz * tf.cast(
         point_voxel_valid_mask[..., tf.newaxis], dtype=point_voxel_xyz.dtype
@@ -250,7 +268,9 @@ def scatter_to_dense_heatmap(
     return dense_heatmap, dense_box_id
 
 
-def decode_tensor(t: tf.Tensor, dims: Sequence[Union[tf.Tensor, int]]) -> tf.Tensor:
+def decode_tensor(
+    t: tf.Tensor, dims: Sequence[Union[tf.Tensor, int]]
+) -> tf.Tensor:
     """
 
     Args:
@@ -299,7 +319,7 @@ def compute_top_k_heatmap_idx(heatmap: tf.Tensor, k: int) -> tf.Tensor:
     return res
 
 
-class CenterNetLabelEncoder(tf.keras.layers.Layer):
+class CenterNetLabelEncoder(keras.layers.Layer):
     """Transforms the raw sparse labels into class specific dense training labels.
 
     This layer takes the box locations, box classes and box masks, voxelizes
@@ -312,7 +332,7 @@ class CenterNetLabelEncoder(tf.keras.layers.Layer):
       min_radius: minimum Gasussian radius in each dimension in meters.
       max_radius: maximum Gasussian radius in each dimension in meters.
       spatial_size: the x, y, z boundary of voxels
-      classes: number of object classes.
+      num_classes: number of object classes.
       top_k_heatmap: A sequence of integers, top k for each class. Can be None.
     """
 
@@ -322,7 +342,7 @@ class CenterNetLabelEncoder(tf.keras.layers.Layer):
         min_radius: Sequence[float],
         max_radius: Sequence[float],
         spatial_size: Sequence[float],
-        classes: int,
+        num_classes: int,
         top_k_heatmap: Sequence[int],
         **kwargs,
     ):
@@ -331,7 +351,7 @@ class CenterNetLabelEncoder(tf.keras.layers.Layer):
         self._min_radius = min_radius
         self._max_radius = max_radius
         self._spatial_size = spatial_size
-        self._classes = classes
+        self._num_classes = num_classes
         self._top_k_heatmap = top_k_heatmap
 
     def call(self, box_3d, box_classes, box_mask):
@@ -354,12 +374,21 @@ class CenterNetLabelEncoder(tf.keras.layers.Layer):
         # heatmap - [B, num_boxes * max_num_voxels_per_box]
         # compute localized heatmap around its radius.
         point_xyz, point_mask, heatmap, box_id = compute_heatmap(
-            box_3d, box_mask, self._voxel_size, self._min_radius, self._max_radius
+            box_3d,
+            box_mask,
+            self._voxel_size,
+            self._min_radius,
+            self._max_radius,
         )
         # heatmap - [B, H, W, Z]
         # scatter the localized heatmap to global heatmap in vehicle frame.
         dense_heatmap, dense_box_id = scatter_to_dense_heatmap(
-            point_xyz, point_mask, box_id, heatmap, self._voxel_size, self._spatial_size
+            point_xyz,
+            point_mask,
+            box_id,
+            heatmap,
+            self._voxel_size,
+            self._spatial_size,
         )
         b, h, w, z = voxel_utils.combined_static_and_dynamic_shape(dense_box_id)
         # [B, H * W * Z]
@@ -383,16 +412,19 @@ class CenterNetLabelEncoder(tf.keras.layers.Layer):
         # [B, H, W, Z, 3]
         dense_box_3d_center = dense_box_3d[..., :3] - feature_map_ref_xyz
         # [B, H, W, Z, 7]
-        dense_box_3d = tf.concat([dense_box_3d_center, dense_box_3d[..., 3:]], axis=-1)
+        dense_box_3d = tf.concat(
+            [dense_box_3d_center, dense_box_3d[..., 3:]], axis=-1
+        )
 
         heatmap_dict = {}
         box_3d_dict = {}
         top_k_heatmap_feature_idx_dict = {}
-        for i in range(self._classes):
+        for i in range(self._num_classes):
             class_key = f"class_{i+1}"
             # Object class is 1-indexed (0 is background).
             dense_box_class_i = tf.cast(
-                tf.math.equal(dense_box_classes, i + 1), dtype=dense_heatmap.dtype
+                tf.math.equal(dense_box_classes, i + 1),
+                dtype=dense_heatmap.dtype,
             )
             # [B, H, W, Z]
             dense_heatmap_i = dense_heatmap * dense_box_class_i
@@ -412,6 +444,8 @@ class CenterNetLabelEncoder(tf.keras.layers.Layer):
                 top_k_heatmap_feature_idx_i = compute_top_k_heatmap_idx(
                     dense_heatmap_i, self._top_k_heatmap[i]
                 )
-            top_k_heatmap_feature_idx_dict[class_key] = top_k_heatmap_feature_idx_i
+            top_k_heatmap_feature_idx_dict[
+                class_key
+            ] = top_k_heatmap_feature_idx_i
 
         return heatmap_dict, box_3d_dict, top_k_heatmap_feature_idx_dict

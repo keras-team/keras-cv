@@ -11,8 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import pytest
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv.layers.fusedmbconv import FusedMBConvBlock
 
@@ -25,7 +27,7 @@ class FusedMBConvBlockTest(tf.test.TestCase):
         yield
         # Reset soft device placement to not interfere with other unit test files
         tf.config.set_soft_device_placement(True)
-        tf.keras.backend.clear_session()
+        keras.backend.clear_session()
 
     def test_same_input_output_shapes(self):
         inputs = tf.random.normal(shape=(1, 64, 64, 32), dtype=tf.float32)
@@ -47,7 +49,9 @@ class FusedMBConvBlockTest(tf.test.TestCase):
 
     def test_squeeze_excitation_ratio(self):
         inputs = tf.random.normal(shape=(1, 64, 64, 32), dtype=tf.float32)
-        layer = FusedMBConvBlock(input_filters=32, output_filters=48, se_ratio=0.25)
+        layer = FusedMBConvBlock(
+            input_filters=32, output_filters=48, se_ratio=0.25
+        )
 
         output = layer(inputs)
         self.assertEquals(output.shape, [1, 64, 64, 48])

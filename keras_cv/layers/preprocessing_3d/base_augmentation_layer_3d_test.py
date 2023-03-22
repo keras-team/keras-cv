@@ -36,7 +36,9 @@ class RandomAddLayer(base_augmentation_layer_3d.BaseAugmentationLayer3D):
             (), mean=0.0, stddev=self._translate_noise[2]
         )
 
-        return {"pose": tf.stack([random_x, random_y, random_z, 0, 0, 0], axis=0)}
+        return {
+            "pose": tf.stack([random_x, random_y, random_z, 0, 0, 0], axis=0)
+        }
 
     def augment_point_clouds_bounding_boxes(
         self, point_clouds, bounding_boxes, transformation, **kwargs
@@ -51,7 +53,9 @@ class RandomAddLayer(base_augmentation_layer_3d.BaseAugmentationLayer3D):
         )
 
 
-class VectorizeDisabledLayer(base_augmentation_layer_3d.BaseAugmentationLayer3D):
+class VectorizeDisabledLayer(
+    base_augmentation_layer_3d.BaseAugmentationLayer3D
+):
     def __init__(self, **kwargs):
         self.auto_vectorize = False
         super().__init__(**kwargs)

@@ -14,11 +14,14 @@
 
 import pytest
 import tensorflow as tf
+from tensorflow import keras
 
 import keras_cv
 from keras_cv.callbacks import PyCOCOCallback
 from keras_cv.metrics.coco.pycoco_wrapper import METRIC_NAMES
-from keras_cv.models.object_detection.__test_utils__ import _create_bounding_box_dataset
+from keras_cv.models.object_detection.__test_utils__ import (
+    _create_bounding_box_dataset,
+)
 
 
 class PyCOCOCallbackTest(tf.test.TestCase):
@@ -26,15 +29,12 @@ class PyCOCOCallbackTest(tf.test.TestCase):
     def cleanup_global_session(self):
         # Code before yield runs before the test
         yield
-        tf.keras.backend.clear_session()
+        keras.backend.clear_session()
 
     def test_model_fit_retinanet(self):
         model = keras_cv.models.RetinaNet(
-            classes=10,
+            num_classes=10,
             bounding_box_format="xywh",
-            backbone=keras_cv.models.ResNet50V2(
-                include_top=False, include_rescaling=True, weights=None
-            ).as_backbone(),
         )
         # all metric formats must match
         model.compile(
@@ -50,20 +50,24 @@ class PyCOCOCallbackTest(tf.test.TestCase):
             bounding_box_format="xyxy", use_dictionary_box_format=True
         )
 
-        callback = PyCOCOCallback(validation_data=val_ds, bounding_box_format="xyxy")
+        callback = PyCOCOCallback(
+            validation_data=val_ds, bounding_box_format="xyxy"
+        )
         history = model.fit(train_ds, callbacks=[callback])
 
         self.assertAllInSet(
             [f"val_{metric}" for metric in METRIC_NAMES], history.history.keys()
         )
 
+    @pytest.mark.skip(
+        reason="Causing OOMs on GitHub actions.  This is not a "
+        "user facing API and will be replaced in a matter of weeks, so we "
+        "shouldn't invest engineering resources into working around the OOMs here."
+    )
     def test_model_fit_rcnn(self):
         model = keras_cv.models.FasterRCNN(
-            classes=10,
+            num_classes=10,
             bounding_box_format="xywh",
-            backbone=keras_cv.models.ResNet50V2(
-                include_top=False, include_rescaling=True, weights=None
-            ).as_backbone(),
         )
         model.compile(
             optimizer="adam",

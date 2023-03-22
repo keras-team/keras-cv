@@ -11,7 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import tensorflow as tf
+from tensorflow import keras
 
 import keras_cv
 from keras_cv import bounding_box
@@ -20,7 +22,7 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 )
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class RandomAspectRatio(BaseImageAugmentationLayer):
     """RandomAspectRatio randomly distorts the aspect ratio of the provided image.
 
@@ -46,7 +48,11 @@ class RandomAspectRatio(BaseImageAugmentationLayer):
         super().__init__(**kwargs)
         self.interpolation = keras_cv.utils.get_interpolation(interpolation)
         self.factor = keras_cv.utils.parse_factor(
-            factor, min_value=0.0, max_value=None, seed=seed, param_name="factor"
+            factor,
+            min_value=0.0,
+            max_value=None,
+            seed=seed,
+            param_name="factor",
         )
         self.bounding_box_format = bounding_box_format
         self.seed = seed
@@ -63,7 +69,9 @@ class RandomAspectRatio(BaseImageAugmentationLayer):
             dtype=self.compute_dtype,
         )
 
-    def augment_bounding_boxes(self, bounding_boxes, transformation, image, **kwargs):
+    def augment_bounding_boxes(
+        self, bounding_boxes, transformation, image, **kwargs
+    ):
         if self.bounding_box_format is None:
             raise ValueError(
                 "Please provide a `bounding_box_format` when augmenting "
@@ -105,7 +113,9 @@ class RandomAspectRatio(BaseImageAugmentationLayer):
         width = width * transformation
 
         target_size = tf.cast(tf.stack([height, width]), tf.int32)
-        result = tf.image.resize(image, size=target_size, method=self.interpolation)
+        result = tf.image.resize(
+            image, size=target_size, method=self.interpolation
+        )
         return tf.cast(result, self.compute_dtype)
 
     def augment_label(self, label, transformation, **kwargs):

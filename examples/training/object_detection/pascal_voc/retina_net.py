@@ -70,7 +70,12 @@ train_ds = tfds.load(
     "voc/2007", split="train+validation", with_info=False, shuffle_files=True
 )
 train_ds = train_ds.concatenate(
-    tfds.load("voc/2012", split="train+validation", with_info=False, shuffle_files=True)
+    tfds.load(
+        "voc/2012",
+        split="train+validation",
+        with_info=False,
+        shuffle_files=True,
+    )
 )
 eval_ds = tfds.load("voc/2007", split="test", with_info=False)
 
@@ -185,7 +190,9 @@ def get_non_empty_box_indices(boxes):
     # Selects indices if box height or width is 0.
     height = boxes[:, 2] - boxes[:, 0]
     width = boxes[:, 3] - boxes[:, 1]
-    indices = tf.where(tf.logical_and(tf.greater(height, 0), tf.greater(width, 0)))
+    indices = tf.where(
+        tf.logical_and(tf.greater(height, 0), tf.greater(width, 0))
+    )
     return indices[:, 0]
 
 
@@ -293,7 +300,9 @@ train_ds = train_ds.map(
 )
 
 train_ds = train_ds.apply(
-    tf.data.experimental.dense_to_ragged_batch(GLOBAL_BATCH_SIZE, drop_remainder=True)
+    tf.data.experimental.dense_to_ragged_batch(
+        GLOBAL_BATCH_SIZE, drop_remainder=True
+    )
 )
 train_ds = train_ds.map(pad_fn, num_parallel_calls=tf.data.AUTOTUNE)
 train_ds = train_ds.shuffle(8 * strategy.num_replicas_in_sync)
@@ -304,7 +313,9 @@ eval_ds = eval_ds.map(
     num_parallel_calls=tf.data.AUTOTUNE,
 )
 eval_ds = eval_ds.apply(
-    tf.data.experimental.dense_to_ragged_batch(GLOBAL_BATCH_SIZE, drop_remainder=True)
+    tf.data.experimental.dense_to_ragged_batch(
+        GLOBAL_BATCH_SIZE, drop_remainder=True
+    )
 )
 eval_ds = eval_ds.map(pad_fn, num_parallel_calls=tf.data.AUTOTUNE)
 eval_ds = eval_ds.prefetch(tf.data.AUTOTUNE)
@@ -329,9 +340,15 @@ with strategy.scope():
 
     c3_output, c4_output, c5_output = [
         backbone.get_layer(layer_name).output
-        for layer_name in ["conv3_block4_out", "conv4_block6_out", "conv5_block3_out"]
+        for layer_name in [
+            "conv3_block4_out",
+            "conv4_block6_out",
+            "conv5_block3_out",
+        ]
     ]
-    backbone = keras.Model(inputs=inputs, outputs=[c3_output, c4_output, c5_output])
+    backbone = keras.Model(
+        inputs=inputs, outputs=[c3_output, c4_output, c5_output]
+    )
     # keras_cv backbone gives 4mAP lower result.
     # TODO(ian): should eventually use keras_cv backbone.
     # backbone = keras_cv.models.ResNet50(
@@ -339,7 +356,7 @@ with strategy.scope():
     # ).as_backbone()
     model = keras_cv.models.RetinaNet(
         # number of classes to be used in box classification
-        classes=20,
+        num_classes=20,
         # For more info on supported bounding box formats, visit
         # https://keras.io/api/keras_cv/bounding_box/
         bounding_box_format="xywh",

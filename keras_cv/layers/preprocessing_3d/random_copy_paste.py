@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv.bounding_box_3d import CENTER_XYZ_DXDYDZ_PHI
 from keras_cv.layers.preprocessing_3d import base_augmentation_layer_3d
@@ -25,7 +26,7 @@ OBJECT_POINT_CLOUDS = base_augmentation_layer_3d.OBJECT_POINT_CLOUDS
 OBJECT_BOUNDING_BOXES = base_augmentation_layer_3d.OBJECT_BOUNDING_BOXES
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class RandomCopyPaste(base_augmentation_layer_3d.BaseAugmentationLayer3D):
     """A preprocessing layer which randomly pastes object point clouds and bounding boxes during training.
 
@@ -103,7 +104,9 @@ class RandomCopyPaste(base_augmentation_layer_3d.BaseAugmentationLayer3D):
             minval=self._min_paste_bounding_boxes,
             maxval=self._max_paste_bounding_boxes,
         )
-        num_paste_bounding_boxes = tf.cast(num_paste_bounding_boxes, dtype=tf.int32)
+        num_paste_bounding_boxes = tf.cast(
+            num_paste_bounding_boxes, dtype=tf.int32
+        )
         num_existing_bounding_boxes = tf.shape(bounding_boxes)[1]
         if self._label_index:
             object_mask = (
@@ -118,8 +121,12 @@ class RandomCopyPaste(base_augmentation_layer_3d.BaseAugmentationLayer3D):
             )
         shuffle_index = tf.range(tf.shape(object_point_clouds)[1])
         shuffle_index = tf.random.shuffle(shuffle_index)
-        object_point_clouds = tf.gather(object_point_clouds, shuffle_index, axis=1)
-        object_bounding_boxes = tf.gather(object_bounding_boxes, shuffle_index, axis=1)
+        object_point_clouds = tf.gather(
+            object_point_clouds, shuffle_index, axis=1
+        )
+        object_bounding_boxes = tf.gather(
+            object_bounding_boxes, shuffle_index, axis=1
+        )
 
         # Load at most 5 times num_paste_bounding_boxes to check overlaps.
         num_compare_bounding_boxes = tf.math.minimum(
@@ -127,12 +134,16 @@ class RandomCopyPaste(base_augmentation_layer_3d.BaseAugmentationLayer3D):
             tf.shape(object_point_clouds)[1],
         )
 
-        object_point_clouds = object_point_clouds[:, :num_compare_bounding_boxes, :]
-        object_bounding_boxes = object_bounding_boxes[:, :num_compare_bounding_boxes, :]
-        # Use the current frame to check overlap between existing bounding boxes and pasted bounding boxes
-        all_bounding_boxes = tf.concat([bounding_boxes, object_bounding_boxes], axis=1)[
-            0, :, :7
+        object_point_clouds = object_point_clouds[
+            :, :num_compare_bounding_boxes, :
         ]
+        object_bounding_boxes = object_bounding_boxes[
+            :, :num_compare_bounding_boxes, :
+        ]
+        # Use the current frame to check overlap between existing bounding boxes and pasted bounding boxes
+        all_bounding_boxes = tf.concat(
+            [bounding_boxes, object_bounding_boxes], axis=1
+        )[0, :, :7]
         iou = iou_3d(all_bounding_boxes, all_bounding_boxes)
         iou = tf.linalg.band_part(iou, -1, 0)
         iou_sum = tf.reduce_sum(iou[num_existing_bounding_boxes:], axis=1)
@@ -144,8 +155,12 @@ class RandomCopyPaste(base_augmentation_layer_3d.BaseAugmentationLayer3D):
         object_bounding_boxes = tf.boolean_mask(
             object_bounding_boxes, non_overlapping_mask, axis=1
         )
-        object_point_clouds = object_point_clouds[:, :num_paste_bounding_boxes, :]
-        object_bounding_boxes = object_bounding_boxes[:, :num_paste_bounding_boxes, :]
+        object_point_clouds = object_point_clouds[
+            :, :num_paste_bounding_boxes, :
+        ]
+        object_bounding_boxes = object_bounding_boxes[
+            :, :num_paste_bounding_boxes, :
+        ]
         return {
             OBJECT_POINT_CLOUDS: object_point_clouds,
             OBJECT_BOUNDING_BOXES: object_bounding_boxes,
@@ -186,7 +201,8 @@ class RandomCopyPaste(base_augmentation_layer_3d.BaseAugmentationLayer3D):
             existing_bounding_boxes = tf.boolean_mask(
                 bounding_boxes[frame_index],
                 tf.math.greater(
-                    bounding_boxes[frame_index, :, CENTER_XYZ_DXDYDZ_PHI.CLASS], 0.0
+                    bounding_boxes[frame_index, :, CENTER_XYZ_DXDYDZ_PHI.CLASS],
+                    0.0,
                 ),
             )
             paste_bounding_boxes = tf.boolean_mask(
@@ -200,7 +216,9 @@ class RandomCopyPaste(base_augmentation_layer_3d.BaseAugmentationLayer3D):
                 axis=0,
             )
             bounding_boxes_list += [
-                tf.concat([paste_bounding_boxes, existing_bounding_boxes], axis=0)
+                tf.concat(
+                    [paste_bounding_boxes, existing_bounding_boxes], axis=0
+                )
             ]
 
         point_clouds = tf.ragged.stack(point_clouds_list)
@@ -228,7 +246,9 @@ class RandomCopyPaste(base_augmentation_layer_3d.BaseAugmentationLayer3D):
             bounding_boxes=bounding_boxes,
             transformation=transformation,
         )
-        result.update({POINT_CLOUDS: point_clouds, BOUNDING_BOXES: bounding_boxes})
+        result.update(
+            {POINT_CLOUDS: point_clouds, BOUNDING_BOXES: bounding_boxes}
+        )
         return result
 
     def call(self, inputs, training=True):
@@ -237,7 +257,9 @@ class RandomCopyPaste(base_augmentation_layer_3d.BaseAugmentationLayer3D):
             bounding_boxes = inputs[BOUNDING_BOXES]
             if point_clouds.shape.rank == 3 and bounding_boxes.shape.rank == 3:
                 return self._augment(inputs)
-            elif point_clouds.shape.rank == 4 and bounding_boxes.shape.rank == 4:
+            elif (
+                point_clouds.shape.rank == 4 and bounding_boxes.shape.rank == 4
+            ):
                 batch = point_clouds.get_shape().as_list()[0]
                 point_clouds_list = []
                 bounding_boxes_list = []

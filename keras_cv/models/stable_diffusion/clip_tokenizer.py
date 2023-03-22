@@ -151,7 +151,9 @@ class SimpleTokenizer:
             return token + "</w>"
 
         while True:
-            bigram = min(pairs, key=lambda pair: self.bpe_ranks.get(pair, float("inf")))
+            bigram = min(
+                pairs, key=lambda pair: self.bpe_ranks.get(pair, float("inf"))
+            )
             if bigram not in self.bpe_ranks:
                 break
             first, second = bigram
@@ -166,7 +168,11 @@ class SimpleTokenizer:
                     new_word.extend(word[i:])
                     break
 
-                if word[i] == first and i < len(word) - 1 and word[i + 1] == second:
+                if (
+                    word[i] == first
+                    and i < len(word) - 1
+                    and word[i + 1] == second
+                ):
                     new_word.append(first + second)
                     i += 2
                 else:
@@ -188,7 +194,8 @@ class SimpleTokenizer:
         for token in re.findall(self.pat, text):
             token = "".join(self.byte_encoder[b] for b in token.encode("utf-8"))
             bpe_tokens.extend(
-                self.encoder[bpe_token] for bpe_token in self.bpe(token).split(" ")
+                self.encoder[bpe_token]
+                for bpe_token in self.bpe(token).split(" ")
             )
         return [self.start_of_text] + bpe_tokens + [self.end_of_text]
 

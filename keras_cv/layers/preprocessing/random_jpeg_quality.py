@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
@@ -20,7 +21,7 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 from keras_cv.utils import preprocessing
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class RandomJpegQuality(BaseImageAugmentationLayer):
     """Applies Random Jpeg compression artifacts to an image.
 
@@ -36,7 +37,7 @@ class RandomJpegQuality(BaseImageAugmentationLayer):
     Usage:
     ```python
     layer = keras_cv.RandomJpegQuality(factor=(75, 100)))
-    (images, labels), _ = tf.keras.datasets.cifar10.load_data()
+    (images, labels), _ = keras.datasets.cifar10.load_data()
     augmented_images = layer(images)
     ```
     """
@@ -51,7 +52,11 @@ class RandomJpegQuality(BaseImageAugmentationLayer):
             )
         self.seed = seed
         self.factor = preprocessing.parse_factor(
-            factor, min_value=0, max_value=100, param_name="factor", seed=self.seed
+            factor,
+            min_value=0,
+            max_value=100,
+            param_name="factor",
+            seed=self.seed,
         )
 
     def get_random_transformation(self, **kwargs):
@@ -67,7 +72,9 @@ class RandomJpegQuality(BaseImageAugmentationLayer):
     def augment_label(self, label, transformation=None, **kwargs):
         return label
 
-    def augment_segmentation_mask(self, segmentation_mask, transformation, **kwargs):
+    def augment_segmentation_mask(
+        self, segmentation_mask, transformation, **kwargs
+    ):
         return segmentation_mask
 
     def get_config(self):

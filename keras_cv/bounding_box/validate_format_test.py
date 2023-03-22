@@ -25,7 +25,8 @@ class ValidateTest(tf.test.TestCase):
 
     def test_mismatch_dimensions(self):
         with self.assertRaisesRegex(
-            ValueError, "Expected `boxes` and `classes` to have matching dimensions"
+            ValueError,
+            "Expected `boxes` and `classes` to have matching dimensions",
         ):
             bounding_box.validate_format(
                 {"boxes": tf.ones((4, 3, 6)), "classes": tf.ones((4, 6))}

@@ -13,6 +13,8 @@
 # limitations under the License.
 """Integration tests for KerasCV models."""
 
+import os
+
 import pytest
 import tensorflow as tf
 from tensorflow import keras
@@ -27,11 +29,13 @@ class ModelsTest:
     def cleanup_global_session(self):
         # Code before yield runs before the test
         yield
-        tf.keras.backend.clear_session()
+        keras.backend.clear_session()
 
     def _test_application_base(self, app, _, args):
         # Can be instantiated with default arguments
-        model = app(include_top=True, classes=1000, include_rescaling=False, **args)
+        model = app(
+            include_top=True, num_classes=1000, include_rescaling=False, **args
+        )
 
         # Can be serialized and deserialized
         config = model.get_config()
@@ -47,7 +51,9 @@ class ModelsTest:
         self.assertIsNotNone(model.get_layer(name="rescaling"))
 
     def _test_application_pooling(self, app, last_dim, args):
-        model = app(include_rescaling=False, include_top=False, pooling="avg", **args)
+        model = app(
+            include_rescaling=False, include_top=False, pooling="avg", **args
+        )
 
         self.assertShapeEqual(model.output_shape, (None, last_dim))
 
@@ -155,6 +161,18 @@ class ModelsTest:
 
         model = keras.Model(inputs=inputs, outputs=[backbone_output])
         model.compile()
+
+    def _test_model_serialization(self, app, _, args, save_format, filename):
+        model = app(include_rescaling=True, include_top=False, **args)
+        input_batch = tf.ones(shape=(16, 224, 224, 3))
+        model_output = model(input_batch)
+        save_path = os.path.join(self.get_temp_dir(), filename)
+        model.save(save_path, save_format=save_format)
+        restored_model = keras.models.load_model(save_path)
+
+        # Check that output matches.
+        restored_output = restored_model(input_batch)
+        self.assertAllClose(model_output, restored_output)
 
 
 if __name__ == "__main__":

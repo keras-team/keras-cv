@@ -29,7 +29,12 @@ class ROISamplerTest(tf.test.TestCase):
             append_gt_boxes=False,
         )
         rois = tf.constant(
-            [[0, 0, 5, 5], [2.5, 2.5, 7.5, 7.5], [5, 5, 10, 10], [7.5, 7.5, 12.5, 12.5]]
+            [
+                [0, 0, 5, 5],
+                [2.5, 2.5, 7.5, 7.5],
+                [5, 5, 10, 10],
+                [7.5, 7.5, 12.5, 12.5],
+            ]
         )
         rois = rois[tf.newaxis, ...]
         # the 3rd box will generate 0 IOUs and not sampled.
@@ -44,7 +49,9 @@ class ROISamplerTest(tf.test.TestCase):
         )
         # given we only choose 1 positive sample, and `append_labesl` is False,
         # only the 2nd ROI is chosen.
-        expected_gt_boxes = tf.constant([[0.0, 0.0, 0, 0.0], [0.0, 0.0, 0, 0.0]])
+        expected_gt_boxes = tf.constant(
+            [[0.0, 0.0, 0, 0.0], [0.0, 0.0, 0, 0.0]]
+        )
         expected_gt_boxes = expected_gt_boxes[tf.newaxis, ...]
         # only the 2nd ROI is chosen, and the negative ROI is mapped to 0.
         expected_gt_classes = tf.constant([[10], [0]], dtype=tf.int32)
@@ -53,7 +60,8 @@ class ROISamplerTest(tf.test.TestCase):
             tf.reduce_max(expected_gt_boxes), tf.reduce_max(sampled_gt_boxes)
         )
         self.assertAllClose(
-            tf.reduce_min(expected_gt_classes), tf.reduce_min(sampled_gt_classes)
+            tf.reduce_min(expected_gt_classes),
+            tf.reduce_min(sampled_gt_classes),
         )
 
     def test_roi_sampler_small_threshold(self):
@@ -66,7 +74,12 @@ class ROISamplerTest(tf.test.TestCase):
             append_gt_boxes=False,
         )
         rois = tf.constant(
-            [[0, 0, 5, 5], [2.5, 2.5, 7.5, 7.5], [5, 5, 10, 10], [7.5, 7.5, 12.5, 12.5]]
+            [
+                [0, 0, 5, 5],
+                [2.5, 2.5, 7.5, 7.5],
+                [5, 5, 10, 10],
+                [7.5, 7.5, 12.5, 12.5],
+            ]
         )
         rois = rois[tf.newaxis, ...]
         # the 3rd box will generate 0 IOUs and not sampled.
@@ -100,7 +113,8 @@ class ROISamplerTest(tf.test.TestCase):
             tf.reduce_max(expected_rois, 1), tf.reduce_max(sampled_rois, 1)
         )
         self.assertAllClose(
-            tf.reduce_max(expected_gt_boxes, 1), tf.reduce_max(sampled_gt_boxes, 1)
+            tf.reduce_max(expected_gt_boxes, 1),
+            tf.reduce_max(sampled_gt_boxes, 1),
         )
         self.assertAllClose(expected_gt_classes, sampled_gt_classes)
 
@@ -115,7 +129,12 @@ class ROISamplerTest(tf.test.TestCase):
             append_gt_boxes=False,
         )
         rois = tf.constant(
-            [[0, 0, 5, 5], [2.5, 2.5, 7.5, 7.5], [5, 5, 10, 10], [7.5, 7.5, 12.5, 12.5]]
+            [
+                [0, 0, 5, 5],
+                [2.5, 2.5, 7.5, 7.5],
+                [5, 5, 10, 10],
+                [7.5, 7.5, 12.5, 12.5],
+            ]
         )
         rois = rois[tf.newaxis, ...]
         # the 3rd box will generate 0 IOUs and not sampled.
@@ -149,7 +168,12 @@ class ROISamplerTest(tf.test.TestCase):
             append_gt_boxes=False,
         )
         rois = tf.constant(
-            [[0, 0, 5, 5], [2.5, 2.5, 7.5, 7.5], [5, 5, 10, 10], [7.5, 7.5, 12.5, 12.5]]
+            [
+                [0, 0, 5, 5],
+                [2.5, 2.5, 7.5, 7.5],
+                [5, 5, 10, 10],
+                [7.5, 7.5, 12.5, 12.5],
+            ]
         )
         rois = rois[tf.newaxis, ...]
         # the 3rd box will generate 0 IOUs and not sampled.
@@ -182,7 +206,12 @@ class ROISamplerTest(tf.test.TestCase):
             append_gt_boxes=True,
         )
         rois = tf.constant(
-            [[0, 0, 5, 5], [2.5, 2.5, 7.5, 7.5], [5, 5, 10, 10], [7.5, 7.5, 12.5, 12.5]]
+            [
+                [0, 0, 5, 5],
+                [2.5, 2.5, 7.5, 7.5],
+                [5, 5, 10, 10],
+                [7.5, 7.5, 12.5, 12.5],
+            ]
         )
         rois = rois[tf.newaxis, ...]
         # the 3rd box will generate 0 IOUs and not sampled.
@@ -213,7 +242,12 @@ class ROISamplerTest(tf.test.TestCase):
             append_gt_boxes=True,
         )
         rois = tf.constant(
-            [[0, 0, 5, 5], [2.5, 2.5, 7.5, 7.5], [5, 5, 10, 10], [7.5, 7.5, 12.5, 12.5]]
+            [
+                [0, 0, 5, 5],
+                [2.5, 2.5, 7.5, 7.5],
+                [5, 5, 10, 10],
+                [7.5, 7.5, 12.5, 12.5],
+            ]
         )
         rois = rois[tf.newaxis, ...]
         # the 3rd box will generate 0 IOUs and not sampled.
