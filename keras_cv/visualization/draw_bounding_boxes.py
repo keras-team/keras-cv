@@ -12,12 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import cv2
+try:
+    import cv2
+except:
+    cv2 = None
+
 import numpy as np
 import tensorflow as tf
 
-import keras_cv
-from keras_cv.utils import condititional_imports
+from keras_cv import bounding_box
+from keras_cv import utils
+from keras_cv.utils import assert_cv2_installed
 
 
 def draw_bounding_boxes(
@@ -25,7 +30,7 @@ def draw_bounding_boxes(
     bounding_boxes,
     color,
     bounding_box_format,
-    thickness=2,
+    thickness=1,
     text_thickness=1,
     font_scale=1.0,
     class_mapping=None,
@@ -47,8 +52,8 @@ def draw_bounding_boxes(
     Returns:
         images with bounding boxes plotted on top of them
     """
-    condititional_imports.assert_cv2_installed("draw_bounding_boxes")
-    bounding_boxes = keras_cv.bounding_box.convert_format(
+    assert_cv2_installed("draw_bounding_boxes")
+    bounding_boxes = bounding_box.convert_format(
         bounding_boxes, source=bounding_box_format, target="xyxy", images=images
     )
     text_thickness = text_thickness or thickness
@@ -56,6 +61,8 @@ def draw_bounding_boxes(
     bounding_boxes["boxes"] = utils.to_numpy(bounding_boxes["boxes"])
     bounding_boxes["classes"] = utils.to_numpy(bounding_boxes["classes"])
     images = utils.to_numpy(images)
+    image_width = images.shape[-2]
+    outline_factor = image_width // 100
 
     class_mapping = class_mapping or {}
     result = []
@@ -80,10 +87,26 @@ def draw_bounding_boxes(
                 continue
             # force conversion back to contigous array
             x, y, x2, y2 = int(x), int(y), int(x2), int(y2)
+            cv2.rectangle(
+                image,
+                (x, y),
+                (x2, y2),
+                (0, 0, 0, 0.5),
+                thickness + outline_factor,
+            )
             cv2.rectangle(image, (x, y), (x2, y2), color, thickness)
             class_id = int(class_id)
             if class_id in class_mapping:
                 label = class_mapping[class_id]
+                cv2.putText(
+                    image,
+                    label,
+                    (x, y - 10),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    font_scale,
+                    (0, 0, 0, 0.5),
+                    text_thickness + outline_factor,
+                )
                 cv2.putText(
                     image,
                     label,

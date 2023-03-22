@@ -18,18 +18,24 @@ import numpy as np
 import tensorflow as tf
 
 import keras_cv
-from keras_cv.utils import condititional_imports
-from keras_cv.visualization import drawing
-from keras_cv.visualization import utils
+import keras_cv.visualization.draw_bounding_boxes
+from keras_cv import utils
+from keras_cv.utils import assert_cv2_installed
+from keras_cv.utils import assert_matplotlib_installed
 from keras_cv.visualization.plot_gallery import plot_gallery
+
+try:
+    from matplotlib import patches
+except:
+    patches = None
 
 
 def plot_bounding_box_gallery(
     images,
     value_range,
     bounding_box_format,
-    pred_color=(255, 128, 0),
-    true_color=(0, 255, 255),
+    pred_color=(255, 235, 59),
+    true_color=(0, 188, 212),
     y_true=None,
     y_pred=None,
     thickness=2,
@@ -74,39 +80,50 @@ def plot_bounding_box_gallery(
         kwargs: keyword arguments to propagate to
             `keras_cv.visualization.gallery_show()`.
     """
-    condititional_imports.assert_matplotlib_installed(
-        "plot_bounding_box_gallery"
-    )
-    condititional_imports.assert_cv2_installed("plot_bounding_box_gallery")
-
+    assert_matplotlib_installed("plot_bounding_box_gallery")
+    assert_cv2_installed("plot_bounding_box_gallery")
+    if isinstance(images, tf.data.Dataset):
+        raise ValueError(
+            "Currently `keras_cv.visualization.plot_bounding_box_gallery()` does "
+            "not support `tf.data.Datasets`. Please pass a single batch, i.e.:"
+            "`images, boxes = next(iter(ds.take(1)))`."
+        )
     prediction_mapping = prediction_mapping or class_mapping
     ground_truth_mapping = ground_truth_mapping or class_mapping
 
-    images = utils.to_numpy(images)
+    plotted_images = utils.to_numpy(images)
 
     draw_fn = functools.partial(
-        drawing.draw_bounding_boxes,
-        bounding_box_format=bounding_box_format,
+        keras_cv.visualization.draw_bounding_boxes.draw_bounding_boxes,
+        bounding_box_format="xyxy",
         thickness=thickness,
         text_thickness=text_thickness,
         font_scale=font_scale,
     )
 
     if y_true is not None:
+        y_true = y_true.copy()
         y_true["boxes"] = utils.to_numpy(y_true["boxes"])
         y_true["classes"] = utils.to_numpy(y_true["classes"])
-        images = draw_fn(
-            images,
+        y_true = keras_cv.bounding_box.convert_format(
+            y_true, images=images, source=bounding_box_format, target="xyxy"
+        )
+        plotted_images = draw_fn(
+            plotted_images,
             y_true,
             true_color,
             class_mapping=ground_truth_mapping,
         )
 
     if y_pred is not None:
+        y_pred = y_pred.copy()
         y_pred["boxes"] = utils.to_numpy(y_pred["boxes"])
         y_pred["classes"] = utils.to_numpy(y_pred["classes"])
-        images = draw_fn(
-            images, y_pred, pred_color, class_mapping=prediction_mapping
+        y_pred = keras_cv.bounding_box.convert_format(
+            y_pred, images=images, source=bounding_box_format, target="xyxy"
+        )
+        plotted_images = draw_fn(
+            plotted_images, y_pred, pred_color, class_mapping=prediction_mapping
         )
 
     if legend:
@@ -117,15 +134,17 @@ def plot_bounding_box_gallery(
             )
         legend_handles = [
             patches.Patch(
-                color=np.array(true_color) / 255.0, label="Ground Truth"
+                color=np.array(true_color) / 255.0,
+                label="Ground Truth",
             ),
             patches.Patch(
-                color=np.array(pred_color) / 255.0, label="Prediction"
+                color=np.array(pred_color) / 255.0,
+                label="Prediction",
             ),
         ]
 
     plot_gallery(
-        images,
+        plotted_images,
         value_range,
         legend_handles=legend_handles,
         rows=rows,

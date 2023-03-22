@@ -12,9 +12,10 @@ visualization for bounding boxes predicted by a `TensorFlow` object detection mo
 The API is based on the `KerasCV` object detection API.
 """
 
-import keras_cv
 import tensorflow as tf
 import tensorflow_datasets as tfds
+
+import keras_cv
 
 """
 First, we load a dataset:

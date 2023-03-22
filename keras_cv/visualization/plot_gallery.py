@@ -15,6 +15,7 @@
 import tensorflow as tf
 
 import keras_cv
+from keras_cv.utils import assert_matplotlib_installed
 
 try:
     import matplotlib.pyplot as plt
@@ -51,9 +52,7 @@ def plot_gallery(
             I.e. passing: `[patches.Patch(color='red', label='mylabel')]` will produce
             a legend with a single red patch and the label 'mylabel'.
     """
-    condititional_imports.assert_matplotlib_installed(
-        "plot_bounding_box_gallery"
-    )
+    assert_matplotlib_installed("plot_bounding_box_gallery")
 
     if path is None and show is None:
         # Default to showing the image

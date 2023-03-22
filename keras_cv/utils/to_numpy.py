@@ -24,4 +24,5 @@ def to_numpy(x):
         x = x.numpy()
     if not isinstance(x, (np.ndarray, np.generic)):
         x = np.array(x)
+    # Important for consistency when working with visualization utilities
     return np.ascontiguousarray(x)
