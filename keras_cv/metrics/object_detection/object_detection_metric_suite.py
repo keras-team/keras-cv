@@ -225,16 +225,13 @@ class ObjectDetectionMetricSuite(keras.metrics.Metric):
     def _compute_result(self):
         if self.predictions is None or self.ground_truths is None:
             return dict([(key, 0) for key in METRIC_NAMES])
-        with HidePrints():
-            metrics = compute_pycocotools_metric(
-                self.ground_truths, self.predictions, self.bounding_box_format
-            )
+        metrics = compute_pycocotools_metric(
+            self.ground_truths, self.predictions, self.bounding_box_format
+        )
         results = []
         for key in METRIC_NAMES:
             results.append(metrics[key])
         return results
-
-MAXIMUM_IMAGE_DIM = 1e9
 
 def compute_pycocotools_metric(y_true, y_pred, bounding_box_format):
     box_pred = y_pred["boxes"]
@@ -259,10 +256,10 @@ def compute_pycocotools_metric(y_true, y_pred, bounding_box_format):
 
     ground_truth = {}
     ground_truth["source_id"] = [source_ids]
-
-    # Hack to force PyCOCOTools to work with non-relative formats
-    ground_truth["width"] = [tf.tile(tf.constant([MAXIMUM_IMAGE_DIM]), [total_images])]
-    ground_truth["height"] = [tf.tile(tf.constant([MAXIMUM_IMAGE_DIM]), [total_images])]
+    #
+    # # Hack to force PyCOCOTools to work with non-relative formats
+    # ground_truth["width"] = [tf.tile(tf.constant([MAXIMUM_IMAGE_DIM]), [total_images])]
+    # ground_truth["height"] = [tf.tile(tf.constant([MAXIMUM_IMAGE_DIM]), [total_images])]
 
     ground_truth["num_detections"] = [
         tf.math.reduce_sum(tf.cast(y_true["classes"] != -1, tf.int32), axis=-1)
