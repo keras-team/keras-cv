@@ -26,8 +26,8 @@ class Task(keras.Model):
     """Base class for Task models."""
 
     def __init__(self, *args, **kwargs):
-        self._backbone = None
         super().__init__(*args, **kwargs)
+        self._backbone = None
 
     @property
     def backbone(self):

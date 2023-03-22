@@ -79,7 +79,7 @@ class ImageClassifier(Task):
     """Image classifier with configurable prediction head.
 
     Args:
-        backbone: `keras_cv.models.Backbone`, the backbone architecture of the
+        backbone: `keras.Model` instance, the backbone architecture of the 
             classifier called on the inputs.
         num_classes: int, number of classes to predict.
         activation: A `str` or callable. The activation function to
@@ -115,7 +115,7 @@ class ImageClassifier(Task):
         backbone,
         num_classes=2,
         activation="softmax",
-        head=PooledDenseHead,
+        head="pooled_dense",
         **kwargs,
     ):
         if isinstance(head, str):
@@ -155,7 +155,6 @@ class ImageClassifier(Task):
         config = super().get_config()
         config.update(
             {
-                "backbone": layers.serialize(self.backbone),
                 "num_classes": self.num_classes,
                 "head": keras.utils.get_registered_name(self.head),
                 "activation": self.activation,

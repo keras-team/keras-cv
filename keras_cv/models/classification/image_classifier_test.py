@@ -113,11 +113,11 @@ class ImageClassifierPresetSmokeTest(tf.test.TestCase, parameterized.TestCase):
         ("preset_with_weights", "resnet50_v2_imagenet"),
         ("preset_no_weights", "resnet50_v2"),
     )
-    def test_backbone_preset_output(self, preset):
+    def test_backbone_preset_call(self, preset):
         model = ImageClassifier.from_preset(preset)
         model(self.input_batch)
 
-    def test_classifier_preset_output(self):
+    def test_classifier_preset_call(self):
         model = ImageClassifier.from_preset("resnet50_v2_imagenet_classifier")
         model(self.input_batch)
 
