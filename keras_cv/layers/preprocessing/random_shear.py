@@ -15,7 +15,6 @@
 import warnings
 
 import tensorflow as tf
-from tensorflow import keras
 
 import keras_cv
 from keras_cv import bounding_box
