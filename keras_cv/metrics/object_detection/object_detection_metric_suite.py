@@ -73,6 +73,11 @@ class ObjectDetectionMetricSuite(keras.metrics.Metric):
 
     Args:
         bounding_box_format: the bounding box format for inputs.
+        evaluate_freq: the number of steps to run before each evaluation.
+            Due to the high computational cost of metric evaluation the final
+            results are only updated once every `evaluate_freq` steps.  Higher
+            values will allow for faster training times, while lower numbers
+            allow for higher numerical precision in metric reporting.
 
     Usage:
     `ObjectDetectionMetricSuite()` can be used like any standard metric with any
