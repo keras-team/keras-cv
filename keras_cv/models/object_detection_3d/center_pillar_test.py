@@ -146,9 +146,10 @@ class CenterPillarTest(tf.test.TestCase):
             training=False,
         )
         # max number boxes is 3
-        self.assertEqual(outputs["class_1"][0].shape, [2, 3, 7])
-        self.assertEqual(outputs["class_1"][1].shape, [2, 3])
-        self.assertEqual(outputs["class_1"][2].shape, [2, 3])
-        self.assertEqual(outputs["class_2"][0].shape, [2, 4, 7])
-        self.assertEqual(outputs["class_2"][1].shape, [2, 4])
-        self.assertEqual(outputs["class_2"][2].shape, [2, 4])
+        self.assertEqual(outputs["3d_boxes"]["boxes"].shape, [2, 7, 7])
+        self.assertEqual(outputs["3d_boxes"]["classes"].shape, [2, 7])
+        self.assertEqual(outputs["3d_boxes"]["confidence"].shape, [2, 7])
+        self.assertAllEqual(
+            outputs["3d_boxes"]["classes"],
+            tf.constant([1, 1, 1, 2, 2, 2, 2] * 2, shape=(2, 7)),
+        )
