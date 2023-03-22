@@ -21,6 +21,7 @@ from keras_cv.layers.object_detection import box_matcher
 from keras_cv.utils import target_gather
 
 
+@keras.utils.register_keras_serializable(package="keras_cv")
 class RetinaNetLabelEncoder(layers.Layer):
     """Transforms the raw labels into targets for training.
 
