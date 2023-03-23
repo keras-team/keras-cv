@@ -131,11 +131,11 @@ def apply_patch_embed(x, dim, patch_size, name=None):
         the updated input tensor.
     """
 
-    x = layers.Conv2D(filters=dim, kernel_size=patch_size, strides=patch_size)(
+    x = layers.Conv2D(filters=dim, kernel_size=patch_size, strides=patch_size,name = name+"_conv")(
         x
     )
-    x = tf.nn.gelu(x)
-    x = layers.BatchNormalization()(x)
+    x = tf.nn.gelu(x, name = name+"_gelu")
+    x = layers.BatchNormalization(name = name+"_batchnorm")(x)
     return x
 
 
