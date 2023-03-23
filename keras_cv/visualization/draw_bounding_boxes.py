@@ -29,23 +29,30 @@ def draw_bounding_boxes(
     bounding_boxes,
     color,
     bounding_box_format,
-    thickness=1,
+    line_thickness=1,
     text_thickness=1,
     font_scale=1.0,
     class_mapping=None,
 ):
     """Internal utility to draw bounding boxes on the target image.
 
+    Accepts a batch of images and batch of bounding boxes.  The function draws
+    the bounding boxes onto the image, and returns a new image tensor with the
+    annotated images.  This API is intentionally not exported, and is considered
+    an implementation detail.
+
     Args:
         images: a batch Tensor of images to plot bounding boxes onto.
         bounding_boxes: a Tensor of batched bounding boxes to plot onto the provided
             images
         color: the color in which to plot the bounding boxes
-        bounding_box_format: The format of bounding boxes to plot onto the images. Refer
-          [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
-          for more details on supported bounding box formats.
-        thickness: (Optional) thickness for the box and text labels.  Defaults to 2.
-        text_thickness: (Optional) the thickness for the text, defaults to `1.0`.
+        bounding_box_format: The format of bounding boxes to plot onto the
+            images. Refer
+            [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
+            for more details on supported bounding box formats.
+        line_thickness: (Optional) line_thickness for the box and text labels.
+            Defaults to 2.
+        text_thickness: (Optional) the lthickness for the text, defaults to `1.0`.
         font_scale: (Optional) scale of font to draw in.  Defaults to `1.0`.
         class_mapping: (Optional) dictionary from class ID to class label.
     Returns:
@@ -55,7 +62,7 @@ def draw_bounding_boxes(
     bounding_boxes = bounding_box.convert_format(
         bounding_boxes, source=bounding_box_format, target="xyxy", images=images
     )
-    text_thickness = text_thickness or thickness
+    text_thickness = text_thickness or line_thickness
 
     bounding_boxes["boxes"] = utils.to_numpy(bounding_boxes["boxes"])
     bounding_boxes["classes"] = utils.to_numpy(bounding_boxes["classes"])
@@ -91,9 +98,9 @@ def draw_bounding_boxes(
                 (x, y),
                 (x2, y2),
                 (0, 0, 0, 0.5),
-                thickness + outline_factor,
+                line_thickness + outline_factor,
             )
-            cv2.rectangle(image, (x, y), (x2, y2), color, thickness)
+            cv2.rectangle(image, (x, y), (x2, y2), color, line_thickness)
             class_id = int(class_id)
             if class_id in class_mapping:
                 label = class_mapping[class_id]

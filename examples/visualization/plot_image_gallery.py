@@ -10,9 +10,10 @@ Description: Visualize ground truth and predicted bounding boxes for a given dat
 Plotting images from a TensorFlow dataset is easy with KerasCV.  Behold:
 """
 
-import tensorflow_datasets as tfds
-import keras_cv
 import tensorflow as tf
+import tensorflow_datasets as tfds
+
+import keras_cv
 
 train_ds = tfds.load(
     "cats_vs_dogs",
@@ -24,6 +25,7 @@ train_ds = tfds.load(
 
 def unpackage_tfds_inputs(inputs):
     return inputs["image"]
+
 
 train_ds = train_ds.map(unpackage_tfds_inputs)
 train_ds = train_ds.apply(tf.data.experimental.dense_to_ragged_batch(16))

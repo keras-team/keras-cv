@@ -34,11 +34,11 @@ def plot_bounding_box_gallery(
     images,
     value_range,
     bounding_box_format,
-    pred_color=(255, 235, 59),
-    true_color=(0, 188, 212),
     y_true=None,
     y_pred=None,
-    thickness=2,
+    true_color=(0, 188, 212),
+    pred_color=(255, 235, 59),
+    line_thickness=2,
     font_scale=1.0,
     text_thickness=None,
     class_mapping=None,
@@ -78,7 +78,7 @@ def plot_bounding_box_gallery(
         scale=3,
         rows=2,
         cols=2,
-        thickness=4,
+        line_thickness=4,
         font_scale=1,
         legend=True,
     )
@@ -86,12 +86,13 @@ def plot_bounding_box_gallery(
 
     Args:
         images: a Tensor or NumPy array containing images to show in the gallery.
-        value_range: value range of the images.
+        value_range: value range of the images.  Common examples include (0, 255)
+            and (0, 1).
         bounding_box_format: the bounding_box_format  the provided bounding boxes are
             in.
         y_true: a KerasCV bounding box dictionary representing the ground truth bounding
             boxes.
-        y_pred: a KerasCV bounding box dictionary representing the predicted truth
+        y_pred: a KerasCV bounding box dictionary representing the predicted
             bounding boxes.
         pred_color: three element tuple representing the color to use for plotting
             predicted bounding boxes.
@@ -102,8 +103,8 @@ def plot_bounding_box_gallery(
             defaults to `class_mapping`
         prediction_mapping:  (Optional) class mapping from class IDs to strings,
             defaults to `class_mapping`
-        thickness: (Optional) thickness for the box and text labels.  Defaults to 2.
-        text_thickness: (Optional) the thickness for the text, defaults to `1.0`.
+        line_thickness: (Optional) line_thickness for the box and text labels.  Defaults to 2.
+        text_thickness: (Optional) the line_thickness for the text, defaults to `1.0`.
         font_scale: (Optional) font size to draw bounding boxes in.
         legend: Whether or not to create a legend with the specified colors for `y_true`
             and `y_pred`.  Defaults to False.
@@ -121,7 +122,7 @@ def plot_bounding_box_gallery(
     draw_fn = functools.partial(
         keras_cv.visualization.draw_bounding_boxes.draw_bounding_boxes,
         bounding_box_format="xyxy",
-        thickness=thickness,
+        line_thickness=line_thickness,
         text_thickness=text_thickness,
         font_scale=font_scale,
     )

@@ -15,8 +15,8 @@
 import tensorflow as tf
 
 import keras_cv
-from keras_cv.utils import assert_matplotlib_installed
 from keras_cv import utils
+from keras_cv.utils import assert_matplotlib_installed
 
 try:
     import matplotlib.pyplot as plt
@@ -67,7 +67,8 @@ def plot_image_gallery(
 
     Args:
         images: a Tensor or NumPy array containing images to show in the gallery.
-        value_range: value range of the images.
+        value_range: value range of the images.  Common examples include (0, 255)
+            and (0, 1).
         rows: number of rows in the gallery to show.
         cols: number of columns in the gallery to show.
         scale: how large to scale the images in the gallery
