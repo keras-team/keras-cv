@@ -108,7 +108,7 @@ def apply_conv_mixer_layer(x, dim, kernel_size, name=None):
         the updated input tensor.
     """
     if name is None:
-        name = str(backend.get_uid("apply_conv_mixer_layer"))
+        name = str(backend.get_uid("conv_mixer_layer"))
 
     residual = x
     x = layers.DepthwiseConv2D(
@@ -133,6 +133,8 @@ def apply_patch_embed(x, dim, patch_size, name=None):
     Returns:
         the updated input tensor.
     """
+    if name is None:
+        name = str(backend.get_uid("patch_embed"))
 
     x = layers.Conv2D(
         filters=dim,
