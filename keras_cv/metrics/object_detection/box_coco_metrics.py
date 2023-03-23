@@ -69,7 +69,7 @@ METRIC_NAMES = [
 
 
 class BoxCOCOMetrics(keras.metrics.Metric):
-    """BoxCOCOMetrics computes standard object deteciton metrics.
+    """BoxCOCOMetrics computes standard object detection metrics.
 
     Args:
         bounding_box_format: the bounding box format for inputs.
@@ -84,6 +84,11 @@ class BoxCOCOMetrics(keras.metrics.Metric):
     KerasCV object detection model.  Inputs to `y_true` must be KerasCV bounding
     box dictionaries, `{"classes": classes, "boxes": boxes}`, and `y_pred` must
     follow the same format with an additional `confidence` key.
+
+    Unfortunately, at the moment `BoxCOCOMetrics()` are not TPU compatible with
+    the `fit()` API.  If you wish to evaluate `BoxCOCOMetrics()` for a model
+    trained on TPU, we recommend using the `model.predict()` API and manually
+    updating the metric state with the results.
 
     Using this metric suite alongside a model is trivial; simply provide it to
     the `compile()` arguments of the model:
@@ -113,19 +118,18 @@ class BoxCOCOMetrics(keras.metrics.Metric):
         classification_loss='focal',
         box_loss='smoothl1',
         optimizer=tf.optimizers.SGD(global_clipnorm=10.0),
-        jit_compile=False,
         metrics=[keras_cv.metrics.BoxCOCOMetrics('xywh')]
     )
     model.fit(images, labels)
     ```
     """
 
-    def __init__(self, bounding_box_format, eval_steps, name=None, **kwargs):
+    def __init__(self, bounding_box_format, evaluate_freq, name=None, **kwargs):
         super().__init__(name=name, **kwargs)
         self.ground_truths = None
         self.predictions = None
         self.bounding_box_format = bounding_box_format
-        self.eval_steps = eval_steps
+        self.evaluate_freq = evaluate_freq
         self._eval_step_count = 0
         self._cached_result = [0] * len(METRIC_NAMES)
 
@@ -212,8 +216,8 @@ class BoxCOCOMetrics(keras.metrics.Metric):
 
         # compute on first step so we don't have an inconsistent list of metrics
         # in our train_step() results.  This will just populate the metrics with
-        # `0.0` until we get to `eval_steps`.
-        if self._eval_step_count % self.eval_steps == 0:
+        # `0.0` until we get to `evaluate_freq`.
+        if self._eval_step_count % self.evaluate_freq == 0:
             self._cached_result = self._compute_result()
 
     def reset_state(self):
