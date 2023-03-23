@@ -110,14 +110,14 @@ def apply_conv_mixer_layer(x, dim, kernel_size):
         name = str(backend.get_uid("apply_conv_mixer_layer"))
 
     residual = x
-    x = layers.DepthwiseConv2D(kernel_size=kernel_size, padding="same",name=name+"depthwiseconv" )(x)
-    x = tf.nn.gelu(x, name=name + "gelu")
-    x = layers.BatchNormalization(name=name + "batchnorm")(x)
-    x = layers.Add(name=name + "add")([x, residual])
+    x = layers.DepthwiseConv2D(kernel_size=kernel_size, padding="same",name=name+"_depthwiseconv" )(x)
+    x = tf.nn.gelu(x, name=name + "_gelu_0")
+    x = layers.BatchNormalization(name=name + "_batchnorm_0")(x)
+    x = layers.Add(name=name + "_add")([x, residual])
 
-    x = layers.Conv2D(dim, kernel_size=1,name=name + "conv")(x)
-    x = tf.nn.gelu(x,name=name + "gelu")
-    x = layers.BatchNormalization(name=name + "batchnorm")(x)
+    x = layers.Conv2D(dim, kernel_size=1,name=name + "_conv")(x)
+    x = tf.nn.gelu(x,name=name + "_gelu_1")
+    x = layers.BatchNormalization(name=name + "_batchnorm_1")(x)
     return x
 
 
@@ -226,7 +226,7 @@ class ConvMixer(keras.Model):
             x = apply_conv_mixer_layer(x, dim, kernel_size)
 
         if include_top:
-            x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
+            x = layers.GlobalAveragePooling2D(name="avg_pool_0")(x)
             x = layers.Dense(
                 num_classes,
                 activation=classifier_activation,
@@ -234,7 +234,7 @@ class ConvMixer(keras.Model):
             )(x)
         else:
             if pooling == "avg":
-                x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
+                x = layers.GlobalAveragePooling2D(name="avg_pool_1")(x)
             elif pooling == "max":
                 x = layers.GlobalMaxPooling2D(name="max_pool")(x)
 
