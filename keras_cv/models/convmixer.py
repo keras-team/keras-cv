@@ -22,6 +22,7 @@ References:
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
+rom tensorflow.keras import backend
 
 from keras_cv.models import utils
 from keras_cv.models.weights import parse_weights
@@ -110,13 +111,13 @@ def apply_conv_mixer_layer(x, dim, kernel_size, name=None):
         name = str(backend.get_uid("apply_conv_mixer_layer"))
 
     residual = x
-    x = layers.DepthwiseConv2D(kernel_size=kernel_size, padding="same",name=name+"_depthwiseconv" )(x)
+    x = layers.DepthwiseConv2D(kernel_size=kernel_size, padding="same", name=name+"_depthwiseconv")(x)
     x = tf.nn.gelu(x, name=name + "_gelu_0")
     x = layers.BatchNormalization(name=name + "_batchnorm_0")(x)
     x = layers.Add(name=name + "_add")([x, residual])
 
-    x = layers.Conv2D(dim, kernel_size=1,name=name + "_conv")(x)
-    x = tf.nn.gelu(x,name=name + "_gelu_1")
+    x = layers.Conv2D(dim, kernel_size=1, name=name + "_conv")(x)
+    x = tf.nn.gelu(x, name=name + "_gelu_1")
     x = layers.BatchNormalization(name=name + "_batchnorm_1")(x)
     return x
 
