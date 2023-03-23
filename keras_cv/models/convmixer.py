@@ -188,14 +188,13 @@ class ConvMixer(keras.Model):
         kernel_size,
         include_top,
         include_rescaling,
-        name="ConvMixer",
+        name="ConvMixer_",
         weights=None,
         input_shape=(None, None, 3),
         input_tensor=None,
         pooling=None,
         num_classes=None,
         classifier_activation="softmax",
-        name = "ConvMixer",
         **kwargs,
     ):
         if weights and not tf.io.gfile.exists(weights):
@@ -224,20 +223,20 @@ class ConvMixer(keras.Model):
         x = apply_patch_embed(x, dim, patch_size,name)
 
         for _ in range(depth):
-            x = apply_conv_mixer_layer(x, dim, kernel_size,name)
+            x = apply_conv_mixer_layer(x, dim, kernel_size, name)
 
         if include_top:
-            x = layers.GlobalAveragePooling2D(name="avg_pool_0")(x)
+            x = layers.GlobalAveragePooling2D(name= name + "avg_pool_0")(x)
             x = layers.Dense(
                 num_classes,
                 activation=classifier_activation,
-                name="predictions",
+                name=name + "predictions",
             )(x)
         else:
             if pooling == "avg":
-                x = layers.GlobalAveragePooling2D(name="avg_pool_1")(x)
+                x = layers.GlobalAveragePooling2D(name = name + "avg_pool_1")(x)
             elif pooling == "max":
-                x = layers.GlobalMaxPooling2D(name="max_pool")(x)
+                x = layers.GlobalMaxPooling2D(name= name + "max_pool")(x)
 
         super().__init__(inputs=inputs, outputs=x, name=name, **kwargs)
 
