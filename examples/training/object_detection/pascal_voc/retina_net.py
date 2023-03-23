@@ -383,6 +383,6 @@ callbacks = [
 history = model.fit(
     train_ds,
     validation_data=eval_ds,
-    epochs=35,
+    epochs=EPOCHS,
     callbacks=callbacks,
 )
