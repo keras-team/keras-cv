@@ -106,16 +106,18 @@ def apply_conv_mixer_layer(x, dim, kernel_size):
     Returns:
         the updated input tensor.
     """
+    if name is None:
+        name = str(backend.get_uid("apply_conv_mixer_layer"))
 
     residual = x
-    x = layers.DepthwiseConv2D(kernel_size=kernel_size, padding="same")(x)
-    x = tf.nn.gelu(x)
-    x = layers.BatchNormalization()(x)
-    x = layers.Add()([x, residual])
+    x = layers.DepthwiseConv2D(kernel_size=kernel_size, padding="same",name=name+"depthwiseconv" )(x)
+    x = tf.nn.gelu(x, name=name + "gelu")
+    x = layers.BatchNormalization(name=name + "batchnorm")(x)
+    x = layers.Add(name=name + "add")([x, residual])
 
-    x = layers.Conv2D(dim, kernel_size=1)(x)
-    x = tf.nn.gelu(x)
-    x = layers.BatchNormalization()(x)
+    x = layers.Conv2D(dim, kernel_size=1,name=name + "conv")(x)
+    x = tf.nn.gelu(x,name=name + "gelu")
+    x = layers.BatchNormalization(name=name + "batchnorm")(x)
     return x
 
 
