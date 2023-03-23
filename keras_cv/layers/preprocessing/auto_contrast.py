@@ -31,7 +31,7 @@ class AutoContrast(VectorizedBaseImageAugmentationLayer):
 
     Args:
         value_range: the range of values the incoming images will have.
-            Represented as a two number tuple written [low, high]. 
+            Represented as a two number tuple written [low, high].
             This is typically either `[0, 1]` or `[0, 255]` depending
             on how your preprocessing pipeline is set up.
             (Note: It can be passed as any datatype that returns an integer on indexing like a list, tuple, numpy array or tf.tensor)
