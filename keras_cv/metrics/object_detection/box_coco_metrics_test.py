@@ -45,26 +45,25 @@ def load_samples(fname):
 
     return y_true, y_pred, categories
 
-
 golden_metrics = {
-    "AP": 0.6194297,
-    "AP50": 1.0,
-    "AP75": 0.7079766,
-    "APs": 0.6045385,
-    "APm": 0.6283987,
-    "APl": 0.6143586,
-    "ARmax1": 0.47537246,
-    "ARmax10": 0.6450954,
-    "ARmax100": 0.6484465,
-    "ARs": 0.62842655,
-    "ARm": 0.65336424,
-    "ARl": 0.6405466,
+    "MaP": 0.6194297,
+    "MaP@[IoU=50]": 1.0,
+    "MaP@[IoU=75]": 0.7079766,
+    "MaP@[area=small]": 0.6045385,
+    "MaP@[area=medium]": 0.6283987,
+    "MaP@[area=large]": 0.6143586,
+    "Recall@[max_detections=1]": 0.47537246,
+    "Recall@[max_detections=10]": 0.6450954,
+    "Recall@[max_detections=100]": 0.6484465,
+    "Recall@[area=small]": 0.62842655,
+    "Recall@[area=medium]": 0.65336424,
+    "Recall@[area=large]": 0.6405466,
 }
 
 
 class BoxCOCOMetricsTest(tf.test.TestCase):
     def test_coco_metric_suite_returns_all_coco_metrics(self):
-        suite = BoxCOCOMetrics(bounding_box_format="xyxy", eval_steps=1)
+        suite = BoxCOCOMetrics(bounding_box_format="xyxy", evaluate_freq=1)
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
 
         suite.update_state(y_true, y_pred)
@@ -72,8 +71,8 @@ class BoxCOCOMetricsTest(tf.test.TestCase):
 
         self.assertAllEqual(metrics, golden_metrics)
 
-    def test_coco_metric_suite_eval_steps(self):
-        suite = BoxCOCOMetrics(bounding_box_format="xyxy", eval_steps=2)
+    def test_coco_metric_suite_evaluate_freq(self):
+        suite = BoxCOCOMetrics(bounding_box_format="xyxy", evaluate_freq=2)
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
 
         suite.update_state(y_true, y_pred)
@@ -90,7 +89,7 @@ class BoxCOCOMetricsTest(tf.test.TestCase):
 
     def test_name_parameter(self):
         suite = BoxCOCOMetrics(
-            bounding_box_format="xyxy", eval_steps=1, name="coco_metrics"
+            bounding_box_format="xyxy", evaluate_freq=1, name="coco_metrics"
         )
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
         suite.update_state(y_true, y_pred)

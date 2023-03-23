@@ -67,6 +67,21 @@ METRIC_NAMES = [
     "ARl",
 ]
 
+METRIC_MAPPING = {
+    "AP": "MaP",
+    "AP50": "MaP@[IoU=50]",
+    "AP75": "MaP@[IoU=75]",
+    "APs": "MaP@[area=small]",
+    "APm": "MaP@[area=medium]",
+    "APl": "MaP@[area=large]",
+    "ARmax1": "Recall@[max_detections=1]",
+    "ARmax10": "Recall@[max_detections=10]",
+    "ARmax100": "Recall@[max_detections=100]",
+    "ARs": "Recall@[area=small]",
+    "ARm": "Recall@[area=medium]",
+    "ARl": "Recall@[area=large]",
+}
+
 
 class BoxCOCOMetrics(keras.metrics.Metric):
     """BoxCOCOMetrics computes standard object detection metrics.
@@ -196,7 +211,7 @@ class BoxCOCOMetrics(keras.metrics.Metric):
             )
             result = {}
             for i, key in enumerate(METRIC_NAMES):
-                result[self.name_prefix() + key] = py_func_result[i]
+                result[self.name_prefix() + METRIC_MAPPING[key]] = py_func_result[i]
             return result
 
         obj.result = types.MethodType(result_fn, obj)
