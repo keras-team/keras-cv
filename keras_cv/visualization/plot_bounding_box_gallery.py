@@ -49,12 +49,10 @@ def plot_bounding_box_gallery(
     cols=3,
     **kwargs
 ):
-    """plots a gallery of images with corresponding bounding box annotations
-
-    ![Example bounding box gallery](https://i.imgur.com/tJpb8hZ.png)
+    """Plots a gallery of images with corresponding bounding box annotations.
 
     Usage:
-    ```
+    ```python
     train_ds = tfds.load(
         "voc/2007", split="train", with_info=False, shuffle_files=True
     )
@@ -83,10 +81,12 @@ def plot_bounding_box_gallery(
     )
     ```
 
+    ![Example bounding box gallery](https://i.imgur.com/tJpb8hZ.png)
+
     Args:
         images: a Tensor or NumPy array containing images to show in the gallery.
-        value_range: value range of the images.  Common examples include (0, 255)
-            and (0, 1).
+        value_range: value range of the images.  Common examples include `(0, 255)`
+            and `(0, 1)`.
         bounding_box_format: the bounding_box_format  the provided bounding boxes are
             in.
         y_true: a KerasCV bounding box dictionary representing the ground truth bounding

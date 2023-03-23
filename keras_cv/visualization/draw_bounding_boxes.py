@@ -55,8 +55,9 @@ def draw_bounding_boxes(
         text_thickness: (Optional) the lthickness for the text, defaults to `1.0`.
         font_scale: (Optional) scale of font to draw in.  Defaults to `1.0`.
         class_mapping: (Optional) dictionary from class ID to class label.
+
     Returns:
-        images with bounding boxes plotted on top of them
+        the input `images` with provided bounding boxes plotted on top of them
     """
     assert_cv2_installed("draw_bounding_boxes")
     bounding_boxes = bounding_box.convert_format(
