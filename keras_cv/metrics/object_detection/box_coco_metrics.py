@@ -34,20 +34,15 @@ class HidePrints:
         sys.stdout = self._original_stdout
 
 
-def _box_concat(b1, b2):
+def _box_concat(boxes):
     """Concatenates two bounding box batches together."""
-    if b1 is None:
-        return b2
-    if b2 is None:
-        return b1
-
     result = {}
     for key in ["boxes", "classes"]:
-        result[key] = tf.concat([b1[key], b2[key]], axis=0)
+        result[key] = tf.concat([b[key] for b in boxes], axis=0)
 
-    if "confidence" in b2:
+    if len(boxes) != 0 and "confidence" in boxes[0]:
         result["confidence"] = tf.concat(
-            [b1["confidence"], b2["confidence"]], axis=0
+            [b["confidence"] for b in boxes], axis=0
         )
     return result
 
@@ -141,8 +136,8 @@ class BoxCOCOMetrics(keras.metrics.Metric):
 
     def __init__(self, bounding_box_format, evaluate_freq, name=None, **kwargs):
         super().__init__(name=name, **kwargs)
-        self.ground_truths = None
-        self.predictions = None
+        self.ground_truths = []
+        self.predictions = []
         self.bounding_box_format = bounding_box_format
         self.evaluate_freq = evaluate_freq
         self._eval_step_count = 0
@@ -211,7 +206,9 @@ class BoxCOCOMetrics(keras.metrics.Metric):
             )
             result = {}
             for i, key in enumerate(METRIC_NAMES):
-                result[self.name_prefix() + METRIC_MAPPING[key]] = py_func_result[i]
+                result[
+                    self.name_prefix() + METRIC_MAPPING[key]
+                ] = py_func_result[i]
             return result
 
         obj.result = types.MethodType(result_fn, obj)
@@ -226,8 +223,8 @@ class BoxCOCOMetrics(keras.metrics.Metric):
     def update_state(self, y_true, y_pred, sample_weight=None):
         self._eval_step_count += 1
 
-        self.ground_truths = _box_concat(self.ground_truths, y_true)
-        self.predictions = _box_concat(self.predictions, y_pred)
+        self.ground_truths.append(y_true)
+        self.predictions.append(y_pred)
 
         # compute on first step so we don't have an inconsistent list of metrics
         # in our train_step() results.  This will just populate the metrics with
@@ -236,8 +233,8 @@ class BoxCOCOMetrics(keras.metrics.Metric):
             self._cached_result = self._compute_result()
 
     def reset_state(self):
-        self.ground_truths = None
-        self.predictions = None
+        self.ground_truths = []
+        self.predictions = []
         self._eval_step_count = 0
         self._cached_result = [0] * len(METRIC_NAMES)
 
@@ -247,11 +244,13 @@ class BoxCOCOMetrics(keras.metrics.Metric):
         return self._cached_result
 
     def _compute_result(self):
-        if self.predictions is None or self.ground_truths is None:
+        if len(self.predictions) == 0 or len(self.ground_truths) == 0:
             return dict([(key, 0) for key in METRIC_NAMES])
         with HidePrints():
             metrics = compute_pycocotools_metric(
-                self.ground_truths, self.predictions, self.bounding_box_format
+                _box_concat(self.ground_truths),
+                _box_concat(self.predictions),
+                self.bounding_box_format,
             )
         results = []
         for key in METRIC_NAMES:

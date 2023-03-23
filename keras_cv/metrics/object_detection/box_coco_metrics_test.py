@@ -45,6 +45,7 @@ def load_samples(fname):
 
     return y_true, y_pred, categories
 
+
 golden_metrics = {
     "MaP": 0.6194297,
     "MaP@[IoU=50]": 1.0,
