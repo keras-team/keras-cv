@@ -121,7 +121,7 @@ def apply_conv_mixer_layer(x, dim, kernel_size, name=None):
     return x
 
 
-def apply_patch_embed(x, dim, patch_size):
+def apply_patch_embed(x, dim, patch_size, name=None):
     """Implementation for Extracting Patch Embeddings.
     Args:
         x: input tensor.
