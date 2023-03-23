@@ -41,6 +41,18 @@ def load_voc_dataset(
     batch_size=9,
     image_size=(224, 224),
 ):
+    """
+    Loads and preprocesses a VOC dataset using TensorFlow Datasets.
+
+    Args:
+        bounding_box_format (str): The format of the bounding boxes to convert to. One of "yxyx", "xywh", "rel_yxyx", or "rel_xywh".
+        name (str): The name of the dataset to load, e.g. "voc/2007". Defaults to "voc/2007".
+        batch_size (int): The number of samples to include in each batch. Defaults to 9.
+        image_size (Tuple[int, int]): The size to resize the images to. Defaults to (224, 224).
+
+    Returns:
+        A TensorFlow dataset object.
+    """
     dataset = tfds.load(name, split=tfds.Split.TRAIN, shuffle_files=True)
     dataset = dataset.map(
         lambda x: preprocess_voc(
@@ -55,6 +67,16 @@ def load_voc_dataset(
 
 
 def visualize_data(data, bounding_box_format):
+    """
+    Visualizes a batch of data from a VOC dataset.
+
+    Args:
+        data: A batch of data from the dataset.
+        bounding_box_format (str): The format of the bounding boxes.
+
+    Returns:
+        None.
+    """
     data = next(iter(data))
     images = data["images"]
     bounding_boxes = data["bounding_boxes"]
@@ -65,6 +87,17 @@ def visualize_data(data, bounding_box_format):
 
 
 def visualize_bounding_boxes(image, bounding_boxes, bounding_box_format):
+    """
+    Draws bounding boxes on an image.
+
+    Args:
+        image (Tensor): The image to draw the bounding boxes on.
+        bounding_boxes (Tensor): The bounding boxes to draw.
+        bounding_box_format (str): The format of the bounding boxes.
+
+    Returns:
+        A tensor containing the image with bounding boxes drawn on it.
+    """
     color = np.array([[255.0, 0.0, 0.0]])
     bounding_boxes = bounding_box.convert_format(
         bounding_boxes,
@@ -76,6 +109,15 @@ def visualize_bounding_boxes(image, bounding_boxes, bounding_box_format):
 
 
 def gallery_show(images):
+    """
+    Displays a gallery of images.
+
+    Args:
+        images (ndarray): An array of images.
+
+    Returns:
+        None.
+    """
     images = images.astype(int)
     for i in range(9):
         image = images[i]
