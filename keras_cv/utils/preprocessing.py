@@ -294,7 +294,8 @@ def transform(
       interpolation: Interpolation mode. Supported values: `"nearest"`,
         `"bilinear"`.
       output_shape: Output dimension after the transform, `[height, width]`.
-        If `None`, output is the same size as input image. Can be passed as any datatype that can be typecasted to a tf.tensor like list,tuple or numpy array. 
+        If `None`, output is the same size as input image. 
+        (Note: `output_shape` can be of any datatype that can be typecasted to a tf.tensor like list, tuple or numpy array.)
       name: The name of the op.
 
     Fill mode behavior for each valid value is as follows:
