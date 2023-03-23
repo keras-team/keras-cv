@@ -163,7 +163,7 @@ class VectorizedBaseImageAugmentationLayer(
         Returns:
           output 2D tensor, which will be forward to `layer.call()`.
         """
-        return self.augment_labels(targets, transformations)
+        return self.augment_labels(targets, transformations, **kwargs)
 
     def augment_bounding_boxes(self, bounding_boxes, transformations, **kwargs):
         """Augment bounding boxes for one image during training.
@@ -295,7 +295,7 @@ class VectorizedBaseImageAugmentationLayer(
                 images,
                 transformations=transformations,
                 bounding_boxes=bounding_boxes,
-                label=labels,
+                labels=labels,
             )
 
         result = {IMAGES: images}
@@ -304,7 +304,7 @@ class VectorizedBaseImageAugmentationLayer(
                 labels,
                 transformations=transformations,
                 bounding_boxes=bounding_boxes,
-                image=images,
+                images=images,
             )
             result[LABELS] = labels
 
@@ -322,7 +322,7 @@ class VectorizedBaseImageAugmentationLayer(
             keypoints = self.augment_keypoints(
                 keypoints,
                 transformations=transformations,
-                label=labels,
+                labels=labels,
                 bounding_boxes=bounding_boxes,
                 images=images,
             )
@@ -331,6 +331,9 @@ class VectorizedBaseImageAugmentationLayer(
             segmentation_masks = self.augment_segmentation_masks(
                 segmentation_masks,
                 transformations=transformations,
+                labels=labels,
+                bounding_boxes=bounding_boxes,
+                images=images,
             )
             result[SEGMENTATION_MASKS] = segmentation_masks
 

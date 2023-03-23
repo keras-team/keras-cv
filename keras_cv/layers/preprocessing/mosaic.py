@@ -167,11 +167,6 @@ class Mosaic(VectorizedBaseImageAugmentationLayer):
         outputs = tf.cast(outputs, self.compute_dtype)
         return outputs
 
-    def augment_targets(self, targets, transformations, image=None, **kwargs):
-        return self.augment_labels(
-            labels=targets, transformations=transformations, images=image
-        )
-
     def augment_labels(self, labels, transformations, images=None, **kwargs):
         input_height, input_width, _ = images.shape[1:]
         # updates labels for one output mosaic
