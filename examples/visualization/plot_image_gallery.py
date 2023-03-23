@@ -11,12 +11,12 @@ Plotting images from a TensorFlow dataset is easy with KerasCV.  Behold:
 """
 
 import tensorflow_datasets as tfds
-
 import keras_cv
+import tensorflow as tf
 
 train_ds = tfds.load(
     "cats_vs_dogs",
-    split="train+validation",
+    split="train",
     with_info=False,
     shuffle_files=True,
 )
@@ -25,15 +25,13 @@ train_ds = tfds.load(
 def unpackage_tfds_inputs(inputs):
     return inputs["image"]
 
-
 train_ds = train_ds.map(unpackage_tfds_inputs)
-train_ds = train_ds.batch(16)
+train_ds = train_ds.apply(tf.data.experimental.dense_to_ragged_batch(16))
 
-keras_cv.visualization.plot_gallery(
-    train_ds,
+keras_cv.visualization.plot_image_gallery(
+    next(iter(train_ds.take(1))),
     value_range=(0, 255),
     scale=3,
     rows=2,
     cols=2,
-    legend=True,
 )

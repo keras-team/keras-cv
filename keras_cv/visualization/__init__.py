@@ -15,4 +15,4 @@
 from keras_cv.visualization.plot_bounding_box_gallery import (
     plot_bounding_box_gallery,
 )
-from keras_cv.visualization.plot_gallery import plot_gallery
+from keras_cv.visualization.plot_image_gallery import plot_image_gallery

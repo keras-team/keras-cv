@@ -22,7 +22,7 @@ First, we load a dataset:
 """
 
 train_ds = tfds.load(
-    "voc/2007", split="train+validation", with_info=False, shuffle_files=True
+    "voc/2007", split="train", with_info=False, shuffle_files=True
 )
 
 

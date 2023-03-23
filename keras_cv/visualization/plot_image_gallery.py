@@ -16,6 +16,7 @@ import tensorflow as tf
 
 import keras_cv
 from keras_cv.utils import assert_matplotlib_installed
+from keras_cv import utils
 
 try:
     import matplotlib.pyplot as plt
@@ -23,7 +24,7 @@ except:
     plt = None
 
 
-def plot_gallery(
+def plot_image_gallery(
     images,
     value_range,
     rows=3,
@@ -35,7 +36,34 @@ def plot_gallery(
     dpi=60,
     legend_handles=None,
 ):
-    """gallery_show shows a gallery of images.
+    """plot_image_gallery shows a gallery of images.
+
+    ![example gallery](https://i.imgur.com/r0ndse0.png)
+
+    Usage:
+    ```
+    train_ds = tfds.load(
+        "cats_vs_dogs",
+        split="train",
+        with_info=False,
+        shuffle_files=True,
+    )
+
+
+    def unpackage_tfds_inputs(inputs):
+        return inputs["image"]
+
+    train_ds = train_ds.map(unpackage_tfds_inputs)
+    train_ds = train_ds.apply(tf.data.experimental.dense_to_ragged_batch(16))
+
+    keras_cv.visualization.plot_image_gallery(
+        next(iter(train_ds.take(1))),
+        value_range=(0, 255),
+        scale=3,
+        rows=2,
+        cols=2,
+    )
+    ```
 
     Args:
         images: a Tensor or NumPy array containing images to show in the gallery.
@@ -63,22 +91,6 @@ def plot_gallery(
             "to be true."
         )
 
-    if isinstance(images, tf.data.Dataset):
-        ds_iter = iter(images)
-        total = 0
-        images = []
-        while total < rows * cols:
-            inputs = next(ds_iter)
-            if isinstance(inputs, dict):
-                x = inputs["images"]
-            elif isinstance(inputs, tuple):
-                x = inputs[0]
-            else:
-                x = inputs
-            total += x.shape[0]
-            images.append(x)
-        images = tf.concatenate(images, axis=0)
-
     fig = plt.figure(figsize=(cols * scale, rows * scale))
     fig.tight_layout()  # Or equivalently,  "plt.tight_layout()"
     plt.subplots_adjust(wspace=0, hspace=0)
@@ -88,11 +100,10 @@ def plot_gallery(
     if legend_handles is not None:
         fig.legend(handles=legend_handles, loc="lower center")
 
+    images = utils.to_numpy(images)
     images = keras_cv.utils.transform_value_range(
         images, original_range=value_range, target_range=(0, 255)
     )
-    if isinstance(images, tf.Tensor):
-        images = images.numpy()
 
     images = images.astype(int)
     for row in range(rows):

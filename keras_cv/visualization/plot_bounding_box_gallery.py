@@ -22,7 +22,7 @@ import keras_cv.visualization.draw_bounding_boxes
 from keras_cv import utils
 from keras_cv.utils import assert_cv2_installed
 from keras_cv.utils import assert_matplotlib_installed
-from keras_cv.visualization.plot_gallery import plot_gallery
+from keras_cv.visualization.plot_image_gallery import plot_image_gallery
 
 try:
     from matplotlib import patches
@@ -52,7 +52,37 @@ def plot_bounding_box_gallery(
 ):
     """plots a gallery of images with corresponding bounding box annotations
 
-    ![Example bounding box gallery](https://i.imgur.com/Fy7kMnP.png)
+    ![Example bounding box gallery](https://i.imgur.com/tJpb8hZ.png)
+
+    Usage:
+    ```
+    train_ds = tfds.load(
+        "voc/2007", split="train", with_info=False, shuffle_files=True
+    )
+
+    def unpackage_tfds_inputs(inputs):
+        image = inputs["image"]
+        boxes = inputs["objects"]["bbox"]
+        bounding_boxes = {"classes": classes, "boxes": boxes}
+        return image, bounding_boxes
+
+    train_ds = train_ds.map(unpackage_tfds_inputs)
+    train_ds = train_ds.apply(tf.data.experimental.dense_to_ragged_batch(16))
+    images, boxes = next(iter(train_ds.take(1)))
+
+    keras_cv.visualization.plot_bounding_box_gallery(
+        images,
+        value_range=(0, 255),
+        bounding_box_format="xywh",
+        y_true=boxes,
+        scale=3,
+        rows=2,
+        cols=2,
+        thickness=4,
+        font_scale=1,
+        legend=True,
+    )
+    ```
 
     Args:
         images: a Tensor or NumPy array containing images to show in the gallery.
@@ -78,16 +108,11 @@ def plot_bounding_box_gallery(
         legend: Whether or not to create a legend with the specified colors for `y_true`
             and `y_pred`.  Defaults to False.
         kwargs: keyword arguments to propagate to
-            `keras_cv.visualization.gallery_show()`.
+            `keras_cv.visualization.plot_image_gallery()`.
     """
     assert_matplotlib_installed("plot_bounding_box_gallery")
     assert_cv2_installed("plot_bounding_box_gallery")
-    if isinstance(images, tf.data.Dataset):
-        raise ValueError(
-            "Currently `keras_cv.visualization.plot_bounding_box_gallery()` does "
-            "not support `tf.data.Datasets`. Please pass a single batch, i.e.:"
-            "`images, boxes = next(iter(ds.take(1)))`."
-        )
+
     prediction_mapping = prediction_mapping or class_mapping
     ground_truth_mapping = ground_truth_mapping or class_mapping
 
@@ -143,7 +168,7 @@ def plot_bounding_box_gallery(
             ),
         ]
 
-    plot_gallery(
+    plot_image_gallery(
         plotted_images,
         value_range,
         legend_handles=legend_handles,
