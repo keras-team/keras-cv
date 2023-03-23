@@ -199,12 +199,9 @@ class RetinaNet(keras.Model):
 
         self.feature_pyramid = FeaturePyramid()
 
-        self.classification_head = (
-            classification_head
-            or PredictionHead(
-                output_filters=9 * num_classes,
-                bias_initializer=prior_probability,
-            )
+        self.classification_head = classification_head or PredictionHead(
+            output_filters=9 * num_classes,
+            bias_initializer=prior_probability,
         )
 
         self.box_head = (
