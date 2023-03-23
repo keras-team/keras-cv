@@ -111,7 +111,9 @@ def apply_conv_mixer_layer(x, dim, kernel_size, name=None):
         name = str(backend.get_uid("apply_conv_mixer_layer"))
 
     residual = x
-    x = layers.DepthwiseConv2D(kernel_size=kernel_size, padding="same", name=name+"_depthwiseconv")(x)
+    x = layers.DepthwiseConv2D(
+        kernel_size=kernel_size, padding="same", name=name + "_depthwiseconv"
+    )(x)
     x = tf.nn.gelu(x, name=name + "_gelu_0")
     x = layers.BatchNormalization(name=name + "_batchnorm_0")(x)
     x = layers.Add(name=name + "_add")([x, residual])
@@ -132,11 +134,14 @@ def apply_patch_embed(x, dim, patch_size, name=None):
         the updated input tensor.
     """
 
-    x = layers.Conv2D(filters=dim, kernel_size=patch_size, strides=patch_size, name=name+"_conv")(
-        x
-    )
-    x = tf.nn.gelu(x, name=name+"_gelu")
-    x = layers.BatchNormalization(name=name+"_batchnorm")(x)
+    x = layers.Conv2D(
+        filters=dim,
+        kernel_size=patch_size,
+        strides=patch_size,
+        name=name + "_conv",
+    )(x)
+    x = tf.nn.gelu(x, name=name + "_gelu")
+    x = layers.BatchNormalization(name=name + "_batchnorm")(x)
     return x
 
 
@@ -227,17 +232,17 @@ class ConvMixer(keras.Model):
             x = apply_conv_mixer_layer(x, dim, kernel_size, name)
 
         if include_top:
-            x = layers.GlobalAveragePooling2D(name=name+"_avg_pool_0")(x)
+            x = layers.GlobalAveragePooling2D(name=name + "_avg_pool_0")(x)
             x = layers.Dense(
                 num_classes,
                 activation=classifier_activation,
-                name=name+"_predictions",
+                name=name + "_predictions",
             )(x)
         else:
             if pooling == "avg":
-                x = layers.GlobalAveragePooling2D(name=name+"_avg_pool_1")(x)
+                x = layers.GlobalAveragePooling2D(name=name + "_avg_pool_1")(x)
             elif pooling == "max":
-                x = layers.GlobalMaxPooling2D(name=name+"_max_pool")(x)
+                x = layers.GlobalMaxPooling2D(name=name + "_max_pool")(x)
 
         super().__init__(inputs=inputs, outputs=x, name=name, **kwargs)
 
