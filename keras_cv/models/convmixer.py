@@ -188,7 +188,7 @@ class ConvMixer(keras.Model):
         kernel_size,
         include_top,
         include_rescaling,
-        name="ConvMixer_",
+        name="ConvMixer",
         weights=None,
         input_shape=(None, None, 3),
         input_tensor=None,
@@ -226,17 +226,17 @@ class ConvMixer(keras.Model):
             x = apply_conv_mixer_layer(x, dim, kernel_size, name)
 
         if include_top:
-            x = layers.GlobalAveragePooling2D(name=name+"avg_pool_0")(x)
+            x = layers.GlobalAveragePooling2D(name=name+"_avg_pool_0")(x)
             x = layers.Dense(
                 num_classes,
                 activation=classifier_activation,
-                name=name+"predictions",
+                name=name+"_predictions",
             )(x)
         else:
             if pooling == "avg":
-                x = layers.GlobalAveragePooling2D(name=name+"avg_pool_1")(x)
+                x = layers.GlobalAveragePooling2D(name=name+"_avg_pool_1")(x)
             elif pooling == "max":
-                x = layers.GlobalMaxPooling2D(name=name+"max_pool")(x)
+                x = layers.GlobalMaxPooling2D(name=name+"_max_pool")(x)
 
         super().__init__(inputs=inputs, outputs=x, name=name, **kwargs)
 
