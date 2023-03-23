@@ -97,7 +97,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
 """
 
 
-def apply_conv_mixer_layer(x, dim, kernel_size):
+def apply_conv_mixer_layer(x, dim, kernel_size,name):
     """ConvMixerLayer module.
     Args:
         x: input tensor.
@@ -195,6 +195,7 @@ class ConvMixer(keras.Model):
         pooling=None,
         num_classes=None,
         classifier_activation="softmax",
+        name = "ConvMixer",
         **kwargs,
     ):
         if weights and not tf.io.gfile.exists(weights):
@@ -220,10 +221,10 @@ class ConvMixer(keras.Model):
 
         if include_rescaling:
             x = layers.Rescaling(1 / 255.0)(x)
-        x = apply_patch_embed(x, dim, patch_size)
+        x = apply_patch_embed(x, dim, patch_size,name)
 
         for _ in range(depth):
-            x = apply_conv_mixer_layer(x, dim, kernel_size)
+            x = apply_conv_mixer_layer(x, dim, kernel_size,name)
 
         if include_top:
             x = layers.GlobalAveragePooling2D(name="avg_pool_0")(x)
