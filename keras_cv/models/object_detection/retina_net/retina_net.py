@@ -193,7 +193,9 @@ class RetinaNet(keras.Model):
             self.backbone, extractor_layer_names, extractor_levels
         )
         self.feature_pyramid = layers_lib.FeaturePyramid()
-        prior_probability = tf.constant_initializer(-np.log((1 - 0.01) / 0.01))
+        prior_probability = keras.initializers.Constant(
+            -np.log((1 - 0.01) / 0.01)
+        )
 
         self.classification_head = (
             classification_head
@@ -204,7 +206,7 @@ class RetinaNet(keras.Model):
         )
 
         self.box_head = box_head or layers_lib.PredictionHead(
-            output_filters=9 * 4, bias_initializer="zeros"
+            output_filters=9 * 4, bias_initializer=keras.initializers.Zeros()
         )
 
     def make_predict_function(self, force=False):
@@ -516,12 +518,9 @@ class RetinaNet(keras.Model):
         return {
             "num_classes": self.num_classes,
             "bounding_box_format": self.bounding_box_format,
-            # TODO(bischof): actually serialize the backbone
             "backbone": self.backbone,
-            "anchor_generator": self.anchor_generator,
             "label_encoder": self.label_encoder,
             "prediction_decoder": self._prediction_decoder,
-            "feature_pyramid": self.feature_pyramid,
             "classification_head": self.classification_head,
             "box_head": self.box_head,
         }

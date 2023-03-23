@@ -64,9 +64,22 @@ class PredictionHead(layers.Layer):
 
     def get_config(self):
         config = {
-            "bias_initializer": self.bias_initializer,
+            "bias_initializer": keras.initializers.serialize(
+                self.bias_initializer
+            ),
             "output_filters": self.output_filters,
             "num_conv_layers": self.num_conv_layers,
         }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
+
+    @classmethod
+    def from_config(cls, config):
+        config.update(
+            {
+                "bias_initializer": keras.initializers.deserialize(
+                    config["bias_initializer"]
+                )
+            }
+        )
+        return super().from_config(config)
