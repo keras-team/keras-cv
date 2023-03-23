@@ -249,7 +249,8 @@ class VectorizedBaseImageAugmentationLayerTest(tf.test.TestCase):
         images = np.random.random(size=(8, 8, 3)).astype("float32")
         filenames = tf.constant("/path/to/first.jpg")
         inputs = {"images": images, "filenames": filenames}
-        _ = add_layer(inputs)
+        output = add_layer(inputs)
+        self.assertAllEqual(output["filenames"], filenames)
 
     def test_augment_ragged_images(self):
         images = tf.ragged.stack(
@@ -375,7 +376,7 @@ class VectorizedBaseImageAugmentationLayerTest(tf.test.TestCase):
     def test_augment_all_data_in_tf_function(self):
         add_layer = VectorizedRandomAddLayer()
         images = np.random.random(size=(2, 8, 8, 3)).astype("float32")
-        bounding_boxes = bounding_boxes = {
+        bounding_boxes = {
             "boxes": np.random.random(size=(2, 3, 4)).astype("float32"),
             "classes": np.random.random(size=(2, 3)).astype("float32"),
         }
@@ -408,6 +409,49 @@ class VectorizedBaseImageAugmentationLayerTest(tf.test.TestCase):
         self.assertNotAllClose(keypoints_diff[0], keypoints_diff[1])
         self.assertNotAllClose(
             segmentation_mask_diff[0], segmentation_mask_diff[1]
+        )
+
+    def test_augment_unbatched_all_data(self):
+        add_layer = VectorizedRandomAddLayer(fixed_value=2.0)
+        images = np.random.random(size=(8, 8, 3)).astype("float32")
+        bounding_boxes = {
+            "boxes": np.random.random(size=(3, 4)).astype("float32"),
+            "classes": np.random.random(size=(3)).astype("float32"),
+        }
+        keypoints = np.random.random(size=(5, 2)).astype("float32")
+        segmentation_masks = np.random.random(size=(8, 8, 1)).astype("float32")
+        input = {
+            "images": images,
+            "bounding_boxes": bounding_boxes,
+            "keypoints": keypoints,
+            "segmentation_masks": segmentation_masks,
+        }
+
+        output = add_layer(input, training=True)
+        expected_output = {
+            "images": images + 2.0,
+            "bounding_boxes": bounding_box.to_dense(
+                {
+                    "boxes": bounding_boxes["boxes"] + 2.0,
+                    "classes": bounding_boxes["classes"] + 2.0,
+                }
+            ),
+            "keypoints": keypoints + 2.0,
+            "segmentation_masks": segmentation_masks + 2.0,
+        }
+
+        self.assertAllClose(output["images"], expected_output["images"])
+        self.assertAllClose(output["keypoints"], expected_output["keypoints"])
+        self.assertAllClose(
+            output["bounding_boxes"]["boxes"],
+            expected_output["bounding_boxes"]["boxes"],
+        )
+        self.assertAllClose(
+            output["bounding_boxes"]["classes"],
+            expected_output["bounding_boxes"]["classes"],
+        )
+        self.assertAllClose(
+            output["segmentation_masks"], expected_output["segmentation_masks"]
         )
 
     def test_augment_all_data_for_assertion(self):
