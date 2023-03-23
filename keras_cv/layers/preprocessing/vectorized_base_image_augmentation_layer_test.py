@@ -57,6 +57,130 @@ class VectorizedRandomAddLayer(VectorizedBaseImageAugmentationLayer):
         return segmentation_masks + transformations[:, None, None, None]
 
 
+TF_ALL_TENSOR_TYPES = (tf.Tensor, tf.RaggedTensor, tf.SparseTensor)
+
+
+class VectorizedAssertionLayer(VectorizedBaseImageAugmentationLayer):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def augment_ragged_image(
+        self,
+        image,
+        label=None,
+        bounding_boxes=None,
+        keypoints=None,
+        segmentation_mask=None,
+        transformation=None,
+        **kwargs
+    ):
+        assert isinstance(image, TF_ALL_TENSOR_TYPES)
+        assert isinstance(label, TF_ALL_TENSOR_TYPES)
+        assert isinstance(bounding_boxes["boxes"], TF_ALL_TENSOR_TYPES)
+        assert isinstance(bounding_boxes["classes"], TF_ALL_TENSOR_TYPES)
+        assert isinstance(keypoints, TF_ALL_TENSOR_TYPES)
+        assert isinstance(segmentation_mask, TF_ALL_TENSOR_TYPES)
+        assert isinstance(transformation, TF_ALL_TENSOR_TYPES)
+        return image
+
+    def get_random_transformation_batch(
+        self,
+        batch_size,
+        images=None,
+        labels=None,
+        bounding_boxes=None,
+        keypoints=None,
+        segmentation_masks=None,
+        **kwargs
+    ):
+        assert isinstance(images, TF_ALL_TENSOR_TYPES)
+        assert isinstance(labels, TF_ALL_TENSOR_TYPES)
+        assert isinstance(bounding_boxes["boxes"], TF_ALL_TENSOR_TYPES)
+        assert isinstance(bounding_boxes["classes"], TF_ALL_TENSOR_TYPES)
+        assert isinstance(keypoints, TF_ALL_TENSOR_TYPES)
+        assert isinstance(segmentation_masks, TF_ALL_TENSOR_TYPES)
+        return self._random_generator.random_uniform((batch_size,))
+
+    def augment_images(
+        self,
+        images,
+        transformations=None,
+        bounding_boxes=None,
+        labels=None,
+        **kwargs
+    ):
+        assert isinstance(images, TF_ALL_TENSOR_TYPES)
+        assert isinstance(transformations, TF_ALL_TENSOR_TYPES)
+        assert isinstance(bounding_boxes["boxes"], TF_ALL_TENSOR_TYPES)
+        assert isinstance(bounding_boxes["classes"], TF_ALL_TENSOR_TYPES)
+        assert isinstance(labels, TF_ALL_TENSOR_TYPES)
+        return images
+
+    def augment_labels(
+        self,
+        labels,
+        transformations=None,
+        bounding_boxes=None,
+        images=None,
+        **kwargs
+    ):
+        assert isinstance(labels, TF_ALL_TENSOR_TYPES)
+        assert isinstance(transformations, TF_ALL_TENSOR_TYPES)
+        assert isinstance(bounding_boxes["boxes"], TF_ALL_TENSOR_TYPES)
+        assert isinstance(bounding_boxes["classes"], TF_ALL_TENSOR_TYPES)
+        assert isinstance(images, TF_ALL_TENSOR_TYPES)
+        return labels
+
+    def augment_bounding_boxes(
+        self,
+        bounding_boxes,
+        transformations=None,
+        labels=None,
+        images=None,
+        **kwargs
+    ):
+        assert isinstance(bounding_boxes["boxes"], TF_ALL_TENSOR_TYPES)
+        assert isinstance(bounding_boxes["classes"], TF_ALL_TENSOR_TYPES)
+        assert isinstance(transformations, TF_ALL_TENSOR_TYPES)
+        assert isinstance(labels, TF_ALL_TENSOR_TYPES)
+        assert isinstance(images, TF_ALL_TENSOR_TYPES)
+        return bounding_boxes
+
+    def augment_keypoints(
+        self,
+        keypoints,
+        transformations=None,
+        labels=None,
+        bounding_boxes=None,
+        images=None,
+        **kwargs
+    ):
+        assert isinstance(keypoints, TF_ALL_TENSOR_TYPES)
+        assert isinstance(transformations, TF_ALL_TENSOR_TYPES)
+        assert isinstance(labels, TF_ALL_TENSOR_TYPES)
+        assert isinstance(bounding_boxes["boxes"], TF_ALL_TENSOR_TYPES)
+        assert isinstance(bounding_boxes["classes"], TF_ALL_TENSOR_TYPES)
+        assert isinstance(images, TF_ALL_TENSOR_TYPES)
+        return keypoints
+
+    def augment_segmentation_masks(
+        self,
+        segmentation_masks,
+        transformations=None,
+        labels=None,
+        bounding_boxes=None,
+        images=None,
+        **kwargs
+    ):
+        assert isinstance(segmentation_masks, TF_ALL_TENSOR_TYPES)
+        assert isinstance(transformations, TF_ALL_TENSOR_TYPES)
+        assert isinstance(labels, TF_ALL_TENSOR_TYPES)
+        assert isinstance(bounding_boxes["boxes"], TF_ALL_TENSOR_TYPES)
+        assert isinstance(bounding_boxes["classes"], TF_ALL_TENSOR_TYPES)
+        assert isinstance(images, TF_ALL_TENSOR_TYPES)
+        return segmentation_masks
+
+
 class VectorizedBaseImageAugmentationLayerTest(tf.test.TestCase):
     def test_augment_single_image(self):
         add_layer = VectorizedRandomAddLayer(fixed_value=2.0)
@@ -125,7 +249,8 @@ class VectorizedBaseImageAugmentationLayerTest(tf.test.TestCase):
         images = np.random.random(size=(8, 8, 3)).astype("float32")
         filenames = tf.constant("/path/to/first.jpg")
         inputs = {"images": images, "filenames": filenames}
-        _ = add_layer(inputs)
+        output = add_layer(inputs)
+        self.assertAllEqual(output["filenames"], filenames)
 
     def test_augment_ragged_images(self):
         images = tf.ragged.stack(
@@ -251,7 +376,7 @@ class VectorizedBaseImageAugmentationLayerTest(tf.test.TestCase):
     def test_augment_all_data_in_tf_function(self):
         add_layer = VectorizedRandomAddLayer()
         images = np.random.random(size=(2, 8, 8, 3)).astype("float32")
-        bounding_boxes = bounding_boxes = {
+        bounding_boxes = {
             "boxes": np.random.random(size=(2, 3, 4)).astype("float32"),
             "classes": np.random.random(size=(2, 3)).astype("float32"),
         }
@@ -285,3 +410,101 @@ class VectorizedBaseImageAugmentationLayerTest(tf.test.TestCase):
         self.assertNotAllClose(
             segmentation_mask_diff[0], segmentation_mask_diff[1]
         )
+
+    def test_augment_unbatched_all_data(self):
+        add_layer = VectorizedRandomAddLayer(fixed_value=2.0)
+        images = np.random.random(size=(8, 8, 3)).astype("float32")
+        bounding_boxes = {
+            "boxes": np.random.random(size=(3, 4)).astype("float32"),
+            "classes": np.random.random(size=(3)).astype("float32"),
+        }
+        keypoints = np.random.random(size=(5, 2)).astype("float32")
+        segmentation_masks = np.random.random(size=(8, 8, 1)).astype("float32")
+        input = {
+            "images": images,
+            "bounding_boxes": bounding_boxes,
+            "keypoints": keypoints,
+            "segmentation_masks": segmentation_masks,
+        }
+
+        output = add_layer(input, training=True)
+        expected_output = {
+            "images": images + 2.0,
+            "bounding_boxes": bounding_box.to_dense(
+                {
+                    "boxes": bounding_boxes["boxes"] + 2.0,
+                    "classes": bounding_boxes["classes"] + 2.0,
+                }
+            ),
+            "keypoints": keypoints + 2.0,
+            "segmentation_masks": segmentation_masks + 2.0,
+        }
+
+        self.assertAllClose(output["images"], expected_output["images"])
+        self.assertAllClose(output["keypoints"], expected_output["keypoints"])
+        self.assertAllClose(
+            output["bounding_boxes"]["boxes"],
+            expected_output["bounding_boxes"]["boxes"],
+        )
+        self.assertAllClose(
+            output["bounding_boxes"]["classes"],
+            expected_output["bounding_boxes"]["classes"],
+        )
+        self.assertAllClose(
+            output["segmentation_masks"], expected_output["segmentation_masks"]
+        )
+
+    def test_augment_all_data_for_assertion(self):
+        images = np.random.random(size=(2, 8, 8, 3)).astype("float32")
+        labels = np.squeeze(np.eye(10)[np.array([0, 1]).reshape(-1)])
+        bounding_boxes = {
+            "boxes": np.random.random(size=(2, 3, 4)).astype("float32"),
+            "classes": np.random.random(size=(2, 3)).astype("float32"),
+        }
+        keypoints = np.random.random(size=(2, 5, 2)).astype("float32")
+        segmentation_masks = np.random.random(size=(2, 8, 8, 1)).astype(
+            "float32"
+        )
+        assertion_layer = VectorizedAssertionLayer()
+
+        _ = assertion_layer(
+            {
+                "images": images,
+                "labels": labels,
+                "bounding_boxes": bounding_boxes,
+                "keypoints": keypoints,
+                "segmentation_masks": segmentation_masks,
+            }
+        )
+
+        # assertion is at VectorizedAssertionLayer's methods
+
+    def test_augment_all_data_with_ragged_images_for_assertion(self):
+        images = tf.ragged.stack(
+            [
+                np.random.random(size=(8, 8, 3)).astype("float32"),
+                np.random.random(size=(16, 8, 3)).astype("float32"),
+            ]
+        )
+        labels = np.squeeze(np.eye(10)[np.array([0, 1]).reshape(-1)])
+        bounding_boxes = {
+            "boxes": np.random.random(size=(2, 3, 4)).astype("float32"),
+            "classes": np.random.random(size=(2, 3)).astype("float32"),
+        }
+        keypoints = np.random.random(size=(2, 5, 2)).astype("float32")
+        segmentation_masks = np.random.random(size=(2, 8, 8, 1)).astype(
+            "float32"
+        )
+        assertion_layer = VectorizedAssertionLayer()
+
+        _ = assertion_layer(
+            {
+                "images": images,
+                "labels": labels,
+                "bounding_boxes": bounding_boxes,
+                "keypoints": keypoints,
+                "segmentation_masks": segmentation_masks,
+            }
+        )
+
+        # assertion is at VectorizedAssertionLayer's methods

@@ -36,8 +36,8 @@ def corners_to_mask(bounding_boxes, mask_shape):
     Args:
         bounding_boxes: tensor of rectangle coordinates with shape
             (batch_size, 4) in corners format (x0, y0, x1, y1).
-        mask_shape: a shape tuple as (width, height) indicating the output
-            width and height of masks.
+        mask_shape: a tuple or list of shape (width, height) indicating the
+            output width and height of masks.
 
     Returns:
         boolean masks with shape (batch_size, width, height) where True values
