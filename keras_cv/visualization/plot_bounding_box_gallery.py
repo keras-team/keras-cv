@@ -15,7 +15,6 @@
 import functools
 
 import numpy as np
-import tensorflow as tf
 
 import keras_cv
 import keras_cv.visualization.draw_bounding_boxes
