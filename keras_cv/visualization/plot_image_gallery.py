@@ -99,11 +99,10 @@ def plot_image_gallery(
     if legend_handles is not None:
         fig.legend(handles=legend_handles, loc="lower center")
 
-    images = utils.to_numpy(images)
     images = keras_cv.utils.transform_value_range(
         images, original_range=value_range, target_range=(0, 255)
     )
-
+    images = utils.to_numpy(images)
     images = images.astype(int)
     for row in range(rows):
         for col in range(cols):
