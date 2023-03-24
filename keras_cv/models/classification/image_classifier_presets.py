@@ -31,7 +31,7 @@ classifier_presets = {
             ],
             "num_classes": 1000,
         },
-        # TODO(jbischof): checkpoint conversion
+        # TODO(jbischof): fix checkpoint conversion for classification head
         "weights_url": "https://storage.googleapis.com/keras-cv/models/resnet50v2/imagenet/classification-v2.h5",
         "weights_hash": "5ee5a8ac650aaa59342bc48ffe770e6797a5550bcc35961e1d06685292c15921",
     },

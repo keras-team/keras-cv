@@ -25,7 +25,6 @@ from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
     ResNet18V2Backbone,
 )
 from keras_cv.models.classification.image_classifier import ImageClassifier
-from keras_cv.models.classification.image_classifier import PooledDenseHead
 
 
 class ImageClassifierTest(tf.test.TestCase, parameterized.TestCase):
@@ -39,27 +38,12 @@ class ImageClassifierTest(tf.test.TestCase, parameterized.TestCase):
             num_classes=2,
         )
 
-    @parameterized.named_parameters(
-        ("default_head", "pooled_dense"), ("custom_head", PooledDenseHead)
-    )
-    def test_valid_call(self, head):
+    def test_valid_call(self):
         model = ImageClassifier(
             backbone=ResNet18V2Backbone(),
             num_classes=2,
-            head=head,
         )
         model(self.input_batch)
-
-    @parameterized.named_parameters(
-        ("default_head", "pooled_dense"), ("custom_head", PooledDenseHead)
-    )
-    def test_classifier_fit_default_compile(self, head):
-        model = ImageClassifier(
-            backbone=ResNet18V2Backbone(),
-            num_classes=2,
-            head=head,
-        )
-        model.fit(self.dataset)
 
     @parameterized.named_parameters(
         ("jit_compile_false", False), ("jit_compile_true", True)
@@ -74,16 +58,13 @@ class ImageClassifierTest(tf.test.TestCase, parameterized.TestCase):
         self.model.fit(self.dataset)
 
     @parameterized.named_parameters(
-        ("tf_format", "tf", "model", "pooled_dense"),
-        ("keras_format", "keras_v3", "model.keras", "pooled_dense"),
-        ("tf_format_custom", "tf", "model", PooledDenseHead),
-        ("keras_format_custom", "keras_v3", "model.keras", PooledDenseHead),
+        ("tf_format", "tf", "model"),
+        ("keras_format", "keras_v3", "model.keras"),
     )
-    def test_saved_model(self, save_format, filename, head):
+    def test_saved_model(self, save_format, filename):
         model = ImageClassifier(
             backbone=ResNet18V2Backbone(),
             num_classes=2,
-            head=head,
         )
         model_output = model(self.input_batch)
         save_path = os.path.join(self.get_temp_dir(), filename)
@@ -103,7 +84,7 @@ class ImageClassifierPresetSmokeTest(tf.test.TestCase, parameterized.TestCase):
     """
     A smoke test for ImageClassifier presets we run continuously.
     This only tests the smallest weights we have available. Run with:
-    `pytest keras_cv/models/classification/classifier_test.py --run_large`
+    `pytest keras_cv/models/classification/image_classifier_test.py --run_large`
     """
 
     def setUp(self):
