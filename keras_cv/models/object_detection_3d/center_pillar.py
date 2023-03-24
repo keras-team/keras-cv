@@ -189,10 +189,8 @@ class MultiHeadCenterPillar(keras.Model):
 
     def compile(self, heatmap_loss=None, box_loss=None, **kwargs):
         """Compiles the MultiHeadCenterPillar.
-
         `compile()` mirrors the standard Keras `compile()` method, but allows
         for specification of heatmap and box-specific losses.
-
         Args:
             heatmap_loss: a Keras loss to use for heatmap regression.
             box_loss: a Keras loss to use for box regression.
@@ -208,10 +206,6 @@ class MultiHeadCenterPillar(keras.Model):
         super().compile(loss=losses, **kwargs)
 
     def compute_loss(self, predictions=None, targets=None):
-        box_dict = targets["box_3d"]
-        heatmap_dict = targets["heatmap"]
-        top_k_index_dict = targets["top_k_index"]
-
         y_pred = {}
         y_true = {}
         sample_weight = {}
@@ -219,9 +213,9 @@ class MultiHeadCenterPillar(keras.Model):
             prediction = predictions[head_name]
             heatmap_pred = tf.nn.softmax(prediction[..., :2])[..., 1]
             box_pred = prediction[..., 2:]
-            box = box_dict[head_name]
-            heatmap = heatmap_dict[head_name]
-            index = top_k_index_dict[head_name]
+            box = targets[head_name]["boxes"]
+            heatmap = targets[head_name]["heatmap"]
+            index = targets[head_name]["top_k_index"]
             # the prediction returns 2 outputs for background vs object
             y_pred["heatmap_" + head_name] = heatmap_pred
             y_true["heatmap_" + head_name] = heatmap
@@ -231,8 +225,8 @@ class MultiHeadCenterPillar(keras.Model):
             # box_regression_mask = heatmap_groundtruth_gather >= 0.95
             box = tf.gather_nd(box, index, batch_dims=1)
             box_pred = tf.gather_nd(box_pred, index, batch_dims=1)
-            y_pred["box_" + head_name] = box_pred
-            y_true["box_" + head_name] = box
+            y_pred["bin_" + head_name] = tf.squeeze(box_pred)
+            y_true["bin_" + head_name] = tf.squeeze(box)
 
         return super().compute_loss(
             x={}, y=y_true, y_pred=y_pred, sample_weight=sample_weight
