@@ -11,33 +11,35 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import time
 
+import matplotlib.pyplot as plt
+import numpy as np
 import tensorflow as tf
 
-from keras_cv import bounding_box
 from keras_cv import core
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
-    VectorizedBaseImageAugmentationLayer,
+from keras_cv.layers import RandomCropAndResize
+from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
+    BaseImageAugmentationLayer,
 )
 from keras_cv.utils import preprocessing as preprocessing_utils
 
 
-class RandomCropAndResize(VectorizedBaseImageAugmentationLayer):
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
+class OldRandomCropAndResize(BaseImageAugmentationLayer):
     """Randomly crops a part of an image and resizes it to provided size.
 
-    This implementation takes an intuitive approach, where we crop the images
-    to a random height and width, and then resize them. To do this, we first
-    sample a random value for area using `crop_area_factor` and a value for
-    aspect ratio using`aspect_ratio_factor`. Further we get the new height
-    and width by dividing and multiplying the old height and width by the
-    random area respectively. We then sample offsets for height and width and
-    clip them such that the cropped area does not exceed image boundaries.
-    Finally we do the actual cropping operation and resize the
-    image to `target_size`.
+    This implementation takes an intuitive approach, where we crop the images to a
+    random height and width, and then resize them. To do this, we first sample a
+    random value for area using `crop_area_factor` and a value for aspect ratio using
+    `aspect_ratio_factor`. Further we get the new height and width by
+    dividing and multiplying the old height and width by the random area
+    respectively. We then sample offsets for height and width and clip them such
+    that the cropped area does not exceed image boundaries. Finally we do the
+    actual cropping operation and resize the image to `target_size`.
 
     Args:
-        target_size: A tuple of two integers used as the target size to
-        ultimately crop
+        target_size: A tuple of two integers used as the target size to ultimately crop
             images to.
         crop_area_factor: A tuple of two floats, ConstantFactorSampler or
             UniformFactorSampler. The ratio of area of the cropped part to
@@ -45,18 +47,15 @@ class RandomCropAndResize(VectorizedBaseImageAugmentationLayer):
             lower and upper bounds for the area relative to the original image
             of the cropped image before resizing it to `target_size`.  For
             self-supervised pretraining a common value for this parameter is
-            `(0.08, 1.0)`.  For fine tuning and classification a common
-            value for this
+            `(0.08, 1.0)`.  For fine tuning and classification a common value for this
             is `0.8, 1.0`.
         aspect_ratio_factor: A tuple of two floats, ConstantFactorSampler or
             UniformFactorSampler. Aspect ratio means the ratio of width to
-            height of the cropped image. In the context of this layer,
-            the aspect ratio
+            height of the cropped image. In the context of this layer, the aspect ratio
             sampled represents a value to distort the aspect ratio by.
             Represents the lower and upper bound for the aspect ratio of the
-            cropped image before resizing it to `target_size`.  For most
-            tasks, this should be `(3/4, 4/3)`.  To perform a no-op provide
-            the value `(1.0, 1.0)`.
+            cropped image before resizing it to `target_size`.  For most tasks, this #noqa
+            should be `(3/4, 4/3)`.  To perform a no-op provide the value `(1.0,1.0)`.
         interpolation: (Optional) A string specifying the sampling method for
             resizing. Defaults to "bilinear".
         seed: (Optional) Used to create a random seed. Defaults to None.
@@ -97,47 +96,35 @@ class RandomCropAndResize(VectorizedBaseImageAugmentationLayer):
         self.bounding_box_format = bounding_box_format
         self.force_output_dense_images = True
 
-    def get_random_transformation_batch(self, batch_size, **kwargs):
-        crop_area_factor = self.crop_area_factor(
-            shape=(batch_size,),
-            minval=(3 / 4),
-            maxval=(4 / 3),
-        )
-        aspect_ratio = self.aspect_ratio_factor(
-            shape=(batch_size,),
-            minval=0.8,
-            maxval=1.0,
-        )
-        new_heights = tf.clip_by_value(
-            tf.sqrt(crop_area_factor / aspect_ratio),
-            0.0,
-            1.0,
+    def get_random_transformation(self, **kwargs):
+        crop_area_factor = self.crop_area_factor()
+        aspect_ratio = self.aspect_ratio_factor()
+
+        new_height = tf.clip_by_value(
+            tf.sqrt(crop_area_factor / aspect_ratio), 0.0, 1.0
         )  # to avoid unwanted/unintuitive effects
-
-        new_widths = tf.clip_by_value(
-            tf.sqrt(crop_area_factor * aspect_ratio),
-            0.0,
-            1.0,
+        new_width = tf.clip_by_value(
+            tf.sqrt(crop_area_factor * aspect_ratio), 0.0, 1.0
         )
 
-        height_offsets = self._random_generator.random_uniform(
-            shape=(batch_size,),
-            minval=tf.minimum(0.0, 1.0 - new_heights),
-            maxval=tf.maximum(0.0, 1.0 - new_heights),
+        height_offset = self._random_generator.random_uniform(
+            (),
+            minval=tf.minimum(0.0, 1.0 - new_height),
+            maxval=tf.maximum(0.0, 1.0 - new_height),
             dtype=tf.float32,
         )
 
-        width_offsets = self._random_generator.random_uniform(
-            shape=(batch_size,),
-            minval=tf.minimum(0.0, 1.0 - new_widths),
-            maxval=tf.maximum(0.0, 1.0 - new_widths),
+        width_offset = self._random_generator.random_uniform(
+            (),
+            minval=tf.minimum(0.0, 1.0 - new_width),
+            maxval=tf.maximum(0.0, 1.0 - new_width),
             dtype=tf.float32,
         )
 
-        y1 = height_offsets
-        y2 = height_offsets + new_heights
-        x1 = width_offsets
-        x2 = width_offsets + new_widths
+        y1 = height_offset
+        y2 = height_offset + new_height
+        x1 = width_offset
+        x2 = width_offset + new_width
 
         return [[y1, x1, y2, x2]]
 
@@ -147,31 +134,31 @@ class RandomCropAndResize(VectorizedBaseImageAugmentationLayer):
         else:
             inputs = self._ensure_inputs_are_compute_dtype(inputs)
             inputs, meta_data = self._format_inputs(inputs)
-            outputs = inputs
+            output = inputs
             # self._resize() returns valid results for both batched and
             # unbatched
-            outputs["image"] = self._resize(inputs["image"])
+            output["images"] = self._resize(inputs["images"])
 
             if "segmentation_masks" in inputs:
-                outputs["segmentation_masks"] = self._resize(
+                output["segmentation_masks"] = self._resize(
                     inputs["segmentation_masks"], interpolation="nearest"
                 )
 
-            return self._format_output(outputs, meta_data)
+            return self._format_output(output, meta_data)
 
-    def compute_image_signature(self, image):
+    def compute_image_signature(self, images):
         return tf.TensorSpec(
-            shape=(self.target_size[0], self.target_size[1], image.shape[-1]),
+            shape=(self.target_size[0], self.target_size[1], images.shape[-1]),
             dtype=self.compute_dtype,
         )
 
-    def augment_ragged_image(self, images, transformation, **kwargs):
-        return self._crop_and_resize(images, transformation)
+    def augment_image(self, image, transformation, **kwargs):
+        return self._crop_and_resize(image, transformation)
 
     def augment_target(self, target, **kwargs):
         return target
 
-    def _transform_bounding_boxes(bounding_boxes, transformation, batch_size):
+    def _transform_bounding_boxes(bounding_boxes, transformation):
         bounding_boxes = bounding_boxes.copy()
         t_y1, t_x1, t_y2, t_x2 = transformation[0]
         t_dx = t_x2 - t_x1
@@ -192,7 +179,7 @@ class RandomCropAndResize(VectorizedBaseImageAugmentationLayer):
         return bounding_boxes
 
     def augment_bounding_boxes(
-        self, bounding_boxes, transformation=None, images=None, **kwargs
+        self, bounding_boxes, transformation=None, image=None, **kwargs
     ):
         if self.bounding_box_format is None:
             raise ValueError(
@@ -202,34 +189,34 @@ class RandomCropAndResize(VectorizedBaseImageAugmentationLayer):
                 "`RandomCropAndResize(bounding_box_format='xyxy')`"
             )
 
-        bounding_boxes = bounding_box.convert_format(
+        bounding_boxes = bounding_boxes.convert_format(
             bounding_boxes,
             source=self.bounding_box_format,
             target="rel_xyxy",
-            images=images,
+            images=image,
         )
 
         bounding_boxes = RandomCropAndResize._transform_bounding_boxes(
             bounding_boxes, transformation
         )
 
-        bounding_boxes = bounding_box.clip_to_image(
+        bounding_boxes = bounding_boxes.clip_to_image(
             bounding_boxes,
             bounding_box_format="rel_xyxy",
-            images=images,
+            images=image,
         )
-        bounding_boxes = bounding_box.convert_format(
+        bounding_boxes = bounding_boxes.convert_format(
             bounding_boxes,
             source="rel_xyxy",
             target=self.bounding_box_format,
             dtype=self.compute_dtype,
-            images=images,
+            images=image,
         )
         return bounding_boxes
 
-    def _resize(self, images, **kwargs):
+    def _resize(self, image, **kwargs):
         outputs = tf.keras.preprocessing.image.smart_resize(
-            images, self.target_size, **kwargs
+            image, self.target_size, **kwargs
         )
         # smart_resize will always output float32, so we need to re-cast.
         return tf.cast(outputs, self.compute_dtype)
@@ -273,29 +260,12 @@ class RandomCropAndResize(VectorizedBaseImageAugmentationLayer):
                 f"aspect_ratio_factor={aspect_ratio_factor}"
             )
 
-    def augment_segmentation_masks(
-        self, segmentation_masks, transformation, **kwargs
+    def augment_segmentation_mask(
+        self, segmentation_mask, transformation, **kwargs
     ):
         return self._crop_and_resize(
-            segmentation_masks, transformation, method="nearest"
+            segmentation_mask, transformation, method="nearest"
         )
-
-    def _crop_and_resize(self, image, transformation, method=None):
-        image = tf.expand_dims(image, axis=0)
-        boxes = transformation
-
-        # See bit.ly/tf_crop_resize for more details
-        augmented_images = tf.image.crop_and_resize(
-            image,  # image shape: [B, H, W, C]
-            boxes,  # boxes: (1, 4) in this case; represents area
-            # to be cropped from the original image
-            [0],  # box_indices: maps boxes to images along batch axis
-            # [0] since there is only one image
-            self.target_size,  # output size
-            method=method or self.interpolation,
-        )
-
-        return tf.squeeze(augmented_images, axis=0)
 
     def get_config(self):
         config = super().get_config()
@@ -326,3 +296,117 @@ class RandomCropAndResize(VectorizedBaseImageAugmentationLayer):
                 config["aspect_ratio_factor"]
             )
         return cls(**config)
+
+    def _crop_and_resize(self, image, transformation, method=None):
+        image = tf.expand_dims(image, axis=0)
+        boxes = transformation
+
+        # See bit.ly/tf_crop_resize for more details
+        augmented_image = tf.image.crop_and_resize(
+            image,  # image shape: [B, H, W, C]
+            boxes,  # boxes: (1, 4) in this case; represents area
+            # to be cropped from the original image
+            [0],  # box_indices: maps boxes to images along batch axis
+            # [0] since there is only one image
+            self.target_size,  # output size
+            method=method or self.interpolation,
+        )
+
+        return tf.squeeze(augmented_image, axis=0)
+
+
+if __name__ == "__main__":
+    # Run benchmark
+    (x_train, _), _ = tf.keras.datasets.cifar10.load_data()
+    x_train = x_train.astype(np.float32)
+
+    num_images = [10, 20, 30, 40]
+    results = {}
+    aug_candidates = [RandomCropAndResize, OldRandomCropAndResize]
+    aug_args = {
+        "target_size": (233, 233),
+        "crop_area_factor": (1, 1),
+        "aspect_ratio_factor": (0.8, 1.0),
+    }
+    for aug in aug_candidates:
+        # Eager Mode
+        c = aug.__name__
+        layer = aug(**aug_args)
+        runtimes = []
+        print(f"Timing {c}")
+
+        for n_images in num_images:
+            # warmup
+            layer(x_train[:n_images])
+
+            t0 = time.time()
+            r1 = layer(x_train[:n_images])
+            t1 = time.time()
+            runtimes.append(t1 - t0)
+            print(f"Runtime for {c}, n_images={n_images}: {t1-t0}")
+        results[c] = runtimes
+
+        # Graph Mode
+        c = aug.__name__ + " Graph Mode"
+        layer = aug(**aug_args)
+
+        @tf.function()
+        def apply_aug(inputs):
+            return layer(inputs)
+
+        runtimes = []
+        print(f"Timing {c}")
+
+        for n_images in num_images:
+            # warmup
+            apply_aug(x_train[:n_images])
+
+            t0 = time.time()
+            r1 = apply_aug(x_train[:n_images])
+            t1 = time.time()
+            runtimes.append(t1 - t0)
+            print(f"Runtime for {c}, n_images={n_images}: {t1-t0}")
+        results[c] = runtimes
+
+        # XLA Mode
+        c = aug.__name__ + " XLA Mode"
+        layer = aug(**aug_args)
+
+        @tf.function(jit_compile=True)
+        def apply_aug(inputs):
+            return layer(inputs)
+
+        runtimes = []
+        print(f"Timing {c}")
+
+        for n_images in num_images:
+            # warmup
+            apply_aug(x_train[:n_images])
+
+            t0 = time.time()
+            r1 = apply_aug(x_train[:n_images])
+            t1 = time.time()
+            runtimes.append(t1 - t0)
+            print(f"Runtime for {c}, n_images={n_images}: {t1-t0}")
+        results[c] = runtimes
+
+    plt.figure()
+    for key in results:
+        plt.plot(num_images, results[key], label=key)
+        plt.xlabel("Number images")
+
+    plt.ylabel("Runtime (seconds)")
+    plt.legend()
+    plt.savefig("comparison.png")
+
+    # So we can actually see more relevant margins
+    del results[aug_candidates[1].__name__]
+    plt.figure()
+    for key in results:
+        plt.plot(num_images, results[key], label=key)
+        plt.xlabel("Number images")
+
+    plt.ylabel("Runtime (seconds)")
+    plt.legend()
+    plt.legend()
+    plt.savefig("comparison_no_old_eager.png")
