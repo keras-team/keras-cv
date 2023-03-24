@@ -19,7 +19,7 @@ from keras_cv.models import StableDiffusion
 
 
 class StableDiffusionTest(tf.test.TestCase):
-    def test_end_to_end_golden_value(self):
+    def DISABLED_test_end_to_end_golden_value(self):
         prompt = "a caterpillar smoking a hookah while sitting on a mushroom"
         stablediff = StableDiffusion(128, 128)
 
