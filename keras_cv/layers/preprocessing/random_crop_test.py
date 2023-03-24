@@ -97,12 +97,6 @@ class RandomCropTest(tf.test.TestCase, parameterized.TestCase):
         actual_output = layer(inp, training=False)
         self.assertAllClose(inp, actual_output)
 
-    def test_config_with_custom_name(self):
-        layer = RandomCrop(5, 5, name="image_preproc")
-        config = layer.get_config()
-        layer_1 = RandomCrop.from_config(config)
-        self.assertEqual(layer_1.name, layer.name)
-
     def test_unbatched_image(self):
         np.random.seed(1337)
         inp = np.random.random((16, 16, 3))
@@ -130,13 +124,6 @@ class RandomCropTest(tf.test.TestCase, parameterized.TestCase):
         ):
             actual_output = layer(inp, training=True)
             self.assertAllClose(inp[:, 2:10, 2:10, :], actual_output)
-
-    def test_output_dtypes(self):
-        inputs = np.array([[[1], [2]], [[3], [4]]], dtype="float64")
-        layer = RandomCrop(2, 2)
-        self.assertAllEqual(layer(inputs).dtype, "float32")
-        layer = RandomCrop(2, 2, dtype="uint8")
-        self.assertAllEqual(layer(inputs).dtype, "uint8")
 
     def test_compute_ragged_output_signature(self):
         inputs = tf.ragged.stack(
@@ -212,6 +199,28 @@ class RandomCropTest(tf.test.TestCase, parameterized.TestCase):
         ):
             actual_output = augment(inp)
             self.assertAllClose(inp[:, 2:10, 2:10, :], actual_output)
+
+    def test_random_crop_on_batched_images_independently(self):
+        image = tf.random.uniform((100, 100, 3))
+        batched_images = tf.stack((image, image), axis=0)
+        layer = RandomCrop(height=25, width=25)
+
+        results = layer(batched_images)
+
+        self.assertNotAllClose(results[0], results[1])
+
+    def test_config_with_custom_name(self):
+        layer = RandomCrop(5, 5, name="image_preproc")
+        config = layer.get_config()
+        layer_1 = RandomCrop.from_config(config)
+        self.assertEqual(layer_1.name, layer.name)
+
+    def test_output_dtypes(self):
+        inputs = np.array([[[1], [2]], [[3], [4]]], dtype="float64")
+        layer = RandomCrop(2, 2)
+        self.assertAllEqual(layer(inputs).dtype, "float32")
+        layer = RandomCrop(2, 2, dtype="uint8")
+        self.assertAllEqual(layer(inputs).dtype, "uint8")
 
     def test_config(self):
         layer = RandomCrop(height=2, width=3, bounding_box_format="xyxy")
