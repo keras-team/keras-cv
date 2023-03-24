@@ -89,9 +89,9 @@ def plot_bounding_box_gallery(
             and `(0, 1)`.
         bounding_box_format: the bounding_box_format  the provided bounding boxes are
             in.
-        y_true: a KerasCV bounding box dictionary representing the ground truth bounding
-            boxes.
-        y_pred: a KerasCV bounding box dictionary representing the predicted
+        y_true: (Optional) a KerasCV bounding box dictionary representing the ground truth
+            bounding boxes.
+        y_pred: (Optional) a KerasCV bounding box dictionary representing the predicted
             bounding boxes.
         pred_color: three element tuple representing the color to use for plotting
             predicted bounding boxes.
