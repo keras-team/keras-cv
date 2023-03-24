@@ -3,13 +3,12 @@ Title: Plot a bounding box gallery
 Author: [lukewood](https://lukewood.xyz)
 Date created: 2023/03/22
 Last modified: 2023/03/22
-Description: Visualize ground truth and predicted bounding boxes for a given dataset.
+Description: Visualize bounding boxes for a given dataset.
 """
 
 """
 `keras_cv.visualization.plot_bounding_box_gallery()` is a function dedicated to the
-visualization for bounding boxes predicted by a `TensorFlow` object detection model.
-The API is based on the `KerasCV` object detection API.
+visualization of bounding boxes predicted by a `keras_cv` object detection model.
 """
 
 import tensorflow as tf
