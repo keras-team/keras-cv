@@ -1,4 +1,4 @@
-# Copyright 2022 The KerasCV Authors
+# Copyright 2023 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,16 +19,16 @@ import demo_utils
 import tensorflow as tf
 
 from keras_cv.layers.preprocessing import RandomCrop
-
-IMG_SIZE = (256, 256)
-BATCH_SIZE = 9
+from keras_cv.layers.preprocessing import Resizing
 
 
 def main():
-    dataset = demo_utils.load_voc_dataset(
-        bounding_box_format="xyxy", image_size=IMG_SIZE
+    dataset = demo_utils.load_voc_dataset(bounding_box_format="xyxy")
+    resize = Resizing(
+        256, 256, pad_to_aspect_ratio=True, bounding_box_format="xyxy"
     )
-    random_crop = RandomCrop(height=100, width=200, bounding_box_format="xyxy")
+    random_crop = RandomCrop(height=128, width=160, bounding_box_format="xyxy")
+    dataset = dataset.map(resize, num_parallel_calls=tf.data.AUTOTUNE)
     result = dataset.map(random_crop, num_parallel_calls=tf.data.AUTOTUNE)
     demo_utils.visualize_data(result, bounding_box_format="xyxy")
 
