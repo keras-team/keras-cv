@@ -37,6 +37,7 @@ class ImageClassifier(Task):
         backbone: `keras.Model` instance, the backbone architecture of the
             classifier called on the inputs.
         num_classes: int, number of classes to predict.
+        pooling: str, type of pooling layer. Must be one of "avg", "max".
         activation: A `str` or callable. The activation function to
             use on the Dense layer. Set `classifier_activation=None` to return
             the logits of the "top" layer.
@@ -56,7 +57,7 @@ class ImageClassifier(Task):
     backbone = keras_cv.models.ResNet50V2Backbone.from_preset(
         "resnet50_v2_imagenet",
     )
-    model = keras_cv.models.ImageClassifier.from_preset(
+    model = keras_cv.models.ImageClassifier(
         backbone=backbone,
         num_classes=4,
         activation="softmax",
@@ -76,13 +77,22 @@ class ImageClassifier(Task):
     def __init__(
         self,
         backbone,
-        num_classes=2,
-        activation="softmax",
+        num_classes,
+        pooling="avg",
+        activation=None,
         **kwargs,
     ):
+        if pooling == "avg":
+            pooling_layer = layers.GlobalAveragePooling2D(name="avg_pool")
+        elif pooling == "max":
+            pooling_layer = layers.GlobalMaxPooling2D(name="max_pool")
+        else:
+            raise ValueError(
+                f'`pooling` must be one of "avg", "max". Received: {pooling}.'
+            )
         inputs = backbone.input
         x = backbone(inputs)
-        x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
+        x = pooling_layer(x)
         outputs = layers.Dense(
             num_classes,
             activation=activation,

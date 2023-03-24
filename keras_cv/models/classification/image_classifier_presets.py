@@ -30,6 +30,7 @@ classifier_presets = {
                 "resnet50_v2"
             ],
             "num_classes": 1000,
+            "pooling": "avg",
         },
         # TODO(jbischof): fix checkpoint conversion for classification head
         "weights_url": "https://storage.googleapis.com/keras-cv/models/resnet50v2/imagenet/classification-v2.h5",

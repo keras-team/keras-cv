@@ -58,6 +58,25 @@ class ImageClassifierTest(tf.test.TestCase, parameterized.TestCase):
         self.model.fit(self.dataset)
 
     @parameterized.named_parameters(
+        ("avg_pooling", "avg"), ("max_pooling", "max")
+    )
+    def test_pooling_arg_call(self, pooling):
+        model = ImageClassifier(
+            backbone=ResNet18V2Backbone(),
+            num_classes=2,
+            pooling=pooling,
+        )
+        model(self.input_batch)
+
+    def test_throw_invalid_pooling(self):
+        with self.assertRaises(ValueError):
+            ImageClassifier(
+                backbone=ResNet18V2Backbone(),
+                num_classes=2,
+                pooling="clowntown",
+            )
+
+    @parameterized.named_parameters(
         ("tf_format", "tf", "model"),
         ("keras_format", "keras_v3", "model.keras"),
     )
@@ -95,7 +114,10 @@ class ImageClassifierPresetSmokeTest(tf.test.TestCase, parameterized.TestCase):
         ("preset_no_weights", "resnet50_v2"),
     )
     def test_backbone_preset_call(self, preset):
-        model = ImageClassifier.from_preset(preset)
+        model = ImageClassifier.from_preset(
+            preset,
+            num_classes=2,
+        )
         model(self.input_batch)
 
     def test_classifier_preset_call(self):
