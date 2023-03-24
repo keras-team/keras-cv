@@ -189,8 +189,10 @@ class MultiHeadCenterPillar(keras.Model):
 
     def compile(self, heatmap_loss=None, box_loss=None, **kwargs):
         """Compiles the MultiHeadCenterPillar.
+
         `compile()` mirrors the standard Keras `compile()` method, but allows
         for specification of heatmap and box-specific losses.
+
         Args:
             heatmap_loss: a Keras loss to use for heatmap regression.
             box_loss: a Keras loss to use for box regression.
