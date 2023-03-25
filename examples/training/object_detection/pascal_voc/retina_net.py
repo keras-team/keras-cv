@@ -34,7 +34,7 @@ resource.setrlimit(resource.RLIMIT_NOFILE, (high, high))
 
 flags.DEFINE_integer(
     "epochs",
-    50,
+    35,
     "Number of epochs to run for.",
 )
 

@@ -36,7 +36,7 @@ flags.DEFINE_string(
 )
 flags.DEFINE_integer(
     "epochs",
-    50,
+    18,
     "Number of epochs to run for.",
 )
 flags.DEFINE_string(
@@ -324,7 +324,6 @@ weight_decay = 0.0001
 step = 0
 
 callbacks = [
-    keras.callbacks.EarlyStopping(patience=10),
     keras.callbacks.ModelCheckpoint(FLAGS.weights_path, save_weights_only=True),
     keras.callbacks.TensorBoard(
         log_dir=FLAGS.tensorboard_path, write_steps_per_second=True
