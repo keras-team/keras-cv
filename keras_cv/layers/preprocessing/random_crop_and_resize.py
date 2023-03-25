@@ -99,14 +99,13 @@ class RandomCropAndResize(VectorizedBaseImageAugmentationLayer):
 
     def get_random_transformation_batch(self, batch_size, **kwargs):
         crop_area_factor = self.crop_area_factor(
-            shape=(batch_size,),
+            (batch_size, 1),
             minval=(3 / 4),
             maxval=(4 / 3),
+            dtype=tf.float32,
         )
         aspect_ratio = self.aspect_ratio_factor(
-            shape=(batch_size,),
-            minval=0.8,
-            maxval=1.0,
+            shape=(batch_size, 1), minval=0.8, maxval=1.0, dtype=tf.float32
         )
         new_heights = tf.clip_by_value(
             tf.sqrt(crop_area_factor / aspect_ratio),
@@ -121,14 +120,14 @@ class RandomCropAndResize(VectorizedBaseImageAugmentationLayer):
         )
 
         height_offsets = self._random_generator.random_uniform(
-            shape=(batch_size,),
+            shape=(batch_size, 1),
             minval=tf.minimum(0.0, 1.0 - new_heights),
             maxval=tf.maximum(0.0, 1.0 - new_heights),
             dtype=tf.float32,
         )
 
         width_offsets = self._random_generator.random_uniform(
-            shape=(batch_size,),
+            shape=(batch_size, 1),
             minval=tf.minimum(0.0, 1.0 - new_widths),
             maxval=tf.maximum(0.0, 1.0 - new_widths),
             dtype=tf.float32,

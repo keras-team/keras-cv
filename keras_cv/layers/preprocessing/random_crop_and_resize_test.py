@@ -297,7 +297,7 @@ class RandomCropAndResizeTest(tf.test.TestCase, parameterized.TestCase):
         )
 
     def test_random_crop_a_resize_on_batched_images(self):
-        image_shape = (100, 100, 100, 3)
+        image_shape = (100, 100, 3)
         images = tf.random.uniform(shape=image_shape)
 
         layer = preprocessing.RandomCropAndResize(
@@ -309,8 +309,8 @@ class RandomCropAndResizeTest(tf.test.TestCase, parameterized.TestCase):
         self.assertAllClose(output[0], output[1])
 
     def test_random_crop_and_resize_on_batched_images_training(self):
-        image_shape = (100, 100, 100, 3)
-        images = tf.random.uniform(shape=image_shape)
+        image_shape = (100, 100, 3)
+        image = tf.random.uniform(shape=image_shape)
 
         layer = preprocessing.RandomCropAndResize(
             target_size=self.target_size,
@@ -318,5 +318,5 @@ class RandomCropAndResizeTest(tf.test.TestCase, parameterized.TestCase):
             crop_area_factor=(0.8, 1.0),
         )
 
-        output = layer(images, training=True)
+        output = layer(image, training=True)
         self.assertNotAllClose(output[0], output[1])
