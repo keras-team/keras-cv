@@ -63,7 +63,7 @@ class CutMix(BaseImageAugmentationLayer):
         self._validate_inputs(inputs)
         images = inputs.get("images", None)
         labels = inputs.get("labels", None)
-
+        segmentation_masks = inputs.get("segmentation_masks", None)
         if images is None or labels is None:
             raise ValueError(
                 "CutMix expects inputs in a dictionary with format "
@@ -73,6 +73,11 @@ class CutMix(BaseImageAugmentationLayer):
         images, labels = self._update_labels(*self._cutmix(images, labels))
         inputs["images"] = images
         inputs["labels"] = labels
+        if segmentation_masks is not None:
+            segmentation_masks = self._update_segmentation_masks(
+                segmentation_masks
+            )
+            inputs["segmentation_masks"] = segmentation_masks
         return inputs
 
     def _augment(self, inputs):
@@ -81,6 +86,22 @@ class CutMix(BaseImageAugmentationLayer):
             "combining multiple examples, and as such will not behave as "
             "expected. Please call the layer with 2 or more samples."
         )
+
+    def _update_segmentation_masks(
+        self, segmentation_masks, lambda_sample, permutation_order
+    ):
+        segmentation_masks_for_cut_mix = tf.gather(
+            segmentation_masks, permutation_order
+        )
+
+        lambda_sample = tf.reshape(lambda_sample, [-1, 1])
+
+        segmentation_masks = (
+            lambda_sample * segmentation_masks
+            + (1.0 - lambda_sample) * segmentation_masks
+        )
+
+        return segmentation_masks
 
     def _cutmix(self, images, labels):
         """Apply cutmix."""
