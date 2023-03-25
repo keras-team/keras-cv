@@ -55,7 +55,7 @@ from tensorflow import keras
 import tensorflow_datasets as tfds
 
 # Create a preprocessing pipeline
-augmenter = keras_cv.layers.Augmenter(
+augmenter = keras.Sequential(
     layers=[
         keras_cv.layers.RandomFlip(),
         keras_cv.layers.RandAugment(value_range=(0, 255)),
