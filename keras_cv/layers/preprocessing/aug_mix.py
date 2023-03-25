@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv import layers
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
@@ -21,7 +22,7 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 from keras_cv.utils import preprocessing
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class AugMix(BaseImageAugmentationLayer):
     """Performs the AugMix data augmentation technique.
 
@@ -46,7 +47,9 @@ class AugMix(BaseImageAugmentationLayer):
         num_chains: an integer representing the number of different chains to
             be mixed. Defaults to 3.
         chain_depth: an integer or range representing the number of transformations in
-            the chains. Defaults to [1,3].
+            the chains.
+            If a range is passed, a random `chain_depth` value sampled from a uniform distribution over the given range is called at the start of the chain.
+            Defaults to [1,3].
         alpha: a float value used as the probability coefficients for the
             Beta and Dirichlet distributions. Defaults to 1.0.
         seed: Integer. Used to create a random seed.
@@ -58,7 +61,7 @@ class AugMix(BaseImageAugmentationLayer):
 
     Sample Usage:
     ```python
-    (images, labels), _ = tf.keras.datasets.cifar10.load_data()
+    (images, labels), _ = keras.datasets.cifar10.load_data()
     augmix = keras_cv.layers.AugMix([0, 255])
     augmented_images = augmix(images[:100])
     ```
@@ -211,12 +214,17 @@ class AugMix(BaseImageAugmentationLayer):
     def _shear_y(self, image):
         y = tf.cast(self.severity_factor() * 0.3, tf.float32)
         y *= preprocessing.random_inversion(self._random_generator)
-        transform_x = layers.RandomShear._format_transform(
+        transform_x = self._format_random_shear_transform(
             [1.0, 0.0, 0.0, y, 1.0, 0.0, 0.0, 0.0]
         )
         return preprocessing.transform(
             images=tf.expand_dims(image, 0), transforms=transform_x
         )[0]
+
+    @staticmethod
+    def _format_random_shear_transform(transform):
+        transform = tf.convert_to_tensor(transform, dtype=tf.float32)
+        return transform[tf.newaxis]
 
     def _translate_x(self, image):
         shape = tf.cast(tf.shape(image), tf.float32)

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv.layers import preprocessing
 from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
@@ -21,7 +21,7 @@ from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer impo
 from keras_cv.utils import preprocessing as preprocessing_utils
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class RandomColorJitter(VectorizedBaseImageAugmentationLayer):
     """RandomColorJitter class randomly apply brightness, contrast, saturation
     and hue image processing operation sequentially and randomly on the
@@ -70,7 +70,7 @@ class RandomColorJitter(VectorizedBaseImageAugmentationLayer):
 
     Usage:
     ```python
-    (images, labels), _ = tf.keras.datasets.cifar10.load_data()
+    (images, labels), _ = keras.datasets.cifar10.load_data()
     color_jitter = keras_cv.layers.RandomColorJitter(
             value_range=(0, 255),
             brightness_factor=(-0.2, 0.5),
@@ -104,7 +104,7 @@ class RandomColorJitter(VectorizedBaseImageAugmentationLayer):
             factor=self.brightness_factor, value_range=(0, 255), seed=self.seed
         )
         self.random_contrast = preprocessing.RandomContrast(
-            factor=self.contrast_factor, seed=self.seed
+            factor=self.contrast_factor, value_range=(0, 255), seed=self.seed
         )
         self.random_saturation = preprocessing.RandomSaturation(
             factor=self.saturation_factor, seed=self.seed

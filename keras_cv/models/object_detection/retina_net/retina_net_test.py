@@ -12,10 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import copy
 import os
 
 import pytest
 import tensorflow as tf
+from tensorflow import keras
 from tensorflow.keras import optimizers
 
 import keras_cv
@@ -32,7 +34,7 @@ class RetinaNetTest(tf.test.TestCase):
         yield
         # Reset soft device placement to not interfere with other unit test files
         tf.config.set_soft_device_placement(True)
-        tf.keras.backend.clear_session()
+        keras.backend.clear_session()
 
     def test_retina_net_construction(self):
         retina_net = keras_cv.models.RetinaNet(
@@ -206,3 +208,15 @@ class RetinaNetTest(tf.test.TestCase):
 
         retina_net.fit(dataset, epochs=1)
         retina_net.evaluate(dataset)
+
+    def test_serialization(self):
+        model = keras_cv.models.RetinaNet(
+            num_classes=20,
+            bounding_box_format="xywh",
+        )
+        serialized_1 = keras.utils.serialize_keras_object(model)
+        restored = keras.utils.deserialize_keras_object(
+            copy.deepcopy(serialized_1)
+        )
+        serialized_2 = keras.utils.serialize_keras_object(restored)
+        self.assertEqual(serialized_1, serialized_2)

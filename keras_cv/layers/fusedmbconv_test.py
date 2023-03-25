@@ -11,8 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import pytest
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv.layers.fusedmbconv import FusedMBConvBlock
 
@@ -25,7 +27,7 @@ class FusedMBConvBlockTest(tf.test.TestCase):
         yield
         # Reset soft device placement to not interfere with other unit test files
         tf.config.set_soft_device_placement(True)
-        tf.keras.backend.clear_session()
+        keras.backend.clear_session()
 
     def test_same_input_output_shapes(self):
         inputs = tf.random.normal(shape=(1, 64, 64, 32), dtype=tf.float32)

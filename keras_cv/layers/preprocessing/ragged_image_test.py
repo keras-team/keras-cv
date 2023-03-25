@@ -60,6 +60,11 @@ CONSISTENT_OUTPUT_TEST_CONFIGURATIONS = [
         },
     ),
     (
+        "RandomContrast",
+        layers.RandomContrast,
+        {"value_range": (0, 255), "factor": 0.5},
+    ),
+    (
         "RandomGaussianBlur",
         layers.RandomGaussianBlur,
         {"kernel_size": 3, "factor": (0.0, 3.0)},
@@ -72,7 +77,7 @@ CONSISTENT_OUTPUT_TEST_CONFIGURATIONS = [
         layers.RandomSharpness,
         {"factor": 0.5, "value_range": (0, 255)},
     ),
-    ("RandomShear", layers.RandomShear, {"x_factor": 0.3, "x_factor": 0.3}),
+    ("RandomShear", layers.RandomShear, {"x_factor": 0.3, "y_factor": 0.3}),
     (
         "RandomTranslation",
         layers.RandomTranslation,

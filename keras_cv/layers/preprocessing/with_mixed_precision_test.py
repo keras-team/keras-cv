@@ -1,4 +1,4 @@
-# Copyright 2022 The KerasCV Authors
+# Copyright 2023 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,8 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import tensorflow as tf
 from absl.testing import parameterized
+from tensorflow import keras
 
 from keras_cv import layers
 
@@ -85,6 +87,11 @@ TEST_CONFIGURATIONS = [
         },
     ),
     (
+        "RandomContrast",
+        layers.RandomContrast,
+        {"value_range": (0, 255), "factor": 0.5},
+    ),
+    (
         "RandomGaussianBlur",
         layers.RandomGaussianBlur,
         {"kernel_size": 3, "factor": (0.0, 3.0)},
@@ -143,7 +150,6 @@ NO_CPU_FP16_KERNEL_LAYERS = [
     layers.RandomSaturation,
     layers.RandomColorJitter,
     layers.RandomHue,
-    layers.RandomContrast,
 ]
 
 
@@ -158,7 +164,7 @@ class WithMixedPrecisionTest(tf.test.TestCase, parameterized.TestCase):
                     "Skipping."
                 )
 
-        tf.keras.mixed_precision.set_global_policy("mixed_float16")
+        keras.mixed_precision.set_global_policy("mixed_float16")
 
         img = tf.random.uniform(
             shape=(3, 512, 512, 3), minval=0, maxval=255, dtype=tf.float32
@@ -172,7 +178,7 @@ class WithMixedPrecisionTest(tf.test.TestCase, parameterized.TestCase):
     @classmethod
     def tearDownClass(cls) -> None:
         # Do not affect other tests
-        tf.keras.mixed_precision.set_global_policy("float32")
+        keras.mixed_precision.set_global_policy("float32")
 
 
 if __name__ == "__main__":

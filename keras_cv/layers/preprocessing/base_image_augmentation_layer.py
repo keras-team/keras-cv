@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv import bounding_box
 from keras_cv.utils import preprocessing
@@ -32,13 +33,13 @@ IS_DICT = "is_dict"
 USE_TARGETS = "use_targets"
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
-class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
+@keras.utils.register_keras_serializable(package="keras_cv")
+class BaseImageAugmentationLayer(keras.__internal__.layers.BaseRandomLayer):
     """Abstract base layer for image augmentaion.
 
     This layer contains base functionalities for preprocessing layers which
     augment image related data, eg. image and in future, label and bounding
-    boxes.  The subclasses could avoid making certain mistakes and reduce code
+    boxes. The subclasses could avoid making certain mistakes and reduce code
     duplications.
 
     This layer requires you to implement one method: `augment_image()`, which
@@ -52,9 +53,9 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
     the layer supports that.
 
     `get_random_transformation()`, which should produce a random transformation
-    setting. The tranformation object, which could be any type, will be passed
+    setting. The transformation object, which could be of any type, will be passed
     to `augment_image`, `augment_label` and `augment_bounding_boxes`, to
-    coodinate the randomness behavior, eg, in the RandomFlip layer, the image
+    coordinate the randomness behaviour, e.g., in the RandomFlip layer, the image
     and bounding_boxes should be changed in the same way.
 
     The `call()` method supports two formats of inputs:
@@ -82,7 +83,7 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
 
     By default the `call()` method leverages the `tf.vectorized_map()` function.
     Auto-vectorization can be disabled by setting `self.auto_vectorize = False`
-    in your `__init__()` method.  When disabled, `call()` instead relies
+    in your `__init__()` method. When disabled, `call()` instead relies
     on `tf.map_fn()`. For example:
 
     ```python
@@ -108,8 +109,8 @@ class BaseImageAugmentationLayer(tf.keras.__internal__.layers.BaseRandomLayer):
     ```
 
     Note that since the randomness is also a common functionality, this layer
-    also includes a tf.keras.backend.RandomGenerator, which can be used to
-    produce the random numbers.  The random number generator is stored in the
+    also includes a keras.backend.RandomGenerator, which can be used to
+    produce the random numbers. The random number generator is stored in the
     `self._random_generator` attribute.
     """
 

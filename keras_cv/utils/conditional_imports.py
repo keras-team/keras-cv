@@ -17,6 +17,34 @@ try:
 except ImportError:
     waymo_open_dataset = None
 
+try:
+    import cv2
+except ImportError:
+    cv2 = None
+
+try:
+    import matplotlib
+except ImportError:
+    matplotlib = None
+
+
+def assert_cv2_installed(symbol_name):
+    if cv2 is None:
+        raise ImportError(
+            f"{symbol_name} requires the `cv2` package. "
+            "Please install the package using "
+            "`pip install opencv-python`."
+        )
+
+
+def assert_matplotlib_installed(symbol_name):
+    if matplotlib is None:
+        raise ImportError(
+            f"{symbol_name} requires the `matplotlib` package. "
+            "Please install the package using "
+            "`pip install matplotlib`."
+        )
+
 
 def assert_waymo_open_dataset_installed(symbol_name):
     if waymo_open_dataset is None:

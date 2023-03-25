@@ -24,8 +24,7 @@ then
 fi
 [ $# -eq 0  ] && echo "no issues with isort"
 
-# Allow --max-line-length=200 to support long links in docstrings
-flake8 --max-line-length=200 $files
+flake8 $files
 if ! [ $? -eq 0 ]
 then
   echo "Please fix the code style issue."

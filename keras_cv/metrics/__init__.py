@@ -12,7 +12,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from keras_cv.metrics.coco.mean_average_precision import (
-    _COCOMeanAveragePrecision,
-)
-from keras_cv.metrics.coco.recall import _BoxRecall
+from keras_cv.metrics.object_detection.box_coco_metrics import BoxCOCOMetrics

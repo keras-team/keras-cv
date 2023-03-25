@@ -16,11 +16,12 @@ from typing import List
 from typing import Sequence
 
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv.layers.object_detection_3d.heatmap_decoder import HeatmapDecoder
 
 
-class MultiClassDetectionHead(tf.keras.layers.Layer):
+class MultiClassDetectionHead(keras.layers.Layer):
     """Multi-class object detection head."""
 
     def __init__(
@@ -53,13 +54,13 @@ class MultiClassDetectionHead(tf.keras.layers.Layer):
         if not share_head:
             for i in range(num_class):
                 # 1x1 conv for each voxel/pixel.
-                self._heads[self._head_names[i]] = tf.keras.layers.Conv2D(
+                self._heads[self._head_names[i]] = keras.layers.Conv2D(
                     filters=self._per_class_prediction_size[i],
                     kernel_size=(1, 1),
                     name=f"head_{i + 1}",
                 )
         else:
-            shared_layer = tf.keras.layers.Conv2D(
+            shared_layer = keras.layers.Conv2D(
                 filters=self._per_class_prediction_size[0],
                 kernel_size=(1, 1),
                 name="shared_head",
@@ -75,7 +76,7 @@ class MultiClassDetectionHead(tf.keras.layers.Layer):
         return outputs
 
 
-class MultiClassHeatmapDecoder(tf.keras.layers.Layer):
+class MultiClassHeatmapDecoder(keras.layers.Layer):
     def __init__(
         self,
         num_class,
@@ -112,13 +113,25 @@ class MultiClassHeatmapDecoder(tf.keras.layers.Layer):
             )
 
     def call(self, predictions):
-        decoded_predictions = {}
+        box_predictions = []
+        class_predictions = []
+        box_confidence = []
         for k, v in predictions.items():
-            decoded_predictions[k] = self.decoders[k](v)
-        return decoded_predictions
+            boxes, classes, confidence = self.decoders[k](v)
+            box_predictions.append(boxes)
+            class_predictions.append(classes)
+            box_confidence.append(confidence)
+
+        return {
+            "3d_boxes": {
+                "boxes": tf.concat(box_predictions, axis=1),
+                "classes": tf.concat(class_predictions, axis=1),
+                "confidence": tf.concat(box_confidence, axis=1),
+            }
+        }
 
 
-class MultiHeadCenterPillar(tf.keras.Model):
+class MultiHeadCenterPillar(keras.Model):
     """Multi headed model based on CenterNet heatmap and PointPillar.
 
     This model builds box classification and regression for each class
@@ -174,11 +187,27 @@ class MultiHeadCenterPillar(tf.keras.Model):
         # returns dict {"class_1": concat_pred_1, "class_2": concat_pred_2}
         return predictions
 
-    def compute_loss(self, predictions, targets):
-        box_dict = targets["box_3d"]
-        heatmap_dict = targets["heatmap"]
-        top_k_index_dict = targets["top_k_index"]
+    def compile(self, heatmap_loss=None, box_loss=None, **kwargs):
+        """Compiles the MultiHeadCenterPillar.
 
+        `compile()` mirrors the standard Keras `compile()` method, but allows
+        for specification of heatmap and box-specific losses.
+
+        Args:
+            heatmap_loss: a Keras loss to use for heatmap regression.
+            box_loss: a Keras loss to use for box regression.
+            kwargs: other `keras.Model.compile()` arguments are supported and
+                propagated to the `keras.Model` class.
+        """
+        losses = {}
+        # TODO(ianstenbit): Rename `num_class` to `num_classes` in this model.
+        for i in range(self._multiclass_head._num_class):
+            losses[f"heatmap_class_{i+1}"] = heatmap_loss
+            losses[f"box_class_{i+1}"] = box_loss
+
+        super().compile(loss=losses, **kwargs)
+
+    def compute_loss(self, predictions=None, targets=None):
         y_pred = {}
         y_true = {}
         sample_weight = {}
@@ -186,9 +215,9 @@ class MultiHeadCenterPillar(tf.keras.Model):
             prediction = predictions[head_name]
             heatmap_pred = tf.nn.softmax(prediction[..., :2])[..., 1]
             box_pred = prediction[..., 2:]
-            box = box_dict[head_name]
-            heatmap = heatmap_dict[head_name]
-            index = top_k_index_dict[head_name]
+            box = targets[head_name]["boxes"]
+            heatmap = targets[head_name]["heatmap"]
+            index = targets[head_name]["top_k_index"]
             # the prediction returns 2 outputs for background vs object
             y_pred["heatmap_" + head_name] = heatmap_pred
             y_true["heatmap_" + head_name] = heatmap
@@ -198,15 +227,15 @@ class MultiHeadCenterPillar(tf.keras.Model):
             # box_regression_mask = heatmap_groundtruth_gather >= 0.95
             box = tf.gather_nd(box, index, batch_dims=1)
             box_pred = tf.gather_nd(box_pred, index, batch_dims=1)
-            y_pred["bin_" + head_name] = box_pred
-            y_true["bin_" + head_name] = box
+            y_pred["bin_" + head_name] = tf.squeeze(box_pred)
+            y_true["bin_" + head_name] = tf.squeeze(box)
 
         return super().compute_loss(
             x={}, y=y_true, y_pred=y_pred, sample_weight=sample_weight
         )
 
     def train_step(self, data):
-        x, y, sample_weight = tf.keras.utils.unpack_x_y_sample_weight(data)
+        x, y, sample_weight = keras.utils.unpack_x_y_sample_weight(data)
         with tf.GradientTape() as tape:
             predictions = self(x, training=True)
             loss = self.compute_loss(predictions, y)

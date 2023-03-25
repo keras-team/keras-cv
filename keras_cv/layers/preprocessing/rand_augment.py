@@ -1,4 +1,4 @@
-# Copyright 2022 The KerasCV Authors
+# Copyright 2023 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,7 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import tensorflow as tf
+
+from tensorflow import keras
 
 from keras_cv import core
 from keras_cv.layers import preprocessing as cv_preprocessing
@@ -21,7 +22,7 @@ from keras_cv.layers.preprocessing.random_augmentation_pipeline import (
 from keras_cv.utils import preprocessing as preprocessing_utils
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class RandAugment(RandomAugmentationPipeline):
     """RandAugment performs the Rand Augment operation on input images.
 
@@ -67,7 +68,7 @@ class RandAugment(RandomAugmentationPipeline):
             set to False when performing object detection.  Defaults to True.
     Usage:
     ```python
-    (x_test, y_test), _ = tf.keras.datasets.cifar10.load_data()
+    (x_test, y_test), _ = keras.datasets.cifar10.load_data()
     rand_augment = keras_cv.layers.RandAugment(
         value_range=(0, 255), augmentations_per_image=3, magnitude=0.5
     )
@@ -149,7 +150,7 @@ class RandAugment(RandomAugmentationPipeline):
             **policy["color"], seed=seed
         )
         contrast = cv_preprocessing.RandomContrast(
-            **policy["contrast"], seed=seed
+            **policy["contrast"], value_range=value_range, seed=seed
         )
         brightness = cv_preprocessing.RandomBrightness(
             **policy["brightness"], value_range=value_range, seed=seed

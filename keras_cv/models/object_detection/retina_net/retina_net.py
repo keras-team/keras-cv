@@ -35,7 +35,7 @@ BOX_VARIANCE = [0.1, 0.1, 0.2, 0.2]
 # TODO(jbischof): Generalize `FeaturePyramid` class to allow for any P-levels and
 # add `feature_pyramid_levels` param.
 @keras.utils.register_keras_serializable(package="keras_cv")
-class RetinaNet(tf.keras.Model):
+class RetinaNet(keras.Model):
     """A Keras model implementing the RetinaNet architecture.
 
     Implements the RetinaNet architecture for object detection.  The constructor
@@ -193,7 +193,9 @@ class RetinaNet(tf.keras.Model):
             self.backbone, extractor_layer_names, extractor_levels
         )
         self.feature_pyramid = layers_lib.FeaturePyramid()
-        prior_probability = tf.constant_initializer(-np.log((1 - 0.01) / 0.01))
+        prior_probability = keras.initializers.Constant(
+            -np.log((1 - 0.01) / 0.01)
+        )
 
         self.classification_head = (
             classification_head
@@ -204,7 +206,7 @@ class RetinaNet(tf.keras.Model):
         )
 
         self.box_head = box_head or layers_lib.PredictionHead(
-            output_filters=9 * 4, bias_initializer="zeros"
+            output_filters=9 * 4, bias_initializer=keras.initializers.Zeros()
         )
 
     def make_predict_function(self, force=False):
@@ -516,12 +518,9 @@ class RetinaNet(tf.keras.Model):
         return {
             "num_classes": self.num_classes,
             "bounding_box_format": self.bounding_box_format,
-            # TODO(bischof): actually serialize the backbone
             "backbone": self.backbone,
-            "anchor_generator": self.anchor_generator,
             "label_encoder": self.label_encoder,
             "prediction_decoder": self._prediction_decoder,
-            "feature_pyramid": self.feature_pyramid,
             "classification_head": self.classification_head,
             "box_head": self.box_head,
         }
@@ -535,10 +534,10 @@ def _parse_box_loss(loss):
     # case insensitive comparison
     if loss.lower() == "smoothl1":
         return keras_cv.losses.SmoothL1Loss(
-            l1_cutoff=1.0, reduction=tf.keras.losses.Reduction.SUM
+            l1_cutoff=1.0, reduction=keras.losses.Reduction.SUM
         )
     if loss.lower() == "huber":
-        return keras.losses.Huber(reduction=tf.keras.losses.Reduction.SUM)
+        return keras.losses.Huber(reduction=keras.losses.Reduction.SUM)
 
     raise ValueError(
         "Expected `box_loss` to be either a Keras Loss, "
@@ -554,7 +553,7 @@ def _parse_classification_loss(loss):
     # case insensitive comparison
     if loss.lower() == "focal":
         return keras_cv.losses.FocalLoss(
-            from_logits=True, reduction=tf.keras.losses.Reduction.SUM
+            from_logits=True, reduction=keras.losses.Reduction.SUM
         )
 
     raise ValueError(

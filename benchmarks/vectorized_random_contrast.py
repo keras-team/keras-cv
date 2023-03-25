@@ -11,11 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import time
 
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv.layers import RandomContrast
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
@@ -111,7 +113,7 @@ class RandomContrastTest(tf.test.TestCase):
         fixed_factor = (0.3, -0.3)  # makes lower and upper the same
         image = tf.random.uniform(shape=image_shape)
 
-        layer = RandomContrast(factor=fixed_factor)
+        layer = RandomContrast(value_range=(0, 255), factor=fixed_factor)
         old_layer = OldRandomContrast(factor=fixed_factor)
 
         output = layer(image)
@@ -124,7 +126,7 @@ class RandomContrastTest(tf.test.TestCase):
         fixed_factor = (0.3, -0.3)  # makes lower and upper the same
         image = tf.random.uniform(shape=image_shape) * 255.0
 
-        layer = RandomContrast(factor=fixed_factor)
+        layer = RandomContrast(value_range=(0, 255), factor=fixed_factor)
         old_layer = OldRandomContrast(factor=fixed_factor)
 
         output = layer(image)
@@ -135,7 +137,7 @@ class RandomContrastTest(tf.test.TestCase):
 
 if __name__ == "__main__":
     # Run benchmark
-    (x_train, _), _ = tf.keras.datasets.cifar10.load_data()
+    (x_train, _), _ = keras.datasets.cifar10.load_data()
     x_train = x_train.astype(np.float32)
 
     num_images = [1000, 2000, 5000, 10000]
@@ -146,7 +148,10 @@ if __name__ == "__main__":
     for aug in aug_candidates:
         # Eager Mode
         c = aug.__name__
-        layer = aug(**aug_args)
+        if aug is RandomContrast:
+            layer = aug(**aug_args, value_range=(0, 255))
+        else:
+            layer = aug(**aug_args)
         runtimes = []
         print(f"Timing {c}")
 
@@ -163,7 +168,10 @@ if __name__ == "__main__":
 
         # Graph Mode
         c = aug.__name__ + " Graph Mode"
-        layer = aug(**aug_args)
+        if aug is RandomContrast:
+            layer = aug(**aug_args, value_range=(0, 255))
+        else:
+            layer = aug(**aug_args)
 
         @tf.function()
         def apply_aug(inputs):
@@ -185,7 +193,10 @@ if __name__ == "__main__":
 
         # XLA Mode
         c = aug.__name__ + " XLA Mode"
-        layer = aug(**aug_args)
+        if aug is RandomContrast:
+            layer = aug(**aug_args, value_range=(0, 255))
+        else:
+            layer = aug(**aug_args)
 
         @tf.function(jit_compile=True)
         def apply_aug(inputs):

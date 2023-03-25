@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
@@ -20,7 +21,7 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 from keras_cv.utils import preprocessing
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class RandomChannelShift(BaseImageAugmentationLayer):
     """Randomly shift values for each channel of the input image(s).
 
@@ -50,7 +51,7 @@ class RandomChannelShift(BaseImageAugmentationLayer):
 
     Usage:
     ```python
-    (images, labels), _ = tf.keras.datasets.cifar10.load_data()
+    (images, labels), _ = keras.datasets.cifar10.load_data()
     rgb_shift = keras_cv.layers.RandomChannelShift(value_range=(0, 255), factor=0.5)
     augmented_images = rgb_shift(images)
     ```
