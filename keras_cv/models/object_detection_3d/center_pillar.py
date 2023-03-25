@@ -26,7 +26,7 @@ class MultiClassDetectionHead(keras.layers.Layer):
 
     def __init__(
         self,
-        num_class: int,
+        num_classes: int,
         num_head_bin: Sequence[int],
         share_head: bool = False,
         name: str = "detection_head",
@@ -36,9 +36,9 @@ class MultiClassDetectionHead(keras.layers.Layer):
         self._heads = {}
         self._head_names = []
         self._per_class_prediction_size = []
-        self._num_class = num_class
+        self._num_classes = num_classes
         self._num_head_bin = num_head_bin
-        for i in range(num_class):
+        for i in range(num_classes):
             self._head_names.append(f"class_{i + 1}")
             size = 0
             # 0:1 outputs is for classification
@@ -52,7 +52,7 @@ class MultiClassDetectionHead(keras.layers.Layer):
             self._per_class_prediction_size.append(size)
 
         if not share_head:
-            for i in range(num_class):
+            for i in range(num_classes):
                 # 1x1 conv for each voxel/pixel.
                 self._heads[self._head_names[i]] = keras.layers.Conv2D(
                     filters=self._per_class_prediction_size[i],
@@ -65,7 +65,7 @@ class MultiClassDetectionHead(keras.layers.Layer):
                 kernel_size=(1, 1),
                 name="shared_head",
             )
-            for i in range(num_class):
+            for i in range(num_classes):
                 self._heads[self._head_names[i]] = shared_layer
 
     def call(self, feature: tf.Tensor, training: bool) -> List[tf.Tensor]:
@@ -79,7 +79,7 @@ class MultiClassDetectionHead(keras.layers.Layer):
 class MultiClassHeatmapDecoder(keras.layers.Layer):
     def __init__(
         self,
-        num_class,
+        num_classes,
         num_head_bin: Sequence[int],
         anchor_size: Sequence[Sequence[float]],
         max_pool_size: Sequence[int],
@@ -90,8 +90,8 @@ class MultiClassHeatmapDecoder(keras.layers.Layer):
         **kwargs,
     ):
         super().__init__(**kwargs)
-        self.num_class = num_class
-        self.class_ids = list(range(1, num_class + 1))
+        self.num_classes = num_classes
+        self.class_ids = list(range(1, num_classes + 1))
         self.num_head_bin = num_head_bin
         self.anchor_size = anchor_size
         self.max_pool_size = max_pool_size
@@ -200,8 +200,7 @@ class MultiHeadCenterPillar(keras.Model):
                 propagated to the `keras.Model` class.
         """
         losses = {}
-        # TODO(ianstenbit): Rename `num_class` to `num_classes` in this model.
-        for i in range(self._multiclass_head._num_class):
+        for i in range(self._multiclass_head._num_classes):
             losses[f"heatmap_class_{i+1}"] = heatmap_loss
             losses[f"box_class_{i+1}"] = box_loss
 
