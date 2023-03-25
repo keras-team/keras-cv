@@ -13,7 +13,6 @@ if [ $# -ne 0  ]
     files=$@
 fi
 
-#verify isort
 isort -c $files
 if ! [ $? -eq 0 ]
 then
@@ -32,7 +31,6 @@ then
 fi
 [ $# -eq 0 ] && echo "no issues with flake8"
 
-#verify black
 black --check $files
 if ! [ $? -eq 0 ]
 then
