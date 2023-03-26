@@ -80,7 +80,7 @@ class MixUp(BaseImageAugmentationLayer):
             )
             inputs["bounding_boxes"] = bounding_boxes
         inputs["images"] = images
-        if segmentation_masks is not None: 
+        if segmentation_masks is not None:
             segmentation_masks = self._update_segmentation_masks(
                 segmentation_masks, lambda_sample, permutation_order
             )
@@ -133,14 +133,19 @@ class MixUp(BaseImageAugmentationLayer):
         boxes = tf.concat([boxes, boxes_for_mixup], axis=1)
         classes = tf.concat([classes, classes_for_mixup], axis=1)
         return {"boxes": boxes, "classes": classes}
-    
-    def _update_segmentation_masks(self, segmentation_masks, lambda_sample, permutation_order):
-        segmentation_masks_for_mixup = tf.gather(segmentation_masks, permutation_order)
+
+    def _update_segmentation_masks(
+        self, segmentation_masks, lambda_sample, permutation_order
+    ):
+        segmentation_masks_for_mixup = tf.gather(
+            segmentation_masks, permutation_order
+        )
 
         lambda_sample = tf.reshape(lambda_sample, [-1, 1])
 
         segmentation_masks = (
-            lambda_sample * segmentation_masks + (1.0 - lambda_sample) * segmentation_masks_for_mixup
+            lambda_sample * segmentation_masks
+            + (1.0 - lambda_sample) * segmentation_masks_for_mixup
         )
 
         return segmentation_masks
@@ -151,11 +156,16 @@ class MixUp(BaseImageAugmentationLayer):
         bounding_boxes = inputs.get("bounding_boxes", None)
         segmentation_masks = inputs.get("segmentation_masks", None)
 
-        if images is None or (labels is None and bounding_boxes is None and segmentation_masks is None):
+        if images is None or (
+            labels is None
+            and bounding_boxes is None
+            and segmentation_masks is None
+        ):
             raise ValueError(
                 "MixUp expects inputs in a dictionary with format "
                 '{"images": images, "labels": labels}. or'
-                '{"images": images, "bounding_boxes": bounding_boxes}'
+                '{"images": images, "bounding_boxes": bounding_boxes}. or'
+                '{"images": images, "segmentation_masks": segmentation_masks}. or'
                 f"Got: inputs = {inputs}."
             )
 
