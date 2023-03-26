@@ -36,7 +36,7 @@ class SimCLRLoss(keras.losses.Loss):
 
     def call(self, projections_1, projections_2):
         """Computes SimCLR loss for a pair of projections in a contrastive learning trainer.
-           It evaluates the dot product between the projection pair that determines how equivalent are.
+           It evaluates the dot product between the projection pair that determines how equivalent they are.
            This is done effectively twice to increase the number of -ve(dissimilar) pairs in the training corpus.
            The net loss is then returned in terms of sum of the two dot products.
 
