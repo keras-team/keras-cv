@@ -352,17 +352,17 @@ class ResNet(keras.Model):
                 f"weights file to be loaded. Weights file not found at location: {weights}"
             )
 
-        if include_top and not num_classes:
-            raise ValueError(
-                "If `include_top` is True, you should specify `num_classes`. "
-                f"Received: num_classes={num_classes}"
-            )
-
-        if include_top and pooling:
-            raise ValueError(
-                f"`pooling` must be `None` when `include_top=True`."
-                f"Received pooling={pooling} and include_top={include_top}. "
-            )
+        if include_top:
+            if not num_classes:
+                raise ValueError(
+                    "If `include_top` is True, you should specify `num_classes`. "
+                    f"Received: num_classes={num_classes}"
+                )
+            if pooling:
+                raise ValueError(
+                    f"`pooling` must be `None` when `include_top=True`."
+                    f"Received pooling={pooling} and include_top={include_top}. "
+                )
 
         inputs = utils.parse_model_inputs(input_shape, input_tensor)
         x = inputs
