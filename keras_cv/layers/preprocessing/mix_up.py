@@ -137,11 +137,11 @@ class MixUp(BaseImageAugmentationLayer):
     def _update_segmentation_masks(
         self, segmentation_masks, lambda_sample, permutation_order
     ):
+        lambda_sample = tf.reshape(lambda_sample, [-1, 1, 1])
+
         segmentation_masks_for_mixup = tf.gather(
             segmentation_masks, permutation_order
         )
-
-        lambda_sample = tf.reshape(lambda_sample, [-1, 1])
 
         segmentation_masks = (
             lambda_sample * segmentation_masks
