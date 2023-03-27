@@ -19,16 +19,11 @@ import demo_utils
 import tensorflow as tf
 
 from keras_cv.layers.preprocessing import RandomCrop
-from keras_cv.layers.preprocessing import Resizing
 
 
 def main():
     dataset = demo_utils.load_voc_dataset(bounding_box_format="xyxy")
-    resize = Resizing(
-        256, 256, pad_to_aspect_ratio=True, bounding_box_format="xyxy"
-    )
-    random_crop = RandomCrop(height=128, width=160, bounding_box_format="xyxy")
-    dataset = dataset.map(resize, num_parallel_calls=tf.data.AUTOTUNE)
+    random_crop = RandomCrop(height=256, width=256, bounding_box_format="xyxy")
     result = dataset.map(random_crop, num_parallel_calls=tf.data.AUTOTUNE)
     demo_utils.visualize_data(result, bounding_box_format="xyxy")
 
