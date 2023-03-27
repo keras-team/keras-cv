@@ -25,8 +25,13 @@ class GIoULoss(keras.losses.Loss):
     GIoU loss is a modified IoU loss commonly used for object detection. This loss aims
     to directly optimize the IoU score between true boxes and predicted boxes. GIoU loss
     adds a penalty term to the IoU loss that takes in account the area of the
-    smallest box enclosing both the boxes being considered for the iou. The length of
-    the last dimension should be 4 to represent the bounding boxes.
+    smallest box enclosing both the boxes being considered for the iou. The loss moves towards minimization
+    as this area excluding the bounding boxes reduces.This is achieved by initially increasing the area of the predicted bounding box
+    until it overlaps with the true bounding box, at which point the penalty term vanishes.
+    The length of the last dimension should be 4 to represent the bounding boxes.
+
+    (Note : If the orientation of true and predicted bounding boxes is of opposite nature ,i.e., one horizontal and one vertical,
+     it usually takes more iterations for the predicted bounding box to overlap with the true bounding box than when it is similar.)
 
     Args:
         bounding_box_format: a case-insensitive string (for example, "xyxy").
