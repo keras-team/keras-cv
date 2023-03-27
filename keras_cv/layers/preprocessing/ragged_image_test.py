@@ -71,6 +71,7 @@ CONSISTENT_OUTPUT_TEST_CONFIGURATIONS = [
     ),
     ("RandomFlip", layers.RandomFlip, {"mode": "horizontal"}),
     ("RandomJpegQuality", layers.RandomJpegQuality, {"factor": (75, 100)}),
+    ("RandomRotation", layers.RandomRotation, {"factor": 0.5}),
     ("RandomSaturation", layers.RandomSaturation, {"factor": 0.5}),
     (
         "RandomSharpness",
