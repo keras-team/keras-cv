@@ -209,6 +209,37 @@ class RandomCropTest(tf.test.TestCase, parameterized.TestCase):
 
         self.assertNotAllClose(results[0], results[1])
 
+    def test_random_crop_on_batched_ragged_images_and_bounding_boxes(self):
+        images = tf.ragged.constant(
+            [np.ones((8, 8, 3)), np.ones((4, 8, 3))], dtype="float32"
+        )
+        boxes = {
+            "boxes": tf.ragged.stack(
+                [
+                    tf.ones((3, 4), dtype=tf.float32),
+                    tf.ones((3, 4), dtype=tf.float32),
+                ],
+            ),
+            "classes": tf.ragged.stack(
+                [
+                    tf.ones((3,), dtype=tf.float32),
+                    tf.ones((3,), dtype=tf.float32),
+                ],
+            ),
+        }
+        inputs = {"images": images, "bounding_boxes": boxes}
+        layer = RandomCrop(height=2, width=2, bounding_box_format="xyxy")
+
+        results = layer(inputs)
+
+        self.assertTrue(isinstance(results["images"], tf.RaggedTensor))
+        self.assertTrue(
+            isinstance(results["bounding_boxes"]["boxes"], tf.RaggedTensor)
+        )
+        self.assertTrue(
+            isinstance(results["bounding_boxes"]["classes"], tf.RaggedTensor)
+        )
+
     def test_config_with_custom_name(self):
         layer = RandomCrop(5, 5, name="image_preproc")
         config = layer.get_config()
