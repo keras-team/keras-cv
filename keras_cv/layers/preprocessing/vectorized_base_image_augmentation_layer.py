@@ -163,7 +163,7 @@ class VectorizedBaseImageAugmentationLayer(
         Returns:
           output 2D tensor, which will be forward to `layer.call()`.
         """
-        return self.augment_labels(targets, transformations)
+        return self.augment_labels(targets, transformations, **kwargs)
 
     def augment_bounding_boxes(self, bounding_boxes, transformations, **kwargs):
         """Augment bounding boxes for one image during training.
@@ -295,7 +295,7 @@ class VectorizedBaseImageAugmentationLayer(
                 images,
                 transformations=transformations,
                 bounding_boxes=bounding_boxes,
-                label=labels,
+                labels=labels,
             )
 
         result = {IMAGES: images}
@@ -304,7 +304,7 @@ class VectorizedBaseImageAugmentationLayer(
                 labels,
                 transformations=transformations,
                 bounding_boxes=bounding_boxes,
-                image=images,
+                images=images,
             )
             result[LABELS] = labels
 
@@ -322,7 +322,7 @@ class VectorizedBaseImageAugmentationLayer(
             keypoints = self.augment_keypoints(
                 keypoints,
                 transformations=transformations,
-                label=labels,
+                labels=labels,
                 bounding_boxes=bounding_boxes,
                 images=images,
             )
@@ -331,6 +331,9 @@ class VectorizedBaseImageAugmentationLayer(
             segmentation_masks = self.augment_segmentation_masks(
                 segmentation_masks,
                 transformations=transformations,
+                labels=labels,
+                bounding_boxes=bounding_boxes,
+                images=images,
             )
             result[SEGMENTATION_MASKS] = segmentation_masks
 
@@ -368,7 +371,15 @@ class VectorizedBaseImageAugmentationLayer(
         metadata[BATCHED] = inputs["images"].shape.rank == 4
         if inputs["images"].shape.rank == 3:
             for key in list(inputs.keys()):
-                inputs[key] = tf.expand_dims(inputs[key], axis=0)
+                if key == BOUNDING_BOXES:
+                    inputs[BOUNDING_BOXES]["boxes"] = tf.expand_dims(
+                        inputs[BOUNDING_BOXES]["boxes"], axis=0
+                    )
+                    inputs[BOUNDING_BOXES]["classes"] = tf.expand_dims(
+                        inputs[BOUNDING_BOXES]["classes"], axis=0
+                    )
+                else:
+                    inputs[key] = tf.expand_dims(inputs[key], axis=0)
 
         if not isinstance(inputs, dict):
             raise ValueError(
@@ -392,7 +403,15 @@ class VectorizedBaseImageAugmentationLayer(
     def _format_output(self, output, metadata):
         if not metadata[BATCHED]:
             for key in list(output.keys()):
-                output[key] = tf.squeeze(output[key], axis=0)
+                if key == BOUNDING_BOXES:
+                    output[BOUNDING_BOXES]["boxes"] = tf.squeeze(
+                        output[BOUNDING_BOXES]["boxes"], axis=0
+                    )
+                    output[BOUNDING_BOXES]["classes"] = tf.squeeze(
+                        output[BOUNDING_BOXES]["classes"], axis=0
+                    )
+                else:
+                    output[key] = tf.squeeze(output[key], axis=0)
 
         if not metadata[IS_DICT]:
             return output[IMAGES]

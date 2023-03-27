@@ -113,7 +113,7 @@ class RandomContrastTest(tf.test.TestCase):
         fixed_factor = (0.3, -0.3)  # makes lower and upper the same
         image = tf.random.uniform(shape=image_shape)
 
-        layer = RandomContrast(factor=fixed_factor)
+        layer = RandomContrast(value_range=(0, 255), factor=fixed_factor)
         old_layer = OldRandomContrast(factor=fixed_factor)
 
         output = layer(image)
@@ -126,7 +126,7 @@ class RandomContrastTest(tf.test.TestCase):
         fixed_factor = (0.3, -0.3)  # makes lower and upper the same
         image = tf.random.uniform(shape=image_shape) * 255.0
 
-        layer = RandomContrast(factor=fixed_factor)
+        layer = RandomContrast(value_range=(0, 255), factor=fixed_factor)
         old_layer = OldRandomContrast(factor=fixed_factor)
 
         output = layer(image)
@@ -148,7 +148,10 @@ if __name__ == "__main__":
     for aug in aug_candidates:
         # Eager Mode
         c = aug.__name__
-        layer = aug(**aug_args)
+        if aug is RandomContrast:
+            layer = aug(**aug_args, value_range=(0, 255))
+        else:
+            layer = aug(**aug_args)
         runtimes = []
         print(f"Timing {c}")
 
@@ -165,7 +168,10 @@ if __name__ == "__main__":
 
         # Graph Mode
         c = aug.__name__ + " Graph Mode"
-        layer = aug(**aug_args)
+        if aug is RandomContrast:
+            layer = aug(**aug_args, value_range=(0, 255))
+        else:
+            layer = aug(**aug_args)
 
         @tf.function()
         def apply_aug(inputs):
@@ -187,7 +193,10 @@ if __name__ == "__main__":
 
         # XLA Mode
         c = aug.__name__ + " XLA Mode"
-        layer = aug(**aug_args)
+        if aug is RandomContrast:
+            layer = aug(**aug_args, value_range=(0, 255))
+        else:
+            layer = aug(**aug_args)
 
         @tf.function(jit_compile=True)
         def apply_aug(inputs):

@@ -187,11 +187,27 @@ class MultiHeadCenterPillar(keras.Model):
         # returns dict {"class_1": concat_pred_1, "class_2": concat_pred_2}
         return predictions
 
-    def compute_loss(self, predictions, targets):
-        box_dict = targets["box_3d"]
-        heatmap_dict = targets["heatmap"]
-        top_k_index_dict = targets["top_k_index"]
+    def compile(self, heatmap_loss=None, box_loss=None, **kwargs):
+        """Compiles the MultiHeadCenterPillar.
 
+        `compile()` mirrors the standard Keras `compile()` method, but allows
+        for specification of heatmap and box-specific losses.
+
+        Args:
+            heatmap_loss: a Keras loss to use for heatmap regression.
+            box_loss: a Keras loss to use for box regression.
+            kwargs: other `keras.Model.compile()` arguments are supported and
+                propagated to the `keras.Model` class.
+        """
+        losses = {}
+        # TODO(ianstenbit): Rename `num_class` to `num_classes` in this model.
+        for i in range(self._multiclass_head._num_class):
+            losses[f"heatmap_class_{i+1}"] = heatmap_loss
+            losses[f"box_class_{i+1}"] = box_loss
+
+        super().compile(loss=losses, **kwargs)
+
+    def compute_loss(self, predictions=None, targets=None):
         y_pred = {}
         y_true = {}
         sample_weight = {}
@@ -199,9 +215,9 @@ class MultiHeadCenterPillar(keras.Model):
             prediction = predictions[head_name]
             heatmap_pred = tf.nn.softmax(prediction[..., :2])[..., 1]
             box_pred = prediction[..., 2:]
-            box = box_dict[head_name]
-            heatmap = heatmap_dict[head_name]
-            index = top_k_index_dict[head_name]
+            box = targets[head_name]["boxes"]
+            heatmap = targets[head_name]["heatmap"]
+            index = targets[head_name]["top_k_index"]
             # the prediction returns 2 outputs for background vs object
             y_pred["heatmap_" + head_name] = heatmap_pred
             y_true["heatmap_" + head_name] = heatmap
@@ -211,8 +227,8 @@ class MultiHeadCenterPillar(keras.Model):
             # box_regression_mask = heatmap_groundtruth_gather >= 0.95
             box = tf.gather_nd(box, index, batch_dims=1)
             box_pred = tf.gather_nd(box_pred, index, batch_dims=1)
-            y_pred["bin_" + head_name] = box_pred
-            y_true["bin_" + head_name] = box
+            y_pred["bin_" + head_name] = tf.squeeze(box_pred)
+            y_true["bin_" + head_name] = tf.squeeze(box)
 
         return super().compute_loss(
             x={}, y=y_true, y_pred=y_pred, sample_weight=sample_weight

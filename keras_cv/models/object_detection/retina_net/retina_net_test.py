@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import copy
 import os
 
 import pytest
@@ -207,3 +208,15 @@ class RetinaNetTest(tf.test.TestCase):
 
         retina_net.fit(dataset, epochs=1)
         retina_net.evaluate(dataset)
+
+    def test_serialization(self):
+        model = keras_cv.models.RetinaNet(
+            num_classes=20,
+            bounding_box_format="xywh",
+        )
+        serialized_1 = keras.utils.serialize_keras_object(model)
+        restored = keras.utils.deserialize_keras_object(
+            copy.deepcopy(serialized_1)
+        )
+        serialized_2 = keras.utils.serialize_keras_object(restored)
+        self.assertEqual(serialized_1, serialized_2)

@@ -140,12 +140,7 @@ def _convert_predictions_to_coco_annotations(predictions):
 
 def _convert_groundtruths_to_coco_dataset(groundtruths, label_map=None):
     source_ids = np.concatenate(groundtruths["source_id"], axis=0)
-    heights = np.concatenate(groundtruths["height"], axis=0)
-    widths = np.concatenate(groundtruths["width"], axis=0)
-    gt_images = [
-        {"id": i, "height": int(h), "width": int(w)}
-        for i, h, w in zip(source_ids, heights, widths)
-    ]
+    gt_images = [{"id": i} for i in source_ids]
 
     gt_annotations = []
     num_batches = len(groundtruths["source_id"])
