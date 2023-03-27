@@ -39,8 +39,8 @@ class ImageClassifier(Task):
             dimension of the backbone output.
         num_classes: int, number of classes to predict.
         pooling: str, type of pooling layer. Must be one of "avg", "max".
-        activation: A `str` or callable. Defaults to `None`. The activation 
-            function to use on the Dense layer. Set `activation=None` to return 
+        activation: A `str` or callable. Defaults to `None`. The activation
+            function to use on the Dense layer. Set `activation=None` to return
             the output logits.
 
     Example:
@@ -113,7 +113,7 @@ class ImageClassifier(Task):
         self.activation = activation
 
     def get_config(self):
-        # Backbone serialized in `super``
+        # Backbone serialized in `super`
         config = super().get_config()
         config.update(
             {
