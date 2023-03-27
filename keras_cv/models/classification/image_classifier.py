@@ -38,9 +38,9 @@ class ImageClassifier(Task):
             classifier called on the inputs.
         num_classes: int, number of classes to predict.
         pooling: str, type of pooling layer. Must be one of "avg", "max".
-        activation: A `str` or callable. The activation function to
-            use on the Dense layer. Set `classifier_activation=None` to return
-            the logits of the "top" layer.
+        activation: A `str` or callable. Defaults to `None`. The activation 
+            function to use on the Dense layer. Set `activation=None` to return 
+            the output logits.
 
     Example:
     ```python
