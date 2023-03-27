@@ -33,8 +33,7 @@ classifier_presets = {
             "pooling": "avg",
             "activation": "softmax",
         },
-        # TODO(jbischof): fix checkpoint conversion for classification head
-        "weights_url": "https://storage.cloud.google.com/keras-cv/models/resnet50v2/imagenet-classifier-v0.h5",
+        "weights_url": "https://storage.googleapis.com/keras-cv/models/resnet50v2/imagenet-classifier-v0.h5",
         "weights_hash": "77fa9f1cd1de0e202309e51d4e598e441d1111dacb6c41a182b6c63f76ff26cd",
     },
 }

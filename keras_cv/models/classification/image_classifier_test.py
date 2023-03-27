@@ -114,12 +114,22 @@ class ImageClassifierPresetSmokeTest(tf.test.TestCase, parameterized.TestCase):
         ("preset_no_weights", "resnet50_v2"),
     )
     def test_backbone_preset_call(self, preset):
-        # TODO(jbischof): Check output values once download working
         model = ImageClassifier.from_preset(
             preset,
             num_classes=2,
         )
         model(self.input_batch)
+        if preset == "resnet_50_v2_imagenet":
+            # The forward pass from a preset should be stable!
+            # This test should catch cases where we unintentionally change our
+            # network code in a way that would invalidate our preset weights.
+            # We should only update these numbers if we are updating a weights
+            # file, or have found a discrepancy with the upstream source.
+            outputs = model.backbone(self.input_batch)
+            outputs = outputs[0, 0, 0, :5]
+            expected = [1.051145, 0, 0, 1.16328, 0]
+            # Keep a high tolerance, so we are robust to different hardware.
+            self.assertAllClose(outputs, expected, atol=0.01, rtol=0.01)
 
     def test_backbone_preset_weight_loading(self):
         # Check that backbone preset weights loaded correctly
@@ -135,7 +145,22 @@ class ImageClassifierPresetSmokeTest(tf.test.TestCase, parameterized.TestCase):
 
     def test_classifier_preset_call(self):
         model = ImageClassifier.from_preset("resnet50_v2_imagenet_classifier")
-        model(self.input_batch)
+        outputs = model(self.input_batch)
+        # The forward pass from a preset should be stable!
+        # This test should catch cases where we unintentionally change our
+        # network code in a way that would invalidate our preset weights.
+        # We should only update these numbers if we are updating a weights
+        # file, or have found a discrepancy with the upstream source.
+        outputs = outputs[0, :5]
+        expected = [
+            7.866630e-05,
+            4.669575e-05,
+            8.475207e-05,
+            1.728923e-04,
+            3.414580e-04,
+        ]
+        # Keep a high tolerance, so we are robust to different hardware.
+        self.assertAllClose(outputs, expected, atol=0.01, rtol=0.01)
 
 
 if __name__ == "__main__":
