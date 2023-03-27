@@ -73,8 +73,8 @@ class RotatedBox2D {
   bool WithinBox2D(const Vertex& point) const;
 
  private:
-
-  bool left_hand_side(const Vertex& point, const Vertex& v1, const Vertex& v2) const;
+  bool left_hand_side(const Vertex& point, const Vertex& v1,
+                      const Vertex& v2) const;
   // Computes / caches box_vertices_ calculation.
   const std::vector<Vertex>& box_vertices() const;
 
@@ -151,11 +151,14 @@ std::vector<Upright3DBox> ParseBoxesFromTensor(const Tensor& boxes_tensor);
 // Converts a [N, 3] tensor to a vector of N Vertex objects.
 std::vector<Vertex> ParseVerticesFromTensor(const Tensor& points_tensor);
 
-std::vector<int> GetMinXIndexFromBoxes(std::vector<Upright3DBox>& box, std::vector<double>& points);
-std::vector<int> GetMaxXIndexFromBoxes(std::vector<Upright3DBox>& box, std::vector<double>& points);
-std::vector<int> GetMinYIndexFromBoxes(std::vector<Upright3DBox>& box, std::vector<double>& points);
-std::vector<int> GetMaxYIndexFromBoxes(std::vector<Upright3DBox>& box, std::vector<double>& points);
-
+std::vector<int> GetMinXIndexFromBoxes(std::vector<Upright3DBox>& box,
+                                       std::vector<double>& points);
+std::vector<int> GetMaxXIndexFromBoxes(std::vector<Upright3DBox>& box,
+                                       std::vector<double>& points);
+std::vector<int> GetMinYIndexFromBoxes(std::vector<Upright3DBox>& box,
+                                       std::vector<double>& points);
+std::vector<int> GetMaxYIndexFromBoxes(std::vector<Upright3DBox>& box,
+                                       std::vector<double>& points);
 
 }  // namespace box
 }  // namespace kerascv
