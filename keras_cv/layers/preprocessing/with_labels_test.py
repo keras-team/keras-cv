@@ -87,7 +87,11 @@ TEST_CONFIGURATIONS = [
             "seed": 1,
         },
     ),
-    ("RandomContrast", layers.RandomContrast, {"factor": 0.5}),
+    (
+        "RandomContrast",
+        layers.RandomContrast,
+        {"value_range": (0, 255), "factor": 0.5},
+    ),
     (
         "RandomGaussianBlur",
         layers.RandomGaussianBlur,

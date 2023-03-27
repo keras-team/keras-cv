@@ -32,16 +32,16 @@ class ImageEncoder(keras.Sequential):
         super().__init__(
             [
                 keras.layers.Input((img_height, img_width, 3)),
-                PaddedConv2D(128, 3, padding=1),
+                PaddedConv2D(128, 3, padding=1, conv_padding="same"),
                 ResnetBlock(128),
                 ResnetBlock(128),
-                PaddedConv2D(128, 3, padding=1, strides=2),
+                PaddedConv2D(128, 3, padding=1, strides=2, conv_padding="same"),
                 ResnetBlock(256),
                 ResnetBlock(256),
-                PaddedConv2D(256, 3, padding=1, strides=2),
+                PaddedConv2D(256, 3, padding=1, strides=2, conv_padding="same"),
                 ResnetBlock(512),
                 ResnetBlock(512),
-                PaddedConv2D(512, 3, padding=1, strides=2),
+                PaddedConv2D(512, 3, padding=1, strides=2, conv_padding="same"),
                 ResnetBlock(512),
                 ResnetBlock(512),
                 ResnetBlock(512),
@@ -49,8 +49,10 @@ class ImageEncoder(keras.Sequential):
                 ResnetBlock(512),
                 keras.layers.GroupNormalization(epsilon=1e-5),
                 keras.layers.Activation("swish"),
-                PaddedConv2D(8, 3, padding=1),
-                PaddedConv2D(8, 1),
+                PaddedConv2D(8, 3, padding=1, conv_padding="same"),
+                PaddedConv2D(8, 1, conv_padding="same"),
+                # Lambda gets rid of padding from the sides of the encoding.
+                keras.layers.Lambda(lambda x: x[..., 2:-2, 2:-2, :]),
                 # TODO(lukewood): can this be refactored to be a Rescaling layer?
                 # Perhaps some sort of rescale and gather?
                 # Either way, we may need a lambda to gather the first 4 dimensions.

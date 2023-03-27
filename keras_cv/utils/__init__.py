@@ -13,6 +13,8 @@
 # limitations under the License.
 
 from keras_cv.utils import test_utils
+from keras_cv.utils.conditional_imports import assert_cv2_installed
+from keras_cv.utils.conditional_imports import assert_matplotlib_installed
 from keras_cv.utils.conditional_imports import (
     assert_waymo_open_dataset_installed,
 )
@@ -23,5 +25,6 @@ from keras_cv.utils.preprocessing import get_interpolation
 from keras_cv.utils.preprocessing import parse_factor
 from keras_cv.utils.preprocessing import transform
 from keras_cv.utils.preprocessing import transform_value_range
+from keras_cv.utils.to_numpy import to_numpy
 from keras_cv.utils.train import convert_inputs_to_tf_dataset
 from keras_cv.utils.train import scale_loss_for_distribution
