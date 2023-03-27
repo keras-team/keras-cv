@@ -35,7 +35,8 @@ class ImageClassifier(Task):
 
     Args:
         backbone: `keras.Model` instance, the backbone architecture of the
-            classifier called on the inputs.
+            classifier called on the inputs. Pooling will be called on the last
+            dimension of the backbone output.
         num_classes: int, number of classes to predict.
         pooling: str, type of pooling layer. Must be one of "avg", "max".
         activation: A `str` or callable. Defaults to `None`. The activation 
