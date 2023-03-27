@@ -23,11 +23,13 @@ class IoULoss(keras.losses.Loss):
     """Implements the IoU Loss
 
     IoU loss is commonly used for object detection. This loss aims to directly
-    optimize the IoU score between true boxes and predicted boxes. The length of the
+    optimize the IoU score between true boxes and predicted boxes. It does so by calculating the ratio
+    of intersection upon union between true and predicted bounding boxes. The length of the
     last dimension should be 4 to represent the bounding boxes. This loss
     uses IoUs according to box pairs and therefore, the number of boxes in both y_true
     and y_pred are expected to be equal i.e. the i<sup>th</sup> y_true box in a batch
     will be compared the i<sup>th</sup> y_pred box.
+    (Note: IoU loss is only applicable if intersection between true and predicted bounding boxes are non-zero.)
 
     Args:
         bounding_box_format: a case-insensitive string (for example, "xyxy").
