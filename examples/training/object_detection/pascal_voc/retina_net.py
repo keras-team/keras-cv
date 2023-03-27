@@ -32,7 +32,11 @@ from keras_cv.callbacks import PyCOCOCallback
 low, high = resource.getrlimit(resource.RLIMIT_NOFILE)
 resource.setrlimit(resource.RLIMIT_NOFILE, (high, high))
 
-EPOCHS = 100
+flags.DEFINE_integer(
+    "epochs",
+    35,
+    "Number of epochs to run for.",
+)
 
 flags.DEFINE_string(
     "weights_name",
@@ -383,6 +387,6 @@ callbacks = [
 history = model.fit(
     train_ds,
     validation_data=eval_ds,
-    epochs=35,
+    epochs=FLAGS.epochs,
     callbacks=callbacks,
 )
