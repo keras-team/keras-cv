@@ -108,13 +108,16 @@ class ImageClassifier(Task):
         # All references to `self` below this line
         self.backbone = backbone
         self.num_classes = num_classes
+        self.pooling = pooling
         self.activation = activation
 
     def get_config(self):
+        # Backbone serialized in `super``
         config = super().get_config()
         config.update(
             {
                 "num_classes": self.num_classes,
+                "pooling": self.pooling,
                 "activation": self.activation,
             }
         )
