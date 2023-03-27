@@ -29,14 +29,10 @@ from keras_cv.models.classification.image_classifier import ImageClassifier
 
 class ImageClassifierTest(tf.test.TestCase, parameterized.TestCase):
     def setUp(self):
-        self.input_batch = tf.ones(shape=(8, 224, 224, 3))
+        self.input_batch = tf.ones(shape=(2, 224, 224, 3))
         self.dataset = tf.data.Dataset.from_tensor_slices(
-            (self.input_batch, tf.one_hot(tf.ones((8,), dtype="int32"), 2))
+            (self.input_batch, tf.one_hot(tf.ones((2,), dtype="int32"), 2))
         ).batch(4)
-        self.model = ImageClassifier(
-            backbone=ResNet18V2Backbone(),
-            num_classes=2,
-        )
 
     def test_valid_call(self):
         model = ImageClassifier(
@@ -49,13 +45,17 @@ class ImageClassifierTest(tf.test.TestCase, parameterized.TestCase):
         ("jit_compile_false", False), ("jit_compile_true", True)
     )
     def test_classifier_fit(self, jit_compile):
-        self.model.compile(
+        model = ImageClassifier(
+            backbone=ResNet18V2Backbone(),
+            num_classes=2,
+        )
+        model.compile(
             loss="categorical_crossentropy",
             optimizer="adam",
             metrics=["accuracy"],
             jit_compile=jit_compile,
         )
-        self.model.fit(self.dataset)
+        model.fit(self.dataset)
 
     @parameterized.named_parameters(
         ("avg_pooling", "avg"), ("max_pooling", "max")
@@ -107,18 +107,31 @@ class ImageClassifierPresetSmokeTest(tf.test.TestCase, parameterized.TestCase):
     """
 
     def setUp(self):
-        self.input_batch = tf.ones(shape=(8, 224, 224, 3))
+        self.input_batch = tf.ones(shape=(2, 224, 224, 3))
 
     @parameterized.named_parameters(
         ("preset_with_weights", "resnet50_v2_imagenet"),
         ("preset_no_weights", "resnet50_v2"),
     )
     def test_backbone_preset_call(self, preset):
+        # TODO(jbischof): Check output values once download working
         model = ImageClassifier.from_preset(
             preset,
             num_classes=2,
         )
         model(self.input_batch)
+
+    def test_backbone_preset_weight_loading(self):
+        # Check that backbone preset weights loaded correctly
+        model = ImageClassifier.from_preset(
+            "resnet50_v2_imagenet",
+            num_classes=2,
+        )
+        outputs = model.backbone(self.input_batch)
+        outputs = outputs[0, 0, 0, :5]
+        expected = [1.051145, 0, 0, 1.16328, 0]
+        # Keep a high tolerance, so we are robust to different hardware.
+        self.assertAllClose(outputs, expected, atol=0.01, rtol=0.01)
 
     def test_classifier_preset_call(self):
         model = ImageClassifier.from_preset("resnet50_v2_imagenet_classifier")

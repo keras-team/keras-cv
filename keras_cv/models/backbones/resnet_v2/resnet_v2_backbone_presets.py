@@ -117,7 +117,7 @@ backbone_presets_with_weights = {
             "description": (
                 "ResNet model with 50 layers where the batch normalization and "
                 "ReLU activation precede the convolution layers (v2 style). "
-                "Trained on ILSVRC 2012 (Imagenet) classification task."
+                "Trained on Imagenet 2012 classification task."
             ),
         },
         "class_name": "keras_cv.models>ResNetV2Backbone",

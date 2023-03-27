@@ -39,9 +39,9 @@ class ImageClassifier(Task):
             dimension of the backbone output.
         num_classes: int, number of classes to predict.
         pooling: str, type of pooling layer. Must be one of "avg", "max".
-        activation: A `str` or callable. Defaults to `None`. The activation
-            function to use on the Dense layer. Set `activation=None` to return
-            the output logits.
+        activation: Optional `str` or callable. Defaults to "softmax". The 
+            activation function to use on the Dense layer. Set `activation=None`
+            to return the output logits.
 
     Example:
     ```python
@@ -50,7 +50,6 @@ class ImageClassifier(Task):
     # Pretrained classifier (e.g., for imagenet categories)
     model = keras_cv.models.ImageClassifier.from_preset(
         "resnet50_v2_imagenet_classifier",
-        activation="softmax",
     )
     output = model(input_data)
 
@@ -61,7 +60,6 @@ class ImageClassifier(Task):
     model = keras_cv.models.ImageClassifier(
         backbone=backbone,
         num_classes=4,
-        activation="softmax",
     )
     output = model(input_data)
 
@@ -69,7 +67,6 @@ class ImageClassifier(Task):
     model = keras_cv.models.ImageClassifier(
         backbone=keras_cv.models.ResNet50V2Backbone(),
         num_classes=4,
-        activation="softmax",
     )
     output = model(input_data)
     ```
@@ -80,7 +77,7 @@ class ImageClassifier(Task):
         backbone,
         num_classes,
         pooling="avg",
-        activation=None,
+        activation="softmax",
         **kwargs,
     ):
         if pooling == "avg":
@@ -117,6 +114,7 @@ class ImageClassifier(Task):
         config = super().get_config()
         config.update(
             {
+                "backbone": keras.layers.serialize(self.backbone),
                 "num_classes": self.num_classes,
                 "pooling": self.pooling,
                 "activation": self.activation,

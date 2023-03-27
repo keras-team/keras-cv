@@ -42,7 +42,6 @@ class Task(keras.Model):
         # Don't chain to super here. The default `get_config()` for functional
         # models is nested and cannot be passed to our Task constructors.
         return {
-            "backbone": keras.layers.serialize(self.backbone),
             "name": self.name,
             "trainable": self.trainable,
         }
@@ -112,18 +111,28 @@ class Task(keras.Model):
                 f"""{", ".join(cls.presets)}. Received: {preset}."""
             )
 
-        metadata = cls.presets[preset]
+        if load_weights and preset not in cls.presets_with_weights:
+            raise ValueError(
+                f"""Pretrained weights not available for preset "{preset}". """
+                "Set `load_weights=False` to use this preset or choose one of "
+                "the following presets with weights:"
+                f""" "{'", "'.join(cls.presets_with_weights)}"."""
+            )
 
+        metadata = cls.presets[preset]
         # Check if preset is backbone-only model
         if preset in cls.backbone_presets:
-            backbone = keras.utils.deserialize_keras_object(metadata)
+            backbone_cls = keras.utils.get_registered_object(
+                metadata["class_name"]
+            )
+            backbone = backbone_cls.from_preset(preset, load_weights)
             return cls(backbone, **kwargs)
 
         # Otherwise must be one of class presets
         config = metadata["config"]
         model = cls.from_config({**config, **kwargs})
 
-        if not load_weights:
+        if preset not in cls.presets_with_weights or load_weights is False:
             return model
 
         weights = keras.utils.get_file(
