@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
 import tensorflow as tf
 from tensorflow import keras
 
@@ -42,11 +43,11 @@ class RandomCrop(VectorizedBaseImageAugmentationLayer):
     During training, this layer will randomly choose a location to crop images
     down to a target size.
 
-    At inference time, and during training if an input image is smaller than the
-    target size, the input will be resized and cropped so as to return the
-    largest possible window in the image that matches the target aspect ratio.
-    If you need to apply random cropping at inference time, set `training` to
-    True when calling the layer.
+    During inference, and during training if an input image is smaller than the
+    target size, the input will be resized and cropped to return the largest
+    possible window in the image that matches the target aspect ratio. If you
+    want to apply random cropping during inference, you can set the training
+    parameter to True when calling the layer.
 
     Input pixel values can be of any range (e.g. `[0., 1.)` or `[0, 255]`) and
     of interger or floating point dtype.
@@ -107,13 +108,31 @@ class RandomCrop(VectorizedBaseImageAugmentationLayer):
         return tf.squeeze(image, axis=0)
 
     def augment_images(self, images, transformations, **kwargs):
-        image_shape = tf.shape(images)
-        h_diff = image_shape[H_AXIS] - self.height
-        w_diff = image_shape[W_AXIS] - self.width
-        if h_diff >= 0 and w_diff >= 0:
-            return self._crop_images(images, transformations)
-        else:
-            return self._resize_images(images)
+        batch_size = tf.shape(images)[0]
+        channel = tf.shape(images)[-1]
+        heights, widths = self._get_image_shape(images)
+        h_diffs = heights - self.height
+        w_diffs = widths - self.width
+        # broadcast
+        h_diffs = (
+            tf.ones(
+                shape=(batch_size, self.height, self.width, channel),
+                dtype=tf.int32,
+            )
+            * h_diffs[:, tf.newaxis, tf.newaxis, :]
+        )
+        w_diffs = (
+            tf.ones(
+                shape=(batch_size, self.height, self.width, channel),
+                dtype=tf.int32,
+            )
+            * w_diffs[:, tf.newaxis, tf.newaxis, :]
+        )
+        return tf.where(
+            tf.math.logical_and(h_diffs >= 0, w_diffs >= 0),
+            self._crop_images(images, transformations),
+            self._resize_images(images),
+        )
 
     def augment_labels(self, labels, transformations, **kwargs):
         return labels
@@ -132,7 +151,9 @@ class RandomCrop(VectorizedBaseImageAugmentationLayer):
             bounding_boxes = bounding_box.to_dense(
                 bounding_boxes, default_value=-1
             )
-        image_shape = tf.shape(images)
+        batch_size = tf.shape(images)[0]
+        heights, widths = self._get_image_shape(images)
+        # image_shape = tf.shape(images)
 
         bounding_boxes = bounding_box.convert_format(
             bounding_boxes,
@@ -140,48 +161,80 @@ class RandomCrop(VectorizedBaseImageAugmentationLayer):
             target="xyxy",
             images=images,
         )
-        h_diff = image_shape[H_AXIS] - self.height
-        w_diff = image_shape[W_AXIS] - self.width
-        if h_diff >= 0 and w_diff >= 0:
-            bounding_boxes = self._crop_bounding_boxes(
-                images, bounding_boxes, transformations
+        h_diffs = heights - self.height
+        w_diffs = widths - self.width
+        # broadcast
+        num_bounding_boxes = tf.shape(bounding_boxes["boxes"])[-2]
+        h_diffs = (
+            tf.ones(
+                shape=(batch_size, num_bounding_boxes, 4),
+                dtype=tf.int32,
             )
-        else:
-            bounding_boxes = self._resize_bounding_boxes(
+            * h_diffs[:, tf.newaxis, :]
+        )
+        w_diffs = (
+            tf.ones(
+                shape=(batch_size, num_bounding_boxes, 4),
+                dtype=tf.int32,
+            )
+            * w_diffs[:, tf.newaxis, :]
+        )
+        boxes = tf.where(
+            tf.math.logical_and(h_diffs >= 0, w_diffs >= 0),
+            self._crop_bounding_boxes(
+                images, bounding_boxes["boxes"], transformations
+            ),
+            self._resize_bounding_boxes(
                 images,
-                bounding_boxes,
-            )
+                bounding_boxes["boxes"],
+            ),
+        )
+        bounding_boxes["boxes"] = boxes
         bounding_boxes = bounding_box.clip_to_image(
             bounding_boxes,
             bounding_box_format="xyxy",
-            image_shape=(self.height, self.width, image_shape[-1]),
+            image_shape=(self.height, self.width, None),
         )
         bounding_boxes = bounding_box.convert_format(
             bounding_boxes,
             source="xyxy",
             target=self.bounding_box_format,
             dtype=self.compute_dtype,
-            image_shape=(self.height, self.width, image_shape[-1]),
+            image_shape=(self.height, self.width, None),
         )
         return bounding_boxes
 
+    def _get_image_shape(self, images):
+        if isinstance(images, tf.RaggedTensor):
+            heights = tf.reshape(images.row_lengths(), (-1, 1))
+            widths = tf.reshape(
+                tf.reduce_max(images.row_lengths(axis=2), 1), (-1, 1)
+            )
+        else:
+            batch_size = tf.shape(images)[0]
+            heights = tf.repeat(tf.shape(images)[H_AXIS], repeats=[batch_size])
+            heights = tf.reshape(heights, shape=(-1, 1))
+            widths = tf.repeat(tf.shape(images)[W_AXIS], repeats=[batch_size])
+            widths = tf.reshape(widths, shape=(-1, 1))
+        return tf.cast(heights, dtype=tf.int32), tf.cast(widths, dtype=tf.int32)
+
     def _crop_images(self, images, transformations):
-        image_shape = tf.shape(images)
-        batch_size = image_shape[0]
-        image_height = tf.cast(image_shape[H_AXIS], dtype=tf.float32)
-        image_width = tf.cast(image_shape[W_AXIS], dtype=tf.float32)
+        batch_size = tf.shape(images)[0]
+        heights, widths = self._get_image_shape(images)
+        heights = tf.cast(heights, dtype=tf.float32)
+        widths = tf.cast(widths, dtype=tf.float32)
 
         tops = transformations["tops"]
         lefts = transformations["lefts"]
-        x1s = lefts * (image_width - self.width)
-        y1s = tops * (image_height - self.height)
+        x1s = lefts * (widths - self.width)
+        y1s = tops * (heights - self.height)
         x2s = x1s + self.width
         y2s = y1s + self.height
         # normalize
-        x1s /= image_width
-        y1s /= image_height
-        x2s /= image_width
-        y2s /= image_height
+        x1s /= widths
+        y1s /= heights
+        x2s /= widths
+        y2s /= heights
         boxes = tf.concat([y1s, x1s, y2s, x2s], axis=-1)
 
         images = tf.image.crop_and_resize(
@@ -198,48 +251,44 @@ class RandomCrop(VectorizedBaseImageAugmentationLayer):
         outputs = resizing_layer(images)
         return tf.cast(outputs, dtype=self.compute_dtype)
 
-    def _crop_bounding_boxes(self, images, bounding_boxes, transformation):
-        outputs = bounding_boxes.copy()
-        image_shape = tf.shape(images)
+    def _crop_bounding_boxes(self, images, boxes, transformation):
         tops = transformation["tops"]
         lefts = transformation["lefts"]
-        image_height = tf.cast(image_shape[H_AXIS], dtype=tf.float32)
-        image_width = tf.cast(image_shape[W_AXIS], dtype=tf.float32)
+        heights, widths = self._get_image_shape(images)
+        heights = tf.cast(heights, dtype=tf.float32)
+        widths = tf.cast(widths, dtype=tf.float32)
 
         # compute offsets for xyxy bounding_boxes
         top_offsets = tf.cast(
-            tf.math.round(tops * (image_height - self.height)),
+            tf.math.round(tops * (heights - self.height)),
             dtype=self.compute_dtype,
         )
         left_offsets = tf.cast(
-            tf.math.round(lefts * (image_width - self.width)),
+            tf.math.round(lefts * (widths - self.width)),
             dtype=self.compute_dtype,
         )
 
-        x1s, y1s, x2s, y2s = tf.split(bounding_boxes["boxes"], 4, axis=-1)
+        x1s, y1s, x2s, y2s = tf.split(boxes, 4, axis=-1)
         x1s -= tf.expand_dims(left_offsets, axis=1)
         y1s -= tf.expand_dims(top_offsets, axis=1)
         x2s -= tf.expand_dims(left_offsets, axis=1)
         y2s -= tf.expand_dims(top_offsets, axis=1)
-        outputs["boxes"] = tf.concat([x1s, y1s, x2s, y2s], axis=-1)
+        outputs = tf.concat([x1s, y1s, x2s, y2s], axis=-1)
         return outputs
 
-    def _resize_bounding_boxes(self, images, bounding_boxes):
-        outputs = bounding_boxes.copy()
-        image_shape = tf.shape(images)
-        x_scale = tf.cast(
-            self.width / image_shape[W_AXIS], dtype=self.compute_dtype
-        )
-        y_scale = tf.cast(
-            self.height / image_shape[H_AXIS], dtype=self.compute_dtype
-        )
-        x1s, y1s, x2s, y2s = tf.split(bounding_boxes["boxes"], 4, axis=-1)
-        outputs["boxes"] = tf.concat(
+    def _resize_bounding_boxes(self, images, boxes):
+        heights, widths = self._get_image_shape(images)
+        heights = tf.cast(heights, dtype=tf.float32)
+        widths = tf.cast(widths, dtype=tf.float32)
+        x_scale = tf.cast(self.width / widths, dtype=self.compute_dtype)
+        y_scale = tf.cast(self.height / heights, dtype=self.compute_dtype)
+        x1s, y1s, x2s, y2s = tf.split(boxes, 4, axis=-1)
+        outputs = tf.concat(
             [
-                x1s * x_scale,
-                y1s * y_scale,
-                x2s * x_scale,
-                y2s * y_scale,
+                x1s * x_scale[:, tf.newaxis, :],
+                y1s * y_scale[:, tf.newaxis, :],
+                x2s * x_scale[:, tf.newaxis, :],
+                y2s * y_scale[:, tf.newaxis, :],
             ],
             axis=-1,
         )
