@@ -193,7 +193,7 @@ callbacks = [
     keras.callbacks.TensorBoard(log_dir=FLAGS.tensorboard_path),
     keras.callbacks.ReduceLROnPlateau(patience=5),
     keras.callbacks.EarlyStopping(patience=10),
-    keras.callbacks.ModelCheckpoint(FLAGS.weights_path, save_weights_only=True),
+    keras.callbacks.ModelCheckpoint(FLAGS.weights_name, save_weights_only=True),
 ]
 
 history = model.fit(
