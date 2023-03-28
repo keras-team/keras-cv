@@ -129,10 +129,12 @@ train_ds = train_ds.apply(
 )
 train_ds = train_ds.map(augmenter, num_parallel_calls=tf.data.AUTOTUNE)
 
+
 def pad_fn(inputs):
     return inputs["images"], keras_cv.bounding_box.to_dense(
         inputs["bounding_boxes"], max_boxes=32
     )
+
 
 train_ds = train_ds.shuffle(8 * strategy.num_replicas_in_sync)
 train_ds = train_ds.map(pad_fn, num_parallel_calls=tf.data.AUTOTUNE)
@@ -140,12 +142,7 @@ train_ds = train_ds.prefetch(tf.data.AUTOTUNE)
 
 images, boxes = next(iter(train_ds.take(1)))
 keras_cv.visualization.plot_bounding_box_gallery(
-    images,
-    boxes,
-    value_range=(0, 255),
-    rows=2,
-    cols=2,
-    show=True
+    images, boxes, value_range=(0, 255), rows=2, cols=2, show=True
 )
 
 eval_resizing = keras_cv.layers.Resizing(
