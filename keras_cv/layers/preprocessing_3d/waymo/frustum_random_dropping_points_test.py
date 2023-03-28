@@ -7,7 +7,7 @@ import numpy as np
 import tensorflow as tf
 
 from keras_cv.layers.preprocessing_3d import base_augmentation_layer_3d
-from keras_cv.layers.preprocessing_3d.frustum_random_dropping_points import (
+from keras_cv.layers.preprocessing_3d.fwaymo.rustum_random_dropping_points import (
     FrustumRandomDroppingPoints,
 )
 

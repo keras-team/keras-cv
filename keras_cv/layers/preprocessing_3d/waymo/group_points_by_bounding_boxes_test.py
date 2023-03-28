@@ -10,7 +10,7 @@ import pytest
 import tensorflow as tf
 
 from keras_cv.layers.preprocessing_3d import base_augmentation_layer_3d
-from keras_cv.layers.preprocessing_3d.group_points_by_bounding_boxes import (
+from keras_cv.layers.preprocessing_3d.waymo.group_points_by_bounding_boxes import (
     GroupPointsByBoundingBoxes,
 )
 

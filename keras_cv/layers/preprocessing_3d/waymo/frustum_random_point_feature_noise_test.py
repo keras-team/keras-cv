@@ -8,7 +8,7 @@ import tensorflow as tf
 from tensorflow import keras
 
 from keras_cv.layers.preprocessing_3d import base_augmentation_layer_3d
-from keras_cv.layers.preprocessing_3d.frustum_random_point_feature_noise import (
+from keras_cv.layers.preprocessing_3d.waymo.frustum_random_point_feature_noise import (
     FrustumRandomPointFeatureNoise,
 )
 

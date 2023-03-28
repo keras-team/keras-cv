@@ -7,7 +7,9 @@ import numpy as np
 import tensorflow as tf
 
 from keras_cv.layers.preprocessing_3d import base_augmentation_layer_3d
-from keras_cv.layers.preprocessing_3d.global_random_flip import GlobalRandomFlip
+from keras_cv.layers.preprocessing_3d.waymo.global_random_flip import (
+    GlobalRandomFlip,
+)
 
 POINT_CLOUDS = base_augmentation_layer_3d.POINT_CLOUDS
 BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES

@@ -10,7 +10,9 @@ import pytest
 import tensorflow as tf
 
 from keras_cv.layers.preprocessing_3d import base_augmentation_layer_3d
-from keras_cv.layers.preprocessing_3d.random_copy_paste import RandomCopyPaste
+from keras_cv.layers.preprocessing_3d.waymo.random_copy_paste import (
+    RandomCopyPaste,
+)
 
 POINT_CLOUDS = base_augmentation_layer_3d.POINT_CLOUDS
 BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES

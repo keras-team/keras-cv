@@ -7,7 +7,7 @@ import numpy as np
 import tensorflow as tf
 
 from keras_cv.layers.preprocessing_3d import base_augmentation_layer_3d
-from keras_cv.layers.preprocessing_3d.global_random_translation import (
+from keras_cv.layers.preprocessing_3d.waymo.global_random_translation import (
     GlobalRandomTranslation,
 )
 
