@@ -417,7 +417,6 @@ class FasterRCNN(keras.Model):
             raise ValueError(
                 "`FasterRCNN` does not currently support the use of "
                 "`metrics` due to performance and distribution concerns. "
-                "Please use the `PyCOCOCallback` to evaluate COCO metrics."
             )
         if loss is not None:
             raise ValueError(

@@ -27,7 +27,6 @@ from absl import flags
 from tensorflow import keras
 
 import keras_cv
-from keras_cv.callbacks import PyCOCOCallback
 
 flags.DEFINE_string(
     "weights_path",
@@ -328,7 +327,6 @@ callbacks = [
     keras.callbacks.TensorBoard(
         log_dir=FLAGS.tensorboard_path, write_steps_per_second=True
     ),
-    PyCOCOCallback(eval_ds, bounding_box_format="yxyx"),
 ]
 model.compile(
     optimizer=optimizer,

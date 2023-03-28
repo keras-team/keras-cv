@@ -12,13 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 try:
-    from keras_cv.callbacks.pycoco_callback import PyCOCOCallback
-except ImportError:
-    print(
-        "You do not have pyococotools installed, so the `PyCOCOCallback` API is not available."
-    )
-
-try:
     from keras_cv.callbacks.waymo_evaluation_callback import (
         WaymoEvaluationCallback,
     )
