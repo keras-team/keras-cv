@@ -129,8 +129,6 @@ train_ds = train_ds.apply(
 )
 train_ds = train_ds.map(augmenter, num_parallel_calls=tf.data.AUTOTUNE)
 
-<<<<<<< HEAD
-
 def pad_fn(inputs):
     return inputs["images"], keras_cv.bounding_box.to_dense(
         inputs["bounding_boxes"], max_boxes=32
@@ -193,6 +191,10 @@ with strategy.scope():
 model.prediction_decoder = keras_cv.layers.MultiClassNonMaxSuppression(
     bounding_box_format="xywh", confidence_threshold=0.5, from_logits=True
 )
+
+for layer in model.backbone.layers:
+    if isinstance(layer, (keras.layers.BatchNormalization)):
+        layer.trainable = False
 
 model.compile(
     classification_loss="focal",
