@@ -113,12 +113,12 @@ eval_ds = eval_ds.map(
 augmenter = keras_cv.layers.Augmenter(
     layers=[
         keras_cv.layers.RandomFlip(
-            mode="horizontal", bounding_box_format=bounding_box_format
+            mode="horizontal", bounding_box_format="xywh"
         ),
         keras_cv.layers.JitteredResize(
             target_size=(640, 640),
             scale_factor=(0.8, 1.25),
-            bounding_box_format=bounding_box_format,
+            bounding_box_format="xywh",
         ),
     ]
 )
@@ -133,10 +133,19 @@ train_ds = train_ds.map(augmenter, num_parallel_calls=tf.data.AUTOTUNE)
 def pad_fn(x, y):
     return x, keras_cv.bounding_box.to_dense(y, max_boxes=32)
 
-
-train_ds = train_ds.map(pad_fn, num_parallel_calls=tf.data.AUTOTUNE)
 train_ds = train_ds.shuffle(8 * strategy.num_replicas_in_sync)
+train_ds = train_ds.map(pad_fn, num_parallel_calls=tf.data.AUTOTUNE)
 train_ds = train_ds.prefetch(tf.data.AUTOTUNE)
+
+images, boxes = next(iter(train_ds.take(1)))
+keras_cv.visualization.plot_bounding_box_gallery(
+    images,
+    boxes,
+    value_range=(0, 255),
+    rows=2,
+    cols=2,
+    show=True
+)
 
 eval_resizing = keras_cv.layers.Resizing(
     640, 640, pad_to_aspect_ratio=True, bounding_box_format="xywh"
