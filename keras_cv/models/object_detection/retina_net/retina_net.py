@@ -172,9 +172,7 @@ class RetinaNet(keras.Model):
                 "`1` for the single present class."
             )
         if backbone is None:
-            self.backbone = keras_cv.models.ResNet50V2Backbone()
-        else:
-            self.backbone = backbone
+            backbone = keras_cv.models.ResNet50V2Backbone.from_preset("resnet50_v2_imagenet")
 
         self._prediction_decoder = (
             prediction_decoder
