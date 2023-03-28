@@ -51,18 +51,6 @@ class NmsPredictionDecoderTest(tf.test.TestCase):
         self.assertEqual(result["confidence"].shape, [8, 100])
 
 
-@unittest.expectedFailure
-class NmsPredictionDecoderTestWithXLA(tf.test.TestCase):
-    def test_decode_predictions_output_shapes(self):
-        xla_function = tf.function(
-            decode_predictions_output_shapes, jit_compile=True
-        )
-        result = xla_function()
-        self.assertEqual(result["boxes"].shape, [8, 100, 4])
-        self.assertEqual(result["classes"].shape, [8, 100])
-        self.assertEqual(result["confidence"].shape, [8, 100])
-
-
 class NmsPredictionDecoderTestWithXLAMlirBridge(tf.test.TestCase):
     def setUp(self):
         tf.config.experimental.enable_mlir_bridge()
