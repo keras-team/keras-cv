@@ -95,10 +95,20 @@ def unpackage_tfds_inputs(inputs, bounding_box_format):
         "classes": tf.cast(inputs["objects"]["label"], dtype=tf.float32),
         "boxes": tf.cast(boxes, dtype=tf.float32),
     }
-    return {"images": tf.cast(image, tf.float32), "bounding_boxes": bounding_boxes}
+    return {
+        "images": tf.cast(image, tf.float32),
+        "bounding_boxes": bounding_boxes,
+    }
 
-train_ds = train_ds.map(lambda inputs: unpackage_tfds_inputs(inputs, bounding_box_format='xywh'), num_parallel_calls=tf.data.AUTOTUNE)
-eval_ds = eval_ds.map(lambda inputs: unpackage_tfds_inputs(inputs, bounding_box_format='xywh'), num_parallel_calls=tf.data.AUTOTUNE)
+
+train_ds = train_ds.map(
+    lambda inputs: unpackage_tfds_inputs(inputs, bounding_box_format="xywh"),
+    num_parallel_calls=tf.data.AUTOTUNE,
+)
+eval_ds = eval_ds.map(
+    lambda inputs: unpackage_tfds_inputs(inputs, bounding_box_format="xywh"),
+    num_parallel_calls=tf.data.AUTOTUNE,
+)
 
 augmenter = keras_cv.layers.Augmenter(
     layers=[
@@ -117,18 +127,20 @@ train_ds = train_ds.apply(
         GLOBAL_BATCH_SIZE, drop_remainder=True
     )
 )
-train_ds = train_ds.map(
-    augmenter, num_parallel_calls=tf.data.AUTOTUNE
-)
+train_ds = train_ds.map(augmenter, num_parallel_calls=tf.data.AUTOTUNE)
+
 
 def pad_fn(x, y):
     return x, keras_cv.bounding_box.to_dense(y, max_boxes=32)
+
 
 train_ds = train_ds.map(pad_fn, num_parallel_calls=tf.data.AUTOTUNE)
 train_ds = train_ds.shuffle(8 * strategy.num_replicas_in_sync)
 train_ds = train_ds.prefetch(tf.data.AUTOTUNE)
 
-eval_resizing = keras_cv.layers.Resizing(640, 640, pad_to_aspect_ratio=True, bounding_box_format='xywh')
+eval_resizing = keras_cv.layers.Resizing(
+    640, 640, pad_to_aspect_ratio=True, bounding_box_format="xywh"
+)
 eval_ds = eval_ds.map(
     eval_resizing,
     num_parallel_calls=tf.data.AUTOTUNE,
@@ -171,8 +183,10 @@ model.compile(
     box_loss="smoothl1",
     optimizer=optimizer,
     metrics=[
-        keras_cv.metrics.BoxCOCOMetrics(bounding_box_format='xywh', evaluate_freq=128)
-    ]
+        keras_cv.metrics.BoxCOCOMetrics(
+            bounding_box_format="xywh", evaluate_freq=128
+        )
+    ],
 )
 
 callbacks = [
