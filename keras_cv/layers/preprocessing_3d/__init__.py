@@ -15,28 +15,34 @@
 from keras_cv.layers.preprocessing_3d.base_augmentation_layer_3d import (
     BaseAugmentationLayer3D,
 )
-from keras_cv.layers.preprocessing_3d.frustum_random_dropping_points import (
+from keras_cv.layers.preprocessing_3d.waymo.frustum_random_dropping_points import (
     FrustumRandomDroppingPoints,
 )
-from keras_cv.layers.preprocessing_3d.frustum_random_point_feature_noise import (
+from keras_cv.layers.preprocessing_3d.waymo.frustum_random_point_feature_noise import (
     FrustumRandomPointFeatureNoise,
 )
-from keras_cv.layers.preprocessing_3d.global_random_dropping_points import (
+from keras_cv.layers.preprocessing_3d.waymo.global_random_dropping_points import (
     GlobalRandomDroppingPoints,
 )
-from keras_cv.layers.preprocessing_3d.global_random_flip import GlobalRandomFlip
-from keras_cv.layers.preprocessing_3d.global_random_rotation import (
+from keras_cv.layers.preprocessing_3d.waymo.global_random_flip import (
+    GlobalRandomFlip,
+)
+from keras_cv.layers.preprocessing_3d.waymo.global_random_rotation import (
     GlobalRandomRotation,
 )
-from keras_cv.layers.preprocessing_3d.global_random_scaling import (
+from keras_cv.layers.preprocessing_3d.waymo.global_random_scaling import (
     GlobalRandomScaling,
 )
-from keras_cv.layers.preprocessing_3d.global_random_translation import (
+from keras_cv.layers.preprocessing_3d.waymo.global_random_translation import (
     GlobalRandomTranslation,
 )
-from keras_cv.layers.preprocessing_3d.group_points_by_bounding_boxes import (
+from keras_cv.layers.preprocessing_3d.waymo.group_points_by_bounding_boxes import (
     GroupPointsByBoundingBoxes,
 )
-from keras_cv.layers.preprocessing_3d.random_copy_paste import RandomCopyPaste
-from keras_cv.layers.preprocessing_3d.random_drop_box import RandomDropBox
-from keras_cv.layers.preprocessing_3d.swap_background import SwapBackground
+from keras_cv.layers.preprocessing_3d.waymo.random_copy_paste import (
+    RandomCopyPaste,
+)
+from keras_cv.layers.preprocessing_3d.waymo.random_drop_box import RandomDropBox
+from keras_cv.layers.preprocessing_3d.waymo.swap_background import (
+    SwapBackground,
+)
