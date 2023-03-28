@@ -34,6 +34,11 @@ flags.DEFINE_string(
     "weights_{epoch:02d}.h5",
     "Directory which will be used to store weight checkpoints.",
 )
+flags.DEFINE_integer(
+    "epochs",
+    18,
+    "Number of epochs to run for.",
+)
 flags.DEFINE_string(
     "tensorboard_path",
     "logs",
@@ -332,4 +337,6 @@ model.compile(
     rpn_box_loss="Huber",
     rpn_classification_loss="BinaryCrossentropy",
 )
-model.fit(train_ds, epochs=18, validation_data=eval_ds, callbacks=callbacks)
+model.fit(
+    train_ds, epochs=FLAGS.epochs, validation_data=eval_ds, callbacks=callbacks
+)
