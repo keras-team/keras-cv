@@ -121,11 +121,7 @@ augmenter = keras_cv.layers.Augmenter(
         ),
     ]
 )
-train_ds = train_ds.apply(
-    tf.data.experimental.dense_to_ragged_batch(
-        GLOBAL_BATCH_SIZE, drop_remainder=True
-    )
-)
+train_ds = train_ds.ragged_batch(GLOBAL_BATCH_SIZE)
 train_ds = train_ds.map(augmenter, num_parallel_calls=tf.data.AUTOTUNE)
 
 
@@ -146,11 +142,7 @@ eval_ds = eval_ds.map(
     eval_resizing,
     num_parallel_calls=tf.data.AUTOTUNE,
 )
-eval_ds = eval_ds.apply(
-    tf.data.experimental.dense_to_ragged_batch(
-        GLOBAL_BATCH_SIZE, drop_remainder=True
-    )
-)
+eval_ds = eval_ds.ragged_batch(GLOBAL_BATCH_SIZE, drop_remainder=True)
 eval_ds = eval_ds.map(pad_fn, num_parallel_calls=tf.data.AUTOTUNE)
 eval_ds = eval_ds.prefetch(tf.data.AUTOTUNE)
 
