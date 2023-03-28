@@ -19,7 +19,7 @@ import tensorflow as tf
 from keras_cv import bounding_box
 from keras_cv.metrics import BoxCOCOMetrics
 
-SAMPLE_FILE = os.path.dirname(os.path.abspath(__file__)) + "/sample_boxes.npz"
+SAMPLE_FILE = os.path.dirname(os.path.abspath(__file__)) + "/test_data/sample_boxes.npz"
 
 
 def load_samples(fname):
