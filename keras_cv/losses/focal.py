@@ -22,7 +22,11 @@ class FocalLoss(keras.losses.Loss):
     """Implements Focal loss
 
     Focal loss is a modified cross-entropy designed to perform better with
-    class imbalance. For this reason, it's commonly used with object detectors.
+    class imbalance. It minimizes the weight of easy -ves on the loss function
+    and hence the loss is governed mainly by loss on hard +ves, the effect of
+    easy -ves on the loss decays as their probability to be predicted gets higher.
+    For this reason, it's commonly used with object detectors.
+    (Note: Here easy -ves are the background classes whereas hard +ves are the foreground classes.)
 
     Args:
         alpha: a float value between 0 and 1 representing a weighting factor
