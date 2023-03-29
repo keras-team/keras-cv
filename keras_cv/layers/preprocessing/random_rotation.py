@@ -18,21 +18,6 @@ from tensorflow import keras
 
 from keras_cv import bounding_box
 from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
-    BOUNDING_BOXES,
-)
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
-    IMAGES,
-)
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
-    KEYPOINTS,
-)
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
-    LABELS,
-)
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
-    SEGMENTATION_MASKS,
-)
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
     VectorizedBaseImageAugmentationLayer,
 )
 from keras_cv.utils import preprocessing as preprocessing_utils
@@ -158,7 +143,7 @@ class RandomRotation(VectorizedBaseImageAugmentationLayer):
         return labels
 
     def augment_bounding_boxes(
-        self, bounding_boxes, transformations, images=None, **kwargs
+        self, bounding_boxes, transformations, raw_images=None, **kwargs
     ):
         if self.bounding_box_format is None:
             raise ValueError(
@@ -173,9 +158,9 @@ class RandomRotation(VectorizedBaseImageAugmentationLayer):
             bounding_boxes,
             source=self.bounding_box_format,
             target="xyxy",
-            images=images,
+            images=raw_images,
         )
-        image_shape = tf.shape(images)
+        image_shape = tf.shape(raw_images)
         h = image_shape[H_AXIS]
         w = image_shape[W_AXIS]
 
@@ -229,7 +214,7 @@ class RandomRotation(VectorizedBaseImageAugmentationLayer):
         bounding_boxes = bounding_box.clip_to_image(
             bounding_boxes,
             bounding_box_format="xyxy",
-            images=images,
+            images=raw_images,
         )
         # cordinates cannot be float values, it is casted to int32
         bounding_boxes = bounding_box.convert_format(
@@ -237,7 +222,7 @@ class RandomRotation(VectorizedBaseImageAugmentationLayer):
             source="xyxy",
             target=self.bounding_box_format,
             dtype=self.compute_dtype,
-            images=images,
+            images=raw_images,
         )
         return bounding_boxes
 
@@ -273,90 +258,6 @@ class RandomRotation(VectorizedBaseImageAugmentationLayer):
             # pixels with ambugious value due to floating point math for
             # rotation.
             return tf.round(rotated_mask)
-
-    def _batch_augment(self, inputs):
-        # overwrite _batch_augment to support raw_images for
-        # augment_bounding_boxes
-        images = inputs.get(IMAGES, None)
-        raw_images = images  # needs raw_images for augment_bounding_boxes
-        labels = inputs.get(LABELS, None)
-        bounding_boxes = inputs.get(BOUNDING_BOXES, None)
-        keypoints = inputs.get(KEYPOINTS, None)
-        segmentation_masks = inputs.get(SEGMENTATION_MASKS, None)
-
-        batch_size = tf.shape(images)[0]
-
-        transformations = self.get_random_transformation_batch(
-            batch_size,
-            images=images,
-            labels=labels,
-            bounding_boxes=bounding_boxes,
-            keypoints=keypoints,
-            segmentation_masks=segmentation_masks,
-        )
-
-        if isinstance(images, tf.RaggedTensor):
-            inputs_for_raggeds = {"transformations": transformations, **inputs}
-            print("inputs_for_raggeds", inputs_for_raggeds)
-            print(
-                "self._unwrap_ragged_image_call", self._unwrap_ragged_image_call
-            )
-            images = tf.map_fn(
-                self._unwrap_ragged_image_call,
-                inputs_for_raggeds,
-                fn_output_signature=self.compute_ragged_image_signature(images),
-            )
-        else:
-            images = self.augment_images(
-                images,
-                transformations=transformations,
-                bounding_boxes=bounding_boxes,
-                labels=labels,
-            )
-
-        result = {IMAGES: images}
-        if labels is not None:
-            labels = self.augment_targets(
-                labels,
-                transformations=transformations,
-                bounding_boxes=bounding_boxes,
-                images=images,
-            )
-            result[LABELS] = labels
-
-        if bounding_boxes is not None:
-            bounding_boxes = self.augment_bounding_boxes(
-                bounding_boxes,
-                transformations=transformations,
-                labels=labels,
-                images=raw_images,
-            )
-            bounding_boxes = bounding_box.to_ragged(bounding_boxes)
-            result[BOUNDING_BOXES] = bounding_boxes
-
-        if keypoints is not None:
-            keypoints = self.augment_keypoints(
-                keypoints,
-                transformations=transformations,
-                labels=labels,
-                bounding_boxes=bounding_boxes,
-                images=images,
-            )
-            result[KEYPOINTS] = keypoints
-        if segmentation_masks is not None:
-            segmentation_masks = self.augment_segmentation_masks(
-                segmentation_masks,
-                transformations=transformations,
-                labels=labels,
-                bounding_boxes=bounding_boxes,
-                images=images,
-            )
-            result[SEGMENTATION_MASKS] = segmentation_masks
-
-        # preserve any additional inputs unmodified by this layer.
-        for key in inputs.keys() - result.keys():
-            result[key] = inputs[key]
-        return result
 
     def _rotate_images(self, images, transformations):
         images = preprocessing_utils.ensure_tensor(images, self.compute_dtype)

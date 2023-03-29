@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import time
-import unittest
 
 import matplotlib.pyplot as plt
 import numpy as np
