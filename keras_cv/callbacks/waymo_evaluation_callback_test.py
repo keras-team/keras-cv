@@ -86,7 +86,7 @@ class WaymoEvaluationCallbackTest(tf.test.TestCase):
             lambda x: {
                 "3d_boxes": {
                     "boxes": x[:, :, :7],
-                    "classes": tf.cast(x[:, :, 7], tf.uint8),
+                    "classes": tf.cast(tf.abs(x[:, :, 7]), tf.uint8),
                     "confidence": x[:, :, 8],
                 }
             }

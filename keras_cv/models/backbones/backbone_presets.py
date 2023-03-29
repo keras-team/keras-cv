@@ -1,4 +1,4 @@
-# Copyright 2022 The KerasCV Authors
+# Copyright 2023 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,16 +11,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""All Backbone presets"""
 
-from tensorflow import keras
+from keras_cv.models.backbones.resnet_v2 import resnet_v2_backbone_presets
 
+backbone_presets_no_weights = {
+    **resnet_v2_backbone_presets.backbone_presets_no_weights,
+}
 
-class PaddedConv2D(keras.layers.Layer):
-    def __init__(self, filters, kernel_size, padding=0, strides=1, **kwargs):
-        super().__init__(**kwargs)
-        self.padding2d = keras.layers.ZeroPadding2D(padding)
-        self.conv2d = keras.layers.Conv2D(filters, kernel_size, strides=strides)
+backbone_presets_with_weights = {
+    **resnet_v2_backbone_presets.backbone_presets_with_weights,
+}
 
-    def call(self, inputs):
-        x = self.padding2d(inputs)
-        return self.conv2d(x)
+backbone_presets = {
+    **backbone_presets_no_weights,
+    **backbone_presets_with_weights,
+}
