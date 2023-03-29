@@ -210,6 +210,8 @@ class RetinaNetTest(tf.test.TestCase):
         retina_net.evaluate(dataset)
 
     def test_serialization(self):
+        # TODO(haifengj): Reuse test code from
+        # ModelTest._test_model_serialization.
         model = keras_cv.models.RetinaNet(
             num_classes=20,
             bounding_box_format="xywh",
