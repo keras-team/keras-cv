@@ -1,4 +1,4 @@
-# Copyright 2022 The KerasCV Authors
+# Copyright 2023 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -31,11 +31,13 @@ from keras_cv.layers.preprocessing.equalization import Equalization
 from keras_cv.layers.preprocessing.fourier_mix import FourierMix
 from keras_cv.layers.preprocessing.grayscale import Grayscale
 from keras_cv.layers.preprocessing.grid_mask import GridMask
+from keras_cv.layers.preprocessing.jittered_resize import JitteredResize
 from keras_cv.layers.preprocessing.maybe_apply import MaybeApply
 from keras_cv.layers.preprocessing.mix_up import MixUp
 from keras_cv.layers.preprocessing.mosaic import Mosaic
 from keras_cv.layers.preprocessing.posterization import Posterization
 from keras_cv.layers.preprocessing.rand_augment import RandAugment
+from keras_cv.layers.preprocessing.random_aspect_ratio import RandomAspectRatio
 from keras_cv.layers.preprocessing.random_augmentation_pipeline import (
     RandomAugmentationPipeline,
 )
@@ -75,3 +77,6 @@ from keras_cv.layers.preprocessing.repeated_augmentation import (
 from keras_cv.layers.preprocessing.rescaling import Rescaling
 from keras_cv.layers.preprocessing.resizing import Resizing
 from keras_cv.layers.preprocessing.solarization import Solarization
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
+    VectorizedBaseImageAugmentationLayer,
+)

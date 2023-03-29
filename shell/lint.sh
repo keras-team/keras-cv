@@ -30,6 +30,7 @@ then
   exit 1
 fi
 [ $# -eq 0 ] && echo "no issues with flake8"
+
 black --check $files
 if ! [ $? -eq 0 ]
 then
@@ -37,6 +38,7 @@ then
     exit 1
 fi
 [ $# -eq 0  ] && echo "no issues with black"
+
 for i in $(find keras_cv -name '*.py') # or whatever other pattern...
 do
   if ! grep -q Copyright $i
