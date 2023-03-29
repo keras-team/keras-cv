@@ -80,9 +80,15 @@ class RetinaNet(keras.Model):
         bounding_box_format: The format of bounding boxes of input dataset. Refer
             [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
             for more details on supported bounding box formats.
-        backbone: optional `keras.Model`. Must implement the `pyramid_level_inputs`
+        backbone: (Optional) `keras.Model`. Must implement the `pyramid_level_inputs`
             property with keys 3, 4, and 5 and layer names as values. If
-            `None`, defaults to `keras_cv.models.ResNet50V2Backbone()`.
+            `None`, defaults to
+            `keras_cv.models.ResNet50Backbone.from_preset('imagenet')`.
+        feature_extractor: (Optional) `keras.Model`.  A feature extractor takes
+            images as inputs, and outputs a dictionary with keys `3`, `4`, and
+            `5`.  Either a `backbone` or a `feature_extractor` may be provided.
+            The default `feature_extractor` is produced using the provided
+            `backbone`.
         anchor_generator: (Optional) a `keras_cv.layers.AnchorGenerator`.  If provided,
             the anchor generator will be passed to both the `label_encoder` and the
             `prediction_decoder`.  Only to be used when both `label_encoder` and
@@ -114,6 +120,7 @@ class RetinaNet(keras.Model):
         num_classes,
         bounding_box_format,
         backbone=None,
+        feature_extractor=None,
         anchor_generator=None,
         label_encoder=None,
         prediction_decoder=None,
@@ -178,9 +185,19 @@ class RetinaNet(keras.Model):
                 f"`backbone={backbone}`"
                 f"`feature_extractor={feature_extractor}`"
             )
+
         if backbone is None and feature_extractor is None:
             backbone = keras_cv.models.ResNet50.from_preset('resnet50_imagenet')
+            # initialize trainable networks
+            extractor_levels = [3, 4, 5]
+            extractor_layer_names = [
+                backbone.pyramid_level_inputs[i] for i in extractor_levels
+            ]
+            feature_extractor = get_feature_extractor(
+                backbone, extractor_layer_names, extractor_levels
+            )
 
+        self.feature_extractor = feature_extractor
         self._prediction_decoder = (
             prediction_decoder
             or cv_layers.MultiClassNonMaxSuppression(
@@ -189,14 +206,6 @@ class RetinaNet(keras.Model):
             )
         )
 
-        # initialize trainable networks
-        extractor_levels = [3, 4, 5]
-        extractor_layer_names = [
-            self.backbone.pyramid_level_inputs[i] for i in extractor_levels
-        ]
-        self.feature_extractor = get_feature_extractor(
-            self.backbone, extractor_layer_names, extractor_levels
-        )
         self.feature_pyramid = layers_lib.FeaturePyramid()
         prior_probability = keras.initializers.Constant(
             -np.log((1 - 0.01) / 0.01)
@@ -519,19 +528,13 @@ class RetinaNet(keras.Model):
 
     @classmethod
     def from_config(cls, config):
-        config["backbone"] = keras.utils.deserialize_keras_object(
-            config["backbone"]
-        )
         return super().from_config(config)
 
     def get_config(self):
         return {
             "num_classes": self.num_classes,
             "bounding_box_format": self.bounding_box_format,
-            "backbone": keras.utils.serialize_keras_object(self.backbone),
-            # TODO(haifengj): handle custom anchor_generator. we now rely on
-            # label_encoder and prediction_decoder to reconstruct
-            # anchor_gnerator.
+            "feature_extractor": self.feature_extractor,
             "label_encoder": self.label_encoder,
             "prediction_decoder": self._prediction_decoder,
             "classification_head": self.classification_head,
