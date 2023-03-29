@@ -514,11 +514,21 @@ class RetinaNet(keras.Model):
                 metrics[metric.name] = result
         return metrics
 
+    @classmethod
+    def from_config(cls, config):
+        config["backbone"] = keras.utils.deserialize_keras_object(
+            config["backbone"]
+        )
+        return super().from_config(config)
+
     def get_config(self):
         return {
             "num_classes": self.num_classes,
             "bounding_box_format": self.bounding_box_format,
-            "backbone": self.backbone,
+            "backbone": keras.utils.serialize_keras_object(self.backbone),
+            # TODO(haifengj): handle custom anchor_generator. we now rely on
+            # label_encoder and prediction_decoder to reconstruct
+            # anchor_gnerator.
             "label_encoder": self.label_encoder,
             "prediction_decoder": self._prediction_decoder,
             "classification_head": self.classification_head,
