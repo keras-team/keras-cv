@@ -20,7 +20,7 @@ Description: Use KerasCV to train a RetinaNet on Pascal VOC 2007.
 """
 import resource
 import sys
-
+import tqdm
 import tensorflow as tf
 import tensorflow_datasets as tfds
 from absl import flags
@@ -162,9 +162,7 @@ with strategy.scope():
         # For more info on supported bounding box formats, visit
         # https://keras.io/api/keras_cv/bounding_box/
         bounding_box_format="xywh",
-        backbone=keras_cv.models.ResNet50V2Backbone.from_preset(
-            "resnet50_v2_imagenet"
-        ),
+        feature_extractor=keras_cv.models.ResNet50(weights="imagenet", include_top=False, include_rescaling=True).as_backbone(),
     )
     lr_decay = tf.keras.optimizers.schedules.PiecewiseConstantDecay(
         boundaries=[12000 * 16, 16000 * 16],
@@ -210,12 +208,12 @@ class EvaluateCOCOMetricsCallback(keras.callbacks.Callback):
     return logs
 
 callbacks = [
-    keras.callbacks.TensorBoard(log_dir=FLAGS.tensorboard_path),
     keras.callbacks.ReduceLROnPlateau(patience=5),
     keras.callbacks.EarlyStopping(patience=10),
     keras.callbacks.ModelCheckpoint(FLAGS.weights_name, save_weights_only=True),
     PyCOCOCallback(eval_ds, bounding_box_format='xywh'),
-    EvaluateCOCOMetricsCallback(eval_ds)
+    EvaluateCOCOMetricsCallback(eval_ds),
+    keras.callbacks.TensorBoard(log_dir=FLAGS.tensorboard_path),
 ]
 
 history = model.fit(
