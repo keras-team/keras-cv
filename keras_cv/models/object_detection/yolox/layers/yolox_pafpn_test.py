@@ -24,20 +24,20 @@ class YoloXLabelEncoderTest(tf.test.TestCase):
         input2 = tf.keras.Input((40, 40, 512))
         input3 = tf.keras.Input((20, 20, 1024))
 
-        output = YoloXPAFPN()({
-            3: input1,
-            4: input2,
-            5: input3
-        })
+        output = YoloXPAFPN()({3: input1, 4: input2, 5: input3})
 
-        model = tf.keras.models.Model(inputs=[input1, input2, input3], outputs = output)
+        model = tf.keras.models.Model(
+            inputs=[input1, input2, input3], outputs=output
+        )
 
-        keras_params = sum([tf.keras.backend.count_params(p) for p in model.trainable_weights])
+        keras_params = sum(
+            [tf.keras.backend.count_params(p) for p in model.trainable_weights]
+        )
         # taken from original implementation
         original_params = 19523072
 
         self.assertEqual(keras_params, original_params)
-    
+
     def test_output_shape(self):
         inputs = {
             3: tf.random.uniform((3, 80, 80, 256)),
@@ -50,4 +50,3 @@ class YoloXLabelEncoderTest(tf.test.TestCase):
         self.assertEqual(output1.shape, [3, 80, 80, 256])
         self.assertEqual(output2.shape, [3, 40, 40, 512])
         self.assertEqual(output3.shape, [3, 20, 20, 1024])
-

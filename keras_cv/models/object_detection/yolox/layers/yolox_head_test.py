@@ -26,14 +26,18 @@ class YoloXHeadTest(tf.test.TestCase):
 
         output = YoloXHead(20)([input1, input2, input3])
 
-        model = tf.keras.models.Model(inputs=[input1, input2, input3], outputs = output)
+        model = tf.keras.models.Model(
+            inputs=[input1, input2, input3], outputs=output
+        )
 
-        keras_params = sum([tf.keras.backend.count_params(p) for p in model.trainable_weights])
+        keras_params = sum(
+            [tf.keras.backend.count_params(p) for p in model.trainable_weights]
+        )
         # taken from original implementation
         original_params = 7563595
 
         self.assertEqual(keras_params, original_params)
-    
+
     def test_output_type_and_shape(self):
         inputs = [
             tf.random.uniform((3, 80, 80, 256)),
@@ -49,4 +53,3 @@ class YoloXHeadTest(tf.test.TestCase):
         self.assertEqual(output[0].shape, [3, 80, 80, 25])
         self.assertEqual(output[1].shape, [3, 40, 40, 25])
         self.assertEqual(output[2].shape, [3, 20, 20, 25])
-

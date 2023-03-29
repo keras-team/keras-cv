@@ -26,12 +26,14 @@ class YoloXLabelEncoderTest(tf.test.TestCase):
         images = tf.ragged.stack([img1, img2, img3])
         box_labels = {}
         box_labels["bounding_boxes"] = tf.random.uniform((3, 4, 4))
-        box_labels["classes"] = tf.random.uniform((3, 4), maxval = 20, dtype = tf.int32)
+        box_labels["classes"] = tf.random.uniform(
+            (3, 4), maxval=20, dtype=tf.int32
+        )
         layer = YoloXLabelEncoder()
 
         with self.assertRaisesRegexp(
-            ValueError, 
-            "method does not support RaggedTensor inputs for the `images` argument."
+            ValueError,
+            "method does not support RaggedTensor inputs for the `images` argument.",
         ):
             layer(images, box_labels)
 
@@ -41,11 +43,11 @@ class YoloXLabelEncoderTest(tf.test.TestCase):
         box_labels = {}
 
         box1 = tf.random.uniform((11, 4))
-        class1 = tf.random.uniform([11], maxval = 20, dtype = tf.int32)
+        class1 = tf.random.uniform([11], maxval=20, dtype=tf.int32)
         box2 = tf.random.uniform((14, 4))
-        class2 = tf.random.uniform([14], maxval = 20, dtype = tf.int32)
+        class2 = tf.random.uniform([14], maxval=20, dtype=tf.int32)
         box3 = tf.random.uniform((12, 4))
-        class3 = tf.random.uniform([12], maxval = 20, dtype = tf.int32)
+        class3 = tf.random.uniform([12], maxval=20, dtype=tf.int32)
 
         box_labels["boxes"] = tf.ragged.stack([box1, box2, box3])
         box_labels["classes"] = tf.ragged.stack([class1, class2, class3])
@@ -61,15 +63,15 @@ class YoloXLabelEncoderTest(tf.test.TestCase):
         box_labels = {}
 
         box1 = tf.random.uniform((11, 4))
-        class1 = tf.random.uniform([11], maxval = 20, dtype = tf.int32)
+        class1 = tf.random.uniform([11], maxval=20, dtype=tf.int32)
         class1 = tf.one_hot(class1, 20)
 
         box2 = tf.random.uniform((14, 4))
-        class2 = tf.random.uniform([14], maxval = 20, dtype = tf.int32)
+        class2 = tf.random.uniform([14], maxval=20, dtype=tf.int32)
         class2 = tf.one_hot(class2, 20)
 
         box3 = tf.random.uniform((12, 4))
-        class3 = tf.random.uniform([12], maxval = 20, dtype = tf.int32)
+        class3 = tf.random.uniform([12], maxval=20, dtype=tf.int32)
         class3 = tf.one_hot(class3, 20)
 
         box_labels["boxes"] = tf.ragged.stack([box1, box2, box3])
@@ -79,4 +81,3 @@ class YoloXLabelEncoderTest(tf.test.TestCase):
 
         with self.assertRaises(ValueError):
             layer(images, box_labels)
-        
