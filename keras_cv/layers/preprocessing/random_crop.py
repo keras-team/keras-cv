@@ -138,7 +138,7 @@ class RandomCrop(VectorizedBaseImageAugmentationLayer):
         return labels
 
     def augment_bounding_boxes(
-        self, bounding_boxes, transformations, images=None, **kwargs
+        self, bounding_boxes, transformations, raw_images=None, **kwargs
     ):
         if self.bounding_box_format is None:
             raise ValueError(
@@ -151,15 +151,14 @@ class RandomCrop(VectorizedBaseImageAugmentationLayer):
             bounding_boxes = bounding_box.to_dense(
                 bounding_boxes, default_value=-1
             )
-        batch_size = tf.shape(images)[0]
-        heights, widths = self._get_image_shape(images)
-        # image_shape = tf.shape(images)
+        batch_size = tf.shape(raw_images)[0]
+        heights, widths = self._get_image_shape(raw_images)
 
         bounding_boxes = bounding_box.convert_format(
             bounding_boxes,
             source=self.bounding_box_format,
             target="xyxy",
-            images=images,
+            images=raw_images,
         )
         h_diffs = heights - self.height
         w_diffs = widths - self.width
@@ -182,10 +181,10 @@ class RandomCrop(VectorizedBaseImageAugmentationLayer):
         boxes = tf.where(
             tf.math.logical_and(h_diffs >= 0, w_diffs >= 0),
             self._crop_bounding_boxes(
-                images, bounding_boxes["boxes"], transformations
+                raw_images, bounding_boxes["boxes"], transformations
             ),
             self._resize_bounding_boxes(
-                images,
+                raw_images,
                 bounding_boxes["boxes"],
             ),
         )
@@ -293,55 +292,6 @@ class RandomCrop(VectorizedBaseImageAugmentationLayer):
             axis=-1,
         )
         return outputs
-
-    def _batch_augment(self, inputs):
-        # overwrite _batch_augment to support raw_images for
-        # augment_bounding_boxes
-        images = inputs.get(IMAGES, None)
-        raw_images = images  # needs raw_images for augment_bounding_boxes
-        labels = inputs.get(LABELS, None)
-        bounding_boxes = inputs.get(BOUNDING_BOXES, None)
-        batch_size = tf.shape(images)[0]
-        transformations = self.get_random_transformation_batch(
-            batch_size,
-        )
-
-        if isinstance(images, tf.RaggedTensor):
-            inputs_for_raggeds = {"transformations": transformations, **inputs}
-            print("inputs_for_raggeds", inputs_for_raggeds)
-            print(
-                "self._unwrap_ragged_image_call", self._unwrap_ragged_image_call
-            )
-            images = tf.map_fn(
-                self._unwrap_ragged_image_call,
-                inputs_for_raggeds,
-                fn_output_signature=self.compute_ragged_image_signature(images),
-            )
-        else:
-            images = self.augment_images(
-                images, transformations=transformations
-            )
-
-        result = {IMAGES: images}
-        if labels is not None:
-            labels = self.augment_targets(
-                labels, transformations=transformations
-            )
-            result[LABELS] = labels
-
-        if bounding_boxes is not None:
-            bounding_boxes = self.augment_bounding_boxes(
-                bounding_boxes,
-                transformations=transformations,
-                images=raw_images,
-            )
-            bounding_boxes = bounding_box.to_ragged(bounding_boxes)
-            result[BOUNDING_BOXES] = bounding_boxes
-
-        # preserve any additional inputs unmodified by this layer.
-        for key in inputs.keys() - result.keys():
-            result[key] = inputs[key]
-        return result
 
     def get_config(self):
         config = {
