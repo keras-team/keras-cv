@@ -1,4 +1,4 @@
-# Copyright 2022 The KerasCV Authors
+# Copyright 2023 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -58,6 +58,8 @@ ragged_images = tf.ragged.constant(
 
 images = tf.ones([2, 1000, 1000, 3])
 
+ragged_classes = tf.ragged.constant([[0], [0]], dtype=tf.float32)
+
 boxes = {
     "xyxy": xyxy_box,
     "center_xywh": center_xywh_box,
@@ -106,8 +108,8 @@ class ConvertersTestCase(tf.test.TestCase, parameterized.TestCase):
 
     @parameterized.named_parameters(*test_image_ragged)
     def test_converters_ragged_images(self, source, target):
-        source_box = boxes_ragged_images[source]
-        target_box = boxes_ragged_images[target]
+        source_box = _raggify(boxes_ragged_images[source])
+        target_box = _raggify(boxes_ragged_images[target])
         self.assertAllClose(
             bounding_box.convert_format(
                 source_box, source=source, target=target, images=ragged_images
@@ -187,6 +189,26 @@ class ConvertersTestCase(tf.test.TestCase, parameterized.TestCase):
                 target=target,
                 image_shape=(1000, 1000, 3),
             ),
+            target_box,
+        )
+
+    @parameterized.named_parameters(*test_image_ragged)
+    def test_dense_bounding_box_with_ragged_images(self, source, target):
+        source_box = _raggify(boxes_ragged_images[source])
+        target_box = _raggify(boxes_ragged_images[target])
+        source_bounding_boxes = {"boxes": source_box, "classes": ragged_classes}
+        source_bounding_boxes = bounding_box.to_dense(source_bounding_boxes)
+
+        result_bounding_boxes = bounding_box.convert_format(
+            source_bounding_boxes,
+            source=source,
+            target=target,
+            images=ragged_images,
+        )
+        result_bounding_boxes = bounding_box.to_ragged(result_bounding_boxes)
+
+        self.assertAllClose(
+            result_bounding_boxes["boxes"],
             target_box,
         )
 

@@ -13,6 +13,8 @@
 # limitations under the License.
 
 
+import warnings
+
 import tensorflow as tf
 from tensorflow import keras
 
@@ -159,7 +161,14 @@ class GIoULoss(keras.losses.Loss):
 
         giou = self._compute_giou(y_true, y_pred)
         giou = tf.linalg.diag_part(giou)
-        giou = tf.reduce_mean(giou, axis=self.axis)
+        if self.axis == "no_reduction":
+            warnings.warn(
+                "`axis='no_reduction'` is a temporary API, and the API contract "
+                "will be replaced in the future with a more generic solution "
+                "covering all losses."
+            )
+        else:
+            giou = tf.reduce_mean(giou, axis=self.axis)
 
         return 1 - giou
 

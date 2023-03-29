@@ -44,7 +44,7 @@ class MultiClassNonMaxSuppression(keras.layers.Layer):
         bounding_box_format,
         from_logits,
         iou_threshold=0.5,
-        confidence_threshold=0.75,
+        confidence_threshold=0.9,
         max_detections=100,
         max_detections_per_class=100,
         **kwargs,
