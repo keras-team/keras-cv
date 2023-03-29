@@ -90,6 +90,21 @@ class BoxCOCOMetricsTest(tf.test.TestCase):
             # passed which actually modifies the final area under curve value.
             self.assertNotEqual(metrics[metric], 0.0)
 
+    def test_coco_metric_suite_force_eval(self):
+        suite = BoxCOCOMetrics(bounding_box_format="xyxy", evaluate_freq=512)
+        y_true, y_pred, categories = load_samples(SAMPLE_FILE)
+
+        suite.update_state(y_true, y_pred)
+        metrics = suite.result()
+        self.assertAllEqual(metrics, {key: 0 for key in golden_metrics})
+
+        suite.update_state(y_true, y_pred)
+        metrics = suite.result(force=True)
+        for metric in metrics:
+            # The metrics do not match golden metrics because two batches were
+            # passed which actually modifies the final area under curve value.
+            self.assertNotEqual(metrics[metric], 0.0)
+
     def test_name_parameter(self):
         suite = BoxCOCOMetrics(
             bounding_box_format="xyxy", evaluate_freq=1, name="coco_metrics"
