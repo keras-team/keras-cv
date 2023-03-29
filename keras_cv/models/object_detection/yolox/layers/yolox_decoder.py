@@ -30,7 +30,7 @@ class YoloXPredictionDecoder(keras.layers.Layer):
         bounding_box_format:  The format of bounding boxes of input dataset. Refer
             [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
             for more details on supported bounding box formats.
-        classes: The number of classes to be considered for the classification head.
+        num_classes: The number of classes to be considered for the classification head.
         suppression_layer: A `keras.layers.Layer` that follows the same API
             signature of the `keras_cv.layers.MultiClassNonMaxSuppression` layer.
             This layer should perform a suppression operation such as Non Max Suppression,
@@ -38,11 +38,11 @@ class YoloXPredictionDecoder(keras.layers.Layer):
     """
 
     def __init__(
-        self, bounding_box_format, classes, suppression_layer=None, **kwargs
+        self, bounding_box_format, num_classes, suppression_layer=None, **kwargs
     ):
         super().__init__(**kwargs)
         self.bounding_box_format = bounding_box_format
-        self.classes = classes
+        self.num_classes = num_classes
 
         self.suppression_layer = (
             suppression_layer
@@ -76,8 +76,12 @@ class YoloXPredictionDecoder(keras.layers.Layer):
         strides = []
 
         shapes = [x.shape[1:3] for x in predictions]
+
+        # 5 + self.num_classes is a concatenation of bounding boxes (length=4)
+        # + objectness score (length=1) + num_classes
+        # this reshape is simply collapsing axes 1 and 2 of x into a single dimension
         predictions = [
-            tf.reshape(x, [batch_size, -1, 5 + self.classes])
+            tf.reshape(x, [batch_size, -1, 5 + self.num_classes])
             for x in predictions
         ]
         predictions = tf.cast(
@@ -107,13 +111,13 @@ class YoloXPredictionDecoder(keras.layers.Layer):
             (predictions[..., :2] + grids) * strides / image_shape, axis=-2
         )
         box_xy = tf.broadcast_to(
-            box_xy, [batch_size, predictions_shape[1], self.classes, 2]
+            box_xy, [batch_size, predictions_shape[1], self.num_classes, 2]
         )
         box_wh = tf.expand_dims(
             tf.exp(predictions[..., 2:4]) * strides / image_shape, axis=-2
         )
         box_wh = tf.broadcast_to(
-            box_wh, [batch_size, predictions_shape[1], self.classes, 2]
+            box_wh, [batch_size, predictions_shape[1], self.num_classes, 2]
         )
 
         box_confidence = tf.math.sigmoid(predictions[..., 4:5])
@@ -121,10 +125,10 @@ class YoloXPredictionDecoder(keras.layers.Layer):
 
         # create and broadcast classes for every box before nms
         box_classes = tf.expand_dims(
-            tf.range(self.classes, dtype=self.compute_dtype), axis=-1
+            tf.range(self.num_classes, dtype=self.compute_dtype), axis=-1
         )
         box_classes = tf.broadcast_to(
-            box_classes, [batch_size, predictions_shape[1], self.classes, 1]
+            box_classes, [batch_size, predictions_shape[1], self.num_classes, 1]
         )
 
         box_scores = tf.expand_dims(box_confidence * box_class_probs, axis=-1)
@@ -146,7 +150,6 @@ class YoloXPredictionDecoder(keras.layers.Layer):
             target="xywh",
             images=images,
         )
-
         outputs = bounding_box.convert_format(
             outputs,
             source="rel_xywh",
@@ -156,7 +159,7 @@ class YoloXPredictionDecoder(keras.layers.Layer):
 
         # preparing the predictions for TF NMS op
         class_predictions = tf.cast(outputs["classes"], tf.int32)
-        class_predictions = tf.one_hot(class_predictions, self.classes)
+        class_predictions = tf.one_hot(class_predictions, self.num_classes)
 
         scores = (
             tf.expand_dims(outputs["confidence"], axis=-1) * class_predictions

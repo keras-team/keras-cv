@@ -24,7 +24,7 @@ class YoloXHead(keras.layers.Layer):
     """The YoloX prediction head.
 
     Arguments:
-        classes: The number of classes to be considered for the classification head.
+        num_classes: The number of classes to be considered for the classification head.
         bias_initializer: Bias Initializer for the final convolution layer for the
             classification and regression heads. Defaults to None.
         width_multiplier: A float value used to calculate the base width of the model
@@ -38,7 +38,7 @@ class YoloXHead(keras.layers.Layer):
 
     def __init__(
         self,
-        classes,
+        num_classes,
         bias_initializer=None,
         width_multiplier=1.0,
         num_level=3,
@@ -110,7 +110,7 @@ class YoloXHead(keras.layers.Layer):
 
             self.classification_preds.append(
                 keras.layers.Conv2D(
-                    filters=classes,
+                    filters=num_classes,
                     kernel_size=1,
                     strides=1,
                     padding="same",

@@ -12,13 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
+import warnings
+
 import tensorflow as tf
 
 
 class BinaryCrossentropy(tf.keras.losses.Loss):
     """Computes the cross-entropy loss between true labels and predicted labels.
+
     Use this cross-entropy loss for binary (0 or 1) classification applications.
     This loss is updated for YoloX by offering support for no axis to mean over.
+
     Args:
         from_logits: Whether to interpret `y_pred` as a tensor of
             [logit](https://en.wikipedia.org/wiki/Logit) values. By default, we
@@ -29,9 +34,10 @@ class BinaryCrossentropy(tf.keras.losses.Loss):
             version of the true labels, where the smoothing squeezes the labels
             towards 0.5.  Larger values of `label_smoothing` correspond to
             heavier smoothing.
-        axis: the axis along which to mean the ious. Defaults to `None` which implies
+        axis: the axis along which to mean the ious. Defaults to `no_reduction` which implies
             mean across no axes.
-    Sample Usage:
+
+    Usage:
     ```python
     model.compile(
       loss=keras_cv.models.object_detection.yolox.binary_crossentropy.BinaryCrossentropy(from_logits=True)
@@ -62,13 +68,19 @@ class BinaryCrossentropy(tf.keras.losses.Loss):
             label_smoothing, _smooth_labels, lambda: y_true
         )
 
-        if self.axis is not None:
+        if self.axis == "no_reduction":
+            warnings.warn(
+                "`axis='no_reduction'` is a temporary API, and the API contract "
+                "will be replaced in the future with a more generic solution "
+                "covering all losses."
+            )
             return tf.reduce_mean(
                 tf.keras.backend.binary_crossentropy(
                     y_true, y_pred, from_logits=self.from_logits
                 ),
                 axis=self.axis,
             )
+
         return tf.keras.backend.binary_crossentropy(
             y_true, y_pred, from_logits=self.from_logits
         )

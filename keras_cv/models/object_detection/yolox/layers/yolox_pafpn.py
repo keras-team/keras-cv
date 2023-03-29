@@ -33,7 +33,7 @@ class YoloXPAFPN(keras.layers.Layer):
             this changes based on the detection model being used. Defaults to 1.0.
         in_channels: A list representing the number of filters in the FPN output.
             The length of the list will be same as the number of outputs. Defaults to
-            [256, 512, 1024].
+            (256, 512, 1024).
         use_depthwise: a boolean value used to decide whether a depthwise conv block
             should be used over a regular darknet block. Defaults to False.
         activation: the activation applied after the BatchNorm layer. One of "silu",
@@ -44,7 +44,7 @@ class YoloXPAFPN(keras.layers.Layer):
         self,
         depth_multiplier=1.0,
         width_multiplier=1.0,
-        in_channels=[256, 512, 1024],
+        in_channels=(256, 512, 1024),
         use_depthwise=False,
         activation="silu",
         **kwargs
