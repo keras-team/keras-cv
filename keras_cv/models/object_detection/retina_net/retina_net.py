@@ -461,8 +461,6 @@ class RetinaNet(keras.Model):
         )
         boxes, classes = self.label_encoder(x, y_for_label_encoder)
         # boxes are now in `center_yxhw`.  This is always the case in training
-        sets,
-
         with tf.GradientTape() as tape:
             box_pred, cls_pred = self(x, training=True)
             total_loss = self.compute_loss(

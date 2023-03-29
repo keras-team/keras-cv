@@ -25,7 +25,7 @@ import tensorflow as tf
 import tensorflow_datasets as tfds
 from absl import flags
 from tensorflow import keras
-
+from keras_cv.callbacks import PyCOCOCallback
 import keras_cv
 
 low, high = resource.getrlimit(resource.RLIMIT_NOFILE)
@@ -121,7 +121,7 @@ augmenter = keras.Sequential(
         ),
     ]
 )
-train_ds = train_ds.ragged_batch(GLOBAL_BATCH_SIZE)
+train_ds = train_ds.apply(tf.data.experimental.dense_to_ragged_batch(BATCH_SIZE))
 train_ds = train_ds.map(augmenter, num_parallel_calls=tf.data.AUTOTUNE)
 
 
@@ -142,7 +142,7 @@ eval_ds = eval_ds.map(
     eval_resizing,
     num_parallel_calls=tf.data.AUTOTUNE,
 )
-eval_ds = eval_ds.ragged_batch(GLOBAL_BATCH_SIZE, drop_remainder=True)
+eval_ds = eval_ds.apply(tf.data.experimental.dense_to_ragged_batch(BATCH_SIZE))
 eval_ds = eval_ds.map(pad_fn, num_parallel_calls=tf.data.AUTOTUNE)
 eval_ds = eval_ds.prefetch(tf.data.AUTOTUNE)
 
@@ -178,7 +178,7 @@ model.prediction_decoder = keras_cv.layers.MultiClassNonMaxSuppression(
     bounding_box_format="xywh", confidence_threshold=0.5, from_logits=True
 )
 
-for layer in model.backbone.layers:
+for layer in model.feature_extractor.layers:
     if isinstance(layer, (keras.layers.BatchNormalization)):
         layer.trainable = False
 
@@ -214,7 +214,7 @@ callbacks = [
     keras.callbacks.ReduceLROnPlateau(patience=5),
     keras.callbacks.EarlyStopping(patience=10),
     keras.callbacks.ModelCheckpoint(FLAGS.weights_name, save_weights_only=True),
-    PyCOCOCallback(eval_ds, bounding_box_format='xywh')
+    PyCOCOCallback(eval_ds, bounding_box_format='xywh'),
     EvaluateCOCOMetricsCallback(eval_ds)
 ]
 
@@ -224,6 +224,3 @@ history = model.fit(
     epochs=FLAGS.epochs,
     callbacks=callbacks,
 )
-
-final_scores = model.evaluate(eval_ds, return_dict=True)
-print("FINAL SCORES", final_scores)
