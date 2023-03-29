@@ -171,10 +171,15 @@ class RetinaNet(keras.Model):
                 "a single class is present, the model will always give a score of "
                 "`1` for the single present class."
             )
-        if backbone is None:
-            self.backbone = keras_cv.models.ResNet50V2Backbone()
-        else:
-            self.backbone = backbone
+
+        if backbone is not None and feature_extractor is not None:
+            raise ValueError(
+                "Expected one of `backbone` or `feature_extractor`, but got "
+                f"`backbone={backbone}`"
+                f"`feature_extractor={feature_extractor}`"
+            )
+        if backbone is None and feature_extractor is None:
+            backbone = keras_cv.models.ResNet50.from_preset('resnet50_imagenet')
 
         self._prediction_decoder = (
             prediction_decoder
@@ -276,14 +281,16 @@ class RetinaNet(keras.Model):
 
         cls_pred = tf.concat(cls_pred, axis=1)
         box_pred = tf.concat(box_pred, axis=1)
+        # box_pred is always in "center_yxhw" delta-encoded no matter what
+        # format you pass in.
         return box_pred, cls_pred
 
     def decode_predictions(self, predictions, images):
-        # no-op if default decoder is used.
         box_pred, cls_pred = predictions
         # box_pred is on "center_yxhw" format, convert to target format.
         anchors = self.anchor_generator(images[0])
         anchors = tf.concat(tf.nest.flatten(anchors), axis=0)
+
         box_pred = _decode_deltas_to_boxes(
             anchors=anchors,
             boxes_delta=box_pred,
@@ -291,6 +298,7 @@ class RetinaNet(keras.Model):
             box_format=self.bounding_box_format,
             variance=BOX_VARIANCE,
         )
+        # box_pred is now in "self.bounding_box_format" format
         box_pred = bounding_box.convert_format(
             box_pred,
             source=self.bounding_box_format,
@@ -298,13 +306,12 @@ class RetinaNet(keras.Model):
             images=images,
         )
         y_pred = self.prediction_decoder(box_pred, cls_pred)
-        box_pred = bounding_box.convert_format(
+        y_pred["boxes"] = bounding_box.convert_format(
             y_pred["boxes"],
             source=self.prediction_decoder.bounding_box_format,
             target=self.bounding_box_format,
             images=images,
         )
-        y_pred["boxes"] = box_pred
         return y_pred
 
     def compile(
@@ -442,12 +449,8 @@ class RetinaNet(keras.Model):
             images=x,
         )
         boxes, classes = self.label_encoder(x, y_for_label_encoder)
-        boxes = bounding_box.convert_format(
-            boxes,
-            source=self.label_encoder.bounding_box_format,
-            target=self.bounding_box_format,
-            images=x,
-        )
+        # boxes are now in `center_yxhw`.  This is always the case in training
+        sets,
 
         with tf.GradientTape() as tape:
             box_pred, cls_pred = self(x, training=True)
