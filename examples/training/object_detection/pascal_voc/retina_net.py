@@ -33,7 +33,7 @@ resource.setrlimit(resource.RLIMIT_NOFILE, (high, high))
 
 flags.DEFINE_integer(
     "epochs",
-    50,
+    35,
     "Number of epochs to run for.",
 )
 
@@ -60,7 +60,7 @@ except ValueError:
     # MirroredStrategy is best for a single machine with one or multiple GPUs
     strategy = tf.distribute.MirroredStrategy()
 
-BATCH_SIZE = 16
+BATCH_SIZE = 4
 GLOBAL_BATCH_SIZE = BATCH_SIZE * strategy.num_replicas_in_sync
 BASE_LR = 0.01 * GLOBAL_BATCH_SIZE / 16
 print("Number of accelerators: ", strategy.num_replicas_in_sync)
