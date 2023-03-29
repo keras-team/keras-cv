@@ -15,7 +15,7 @@
 Title: Train an Object Detection Model on Pascal VOC 2007 using KerasCV
 Author: [lukewood](https://github.com/LukeWood), [tanzhenyu](https://github.com/tanzhenyu)
 Date created: 2022/09/27
-Last modified: 2022/12/08
+Last modified: 2023/03/29
 Description: Use KerasCV to train a RetinaNet on Pascal VOC 2007.
 """
 import resource
@@ -109,7 +109,7 @@ eval_ds = eval_ds.map(
     num_parallel_calls=tf.data.AUTOTUNE,
 )
 
-augmenter = keras_cv.layers.Augmenter(
+augmenter = keras.Sequential(
     layers=[
         keras_cv.layers.RandomFlip(
             mode="horizontal", bounding_box_format="xywh"
