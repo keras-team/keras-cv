@@ -164,7 +164,7 @@ class ModelsTest:
 
     def _test_model_serialization(self, app, _, args, save_format, filename):
         model = app(include_rescaling=True, include_top=False, **args)
-        input_batch = tf.ones(shape=(16, 224, 224, 3))
+        input_batch = tf.ones(shape=(1, 224, 224, 3))
         model_output = model(input_batch)
         save_path = os.path.join(self.get_temp_dir(), filename)
         model.save(save_path, save_format=save_format)
