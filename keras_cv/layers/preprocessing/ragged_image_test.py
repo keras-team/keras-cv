@@ -33,6 +33,11 @@ CONSISTENT_OUTPUT_TEST_CONFIGURATIONS = [
         {"factor": 0.5},
     ),
     (
+        "RandomCrop",
+        layers.RandomCrop,
+        {"height": 2, "width": 2},
+    ),
+    (
         "RandomCutout",
         layers.RandomCutout,
         {"height_factor": 0.2, "width_factor": 0.2},
