@@ -69,3 +69,12 @@ class RandomSharpnessTest(tf.test.TestCase):
         result = tf.expand_dims(result, axis=0)
 
         self.assertAllClose(ys, result)
+
+    def test_random_sharpness_on_batched_images_independently(self):
+        image = tf.random.uniform((100, 100, 3), minval=0, maxval=255)
+        batched_images = tf.stack((image, image), axis=0)
+        layer = preprocessing.RandomSharpness(value_range=(0, 255), factor=0.9)
+
+        results = layer(batched_images)
+
+        self.assertNotAllClose(results[0], results[1])
