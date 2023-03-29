@@ -186,8 +186,10 @@ class RetinaNet(keras.Model):
                 f"`feature_extractor={feature_extractor}`"
             )
 
+        # Only create a backbone if feature_extractor is None
         if backbone is None and feature_extractor is None:
             backbone = keras_cv.models.ResNet50.from_preset('resnet50_imagenet')
+        if feature_extractor is None:
             # initialize trainable networks
             extractor_levels = [3, 4, 5]
             extractor_layer_names = [
