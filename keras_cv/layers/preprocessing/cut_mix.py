@@ -88,7 +88,7 @@ class CutMix(BaseImageAugmentationLayer):
         )
 
     def _update_segmentation_masks(
-        self, segmentation_masks, lambda_sample, permutation_order
+        self, segmentation_masks
     ):
         segmentation_masks_for_cut_mix = tf.gather(
             segmentation_masks, permutation_order
