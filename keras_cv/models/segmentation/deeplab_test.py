@@ -90,12 +90,7 @@ class DeeplabTest(tf.test.TestCase):
                 backbone=tf.Module(),
             )
 
-    @pytest.mark.skipif(
-        "REGRESSION" not in os.environ or os.environ["REGRESSION"] != "true",
-        reason="Takes a long time to run, only runs when REGRESSION "
-        "environment variable is set.  To run the test please run: \n"
-        "`REGRESSION=true pytest keras_cv/",
-    )
+    @pytest.mark.extra_large
     def test_model_train(self):
         backbone = ResNet50V2Backbone(
             input_shape=[384, 384, 3],
