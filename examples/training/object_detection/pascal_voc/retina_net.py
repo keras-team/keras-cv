@@ -162,6 +162,9 @@ with strategy.scope():
         # For more info on supported bounding box formats, visit
         # https://keras.io/api/keras_cv/bounding_box/
         bounding_box_format="xywh",
+        backbone=keras_cv.models.ResNet50V2Backbone.from_preset(
+            "resnet50_v2_imagenet"
+        ),
     )
     lr_decay = tf.keras.optimizers.schedules.PiecewiseConstantDecay(
         boundaries=[12000 * 16, 16000 * 16],
