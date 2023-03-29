@@ -186,18 +186,36 @@ model.compile(
     classification_loss="focal",
     box_loss="smoothl1",
     optimizer=optimizer,
-    metrics=[
-        keras_cv.metrics.BoxCOCOMetrics(
-            bounding_box_format="xywh", evaluate_freq=128
-        )
-    ],
+    metrics=[],
 )
+
+class EvaluateCOCOMetricsCallback(keras.callbacks.Callback):
+  def __init__(self, data):
+    super().__init__()
+    self.data = data
+    self.metrics = keras_cv.metrics.BoxCOCOMetrics(
+        bounding_box_format='xywh',
+        evaluate_freq=1e9
+    )
+
+  def on_epoch_end(self, epoch, logs):
+    self.metrics.reset_state()
+    for batch in tqdm.tqdm(self.data):
+      images, y_true = batch[0], batch[1]
+      y_pred = self.model.predict(images, verbose=0)
+      self.metrics.update_state(y_true, y_pred)
+
+    metrics = self.metrics.result(force=True)
+    logs.update(metrics)
+    return logs
 
 callbacks = [
     keras.callbacks.TensorBoard(log_dir=FLAGS.tensorboard_path),
     keras.callbacks.ReduceLROnPlateau(patience=5),
     keras.callbacks.EarlyStopping(patience=10),
     keras.callbacks.ModelCheckpoint(FLAGS.weights_name, save_weights_only=True),
+    PyCOCOCallback(eval_ds, bounding_box_format='xywh')
+    EvaluateCOCOMetricsCallback(eval_ds)
 ]
 
 history = model.fit(
