@@ -25,6 +25,9 @@ import tensorflow as tf
 import tensorflow_datasets as tfds
 from absl import flags
 from tensorflow import keras
+
+# Temporarily need PyCOCOCallback to verify
+# a 1:1 comparison with the PyMetrics version.
 from keras_cv.callbacks import PyCOCOCallback
 import keras_cv
 
@@ -211,6 +214,8 @@ callbacks = [
     keras.callbacks.ReduceLROnPlateau(patience=5),
     keras.callbacks.EarlyStopping(patience=10),
     keras.callbacks.ModelCheckpoint(FLAGS.weights_name, save_weights_only=True),
+    # Temporarily need PyCOCOCallback to verify
+    # a 1:1 comparison with the PyMetrics version.
     PyCOCOCallback(eval_ds, bounding_box_format='xywh'),
     EvaluateCOCOMetricsCallback(eval_ds),
     keras.callbacks.TensorBoard(log_dir=FLAGS.tensorboard_path),
