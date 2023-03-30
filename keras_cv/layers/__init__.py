@@ -117,3 +117,4 @@ from keras_cv.layers.regularization.stochastic_depth import StochasticDepth
 from keras_cv.layers.spatial_pyramid import SpatialPyramidPooling
 from keras_cv.layers.transformer_encoder import TransformerEncoder
 from keras_cv.layers.vit_layers import PatchingAndEmbedding
+from keras_cv.layers.preprocessing.five_crop import FiveCrop
