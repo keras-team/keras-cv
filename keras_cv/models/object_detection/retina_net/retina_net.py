@@ -217,6 +217,7 @@ class RetinaNet(Task):
         self.box_head = box_head or PredictionHead(
             output_filters=9 * 4, bias_initializer=keras.initializers.Zeros()
         )
+        self.build(backbone.input_shape)
 
     def make_predict_function(self, force=False):
         return predict_utils.make_predict_function(self, force=force)
