@@ -23,10 +23,15 @@ import sys
 
 import tensorflow as tf
 import tensorflow_datasets as tfds
+import tqdm
 from absl import flags
 from tensorflow import keras
 
 import keras_cv
+
+# Temporarily need PyCOCOCallback to verify
+# a 1:1 comparison with the PyMetrics version.
+from keras_cv.callbacks import PyCOCOCallback
 
 low, high = resource.getrlimit(resource.RLIMIT_NOFILE)
 resource.setrlimit(resource.RLIMIT_NOFILE, (high, high))
@@ -121,7 +126,9 @@ augmenter = keras.Sequential(
         ),
     ]
 )
-train_ds = train_ds.ragged_batch(GLOBAL_BATCH_SIZE)
+train_ds = train_ds.apply(
+    tf.data.experimental.dense_to_ragged_batch(BATCH_SIZE)
+)
 train_ds = train_ds.map(augmenter, num_parallel_calls=tf.data.AUTOTUNE)
 
 
@@ -142,7 +149,7 @@ eval_ds = eval_ds.map(
     eval_resizing,
     num_parallel_calls=tf.data.AUTOTUNE,
 )
-eval_ds = eval_ds.ragged_batch(GLOBAL_BATCH_SIZE, drop_remainder=True)
+eval_ds = eval_ds.apply(tf.data.experimental.dense_to_ragged_batch(BATCH_SIZE))
 eval_ds = eval_ds.map(pad_fn, num_parallel_calls=tf.data.AUTOTUNE)
 eval_ds = eval_ds.prefetch(tf.data.AUTOTUNE)
 
@@ -162,8 +169,8 @@ with strategy.scope():
         # For more info on supported bounding box formats, visit
         # https://keras.io/api/keras_cv/bounding_box/
         bounding_box_format="xywh",
-        backbone=keras_cv.models.ResNet50V2Backbone.from_preset(
-            "resnet50_v2_imagenet"
+        backbone=keras_cv.models.ResNet50Backbone.from_preset(
+            "resnet50_imagenet"
         ),
     )
     lr_decay = tf.keras.optimizers.schedules.PiecewiseConstantDecay(
@@ -178,7 +185,7 @@ model.prediction_decoder = keras_cv.layers.MultiClassNonMaxSuppression(
     bounding_box_format="xywh", confidence_threshold=0.5, from_logits=True
 )
 
-for layer in model.backbone.layers:
+for layer in model.feature_extractor.layers:
     if isinstance(layer, (keras.layers.BatchNormalization)):
         layer.trainable = False
 
@@ -186,18 +193,41 @@ model.compile(
     classification_loss="focal",
     box_loss="smoothl1",
     optimizer=optimizer,
-    metrics=[
-        keras_cv.metrics.BoxCOCOMetrics(
-            bounding_box_format="xywh", evaluate_freq=128
-        )
-    ],
+    metrics=[],
 )
 
+
+class EvaluateCOCOMetricsCallback(keras.callbacks.Callback):
+    def __init__(self, data):
+        super().__init__()
+        self.data = data
+        self.metrics = keras_cv.metrics.BoxCOCOMetrics(
+            bounding_box_format="xywh", evaluate_freq=1e9
+        )
+
+    def on_epoch_end(self, epoch, logs):
+        self.metrics.reset_state()
+        for batch in tqdm.tqdm(self.data):
+            images, y_true = batch[0], batch[1]
+            y_pred = self.model.predict(images, verbose=0)
+            self.metrics.update_state(y_true, y_pred)
+
+        metrics = self.metrics.result(force=True)
+        logs.update(metrics)
+        return logs
+
+
 callbacks = [
-    keras.callbacks.TensorBoard(log_dir=FLAGS.tensorboard_path),
     keras.callbacks.ReduceLROnPlateau(patience=5),
     keras.callbacks.EarlyStopping(patience=10),
     keras.callbacks.ModelCheckpoint(FLAGS.weights_name, save_weights_only=True),
+    # Temporarily need PyCOCOCallback to verify
+    # a 1:1 comparison with the PyMetrics version.
+    # Currently, results do not match.  I have a feeling this is due
+    # to how we are creating the boxes in  `BoxCOCOMetrics`
+    PyCOCOCallback(eval_ds, bounding_box_format="xywh"),
+    EvaluateCOCOMetricsCallback(eval_ds),
+    keras.callbacks.TensorBoard(log_dir=FLAGS.tensorboard_path),
 ]
 
 history = model.fit(
@@ -206,6 +236,3 @@ history = model.fit(
     epochs=FLAGS.epochs,
     callbacks=callbacks,
 )
-
-final_scores = model.evaluate(eval_ds, return_dict=True)
-print("FINAL SCORES", final_scores)

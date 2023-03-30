@@ -58,6 +58,9 @@ class RetinaNet(keras.Model):
     model = keras_cv.models.RetinaNet(
         num_classes=20,
         bounding_box_format="xywh",
+        backbone=keras_cv.models.ResNet50Backbone.from_preset(
+            "resnet50_imagenet"
+        )
     )
 
     # Evaluate model
@@ -80,9 +83,10 @@ class RetinaNet(keras.Model):
         bounding_box_format: The format of bounding boxes of input dataset. Refer
             [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
             for more details on supported bounding box formats.
-        backbone: optional `keras.Model`. Must implement the `pyramid_level_inputs`
-            property with keys 3, 4, and 5 and layer names as values. If
-            `None`, defaults to `keras_cv.models.ResNet50V2Backbone()`.
+        backbone: `keras.Model`. Must implement the `pyramid_level_inputs`
+            property with keys 3, 4, and 5 and layer names as values. A somewhat
+            sensible backbone to use in many cases is the:
+            `keras_cv.models.ResNetBackbone.from_preset("resnet50_imagenet")`
         anchor_generator: (Optional) a `keras_cv.layers.AnchorGenerator`.  If provided,
             the anchor generator will be passed to both the `label_encoder` and the
             `prediction_decoder`.  Only to be used when both `label_encoder` and
@@ -113,7 +117,7 @@ class RetinaNet(keras.Model):
         self,
         num_classes,
         bounding_box_format,
-        backbone=None,
+        backbone,
         anchor_generator=None,
         label_encoder=None,
         prediction_decoder=None,
@@ -171,11 +175,19 @@ class RetinaNet(keras.Model):
                 "a single class is present, the model will always give a score of "
                 "`1` for the single present class."
             )
-        if backbone is None:
-            self.backbone = keras_cv.models.ResNet50V2Backbone()
-        else:
-            self.backbone = backbone
 
+        self.backbone = backbone
+
+        # initialize trainable networks
+        extractor_levels = [3, 4, 5]
+        extractor_layer_names = [
+            backbone.pyramid_level_inputs[i] for i in extractor_levels
+        ]
+        feature_extractor = get_feature_extractor(
+            backbone, extractor_layer_names, extractor_levels
+        )
+
+        self.feature_extractor = feature_extractor
         self._prediction_decoder = (
             prediction_decoder
             or cv_layers.MultiClassNonMaxSuppression(
@@ -184,14 +196,6 @@ class RetinaNet(keras.Model):
             )
         )
 
-        # initialize trainable networks
-        extractor_levels = [3, 4, 5]
-        extractor_layer_names = [
-            self.backbone.pyramid_level_inputs[i] for i in extractor_levels
-        ]
-        self.feature_extractor = get_feature_extractor(
-            self.backbone, extractor_layer_names, extractor_levels
-        )
         self.feature_pyramid = layers_lib.FeaturePyramid()
         prior_probability = keras.initializers.Constant(
             -np.log((1 - 0.01) / 0.01)
@@ -276,14 +280,16 @@ class RetinaNet(keras.Model):
 
         cls_pred = tf.concat(cls_pred, axis=1)
         box_pred = tf.concat(box_pred, axis=1)
+        # box_pred is always in "center_yxhw" delta-encoded no matter what
+        # format you pass in.
         return box_pred, cls_pred
 
     def decode_predictions(self, predictions, images):
-        # no-op if default decoder is used.
         box_pred, cls_pred = predictions
         # box_pred is on "center_yxhw" format, convert to target format.
         anchors = self.anchor_generator(images[0])
         anchors = tf.concat(tf.nest.flatten(anchors), axis=0)
+
         box_pred = _decode_deltas_to_boxes(
             anchors=anchors,
             boxes_delta=box_pred,
@@ -291,6 +297,7 @@ class RetinaNet(keras.Model):
             box_format=self.bounding_box_format,
             variance=BOX_VARIANCE,
         )
+        # box_pred is now in "self.bounding_box_format" format
         box_pred = bounding_box.convert_format(
             box_pred,
             source=self.bounding_box_format,
@@ -298,13 +305,12 @@ class RetinaNet(keras.Model):
             images=images,
         )
         y_pred = self.prediction_decoder(box_pred, cls_pred)
-        box_pred = bounding_box.convert_format(
+        y_pred["boxes"] = bounding_box.convert_format(
             y_pred["boxes"],
             source=self.prediction_decoder.bounding_box_format,
             target=self.bounding_box_format,
             images=images,
         )
-        y_pred["boxes"] = box_pred
         return y_pred
 
     def compile(
@@ -442,13 +448,7 @@ class RetinaNet(keras.Model):
             images=x,
         )
         boxes, classes = self.label_encoder(x, y_for_label_encoder)
-        boxes = bounding_box.convert_format(
-            boxes,
-            source=self.label_encoder.bounding_box_format,
-            target=self.bounding_box_format,
-            images=x,
-        )
-
+        # boxes are now in `center_yxhw`.  This is always the case in training
         with tf.GradientTape() as tape:
             box_pred, cls_pred = self(x, training=True)
             total_loss = self.compute_loss(
@@ -526,9 +526,7 @@ class RetinaNet(keras.Model):
             "num_classes": self.num_classes,
             "bounding_box_format": self.bounding_box_format,
             "backbone": keras.utils.serialize_keras_object(self.backbone),
-            # TODO(haifengj): handle custom anchor_generator. we now rely on
-            # label_encoder and prediction_decoder to reconstruct
-            # anchor_gnerator.
+            "feature_extractor": self.feature_extractor,
             "label_encoder": self.label_encoder,
             "prediction_decoder": self._prediction_decoder,
             "classification_head": self.classification_head,

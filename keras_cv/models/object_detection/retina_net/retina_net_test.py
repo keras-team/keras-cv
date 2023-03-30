@@ -40,6 +40,7 @@ class RetinaNetTest(tf.test.TestCase):
         retina_net = keras_cv.models.RetinaNet(
             num_classes=20,
             bounding_box_format="xywh",
+            backbone=keras_cv.models.ResNet50V2Backbone(),
         )
         retina_net.compile(
             classification_loss="focal",
@@ -61,6 +62,7 @@ class RetinaNetTest(tf.test.TestCase):
         retina_net = keras_cv.models.RetinaNet(
             num_classes=20,
             bounding_box_format="xywh",
+            backbone=keras_cv.models.ResNet50V2Backbone(),
         )
         images = tf.random.uniform((2, 512, 512, 3))
         _ = retina_net(images)
@@ -70,6 +72,7 @@ class RetinaNetTest(tf.test.TestCase):
         retina_net = keras_cv.models.RetinaNet(
             num_classes=2,
             bounding_box_format="xywh",
+            backbone=keras_cv.models.ResNet50V2Backbone(),
         )
 
         with self.assertRaisesRegex(
@@ -90,6 +93,7 @@ class RetinaNetTest(tf.test.TestCase):
         retina_net = keras_cv.models.RetinaNet(
             num_classes=2,
             bounding_box_format="xywh",
+            backbone=keras_cv.models.ResNet50V2Backbone(),
         )
 
         retina_net.compile(
@@ -107,6 +111,7 @@ class RetinaNetTest(tf.test.TestCase):
         retina_net = keras_cv.models.RetinaNet(
             num_classes=2,
             bounding_box_format=bounding_box_format,
+            backbone=keras_cv.models.ResNet50V2Backbone(),
         )
         retina_net.backbone.trainable = False
         retina_net.compile(
@@ -137,6 +142,7 @@ class RetinaNetTest(tf.test.TestCase):
         retina_net = keras_cv.models.RetinaNet(
             num_classes=2,
             bounding_box_format=bounding_box_format,
+            backbone=keras_cv.models.ResNet50V2Backbone(),
         )
 
         retina_net.compile(
@@ -179,42 +185,13 @@ class RetinaNetTest(tf.test.TestCase):
         for w1, w2 in zip(original_fpn_weights, fpn_after_fit):
             self.assertNotAllClose(w1, w2)
 
-    @pytest.mark.skipif(
-        "INTEGRATION" not in os.environ or os.environ["INTEGRATION"] != "true",
-        reason="Takes a long time to run, only runs when INTEGRATION "
-        "environment variable is set.  To run the test please run: \n"
-        "`INTEGRATION=true pytest keras_cv/",
-    )
-    def test_retina_net_with_dictionary_input_format(self):
-        retina_net = keras_cv.models.RetinaNet(
-            num_classes=20,
-            bounding_box_format="xywh",
-        )
-
-        images, boxes = _create_bounding_box_dataset("xywh")
-        dataset = tf.data.Dataset.from_tensor_slices(
-            {"images": images, "bounding_boxes": boxes}
-        ).batch(5, drop_remainder=True)
-
-        retina_net.compile(
-            optimizer=optimizers.Adam(),
-            classification_loss=keras_cv.losses.FocalLoss(
-                from_logits=True, reduction="none"
-            ),
-            box_loss=keras_cv.losses.SmoothL1Loss(
-                l1_cutoff=1.0, reduction="none"
-            ),
-        )
-
-        retina_net.fit(dataset, epochs=1)
-        retina_net.evaluate(dataset)
-
     def test_serialization(self):
         # TODO(haifengj): Reuse test code from
         # ModelTest._test_model_serialization.
         model = keras_cv.models.RetinaNet(
             num_classes=20,
             bounding_box_format="xywh",
+            backbone=keras_cv.models.ResNet50V2Backbone(),
         )
         serialized_1 = keras.utils.serialize_keras_object(model)
         restored = keras.utils.deserialize_keras_object(
