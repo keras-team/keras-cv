@@ -184,3 +184,18 @@ class RetinaNetTest(tf.test.TestCase):
 
         for w1, w2 in zip(original_fpn_weights, fpn_after_fit):
             self.assertNotAllClose(w1, w2)
+
+    def test_serialization(self):
+        # TODO(haifengj): Reuse test code from
+        # ModelTest._test_model_serialization.
+        model = keras_cv.models.RetinaNet(
+            num_classes=20,
+            bounding_box_format="xywh",
+            backbone=keras_cv.models.ResNet50V2Backbone()
+        )
+        serialized_1 = keras.utils.serialize_keras_object(model)
+        restored = keras.utils.deserialize_keras_object(
+            copy.deepcopy(serialized_1)
+        )
+        serialized_2 = keras.utils.serialize_keras_object(restored)
+        self.assertEqual(serialized_1, serialized_2)

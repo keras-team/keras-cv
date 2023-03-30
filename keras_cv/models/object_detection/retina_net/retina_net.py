@@ -523,9 +523,9 @@ class RetinaNet(keras.Model):
 
     def get_config(self):
         return {
-            "backbone": keras.utils.serialize_keras_object(self.backbone),
             "num_classes": self.num_classes,
             "bounding_box_format": self.bounding_box_format,
+            "backbone": keras.utils.serialize_keras_object(self.backbone),
             "feature_extractor": self.feature_extractor,
             "label_encoder": self.label_encoder,
             "prediction_decoder": self._prediction_decoder,
