@@ -29,6 +29,7 @@ from keras_cv.layers.object_detection.roi_sampler import _ROISampler
 from keras_cv.layers.object_detection.rpn_label_encoder import _RpnLabelEncoder
 from keras_cv.models.object_detection import predict_utils
 from keras_cv.models.object_detection.__internal__ import unpack_input
+from keras_cv.utils.train import get_feature_extractor
 
 BOX_VARIANCE = [0.1, 0.1, 0.2, 0.2]
 
@@ -246,10 +247,9 @@ class FasterRCNN(keras.Model):
         bounding_box_format: The format of bounding boxes of model output. Refer
             [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
             for more details on supported bounding box formats.
-        backbone: a `keras.Model` custom backbone model. For now, only a backbone
-            with per level dict output is supported, for example, ResNet50 with FPN, which
-            uses the last conv block from stage 2 to stage 6 and add a max pooling at
-            stage 7. Defaults to `keras_cv.models.ResNet50`.
+        backbone: Optional `keras.Model`. Must implement the `pyramid_level_inputs`
+            property with keys 2, 3, 4, and 5 and layer names as values. If
+            `None`, defaults to `keras_cv.models.ResNet50Backbone()`.
         anchor_generator: (Optional) a `keras_cv.layers.AnchorGeneratot`. It is used
             in the model to match ground truth boxes and labels with anchors, or with
             region proposals. By default it uses the sizes and ratios from the paper,
@@ -260,11 +260,6 @@ class FasterRCNN(keras.Model):
             bounding box Tensor and a bounding box class Tensor to its `call()` method,
             and returns RetinaNet training targets. It returns box and class targets as
             well as sample weights.
-        rpn_head: (Optional) a `keras.layers.Layer` that takes input feature map and
-            returns a box delta prediction (in reference to anchors) and binary prediction
-            (foreground vs background) with per level dict output is supported. By default
-            it uses the rpn head from paper, which is 3x3 conv followed by 1 box regressor
-            and 1 binary classifier.
         rcnn_head: (Optional) a `keras.layers.Layer` that takes input feature map and
             returns a box delta prediction (in reference to rois) and multi-class prediction
             (all foreground classes + one background class). By default it uses the rcnn head
@@ -282,8 +277,6 @@ class FasterRCNN(keras.Model):
         backbone=None,
         anchor_generator=None,
         label_encoder=None,
-        feature_pyramid=None,
-        rpn_head=None,
         rcnn_head=None,
         prediction_decoder=None,
         **kwargs,
@@ -300,7 +293,7 @@ class FasterRCNN(keras.Model):
             strides={i: 2**i for i in range(2, 7)},
             clip_boxes=True,
         )
-        self.rpn_head = rpn_head or RPNHead(
+        self.rpn_head = RPNHead(
             num_anchors_per_location=len(scales) * len(aspect_ratios)
         )
         self.roi_generator = ROIGenerator(
@@ -319,11 +312,13 @@ class FasterRCNN(keras.Model):
         )
         self.roi_pooler = _ROIAligner(bounding_box_format="yxyx")
         self.rcnn_head = rcnn_head or RCNNHead(num_classes)
-        self.backbone = (
-            backbone
-            or keras_cv.models.ResNet50(
-                include_top=False, include_rescaling=True
-            ).as_backbone()
+        self.backbone = backbone or keras_cv.models.ResNet50Backbone()
+        extractor_levels = [2, 3, 4, 5]
+        extractor_layer_names = [
+            self.backbone.pyramid_level_inputs[i] for i in extractor_levels
+        ]
+        self.feature_extractor = get_feature_extractor(
+            self.backbone, extractor_layer_names, extractor_levels
         )
         self.feature_pyramid = FeaturePyramid()
         self.rpn_labeler = label_encoder or _RpnLabelEncoder(
@@ -347,8 +342,8 @@ class FasterRCNN(keras.Model):
 
     def _call_rpn(self, images, anchors, training=None):
         image_shape = tf.shape(images[0])
-        feature_map = self.backbone(images, training=training)
-        feature_map = self.feature_pyramid(feature_map, training=training)
+        backbone_outputs = self.feature_extractor(images, training=training)
+        feature_map = self.feature_pyramid(backbone_outputs, training=training)
         # [BS, num_anchors, 4], [BS, num_anchors, 1]
         rpn_boxes, rpn_scores = self.rpn_head(feature_map, training=training)
         # the decoded format is center_xywh, convert to yxyx
@@ -594,7 +589,6 @@ class FasterRCNN(keras.Model):
             "label_encoder": self.rpn_labeler,
             "prediction_decoder": self._prediction_decoder,
             "feature_pyramid": self.feature_pyramid,
-            "rpn_head": self.rpn_head,
             "rcnn_head": self.rcnn_head,
         }
 
