@@ -25,13 +25,24 @@ class CutMixTest(tf.test.TestCase):
         ys = tf.random.categorical(tf.math.log([[0.5, 0.5]]), 2)
         ys = tf.squeeze(ys)
         ys = tf.one_hot(ys, num_classes)
-
+        ys_segmentation_masks = tf.ones((2, 512, 512))
         layer = CutMix(seed=1)
-        outputs = layer({"images": xs, "labels": ys})
-        xs, ys = outputs["images"], outputs["labels"]
+        outputs = layer(
+            {
+                "images": xs,
+                "labels": ys,
+                "segmentation_masks": ys_segmentation_masks,
+            }
+        )
+        xs, ys, ys_segmentation_masks = (
+            outputs["images"],
+            outputs["labels"],
+            outputs["segmentation_masks"],
+        )
 
         self.assertEqual(xs.shape, [2, 512, 512, 3])
         self.assertEqual(ys.shape, [2, 10])
+        self.assertEqual(ys_segmentation_masks.shape, [2, 512, 512])
 
     def test_cut_mix_call_results(self):
         xs = tf.cast(

@@ -11,9 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 import tensorflow as tf
-from tensorflow import keras
 
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
@@ -21,14 +19,14 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 from keras_cv.utils import fill_utils
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class CutMix(BaseImageAugmentationLayer):
     """CutMix implements the CutMix data augmentation technique.
 
     Args:
-        alpha: Float between 0 and 1. Inverse scale parameter for the gamma
-            distribution. This controls the shape of the distribution from which the
-            smoothing values are sampled. Defaults to 1.0, which is a recommended value
+        alpha: Float between 0 and 1.  Inverse scale parameter for the gamma
+            distribution.  This controls the shape of the distribution from which the
+            smoothing values are sampled.  Defaults 1.0, which is a recommended value
             when training an imagenet1k classification model.
         seed: Integer. Used to create a random seed.
     References:
@@ -36,7 +34,7 @@ class CutMix(BaseImageAugmentationLayer):
 
     Sample usage:
     ```python
-    (images, labels), _ = keras.datasets.cifar10.load_data()
+    (images, labels), _ = tf.keras.datasets.cifar10.load_data()
     labels = tf.one_hot(labels.squeeze(), 10)
 
     cutmix = keras_cv.layers.preprocessing.cut_mix.CutMix(10)
@@ -75,33 +73,17 @@ class CutMix(BaseImageAugmentationLayer):
         inputs["labels"] = labels
         if segmentation_masks is not None:
             segmentation_masks = self._update_segmentation_masks(
-                segmentation_masks
+                *self._cutmix(images, labels, segmentation_masks)
             )
-            inputs["segmentation_masks"] = segmentation_masks
+        inputs["segmentation_masks"] = segmentation_masks
         return inputs
 
     def _augment(self, inputs):
         raise ValueError(
-            "CutMix received a single image to `call`. The layer relies on "
+            "CutMix received a single image to `call`.  The layer relies on "
             "combining multiple examples, and as such will not behave as "
-            "expected. Please call the layer with 2 or more samples."
+            "expected.  Please call the layer with 2 or more samples."
         )
-
-    def _update_segmentation_masks(
-        self, segmentation_masks
-    ):
-        segmentation_masks_for_cut_mix = tf.gather(
-            segmentation_masks, permutation_order
-        )
-
-        lambda_sample = tf.reshape(lambda_sample, [-1, 1])
-
-        segmentation_masks = (
-            lambda_sample * segmentation_masks
-            + (1.0 - lambda_sample) * segmentation_masks
-        )
-
-        return segmentation_masks
 
     def _cutmix(self, images, labels):
         """Apply cutmix."""
@@ -150,6 +132,22 @@ class CutMix(BaseImageAugmentationLayer):
 
         return images, labels, lambda_sample, permutation_order
 
+    def _update_segmentation_masks(
+        self, segmentation_masks, lambda_sample, permutation_order
+    ):
+        lambda_sample = tf.reshape(lambda_sample, [-1, 1, 1])
+
+        segmentation_masks_for_mixup = tf.gather(
+            segmentation_masks, permutation_order
+        )
+
+        segmentation_masks = (
+            lambda_sample * segmentation_masks
+            + (1.0 - lambda_sample) * segmentation_masks_for_mixup
+        )
+
+        return segmentation_masks
+
     def _update_labels(self, images, labels, lambda_sample, permutation_order):
         cutout_labels = tf.gather(labels, permutation_order)
 
@@ -159,7 +157,8 @@ class CutMix(BaseImageAugmentationLayer):
 
     def _validate_inputs(self, inputs):
         labels = inputs.get("labels", None)
-        if labels is None:
+        segmentation_masks = inputs.get("segmentation_masks", None)
+        if labels is None or segmentation_masks is None:
             raise ValueError(
                 "CutMix expects 'labels' to be present in its inputs. "
                 "CutMix relies on both images an labels. "
