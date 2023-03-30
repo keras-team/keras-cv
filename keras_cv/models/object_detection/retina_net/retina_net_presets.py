@@ -15,4 +15,21 @@
 
 from keras_cv.models.backbones.resnet_v2 import resnet_v2_backbone_presets
 
-retina_net_presets = {}
+retina_net_presets = {
+    "resnet50_v2_pascal_voc": {
+        "metadata": {
+            "description": (
+                "ResNet classifier with 50 layers where the batch "
+                "normalization and ReLU activation precede the convolution "
+                "layers (v2 style). Trained on Imagenet 2012 classification "
+                "task."
+            ),
+        },
+        "config": {
+            "backbone": resnet_v2_backbone_presets.backbone_presets["resnet50_v2"],
+            "num_classes": 21,
+        },
+        "weights_url": "https://storage.googleapis.com/keras-cv/models/retinanet/pascal_voc/resnet50.h5",
+        "weights_hash": "e88f3d1585f57a9f3edc472b073ef93c",
+    },
+}
