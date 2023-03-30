@@ -86,7 +86,7 @@ class RetinaNet(keras.Model):
         backbone: `keras.Model`. Must implement the `pyramid_level_inputs`
             property with keys 3, 4, and 5 and layer names as values. A somewhat
             sensible backbone to use in many cases is the:
-            `keras_cv.models.ResNet50Backbone.from_preset('imagenet')`.
+            `keras_cv.models.ResNetBackbone.from_preset("resnet50_imagenet")`
         anchor_generator: (Optional) a `keras_cv.layers.AnchorGenerator`.  If provided,
             the anchor generator will be passed to both the `label_encoder` and the
             `prediction_decoder`.  Only to be used when both `label_encoder` and
