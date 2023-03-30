@@ -22,25 +22,24 @@ from keras_cv import layers as cv_layers
 from keras_cv.bounding_box.converters import _decode_deltas_to_boxes
 from keras_cv.models.object_detection import predict_utils
 from keras_cv.models.object_detection.__internal__ import unpack_input
-from keras_cv.models.object_detection.retina_net.__internal__ import (
-    layers as layers_lib,
-)
+from keras_cv.models.object_detection.retina_net import FeaturePyramid
+from keras_cv.models.object_detection.retina_net import PredictionHead
+from keras_cv.models.object_detection.retina_net import RetinaNetLabelEncoder
+from keras_cv.models.task import Task
 from keras_cv.utils.train import get_feature_extractor
 
 BOX_VARIANCE = [0.1, 0.1, 0.2, 0.2]
 
 
-# TODO(lukewood): update docstring to include documentation on creating a custom label
-# decoder/etc.
 # TODO(jbischof): Generalize `FeaturePyramid` class to allow for any P-levels and
 # add `feature_pyramid_levels` param.
 @keras.utils.register_keras_serializable(package="keras_cv")
-class RetinaNet(keras.Model):
-    """A Keras model implementing the RetinaNet architecture.
+class RetinaNet(Task):
+    """A Keras model implementing the RetinaNet meta-architecture.
 
     Implements the RetinaNet architecture for object detection.  The constructor
-    requires `num_classes`, and `bounding_box_format`.  Optionally, a backbone,
-    custom label encoder, and prediction decoder may all be provided.
+    requires `num_classes`, `bounding_box_format`, and a backbone.  Optionally,
+    a custom label encoder, and prediction decoder may all be provided.
 
     Usage:
     ```python
@@ -98,18 +97,20 @@ class RetinaNet(keras.Model):
         label_encoder: (Optional) a keras.Layer that accepts an image Tensor, a
             bounding box Tensor and a bounding box class Tensor to its `call()` method,
             and returns RetinaNet training targets.  By default, a KerasCV standard
-            LabelEncoder is created and used.  Results of this `call()` method
-            are passed to the `loss` object passed into `compile()` as the `y_true`
-            argument.
-        prediction_decoder: (Optional)  A `keras.layer` that is responsible for
-            transforming RetinaNet predictions into usable bounding box Tensors.  If
-            not provided, a default is provided.  The default `prediction_decoder`
-            layer uses a `MultiClassNonMaxSuppression` operation for box pruning.
+            `RetinaNetLabelEncoder` is created and used.  Results of this object's
+            `call()` method are passed to the `loss` object for `box_loss` and
+            `classification_loss` the `y_true` argument.
+        prediction_decoder: (Optional)  A `keras.layers.Layer` that is responsible
+            for transforming RetinaNet predictions into usable bounding box
+            Tensors.  If not provided, a default is provided.  The default
+            `prediction_decoder` layer is a
+            `keras_cv.layers.MultiClassNonMaxSuppression` layer, which uses
+            a Non-Max Suppression for box pruning.
         classification_head: (Optional) A `keras.Layer` that performs classification of
-            the bounding boxes.  If not provided, a simple ConvNet with 1 layer will be
+            the bounding boxes.  If not provided, a simple ConvNet with 3 layers will be
             used.
         box_head: (Optional) A `keras.Layer` that performs regression of
-            the bounding boxes.  If not provided, a simple ConvNet with 1 layer will be
+            the bounding boxes.  If not provided, a simple ConvNet with 3 layers will be
             used.
     """
 
@@ -143,13 +144,10 @@ class RetinaNet(keras.Model):
             anchor_generator
             or RetinaNet.default_anchor_generator(bounding_box_format)
         )
-        label_encoder = (
-            label_encoder
-            or keras_cv.models.object_detection.retina_net.RetinaNetLabelEncoder(
-                bounding_box_format=bounding_box_format,
-                anchor_generator=anchor_generator,
-                box_variance=BOX_VARIANCE,
-            )
+        label_encoder = label_encoder or RetinaNetLabelEncoder(
+            bounding_box_format=bounding_box_format,
+            anchor_generator=anchor_generator,
+            box_variance=BOX_VARIANCE,
         )
         super().__init__(
             name=name,
