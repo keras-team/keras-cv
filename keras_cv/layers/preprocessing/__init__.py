@@ -80,3 +80,4 @@ from keras_cv.layers.preprocessing.solarization import Solarization
 from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
     VectorizedBaseImageAugmentationLayer,
 )
+from keras_cv.layers.preprocessing.five_crop import FiveCrop
