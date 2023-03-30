@@ -226,8 +226,8 @@ class MultiHeadCenterPillar(keras.Model):
             # box_regression_mask = heatmap_groundtruth_gather >= 0.95
             box = tf.gather_nd(box, index, batch_dims=1)
             box_pred = tf.gather_nd(box_pred, index, batch_dims=1)
-            y_pred["bin_" + head_name] = tf.squeeze(box_pred)
-            y_true["bin_" + head_name] = tf.squeeze(box)
+            y_pred["box_" + head_name] = tf.squeeze(box_pred)
+            y_true["box_" + head_name] = tf.squeeze(box)
 
         return super().compute_loss(
             x={}, y=y_true, y_pred=y_pred, sample_weight=sample_weight
