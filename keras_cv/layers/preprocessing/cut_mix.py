@@ -137,13 +137,13 @@ class CutMix(BaseImageAugmentationLayer):
     ):
         lambda_sample = tf.reshape(lambda_sample, [-1, 1, 1])
 
-        segmentation_masks_for_mixup = tf.gather(
+        segmentation_masks_for_cutmix = tf.gather(
             segmentation_masks, permutation_order
         )
 
         segmentation_masks = (
             lambda_sample * segmentation_masks
-            + (1.0 - lambda_sample) * segmentation_masks_for_mixup
+            + (1.0 - lambda_sample) * segmentation_masks_for_cutmix
         )
 
         return segmentation_masks
