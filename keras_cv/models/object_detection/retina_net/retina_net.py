@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import copy
+
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
@@ -20,12 +22,20 @@ import keras_cv
 from keras_cv import bounding_box
 from keras_cv import layers as cv_layers
 from keras_cv.bounding_box.converters import _decode_deltas_to_boxes
+from keras_cv.models.backbones.backbone_presets import backbone_presets
+from keras_cv.models.backbones.backbone_presets import (
+    backbone_presets_with_weights,
+)
 from keras_cv.models.object_detection import predict_utils
 from keras_cv.models.object_detection.__internal__ import unpack_input
 from keras_cv.models.object_detection.retina_net import FeaturePyramid
 from keras_cv.models.object_detection.retina_net import PredictionHead
 from keras_cv.models.object_detection.retina_net import RetinaNetLabelEncoder
+from keras_cv.models.object_detection.retina_net.retina_net_presets import (
+    retina_net_presets,
+)
 from keras_cv.models.task import Task
+from keras_cv.utils.python_utils import classproperty
 from keras_cv.utils.train import get_feature_extractor
 
 BOX_VARIANCE = [0.1, 0.1, 0.2, 0.2]
@@ -49,7 +59,7 @@ class RetinaNet(Task):
             [
                 [0, 0, 100, 100],
                 [100, 100, 200, 200],
-                [300, 300, 400, 400],
+                [300, 300, 100, 100],
             ]
         ],
         "classes": [[1, 1, 1]],
@@ -116,9 +126,9 @@ class RetinaNet(Task):
 
     def __init__(
         self,
+        backbone,
         num_classes,
         bounding_box_format,
-        backbone,
         anchor_generator=None,
         label_encoder=None,
         prediction_decoder=None,
@@ -194,20 +204,17 @@ class RetinaNet(Task):
             )
         )
 
-        self.feature_pyramid = layers_lib.FeaturePyramid()
+        self.feature_pyramid = FeaturePyramid()
         prior_probability = keras.initializers.Constant(
             -np.log((1 - 0.01) / 0.01)
         )
 
-        self.classification_head = (
-            classification_head
-            or layers_lib.PredictionHead(
-                output_filters=9 * num_classes,
-                bias_initializer=prior_probability,
-            )
+        self.classification_head = classification_head or PredictionHead(
+            output_filters=9 * num_classes,
+            bias_initializer=prior_probability,
         )
 
-        self.box_head = box_head or layers_lib.PredictionHead(
+        self.box_head = box_head or PredictionHead(
             output_filters=9 * 4, bias_initializer=keras.initializers.Zeros()
         )
 
@@ -526,13 +533,13 @@ class RetinaNet(Task):
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
-        return copy.deepcopy({**backbone_presets, **classifier_presets})
+        return copy.deepcopy({**backbone_presets, **retina_net_presets})
 
     @classproperty
     def presets_with_weights(cls):
         """Dictionary of preset names and configurations that include weights."""
         return copy.deepcopy(
-            {**backbone_presets_with_weights, **classifier_presets}
+            {**backbone_presets_with_weights, **retina_net_presets}
         )
 
     @classproperty

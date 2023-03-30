@@ -15,26 +15,4 @@
 
 from keras_cv.models.backbones.resnet_v2 import resnet_v2_backbone_presets
 
-retina_net_presets = {
-    "resnet50_pascal_voc": {
-
-    },
-    # "resnet50_v2_imagenet_classifier": {
-    #     "metadata": {
-    #         "description": (
-    #             "ResNet classifier with 50 layers where the batch "
-    #             "normalization and ReLU activation precede the convolution "
-    #             "layers (v2 style). Trained on Imagenet 2012 classification "
-    #             "task."
-    #         ),
-    #     },
-    #     "config": {
-    #         "backbone": resnet_v2_backbone_presets.backbone_presets["resnet50_v2"],
-    #         "num_classes": 1000,
-    #         "pooling": "avg",
-    #         "activation": "softmax",
-    #     },
-    #     "weights_url": "https://storage.googleapis.com/keras-cv/models/resnet50v2/imagenet-classifier-v0.h5",
-    #     "weights_hash": "77fa9f1cd1de0e202309e51d4e598e441d1111dacb6c41a182b6c63f76ff26cd",
-    # },
-}
+retina_net_presets = {}
