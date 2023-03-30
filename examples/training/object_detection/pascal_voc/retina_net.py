@@ -20,16 +20,18 @@ Description: Use KerasCV to train a RetinaNet on Pascal VOC 2007.
 """
 import resource
 import sys
-import tqdm
+
 import tensorflow as tf
 import tensorflow_datasets as tfds
+import tqdm
 from absl import flags
 from tensorflow import keras
+
+import keras_cv
 
 # Temporarily need PyCOCOCallback to verify
 # a 1:1 comparison with the PyMetrics version.
 from keras_cv.callbacks import PyCOCOCallback
-import keras_cv
 
 low, high = resource.getrlimit(resource.RLIMIT_NOFILE)
 resource.setrlimit(resource.RLIMIT_NOFILE, (high, high))
@@ -124,7 +126,9 @@ augmenter = keras.Sequential(
         ),
     ]
 )
-train_ds = train_ds.apply(tf.data.experimental.dense_to_ragged_batch(BATCH_SIZE))
+train_ds = train_ds.apply(
+    tf.data.experimental.dense_to_ragged_batch(BATCH_SIZE)
+)
 train_ds = train_ds.map(augmenter, num_parallel_calls=tf.data.AUTOTUNE)
 
 
@@ -165,7 +169,9 @@ with strategy.scope():
         # For more info on supported bounding box formats, visit
         # https://keras.io/api/keras_cv/bounding_box/
         bounding_box_format="xywh",
-        feature_extractor=keras_cv.models.ResNet50(weights="imagenet", include_top=False, include_rescaling=True).as_backbone(),
+        backbone=keras_cv.models.ResNet50Backbone.from_preset(
+            "resnet50_imagenet"
+        ),
     )
     lr_decay = tf.keras.optimizers.schedules.PiecewiseConstantDecay(
         boundaries=[12000 * 16, 16000 * 16],
@@ -190,25 +196,26 @@ model.compile(
     metrics=[],
 )
 
+
 class EvaluateCOCOMetricsCallback(keras.callbacks.Callback):
-  def __init__(self, data):
-    super().__init__()
-    self.data = data
-    self.metrics = keras_cv.metrics.BoxCOCOMetrics(
-        bounding_box_format='xywh',
-        evaluate_freq=1e9
-    )
+    def __init__(self, data):
+        super().__init__()
+        self.data = data
+        self.metrics = keras_cv.metrics.BoxCOCOMetrics(
+            bounding_box_format="xywh", evaluate_freq=1e9
+        )
 
-  def on_epoch_end(self, epoch, logs):
-    self.metrics.reset_state()
-    for batch in tqdm.tqdm(self.data):
-      images, y_true = batch[0], batch[1]
-      y_pred = self.model.predict(images, verbose=0)
-      self.metrics.update_state(y_true, y_pred)
+    def on_epoch_end(self, epoch, logs):
+        self.metrics.reset_state()
+        for batch in tqdm.tqdm(self.data):
+            images, y_true = batch[0], batch[1]
+            y_pred = self.model.predict(images, verbose=0)
+            self.metrics.update_state(y_true, y_pred)
 
-    metrics = self.metrics.result(force=True)
-    logs.update(metrics)
-    return logs
+        metrics = self.metrics.result(force=True)
+        logs.update(metrics)
+        return logs
+
 
 callbacks = [
     keras.callbacks.ReduceLROnPlateau(patience=5),
@@ -216,7 +223,9 @@ callbacks = [
     keras.callbacks.ModelCheckpoint(FLAGS.weights_name, save_weights_only=True),
     # Temporarily need PyCOCOCallback to verify
     # a 1:1 comparison with the PyMetrics version.
-    PyCOCOCallback(eval_ds, bounding_box_format='xywh'),
+    # Currently, results do not match.  I have a feeling this is due
+    # to how we are creating the boxes in  `BoxCOCOMetrics`
+    PyCOCOCallback(eval_ds, bounding_box_format="xywh"),
     EvaluateCOCOMetricsCallback(eval_ds),
     keras.callbacks.TensorBoard(log_dir=FLAGS.tensorboard_path),
 ]
