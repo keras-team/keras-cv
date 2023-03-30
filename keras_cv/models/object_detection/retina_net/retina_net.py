@@ -512,13 +512,6 @@ class RetinaNet(Task):
                 metrics[metric.name] = result
         return metrics
 
-    @classmethod
-    def from_config(cls, config):
-        config["backbone"] = keras.utils.deserialize_keras_object(
-            config["backbone"]
-        )
-        return super().from_config(config)
-
     def get_config(self):
         return {
             "num_classes": self.num_classes,
@@ -529,6 +522,23 @@ class RetinaNet(Task):
             "classification_head": self.classification_head,
             "box_head": self.box_head,
         }
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return copy.deepcopy({**backbone_presets, **classifier_presets})
+
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include weights."""
+        return copy.deepcopy(
+            {**backbone_presets_with_weights, **classifier_presets}
+        )
+
+    @classproperty
+    def backbone_presets(cls):
+        """Dictionary of preset names and configurations of compatible backbones."""
+        return copy.deepcopy(backbone_presets)
 
 
 def _parse_box_loss(loss):
