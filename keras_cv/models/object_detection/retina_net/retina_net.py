@@ -526,7 +526,6 @@ class RetinaNet(keras.Model):
             "num_classes": self.num_classes,
             "bounding_box_format": self.bounding_box_format,
             "backbone": keras.utils.serialize_keras_object(self.backbone),
-            "feature_extractor": self.feature_extractor,
             "label_encoder": self.label_encoder,
             "prediction_decoder": self._prediction_decoder,
             "classification_head": self.classification_head,
