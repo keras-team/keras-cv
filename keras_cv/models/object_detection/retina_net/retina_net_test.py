@@ -191,7 +191,7 @@ class RetinaNetTest(tf.test.TestCase):
         model = keras_cv.models.RetinaNet(
             num_classes=20,
             bounding_box_format="xywh",
-            backbone=keras_cv.models.ResNet50V2Backbone()
+            backbone=keras_cv.models.ResNet50V2Backbone(),
         )
         serialized_1 = keras.utils.serialize_keras_object(model)
         restored = keras.utils.deserialize_keras_object(
