@@ -27,7 +27,9 @@ class RetinaNetLabelEncoder(layers.Layer):
 
     This class has operations to generate targets for a batch of samples which
     is made up of the input images, bounding boxes for the objects present and
-    their class ids.
+    their class ids.  Targets are always represented in `center_yxwh` format.
+    This done for numerical reasons, to ensure numerical consistency when
+    training in any format.
 
     Args:
         bounding_box_format:  The format of bounding boxes of input dataset. Refer
