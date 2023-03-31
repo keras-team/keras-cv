@@ -16,7 +16,6 @@ import tensorflow as tf
 from absl.testing import parameterized
 
 from keras_cv.models.backbones.mlp_mixer import mlp_mixer_backbone as mlp_mixer
-
 from keras_cv.models.models_test import ModelsTest
 
 MODEL_LIST = [

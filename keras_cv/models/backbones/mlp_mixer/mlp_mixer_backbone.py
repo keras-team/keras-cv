@@ -185,22 +185,22 @@ class MLPMixer(keras.Model):
     """
 
     def __init__(
-            self,
-            input_shape,
-            patch_size,
-            num_blocks,
-            hidden_dim,
-            tokens_mlp_dim,
-            channels_mlp_dim,
-            include_rescaling,
-            include_top,
-            num_classes=None,
-            input_tensor=None,
-            weights=None,
-            pooling=None,
-            classifier_activation="softmax",
-            name="MLPMixer",
-            **kwargs,
+        self,
+        input_shape,
+        patch_size,
+        num_blocks,
+        hidden_dim,
+        tokens_mlp_dim,
+        channels_mlp_dim,
+        include_rescaling,
+        include_top,
+        num_classes=None,
+        input_tensor=None,
+        weights=None,
+        pooling=None,
+        classifier_activation="softmax",
+        name="MLPMixer",
+        **kwargs,
     ):
         if weights and not tf.io.gfile.exists(weights):
             raise ValueError(
@@ -309,16 +309,16 @@ class MLPMixer(keras.Model):
 
 
 def MLPMixerB16(
-        input_shape,
-        *,
-        include_rescaling,
-        include_top,
-        num_classes=None,
-        input_tensor=None,
-        weights=None,
-        pooling=None,
-        name="MLPMixerB16",
-        **kwargs,
+    input_shape,
+    *,
+    include_rescaling,
+    include_top,
+    num_classes=None,
+    input_tensor=None,
+    weights=None,
+    pooling=None,
+    name="MLPMixerB16",
+    **kwargs,
 ):
     """Instantiates the MLPMixerB16 architecture."""
 
@@ -341,16 +341,16 @@ def MLPMixerB16(
 
 
 def MLPMixerB32(
-        input_shape,
-        *,
-        include_rescaling,
-        include_top,
-        num_classes=None,
-        input_tensor=None,
-        weights=None,
-        pooling=None,
-        name="MLPMixerB32",
-        **kwargs,
+    input_shape,
+    *,
+    include_rescaling,
+    include_top,
+    num_classes=None,
+    input_tensor=None,
+    weights=None,
+    pooling=None,
+    name="MLPMixerB32",
+    **kwargs,
 ):
     """Instantiates the MLPMixerB32 architecture."""
     return MLPMixer(
@@ -372,16 +372,16 @@ def MLPMixerB32(
 
 
 def MLPMixerL16(
-        input_shape,
-        *,
-        include_rescaling,
-        include_top,
-        num_classes=None,
-        input_tensor=None,
-        weights=None,
-        pooling=None,
-        name="MLPMixerL16",
-        **kwargs,
+    input_shape,
+    *,
+    include_rescaling,
+    include_top,
+    num_classes=None,
+    input_tensor=None,
+    weights=None,
+    pooling=None,
+    name="MLPMixerL16",
+    **kwargs,
 ):
     """Instantiates the MLPMixerL16 architecture."""
     return MLPMixer(
