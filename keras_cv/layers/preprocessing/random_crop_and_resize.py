@@ -1,4 +1,4 @@
-# Copyright 2023 The KerasCV Authors
+# Copyright 2022 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,29 +13,31 @@
 # limitations under the License.
 
 import tensorflow as tf
-from keras_cv import bounding_box, core
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
-    VectorizedBaseImageAugmentationLayer,
+from tensorflow import keras
+
+from keras_cv import bounding_box
+from keras_cv import core
+from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
+    BaseImageAugmentationLayer,
 )
-from keras_cv.utils import preprocessing as preprocessing_utils
+from keras_cv.utils import preprocessing
 
 
-class RandomCropAndResize(VectorizedBaseImageAugmentationLayer):
+@keras.utils.register_keras_serializable(package="keras_cv")
+class RandomCropAndResize(BaseImageAugmentationLayer):
     """Randomly crops a part of an image and resizes it to provided size.
 
-    This implementation takes an intuitive approach, where we crop the images
-    to a random height and width, and then resize them. To do this, we first
-    sample a random value for area using `crop_area_factor` and a value for
-    aspect ratio using`aspect_ratio_factor`. Further we get the new height
-    and width by dividing and multiplying the old height and width by the
-    random area respectively. We then sample offsets for height and width and
-    clip them such that the cropped area does not exceed image boundaries.
-    Finally we do the actual cropping operation and resize the
-    image to `target_size`.
+    This implementation takes an intuitive approach, where we crop the images to a
+    random height and width, and then resize them. To do this, we first sample a
+    random value for area using `crop_area_factor` and a value for aspect ratio using
+    `aspect_ratio_factor`. Further we get the new height and width by
+    dividing and multiplying the old height and width by the random area
+    respectively. We then sample offsets for height and width and clip them such
+    that the cropped area does not exceed image boundaries. Finally we do the
+    actual cropping operation and resize the image to `target_size`.
 
     Args:
-        target_size: A tuple of two integers used as the target size to
-        ultimately crop
+        target_size: A tuple of two integers used as the target size to ultimately crop
             images to.
         crop_area_factor: A tuple of two floats, ConstantFactorSampler or
             UniformFactorSampler. The ratio of area of the cropped part to
@@ -43,18 +45,15 @@ class RandomCropAndResize(VectorizedBaseImageAugmentationLayer):
             lower and upper bounds for the area relative to the original image
             of the cropped image before resizing it to `target_size`.  For
             self-supervised pretraining a common value for this parameter is
-            `(0.08, 1.0)`.  For fine tuning and classification a common
-            value for this
+            `(0.08, 1.0)`.  For fine tuning and classification a common value for this
             is `0.8, 1.0`.
         aspect_ratio_factor: A tuple of two floats, ConstantFactorSampler or
             UniformFactorSampler. Aspect ratio means the ratio of width to
-            height of the cropped image. In the context of this layer,
-            the aspect ratio
+            height of the cropped image. In the context of this layer, the aspect ratio
             sampled represents a value to distort the aspect ratio by.
             Represents the lower and upper bound for the aspect ratio of the
-            cropped image before resizing it to `target_size`.  For most
-            tasks, this should be `(3/4, 4/3)`.  To perform a no-op provide
-            the value `(1.0, 1.0)`.
+            cropped image before resizing it to `target_size`.  For most tasks, this
+            should be `(3/4, 4/3)`.  To perform a no-op provide the value `(1.0, 1.0)`.
         interpolation: (Optional) A string specifying the sampling method for
             resizing. Defaults to "bilinear".
         seed: (Optional) Used to create a random seed. Defaults to None.
@@ -76,14 +75,14 @@ class RandomCropAndResize(VectorizedBaseImageAugmentationLayer):
             target_size, crop_area_factor, aspect_ratio_factor
         )
         self.target_size = target_size
-        self.aspect_ratio_factor = preprocessing_utils.parse_factor(
+        self.aspect_ratio_factor = preprocessing.parse_factor(
             aspect_ratio_factor,
             min_value=0.0,
             max_value=None,
             param_name="aspect_ratio_factor",
             seed=seed,
         )
-        self.crop_area_factor = preprocessing_utils.parse_factor(
+        self.crop_area_factor = preprocessing.parse_factor(
             crop_area_factor,
             max_value=1.0,
             param_name="crop_area_factor",
@@ -95,39 +94,37 @@ class RandomCropAndResize(VectorizedBaseImageAugmentationLayer):
         self.bounding_box_format = bounding_box_format
         self.force_output_dense_images = True
 
-    def get_random_transformation_batch(self, batch_size, **kwargs):
-        crop_area_factor = self.crop_area_factor((batch_size,))
-        aspect_ratio = self.aspect_ratio_factor(shape=(batch_size,))
-        new_heights = tf.clip_by_value(
-            tf.sqrt(crop_area_factor / aspect_ratio),
-            0.0,
-            1.0,
+    def get_random_transformation(
+        self, image=None, label=None, bounding_box=None, **kwargs
+    ):
+        crop_area_factor = self.crop_area_factor()
+        aspect_ratio = self.aspect_ratio_factor()
+
+        new_height = tf.clip_by_value(
+            tf.sqrt(crop_area_factor / aspect_ratio), 0.0, 1.0
         )  # to avoid unwanted/unintuitive effects
-
-        new_widths = tf.clip_by_value(
-            tf.sqrt(crop_area_factor * aspect_ratio),
-            0.0,
-            1.0,
+        new_width = tf.clip_by_value(
+            tf.sqrt(crop_area_factor * aspect_ratio), 0.0, 1.0
         )
 
-        height_offsets = self._random_generator.random_uniform(
-            shape=(batch_size,),
-            minval=tf.minimum(0.0, 1.0 - new_heights),
-            maxval=tf.maximum(0.0, 1.0 - new_heights),
+        height_offset = self._random_generator.random_uniform(
+            (),
+            minval=tf.minimum(0.0, 1.0 - new_height),
+            maxval=tf.maximum(0.0, 1.0 - new_height),
             dtype=tf.float32,
         )
 
-        width_offsets = self._random_generator.random_uniform(
-            shape=(batch_size,),
-            minval=tf.minimum(0.0, 1.0 - new_widths),
-            maxval=tf.maximum(0.0, 1.0 - new_widths),
+        width_offset = self._random_generator.random_uniform(
+            (),
+            minval=tf.minimum(0.0, 1.0 - new_width),
+            maxval=tf.maximum(0.0, 1.0 - new_width),
             dtype=tf.float32,
         )
 
-        y1 = height_offsets
-        y2 = height_offsets + new_heights
-        x1 = width_offsets
-        x2 = width_offsets + new_widths
+        y1 = height_offset
+        y2 = height_offset + new_height
+        x1 = width_offset
+        x2 = width_offset + new_width
 
         return [[y1, x1, y2, x2]]
 
@@ -137,26 +134,26 @@ class RandomCropAndResize(VectorizedBaseImageAugmentationLayer):
         else:
             inputs = self._ensure_inputs_are_compute_dtype(inputs)
             inputs, meta_data = self._format_inputs(inputs)
-            outputs = inputs
+            output = inputs
             # self._resize() returns valid results for both batched and
             # unbatched
-            outputs["image"] = self._resize(inputs["image"])
+            output["images"] = self._resize(inputs["images"])
 
             if "segmentation_masks" in inputs:
-                outputs["segmentation_masks"] = self._resize(
+                output["segmentation_masks"] = self._resize(
                     inputs["segmentation_masks"], interpolation="nearest"
                 )
 
-            return self._format_output(outputs, meta_data)
+            return self._format_output(output, meta_data)
 
-    def compute_image_signature(self, image):
+    def compute_image_signature(self, images):
         return tf.TensorSpec(
-            shape=(self.target_size[0], self.target_size[1], image.shape[-1]),
+            shape=(self.target_size[0], self.target_size[1], images.shape[-1]),
             dtype=self.compute_dtype,
         )
 
-    def augment_ragged_image(self, images, transformation, **kwargs):
-        return (images, transformation)
+    def augment_image(self, image, transformation, **kwargs):
+        return self._crop_and_resize(image, transformation)
 
     def augment_target(self, target, **kwargs):
         return target
@@ -182,7 +179,7 @@ class RandomCropAndResize(VectorizedBaseImageAugmentationLayer):
         return bounding_boxes
 
     def augment_bounding_boxes(
-        self, bounding_boxes, transformation=None, images=None, **kwargs
+        self, bounding_boxes, transformation=None, image=None, **kwargs
     ):
         if self.bounding_box_format is None:
             raise ValueError(
@@ -196,7 +193,7 @@ class RandomCropAndResize(VectorizedBaseImageAugmentationLayer):
             bounding_boxes,
             source=self.bounding_box_format,
             target="rel_xyxy",
-            images=images,
+            images=image,
         )
 
         bounding_boxes = RandomCropAndResize._transform_bounding_boxes(
@@ -206,20 +203,20 @@ class RandomCropAndResize(VectorizedBaseImageAugmentationLayer):
         bounding_boxes = bounding_box.clip_to_image(
             bounding_boxes,
             bounding_box_format="rel_xyxy",
-            images=images,
+            images=image,
         )
         bounding_boxes = bounding_box.convert_format(
             bounding_boxes,
             source="rel_xyxy",
             target=self.bounding_box_format,
             dtype=self.compute_dtype,
-            images=images,
+            images=image,
         )
         return bounding_boxes
 
-    def _resize(self, images, **kwargs):
-        outputs = tf.keras.preprocessing.image.smart_resize(
-            images, self.target_size, **kwargs
+    def _resize(self, image, **kwargs):
+        outputs = keras.preprocessing.image.smart_resize(
+            image, self.target_size, **kwargs
         )
         # smart_resize will always output float32, so we need to re-cast.
         return tf.cast(outputs, self.compute_dtype)
@@ -263,29 +260,12 @@ class RandomCropAndResize(VectorizedBaseImageAugmentationLayer):
                 f"aspect_ratio_factor={aspect_ratio_factor}"
             )
 
-    def augment_segmentation_masks(
-        self, segmentation_masks, transformation, **kwargs
+    def augment_segmentation_mask(
+        self, segmentation_mask, transformation, **kwargs
     ):
         return self._crop_and_resize(
-            segmentation_masks, transformation, method="nearest"
+            segmentation_mask, transformation, method="nearest"
         )
-
-    def _crop_and_resize(self, image, transformation, method=None):
-        image = tf.expand_dims(image, axis=0)
-        boxes = transformation
-
-        # See bit.ly/tf_crop_resize for more details
-        augmented_images = tf.image.crop_and_resize(
-            image,  # image shape: [B, H, W, C]
-            boxes,  # boxes: (1, 4) in this case; represents area
-            # to be cropped from the original image
-            [0],  # box_indices: maps boxes to images along batch axis
-            # [0] since there is only one image
-            self.target_size,  # output size
-            method=method or self.interpolation,
-        )
-
-        return tf.squeeze(augmented_images, axis=0)
 
     def get_config(self):
         config = super().get_config()
@@ -304,15 +284,30 @@ class RandomCropAndResize(VectorizedBaseImageAugmentationLayer):
     @classmethod
     def from_config(cls, config):
         if isinstance(config["crop_area_factor"], dict):
-            config[
-                "crop_area_factor"
-            ] = tf.keras.utils.deserialize_keras_object(
+            config["crop_area_factor"] = keras.utils.deserialize_keras_object(
                 config["crop_area_factor"]
             )
         if isinstance(config["aspect_ratio_factor"], dict):
             config[
                 "aspect_ratio_factor"
-            ] = tf.keras.utils.deserialize_keras_object(
+            ] = keras.utils.deserialize_keras_object(
                 config["aspect_ratio_factor"]
             )
         return cls(**config)
+
+    def _crop_and_resize(self, image, transformation, method=None):
+        image = tf.expand_dims(image, axis=0)
+        boxes = transformation
+
+        # See bit.ly/tf_crop_resize for more details
+        augmented_image = tf.image.crop_and_resize(
+            image,  # image shape: [B, H, W, C]
+            boxes,  # boxes: (1, 4) in this case; represents area
+            # to be cropped from the original image
+            [0],  # box_indices: maps boxes to images along batch axis
+            # [0] since there is only one image
+            self.target_size,  # output size
+            method=method or self.interpolation,
+        )
+
+        return tf.squeeze(augmented_image, axis=0)
