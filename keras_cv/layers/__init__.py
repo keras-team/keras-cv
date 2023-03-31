@@ -33,7 +33,6 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 from keras_cv.layers.preprocessing.channel_shuffle import ChannelShuffle
 from keras_cv.layers.preprocessing.cut_mix import CutMix
 from keras_cv.layers.preprocessing.equalization import Equalization
-from keras_cv.layers.preprocessing.five_crop import FiveCrop
 from keras_cv.layers.preprocessing.fourier_mix import FourierMix
 from keras_cv.layers.preprocessing.grayscale import Grayscale
 from keras_cv.layers.preprocessing.grid_mask import GridMask
