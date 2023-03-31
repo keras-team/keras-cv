@@ -1,4 +1,4 @@
-# Copyright 2022 The KerasCV Authors
+# Copyright 2023 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,12 +22,19 @@ from keras_cv.layers import preprocessing
 
 
 def main():
-    dataset = demo_utils.load_voc_dataset(bounding_box_format="rel_xyxy")
-    random_rotation = preprocessing.RandomRotation(
-        factor=0.5, bounding_box_format="rel_xyxy"
+    dataset = demo_utils.load_voc_dataset(bounding_box_format="xyxy")
+    resizing = preprocessing.Resizing(
+        height=256,
+        width=256,
+        bounding_box_format="xyxy",
+        pad_to_aspect_ratio=True,
     )
+    random_rotation = preprocessing.RandomRotation(
+        factor=0.5, bounding_box_format="xyxy"
+    )
+    dataset = dataset.map(resizing, num_parallel_calls=tf.data.AUTOTUNE)
     result = dataset.map(random_rotation, num_parallel_calls=tf.data.AUTOTUNE)
-    demo_utils.visualize_data(result, bounding_box_format="rel_xyxy")
+    demo_utils.visualize_data(result, bounding_box_format="xyxy")
 
 
 if __name__ == "__main__":

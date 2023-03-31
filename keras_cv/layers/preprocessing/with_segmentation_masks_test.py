@@ -70,6 +70,11 @@ TEST_CONFIGURATIONS = [
         preprocessing.RandomJpegQuality,
         {"factor": (75, 100)},
     ),
+    (
+        "RandomRotation",
+        preprocessing.RandomRotation,
+        {"factor": 0.0, "segmentation_classes": 10},
+    ),
     ("RandomSaturation", preprocessing.RandomSaturation, {"factor": 0.5}),
     (
         "RandomSharpness",

@@ -30,7 +30,9 @@
 				"ms-python.python",
 				"ms-python.isort",
 				"ms-python.flake8",
-				"ms-python.black-formatter"
+				"ms-python.black-formatter",
+				"ms-vscode.cpptools",
+				"xaver.clang-format"
 			]
 		}
 	},

@@ -1,4 +1,4 @@
-# Copyright 2022 The KerasCV Authors
+# Copyright 2023 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -511,9 +511,8 @@ def _image_shape(images, image_shape, boxes):
             width = tf.reshape(
                 tf.reduce_max(images.row_lengths(axis=2), 1), (-1, 1)
             )
-            if isinstance(boxes, tf.RaggedTensor):
-                height = tf.expand_dims(height, axis=-1)
-                width = tf.expand_dims(width, axis=-1)
+            height = tf.expand_dims(height, axis=-1)
+            width = tf.expand_dims(width, axis=-1)
     else:
         height, width = image_shape[0], image_shape[1]
     return tf.cast(height, boxes.dtype), tf.cast(width, boxes.dtype)

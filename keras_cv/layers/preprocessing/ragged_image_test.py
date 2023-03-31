@@ -33,6 +33,11 @@ CONSISTENT_OUTPUT_TEST_CONFIGURATIONS = [
         {"factor": 0.5},
     ),
     (
+        "RandomCrop",
+        layers.RandomCrop,
+        {"height": 2, "width": 2},
+    ),
+    (
         "RandomCutout",
         layers.RandomCutout,
         {"height_factor": 0.2, "width_factor": 0.2},
@@ -71,6 +76,7 @@ CONSISTENT_OUTPUT_TEST_CONFIGURATIONS = [
     ),
     ("RandomFlip", layers.RandomFlip, {"mode": "horizontal"}),
     ("RandomJpegQuality", layers.RandomJpegQuality, {"factor": (75, 100)}),
+    ("RandomRotation", layers.RandomRotation, {"factor": 0.5}),
     ("RandomSaturation", layers.RandomSaturation, {"factor": 0.5}),
     (
         "RandomSharpness",
@@ -87,6 +93,16 @@ CONSISTENT_OUTPUT_TEST_CONFIGURATIONS = [
         "RandomZoom",
         layers.RandomZoom,
         {"height_factor": 0.2, "width_factor": 0.5},
+    ),
+    (
+        "RandomlyZoomedCrop",
+        layers.RandomlyZoomedCrop,
+        {
+            "height": 224,
+            "width": 224,
+            "zoom_factor": (0.8, 1.0),
+            "aspect_ratio_factor": (3 / 4, 4 / 3),
+        },
     ),
     ("Solarization", layers.Solarization, {"value_range": (0, 255)}),
 ]
@@ -116,16 +132,6 @@ DENSE_OUTPUT_TEST_CONFIGURATIONS = [
             "target_size": (224, 224),
             "scale_factor": (0.8, 1.25),
             "bounding_box_format": "xywh",
-        },
-    ),
-    (
-        "RandomlyZoomedCrop",
-        layers.RandomlyZoomedCrop,
-        {
-            "height": 224,
-            "width": 224,
-            "zoom_factor": (0.8, 1.0),
-            "aspect_ratio_factor": (3 / 4, 4 / 3),
         },
     ),
 ]
