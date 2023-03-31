@@ -19,7 +19,8 @@ References:
     - [Based on the original keras.applications MobileNetv3](https://github.com/keras-team/keras/blob/master/keras/applications/mobilenet_v3.py)
 """
 
-import tensorflow as tf
+import copy
+
 from tensorflow import keras
 from tensorflow.keras import backend
 from tensorflow.keras import layers
@@ -27,6 +28,11 @@ from tensorflow.keras.utils import custom_object_scope
 
 from keras_cv import layers as cv_layers
 from keras_cv.models import utils
+from keras_cv.models.backbones.backbone import Backbone
+from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_backbone_presets import (
+    backbone_presets,
+)
+from keras_cv.utils.python_utils import classproperty
 
 channel_axis = -1
 
@@ -248,7 +254,7 @@ def apply_inverted_res_block(
 
 
 @keras.utils.register_keras_serializable(package="keras_cv.models")
-class MobileNetV3(keras.Model):
+class MobileNetV3Backbone(Backbone):
     """Instantiates the MobileNetV3 architecture.
 
     References:
@@ -317,36 +323,17 @@ class MobileNetV3(keras.Model):
 
     def __init__(
         self,
+        *,
         stack_fn,
         last_point_ch,
         include_rescaling,
-        include_top,
-        num_classes=None,
-        weights=None,
         input_shape=(None, None, 3),
         input_tensor=None,
-        pooling=None,
         alpha=1.0,
         minimalistic=True,
         dropout_rate=0.2,
-        classifier_activation="softmax",
-        name="MobileNetV3",
         **kwargs,
     ):
-        if weights and not tf.io.gfile.exists(weights):
-            raise ValueError(
-                "The `weights` argument should be either "
-                "`None` or the path to the weights file to be loaded. "
-                f"Weights file not found at location: {weights}"
-            )
-
-        if include_top and not num_classes:
-            raise ValueError(
-                "If `include_top` is True, "
-                "you should specify `num_classes`. "
-                f"Received: num_classes={num_classes}"
-            )
-
         if minimalistic:
             kernel = 3
             activation = layers.ReLU()
@@ -357,7 +344,6 @@ class MobileNetV3(keras.Model):
             se_ratio = 0.25
 
         inputs = utils.parse_model_inputs(input_shape, input_tensor)
-
         x = inputs
 
         if include_rescaling:
@@ -401,72 +387,40 @@ class MobileNetV3(keras.Model):
             name="Conv_1/BatchNorm",
         )(x)
         x = activation(x)
-        if include_top:
-            x = layers.GlobalAveragePooling2D(keepdims=True)(x)
-            x = layers.Conv2D(
-                last_point_ch,
-                kernel_size=1,
-                padding="same",
-                use_bias=True,
-                name="Conv_2",
-            )(x)
-            x = activation(x)
 
-            if dropout_rate > 0:
-                x = layers.Dropout(dropout_rate)(x)
-            x = layers.Conv2D(
-                num_classes, kernel_size=1, padding="same", name="Logits"
-            )(x)
-            x = layers.Flatten()(x)
-            x = layers.Activation(
-                activation=classifier_activation, name="Predictions"
-            )(x)
-        elif pooling == "avg":
-            x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-        elif pooling == "max":
-            x = layers.GlobalMaxPooling2D(name="max_pool")(x)
-
-        super().__init__(inputs=inputs, outputs=x, name=name, **kwargs)
-
-        if weights is not None:
-            self.load_weights(weights)
+        super().__init__(inputs=inputs, outputs=x, **kwargs)
 
         self.stack_fn = stack_fn
         self.last_point_ch = last_point_ch
         self.include_rescaling = include_rescaling
-        self.include_top = include_top
-        self.num_classes = num_classes
         self.input_tensor = input_tensor
-        self.pooling = pooling
         self.alpha = alpha
         self.minimalistic = minimalistic
         self.dropout_rate = dropout_rate
-        self.classifier_activation = classifier_activation
 
     def get_config(self):
-        return {
-            "stack_fn": self.stack_fn,
-            "last_point_ch": self.last_point_ch,
-            "include_rescaling": self.include_rescaling,
-            "include_top": self.include_top,
-            "num_classes": self.num_classes,
-            "input_shape": self.input_shape[1:],
-            "input_tensor": self.input_tensor,
-            "pooling": self.pooling,
-            "alpha": self.alpha,
-            "minimalistic": self.minimalistic,
-            "dropout_rate": self.dropout_rate,
-            "classifier_activation": self.classifier_activation,
-            "name": self.name,
-            "trainable": self.trainable,
-        }
+        config = super().get_config()
+        config.update(
+            {
+                "stack_fn": self.stack_fn,
+                "last_point_ch": self.last_point_ch,
+                "include_rescaling": self.include_rescaling,
+                "input_shape": self.input_shape[1:],
+                "input_tensor": self.input_tensor,
+                "alpha": self.alpha,
+                "minimalistic": self.minimalistic,
+                "dropout_rate": self.dropout_rate,
+            }
+        )
+        return config
 
-    @classmethod
-    def from_config(cls, config):
-        return cls(**config)
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return copy.deepcopy(backbone_presets)
 
 
-def MobileNetV3Small(
+def MobileNetV3SmallBackbone(
     *,
     include_rescaling,
     include_top,
@@ -518,7 +472,7 @@ def MobileNetV3Small(
         )
         return x
 
-    return MobileNetV3(
+    return MobileNetV3Backbone(
         stack_fn=stack_fn,
         last_point_ch=1024,
         include_rescaling=include_rescaling,
@@ -537,7 +491,7 @@ def MobileNetV3Small(
     )
 
 
-def MobileNetV3Large(
+def MobileNetV3LargeBackbone(
     *,
     include_rescaling,
     include_top,
@@ -601,7 +555,7 @@ def MobileNetV3Large(
         )
         return x
 
-    return MobileNetV3(
+    return MobileNetV3Backbone(
         stack_fn=stack_fn,
         last_point_ch=1280,
         include_rescaling=include_rescaling,
@@ -621,8 +575,12 @@ def MobileNetV3Large(
 
 
 setattr(
-    MobileNetV3Large, "__doc__", BASE_DOCSTRING.format(name="MobileNetV3Large")
+    MobileNetV3LargeBackbone,
+    "__doc__",
+    BASE_DOCSTRING.format(name="MobileNetV3Large"),
 )
 setattr(
-    MobileNetV3Small, "__doc__", BASE_DOCSTRING.format(name="MobileNetV3Small")
+    MobileNetV3SmallBackbone,
+    "__doc__",
+    BASE_DOCSTRING.format(name="MobileNetV3Small"),
 )
