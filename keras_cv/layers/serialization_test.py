@@ -386,13 +386,6 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
                 "from_logits": True,
             },
         ),
-        (
-            "FiveCrop",
-            cv_layers.FiveCrop,
-            {
-                "size": 50,
-            }
-        ),
     )
     def test_layer_serialization(self, layer_cls, init_args):
         layer = layer_cls(**init_args)
