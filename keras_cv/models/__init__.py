@@ -12,6 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
+    CSPDarkNetL,
+)
+from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
+    CSPDarkNetM,
+)
+from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
+    CSPDarkNetS,
+)
+from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
+    CSPDarkNetTiny,
+)
+from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
+    CSPDarkNetX,
+)
 from keras_cv.models.backbones.resnet_v1.resnet_v1_backbone import (
     ResNet18Backbone,
 )
@@ -56,11 +71,6 @@ from keras_cv.models.convnext import ConvNeXtLarge
 from keras_cv.models.convnext import ConvNeXtSmall
 from keras_cv.models.convnext import ConvNeXtTiny
 from keras_cv.models.convnext import ConvNeXtXLarge
-from keras_cv.models.csp_darknet import CSPDarkNetL
-from keras_cv.models.csp_darknet import CSPDarkNetM
-from keras_cv.models.csp_darknet import CSPDarkNetS
-from keras_cv.models.csp_darknet import CSPDarkNetTiny
-from keras_cv.models.csp_darknet import CSPDarkNetX
 from keras_cv.models.darknet import DarkNet21
 from keras_cv.models.darknet import DarkNet53
 from keras_cv.models.densenet import DenseNet121
