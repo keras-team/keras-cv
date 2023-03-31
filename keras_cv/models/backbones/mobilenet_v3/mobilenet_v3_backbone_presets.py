@@ -29,6 +29,9 @@ backbone_presets_no_weights = {
             "include_rescaling": True,
             "input_shape": (None, None, 3),
             "input_tensor": None,
+            "alpha": 1.0,
+            "minimalistic": True,
+            "dropout_rate": 0.2,
         },
     },
     "mobilenetv3large": {
@@ -45,6 +48,9 @@ backbone_presets_no_weights = {
             "include_rescaling": True,
             "input_shape": (None, None, 3),
             "input_tensor": None,
+            "alpha": 1.0,
+            "minimalistic": True,
+            "dropout_rate": 0.2,
         },
     },
 }

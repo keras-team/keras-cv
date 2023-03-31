@@ -21,8 +21,8 @@ from keras_cv.models.backbones.mobilenet_v3 import (
 from keras_cv.models.models_test import ModelsTest
 
 MODEL_LIST = [
-    (mobilenet_v3.MobileNetV3Small, 576, {}),
-    (mobilenet_v3.MobileNetV3Large, 960, {}),
+    (mobilenet_v3.MobileNetV3SmallBackbone, 576, {}),
+    (mobilenet_v3.MobileNetV3LargeBackbone, 960, {}),
 ]
 
 
