@@ -128,8 +128,9 @@ class WaymoEvaluationCallback(Callback):
         predicted_boxes = tf.reshape(
             model_outputs["boxes"], (total_predicted_boxes, 7)
         )
-        predicted_classes = tf.reshape(
-            model_outputs["classes"], (total_predicted_boxes, 1)
+        predicted_classes = tf.cast(
+            tf.reshape(model_outputs["classes"], (total_predicted_boxes, 1)),
+            tf.uint8,
         )
         prediction_scores = tf.reshape(
             model_outputs["confidence"], (total_predicted_boxes, 1)
