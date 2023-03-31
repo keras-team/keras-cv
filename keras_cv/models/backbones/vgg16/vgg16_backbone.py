@@ -107,6 +107,7 @@ class VGG16Backbone(Backbone):
 
     def __init__(
         self,
+        *,
         include_rescaling,
         input_tensor=None,
         input_shape=(224, 224, 3),
