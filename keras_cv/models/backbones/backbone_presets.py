@@ -14,6 +14,7 @@
 """All Backbone presets"""
 
 from keras_cv.models.backbones.resnet_v2 import resnet_v2_backbone_presets
+from keras_cv.models.backbones.darknet import darknet_backbone_presets
 
 backbone_presets_no_weights = {
     **resnet_v2_backbone_presets.backbone_presets_no_weights,
@@ -21,6 +22,7 @@ backbone_presets_no_weights = {
 
 backbone_presets_with_weights = {
     **resnet_v2_backbone_presets.backbone_presets_with_weights,
+    **darknet_backbone_presets.backbone_presets_with_weights,
 }
 
 backbone_presets = {

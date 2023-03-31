@@ -3,8 +3,7 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#
-#     https://www.apache.org/licenses/LICENSE-2.0
+# LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -12,6 +11,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from keras_cv.models.backbones.resnet_v1.resnet_v1_backbone import (
+    ResNet18Backbone,
+)
+from keras_cv.models.backbones.resnet_v1.resnet_v1_backbone import (
+    ResNet34Backbone,
+)
+from keras_cv.models.backbones.resnet_v1.resnet_v1_backbone import (
+    ResNet50Backbone,
+)
+from keras_cv.models.backbones.resnet_v1.resnet_v1_backbone import (
+    ResNet101Backbone,
+)
+from keras_cv.models.backbones.resnet_v1.resnet_v1_backbone import (
+    ResNet152Backbone,
+)
+from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
+    DarkNet21Backbone,
+)
+from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
+    DarkNet53Backbone,
+)
 from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
     ResNet18V2Backbone,
 )
@@ -30,6 +50,15 @@ from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
 from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
     ResNetV2Backbone,
 )
+from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
+    ResNet152V2Backbone,
+)
+from keras_cv.models.backbones.darknet.darknet_backbone import (
+    DarkNet53Backbone,
+)
+from keras_cv.models.backbones.darknet.darknet_backbone import (
+    DarkNet21Backbone,
+)
 from keras_cv.models.classification.image_classifier import ImageClassifier
 from keras_cv.models.convmixer import ConvMixer_512_16
 from keras_cv.models.convmixer import ConvMixer_768_32
@@ -46,8 +75,7 @@ from keras_cv.models.csp_darknet import CSPDarkNetM
 from keras_cv.models.csp_darknet import CSPDarkNetS
 from keras_cv.models.csp_darknet import CSPDarkNetTiny
 from keras_cv.models.csp_darknet import CSPDarkNetX
-from keras_cv.models.darknet import DarkNet21
-from keras_cv.models.darknet import DarkNet53
+
 from keras_cv.models.densenet import DenseNet121
 from keras_cv.models.densenet import DenseNet169
 from keras_cv.models.densenet import DenseNet201
@@ -105,11 +133,6 @@ from keras_cv.models.regnet import RegNetY080
 from keras_cv.models.regnet import RegNetY120
 from keras_cv.models.regnet import RegNetY160
 from keras_cv.models.regnet import RegNetY320
-from keras_cv.models.resnet_v1 import ResNet18
-from keras_cv.models.resnet_v1 import ResNet34
-from keras_cv.models.resnet_v1 import ResNet50
-from keras_cv.models.resnet_v1 import ResNet101
-from keras_cv.models.resnet_v1 import ResNet152
 from keras_cv.models.segmentation.deeplab import DeepLabV3
 from keras_cv.models.stable_diffusion import StableDiffusion
 from keras_cv.models.stable_diffusion import StableDiffusionV2
