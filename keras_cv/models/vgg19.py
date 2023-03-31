@@ -22,7 +22,7 @@ from tensorflow import keras
 from tensorflow.keras import layers
 
 from keras_cv.models import utils
-from keras_cv.models.vgg16 import apply_vgg_block
+from keras_cv.models.backbones.vgg16.vgg16_backbone import apply_vgg_block
 
 
 @keras.utils.register_keras_serializable(package="keras_cv.models")
