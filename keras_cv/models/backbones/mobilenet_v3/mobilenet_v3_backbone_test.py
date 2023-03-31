@@ -11,3 +11,41 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+import tensorflow as tf
+from absl.testing import parameterized
+
+from keras_cv.models.backbones.mobilenet_v3 import mobilenet_v3_backbone as mobilenet_v3
+
+from keras_cv.models.models_test import ModelsTest
+
+MODEL_LIST = [
+    (mobilenet_v3.MobileNetV3Small, 576, {}),
+    (mobilenet_v3.MobileNetV3Large, 960, {}),
+]
+
+
+class MobileNetV3Test(ModelsTest, tf.test.TestCase, parameterized.TestCase):
+    @parameterized.parameters(*MODEL_LIST)
+    def test_application_base(self, app, _, args):
+        super()._test_application_base(app, _, args)
+
+    @parameterized.parameters(*MODEL_LIST)
+    def test_application_with_rescaling(self, app, last_dim, args):
+        super()._test_application_with_rescaling(app, last_dim, args)
+
+    @parameterized.parameters(*MODEL_LIST)
+    def test_application_pooling(self, app, last_dim, args):
+        super()._test_application_pooling(app, last_dim, args)
+
+    @parameterized.parameters(*MODEL_LIST)
+    def test_application_variable_input_channels(self, app, last_dim, args):
+        super()._test_application_variable_input_channels(app, last_dim, args)
+
+    @parameterized.parameters(*MODEL_LIST)
+    def test_model_can_be_used_as_backbone(self, app, last_dim, args):
+        super()._test_model_can_be_used_as_backbone(app, last_dim, args)
+
+
+if __name__ == "__main__":
+    tf.test.main()
