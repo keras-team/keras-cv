@@ -1,4 +1,4 @@
-# Copyright 2023 The KerasCV Authors
+# Copyright 2022 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,16 +16,16 @@ import time
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
-
 from keras_cv import core
 from keras_cv.layers import RandomCropAndResize
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
 from keras_cv.utils import preprocessing as preprocessing_utils
+from tensorflow import keras
 
 
-@tf.keras.utils.register_keras_serializable(package="keras_cv")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class OldRandomCropAndResize(BaseImageAugmentationLayer):
     """Randomly crops a part of an image and resizes it to provided size.
 
@@ -54,8 +54,8 @@ class OldRandomCropAndResize(BaseImageAugmentationLayer):
             height of the cropped image. In the context of this layer, the aspect ratio
             sampled represents a value to distort the aspect ratio by.
             Represents the lower and upper bound for the aspect ratio of the
-            cropped image before resizing it to `target_size`.  For most tasks, this #noqa
-            should be `(3/4, 4/3)`.  To perform a no-op provide the value `(1.0,1.0)`.
+            cropped image before resizing it to `target_size`.  For most tasks, this
+            should be `(3/4, 4/3)`.  To perform a no-op provide the value `(1.0, 1.0)`.
         interpolation: (Optional) A string specifying the sampling method for
             resizing. Defaults to "bilinear".
         seed: (Optional) Used to create a random seed. Defaults to None.
@@ -73,18 +73,16 @@ class OldRandomCropAndResize(BaseImageAugmentationLayer):
     ):
         super().__init__(seed=seed, **kwargs)
 
-        self._check_class_arguments(
-            target_size, crop_area_factor, aspect_ratio_factor
-        )
+        self._check_class_arguments(target_size, crop_area_factor, aspect_ratio_factor)
         self.target_size = target_size
-        self.aspect_ratio_factor = preprocessing_utils.parse_factor(
+        self.aspect_ratio_factor = preprocessing.parse_factor(
             aspect_ratio_factor,
             min_value=0.0,
             max_value=None,
             param_name="aspect_ratio_factor",
             seed=seed,
         )
-        self.crop_area_factor = preprocessing_utils.parse_factor(
+        self.crop_area_factor = preprocessing.parse_factor(
             crop_area_factor,
             max_value=1.0,
             param_name="crop_area_factor",
@@ -96,16 +94,16 @@ class OldRandomCropAndResize(BaseImageAugmentationLayer):
         self.bounding_box_format = bounding_box_format
         self.force_output_dense_images = True
 
-    def get_random_transformation(self, **kwargs):
+    def get_random_transformation(
+        self, image=None, label=None, bounding_box=None, **kwargs
+    ):
         crop_area_factor = self.crop_area_factor()
         aspect_ratio = self.aspect_ratio_factor()
 
         new_height = tf.clip_by_value(
             tf.sqrt(crop_area_factor / aspect_ratio), 0.0, 1.0
         )  # to avoid unwanted/unintuitive effects
-        new_width = tf.clip_by_value(
-            tf.sqrt(crop_area_factor * aspect_ratio), 0.0, 1.0
-        )
+        new_width = tf.clip_by_value(tf.sqrt(crop_area_factor * aspect_ratio), 0.0, 1.0)
 
         height_offset = self._random_generator.random_uniform(
             (),
@@ -163,9 +161,7 @@ class OldRandomCropAndResize(BaseImageAugmentationLayer):
         t_y1, t_x1, t_y2, t_x2 = transformation[0]
         t_dx = t_x2 - t_x1
         t_dy = t_y2 - t_y1
-        x1, y1, x2, y2 = tf.split(
-            bounding_boxes["boxes"], [1, 1, 1, 1], axis=-1
-        )
+        x1, y1, x2, y2 = tf.split(bounding_boxes["boxes"], [1, 1, 1, 1], axis=-1)
         output = tf.concat(
             [
                 (x1 - t_x1) / t_dx,
@@ -215,7 +211,7 @@ class OldRandomCropAndResize(BaseImageAugmentationLayer):
         return bounding_boxes
 
     def _resize(self, image, **kwargs):
-        outputs = tf.keras.preprocessing.image.smart_resize(
+        outputs = keras.preprocessing.image.smart_resize(
             image, self.target_size, **kwargs
         )
         # smart_resize will always output float32, so we need to re-cast.
@@ -248,9 +244,7 @@ class OldRandomCropAndResize(BaseImageAugmentationLayer):
             )
 
         if (
-            not isinstance(
-                aspect_ratio_factor, (tuple, list, core.FactorSampler)
-            )
+            not isinstance(aspect_ratio_factor, (tuple, list, core.FactorSampler))
             or isinstance(aspect_ratio_factor, float)
             or isinstance(aspect_ratio_factor, int)
         ):
@@ -260,9 +254,7 @@ class OldRandomCropAndResize(BaseImageAugmentationLayer):
                 f"aspect_ratio_factor={aspect_ratio_factor}"
             )
 
-    def augment_segmentation_mask(
-        self, segmentation_mask, transformation, **kwargs
-    ):
+    def augment_segmentation_mask(self, segmentation_mask, transformation, **kwargs):
         return self._crop_and_resize(
             segmentation_mask, transformation, method="nearest"
         )
@@ -284,15 +276,11 @@ class OldRandomCropAndResize(BaseImageAugmentationLayer):
     @classmethod
     def from_config(cls, config):
         if isinstance(config["crop_area_factor"], dict):
-            config[
-                "crop_area_factor"
-            ] = tf.keras.utils.deserialize_keras_object(
+            config["crop_area_factor"] = keras.utils.deserialize_keras_object(
                 config["crop_area_factor"]
             )
         if isinstance(config["aspect_ratio_factor"], dict):
-            config[
-                "aspect_ratio_factor"
-            ] = tf.keras.utils.deserialize_keras_object(
+            config["aspect_ratio_factor"] = keras.utils.deserialize_keras_object(
                 config["aspect_ratio_factor"]
             )
         return cls(**config)
@@ -320,7 +308,7 @@ if __name__ == "__main__":
     (x_train, _), _ = tf.keras.datasets.cifar10.load_data()
     x_train = x_train.astype(np.float32)
 
-    num_images = [10, 20, 30, 40]
+    num_images = [1, 2, 3, 4]
     results = {}
     aug_candidates = [RandomCropAndResize, OldRandomCropAndResize]
     aug_args = {
