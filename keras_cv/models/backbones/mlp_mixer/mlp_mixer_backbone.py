@@ -18,12 +18,18 @@ Reference:
   - [MLP-Mixer: An all-MLP Architecture for Vision](https://arxiv.org/abs/2105.01601)
 """
 
-import tensorflow as tf
+import copy
+
 from tensorflow import keras
 from tensorflow.keras import backend
 from tensorflow.keras import layers
 
 from keras_cv.models import utils
+from keras_cv.models.backbones.backbone import Backbone
+from keras_cv.models.backbones.mlp_mixer.mlp_mixer_backbone_presets import (
+    backbone_presets,
+)
+from keras_cv.utils.python_utils import classproperty
 
 MODEL_CONFIGS = {
     "MLPMixerB16": {
@@ -140,7 +146,7 @@ def apply_mixer_block(x, tokens_mlp_dim, channels_mlp_dim, name=None):
 
 
 @keras.utils.register_keras_serializable(package="keras_cv.models")
-class MLPMixer(keras.Model):
+class MLPMixerBackbone(Backbone):
 
     """Instantiates the MLP Mixer architecture.
 
@@ -186,6 +192,7 @@ class MLPMixer(keras.Model):
 
     def __init__(
         self,
+        *,
         input_shape,
         patch_size,
         num_blocks,
@@ -193,29 +200,9 @@ class MLPMixer(keras.Model):
         tokens_mlp_dim,
         channels_mlp_dim,
         include_rescaling,
-        include_top,
-        num_classes=None,
         input_tensor=None,
-        weights=None,
-        pooling=None,
-        classifier_activation="softmax",
-        name="MLPMixer",
         **kwargs,
     ):
-        if weights and not tf.io.gfile.exists(weights):
-            raise ValueError(
-                "The `weights` argument should be either "
-                "`None` or the path to the weights file to be loaded. "
-                f"Weights file not found at location: {weights}"
-            )
-
-        if include_top and not num_classes:
-            raise ValueError(
-                "If `include_top` is True, "
-                "you should specify `num_classes`. "
-                f"Received: num_classes={num_classes}"
-            )
-
         if not isinstance(input_shape, tuple):
             raise ValueError("`input_shape` needs to be tuple.")
 
@@ -255,23 +242,7 @@ class MLPMixer(keras.Model):
 
         x = layers.LayerNormalization()(x)
 
-        if include_top:
-            x = layers.GlobalAveragePooling1D(name="avg_pool")(x)
-            x = layers.Dense(
-                num_classes,
-                activation=classifier_activation,
-                name="predictions",
-            )(x)
-
-        elif pooling == "avg":
-            x = layers.GlobalAveragePooling1D(name="avg_pool")(x)
-        elif pooling == "max":
-            x = layers.GlobalMaxPooling1D(name="max_pool")(x)
-
-        super().__init__(inputs=inputs, outputs=x, name=name, **kwargs)
-
-        if weights is not None:
-            self.load_weights(weights)
+        super().__init__(inputs=inputs, outputs=x, **kwargs)
 
         self.patch_size = patch_size
         self.num_blocks = num_blocks
@@ -279,36 +250,31 @@ class MLPMixer(keras.Model):
         self.tokens_mlp_dim = tokens_mlp_dim
         self.channels_mlp_dim = channels_mlp_dim
         self.include_rescaling = include_rescaling
-        self.include_top = include_top
-        self.num_classes = num_classes
         self.input_tensor = input_tensor
-        self.pooling = pooling
-        self.classifier_activation = classifier_activation
 
     def get_config(self):
-        return {
-            "input_shape": self.input_shape[1:],
-            "patch_size": self.patch_size,
-            "num_blocks": self.num_blocks,
-            "hidden_dim": self.hidden_dim,
-            "tokens_mlp_dim": self.tokens_mlp_dim,
-            "channels_mlp_dim": self.channels_mlp_dim,
-            "include_rescaling": self.include_rescaling,
-            "include_top": self.include_top,
-            "num_classes": self.num_classes,
-            "input_tensor": self.input_tensor,
-            "pooling": self.pooling,
-            "classifier_activation": self.classifier_activation,
-            "name": self.name,
-            "trainable": self.trainable,
-        }
+        config = super().get_config()
+        config.update(
+            {
+                "input_shape": self.input_shape[1:],
+                "patch_size": self.patch_size,
+                "num_blocks": self.num_blocks,
+                "hidden_dim": self.hidden_dim,
+                "tokens_mlp_dim": self.tokens_mlp_dim,
+                "channels_mlp_dim": self.channels_mlp_dim,
+                "include_rescaling": self.include_rescaling,
+                "input_tensor": self.input_tensor,
+            }
+        )
+        return config
 
-    @classmethod
-    def from_config(cls, config):
-        return cls(**config)
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return copy.deepcopy(backbone_presets)
 
 
-def MLPMixerB16(
+def MLPMixerB16Backbone(
     input_shape,
     *,
     include_rescaling,
@@ -322,7 +288,7 @@ def MLPMixerB16(
 ):
     """Instantiates the MLPMixerB16 architecture."""
 
-    return MLPMixer(
+    return MLPMixerBackbone(
         input_shape=input_shape,
         patch_size=MODEL_CONFIGS["MLPMixerB16"]["patch_size"],
         num_blocks=MODEL_CONFIGS["MLPMixerB16"]["num_blocks"],
@@ -340,7 +306,7 @@ def MLPMixerB16(
     )
 
 
-def MLPMixerB32(
+def MLPMixerB32Backbone(
     input_shape,
     *,
     include_rescaling,
@@ -353,7 +319,7 @@ def MLPMixerB32(
     **kwargs,
 ):
     """Instantiates the MLPMixerB32 architecture."""
-    return MLPMixer(
+    return MLPMixerBackbone(
         input_shape=input_shape,
         patch_size=MODEL_CONFIGS["MLPMixerB32"]["patch_size"],
         num_blocks=MODEL_CONFIGS["MLPMixerB32"]["num_blocks"],
@@ -371,7 +337,7 @@ def MLPMixerB32(
     )
 
 
-def MLPMixerL16(
+def MLPMixerL16Backbone(
     input_shape,
     *,
     include_rescaling,
@@ -384,7 +350,7 @@ def MLPMixerL16(
     **kwargs,
 ):
     """Instantiates the MLPMixerL16 architecture."""
-    return MLPMixer(
+    return MLPMixerBackbone(
         input_shape=input_shape,
         patch_size=MODEL_CONFIGS["MLPMixerL16"]["patch_size"],
         num_blocks=MODEL_CONFIGS["MLPMixerL16"]["num_blocks"],
@@ -402,6 +368,12 @@ def MLPMixerL16(
     )
 
 
-setattr(MLPMixerB16, "__doc__", BASE_DOCSTRING.format(name="MLPMixerB16"))
-setattr(MLPMixerB32, "__doc__", BASE_DOCSTRING.format(name="MLPMixerB32"))
-setattr(MLPMixerL16, "__doc__", BASE_DOCSTRING.format(name="MLPMixerL16"))
+setattr(
+    MLPMixerB16Backbone, "__doc__", BASE_DOCSTRING.format(name="MLPMixerB16")
+)
+setattr(
+    MLPMixerB32Backbone, "__doc__", BASE_DOCSTRING.format(name="MLPMixerB32")
+)
+setattr(
+    MLPMixerL16Backbone, "__doc__", BASE_DOCSTRING.format(name="MLPMixerL16")
+)

@@ -20,17 +20,17 @@ from keras_cv.models.models_test import ModelsTest
 
 MODEL_LIST = [
     (
-        mlp_mixer.MLPMixerB16,
+        mlp_mixer.MLPMixerB16Backbone,
         768,
         {"input_shape": (224, 224, 3)},
     ),
     (
-        mlp_mixer.MLPMixerB32,
+        mlp_mixer.MLPMixerB32Backbone,
         768,
         {"input_shape": (224, 224, 3)},
     ),
     (
-        mlp_mixer.MLPMixerL16,
+        mlp_mixer.MLPMixerL16Backbone,
         1024,
         {"input_shape": (224, 224, 3)},
     ),

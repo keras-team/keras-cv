@@ -12,9 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from keras_cv.models.backbones.mlp_mixer.mlp_mixer_backbone import MLPMixerB16
-from keras_cv.models.backbones.mlp_mixer.mlp_mixer_backbone import MLPMixerB32
-from keras_cv.models.backbones.mlp_mixer.mlp_mixer_backbone import MLPMixerL16
+from keras_cv.models.backbones.mlp_mixer.mlp_mixer_backbone import (
+    MLPMixerB16Backbone,
+)
+from keras_cv.models.backbones.mlp_mixer.mlp_mixer_backbone import (
+    MLPMixerB32Backbone,
+)
+from keras_cv.models.backbones.mlp_mixer.mlp_mixer_backbone import (
+    MLPMixerL16Backbone,
+)
 from keras_cv.models.backbones.resnet_v1.resnet_v1_backbone import (
     ResNet18Backbone,
 )
