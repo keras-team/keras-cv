@@ -18,6 +18,4 @@ except ImportError:
         "You do not have pyococotools installed, so the `PyCOCOCallback` API is not available."
     )
 
-from keras_cv.callbacks.waymo_evaluation_callback import (
-    WaymoEvaluationCallback,
-)
+from keras_cv.callbacks.waymo_evaluation_callback import WaymoEvaluationCallback
