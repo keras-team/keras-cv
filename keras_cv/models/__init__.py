@@ -45,6 +45,7 @@ from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
 from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
     ResNetV2Backbone,
 )
+from keras_cv.models.backbones.vgg16.vgg16_backbone import VGG16
 from keras_cv.models.classification.image_classifier import ImageClassifier
 from keras_cv.models.convmixer import ConvMixer_512_16
 from keras_cv.models.convmixer import ConvMixer_768_32
@@ -123,7 +124,6 @@ from keras_cv.models.regnet import RegNetY320
 from keras_cv.models.segmentation.deeplab import DeepLabV3
 from keras_cv.models.stable_diffusion import StableDiffusion
 from keras_cv.models.stable_diffusion import StableDiffusionV2
-from keras_cv.models.vgg16 import VGG16
 from keras_cv.models.vgg19 import VGG19
 from keras_cv.models.vit import ViTB16
 from keras_cv.models.vit import ViTB32
