@@ -12,6 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_backbone import (
+    MobileNetV3Large,
+)
+from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_backbone import (
+    MobileNetV3Small,
+)
 from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
     CSPDarkNetBackbone,
 )
@@ -105,8 +111,6 @@ from keras_cv.models.efficientnet_v2 import EfficientNetV2S
 from keras_cv.models.mlp_mixer import MLPMixerB16
 from keras_cv.models.mlp_mixer import MLPMixerB32
 from keras_cv.models.mlp_mixer import MLPMixerL16
-from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_backbone import MobileNetV3Large
-from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_backbone import MobileNetV3Small
 from keras_cv.models.object_detection.faster_rcnn import FasterRCNN
 from keras_cv.models.object_detection.retina_net.retina_net import RetinaNet
 from keras_cv.models.mobilenet_v3 import MobileNetV3Large
