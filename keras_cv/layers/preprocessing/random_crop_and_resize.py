@@ -72,7 +72,9 @@ class RandomCropAndResize(VectorizedBaseImageAugmentationLayer):
     ):
         super().__init__(seed=seed, **kwargs)
 
-        self._check_class_arguments(target_size, crop_area_factor, aspect_ratio_factor)
+        self._check_class_arguments(
+            target_size, crop_area_factor, aspect_ratio_factor
+        )
         self.target_size = target_size
         self.aspect_ratio_factor = preprocessing_utils.parse_factor(
             aspect_ratio_factor,
@@ -94,11 +96,8 @@ class RandomCropAndResize(VectorizedBaseImageAugmentationLayer):
         self.force_output_dense_images = True
 
     def get_random_transformation_batch(self, batch_size, **kwargs):
-        crop_area_factor = self.crop_area_factor(
-            (batch_size,),
-            dtype=tf.float32,
-        )
-        aspect_ratio = self.aspect_ratio_factor(shape=(batch_size,), dtype=tf.float32)
+        crop_area_factor = self.crop_area_factor((batch_size,))
+        aspect_ratio = self.aspect_ratio_factor(shape=(batch_size,))
         new_heights = tf.clip_by_value(
             tf.sqrt(crop_area_factor / aspect_ratio),
             0.0,
@@ -162,12 +161,14 @@ class RandomCropAndResize(VectorizedBaseImageAugmentationLayer):
     def augment_target(self, target, **kwargs):
         return target
 
-    def _transform_bounding_boxes(bounding_boxes, transformation, batch_size):
+    def _transform_bounding_boxes(bounding_boxes, transformation):
         bounding_boxes = bounding_boxes.copy()
         t_y1, t_x1, t_y2, t_x2 = transformation[0]
         t_dx = t_x2 - t_x1
         t_dy = t_y2 - t_y1
-        x1, y1, x2, y2 = tf.split(bounding_boxes["boxes"], [1, 1, 1, 1], axis=-1)
+        x1, y1, x2, y2 = tf.split(
+            bounding_boxes["boxes"], [1, 1, 1, 1], axis=-1
+        )
         output = tf.concat(
             [
                 (x1 - t_x1) / t_dx,
@@ -250,7 +251,9 @@ class RandomCropAndResize(VectorizedBaseImageAugmentationLayer):
             )
 
         if (
-            not isinstance(aspect_ratio_factor, (tuple, list, core.FactorSampler))
+            not isinstance(
+                aspect_ratio_factor, (tuple, list, core.FactorSampler)
+            )
             or isinstance(aspect_ratio_factor, float)
             or isinstance(aspect_ratio_factor, int)
         ):
@@ -260,7 +263,9 @@ class RandomCropAndResize(VectorizedBaseImageAugmentationLayer):
                 f"aspect_ratio_factor={aspect_ratio_factor}"
             )
 
-    def augment_segmentation_masks(self, segmentation_masks, transformation, **kwargs):
+    def augment_segmentation_masks(
+        self, segmentation_masks, transformation, **kwargs
+    ):
         return self._crop_and_resize(
             segmentation_masks, transformation, method="nearest"
         )
@@ -299,11 +304,15 @@ class RandomCropAndResize(VectorizedBaseImageAugmentationLayer):
     @classmethod
     def from_config(cls, config):
         if isinstance(config["crop_area_factor"], dict):
-            config["crop_area_factor"] = tf.keras.utils.deserialize_keras_object(
+            config[
+                "crop_area_factor"
+            ] = tf.keras.utils.deserialize_keras_object(
                 config["crop_area_factor"]
             )
         if isinstance(config["aspect_ratio_factor"], dict):
-            config["aspect_ratio_factor"] = tf.keras.utils.deserialize_keras_object(
+            config[
+                "aspect_ratio_factor"
+            ] = tf.keras.utils.deserialize_keras_object(
                 config["aspect_ratio_factor"]
             )
         return cls(**config)
