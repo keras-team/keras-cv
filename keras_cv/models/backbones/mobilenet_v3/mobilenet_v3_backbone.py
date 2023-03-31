@@ -149,15 +149,15 @@ def apply_hard_swish(x, name=None):
 
 
 def apply_inverted_res_block(
-        x,
-        expansion,
-        filters,
-        kernel_size,
-        stride,
-        se_ratio,
-        activation,
-        block_id,
-        name=None,
+    x,
+    expansion,
+    filters,
+    kernel_size,
+    stride,
+    se_ratio,
+    activation,
+    block_id,
+    name=None,
 ):
     """An Inverted Residual Block.
 
@@ -316,22 +316,22 @@ class MobileNetV3(keras.Model):
     """
 
     def __init__(
-            self,
-            stack_fn,
-            last_point_ch,
-            include_rescaling,
-            include_top,
-            num_classes=None,
-            weights=None,
-            input_shape=(None, None, 3),
-            input_tensor=None,
-            pooling=None,
-            alpha=1.0,
-            minimalistic=True,
-            dropout_rate=0.2,
-            classifier_activation="softmax",
-            name="MobileNetV3",
-            **kwargs,
+        self,
+        stack_fn,
+        last_point_ch,
+        include_rescaling,
+        include_top,
+        num_classes=None,
+        weights=None,
+        input_shape=(None, None, 3),
+        input_tensor=None,
+        pooling=None,
+        alpha=1.0,
+        minimalistic=True,
+        dropout_rate=0.2,
+        classifier_activation="softmax",
+        name="MobileNetV3",
+        **kwargs,
     ):
         if weights and not tf.io.gfile.exists(weights):
             raise ValueError(
@@ -467,20 +467,20 @@ class MobileNetV3(keras.Model):
 
 
 def MobileNetV3Small(
-        *,
-        include_rescaling,
-        include_top,
-        num_classes=None,
-        weights=None,
-        input_shape=(None, None, 3),
-        input_tensor=None,
-        pooling=None,
-        alpha=1.0,
-        minimalistic=False,
-        dropout_rate=0.2,
-        classifier_activation="softmax",
-        name="MobileNetV3Small",
-        **kwargs,
+    *,
+    include_rescaling,
+    include_top,
+    num_classes=None,
+    weights=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    alpha=1.0,
+    minimalistic=False,
+    dropout_rate=0.2,
+    classifier_activation="softmax",
+    name="MobileNetV3Small",
+    **kwargs,
 ):
     def stack_fn(x, kernel, activation, se_ratio):
         x = apply_inverted_res_block(
@@ -538,20 +538,20 @@ def MobileNetV3Small(
 
 
 def MobileNetV3Large(
-        *,
-        include_rescaling,
-        include_top,
-        num_classes=None,
-        weights=None,
-        input_shape=(None, None, 3),
-        input_tensor=None,
-        pooling=None,
-        alpha=1.0,
-        minimalistic=False,
-        dropout_rate=0.2,
-        classifier_activation="softmax",
-        name="MobileNetV3Large",
-        **kwargs,
+    *,
+    include_rescaling,
+    include_top,
+    num_classes=None,
+    weights=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    alpha=1.0,
+    minimalistic=False,
+    dropout_rate=0.2,
+    classifier_activation="softmax",
+    name="MobileNetV3Large",
+    **kwargs,
 ):
     def stack_fn(x, kernel, activation, se_ratio):
         x = apply_inverted_res_block(

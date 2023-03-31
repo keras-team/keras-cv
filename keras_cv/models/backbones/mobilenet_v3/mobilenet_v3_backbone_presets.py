@@ -11,3 +11,44 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+"""MobileNetV3 model preset configurations."""
+
+backbone_presets_no_weights = {
+    "mobilenetv3small": {
+        "metadata": {
+            "description": (
+                "MobileNetV3 model with 14 layers where the batch "
+                "normalization and hard-swish activation are applied after the "
+                "convolution layers."
+            ),
+        },
+        "class_name": "keras_cv.models>MobileNetV3Backbone",
+        "config": {
+            "last_point_ch": 1024,
+            "include_rescaling": True,
+            "input_shape": (None, None, 3),
+            "input_tensor": None,
+        },
+    },
+    "mobilenetv3large": {
+        "metadata": {
+            "description": (
+                "MobileNetV3 model with 28 layers where the batch "
+                "normalization and hard-swish activation are applied after the "
+                "convolution layers."
+            ),
+        },
+        "class_name": "keras_cv.models>MobileNetV3Backbone",
+        "config": {
+            "last_point_ch": 1280,
+            "include_rescaling": True,
+            "input_shape": (None, None, 3),
+            "input_tensor": None,
+        },
+    },
+}
+
+backbone_presets = {
+    **backbone_presets_no_weights,
+}

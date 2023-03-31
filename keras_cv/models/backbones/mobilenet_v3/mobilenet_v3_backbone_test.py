@@ -15,8 +15,9 @@
 import tensorflow as tf
 from absl.testing import parameterized
 
-from keras_cv.models.backbones.mobilenet_v3 import mobilenet_v3_backbone as mobilenet_v3
-
+from keras_cv.models.backbones.mobilenet_v3 import (
+    mobilenet_v3_backbone as mobilenet_v3,
+)
 from keras_cv.models.models_test import ModelsTest
 
 MODEL_LIST = [
