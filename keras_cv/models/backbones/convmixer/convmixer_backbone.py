@@ -178,21 +178,21 @@ class ConvMixer(keras.Model):
     """
 
     def __init__(
-            self,
-            dim,
-            depth,
-            patch_size,
-            kernel_size,
-            include_top,
-            include_rescaling,
-            name="ConvMixer",
-            weights=None,
-            input_shape=(None, None, 3),
-            input_tensor=None,
-            pooling=None,
-            num_classes=None,
-            classifier_activation="softmax",
-            **kwargs,
+        self,
+        dim,
+        depth,
+        patch_size,
+        kernel_size,
+        include_top,
+        include_rescaling,
+        name="ConvMixer",
+        weights=None,
+        input_shape=(None, None, 3),
+        input_tensor=None,
+        pooling=None,
+        num_classes=None,
+        classifier_activation="softmax",
+        **kwargs,
     ):
         if weights and not tf.io.gfile.exists(weights):
             raise ValueError(
@@ -270,16 +270,16 @@ class ConvMixer(keras.Model):
 
 
 def ConvMixer_1536_20(
-        include_rescaling,
-        include_top,
-        num_classes=None,
-        weights=None,
-        input_shape=(None, None, 3),
-        input_tensor=None,
-        pooling=None,
-        classifier_activation="softmax",
-        name="ConvMixer_1536_20",
-        **kwargs,
+    include_rescaling,
+    include_top,
+    num_classes=None,
+    weights=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    classifier_activation="softmax",
+    name="ConvMixer_1536_20",
+    **kwargs,
 ):
     return ConvMixer(
         dim=MODEL_CONFIGS["ConvMixer_1536_20"]["dim"],
@@ -300,16 +300,16 @@ def ConvMixer_1536_20(
 
 
 def ConvMixer_1536_24(
-        include_rescaling,
-        include_top,
-        num_classes=None,
-        weights=None,
-        input_shape=(None, None, 3),
-        input_tensor=None,
-        pooling=None,
-        classifier_activation="softmax",
-        name="ConvMixer_1536_24",
-        **kwargs,
+    include_rescaling,
+    include_top,
+    num_classes=None,
+    weights=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    classifier_activation="softmax",
+    name="ConvMixer_1536_24",
+    **kwargs,
 ):
     return ConvMixer(
         dim=MODEL_CONFIGS["ConvMixer_1536_24"]["dim"],
@@ -330,16 +330,16 @@ def ConvMixer_1536_24(
 
 
 def ConvMixer_768_32(
-        include_rescaling,
-        include_top,
-        num_classes=None,
-        weights=None,
-        input_shape=(None, None, 3),
-        input_tensor=None,
-        pooling=None,
-        classifier_activation="softmax",
-        name="ConvMixer_768_32",
-        **kwargs,
+    include_rescaling,
+    include_top,
+    num_classes=None,
+    weights=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    classifier_activation="softmax",
+    name="ConvMixer_768_32",
+    **kwargs,
 ):
     return ConvMixer(
         dim=MODEL_CONFIGS["ConvMixer_768_32"]["dim"],
@@ -360,16 +360,16 @@ def ConvMixer_768_32(
 
 
 def ConvMixer_1024_16(
-        include_rescaling,
-        include_top,
-        num_classes=None,
-        weights=None,
-        input_shape=(None, None, 3),
-        input_tensor=None,
-        pooling=None,
-        classifier_activation="softmax",
-        name="ConvMixer_1024_16",
-        **kwargs,
+    include_rescaling,
+    include_top,
+    num_classes=None,
+    weights=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    classifier_activation="softmax",
+    name="ConvMixer_1024_16",
+    **kwargs,
 ):
     return ConvMixer(
         dim=MODEL_CONFIGS["ConvMixer_1024_16"]["dim"],
@@ -390,16 +390,16 @@ def ConvMixer_1024_16(
 
 
 def ConvMixer_512_16(
-        include_rescaling,
-        include_top,
-        num_classes=None,
-        weights=None,
-        input_shape=(None, None, 3),
-        input_tensor=None,
-        pooling=None,
-        classifier_activation="softmax",
-        name="ConvMixer_512_16",
-        **kwargs,
+    include_rescaling,
+    include_top,
+    num_classes=None,
+    weights=None,
+    input_shape=(None, None, 3),
+    input_tensor=None,
+    pooling=None,
+    classifier_activation="softmax",
+    name="ConvMixer_512_16",
+    **kwargs,
 ):
     return ConvMixer(
         dim=MODEL_CONFIGS["ConvMixer_512_16"]["dim"],

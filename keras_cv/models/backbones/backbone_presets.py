@@ -13,17 +13,20 @@
 # limitations under the License.
 """All Backbone presets"""
 
+from keras_cv.models.backbones.convmixer import convmixer_backbone_presets
 from keras_cv.models.backbones.resnet_v1 import resnet_v1_backbone_presets
 from keras_cv.models.backbones.resnet_v2 import resnet_v2_backbone_presets
 
 backbone_presets_no_weights = {
     **resnet_v1_backbone_presets.backbone_presets_no_weights,
     **resnet_v2_backbone_presets.backbone_presets_no_weights,
+    **convmixer_backbone_presets.backbone_presets_no_weights,
 }
 
 backbone_presets_with_weights = {
     **resnet_v1_backbone_presets.backbone_presets_with_weights,
     **resnet_v2_backbone_presets.backbone_presets_with_weights,
+    **convmixer_backbone_presets.backbone_presets_with_weights,
 }
 
 backbone_presets = {
