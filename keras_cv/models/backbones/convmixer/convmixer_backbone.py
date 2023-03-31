@@ -209,6 +209,8 @@ class ConvMixerBackbone(Backbone):
         for _ in range(depth):
             x = apply_conv_mixer_layer(x, dim, kernel_size)
 
+        super().__init__(inputs=inputs, outputs=x, **kwargs)
+
         self.dim = dim
         self.depth = depth
         self.patch_size = patch_size
