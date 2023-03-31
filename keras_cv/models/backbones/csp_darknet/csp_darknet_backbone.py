@@ -19,9 +19,8 @@ Reference:
     - [YoloX Paper](https://arxiv.org/abs/2107.08430)
     - [YoloX implementation](https://github.com/ultralytics/yolov3)
 """
-import types
+import copy
 
-import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 
@@ -33,7 +32,15 @@ from keras_cv.models.__internal__.darknet_utils import Focus
 from keras_cv.models.__internal__.darknet_utils import (
     SpatialPyramidPoolingBottleneck,
 )
+from keras_cv.models.backbones.backbone import Backbone
+from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone_presets import (
+    backbone_presets,
+)
+from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone_presets import (
+    backbone_presets_with_weights,
+)
 from keras_cv.models.weights import parse_weights
+from keras_cv.utils.python_utils import classproperty
 
 DEPTH_MULTIPLIERS = {
     "tiny": 0.33,
@@ -94,7 +101,7 @@ BASE_DOCSTRING = """Represents the {name} architecture.
 
 
 @keras.utils.register_keras_serializable(package="keras_cv.models")
-class CSPDarkNet(keras.Model):
+class CSPDarkNetBackbone(Backbone):
     """This class represents the CSPDarkNet architecture.
     Although the DarkNet architecture is commonly used for detection tasks, it is
     possible to extract the intermediate dark2 to dark5 layers from the model for
@@ -143,32 +150,15 @@ class CSPDarkNet(keras.Model):
 
     def __init__(
         self,
+        *,
         depth_multiplier,
         width_multiplier,
         include_rescaling,
-        include_top,
         use_depthwise=False,
-        num_classes=None,
-        weights=None,
         input_shape=(None, None, 3),
         input_tensor=None,
-        pooling=None,
-        classifier_activation="softmax",
-        name="CSPDarkNet",
         **kwargs,
     ):
-        if weights and not tf.io.gfile.exists(weights):
-            raise ValueError(
-                "The `weights` argument should be either `None` or the path to the "
-                f"weights file to be loaded. Weights file not found at location{weights}"
-            )
-
-        if include_top and not num_classes:
-            raise ValueError(
-                "If `include_top` is True, you should specify `num_classes`. Received: "
-                f"num_classes={num_classes}"
-            )
-
         ConvBlock = (
             DarknetConvBlockDepthwise if use_depthwise else DarknetConvBlock
         )
@@ -188,7 +178,7 @@ class CSPDarkNet(keras.Model):
             base_channels, kernel_size=3, strides=1, name="stem_conv"
         )(x)
 
-        _backbone_level_outputs = {}
+        pyramid_level_inputs = {}
         # dark2
         x = ConvBlock(
             base_channels * 2, kernel_size=3, strides=2, name="dark2_conv"
@@ -199,7 +189,7 @@ class CSPDarkNet(keras.Model):
             use_depthwise=use_depthwise,
             name="dark2_csp",
         )(x)
-        _backbone_level_outputs[2] = x
+        pyramid_level_inputs[2] = x
 
         # dark3
         x = ConvBlock(
@@ -211,7 +201,7 @@ class CSPDarkNet(keras.Model):
             use_depthwise=use_depthwise,
             name="dark3_csp",
         )(x)
-        _backbone_level_outputs[3] = x
+        pyramid_level_inputs[3] = x
 
         # dark4
         x = ConvBlock(
@@ -223,7 +213,7 @@ class CSPDarkNet(keras.Model):
             use_depthwise=use_depthwise,
             name="dark4_csp",
         )(x)
-        _backbone_level_outputs[4] = x
+        pyramid_level_inputs[4] = x
 
         # dark5
         x = ConvBlock(
@@ -241,60 +231,43 @@ class CSPDarkNet(keras.Model):
             use_depthwise=use_depthwise,
             name="dark5_csp",
         )(x)
-        _backbone_level_outputs[5] = x
+        pyramid_level_inputs[5] = x
 
-        if include_top:
-            x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-            x = layers.Dense(
-                num_classes,
-                activation=classifier_activation,
-                name="predictions",
-            )(x)
-        elif pooling == "avg":
-            x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-        elif pooling == "max":
-            x = layers.GlobalMaxPooling2D(name="max_pool")(x)
-
-        super().__init__(inputs=inputs, outputs=x, name=name, **kwargs)
-        self._backbone_level_outputs = _backbone_level_outputs
-        # Bind the `to_backbone_model` method to the application model.
-        self.as_backbone = types.MethodType(utils.as_backbone, self)
-
-        if weights is not None:
-            self.load_weights(weights)
+        super().__init__(inputs=inputs, outputs=x, **kwargs)
+        self.pyramid_level_inputs = pyramid_level_inputs
 
         self.depth_multiplier = depth_multiplier
         self.width_multiplier = width_multiplier
         self.include_rescaling = include_rescaling
-        self.include_top = include_top
         self.use_depthwise = use_depthwise
-        self.num_classes = num_classes
         self.input_tensor = input_tensor
-        self.pooling = pooling
-        self.classifier_activation = classifier_activation
 
     def get_config(self):
-        return {
-            "depth_multiplier": self.depth_multiplier,
-            "width_multiplier": self.width_multiplier,
-            "include_rescaling": self.include_rescaling,
-            "include_top": self.include_top,
-            "use_depthwise": self.use_depthwise,
-            "num_classes": self.num_classes,
-            "input_shape": self.input_shape[1:],
-            "input_tensor": self.input_tensor,
-            "pooling": self.pooling,
-            "classifier_activation": self.classifier_activation,
-            "name": self.name,
-            "trainable": self.trainable,
-        }
+        config = super().get_config()
+        config.update(
+            {
+                "depth_multiplier": self.depth_multiplier,
+                "width_multiplier": self.width_multiplier,
+                "include_rescaling": self.include_rescaling,
+                "use_depthwise": self.use_depthwise,
+                "input_shape": self.input_shape[1:],
+                "input_tensor": self.input_tensor,
+            }
+        )
+        return config
 
-    @classmethod
-    def from_config(cls, config):
-        return cls(**config)
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return copy.deepcopy(backbone_presets)
+
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include weights."""
+        return copy.deepcopy(backbone_presets_with_weights)
 
 
-def CSPDarkNetTiny(
+def CSPDarkNetTinyBackbone(
     *,
     include_rescaling,
     include_top,
@@ -308,7 +281,7 @@ def CSPDarkNetTiny(
     name="CSPDarkNetTiny",
     **kwargs,
 ):
-    return CSPDarkNet(
+    return CSPDarkNetBackbone(
         depth_multiplier=DEPTH_MULTIPLIERS["tiny"],
         width_multiplier=WIDTH_MULTIPLIERS["tiny"],
         include_rescaling=include_rescaling,
@@ -325,7 +298,7 @@ def CSPDarkNetTiny(
     )
 
 
-def CSPDarkNetS(
+def CSPDarkNetSBackbone(
     *,
     include_rescaling,
     include_top,
@@ -339,7 +312,7 @@ def CSPDarkNetS(
     name="CSPDarkNetS",
     **kwargs,
 ):
-    return CSPDarkNet(
+    return CSPDarkNetBackbone(
         depth_multiplier=DEPTH_MULTIPLIERS["s"],
         width_multiplier=WIDTH_MULTIPLIERS["s"],
         include_rescaling=include_rescaling,
@@ -356,7 +329,7 @@ def CSPDarkNetS(
     )
 
 
-def CSPDarkNetM(
+def CSPDarkNetMBackbone(
     *,
     include_rescaling,
     include_top,
@@ -370,7 +343,7 @@ def CSPDarkNetM(
     name="CSPDarkNetM",
     **kwargs,
 ):
-    return CSPDarkNet(
+    return CSPDarkNetBackbone(
         depth_multiplier=DEPTH_MULTIPLIERS["m"],
         width_multiplier=WIDTH_MULTIPLIERS["m"],
         include_rescaling=include_rescaling,
@@ -387,7 +360,7 @@ def CSPDarkNetM(
     )
 
 
-def CSPDarkNetL(
+def CSPDarkNetLBackbone(
     *,
     include_rescaling,
     include_top,
@@ -401,7 +374,7 @@ def CSPDarkNetL(
     name="CSPDarkNetL",
     **kwargs,
 ):
-    return CSPDarkNet(
+    return CSPDarkNetBackbone(
         depth_multiplier=DEPTH_MULTIPLIERS["l"],
         width_multiplier=WIDTH_MULTIPLIERS["l"],
         include_rescaling=include_rescaling,
@@ -418,7 +391,7 @@ def CSPDarkNetL(
     )
 
 
-def CSPDarkNetX(
+def CSPDarkNetXBackbone(
     *,
     include_rescaling,
     include_top,
@@ -432,7 +405,7 @@ def CSPDarkNetX(
     name="CSPDarkNetX",
     **kwargs,
 ):
-    return CSPDarkNet(
+    return CSPDarkNetBackbone(
         depth_multiplier=DEPTH_MULTIPLIERS["x"],
         width_multiplier=WIDTH_MULTIPLIERS["x"],
         include_rescaling=include_rescaling,
@@ -449,8 +422,20 @@ def CSPDarkNetX(
     )
 
 
-setattr(CSPDarkNetTiny, "__doc__", BASE_DOCSTRING.format(name="CSPDarkNetTiny"))
-setattr(CSPDarkNetS, "__doc__", BASE_DOCSTRING.format(name="CSPDarkNetS"))
-setattr(CSPDarkNetM, "__doc__", BASE_DOCSTRING.format(name="CSPDarkNetM"))
-setattr(CSPDarkNetL, "__doc__", BASE_DOCSTRING.format(name="CSPDarkNetL"))
-setattr(CSPDarkNetX, "__doc__", BASE_DOCSTRING.format(name="CSPDarkNetX"))
+setattr(
+    CSPDarkNetTinyBackbone,
+    "__doc__",
+    BASE_DOCSTRING.format(name="CSPDarkNetTiny"),
+)
+setattr(
+    CSPDarkNetSBackbone, "__doc__", BASE_DOCSTRING.format(name="CSPDarkNetS")
+)
+setattr(
+    CSPDarkNetMBackbone, "__doc__", BASE_DOCSTRING.format(name="CSPDarkNetM")
+)
+setattr(
+    CSPDarkNetLBackbone, "__doc__", BASE_DOCSTRING.format(name="CSPDarkNetL")
+)
+setattr(
+    CSPDarkNetXBackbone, "__doc__", BASE_DOCSTRING.format(name="CSPDarkNetX")
+)

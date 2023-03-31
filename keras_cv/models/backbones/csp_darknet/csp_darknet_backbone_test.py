@@ -22,9 +22,9 @@ from keras_cv.models.backbones.csp_darknet import (
 from keras_cv.models.models_test import ModelsTest
 
 MODEL_LIST = [
-    (csp_darknet.CSPDarkNetTiny, 384, {}),
-    (csp_darknet.CSPDarkNetS, 512, {}),
-    (csp_darknet.CSPDarkNetM, 768, {}),
+    (csp_darknet.CSPDarkNetTinyBackbone, 384, {}),
+    (csp_darknet.CSPDarkNetSBackbone, 512, {}),
+    (csp_darknet.CSPDarkNetMBackbone, 768, {}),
 ]
 
 

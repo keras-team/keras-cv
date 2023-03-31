@@ -13,19 +13,19 @@
 # limitations under the License.
 
 from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
-    CSPDarkNetL,
+    CSPDarkNetLBackbone,
 )
 from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
-    CSPDarkNetM,
+    CSPDarkNetMBackbone,
 )
 from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
-    CSPDarkNetS,
+    CSPDarkNetSBackbone,
 )
 from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
-    CSPDarkNetTiny,
+    CSPDarkNetTinyBackbone,
 )
 from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
-    CSPDarkNetX,
+    CSPDarkNetXBackbone,
 )
 from keras_cv.models.backbones.resnet_v1.resnet_v1_backbone import (
     ResNet18Backbone,
