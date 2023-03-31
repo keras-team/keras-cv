@@ -11,3 +11,26 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+"""VGG16 model preset configurations."""
+
+backbone_presets_no_weights = {
+    "vgg16": {
+        "metadata": {
+            "description": (
+                "VGG16 model with 16 layers where the ReLU activation is "
+                "applied after the convolution layers."
+            ),
+        },
+        "class_name": "keras_cv.models>VGG16Backbone",
+        "config": {
+            "include_rescaling": True,
+            "input_shape": (None, None, 3),
+            "input_tensor": None,
+        },
+    },
+}
+
+backbone_presets = {
+    **backbone_presets_no_weights,
+}
