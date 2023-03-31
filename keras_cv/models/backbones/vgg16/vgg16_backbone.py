@@ -16,12 +16,17 @@
 Reference:
   - [Very Deep Convolutional Networks for Large-Scale Image Recognition](https://arxiv.org/abs/1409.1556) (ICLR 2015)
 """
+import copy
 
-import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 
 from keras_cv.models import utils
+from keras_cv.models.backbones.backbone import Backbone
+from keras_cv.models.backbones.vgg16.vgg16_backbone_presets import (
+    backbone_presets,
+)
+from keras_cv.utils.python_utils import classproperty
 
 
 def apply_vgg_block(
@@ -63,7 +68,7 @@ def apply_vgg_block(
 
 
 @keras.utils.register_keras_serializable(package="keras_cv.models")
-class VGG16(keras.Model):
+class VGG16Backbone(Backbone):
     """
     Reference:
     - [Very Deep Convolutional Networks for Large-Scale Image Recognition](https://arxiv.org/abs/1409.1556) (ICLR 2015)
@@ -103,34 +108,10 @@ class VGG16(keras.Model):
     def __init__(
         self,
         include_rescaling,
-        include_top,
         input_tensor=None,
-        num_classes=None,
-        weights=None,
         input_shape=(224, 224, 3),
-        pooling=None,
-        classifier_activation="softmax",
-        name="VGG16",
         **kwargs,
     ):
-        if weights and not tf.io.gfile.exists(weights):
-            raise ValueError(
-                "The `weights` argument should be either `None` or the path to the "
-                "weights file to be loaded. Weights file not found at location: {weights}"
-            )
-
-        if include_top and not num_classes:
-            raise ValueError(
-                "If `include_top` is True, you should specify `num_classes`. "
-                f"Received: num_classes={num_classes}"
-            )
-
-        if include_top and pooling:
-            raise ValueError(
-                f"`pooling` must be `None` when `include_top=True`."
-                f"Received pooling={pooling} and include_top={include_top}. "
-            )
-
         inputs = utils.parse_model_inputs(input_shape, input_tensor)
         x = inputs
 
@@ -192,45 +173,23 @@ class VGG16(keras.Model):
             name="block5",
         )
 
-        if include_top:
-            x = layers.Flatten(name="flatten")(x)
-            x = layers.Dense(4096, activation="relu", name="fc1")(x)
-            x = layers.Dense(4096, activation="relu", name="fc2")(x)
-            x = layers.Dense(
-                num_classes,
-                activation=classifier_activation,
-                name="predictions",
-            )(x)
-        else:
-            if pooling == "avg":
-                x = layers.GlobalAveragePooling2D()(x)
-            elif pooling == "max":
-                x = layers.GlobalMaxPooling2D()(x)
-
-        super().__init__(inputs=inputs, outputs=x, name=name, **kwargs)
-        if weights is not None:
-            self.load_weights(weights)
+        super().__init__(inputs=inputs, outputs=x, **kwargs)
 
         self.include_rescaling = include_rescaling
-        self.include_top = include_top
-        self.num_classes = num_classes
         self.input_tensor = input_tensor
-        self.pooling = pooling
-        self.classifier_activation = classifier_activation
 
     def get_config(self):
-        return {
-            "include_rescaling": self.include_rescaling,
-            "include_top": self.include_top,
-            "name": self.name,
-            "input_shape": self.input_shape[1:],
-            "input_tensor": self.input_tensor,
-            "pooling": self.pooling,
-            "num_classes": self.num_classes,
-            "classifier_activation": self.classifier_activation,
-            "trainable": self.trainable,
-        }
+        config = super().get_config()
+        config.update(
+            {
+                "include_rescaling": self.include_rescaling,
+                "input_shape": self.input_shape[1:],
+                "input_tensor": self.input_tensor,
+            }
+        )
+        return config
 
-    @classmethod
-    def from_config(cls, config):
-        return cls(**config)
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return copy.deepcopy(backbone_presets)

@@ -45,7 +45,7 @@ from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
 from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
     ResNetV2Backbone,
 )
-from keras_cv.models.backbones.vgg16.vgg16_backbone import VGG16
+from keras_cv.models.backbones.vgg16.vgg16_backbone import VGG16Backbone
 from keras_cv.models.classification.image_classifier import ImageClassifier
 from keras_cv.models.convmixer import ConvMixer_512_16
 from keras_cv.models.convmixer import ConvMixer_768_32

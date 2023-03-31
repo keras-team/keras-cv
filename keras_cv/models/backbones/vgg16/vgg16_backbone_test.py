@@ -19,7 +19,7 @@ from keras_cv.models.backbones.vgg16 import vgg16_backbone as vgg16
 from keras_cv.models.models_test import ModelsTest
 
 MODEL_LIST = [
-    (vgg16.VGG16, 512, {}),
+    (vgg16.VGG16Backbone, 512, {}),
 ]
 
 
