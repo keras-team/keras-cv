@@ -18,12 +18,22 @@ References:
 - [Patches Are All You Need?](https://arxiv.org/abs/2201.09792)
 """
 
+import copy
+
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 
 from keras_cv.models import utils
+from keras_cv.models.backbones.backbone import Backbone
+from keras_cv.models.backbones.convmixer.convmixer_backbone_presets import (
+    backbone_presets,
+)
+from keras_cv.models.backbones.convmixer.convmixer_backbone_presets import (
+    backbone_presets_with_weights,
+)
 from keras_cv.models.weights import parse_weights
+from keras_cv.utils.python_utils import classproperty
 
 MODEL_CONFIGS = {
     "ConvMixer_1536_20": {
@@ -137,7 +147,7 @@ def apply_patch_embed(x, dim, patch_size):
 
 
 @keras.utils.register_keras_serializable(package="keras_cv.models")
-class ConvMixer(keras.Model):
+class ConvMixerBackbone(Backbone):
     """Instantiates the ConvMixer architecture.
 
     Args:
@@ -179,39 +189,16 @@ class ConvMixer(keras.Model):
 
     def __init__(
         self,
+        *,
         dim,
         depth,
         patch_size,
         kernel_size,
-        include_top,
         include_rescaling,
-        name="ConvMixer",
-        weights=None,
         input_shape=(None, None, 3),
         input_tensor=None,
-        pooling=None,
-        num_classes=None,
-        classifier_activation="softmax",
         **kwargs,
     ):
-        if weights and not tf.io.gfile.exists(weights):
-            raise ValueError(
-                "The `weights` argument should be either `None` or the path to the "
-                f"weights file to be loaded. Weights file not found at location: {weights}"
-            )
-
-        if include_top and not num_classes:
-            raise ValueError(
-                "If `include_top` is True, you should specify `classes`. "
-                f"Received: classes={num_classes}"
-            )
-
-        if include_top and pooling:
-            raise ValueError(
-                f"`pooling` must be `None` when `include_top=True`."
-                f"Received pooling={pooling} and include_top={include_top}. "
-            )
-
         inputs = utils.parse_model_inputs(input_shape, input_tensor)
         x = inputs
 
@@ -222,54 +209,40 @@ class ConvMixer(keras.Model):
         for _ in range(depth):
             x = apply_conv_mixer_layer(x, dim, kernel_size)
 
-        if include_top:
-            x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-            x = layers.Dense(
-                num_classes,
-                activation=classifier_activation,
-                name="predictions",
-            )(x)
-        else:
-            if pooling == "avg":
-                x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-            elif pooling == "max":
-                x = layers.GlobalMaxPooling2D(name="max_pool")(x)
-
-        super().__init__(inputs=inputs, outputs=x, name=name, **kwargs)
-
-        if weights is not None:
-            self.load_weights(weights)
-
         self.dim = dim
         self.depth = depth
         self.patch_size = patch_size
         self.kernel_size = kernel_size
-        self.include_top = include_top
         self.include_rescaling = include_rescaling
         self.input_tensor = input_tensor
-        self.pooling = pooling
-        self.num_classes = num_classes
-        self.classifier_activation = classifier_activation
 
     def get_config(self):
-        return {
-            "dim": self.dim,
-            "depth": self.depth,
-            "patch_size": self.patch_size,
-            "kernel_size": self.kernel_size,
-            "include_top": self.include_top,
-            "include_rescaling": self.include_rescaling,
-            "name": self.name,
-            "input_shape": self.input_shape[1:],
-            "input_tensor": self.input_tensor,
-            "pooling": self.pooling,
-            "num_classes": self.num_classes,
-            "classifier_activation": self.classifier_activation,
-            "trainable": self.trainable,
-        }
+        config = super().get_config()
+        config.update(
+            {
+                "dim": self.dim,
+                "depth": self.depth,
+                "patch_size": self.patch_size,
+                "kernel_size": self.kernel_size,
+                "include_rescaling": self.include_rescaling,
+                "input_shape": self.input_shape[1:],
+                "input_tensor": self.input_tensor,
+            }
+        )
+        return config
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return copy.deepcopy(backbone_presets)
+
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include weights."""
+        return copy.deepcopy(backbone_presets_with_weights)
 
 
-def ConvMixer_1536_20(
+def ConvMixer_1536_20Backbone(
     include_rescaling,
     include_top,
     num_classes=None,
@@ -281,7 +254,7 @@ def ConvMixer_1536_20(
     name="ConvMixer_1536_20",
     **kwargs,
 ):
-    return ConvMixer(
+    return ConvMixerBackbone(
         dim=MODEL_CONFIGS["ConvMixer_1536_20"]["dim"],
         depth=MODEL_CONFIGS["ConvMixer_1536_20"]["depth"],
         patch_size=MODEL_CONFIGS["ConvMixer_1536_20"]["patch_size"],
@@ -299,7 +272,7 @@ def ConvMixer_1536_20(
     )
 
 
-def ConvMixer_1536_24(
+def ConvMixer_1536_24Backbone(
     include_rescaling,
     include_top,
     num_classes=None,
@@ -311,7 +284,7 @@ def ConvMixer_1536_24(
     name="ConvMixer_1536_24",
     **kwargs,
 ):
-    return ConvMixer(
+    return ConvMixerBackbone(
         dim=MODEL_CONFIGS["ConvMixer_1536_24"]["dim"],
         depth=MODEL_CONFIGS["ConvMixer_1536_24"]["depth"],
         patch_size=MODEL_CONFIGS["ConvMixer_1536_24"]["patch_size"],
@@ -329,7 +302,7 @@ def ConvMixer_1536_24(
     )
 
 
-def ConvMixer_768_32(
+def ConvMixer_768_32Backbone(
     include_rescaling,
     include_top,
     num_classes=None,
@@ -341,7 +314,7 @@ def ConvMixer_768_32(
     name="ConvMixer_768_32",
     **kwargs,
 ):
-    return ConvMixer(
+    return ConvMixerBackbone(
         dim=MODEL_CONFIGS["ConvMixer_768_32"]["dim"],
         depth=MODEL_CONFIGS["ConvMixer_768_32"]["depth"],
         patch_size=MODEL_CONFIGS["ConvMixer_768_32"]["patch_size"],
@@ -359,7 +332,7 @@ def ConvMixer_768_32(
     )
 
 
-def ConvMixer_1024_16(
+def ConvMixer_1024_16Backbone(
     include_rescaling,
     include_top,
     num_classes=None,
@@ -371,7 +344,7 @@ def ConvMixer_1024_16(
     name="ConvMixer_1024_16",
     **kwargs,
 ):
-    return ConvMixer(
+    return ConvMixerBackbone(
         dim=MODEL_CONFIGS["ConvMixer_1024_16"]["dim"],
         depth=MODEL_CONFIGS["ConvMixer_1024_16"]["depth"],
         patch_size=MODEL_CONFIGS["ConvMixer_1024_16"]["patch_size"],
@@ -389,7 +362,7 @@ def ConvMixer_1024_16(
     )
 
 
-def ConvMixer_512_16(
+def ConvMixer_512_16Backbone(
     include_rescaling,
     include_top,
     num_classes=None,
@@ -401,7 +374,7 @@ def ConvMixer_512_16(
     name="ConvMixer_512_16",
     **kwargs,
 ):
-    return ConvMixer(
+    return ConvMixerBackbone(
         dim=MODEL_CONFIGS["ConvMixer_512_16"]["dim"],
         depth=MODEL_CONFIGS["ConvMixer_512_16"]["depth"],
         patch_size=MODEL_CONFIGS["ConvMixer_512_16"]["patch_size"],
@@ -420,23 +393,27 @@ def ConvMixer_512_16(
 
 
 setattr(
-    ConvMixer_1536_20,
+    ConvMixer_1536_20Backbone,
     "__doc__",
     BASE_DOCSTRING.format(name="ConvMixer_1536_20"),
 )
 setattr(
-    ConvMixer_1536_24,
+    ConvMixer_1536_24Backbone,
     "__doc__",
     BASE_DOCSTRING.format(name="ConvMixer_1536_24"),
 )
 setattr(
-    ConvMixer_768_32, "__doc__", BASE_DOCSTRING.format(name="ConvMixer_768_32")
+    ConvMixer_768_32Backbone,
+    "__doc__",
+    BASE_DOCSTRING.format(name="ConvMixer_768_32"),
 )
 setattr(
-    ConvMixer_1024_16,
+    ConvMixer_1024_16Backbone,
     "__doc__",
     BASE_DOCSTRING.format(name="ConvMixer_1024_16"),
 )
 setattr(
-    ConvMixer_512_16, "__doc__", BASE_DOCSTRING.format(name="ConvMixer_512_16")
+    ConvMixer_512_16Backbone,
+    "__doc__",
+    BASE_DOCSTRING.format(name="ConvMixer_512_16"),
 )

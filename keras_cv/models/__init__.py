@@ -13,19 +13,19 @@
 # limitations under the License.
 
 from keras_cv.models.backbones.convmixer.convmixer_backbone import (
-    ConvMixer_512_16,
+    ConvMixer_512_16Backbone,
 )
 from keras_cv.models.backbones.convmixer.convmixer_backbone import (
-    ConvMixer_768_32,
+    ConvMixer_768_32Backbone,
 )
 from keras_cv.models.backbones.convmixer.convmixer_backbone import (
-    ConvMixer_1024_16,
+    ConvMixer_1024_16Backbone,
 )
 from keras_cv.models.backbones.convmixer.convmixer_backbone import (
-    ConvMixer_1536_20,
+    ConvMixer_1536_20Backbone,
 )
 from keras_cv.models.backbones.convmixer.convmixer_backbone import (
-    ConvMixer_1536_24,
+    ConvMixer_1536_24Backbone,
 )
 from keras_cv.models.backbones.resnet_v1.resnet_v1_backbone import (
     ResNet18Backbone,

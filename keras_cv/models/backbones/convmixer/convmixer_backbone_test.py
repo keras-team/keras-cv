@@ -20,7 +20,7 @@ from keras_cv.models.models_test import ModelsTest
 
 MODEL_LIST = [
     (
-        convmixer.ConvMixer_1024_16,
+        convmixer.ConvMixer_1024_16Backbone,
         1024,
         {},
     ),
