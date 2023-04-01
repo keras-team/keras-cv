@@ -30,7 +30,8 @@ from keras import layers
 from tensorflow import keras
 
 from keras_cv.models import utils
-#from keras_cv.models.weights import parse_weights
+
+# from keras_cv.models.weights import parse_weights
 from keras_cv.models.backbones.backbone import Backbone
 from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_backbone_presets import (
     backbone_presets,
@@ -41,6 +42,7 @@ from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_backbone_pres
 from keras_cv.utils.python_utils import classproperty
 
 BN_AXIS = 3
+
 
 def correct_pad(inputs, kernel_size):
     """Returns a tuple for zero-padding for 2D convolution with downsampling.
@@ -307,7 +309,7 @@ class EfficientNetLiteBackbone(Backbone):
         # Create model.
         super().__init__(inputs=inputs, outputs=x, **kwargs)
 
-         # All references to `self` below this line
+        # All references to `self` below this line
         self.include_rescaling = include_rescaling
         self.width_coefficient = width_coefficient
         self.depth_coefficient = depth_coefficient
@@ -323,24 +325,23 @@ class EfficientNetLiteBackbone(Backbone):
         config = super().get_config()
         config.update(
             {
-            "include_rescaling": self.include_rescaling,
-            "width_coefficient": self.width_coefficient,
-            "depth_coefficient": self.depth_coefficient,
-            "default_size": self.default_size,
-            "dropout_rate": self.dropout_rate,
-            "drop_connect_rate": self.drop_connect_rate,
-            "depth_divisor": self.depth_divisor,
-            "activation": self.activation,
-            "blocks_args": self.blocks_args,
-            # Remove batch dimension from `input_shape`
-            "input_shape": self.input_shape[1:],
-            "input_tensor": self.input_tensor,
-            "trainable": self.trainable,
+                "include_rescaling": self.include_rescaling,
+                "width_coefficient": self.width_coefficient,
+                "depth_coefficient": self.depth_coefficient,
+                "default_size": self.default_size,
+                "dropout_rate": self.dropout_rate,
+                "drop_connect_rate": self.drop_connect_rate,
+                "depth_divisor": self.depth_divisor,
+                "activation": self.activation,
+                "blocks_args": self.blocks_args,
+                # Remove batch dimension from `input_shape`
+                "input_shape": self.input_shape[1:],
+                "input_tensor": self.input_tensor,
             }
         )
         return config
 
-   @classproperty
+    @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return copy.deepcopy(backbone_presets)
@@ -349,23 +350,22 @@ class EfficientNetLiteBackbone(Backbone):
     def presets_with_weights(cls):
         """Dictionary of preset names and configurations that include weights."""
         return copy.deepcopy(backbone_presets_with_weights)
-    
-    
-    ALIAS_DOCSTRING = """EfficientNetLiteBackbone model with {width_coefficient} width coefficient 
+
+    ALIAS_DOCSTRING = """EfficientNetLiteBackbone model with {width_coefficient} width coefficient
     and {depth_coefficient} depth coefficient.
-    
+
     Reference:
         - [EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks](
         https://arxiv.org/abs/1905.11946) (ICML 2019)
-        
-        
+
+
     For image classification use cases, see
     [this page for detailed examples]
     (https://keras.io/api/applications/#usage-examples-for-image-classification-models).
-    
+
     For transfer learning use cases, make sure to read the [guide to transfer
         learning & fine-tuning](https://keras.io/guides/transfer_learning/).
-        
+
     Args:
         include_rescaling: bool, whether or not to Rescale the inputs. If set
             to `True`, inputs will be passed through a `Rescaling(1/255.0)`
@@ -375,17 +375,17 @@ class EfficientNetLiteBackbone(Backbone):
         input_shape: optional shape tuple, defaults to (None, None, 3).
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
             to use as image input for the model.
-        
+
 """
 
 
 class EfficientNetLiteB0(EfficientnetLiteBackbone):
     def __new__(
         cls,
-       include_rescaling,
-       num_classes=None,
-       input_shape=(None, None, 3),
-       input_tensor=None,
+        include_rescaling,
+        num_classes=None,
+        input_shape=(None, None, 3),
+        input_tensor=None,
         **kwargs,
     ):
         # Pack args in kwargs
@@ -397,7 +397,9 @@ class EfficientNetLiteB0(EfficientnetLiteBackbone):
                 "input_tensor": input_tensor,
             }
         )
-        return EfficientnetLiteBackbone.from_preset("efficientnetliteb0", **kwargs)
+        return EfficientnetLiteBackbone.from_preset(
+            "efficientnetliteb0", **kwargs
+        )
 
     @classproperty
     def presets(cls):
@@ -408,14 +410,14 @@ class EfficientNetLiteB0(EfficientnetLiteBackbone):
     def presets_with_weights(cls):
         """Dictionary of preset names and configurations that include weights."""
         return {}
-        
-  
+
+
 class EfficientNetLiteB1(EfficientnetLiteBackbone):
     def __new__(
         cls,
-       include_rescaling,
-       input_shape=(None, None, 3),
-       input_tensor=None,
+        include_rescaling,
+        input_shape=(None, None, 3),
+        input_tensor=None,
         **kwargs,
     ):
         # Pack args in kwargs
@@ -426,7 +428,9 @@ class EfficientNetLiteB1(EfficientnetLiteBackbone):
                 "input_tensor": input_tensor,
             }
         )
-        return EfficientnetLiteBackbone.from_preset("efficientnetliteb1", **kwargs)
+        return EfficientnetLiteBackbone.from_preset(
+            "efficientnetliteb1", **kwargs
+        )
 
     @classproperty
     def presets(cls):
@@ -442,9 +446,9 @@ class EfficientNetLiteB1(EfficientnetLiteBackbone):
 class EfficientNetLiteB2(EfficientnetLiteBackbone):
     def __new__(
         cls,
-       include_rescaling,
-       input_shape=(None, None, 3),
-       input_tensor=None,
+        include_rescaling,
+        input_shape=(None, None, 3),
+        input_tensor=None,
         **kwargs,
     ):
         # Pack args in kwargs
@@ -455,7 +459,9 @@ class EfficientNetLiteB2(EfficientnetLiteBackbone):
                 "input_tensor": input_tensor,
             }
         )
-        return EfficientnetLiteBackbone.from_preset("efficientnetliteb2", **kwargs)
+        return EfficientnetLiteBackbone.from_preset(
+            "efficientnetliteb2", **kwargs
+        )
 
     @classproperty
     def presets(cls):
@@ -466,14 +472,14 @@ class EfficientNetLiteB2(EfficientnetLiteBackbone):
     def presets_with_weights(cls):
         """Dictionary of preset names and configurations that include weights."""
         return {}
-    
-    
+
+
 class EfficientNetLiteB3(EfficientnetLiteBackbone):
     def __new__(
         cls,
-       include_rescaling,
-       input_shape=(None, None, 3),
-       input_tensor=None,
+        include_rescaling,
+        input_shape=(None, None, 3),
+        input_tensor=None,
         **kwargs,
     ):
         # Pack args in kwargs
@@ -484,7 +490,9 @@ class EfficientNetLiteB3(EfficientnetLiteBackbone):
                 "input_tensor": input_tensor,
             }
         )
-        return EfficientnetLiteBackbone.from_preset("efficientnetliteb3", **kwargs)
+        return EfficientnetLiteBackbone.from_preset(
+            "efficientnetliteb3", **kwargs
+        )
 
     @classproperty
     def presets(cls):
@@ -495,14 +503,14 @@ class EfficientNetLiteB3(EfficientnetLiteBackbone):
     def presets_with_weights(cls):
         """Dictionary of preset names and configurations that include weights."""
         return {}
-    
-    
+
+
 class EfficientNetLiteB4(EfficientnetLiteBackbone):
     def __new__(
         cls,
-       include_rescaling,
-       input_shape=(None, None, 3),
-       input_tensor=None,
+        include_rescaling,
+        input_shape=(None, None, 3),
+        input_tensor=None,
         **kwargs,
     ):
         # Pack args in kwargs
@@ -513,7 +521,9 @@ class EfficientNetLiteB4(EfficientnetLiteBackbone):
                 "input_tensor": input_tensor,
             }
         )
-        return EfficientnetLiteBackbone.from_preset("efficientnetliteb4", **kwargs)
+        return EfficientnetLiteBackbone.from_preset(
+            "efficientnetliteb4", **kwargs
+        )
 
     @classproperty
     def presets(cls):
@@ -530,8 +540,7 @@ setattr(
     EfficientNetLite,
     "__doc__",
     ALIAS_DOCSTRING.format(
-        name="B0",width_coefficient="1.0",
-        depth_coefficient="1.0"
+        name="B0", width_coefficient="1.0", depth_coefficient="1.0"
     ),
 )
 
@@ -539,8 +548,7 @@ setattr(
     EfficientNetLite,
     "__doc__",
     ALIAS_DOCSTRING.format(
-        name="B1", width_coefficient="1.0",
-        depth_coefficient="1.1"
+        name="B1", width_coefficient="1.0", depth_coefficient="1.1"
     ),
 )
 
@@ -548,8 +556,7 @@ setattr(
     EfficientNetLite,
     "__doc__",
     ALIAS_DOCSTRING.format(
-        name="B2", width_coefficient="1.1",
-        depth_coefficient="1.2"
+        name="B2", width_coefficient="1.1", depth_coefficient="1.2"
     ),
 )
 
@@ -557,8 +564,7 @@ setattr(
     EfficientNetLite,
     "__doc__",
     ALIAS_DOCSTRING.format(
-        name="B3", width_coefficient="1.2",
-        depth_coefficient="1.4"
+        name="B3", width_coefficient="1.2", depth_coefficient="1.4"
     ),
 )
 
@@ -566,8 +572,6 @@ setattr(
     EfficientNetLite,
     "__doc__",
     ALIAS_DOCSTRING.format(
-        name="B4", width_coefficient="1.4",
-        depth_coefficient="1.8"
+        name="B4", width_coefficient="1.4", depth_coefficient="1.8"
     ),
 )
-
