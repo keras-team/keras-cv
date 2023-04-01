@@ -14,7 +14,8 @@
 
 """VGG16 model for KerasCV.
 Reference:
-  - [Very Deep Convolutional Networks for Large-Scale Image Recognition](https://arxiv.org/abs/1409.1556) (ICLR 2015)
+  - [Very Deep Convolutional Networks for Large-Scale Image Recognition]
+  (https://arxiv.org/abs/1409.1556) (ICLR 2015)
 """
 import copy
 
@@ -46,9 +47,10 @@ def apply_vgg_block(
         num_layers: int, number of CNN layers in the block
         filters: int, filter size of each CNN layer in block
         kernel_size: int (or) tuple, kernel size for CNN layer in block
-        activation: str (or) callable, activation function for each CNN layer in block
+        activation: str (or) callable, activation function for each CNN layer in
+            block
         padding: str (or) callable, padding function for each CNN layer in block
-        max_pool: bool, whether or not to add MaxPooling2D layer at end of block.
+        max_pool: bool, whether to add MaxPooling2D layer at end of block.
         name: str, name of the block
 
     Returns:
@@ -69,40 +71,29 @@ def apply_vgg_block(
 
 @keras.utils.register_keras_serializable(package="keras_cv.models")
 class VGG16Backbone(Backbone):
-    """
+    """Instantiates the VGG16 architecture.
+
     Reference:
-    - [Very Deep Convolutional Networks for Large-Scale Image Recognition](https://arxiv.org/abs/1409.1556) (ICLR 2015)
-    This class represents a Keras VGG16 model.
+    - [Very Deep Convolutional Networks for Large-Scale Image Recognition]
+    (https://arxiv.org/abs/1409.1556) (ICLR 2015)
+
     Args:
-      include_rescaling: bool, whether or not to Rescale the inputs.If set to True,
-        inputs will be passed through a `Rescaling(1/255.0)` layer.
-      include_top: bool, whether to include the 3 fully-connected
-        layers at the top of the network. If provided, num_classes must be provided.
-      num_classes: int, optional number of classes to classify images into, only to be
-        specified if `include_top` is True.
-      weights: os.PathLike or None, one of `None` (random initialization), or a pretrained weight file path.
-      input_shape: tuple, optional shape tuple, defaults to (224, 224, 3).
-      input_tensor: Tensor, optional Keras tensor (i.e. output of `layers.Input()`)
-        to use as image input for the model.
-      pooling: bool, Optional pooling mode for feature extraction
-        when `include_top` is `False`.
-        - `None` means that the output of the model will be
-            the 4D tensor output of the
-            last convolutional block.
-        - `avg` means that global average pooling
-            will be applied to the output of the
-            last convolutional block, and thus
-            the output of the model will be a 2D tensor.
-        - `max` means that global max pooling will
-            be applied.
-      classifier_activation:`str` or callable. The activation function to use
-        on the "top" layer. Ignored unless `include_top=True`. Set
-        `classifier_activation=None` to return the logits of the "top" layer.
-        When loading pretrained weights, `classifier_activation` can only
-        be `None` or `"softmax"`.
-      name: (Optional) name to pass to the model.  Defaults to "VGG16".
-    Returns:
-      A `keras.Model` instance.
+        include_rescaling: bool, whether to rescale the inputs. If set to True,
+            inputs will be passed through a `Rescaling(1/255.0)` layer.
+        input_shape: tuple, optional shape tuple, defaults to (224, 224, 3).
+        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
+            to use as image input for the model.
+
+    Examples:
+    ```python
+    input_data = tf.ones(shape=(8, 224, 224, 3))
+
+    # Randomly initialized backbone with a custom config
+    model = VGG16Backbone(
+        include_rescaling=False,
+    )
+    output = model(input_data)
+    ```
     """
 
     def __init__(
