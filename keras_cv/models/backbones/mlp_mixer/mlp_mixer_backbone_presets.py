@@ -18,7 +18,7 @@ backbone_presets_no_weights = {
     "mlpmixerb16": {
         "metadata": {
             "description": (
-                "MLPMixer model with patches of resolution 16x16 and with 24 "
+                "MLPMixer model with 16x16 patches of resolution and with 24 "
                 "layers where the layer normalization and GELU activation are "
                 "applied after the convolution layers."
             ),
@@ -38,7 +38,7 @@ backbone_presets_no_weights = {
     "mlpmixerb32": {
         "metadata": {
             "description": (
-                "MLPMixer model with patches of resolution 32x32 and with 24 "
+                "MLPMixer model with 32x32 patches of resolution and with 24 "
                 "layers where the layer normalization and GELU activation "
                 "are applied after the convolution layers."
             ),
@@ -58,7 +58,7 @@ backbone_presets_no_weights = {
     "mlpmixerl16": {
         "metadata": {
             "description": (
-                "MLPMixer model with patches of resolution 16x16 and with 48 "
+                "MLPMixer model with 16x16 patches of resolution and with 48 "
                 "layers where the layer normalization and GELU activation are "
                 "applied after the convolution layers."
             ),

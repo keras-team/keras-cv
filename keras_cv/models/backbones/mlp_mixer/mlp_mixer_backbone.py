@@ -15,7 +15,8 @@
 """MLP Mixer models for KerasCV.
 
 Reference:
-  - [MLP-Mixer: An all-MLP Architecture for Vision](https://arxiv.org/abs/2105.01601)
+  - [MLP-Mixer: An all-MLP Architecture for Vision]
+  (https://arxiv.org/abs/2105.01601)
 """
 
 import copy
@@ -31,58 +32,18 @@ from keras_cv.models.backbones.mlp_mixer.mlp_mixer_backbone_presets import (
 )
 from keras_cv.utils.python_utils import classproperty
 
-BASE_DOCSTRING = """Instantiates the {name} architecture.
-
-    Reference:
-        - [MLP-Mixer: An all-MLP Architecture for Vision](https://arxiv.org/abs/2105.01601)
-
-    This class represents a Keras {name} model.
-
-    For transfer learning use cases, make sure to read the [guide to transfer
-        learning & fine-tuning](https://keras.io/guides/transfer_learning/).
-
-    Args:
-        include_rescaling: bool, whether or not to rescale the inputs. If set to True,
-            inputs will be passed through a `Rescaling(1/255.0)` layer.
-        include_top: bool, whether to include the fully-connected layer at the top of the
-            network.  If provided, num_classes must be provided.
-        num_classes: integer, optional number of classes to classify images into. Only to be
-            specified if `include_top` is True.
-        weights: one of `None` (random initialization), a pretrained weight file
-            path, or a reference to pre-trained weights (e.g. 'imagenet/classification')
-            (see available pre-trained weights in weights.py)
-        input_shape: optional shape tuple, defaults to (None, None, 3).
-        input_tensor: optional Keras tensor (i.e., output of `layers.Input()`)
-            to use as image input for the model.
-        pooling: optional pooling mode for feature extraction
-            when `include_top` is `False`.
-            - `None` means that the output of the model will be the 4D tensor output
-                of the last convolutional block.
-            - `avg` means that global average pooling will be applied to the output
-                of the last convolutional block, and thus the output of the model will
-                be a 2D tensor.
-            - `max` means that global max pooling will be applied.
-        name: string, optional name to pass to the model, defaults to "{name}".
-        classifier_activation: A `str` or callable. The activation function to use
-            on the "top" layer. Ignored unless `include_top=True`. Set
-            `classifier_activation=None` to return the logits of the "top" layer.
-
-    Returns:
-      A `keras.Model` instance.
-"""
-
 
 def apply_mlp_block(x, mlp_dim, name=None):
     """An MLP block consisting of two linear layers with GELU activation in
     between.
 
     Args:
-      x: input tensor.
-      mlp_dim: integer, the number of units to be present in the first layer.
-      name: string, block label.
+        x: input tensor.
+        mlp_dim: integer, the number of units to be present in the first layer.
+        name: string, block label.
 
     Returns:
-      the updated input tensor.
+        the updated input tensor.
     """
     if name is None:
         name = f"mlp_block_{backend.get_uid('mlp_block')}"
@@ -96,15 +57,15 @@ def apply_mixer_block(x, tokens_mlp_dim, channels_mlp_dim, name=None):
     """A mixer block.
 
     Args:
-      x: input tensor.
-      tokens_mlp_dim: integer, number of units to be present in the MLP block
-        dealing with tokens.
-      channels_mlp_dim: integer, number of units to be present in the MLP block
-        dealing with channels.
-      name: string, block label.
+        x: input tensor.
+        tokens_mlp_dim: integer, number of units to be present in the MLP block
+            dealing with tokens.
+        channels_mlp_dim: integer, number of units to be present in the MLP
+            block dealing with channels.
+        name: string, block label.
 
     Returns:
-      the updated input tensor.
+        the updated input tensor.
     """
     if name is None:
         name = f"mixer_block_{backend.get_uid('mlp_block')}"
@@ -126,44 +87,44 @@ class MLPMixerBackbone(Backbone):
 
     """Instantiates the MLP Mixer architecture.
 
-    Args:
-      input_shape: tuple denoting the input shape, (224, 224, 3) for example.
-      patch_size: integer denoting the size of the patches to be extracted
-        from the inputs (16 for extracting 16x16 patches for example).
-      num_blocks: integer, number of mixer blocks.
-      hidden_dim: integer, dimension to which the patches will be linearly projected.
-      tokens_mlp_dim: integer, dimension of the MLP block responsible for tokens.
-      channels_mlp_dim: integer, dimension of the MLP block responsible for channels.
-      include_rescaling: whether to rescale the inputs. If set to True,
-        inputs will be passed through a `Rescaling(1/255.0)` layer.
-      include_top: bool, whether to include the fully-connected
-        layer at the top of the network. If provided, num_classes must be provided.
-      num_classes: integer, optional number of classes to classify images
-        into. Only to be specified if `include_top` is True.
-      weights: one of `None` (random initialization) or a pretrained
-        weight file path.
-      input_tensor: optional Keras tensor (i.e., output of `layers.Input()`)
-        to use as image input for the model.
-      pooling: optional pooling mode for feature extraction
-        when `include_top` is `False`.
-        - `None` means that the output of the model will be
-            the 4D tensor output of the
-            last convolutional block.
-        - `avg` means that global average pooling
-            will be applied to the output of the
-            last convolutional block, and thus
-            the output of the model will be a 2D tensor.
-        - `max` means that global max pooling will
-            be applied.
-      classifier_activation: A `str` or callable. The activation function to use
-        on the "top" layer. Ignored unless `include_top=True`. Set
-        `classifier_activation=None` to return the logits of the "top" layer.
-        When loading pretrained weights, `classifier_activation` can only
-        be `None` or `"softmax"`.
-      name: string, optional name to pass to the model, defaults to "MLPMixer".
+    Reference:
+        - [MLP-Mixer: An all-MLP Architecture for Vision]
+        (https://arxiv.org/abs/2105.01601)
 
-    Returns:
-      A `keras.Model` instance.
+    For transfer learning use cases, make sure to read the [guide to transfer
+        learning & fine-tuning](https://keras.io/guides/transfer_learning/).
+
+    Args:
+        input_shape: tuple denoting the input shape, (224, 224, 3) for example.
+        patch_size: integer denoting the size of the patches to be extracted
+            from the inputs (16 for extracting 16x16 patches for example).
+        num_blocks: integer, number of mixer blocks.
+        hidden_dim: integer, dimension to which the patches will be linearly
+            projected.
+        tokens_mlp_dim: integer, dimension of the MLP block responsible for
+            tokens.
+        channels_mlp_dim: integer, dimension of the MLP block responsible for
+            channels.
+        include_rescaling: whether to rescale the inputs. If set to True,
+            inputs will be passed through a `Rescaling(1/255.0)` layer.
+        input_tensor: optional Keras tensor (i.e., output of `layers.Input()`)
+            to use as image input for the model.
+
+    Examples:
+    ```python
+    input_data = tf.ones(shape=(8, 224, 224, 3))
+
+    # Randomly initialized backbone with a custom config
+    model = MLPMixerBackbone(
+        patch_size=16,
+        num_blocks=12,
+        hidden_dim=768,
+        tokens_mlp_dim=384,
+        channels_mlp_dim=3072,
+        include_rescaling=False,
+    )
+    output = model(input_data)
+    ```
     """
 
     def __init__(
@@ -250,6 +211,36 @@ class MLPMixerBackbone(Backbone):
         return copy.deepcopy(backbone_presets)
 
 
+ALIAS_DOCSTRING = """MLPMixerBackbone model with {patch_size} patches of
+    resolution and {num_layers} layers.
+
+    Reference:
+        - [MLP-Mixer: An all-MLP Architecture for Vision]
+        (https://arxiv.org/abs/2105.01601)
+
+    This class represents a Keras {name} model.
+
+    For transfer learning use cases, make sure to read the [guide to transfer
+        learning & fine-tuning](https://keras.io/guides/transfer_learning/).
+
+    Args:
+        include_rescaling: bool, whether or not to rescale the inputs. If set to
+            True, inputs will be passed through a `Rescaling(1/255.0)` layer.
+        input_shape: optional shape tuple, defaults to (None, None, 3).
+        input_tensor: optional Keras tensor (i.e., output of `layers.Input()`)
+            to use as image input for the model.
+
+    Examples:
+    ```python
+    input_data = tf.ones(shape=(8, 224, 224, 3))
+
+    # Randomly initialized backbone
+    model = {name}Backbone()
+    output = model(input_data)
+    ```
+"""
+
+
 class MLPMixerB16Backbone(MLPMixerBackbone):
     def __new__(
         cls,
@@ -323,11 +314,23 @@ class MLPMixerL16Backbone(MLPMixerBackbone):
 
 
 setattr(
-    MLPMixerB16Backbone, "__doc__", BASE_DOCSTRING.format(name="MLPMixerB16")
+    MLPMixerB16Backbone,
+    "__doc__",
+    ALIAS_DOCSTRING.format(
+        name="MLPMixerB16", patch_size="16", num_layers="24"
+    ),
 )
 setattr(
-    MLPMixerB32Backbone, "__doc__", BASE_DOCSTRING.format(name="MLPMixerB32")
+    MLPMixerB32Backbone,
+    "__doc__",
+    ALIAS_DOCSTRING.format(
+        name="MLPMixerB32", patch_size="32", num_layers="24"
+    ),
 )
 setattr(
-    MLPMixerL16Backbone, "__doc__", BASE_DOCSTRING.format(name="MLPMixerL16")
+    MLPMixerL16Backbone,
+    "__doc__",
+    ALIAS_DOCSTRING.format(
+        name="MLPMixerL16", patch_size="16", num_layers="48"
+    ),
 )
