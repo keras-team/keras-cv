@@ -113,7 +113,7 @@ backbone_presets_no_weights = {
 }
 
 backbone_presets_with_weights = {
-    "convmixer_512_16": {
+    "convmixer_512_16_imagenet": {
         "metadata": {
             "description": (
                 "ConvMixer model with 16 layers where the layer normalization "

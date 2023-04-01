@@ -34,43 +34,6 @@ from keras_cv.models.backbones.convmixer.convmixer_backbone_presets import (
 )
 from keras_cv.utils.python_utils import classproperty
 
-BASE_DOCSTRING = """Instantiates the {name} architecture.
-
-    Reference:
-        - [Patches Are All You Need?](https://arxiv.org/abs/2201.09792)
-
-    This class represents a Keras {name} model.
-
-    For transfer learning use cases, make sure to read the [guide to transfer
-        learning & fine-tuning](https://keras.io/guides/transfer_learning/).
-
-    Args:
-        include_rescaling: bool, whether or not to rescale the inputs. If set to True,
-            inputs will be passed through a `Rescaling(1/255.0)` layer.
-        include_top: bool, whether to include the fully-connected layer at the top of the
-            network. If provided, num_classes must be provided.
-        num_classes: integer, optional number of classes to classify images into. Only to be
-            specified if `include_top` is True.
-        weights: one of `None` (random initialization), a pretrained weight file
-            path, or a reference to pre-trained weights (e.g. 'imagenet/classification')
-            (see available pre-trained weights in weights.py)
-        input_shape: optional shape tuple, defaults to (None, None, 3).
-        input_tensor: optional Keras tensor (i.e., output of `layers.Input()`)
-            to use as image input for the model.
-        pooling: optional pooling mode for feature extraction
-            when `include_top` is `False`.
-            - `None` means that the output of the model will be the 4D tensor output
-                of the last convolutional block.
-            - `avg` means that global average pooling will be applied to the output
-                of the last convolutional block, and thus the output of the model will
-                be a 2D tensor.
-            - `max` means that global max pooling will be applied.
-        name: string, optional name to pass to the model, defaults to "{name}".
-
-    Returns:
-      A `keras.Model` instance.
-"""
-
 
 def apply_conv_mixer_layer(x, dim, kernel_size):
     """ConvMixerLayer module.
@@ -116,41 +79,41 @@ def apply_patch_embed(x, dim, patch_size):
 class ConvMixerBackbone(Backbone):
     """Instantiates the ConvMixer architecture.
 
+    Reference:
+        - [Patches Are All You Need?](https://arxiv.org/abs/2201.09792)
+
+    For transfer learning use cases, make sure to read the [guide to transfer
+        learning & fine-tuning](https://keras.io/guides/transfer_learning/).
+
     Args:
         dim: integer, number of filters.
         depth: integer, number of ConvMixer Layer.
         patch_size: integer, size of the patches.
         kernel_size: integer, kernel size for Conv2D layers.
-        include_top: bool, whether to include the fully-connected
-            layer at the top of the network.
         include_rescaling: bool, whether to rescale the inputs. If set to True,
             inputs will be passed through a `Rescaling(1/255.0)` layer.
-        name: string, optional name to pass to the model, defaults to "ConvMixer".
-        weights: one of `None` (random initialization)
-            or the path to the weights file to be loaded.
-        input_shape: optional shape tuple, defaults to (None, None, 3).
+        input_shape: optional shape tuple. Defaults to (None, None, 3).
         input_tensor: optional Keras tensor (i.e., output of `layers.Input()`)
             to use as image input for the model.
-        pooling: optional pooling mode for feature extraction
-            when `include_top` is `False`.
-            - `None` means that the output of the model will be
-                the 4D tensor output of the
-                last convolutional layer.
-            - `avg` means that global average pooling
-                will be applied to the output of the
-                last convolutional layer, and thus
-                the output of the model will be a 2D tensor.
-            - `max` means that global max pooling will
-                be applied.
-        num_classes: integer, optional number of classes to classify images
-            into. Only to be specified if `include_top` is True.
-        classifier_activation: A `str` or callable. The activation function to use
-            on the "top" layer. Ignored unless `include_top=True`. Set
-            `classifier_activation=None` to return the logits of the "top" layer.
-        **kwargs: Pass-through keyword arguments to `keras.Model`.
 
-    Returns:
-      A `keras.Model` instance.
+    Examples:
+    ```python
+    input_data = tf.ones(shape=(8, 224, 224, 3))
+
+    # Pretrained backbone
+    model = keras_cv.models.ConvMixerBackbone.from_preset("convmixer_512_16_imagenet")
+    output = model(input_data)
+
+    # Randomly initialized backbone with a custom config
+    model = ConvMixerBackbone(
+        dim=512,
+        depth=16,
+        patch_size=7,
+        kernel_size=8,
+        include_rescaling=False,
+    )
+    output = model(input_data)
+    ```
     """
 
     def __init__(
@@ -206,8 +169,35 @@ class ConvMixerBackbone(Backbone):
 
     @classproperty
     def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include weights."""
+        """Dictionary of preset names and configurations that include
+        weights."""
         return copy.deepcopy(backbone_presets_with_weights)
+
+
+ALIAS_DOCSTRING = """ConvMixerBackbone model with {num_layers} layers with
+    {channels} output channels.
+
+    Reference:
+        - [Patches Are All You Need?](https://arxiv.org/abs/2201.09792)
+
+    For transfer learning use cases, make sure to read the [guide to transfer
+        learning & fine-tuning](https://keras.io/guides/transfer_learning/).
+
+    Args:
+        include_rescaling: bool, whether or not to rescale the inputs. If set to
+            True, inputs will be passed through a `Rescaling(1/255.0)` layer.
+        input_shape: optional shape tuple, defaults to (None, None, 3).
+        input_tensor: optional Keras tensor (i.e., output of `layers.Input()`)
+
+    Examples:
+    ```python
+    input_data = tf.ones(shape=(8, 224, 224, 3))
+
+    # Randomly initialized backbone
+    model = ConvMixer_{channels}_{num_layers}Backbone()
+    output = model(input_data)
+    ```
+"""
 
 
 class ConvMixer_1536_20Backbone(ConvMixerBackbone):
@@ -331,32 +321,33 @@ class ConvMixer_512_16Backbone(ConvMixerBackbone):
 
     @classproperty
     def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include weights."""
+        """Dictionary of preset names and configurations that include
+        weights."""
         return {}
 
 
 setattr(
     ConvMixer_1536_20Backbone,
     "__doc__",
-    BASE_DOCSTRING.format(name="ConvMixer_1536_20"),
+    ALIAS_DOCSTRING.format(num_layers="20", channels="1536"),
 )
 setattr(
     ConvMixer_1536_24Backbone,
     "__doc__",
-    BASE_DOCSTRING.format(name="ConvMixer_1536_24"),
+    ALIAS_DOCSTRING.format(num_layers="24", channels="1536"),
 )
 setattr(
     ConvMixer_768_32Backbone,
     "__doc__",
-    BASE_DOCSTRING.format(name="ConvMixer_768_32"),
+    ALIAS_DOCSTRING.format(num_layers="32", channels="768"),
 )
 setattr(
     ConvMixer_1024_16Backbone,
     "__doc__",
-    BASE_DOCSTRING.format(name="ConvMixer_1024_16"),
+    ALIAS_DOCSTRING.format(num_layers="16", channels="1024"),
 )
 setattr(
     ConvMixer_512_16Backbone,
     "__doc__",
-    BASE_DOCSTRING.format(name="ConvMixer_512_16"),
+    ALIAS_DOCSTRING.format(num_layers="16", channels="512"),
 )
