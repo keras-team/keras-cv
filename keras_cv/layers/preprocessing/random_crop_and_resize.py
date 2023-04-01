@@ -94,37 +94,39 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
         self.bounding_box_format = bounding_box_format
         self.force_output_dense_images = True
 
-    def get_random_transformation(
-        self, image=None, label=None, bounding_box=None, **kwargs
-    ):
-        crop_area_factor = self.crop_area_factor()
-        aspect_ratio = self.aspect_ratio_factor()
-
-        new_height = tf.clip_by_value(
-            tf.sqrt(crop_area_factor / aspect_ratio), 0.0, 1.0
+    def get_random_transformation_batch(self, batch_size, **kwargs):
+        crop_area_factor = self.crop_area_factor((batch_size,))
+        aspect_ratio = self.aspect_ratio_factor(shape=(batch_size,))
+        new_heights = tf.clip_by_value(
+            tf.sqrt(crop_area_factor / aspect_ratio),
+            0.0,
+            1.0,
         )  # to avoid unwanted/unintuitive effects
-        new_width = tf.clip_by_value(
-            tf.sqrt(crop_area_factor * aspect_ratio), 0.0, 1.0
+
+        new_widths = tf.clip_by_value(
+            tf.sqrt(crop_area_factor * aspect_ratio),
+            0.0,
+            1.0,
         )
 
-        height_offset = self._random_generator.random_uniform(
-            (),
-            minval=tf.minimum(0.0, 1.0 - new_height),
-            maxval=tf.maximum(0.0, 1.0 - new_height),
+        height_offsets = self._random_generator.random_uniform(
+            shape=(batch_size,),
+            minval=tf.minimum(0.0, 1.0 - new_heights),
+            maxval=tf.maximum(0.0, 1.0 - new_heights),
             dtype=tf.float32,
         )
 
-        width_offset = self._random_generator.random_uniform(
-            (),
-            minval=tf.minimum(0.0, 1.0 - new_width),
-            maxval=tf.maximum(0.0, 1.0 - new_width),
+        width_offsets = self._random_generator.random_uniform(
+            shape=(batch_size,),
+            minval=tf.minimum(0.0, 1.0 - new_widths),
+            maxval=tf.maximum(0.0, 1.0 - new_widths),
             dtype=tf.float32,
         )
 
-        y1 = height_offset
-        y2 = height_offset + new_height
-        x1 = width_offset
-        x2 = width_offset + new_width
+        y1 = height_offsets
+        y2 = height_offsets + new_heights
+        x1 = width_offsets
+        x2 = width_offsets + new_widths
 
         return [[y1, x1, y2, x2]]
 
