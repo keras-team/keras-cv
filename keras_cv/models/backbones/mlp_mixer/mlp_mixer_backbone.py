@@ -31,30 +31,6 @@ from keras_cv.models.backbones.mlp_mixer.mlp_mixer_backbone_presets import (
 )
 from keras_cv.utils.python_utils import classproperty
 
-MODEL_CONFIGS = {
-    "MLPMixerB16": {
-        "patch_size": 16,
-        "num_blocks": 12,
-        "hidden_dim": 768,
-        "tokens_mlp_dim": 384,
-        "channels_mlp_dim": 3072,
-    },
-    "MLPMixerB32": {
-        "patch_size": 32,
-        "num_blocks": 12,
-        "hidden_dim": 768,
-        "tokens_mlp_dim": 384,
-        "channels_mlp_dim": 3072,
-    },
-    "MLPMixerL16": {
-        "patch_size": 16,
-        "num_blocks": 24,
-        "hidden_dim": 1024,
-        "tokens_mlp_dim": 512,
-        "channels_mlp_dim": 4096,
-    },
-}
-
 BASE_DOCSTRING = """Instantiates the {name} architecture.
 
     Reference:
@@ -274,98 +250,76 @@ class MLPMixerBackbone(Backbone):
         return copy.deepcopy(backbone_presets)
 
 
-def MLPMixerB16Backbone(
-    input_shape,
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    input_tensor=None,
-    weights=None,
-    pooling=None,
-    name="MLPMixerB16",
-    **kwargs,
-):
-    """Instantiates the MLPMixerB16 architecture."""
-
-    return MLPMixerBackbone(
-        input_shape=input_shape,
-        patch_size=MODEL_CONFIGS["MLPMixerB16"]["patch_size"],
-        num_blocks=MODEL_CONFIGS["MLPMixerB16"]["num_blocks"],
-        hidden_dim=MODEL_CONFIGS["MLPMixerB16"]["hidden_dim"],
-        tokens_mlp_dim=MODEL_CONFIGS["MLPMixerB16"]["tokens_mlp_dim"],
-        channels_mlp_dim=MODEL_CONFIGS["MLPMixerB16"]["channels_mlp_dim"],
-        include_rescaling=include_rescaling,
-        include_top=include_top,
-        num_classes=num_classes,
-        input_tensor=input_tensor,
-        weights=weights,
-        pooling=pooling,
-        name=name,
+class MLPMixerB16Backbone(MLPMixerBackbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return MLPMixerBackbone.from_preset("mlpmixerb16", **kwargs)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
 
 
-def MLPMixerB32Backbone(
-    input_shape,
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    input_tensor=None,
-    weights=None,
-    pooling=None,
-    name="MLPMixerB32",
-    **kwargs,
-):
-    """Instantiates the MLPMixerB32 architecture."""
-    return MLPMixerBackbone(
-        input_shape=input_shape,
-        patch_size=MODEL_CONFIGS["MLPMixerB32"]["patch_size"],
-        num_blocks=MODEL_CONFIGS["MLPMixerB32"]["num_blocks"],
-        hidden_dim=MODEL_CONFIGS["MLPMixerB32"]["hidden_dim"],
-        tokens_mlp_dim=MODEL_CONFIGS["MLPMixerB32"]["tokens_mlp_dim"],
-        channels_mlp_dim=MODEL_CONFIGS["MLPMixerB32"]["channels_mlp_dim"],
-        include_rescaling=include_rescaling,
-        include_top=include_top,
-        num_classes=num_classes,
-        input_tensor=input_tensor,
-        weights=weights,
-        pooling=pooling,
-        name=name,
+class MLPMixerB32Backbone(MLPMixerBackbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return MLPMixerBackbone.from_preset("mlpmixerb32", **kwargs)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
 
 
-def MLPMixerL16Backbone(
-    input_shape,
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    input_tensor=None,
-    weights=None,
-    pooling=None,
-    name="MLPMixerL16",
-    **kwargs,
-):
-    """Instantiates the MLPMixerL16 architecture."""
-    return MLPMixerBackbone(
-        input_shape=input_shape,
-        patch_size=MODEL_CONFIGS["MLPMixerL16"]["patch_size"],
-        num_blocks=MODEL_CONFIGS["MLPMixerL16"]["num_blocks"],
-        hidden_dim=MODEL_CONFIGS["MLPMixerL16"]["hidden_dim"],
-        tokens_mlp_dim=MODEL_CONFIGS["MLPMixerL16"]["tokens_mlp_dim"],
-        channels_mlp_dim=MODEL_CONFIGS["MLPMixerL16"]["channels_mlp_dim"],
-        include_rescaling=include_rescaling,
-        include_top=include_top,
-        num_classes=num_classes,
-        input_tensor=input_tensor,
-        weights=weights,
-        pooling=pooling,
-        name=name,
+class MLPMixerL16Backbone(MLPMixerBackbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return MLPMixerBackbone.from_preset("mlpmixerl16", **kwargs)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
 
 
 setattr(
