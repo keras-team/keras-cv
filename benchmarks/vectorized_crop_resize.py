@@ -16,13 +16,14 @@ import time
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
+from tensorflow import keras
+
 from keras_cv import core
 from keras_cv.layers import RandomCropAndResize
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
 from keras_cv.utils import preprocessing as preprocessing_utils
-from tensorflow import keras
 
 
 @keras.utils.register_keras_serializable(package="keras_cv")
