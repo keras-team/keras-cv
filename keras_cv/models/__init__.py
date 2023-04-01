@@ -45,7 +45,7 @@ from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
 from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
     ResNetV2Backbone,
 )
-from keras_cv.models.backbones.efficientnet_lite.efficientnetlite_backbone import (
+from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_backbone import (
     EfficientNetLiteBackbone,
 )
 # from keras_cv.models.backbones.efficientnetlite.efficientnetlite_backbone import (
