@@ -39,24 +39,8 @@ from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone_presets import (
 from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone_presets import (
     backbone_presets_with_weights,
 )
-from keras_cv.models.weights import parse_weights
 from keras_cv.utils.python_utils import classproperty
 
-DEPTH_MULTIPLIERS = {
-    "tiny": 0.33,
-    "s": 0.33,
-    "m": 0.67,
-    "l": 1.00,
-    "x": 1.33,
-}
-
-WIDTH_MULTIPLIERS = {
-    "tiny": 0.375,
-    "s": 0.50,
-    "m": 0.75,
-    "l": 1.00,
-    "x": 1.25,
-}
 BASE_DOCSTRING = """Represents the {name} architecture.
     The CSPDarkNet architectures are commonly used for detection tasks. It is
     possible to extract the intermediate dark2 to dark5 layers from the model for
@@ -267,159 +251,134 @@ class CSPDarkNetBackbone(Backbone):
         return copy.deepcopy(backbone_presets_with_weights)
 
 
-def CSPDarkNetTinyBackbone(
-    *,
-    include_rescaling,
-    include_top,
-    use_depthwise=False,
-    num_classes=None,
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    classifier_activation="softmax",
-    name="CSPDarkNetTiny",
-    **kwargs,
-):
-    return CSPDarkNetBackbone(
-        depth_multiplier=DEPTH_MULTIPLIERS["tiny"],
-        width_multiplier=WIDTH_MULTIPLIERS["tiny"],
-        include_rescaling=include_rescaling,
-        include_top=include_top,
-        use_depthwise=use_depthwise,
-        num_classes=num_classes,
-        weights=parse_weights(weights, include_top, "cspdarknettiny"),
-        input_shape=input_shape,
-        input_tensor=input_tensor,
-        pooling=pooling,
-        classifier_activation=classifier_activation,
-        name=name,
+class CSPDarkNetTinyBackbone(CSPDarkNetBackbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return CSPDarkNetBackbone.from_preset("cspdarknettiny", **kwargs)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
+
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include weights."""
+        return {}
 
 
-def CSPDarkNetSBackbone(
-    *,
-    include_rescaling,
-    include_top,
-    use_depthwise=False,
-    num_classes=None,
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    classifier_activation="softmax",
-    name="CSPDarkNetS",
-    **kwargs,
-):
-    return CSPDarkNetBackbone(
-        depth_multiplier=DEPTH_MULTIPLIERS["s"],
-        width_multiplier=WIDTH_MULTIPLIERS["s"],
-        include_rescaling=include_rescaling,
-        include_top=include_top,
-        use_depthwise=use_depthwise,
-        num_classes=num_classes,
-        weights=weights,
-        input_shape=input_shape,
-        input_tensor=input_tensor,
-        pooling=pooling,
-        classifier_activation=classifier_activation,
-        name=name,
+class CSPDarkNetSBackbone(CSPDarkNetBackbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return CSPDarkNetBackbone.from_preset("cspdarknets", **kwargs)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
 
 
-def CSPDarkNetMBackbone(
-    *,
-    include_rescaling,
-    include_top,
-    use_depthwise=False,
-    num_classes=None,
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    classifier_activation="softmax",
-    name="CSPDarkNetM",
-    **kwargs,
-):
-    return CSPDarkNetBackbone(
-        depth_multiplier=DEPTH_MULTIPLIERS["m"],
-        width_multiplier=WIDTH_MULTIPLIERS["m"],
-        include_rescaling=include_rescaling,
-        include_top=include_top,
-        use_depthwise=use_depthwise,
-        num_classes=num_classes,
-        weights=weights,
-        input_shape=input_shape,
-        input_tensor=input_tensor,
-        pooling=pooling,
-        classifier_activation=classifier_activation,
-        name=name,
+class CSPDarkNetMBackbone(CSPDarkNetBackbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return CSPDarkNetBackbone.from_preset("cspdarknetm", **kwargs)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
 
 
-def CSPDarkNetLBackbone(
-    *,
-    include_rescaling,
-    include_top,
-    use_depthwise=False,
-    num_classes=None,
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    classifier_activation="softmax",
-    name="CSPDarkNetL",
-    **kwargs,
-):
-    return CSPDarkNetBackbone(
-        depth_multiplier=DEPTH_MULTIPLIERS["l"],
-        width_multiplier=WIDTH_MULTIPLIERS["l"],
-        include_rescaling=include_rescaling,
-        include_top=include_top,
-        use_depthwise=use_depthwise,
-        num_classes=num_classes,
-        weights=parse_weights(weights, include_top, "cspdarknetl"),
-        input_shape=input_shape,
-        input_tensor=input_tensor,
-        pooling=pooling,
-        classifier_activation=classifier_activation,
-        name=name,
+class CSPDarkNetLBackbone(CSPDarkNetBackbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return CSPDarkNetBackbone.from_preset("cspdarknetl", **kwargs)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
+
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include weights."""
+        return {}
 
 
-def CSPDarkNetXBackbone(
-    *,
-    include_rescaling,
-    include_top,
-    use_depthwise=False,
-    num_classes=None,
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    classifier_activation="softmax",
-    name="CSPDarkNetX",
-    **kwargs,
-):
-    return CSPDarkNetBackbone(
-        depth_multiplier=DEPTH_MULTIPLIERS["x"],
-        width_multiplier=WIDTH_MULTIPLIERS["x"],
-        include_rescaling=include_rescaling,
-        include_top=include_top,
-        use_depthwise=use_depthwise,
-        num_classes=num_classes,
-        weights=weights,
-        input_shape=input_shape,
-        input_tensor=input_tensor,
-        pooling=pooling,
-        classifier_activation=classifier_activation,
-        name=name,
+class CSPDarkNetXBackbone(CSPDarkNetBackbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return CSPDarkNetBackbone.from_preset("cspdarknetl", **kwargs)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
 
 
 setattr(
