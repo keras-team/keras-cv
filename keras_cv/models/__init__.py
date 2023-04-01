@@ -46,20 +46,20 @@ from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
     ResNetV2Backbone,
 )
 from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_backbone import (
-    EfficientNetLiteBackbone,
+    EfficientNetLiteB0Backbone,
 )
-# from keras_cv.models.backbones.efficientnetlite.efficientnetlite_backbone import (
-#     EfficientNetB1Backbone,
-# )
-# from keras_cv.models.backbones.efficientnetlite.efficientnetlite_backbone import (
-#     EfficientNetB2Backbone,
-# )
-# from keras_cv.models.backbones.efficientnetlite.efficientnetlite_backbone import (
-#     EfficientNetB3Backbone,
-# )
-# from keras_cv.models.backbones.efficientnetlite.efficientnetlite_backbone import (
-#     EfficientNetB4Backbone,
-# )
+from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_backbone import (
+    EfficientNetLiteB1Backbone,
+)
+from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_backbone import (
+    EfficientNetLiteB2Backbone,
+)
+from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_backbone import (
+    EfficientNetLiteB3Backbone,
+)
+from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_backbone import (
+    EfficientNetLiteB4Backbone,
+)
 
 
 from keras_cv.models.classification.image_classifier import ImageClassifier
