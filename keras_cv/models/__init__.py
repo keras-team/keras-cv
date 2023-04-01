@@ -95,7 +95,7 @@ from keras_cv.models.efficientnet_v2 import EfficientNetV2S
 from keras_cv.models.mlp_mixer import MLPMixerB16
 from keras_cv.models.mlp_mixer import MLPMixerB32
 from keras_cv.models.mlp_mixer import MLPMixerL16
-from keras_cv.models.object_detection.faster_rcnn import FasterRCNN
+from keras_cv.models.object_detection.faster_rcnn.faster_rcnn import FasterRCNN
 from keras_cv.models.object_detection.retina_net.retina_net import RetinaNet
 from keras_cv.models.object_detection_3d.center_pillar import (
     MultiHeadCenterPillar,
