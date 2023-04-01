@@ -24,14 +24,13 @@ Reference:
 import copy
 import math
 
-import tensorflow as tf
-from keras import backend
-from keras import layers
 from tensorflow import keras
+from tensorflow.keras import backend
+from tensorflow.keras import layers
 
 from keras_cv.models import utils
 
-# from keras_cv.models.weights import parse_weights
+from keras_cv.models.weights import parse_weights
 from keras_cv.models.backbones.backbone import Backbone
 from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_backbone_presets import (
     backbone_presets,
@@ -379,7 +378,7 @@ class EfficientNetLiteBackbone(Backbone):
 """
 
 
-class EfficientNetLiteB0(EfficientnetLiteBackbone):
+class EfficientNetLiteB0Backbone(EfficientnetLiteBackbone):
     def __new__(
         cls,
         include_rescaling,
@@ -412,7 +411,7 @@ class EfficientNetLiteB0(EfficientnetLiteBackbone):
         return {}
 
 
-class EfficientNetLiteB1(EfficientnetLiteBackbone):
+class EfficientNetLiteB1Backbone(EfficientnetLiteBackbone):
     def __new__(
         cls,
         include_rescaling,
@@ -443,7 +442,7 @@ class EfficientNetLiteB1(EfficientnetLiteBackbone):
         return {}
 
 
-class EfficientNetLiteB2(EfficientnetLiteBackbone):
+class EfficientNetLiteB2Backbone(EfficientnetLiteBackbone):
     def __new__(
         cls,
         include_rescaling,
@@ -474,7 +473,7 @@ class EfficientNetLiteB2(EfficientnetLiteBackbone):
         return {}
 
 
-class EfficientNetLiteB3(EfficientnetLiteBackbone):
+class EfficientNetLiteB3Backbone(EfficientnetLiteBackbone):
     def __new__(
         cls,
         include_rescaling,
@@ -505,7 +504,7 @@ class EfficientNetLiteB3(EfficientnetLiteBackbone):
         return {}
 
 
-class EfficientNetLiteB4(EfficientnetLiteBackbone):
+class EfficientNetLiteB4Backbone(EfficientnetLiteBackbone):
     def __new__(
         cls,
         include_rescaling,
