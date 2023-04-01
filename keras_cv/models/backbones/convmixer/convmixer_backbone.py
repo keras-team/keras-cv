@@ -32,41 +32,7 @@ from keras_cv.models.backbones.convmixer.convmixer_backbone_presets import (
 from keras_cv.models.backbones.convmixer.convmixer_backbone_presets import (
     backbone_presets_with_weights,
 )
-from keras_cv.models.weights import parse_weights
 from keras_cv.utils.python_utils import classproperty
-
-MODEL_CONFIGS = {
-    "ConvMixer_1536_20": {
-        "dim": 1536,
-        "depth": 20,
-        "patch_size": 7,
-        "kernel_size": 9,
-    },
-    "ConvMixer_1536_24": {
-        "dim": 1536,
-        "depth": 24,
-        "patch_size": 14,
-        "kernel_size": 9,
-    },
-    "ConvMixer_768_32": {
-        "dim": 768,
-        "depth": 32,
-        "patch_size": 7,
-        "kernel_size": 7,
-    },
-    "ConvMixer_1024_16": {
-        "dim": 1024,
-        "depth": 16,
-        "patch_size": 7,
-        "kernel_size": 9,
-    },
-    "ConvMixer_512_16": {
-        "dim": 512,
-        "depth": 16,
-        "patch_size": 7,
-        "kernel_size": 8,
-    },
-}
 
 BASE_DOCSTRING = """Instantiates the {name} architecture.
 
@@ -244,154 +210,129 @@ class ConvMixerBackbone(Backbone):
         return copy.deepcopy(backbone_presets_with_weights)
 
 
-def ConvMixer_1536_20Backbone(
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    classifier_activation="softmax",
-    name="ConvMixer_1536_20",
-    **kwargs,
-):
-    return ConvMixerBackbone(
-        dim=MODEL_CONFIGS["ConvMixer_1536_20"]["dim"],
-        depth=MODEL_CONFIGS["ConvMixer_1536_20"]["depth"],
-        patch_size=MODEL_CONFIGS["ConvMixer_1536_20"]["patch_size"],
-        kernel_size=MODEL_CONFIGS["ConvMixer_1536_20"]["kernel_size"],
-        include_rescaling=include_rescaling,
-        include_top=include_top,
-        name=name,
-        weights=weights,
-        input_shape=input_shape,
-        input_tensor=input_tensor,
-        pooling=pooling,
-        num_classes=num_classes,
-        classifier_activation=classifier_activation,
+class ConvMixer_1536_20Backbone(ConvMixerBackbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return ConvMixerBackbone.from_preset("convmixer_1536_20", **kwargs)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
 
 
-def ConvMixer_1536_24Backbone(
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    classifier_activation="softmax",
-    name="ConvMixer_1536_24",
-    **kwargs,
-):
-    return ConvMixerBackbone(
-        dim=MODEL_CONFIGS["ConvMixer_1536_24"]["dim"],
-        depth=MODEL_CONFIGS["ConvMixer_1536_24"]["depth"],
-        patch_size=MODEL_CONFIGS["ConvMixer_1536_24"]["patch_size"],
-        kernel_size=MODEL_CONFIGS["ConvMixer_1536_24"]["kernel_size"],
-        include_rescaling=include_rescaling,
-        include_top=include_top,
-        name=name,
-        weights=weights,
-        input_shape=input_shape,
-        input_tensor=input_tensor,
-        pooling=pooling,
-        num_classes=num_classes,
-        classifier_activation=classifier_activation,
+class ConvMixer_1536_24Backbone(ConvMixerBackbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return ConvMixerBackbone.from_preset("convmixer_1536_24", **kwargs)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
 
 
-def ConvMixer_768_32Backbone(
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    classifier_activation="softmax",
-    name="ConvMixer_768_32",
-    **kwargs,
-):
-    return ConvMixerBackbone(
-        dim=MODEL_CONFIGS["ConvMixer_768_32"]["dim"],
-        depth=MODEL_CONFIGS["ConvMixer_768_32"]["depth"],
-        patch_size=MODEL_CONFIGS["ConvMixer_768_32"]["patch_size"],
-        kernel_size=MODEL_CONFIGS["ConvMixer_768_32"]["kernel_size"],
-        include_rescaling=include_rescaling,
-        include_top=include_top,
-        name=name,
-        weights=weights,
-        input_shape=input_shape,
-        input_tensor=input_tensor,
-        pooling=pooling,
-        num_classes=num_classes,
-        classifier_activation=classifier_activation,
+class ConvMixer_768_32Backbone(ConvMixerBackbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return ConvMixerBackbone.from_preset("convmixer_768_32", **kwargs)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
 
 
-def ConvMixer_1024_16Backbone(
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    classifier_activation="softmax",
-    name="ConvMixer_1024_16",
-    **kwargs,
-):
-    return ConvMixerBackbone(
-        dim=MODEL_CONFIGS["ConvMixer_1024_16"]["dim"],
-        depth=MODEL_CONFIGS["ConvMixer_1024_16"]["depth"],
-        patch_size=MODEL_CONFIGS["ConvMixer_1024_16"]["patch_size"],
-        kernel_size=MODEL_CONFIGS["ConvMixer_1024_16"]["kernel_size"],
-        include_rescaling=include_rescaling,
-        include_top=include_top,
-        name=name,
-        weights=weights,
-        input_shape=input_shape,
-        input_tensor=input_tensor,
-        pooling=pooling,
-        num_classes=num_classes,
-        classifier_activation=classifier_activation,
+class ConvMixer_1024_16Backbone(ConvMixerBackbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return ConvMixerBackbone.from_preset("convmixer_1024_16", **kwargs)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
 
 
-def ConvMixer_512_16Backbone(
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    classifier_activation="softmax",
-    name="ConvMixer_512_16",
-    **kwargs,
-):
-    return ConvMixerBackbone(
-        dim=MODEL_CONFIGS["ConvMixer_512_16"]["dim"],
-        depth=MODEL_CONFIGS["ConvMixer_512_16"]["depth"],
-        patch_size=MODEL_CONFIGS["ConvMixer_512_16"]["patch_size"],
-        kernel_size=MODEL_CONFIGS["ConvMixer_512_16"]["kernel_size"],
-        include_rescaling=include_rescaling,
-        include_top=include_top,
-        name=name,
-        weights=parse_weights(weights, include_top, "convmixer_512_16"),
-        input_shape=input_shape,
-        input_tensor=input_tensor,
-        pooling=pooling,
-        num_classes=num_classes,
-        classifier_activation=classifier_activation,
+class ConvMixer_512_16Backbone(ConvMixerBackbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return ConvMixerBackbone.from_preset("convmixer_512_16", **kwargs)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
+
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include weights."""
+        return {}
 
 
 setattr(
