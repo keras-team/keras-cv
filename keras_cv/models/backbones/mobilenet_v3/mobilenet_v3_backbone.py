@@ -420,158 +420,52 @@ class MobileNetV3Backbone(Backbone):
         return copy.deepcopy(backbone_presets)
 
 
-def MobileNetV3SmallBackbone(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    alpha=1.0,
-    minimalistic=False,
-    dropout_rate=0.2,
-    classifier_activation="softmax",
-    name="MobileNetV3Small",
-    **kwargs,
-):
-    def stack_fn(x, kernel, activation, se_ratio):
-        x = apply_inverted_res_block(
-            x, 1, depth(16 * alpha), 3, 2, se_ratio, layers.ReLU(), 0
-        )
-        x = apply_inverted_res_block(
-            x, 72.0 / 16, depth(24 * alpha), 3, 2, None, layers.ReLU(), 1
-        )
-        x = apply_inverted_res_block(
-            x, 88.0 / 24, depth(24 * alpha), 3, 1, None, layers.ReLU(), 2
-        )
-        x = apply_inverted_res_block(
-            x, 4, depth(40 * alpha), kernel, 2, se_ratio, activation, 3
-        )
-        x = apply_inverted_res_block(
-            x, 6, depth(40 * alpha), kernel, 1, se_ratio, activation, 4
-        )
-        x = apply_inverted_res_block(
-            x, 6, depth(40 * alpha), kernel, 1, se_ratio, activation, 5
-        )
-        x = apply_inverted_res_block(
-            x, 3, depth(48 * alpha), kernel, 1, se_ratio, activation, 6
-        )
-        x = apply_inverted_res_block(
-            x, 3, depth(48 * alpha), kernel, 1, se_ratio, activation, 7
-        )
-        x = apply_inverted_res_block(
-            x, 6, depth(96 * alpha), kernel, 2, se_ratio, activation, 8
-        )
-        x = apply_inverted_res_block(
-            x, 6, depth(96 * alpha), kernel, 1, se_ratio, activation, 9
-        )
-        x = apply_inverted_res_block(
-            x, 6, depth(96 * alpha), kernel, 1, se_ratio, activation, 10
-        )
-        return x
-
-    return MobileNetV3Backbone(
-        stack_fn=stack_fn,
-        last_point_ch=1024,
-        include_rescaling=include_rescaling,
-        include_top=include_top,
-        num_classes=num_classes,
-        weights=weights,
-        input_shape=input_shape,
-        input_tensor=input_tensor,
-        pooling=pooling,
-        alpha=alpha,
-        minimalistic=minimalistic,
-        dropout_rate=dropout_rate,
-        classifier_activation=classifier_activation,
-        name=name,
+class MobileNetV3SmallBackbone(MobileNetV3Backbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return MobileNetV3Backbone.from_preset("mobilenetv3small", **kwargs)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
 
 
-def MobileNetV3LargeBackbone(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    alpha=1.0,
-    minimalistic=False,
-    dropout_rate=0.2,
-    classifier_activation="softmax",
-    name="MobileNetV3Large",
-    **kwargs,
-):
-    def stack_fn(x, kernel, activation, se_ratio):
-        x = apply_inverted_res_block(
-            x, 1, depth(16 * alpha), 3, 1, None, layers.ReLU(), 0
-        )
-        x = apply_inverted_res_block(
-            x, 4, depth(24 * alpha), 3, 2, None, layers.ReLU(), 1
-        )
-        x = apply_inverted_res_block(
-            x, 3, depth(24 * alpha), 3, 1, None, layers.ReLU(), 2
-        )
-        x = apply_inverted_res_block(
-            x, 3, depth(40 * alpha), kernel, 2, se_ratio, layers.ReLU(), 3
-        )
-        x = apply_inverted_res_block(
-            x, 3, depth(40 * alpha), kernel, 1, se_ratio, layers.ReLU(), 4
-        )
-        x = apply_inverted_res_block(
-            x, 3, depth(40 * alpha), kernel, 1, se_ratio, layers.ReLU(), 5
-        )
-        x = apply_inverted_res_block(
-            x, 6, depth(80 * alpha), 3, 2, None, activation, 6
-        )
-        x = apply_inverted_res_block(
-            x, 2.5, depth(80 * alpha), 3, 1, None, activation, 7
-        )
-        x = apply_inverted_res_block(
-            x, 2.3, depth(80 * alpha), 3, 1, None, activation, 8
-        )
-        x = apply_inverted_res_block(
-            x, 2.3, depth(80 * alpha), 3, 1, None, activation, 9
-        )
-        x = apply_inverted_res_block(
-            x, 6, depth(112 * alpha), 3, 1, se_ratio, activation, 10
-        )
-        x = apply_inverted_res_block(
-            x, 6, depth(112 * alpha), 3, 1, se_ratio, activation, 11
-        )
-        x = apply_inverted_res_block(
-            x, 6, depth(160 * alpha), kernel, 2, se_ratio, activation, 12
-        )
-        x = apply_inverted_res_block(
-            x, 6, depth(160 * alpha), kernel, 1, se_ratio, activation, 13
-        )
-        x = apply_inverted_res_block(
-            x, 6, depth(160 * alpha), kernel, 1, se_ratio, activation, 14
-        )
-        return x
-
-    return MobileNetV3Backbone(
-        stack_fn=stack_fn,
-        last_point_ch=1280,
-        include_rescaling=include_rescaling,
-        include_top=include_top,
-        num_classes=num_classes,
-        weights=weights,
-        input_shape=input_shape,
-        input_tensor=input_tensor,
-        pooling=pooling,
-        alpha=alpha,
-        minimalistic=minimalistic,
-        dropout_rate=dropout_rate,
-        classifier_activation=classifier_activation,
-        name=name,
+class MobileNetV3LargeBackbone(MobileNetV3Backbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return MobileNetV3Backbone.from_preset("mobilenetv3large", **kwargs)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
 
 
 setattr(
