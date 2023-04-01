@@ -67,11 +67,11 @@ class CSPDarkNetBackbone(Backbone):
         include_rescaling: bool, whether to rescale the inputs. If set to True,
             inputs will be passed through a `Rescaling(1/255.0)` layer.
         use_depthwise: a boolean value used to decide whether a depthwise conv
-            block should be used over a regular darknet block. Defaults to
+            block should be used over a regular darknet block, defaults to
             False.
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
             to use as image input for the model.
-        input_shape: optional shape tuple. Defaults to (None, None, 3).
+        input_shape: optional shape tuple, defaults to (None, None, 3).
 
     Examples:
     ```python
@@ -232,14 +232,14 @@ ALIAS_DOCSTRING = """CSPDarkNetBackbone model with {depth_multiplier} depth
             True, inputs will be passed through a `Rescaling(1/255.0)` layer.
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
             to use as image input for the model.
-        input_shape: optional shape tuple. Defaults to (None, None, 3).
+        input_shape: optional shape tuple, defaults to (None, None, 3).
 
     Examples:
     ```python
     input_data = tf.ones(shape=(8, 224, 224, 3))
 
     # Randomly initialized backbone
-    model = CSPDarkNetTinyBackbone()
+    model = CSPDarkNet{name}Backbone()
     output = model(input_data)
     ```
 """
@@ -380,25 +380,35 @@ class CSPDarkNetXBackbone(CSPDarkNetBackbone):
 setattr(
     CSPDarkNetTinyBackbone,
     "__doc__",
-    ALIAS_DOCSTRING.format(depth_multiplier="0.33", width_multiplier="0.375"),
+    ALIAS_DOCSTRING.format(
+        name="Tiny", depth_multiplier="0.33", width_multiplier="0.375"
+    ),
 )
 setattr(
     CSPDarkNetSBackbone,
     "__doc__",
-    ALIAS_DOCSTRING.format(depth_multiplier="0.33", width_multiplier="0.50"),
+    ALIAS_DOCSTRING.format(
+        name="S", depth_multiplier="0.33", width_multiplier="0.50"
+    ),
 )
 setattr(
     CSPDarkNetMBackbone,
     "__doc__",
-    ALIAS_DOCSTRING.format(depth_multiplier="0.67", width_multiplier="0.75"),
+    ALIAS_DOCSTRING.format(
+        name="M", depth_multiplier="0.67", width_multiplier="0.75"
+    ),
 )
 setattr(
     CSPDarkNetLBackbone,
     "__doc__",
-    ALIAS_DOCSTRING.format(depth_multiplier="1.00", width_multiplier="1.00"),
+    ALIAS_DOCSTRING.format(
+        name="L", depth_multiplier="1.00", width_multiplier="1.00"
+    ),
 )
 setattr(
     CSPDarkNetXBackbone,
     "__doc__",
-    ALIAS_DOCSTRING.format(depth_multiplier="1.33", width_multiplier="1.25"),
+    ALIAS_DOCSTRING.format(
+        name="X", depth_multiplier="1.33", width_multiplier="1.25"
+    ),
 )
