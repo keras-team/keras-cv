@@ -14,9 +14,12 @@
 
 """MobileNetV3 model preset configurations."""
 
-from mobilenet_v3_backbone import apply_inverted_res_block
-from mobilenet_v3_backbone import depth
 from tensorflow.keras import layers
+
+from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_backbone import (
+    apply_inverted_res_block,
+)
+from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_backbone import depth
 
 
 def stack_fn_s(x, kernel, activation, se_ratio, alpha=1.0):
