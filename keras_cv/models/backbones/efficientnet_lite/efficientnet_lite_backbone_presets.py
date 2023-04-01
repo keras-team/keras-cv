@@ -1,155 +1,213 @@
-def EfficientNetLiteB0(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    classifier_activation="softmax",
-    **kwargs,
-):
-    return EfficientNetLite(
-        include_rescaling,
-        include_top,
-        width_coefficient=1.0,
-        depth_coefficient=1.0,
-        default_size=224,
-        dropout_rate=0.2,
-        name="efficientnetliteb0",
-        weights=parse_weights(weights, include_top, "efficientnetliteb0"),
-        input_shape=input_shape,
-        input_tensor=input_tensor,
-        pooling=pooling,
-        num_classes=num_classes,
-        classifier_activation=classifier_activation,
-        **kwargs,
-    )
+# Copyright 2023 The KerasCV Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+"""EfficientNetLite model preset configurations."""
 
+backbone_presets_no_weights = {
+    "efficientnetliteb0": {
+        "metadata": {
+            "description": (
+                "EfficientNetLite model with 1.0 depth coefficient and 1.0 width "
+                "coefficient where the batch normalization and ReLU6 as default activation "
+                "are applied after the convolution layers."
+            ),
+        },
+        "class_name": "keras_cv.models>EfficientNetLiteBackbone",
+        "config": {
+              "include_rescaling": True,
+                "width_coefficient": 1.0,
+                "depth_coefficient": 1.0,
+                #"default_size": default_size,
+                "dropout_rate": 0.2,
+                "drop_connect_rate": 0.2,
+                "depth_divisor": 8,
+                "activation": relu6,
+                "blocks_args": None
+                "input_shape": (None, None, 3),
+                "input_tensor": None,
+        },
+    },
+        "efficientnetliteb1": {
+        "metadata": {
+            "description": (
+                "EfficientNetLite model with 1.0 depth coefficient and 1.1 width "
+                "coefficient where the batch normalization and ReLU6 as default activation "
+                "are applied after the convolution layers."
+            ),
+        },
+        "class_name": "keras_cv.models>EfficientNetLiteBackbone",
+        "config": {
+              "include_rescaling": True,
+                "width_coefficient": 1.0,
+                "depth_coefficient": 1.1,
+                #"default_size": default_size,
+                "dropout_rate": 0.2,
+                "drop_connect_rate": 0.2,
+                "depth_divisor": 8,
+                "activation": relu6,
+                "blocks_args": None
+                "input_shape": (None, None, 3),
+                "input_tensor": None,
+        },
+    },
+   
+       "efficientnetliteb2": {
+        "metadata": {
+            "description": (
+                "EfficientNetLite model with 1.1 depth coefficient and 1.2 width "
+                "coefficient where the batch normalization and ReLU6 as default activation "
+                "are applied after the convolution layers."
+            ),
+        },
+        "class_name": "keras_cv.models>EfficientNetLiteBackbone",
+        "config": {
+              "include_rescaling": True,
+                "width_coefficient": 1.1,
+                "depth_coefficient": 1.2,
+                #"default_size": default_size,
+                "dropout_rate": 0.2,
+                "drop_connect_rate": 0.2,
+                "depth_divisor": 8,
+                "activation": relu6,
+                "blocks_args": None
+                "input_shape": (None, None, 3),
+                "input_tensor": None,
+        },
+    },
+   
+       "efficientnetliteb3": {
+        "metadata": {
+            "description": (
+                "EfficientNetLite model with 1.2 depth coefficient and 1.4 width "
+                "coefficient where the batch normalization and ReLU6 as default activation "
+                "are applied after the convolution layers."
+            ),
+        },
+        "class_name": "keras_cv.models>EfficientNetLiteBackbone",
+        "config": {
+              "include_rescaling": True,
+                "width_coefficient": 1.2,
+                "depth_coefficient": 1.4,
+                #"default_size": default_size,
+                "dropout_rate": 0.2,
+                "drop_connect_rate": 0.2,
+                "depth_divisor": 8,
+                "activation": relu6,
+                "blocks_args": None
+                "input_shape": (None, None, 3),
+                "input_tensor": None,
+        },
+    },
+   
+       "efficientnetliteb4": {
+        "metadata": {
+            "description": (
+                "EfficientNetLite model with 1.4 depth coefficient and 1.8 width "
+                "coefficient where the batch normalization and ReLU6 as default activation "
+                "are applied after the convolution layers."
+            ),
+        },
+        "class_name": "keras_cv.models>EfficientNetLiteBackbone",
+        "config": {
+              "include_rescaling": True,
+                "width_coefficient": 1.4,
+                "depth_coefficient": 1.8,
+                #"default_size": default_size,
+                "dropout_rate": 0.2,
+                "drop_connect_rate": 0.2,
+                "depth_divisor": 8,
+                "activation": relu6,
+                "blocks_args": None
+                "input_shape": (None, None, 3),
+                "input_tensor": None,
+        },
+    }, 
+}
 
-def EfficientNetLiteB1(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    classifier_activation="softmax",
-    **kwargs,
-):
-    return EfficientNetLite(
-        include_rescaling,
-        include_top,
-        width_coefficient=1.0,
-        depth_coefficient=1.1,
-        default_size=240,
-        dropout_rate=0.2,
-        name="efficientnetliteb1",
-        weights=parse_weights(weights, include_top, "efficientnetliteb1"),
-        input_shape=input_shape,
-        input_tensor=input_tensor,
-        pooling=pooling,
-        num_classes=num_classes,
-        classifier_activation=classifier_activation,
-        **kwargs,
-    )
+backbone_presets_with_weights = {
+"efficientnetliteb0": {
+        "metadata": {
+            "description": (
+                "EfficientNetLite model with 1.0 depth coefficient and 1.0 width "
+                "coefficient where the batch normalization and ReLU6 as default activation "
+                "are applied after the convolution layers. Trained on Imagenet "
+                "2012 classification task."
+            ),
+        },
+        "class_name": "keras_cv.models>EfficientNetLiteBackbone",
+        "config": backbone_presets_no_weights["efficientnetliteb0"]["config"],
+        "weights_url": ,
+        "weights_hash": ,
+    },
+   "efficientnetliteb1": {
+        "metadata": {
+            "description": (
+                "EfficientNetLite model with 1.0 depth coefficient and 1.1 width "
+                "coefficient where the batch normalization and ReLU6 as default activation "
+                "are applied after the convolution layers. Trained on Imagenet "
+                "2012 classification task."
+            ),
+        },
+        "class_name": "keras_cv.models>EfficientNetLiteBackbone",
+        "config": backbone_presets_no_weights["efficientnetliteb1"]["config"],
+        "weights_url": ,
+        "weights_hash": ,
+    },
+"efficientnetliteb2": {
+        "metadata": {
+            "description": (
+                "EfficientNetLite model with 1.1 depth coefficient and 1.2 width "
+                "coefficient where the batch normalization and ReLU6 as default activation "
+                "are applied after the convolution layers. Trained on Imagenet "
+                "2012 classification task."
+            ),
+        },
+        "class_name": "keras_cv.models>EfficientNetLiteBackbone",
+        "config": backbone_presets_no_weights["efficientnetliteb2"]["config"],
+        "weights_url": ,
+        "weights_hash": ,
+    },
+"efficientnetliteb3": {
+        "metadata": {
+            "description": (
+                "EfficientNetLite model with 1.2 depth coefficient and 1.4 width "
+                "coefficient where the batch normalization and ReLU6 as default activation "
+                "are applied after the convolution layers. Trained on Imagenet "
+                "2012 classification task."
+            ),
+        },
+        "class_name": "keras_cv.models>EfficientNetLiteBackbone",
+        "config": backbone_presets_no_weights["efficientnetliteb3"]["config"],
+        "weights_url": ,
+        "weights_hash": ,
+    },
+"efficientnetliteb4": {
+        "metadata": {
+            "description": (
+                "EfficientNetLite model with 1.4 depth coefficient and 1.8 width "
+                "coefficient where the batch normalization and ReLU6 as default activation "
+                "are applied after the convolution layers. Trained on Imagenet "
+                "2012 classification task."
+            ),
+        },
+        "class_name": "keras_cv.models>EfficientNetLiteBackbone",
+        "config": backbone_presets_no_weights["efficientnetliteb4"]["config"],
+        "weights_url": ,
+        "weights_hash": ,
+    },
+}
 
-
-def EfficientNetLiteB2(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    classifier_activation="softmax",
-    **kwargs,
-):
-    return EfficientNetLite(
-        include_rescaling,
-        include_top,
-        width_coefficient=1.1,
-        depth_coefficient=1.2,
-        default_size=260,
-        dropout_rate=0.3,
-        name="efficientnetliteb2",
-        weights=parse_weights(weights, include_top, "efficientnetliteb2"),
-        input_shape=input_shape,
-        input_tensor=input_tensor,
-        pooling=pooling,
-        num_classes=num_classes,
-        classifier_activation=classifier_activation,
-        **kwargs,
-    )
-
-
-def EfficientNetLiteB3(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    classifier_activation="softmax",
-    **kwargs,
-):
-    return EfficientNetLite(
-        include_rescaling,
-        include_top,
-        width_coefficient=1.2,
-        depth_coefficient=1.4,
-        default_size=280,
-        dropout_rate=0.3,
-        name="efficientnetliteb3",
-        weights=parse_weights(weights, include_top, "efficientnetliteb3"),
-        input_shape=input_shape,
-        input_tensor=input_tensor,
-        pooling=pooling,
-        num_classes=num_classes,
-        classifier_activation=classifier_activation,
-        **kwargs,
-    )
-
-
-def EfficientNetLiteB4(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    classifier_activation="softmax",
-    **kwargs,
-):
-    return EfficientNetLite(
-        include_rescaling,
-        include_top,
-        width_coefficient=1.4,
-        depth_coefficient=1.8,
-        default_size=300,
-        dropout_rate=0.3,
-        name="efficientnetliteb4",
-        weights=parse_weights(weights, include_top, "efficientnetliteb4"),
-        input_shape=input_shape,
-        input_tensor=input_tensor,
-        pooling=pooling,
-        num_classes=num_classes,
-        classifier_activation=classifier_activation,
-        **kwargs,
-    )
-
-
-EfficientNetLiteB0.__doc__ = BASE_DOCSTRING.format(name="EfficientNetLiteB0")
-EfficientNetLiteB1.__doc__ = BASE_DOCSTRING.format(name="EfficientNetLiteB1")
-EfficientNetLiteB2.__doc__ = BASE_DOCSTRING.format(name="EfficientNetLiteB2")
-EfficientNetLiteB3.__doc__ = BASE_DOCSTRING.format(name="EfficientNetLiteB3")
-EfficientNetLiteB4.__doc__ = BASE_DOCSTRING.format(name="EfficientNetLiteB4")
+backbone_presets = {
+    **backbone_presets_no_weights,
+    **backbone_presets_with_weights,
+}
