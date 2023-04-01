@@ -15,8 +15,10 @@
 """MobileNet v3 models for KerasCV.
 
 References:
-    - [Searching for MobileNetV3](https://arxiv.org/pdf/1905.02244.pdf) (ICCV 2019)
-    - [Based on the original keras.applications MobileNetv3](https://github.com/keras-team/keras/blob/master/keras/applications/mobilenet_v3.py)
+    - [Searching for MobileNetV3](https://arxiv.org/pdf/1905.02244.pdf)
+    (ICCV 2019)
+    - [Based on the original keras.applications MobileNetv3]
+    (https://github.com/keras-team/keras/blob/master/keras/applications/mobilenet_v3.py)
 """
 
 import copy
@@ -36,71 +38,15 @@ from keras_cv.utils.python_utils import classproperty
 
 channel_axis = -1
 
-BASE_DOCSTRING = """Instantiates the {name} architecture.
-
-    References:
-        - [Searching for MobileNetV3](https://arxiv.org/abs/1905.02244)
-        - [Based on the Original keras.applications MobileNetv3](https://github.com/keras-team/keras/blob/master/keras/applications/mobilenet_v3.py)
-
-    This class represents a Keras {name} model.
-
-    For transfer learning use cases, make sure to read the [guide to transfer
-        learning & fine-tuning](https://keras.io/guides/transfer_learning/).
-
-    Args:
-        include_rescaling: bool, whether or not to rescale the inputs. If set to True,
-            inputs will be passed through a `Rescaling(scale=1 / 255)`
-            layer. Defaults to True.
-        include_top: bool, whether to include the fully-connected layer at the top of the
-            network. If provided, `num_classes` must be provided.
-        num_classes: integer, optional number of classes to classify images into. Only to be
-            specified if `include_top` is True, and if no `weights` argument is
-            specified.
-        weights: one of `None` (random initialization) or a pretrained weight file
-            path.
-        input_shape: optional shape tuple, defaults to (None, None, 3).
-        input_tensor: optional Keras tensor (i.e., output of `layers.Input()`)
-            to use as image input for the model.
-        pooling: optional pooling mode for feature extraction
-            when `include_top` is `False`.
-            - `None` means that the output of the model will be the 4D tensor output
-                of the last convolutional block.
-            - `avg` means that global average pooling will be applied to the output
-                of the last convolutional block, and thus the output of the model will
-                be a 2D tensor.
-            - `max` means that global max pooling will be applied.
-        alpha: float, controls the width of the network. This is known as the
-            depth multiplier in the MobileNetV3 paper, but the name is kept for
-            consistency with MobileNetV1 in Keras.
-            - If `alpha` < 1.0, proportionally decreases the number
-                of filters in each layer.
-            - If `alpha` > 1.0, proportionally increases the number
-                of filters in each layer.
-            - If `alpha` = 1, default number of filters from the paper
-                are used at each layer.
-        minimalistic: in addition to large and small models, this module also
-            contains so-called minimalistic models; these models have the same
-            per-layer dimensions characteristic as MobilenetV3 however, they don't
-            utilize any of the advanced blocks (squeeze-and-excite units, hard-swish,
-            and 5x5 convolutions). While these models are less efficient on CPU, they
-            are much more performant on GPU/DSP.
-        dropout_rate: a float between 0 and 1 denoting the fraction of input units to
-            drop, defaults to 0.2.
-        classifier_activation: the activation function to use, defaults to softmax.
-        name: string, optional name to pass to the model, defaults to "{name}".
-
-    Returns:
-        A `keras.Model` instance.
-"""
-
 
 def depth(x, divisor=8, min_value=None):
-    """Ensure that all layers have a channel number that is divisible by the `divisor`.
+    """Ensure that all layers have a channel number that is divisible by the
+    `divisor`.
 
     Args:
         x: integer, input value.
-        divisor: integer, the value by which a channel number should be divisible,
-            defaults to 8.
+        divisor: integer, the value by which a channel number should be
+            divisible, defaults to 8.
         min_value: float, minimum value for the new tensor.
 
     Returns:
@@ -169,8 +115,8 @@ def apply_inverted_res_block(
 
     Args:
         x: input tensor.
-        expansion: integer, the expansion ratio, multiplied with infilters to get the
-            minimum value passed to depth.
+        expansion: integer, the expansion ratio, multiplied with infilters to
+            get the minimum value passed to depth.
         filters: integer, number of filters for convolution layer.
         kernel_size: integer, the kernel size for DepthWise Convolutions.
         stride: integer, the stride length for DepthWise Convolutions.
@@ -258,10 +204,10 @@ class MobileNetV3Backbone(Backbone):
     """Instantiates the MobileNetV3 architecture.
 
     References:
-        - [Searching for MobileNetV3](https://arxiv.org/pdf/1905.02244.pdf) (ICCV 2019)
-        - [Based on the Original keras.applications MobileNetv3](https://github.com/keras-team/keras/blob/master/keras/applications/mobilenet_v3.py)
-
-    This class represents a Keras MobileNetV3 model.
+        - [Searching for MobileNetV3](https://arxiv.org/pdf/1905.02244.pdf)
+        (ICCV 2019)
+        - [Based on the Original keras.applications MobileNetv3]
+        (https://github.com/keras-team/keras/blob/master/keras/applications/mobilenet_v3.py)
 
     For transfer learning use cases, make sure to read the [guide to transfer
         learning & fine-tuning](https://keras.io/guides/transfer_learning/).
@@ -273,24 +219,9 @@ class MobileNetV3Backbone(Backbone):
         include_rescaling: bool, whether to rescale the inputs. If set to True,
             inputs will be passed through a `Rescaling(scale=1 / 255)`
             layer.
-        include_top: bool, whether to include the fully-connected layer at the top of the
-            network. If provided, `num_classes` must be provided.
-        num_classes: optional number of classes to classify images into. Only to be
-            specified if `include_top` is True, and if no `weights` argument is
-            specified.
-        weights: one of `None` (random initialization) or a pre-trained weight file
-            path.
         input_shape: optional shape tuple, defaults to (None, None, 3).
         input_tensor: optional Keras tensor (i.e., output of `layers.Input()`)
             to use as image input for the model.
-        pooling: optional pooling mode for feature extraction
-            when `include_top` is `False`.
-            - `None` means that the output of the model will be the 4D tensor output
-                of the last convolutional block.
-            - `avg` means that global average pooling will be applied to the output
-                of the last convolutional block, and thus the output of the model will
-                be a 2D tensor.
-            - `max` means that global max pooling will be applied.
         alpha: float, controls the width of the network. This is known as the
             depth multiplier in the MobileNetV3 paper, but the name is kept for
             consistency with MobileNetV1 in Keras.
@@ -302,23 +233,28 @@ class MobileNetV3Backbone(Backbone):
                 are used at each layer.
         minimalistic: in addition to large and small models, this module also
             contains so-called minimalistic models; these models have the same
-            per-layer dimensions characteristic as MobilenetV3 however, they don't
-            utilize any of the advanced blocks (squeeze-and-excite units, hard-swish,
-            and 5x5 convolutions). While these models are less efficient on CPU, they
-            are much more performant on GPU/DSP.
-        dropout_rate: a float between 0 and 1 denoting the fraction of input units to
-            drop, defaults to 0.2.
-        classifier_activation: the activation function to use, defaults to softmax.
-        name: string, optional name to pass to the model, defaults to "MobileNetV3".
-        **kwargs: Pass-through keyword arguments to `keras.Model`.
+            per-layer dimensions characteristic as MobilenetV3 however, they
+            don't utilize any of the advanced blocks (squeeze-and-excite units,
+            hard-swish, and 5x5 convolutions). While these models are less
+            efficient on CPU, they are much more performant on GPU/DSP.
+        dropout_rate: a float between 0 and 1 denoting the fraction of input
+            units to drop, defaults to 0.2.
 
-    Returns:
-        A `keras.Model` instance.
+    Examples:
+    ```python
+    input_data = tf.ones(shape=(8, 224, 224, 3))
 
-    Raises:
-        ValueError: if `weights` represents an invalid path to the weights file and is not
-            None.
-        ValueError: if `include_top` is True and `num_classes` is not specified.
+    # Randomly initialized backbone with a custom config
+    model = MobileNetV3Backbone(
+        stack_fn=stack_fn_s,
+        last_point_ch=1024,
+        include_rescaling=False,
+        alpha=1.0,
+        minimalistic=False,
+        dropout_rate=0.2,
+    )
+    output = model(input_data)
+    ```
     """
 
     def __init__(
@@ -420,6 +356,35 @@ class MobileNetV3Backbone(Backbone):
         return copy.deepcopy(backbone_presets)
 
 
+ALIAS_DOCSTRING = """MobileNetV3Backbone model with {num_layers} layers.
+
+    References:
+        - [Searching for MobileNetV3](https://arxiv.org/abs/1905.02244)
+        - [Based on the Original keras.applications MobileNetv3]
+        (https://github.com/keras-team/keras/blob/master/keras/applications/mobilenet_v3.py)
+
+    For transfer learning use cases, make sure to read the [guide to transfer
+        learning & fine-tuning](https://keras.io/guides/transfer_learning/).
+
+    Args:
+        include_rescaling: bool, whether or not to rescale the inputs. If set to
+            True, inputs will be passed through a `Rescaling(scale=1 / 255)`
+            layer. Defaults to True.
+        input_shape: optional shape tuple, defaults to (None, None, 3).
+        input_tensor: optional Keras tensor (i.e., output of `layers.Input()`)
+            to use as image input for the model.
+
+    Examples:
+    ```python
+    input_data = tf.ones(shape=(8, 224, 224, 3))
+
+    # Randomly initialized backbone
+    model = {name}Backbone()
+    output = model(input_data)
+    ```
+"""
+
+
 class MobileNetV3SmallBackbone(MobileNetV3Backbone):
     def __new__(
         cls,
@@ -471,10 +436,10 @@ class MobileNetV3LargeBackbone(MobileNetV3Backbone):
 setattr(
     MobileNetV3LargeBackbone,
     "__doc__",
-    BASE_DOCSTRING.format(name="MobileNetV3Large"),
+    ALIAS_DOCSTRING.format(name="MobileNetV3Large", num_layers="28"),
 )
 setattr(
     MobileNetV3SmallBackbone,
     "__doc__",
-    BASE_DOCSTRING.format(name="MobileNetV3Small"),
+    ALIAS_DOCSTRING.format(name="MobileNetV3Small", num_layers="14"),
 )
