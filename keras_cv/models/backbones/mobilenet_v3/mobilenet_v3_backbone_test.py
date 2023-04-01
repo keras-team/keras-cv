@@ -116,7 +116,6 @@ class MobileNetV3BackboneTest(tf.test.TestCase, parameterized.TestCase):
         ("four_channels", 4),
     )
     def test_application_variable_input_channels(self, num_channels):
-        # ResNet50 model
         model = MobileNetV3Backbone(
             stack_fn=None,
             last_point_ch=1024,
