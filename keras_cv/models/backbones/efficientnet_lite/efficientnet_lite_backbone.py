@@ -30,139 +30,17 @@ from keras import layers
 from tensorflow import keras
 
 from keras_cv.models import utils
-from keras_cv.models.weights import parse_weights
-
-DEFAULT_BLOCKS_ARGS = [
-    {
-        "kernel_size": 3,
-        "repeats": 1,
-        "filters_in": 32,
-        "filters_out": 16,
-        "expand_ratio": 1,
-        "id_skip": True,
-        "strides": 1,
-    },
-    {
-        "kernel_size": 3,
-        "repeats": 2,
-        "filters_in": 16,
-        "filters_out": 24,
-        "expand_ratio": 6,
-        "id_skip": True,
-        "strides": 2,
-    },
-    {
-        "kernel_size": 5,
-        "repeats": 2,
-        "filters_in": 24,
-        "filters_out": 40,
-        "expand_ratio": 6,
-        "id_skip": True,
-        "strides": 2,
-    },
-    {
-        "kernel_size": 3,
-        "repeats": 3,
-        "filters_in": 40,
-        "filters_out": 80,
-        "expand_ratio": 6,
-        "id_skip": True,
-        "strides": 2,
-    },
-    {
-        "kernel_size": 5,
-        "repeats": 3,
-        "filters_in": 80,
-        "filters_out": 112,
-        "expand_ratio": 6,
-        "id_skip": True,
-        "strides": 1,
-    },
-    {
-        "kernel_size": 5,
-        "repeats": 4,
-        "filters_in": 112,
-        "filters_out": 192,
-        "expand_ratio": 6,
-        "id_skip": True,
-        "strides": 2,
-    },
-    {
-        "kernel_size": 3,
-        "repeats": 1,
-        "filters_in": 192,
-        "filters_out": 320,
-        "expand_ratio": 6,
-        "id_skip": True,
-        "strides": 1,
-    },
-]
-CONV_KERNEL_INITIALIZER = {
-    "class_name": "VarianceScaling",
-    "config": {
-        "scale": 2.0,
-        "mode": "fan_out",
-        "distribution": "truncated_normal",
-    },
-}
-
-DENSE_KERNEL_INITIALIZER = {
-    "class_name": "VarianceScaling",
-    "config": {
-        "scale": 1.0 / 3.0,
-        "mode": "fan_out",
-        "distribution": "uniform",
-    },
-}
-
-BASE_DOCSTRING = """Instantiates the {name} architecture.
-
-    Reference:
-    - [EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks](
-        https://arxiv.org/abs/1905.11946) (ICML 2019)
-
-    This function returns a Keras {name} model.
-
-    For image classification use cases, see
-    [this page for detailed examples](
-    https://keras.io/api/applications/#usage-examples-for-image-classification-models).
-
-    For transfer learning use cases, make sure to read the [guide to transfer
-        learning & fine-tuning](https://keras.io/guides/transfer_learning/).
-
-    Args:
-        include_rescaling: bool, whether or not to Rescale the inputs. If set
-            to `True`, inputs will be passed through a `Rescaling(1/255.0)`
-            layer.
-        include_top: bool, whether to include the fully-connected layer at
-            the top of the network.  If provided, `num_classes` must be provided.
-        num_classes: optional int, number of classes to classify images into (only
-            to be specified if `include_top` is `True`).
-        weights: one of `None` (random initialization), a pretrained weight file
-            path, or a reference to pre-trained weights (e.g. 'imagenet/classification')
-            (see available pre-trained weights in weights.py)
-        input_shape: optional shape tuple, defaults to (None, None, 3).
-        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
-            to use as image input for the model.
-        pooling: optional pooling mode for feature extraction
-            when `include_top` is `False`.
-            - `None` means that the output of the model will be the 4D tensor output
-                of the last convolutional block.
-            - `avg` means that global average pooling will be applied to the output
-                of the last convolutional block, and thus the output of the model will
-                be a 2D tensor.
-            - `max` means that global max pooling will be applied.
-        classifier_activation: A `str` or callable. The activation function to use
-            on the "top" layer. Ignored unless `include_top=True`. Set
-            `classifier_activation=None` to return the logits of the "top" layer.
-        name: (Optional) name to pass to the model.  Defaults to "{name}".
-
-    Returns:
-        A `keras.Model` instance.
-"""
+#from keras_cv.models.weights import parse_weights
+from keras_cv.models.backbones.backbone import Backbone
+from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_backbone_presets import (
+    backbone_presets,
+)
+from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_backbone_presets import (
+    backbone_presets_with_weights,
+)
+from keras_cv.utils.python_utils import classproperty
 
 BN_AXIS = 3
-
 
 def correct_pad(inputs, kernel_size):
     """Returns a tuple for zero-padding for 2D convolution with downsampling.
@@ -296,14 +174,12 @@ def apply_efficient_net_lite_block(
 
 
 @keras.utils.register_keras_serializable(package="keras_cv.models")
-class EfficientNetLite(keras.Model):
-    """Instantiates the EfficientNetLite architecture using given scaling coefficients.
+class EfficientNetLiteBackbone(Backbone):
+    """Instantiates the EfficientNetLite architecture.
 
     Args:
         include_rescaling: whether to Rescale the inputs. If set to True,
             inputs will be passed through a `Rescaling(1/255.0)` layer.
-        include_top: whether to include the fully-connected
-            layer at the top of the network.
         width_coefficient: float, scaling coefficient for network width.
         depth_coefficient: float, scaling coefficient for network depth.
         default_size: integer, default input image size.
@@ -312,46 +188,19 @@ class EfficientNetLite(keras.Model):
         depth_divisor: integer, a unit of network width.
         activation: activation function.
         blocks_args: list of dicts, parameters to construct block modules.
-        model_name: string, model name.
-        weights: one of `None` (random initialization),
-            or the path to the weights file to be loaded.
         input_shape: optional shape tuple,
             It should have exactly 3 inputs channels.
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
             to use as image input for the model.
-        pooling: optional pooling mode for feature extraction
-            when `include_top` is `False`.
-            - `None` means that the output of the model will be
-                the 4D tensor output of the
-                last convolutional layer.
-            - `avg` means that global average pooling
-                will be applied to the output of the
-                last convolutional layer, and thus
-                the output of the model will be a 2D tensor.
-            - `max` means that global max pooling will
-                be applied.
-        num_classes: optional number of classes to classify images
-            into, only to be specified if `include_top` is True, and
-            if no `weights` argument is specified.
-        classifier_activation: A `str` or callable. The activation function to use
-            on the "top" layer. Ignored unless `include_top=True`. Set
-            `classifier_activation=None` to return the logits of the "top" layer.
 
-        Returns:
-            A `keras.Model` instance.
 
         Raises:
             ValueError: if `blocks_args` is invalid.
-            ValueError: in case of invalid argument for `weights`,
-                or invalid input shape.
-            ValueError: if `classifier_activation` is not `softmax` or `None` when
-                using a pretrained top layer.
     """
 
     def __init__(
         self,
         include_rescaling,
-        include_top,
         width_coefficient,
         depth_coefficient,
         default_size,
@@ -360,12 +209,8 @@ class EfficientNetLite(keras.Model):
         depth_divisor=8,
         activation="relu6",
         blocks_args=None,
-        weights=None,
         input_shape=(None, None, 3),
         input_tensor=None,
-        pooling=None,
-        num_classes=None,
-        classifier_activation="softmax",
         **kwargs,
     ):
         if blocks_args is None:
@@ -378,25 +223,6 @@ class EfficientNetLite(keras.Model):
             )
         intact_blocks_args = copy.deepcopy(blocks_args)  # for configs
         blocks_args = copy.deepcopy(blocks_args)
-
-        if weights and not tf.io.gfile.exists(weights):
-            raise ValueError(
-                "The `weights` argument should be either `None` or the path to "
-                "the weights file to be loaded. "
-                f"Weights file not found at location: {weights}"
-            )
-
-        if include_top and not num_classes:
-            raise ValueError(
-                "If `include_top` is True, you should specify `num_classes`. "
-                f"Received: num_classes={num_classes}"
-            )
-
-        if include_top and pooling:
-            raise ValueError(
-                f"`pooling` must be `None` when `include_top=True`."
-                f"Received pooling={pooling} and include_top={include_top}. "
-            )
 
         img_input = utils.parse_model_inputs(input_shape, input_tensor)
 
@@ -476,33 +302,13 @@ class EfficientNetLite(keras.Model):
         x = layers.BatchNormalization(axis=BN_AXIS, name="top_bn")(x)
         x = layers.Activation(activation, name="top_activation")(x)
 
-        if include_top:
-            x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-            if dropout_rate > 0:
-                x = layers.Dropout(dropout_rate, name="top_dropout")(x)
-            x = layers.Dense(
-                num_classes,
-                activation=classifier_activation,
-                kernel_initializer=DENSE_KERNEL_INITIALIZER,
-                name="predictions",
-            )(x)
-        else:
-            if pooling == "avg":
-                x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-            elif pooling == "max":
-                x = layers.GlobalMaxPooling2D(name="max_pool")(x)
-
         inputs = img_input
 
         # Create model.
         super().__init__(inputs=inputs, outputs=x, **kwargs)
 
-        # Load weights.
-        if weights is not None:
-            self.load_weights(weights)
-
+         # All references to `self` below this line
         self.include_rescaling = include_rescaling
-        self.include_top = include_top
         self.width_coefficient = width_coefficient
         self.depth_coefficient = depth_coefficient
         self.default_size = default_size
@@ -512,14 +318,12 @@ class EfficientNetLite(keras.Model):
         self.activation = activation
         self.blocks_args = intact_blocks_args
         self.input_tensor = input_tensor
-        self.pooling = pooling
-        self.num_classes = num_classes
-        self.classifier_activation = classifier_activation
 
     def get_config(self):
-        return {
+        config = super().get_config()
+        config.update(
+            {
             "include_rescaling": self.include_rescaling,
-            "include_top": self.include_top,
             "width_coefficient": self.width_coefficient,
             "depth_coefficient": self.depth_coefficient,
             "default_size": self.default_size,
@@ -531,13 +335,239 @@ class EfficientNetLite(keras.Model):
             # Remove batch dimension from `input_shape`
             "input_shape": self.input_shape[1:],
             "input_tensor": self.input_tensor,
-            "pooling": self.pooling,
-            "num_classes": self.num_classes,
-            "classifier_activation": self.classifier_activation,
-            "name": self.name,
             "trainable": self.trainable,
-        }
+            }
+        )
+        return config
 
-    @classmethod
-    def from_config(cls, config):
-        return cls(**config)
+   @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return copy.deepcopy(backbone_presets)
+
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include weights."""
+        return copy.deepcopy(backbone_presets_with_weights)
+    
+    
+    ALIAS_DOCSTRING = """EfficientNetLiteBackbone model with {width_coefficient} width coefficient 
+    and {depth_coefficient} depth coefficient.
+    
+    Reference:
+        - [EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks](
+        https://arxiv.org/abs/1905.11946) (ICML 2019)
+        
+        
+    For image classification use cases, see
+    [this page for detailed examples]
+    (https://keras.io/api/applications/#usage-examples-for-image-classification-models).
+    
+    For transfer learning use cases, make sure to read the [guide to transfer
+        learning & fine-tuning](https://keras.io/guides/transfer_learning/).
+        
+    Args:
+        include_rescaling: bool, whether or not to Rescale the inputs. If set
+            to `True`, inputs will be passed through a `Rescaling(1/255.0)`
+            layer.
+        num_classes: optional int, number of classes to classify images into (only
+            to be specified if `include_top` is `True`).
+        input_shape: optional shape tuple, defaults to (None, None, 3).
+        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
+            to use as image input for the model.
+        
+"""
+
+
+class EfficientNetLiteB0(EfficientnetLiteBackbone):
+    def __new__(
+        cls,
+       include_rescaling,
+       num_classes=None,
+       input_shape=(None, None, 3),
+       input_tensor=None,
+        **kwargs,
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "num_classes": num_classes,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return EfficientnetLiteBackbone.from_preset("efficientnetliteb0", **kwargs)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
+
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include weights."""
+        return {}
+        
+  
+class EfficientNetLiteB1(EfficientnetLiteBackbone):
+    def __new__(
+        cls,
+       include_rescaling,
+       input_shape=(None, None, 3),
+       input_tensor=None,
+        **kwargs,
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return EfficientnetLiteBackbone.from_preset("efficientnetliteb1", **kwargs)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
+
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include weights."""
+        return {}
+
+
+class EfficientNetLiteB2(EfficientnetLiteBackbone):
+    def __new__(
+        cls,
+       include_rescaling,
+       input_shape=(None, None, 3),
+       input_tensor=None,
+        **kwargs,
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return EfficientnetLiteBackbone.from_preset("efficientnetliteb2", **kwargs)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
+
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include weights."""
+        return {}
+    
+    
+class EfficientNetLiteB3(EfficientnetLiteBackbone):
+    def __new__(
+        cls,
+       include_rescaling,
+       input_shape=(None, None, 3),
+       input_tensor=None,
+        **kwargs,
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return EfficientnetLiteBackbone.from_preset("efficientnetliteb3", **kwargs)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
+
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include weights."""
+        return {}
+    
+    
+class EfficientNetLiteB4(EfficientnetLiteBackbone):
+    def __new__(
+        cls,
+       include_rescaling,
+       input_shape=(None, None, 3),
+       input_tensor=None,
+        **kwargs,
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return EfficientnetLiteBackbone.from_preset("efficientnetliteb4", **kwargs)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
+
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include weights."""
+        return {}
+
+
+setattr(
+    EfficientNetLite,
+    "__doc__",
+    ALIAS_DOCSTRING.format(
+        name="B0",width_coefficient="1.0",
+        depth_coefficient="1.0"
+    ),
+)
+
+setattr(
+    EfficientNetLite,
+    "__doc__",
+    ALIAS_DOCSTRING.format(
+        name="B1", width_coefficient="1.0",
+        depth_coefficient="1.1"
+    ),
+)
+
+setattr(
+    EfficientNetLite,
+    "__doc__",
+    ALIAS_DOCSTRING.format(
+        name="B2", width_coefficient="1.1",
+        depth_coefficient="1.2"
+    ),
+)
+
+setattr(
+    EfficientNetLite,
+    "__doc__",
+    ALIAS_DOCSTRING.format(
+        name="B3", width_coefficient="1.2",
+        depth_coefficient="1.4"
+    ),
+)
+
+setattr(
+    EfficientNetLite,
+    "__doc__",
+    ALIAS_DOCSTRING.format(
+        name="B4", width_coefficient="1.4",
+        depth_coefficient="1.8"
+    ),
+)
+
