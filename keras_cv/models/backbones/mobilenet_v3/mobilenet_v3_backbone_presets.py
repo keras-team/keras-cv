@@ -14,6 +14,97 @@
 
 """MobileNetV3 model preset configurations."""
 
+from mobilenet_v3_backbone import apply_inverted_res_block
+from mobilenet_v3_backbone import depth
+from tensorflow.keras import layers
+
+
+def stack_fn_s(x, kernel, activation, se_ratio, alpha=1.0):
+    x = apply_inverted_res_block(
+        x, 1, depth(16 * alpha), 3, 2, se_ratio, layers.ReLU(), 0
+    )
+    x = apply_inverted_res_block(
+        x, 72.0 / 16, depth(24 * alpha), 3, 2, None, layers.ReLU(), 1
+    )
+    x = apply_inverted_res_block(
+        x, 88.0 / 24, depth(24 * alpha), 3, 1, None, layers.ReLU(), 2
+    )
+    x = apply_inverted_res_block(
+        x, 4, depth(40 * alpha), kernel, 2, se_ratio, activation, 3
+    )
+    x = apply_inverted_res_block(
+        x, 6, depth(40 * alpha), kernel, 1, se_ratio, activation, 4
+    )
+    x = apply_inverted_res_block(
+        x, 6, depth(40 * alpha), kernel, 1, se_ratio, activation, 5
+    )
+    x = apply_inverted_res_block(
+        x, 3, depth(48 * alpha), kernel, 1, se_ratio, activation, 6
+    )
+    x = apply_inverted_res_block(
+        x, 3, depth(48 * alpha), kernel, 1, se_ratio, activation, 7
+    )
+    x = apply_inverted_res_block(
+        x, 6, depth(96 * alpha), kernel, 2, se_ratio, activation, 8
+    )
+    x = apply_inverted_res_block(
+        x, 6, depth(96 * alpha), kernel, 1, se_ratio, activation, 9
+    )
+    x = apply_inverted_res_block(
+        x, 6, depth(96 * alpha), kernel, 1, se_ratio, activation, 10
+    )
+    return x
+
+
+def stack_fn_l(x, kernel, activation, se_ratio, alpha=1.0):
+    x = apply_inverted_res_block(
+        x, 1, depth(16 * alpha), 3, 1, None, layers.ReLU(), 0
+    )
+    x = apply_inverted_res_block(
+        x, 4, depth(24 * alpha), 3, 2, None, layers.ReLU(), 1
+    )
+    x = apply_inverted_res_block(
+        x, 3, depth(24 * alpha), 3, 1, None, layers.ReLU(), 2
+    )
+    x = apply_inverted_res_block(
+        x, 3, depth(40 * alpha), kernel, 2, se_ratio, layers.ReLU(), 3
+    )
+    x = apply_inverted_res_block(
+        x, 3, depth(40 * alpha), kernel, 1, se_ratio, layers.ReLU(), 4
+    )
+    x = apply_inverted_res_block(
+        x, 3, depth(40 * alpha), kernel, 1, se_ratio, layers.ReLU(), 5
+    )
+    x = apply_inverted_res_block(
+        x, 6, depth(80 * alpha), 3, 2, None, activation, 6
+    )
+    x = apply_inverted_res_block(
+        x, 2.5, depth(80 * alpha), 3, 1, None, activation, 7
+    )
+    x = apply_inverted_res_block(
+        x, 2.3, depth(80 * alpha), 3, 1, None, activation, 8
+    )
+    x = apply_inverted_res_block(
+        x, 2.3, depth(80 * alpha), 3, 1, None, activation, 9
+    )
+    x = apply_inverted_res_block(
+        x, 6, depth(112 * alpha), 3, 1, se_ratio, activation, 10
+    )
+    x = apply_inverted_res_block(
+        x, 6, depth(112 * alpha), 3, 1, se_ratio, activation, 11
+    )
+    x = apply_inverted_res_block(
+        x, 6, depth(160 * alpha), kernel, 2, se_ratio, activation, 12
+    )
+    x = apply_inverted_res_block(
+        x, 6, depth(160 * alpha), kernel, 1, se_ratio, activation, 13
+    )
+    x = apply_inverted_res_block(
+        x, 6, depth(160 * alpha), kernel, 1, se_ratio, activation, 14
+    )
+    return x
+
+
 backbone_presets_no_weights = {
     "mobilenetv3small": {
         "metadata": {
@@ -25,6 +116,7 @@ backbone_presets_no_weights = {
         },
         "class_name": "keras_cv.models>MobileNetV3Backbone",
         "config": {
+            "stack_fn": stack_fn_s,
             "last_point_ch": 1024,
             "include_rescaling": True,
             "input_shape": (None, None, 3),
@@ -44,6 +136,7 @@ backbone_presets_no_weights = {
         },
         "class_name": "keras_cv.models>MobileNetV3Backbone",
         "config": {
+            "stack_fn": stack_fn_l,
             "last_point_ch": 1280,
             "include_rescaling": True,
             "input_shape": (None, None, 3),

@@ -25,7 +25,7 @@ class Backbone(keras.Model):
     """Base class for Backbone models.
 
     Backbones are reusable layers of models trained on a standard task such as
-    Imagenet classifcation that can be reused in other tasks.
+    Imagenet classification that can be reused in other tasks.
     """
 
     def __init__(self, *args, **kwargs):
@@ -128,7 +128,7 @@ class Backbone(keras.Model):
         super().__init_subclass__(**kwargs)
 
         # If the subclass does not define from_preset, assign a wrapper so that
-        # each class can have an distinct docstring.
+        # each class can have a distinct docstring.
         if "from_preset" not in cls.__dict__:
 
             def from_preset(calling_cls, *args, **kwargs):
