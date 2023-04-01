@@ -246,12 +246,9 @@ class MobileNetV3Backbone(Backbone):
 
     # Randomly initialized backbone with a custom config
     model = MobileNetV3Backbone(
-        stack_fn=stack_fn_s,
+        stack_fn=None,
         last_point_ch=1024,
         include_rescaling=False,
-        alpha=1.0,
-        minimalistic=False,
-        dropout_rate=0.2,
     )
     output = model(input_data)
     ```
