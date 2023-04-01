@@ -45,6 +45,23 @@ from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
 from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
     ResNetV2Backbone,
 )
+from keras_cv.models.backbones.efficientnetlite.efficientnetlite_backbone import (
+    EfficientNetB0Backbone,
+)
+from keras_cv.models.backbones.efficientnetlite.efficientnetlite_backbone import (
+    EfficientNetB1Backbone,
+)
+from keras_cv.models.backbones.efficientnetlite.efficientnetlite_backbone import (
+    EfficientNetB2Backbone,
+)
+from keras_cv.models.backbones.efficientnetlite.efficientnetlite_backbone import (
+    EfficientNetB3Backbone,
+)
+from keras_cv.models.backbones.efficientnetlite.efficientnetlite_backbone import (
+    EfficientNetB4Backbone,
+)
+
+
 from keras_cv.models.classification.image_classifier import ImageClassifier
 from keras_cv.models.convmixer import ConvMixer_512_16
 from keras_cv.models.convmixer import ConvMixer_768_32
@@ -66,11 +83,6 @@ from keras_cv.models.darknet import DarkNet53
 from keras_cv.models.densenet import DenseNet121
 from keras_cv.models.densenet import DenseNet169
 from keras_cv.models.densenet import DenseNet201
-from keras_cv.models.efficientnet_lite import EfficientNetLiteB0
-from keras_cv.models.efficientnet_lite import EfficientNetLiteB1
-from keras_cv.models.efficientnet_lite import EfficientNetLiteB2
-from keras_cv.models.efficientnet_lite import EfficientNetLiteB3
-from keras_cv.models.efficientnet_lite import EfficientNetLiteB4
 from keras_cv.models.efficientnet_v1 import EfficientNetB0
 from keras_cv.models.efficientnet_v1 import EfficientNetB1
 from keras_cv.models.efficientnet_v1 import EfficientNetB2
