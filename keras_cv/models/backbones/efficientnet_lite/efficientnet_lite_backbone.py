@@ -396,7 +396,7 @@ class EfficientNetLiteB0Backbone(EfficientNetLiteBackbone):
                 "input_tensor": input_tensor,
             }
         )
-        return EfficientnetLiteBackbone.from_preset(
+        return EfficientNetLiteBackbone.from_preset(
             "efficientnetliteb0", **kwargs
         )
 
@@ -427,7 +427,7 @@ class EfficientNetLiteB1Backbone(EfficientNetLiteBackbone):
                 "input_tensor": input_tensor,
             }
         )
-        return EfficientnetLiteBackbone.from_preset(
+        return EfficientNetLiteBackbone.from_preset(
             "efficientnetliteb1", **kwargs
         )
 
@@ -458,7 +458,7 @@ class EfficientNetLiteB2Backbone(EfficientNetLiteBackbone):
                 "input_tensor": input_tensor,
             }
         )
-        return EfficientnetLiteBackbone.from_preset(
+        return EfficientNetLiteBackbone.from_preset(
             "efficientnetliteb2", **kwargs
         )
 
@@ -489,7 +489,7 @@ class EfficientNetLiteB3Backbone(EfficientNetLiteBackbone):
                 "input_tensor": input_tensor,
             }
         )
-        return EfficientnetLiteBackbone.from_preset(
+        return EfficientNetLiteBackbone.from_preset(
             "efficientnetliteb3", **kwargs
         )
 
@@ -520,7 +520,7 @@ class EfficientNetLiteB4Backbone(EfficientNetLiteBackbone):
                 "input_tensor": input_tensor,
             }
         )
-        return EfficientnetLiteBackbone.from_preset(
+        return EfficientNetLiteBackbone.from_preset(
             "efficientnetliteb4", **kwargs
         )
 
