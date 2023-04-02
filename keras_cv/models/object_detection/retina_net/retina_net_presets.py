@@ -27,7 +27,7 @@ retina_net_presets = {
         "config": {
             "backbone": resnet_v1_backbone_presets.backbone_presets["resnet50"],
             # Should be 21
-            "num_classes": 20,
+            "num_classes": 21,
         },
         "weights_url": "https://storage.googleapis.com/keras-cv/models/retinanet/pascal_voc/resnet50.weights.h5",
         "weights_hash": "48d48d0bc53d2d135bf1c565b9c46efd",
