@@ -30,7 +30,7 @@ from tensorflow.keras import layers
 
 from keras_cv.models import utils
 
-from keras_cv.models.weights import parse_weights
+# from keras_cv.models.weights import parse_weights
 from keras_cv.models.backbones.backbone import Backbone
 from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_backbone_presets import (
     backbone_presets,
