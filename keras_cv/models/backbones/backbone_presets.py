@@ -20,7 +20,7 @@ from keras_cv.models.backbones.efficientnet_lite import efficientnet_lite_backbo
 backbone_presets_no_weights = {
     **resnet_v1_backbone_presets.backbone_presets_no_weights,
     **resnet_v2_backbone_presets.backbone_presets_no_weights,
-#     **efficientnet_lite_backbone_presets.backbone_presets_no_weights,
+    **efficientnet_lite_backbone_presets.backbone_presets_no_weights,
 }
 
 backbone_presets_with_weights = {
