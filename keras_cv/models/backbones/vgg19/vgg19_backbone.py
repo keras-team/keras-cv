@@ -24,7 +24,7 @@ from tensorflow import keras
 from tensorflow.keras import layers
 
 from keras_cv.models import utils
-from keras_cv.models.backbones.vgg19.vgg16_backbone import apply_vgg_block
+from keras_cv.models.backbones.vgg16.vgg16_backbone import apply_vgg_block
 from keras_cv.models.backbones.backbone import Backbone
 from keras_cv.models.backbones.vgg19.vgg19_backbone_presets import (
     backbone_presets,
