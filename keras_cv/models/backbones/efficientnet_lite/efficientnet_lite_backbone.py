@@ -382,7 +382,6 @@ class EfficientNetLiteB0Backbone(EfficientNetLiteBackbone):
     def __new__(
         cls,
         include_rescaling,
-        num_classes=None,
         input_shape=(None, None, 3),
         input_tensor=None,
         **kwargs,
@@ -391,7 +390,6 @@ class EfficientNetLiteB0Backbone(EfficientNetLiteBackbone):
         kwargs.update(
             {
                 "include_rescaling": include_rescaling,
-                "num_classes": num_classes,
                 "input_shape": input_shape,
                 "input_tensor": input_tensor,
             }
