@@ -84,11 +84,6 @@ from keras_cv.models.darknet import DarkNet53
 from keras_cv.models.densenet import DenseNet121
 from keras_cv.models.densenet import DenseNet169
 from keras_cv.models.densenet import DenseNet201
-from keras_cv.models.efficientnet_lite import EfficientNetLiteB0
-from keras_cv.models.efficientnet_lite import EfficientNetLiteB1
-from keras_cv.models.efficientnet_lite import EfficientNetLiteB2
-from keras_cv.models.efficientnet_lite import EfficientNetLiteB3
-from keras_cv.models.efficientnet_lite import EfficientNetLiteB4
 from keras_cv.models.efficientnet_v1 import EfficientNetB0
 from keras_cv.models.efficientnet_v1 import EfficientNetB1
 from keras_cv.models.efficientnet_v1 import EfficientNetB2
