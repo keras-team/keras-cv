@@ -378,7 +378,7 @@ class EfficientNetLiteBackbone(Backbone):
 """
 
 
-class EfficientNetLiteB0Backbone(EfficientnetLiteBackbone):
+class EfficientNetLiteB0Backbone(EfficientNetLiteBackbone):
     def __new__(
         cls,
         include_rescaling,
@@ -411,7 +411,7 @@ class EfficientNetLiteB0Backbone(EfficientnetLiteBackbone):
         return {}
 
 
-class EfficientNetLiteB1Backbone(EfficientnetLiteBackbone):
+class EfficientNetLiteB1Backbone(EfficientNetLiteBackbone):
     def __new__(
         cls,
         include_rescaling,
@@ -442,7 +442,7 @@ class EfficientNetLiteB1Backbone(EfficientnetLiteBackbone):
         return {}
 
 
-class EfficientNetLiteB2Backbone(EfficientnetLiteBackbone):
+class EfficientNetLiteB2Backbone(EfficientNetLiteBackbone):
     def __new__(
         cls,
         include_rescaling,
@@ -473,7 +473,7 @@ class EfficientNetLiteB2Backbone(EfficientnetLiteBackbone):
         return {}
 
 
-class EfficientNetLiteB3Backbone(EfficientnetLiteBackbone):
+class EfficientNetLiteB3Backbone(EfficientNetLiteBackbone):
     def __new__(
         cls,
         include_rescaling,
@@ -504,7 +504,7 @@ class EfficientNetLiteB3Backbone(EfficientnetLiteBackbone):
         return {}
 
 
-class EfficientNetLiteB4Backbone(EfficientnetLiteBackbone):
+class EfficientNetLiteB4Backbone(EfficientNetLiteBackbone):
     def __new__(
         cls,
         include_rescaling,
