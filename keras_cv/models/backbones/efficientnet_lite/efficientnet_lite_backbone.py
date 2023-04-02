@@ -503,7 +503,7 @@ class EfficientNetLiteB4Backbone(EfficientNetLiteBackbone):
 
 
 setattr(
-    EfficientNetLite,
+    EfficientNetLiteB0Backbone,
     "__doc__",
     ALIAS_DOCSTRING.format(
         name="B0", width_coefficient="1.0", depth_coefficient="1.0"
@@ -511,7 +511,7 @@ setattr(
 )
 
 setattr(
-    EfficientNetLite,
+    EfficientNetLiteB1Backbone,
     "__doc__",
     ALIAS_DOCSTRING.format(
         name="B1", width_coefficient="1.0", depth_coefficient="1.1"
@@ -519,7 +519,7 @@ setattr(
 )
 
 setattr(
-    EfficientNetLite,
+    EfficientNetLiteB2Backbone,
     "__doc__",
     ALIAS_DOCSTRING.format(
         name="B2", width_coefficient="1.1", depth_coefficient="1.2"
@@ -527,7 +527,7 @@ setattr(
 )
 
 setattr(
-    EfficientNetLite,
+    EfficientNetLiteB3Backbone,
     "__doc__",
     ALIAS_DOCSTRING.format(
         name="B3", width_coefficient="1.2", depth_coefficient="1.4"
@@ -535,7 +535,7 @@ setattr(
 )
 
 setattr(
-    EfficientNetLite,
+    EfficientNetLiteB4Backbone,
     "__doc__",
     ALIAS_DOCSTRING.format(
         name="B4", width_coefficient="1.4", depth_coefficient="1.8"
