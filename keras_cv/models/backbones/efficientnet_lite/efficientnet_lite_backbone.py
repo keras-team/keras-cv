@@ -24,19 +24,14 @@ Reference:
 import copy
 import math
 
-from tensorflow import keras
-from tensorflow.keras import backend
-from tensorflow.keras import layers
-
 from keras_cv.models import utils
-
 # from keras_cv.models.weights import parse_weights
 from keras_cv.models.backbones.backbone import Backbone
-from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_backbone_presets import (
-    backbone_presets,
-)
-
+from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_backbone_presets import \
+    backbone_presets
 from keras_cv.utils.python_utils import classproperty
+from tensorflow import keras
+from tensorflow.keras import backend, layers
 
 BN_AXIS = 3
 
@@ -344,7 +339,7 @@ class EfficientNetLiteBackbone(Backbone):
         """Dictionary of preset names and configurations."""
         return copy.deepcopy(backbone_presets)
 
-    
+
 ALIAS_DOCSTRING = """EfficientNetLiteBackbone model with {width_coefficient} width coefficient
     and {depth_coefficient} depth coefficient.
 
