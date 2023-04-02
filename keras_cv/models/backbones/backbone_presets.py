@@ -15,7 +15,7 @@
 
 from keras_cv.models.backbones.resnet_v1 import resnet_v1_backbone_presets
 from keras_cv.models.backbones.resnet_v2 import resnet_v2_backbone_presets
-from keras_cv.models.backbones.efficientnet_lite import efficientnet_lite_backbone_presets
+from keras_cv.models.backbones.efficient_net_lite import efficientnet_lite_backbone_presets
 
 backbone_presets_no_weights = {
     **resnet_v1_backbone_presets.backbone_presets_no_weights,
