@@ -15,7 +15,7 @@
 from keras_cv.models.backbones.resnet_v1 import resnet_v1_backbone_presets
 
 retina_net_presets = {
-    "resnet50_pascal_voc": {
+    "retinanet_resnet50_pascalvoc": {
         "metadata": {
             "description": (
                 "ResNet classifier with 50 layers where the batch "
@@ -26,7 +26,6 @@ retina_net_presets = {
         },
         "config": {
             "backbone": resnet_v1_backbone_presets.backbone_presets["resnet50"],
-            # Should be 21
             "num_classes": 21,
         },
         "weights_url": "https://storage.googleapis.com/keras-cv/models/retinanet/pascal_voc/resnet50.weights.h5",

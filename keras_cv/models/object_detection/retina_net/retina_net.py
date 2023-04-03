@@ -134,7 +134,6 @@ class RetinaNet(Task):
         prediction_decoder=None,
         classification_head=None,
         box_head=None,
-        name="RetinaNet",
         **kwargs,
     ):
         if anchor_generator is not None and (
@@ -160,7 +159,6 @@ class RetinaNet(Task):
             box_variance=BOX_VARIANCE,
         )
         super().__init__(
-            name=name,
             **kwargs,
         )
         self.label_encoder = label_encoder
