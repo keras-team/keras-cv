@@ -45,6 +45,36 @@ from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
 from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
     ResNetV2Backbone,
 )
+from keras_cv.models.backbones.vit.vit_backbone import (
+    ViTB16Backbone,
+)
+from keras_cv.models.backbones.vit.vit_backbone import (
+    ViTB32Backbone,
+)
+from keras_cv.models.backbones.vit.vit_backbone import (
+    ViTH16Backbone,
+)
+from keras_cv.models.backbones.vit.vit_backbone import (
+    ViTH32Backbone,
+)
+from keras_cv.models.backbones.vit.vit_backbone import (
+    ViTL16Backbone,
+)
+from keras_cv.models.backbones.vit.vit_backbone import (
+    ViTL32Backbone,
+)
+from keras_cv.models.backbones.vit.vit_backbone import (
+    ViTS16Backbone,
+)
+from keras_cv.models.backbones.vit.vit_backbone import (
+    ViTS32Backbone,
+)
+from keras_cv.models.backbones.vit.vit_backbone import (
+    ViTTiny16Backbone,
+)
+from keras_cv.models.backbones.vit.vit_backbone import (
+    ViTTiny32Backbone,
+)
 from keras_cv.models.classification.image_classifier import ImageClassifier
 from keras_cv.models.convmixer import ConvMixer_512_16
 from keras_cv.models.convmixer import ConvMixer_768_32
@@ -125,13 +155,3 @@ from keras_cv.models.stable_diffusion import StableDiffusion
 from keras_cv.models.stable_diffusion import StableDiffusionV2
 from keras_cv.models.vgg16 import VGG16
 from keras_cv.models.vgg19 import VGG19
-from keras_cv.models.vit import ViTB16
-from keras_cv.models.vit import ViTB32
-from keras_cv.models.vit import ViTH16
-from keras_cv.models.vit import ViTH32
-from keras_cv.models.vit import ViTL16
-from keras_cv.models.vit import ViTL32
-from keras_cv.models.vit import ViTS16
-from keras_cv.models.vit import ViTS32
-from keras_cv.models.vit import ViTTiny16
-from keras_cv.models.vit import ViTTiny32
