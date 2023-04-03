@@ -38,7 +38,7 @@ class Box3DRegressionLoss(keras.losses.Loss):
 
     Reference: https://arxiv.org/abs/1812.04244
 
-    3DBoxRegressionLoss uses L1 loss on the individual components of boxes, with
+    Box3DRegressionLoss uses L1 loss on the individual components of boxes, with
     the exception of the bin-based heading component of each box, where the bin
     indicator outputs use cross entropy loss, and the heading residual uses L1
     loss.
