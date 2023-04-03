@@ -135,9 +135,9 @@ class Task(keras.Model):
         if preset not in cls.presets_with_weights or load_weights is False:
             return model
 
-        local_weights_path = 'model.h5'
-        if metadata["weights_url"].endswith('.weights.h5'):
-            local_weights_path = 'model.weights.h5'
+        local_weights_path = "model.h5"
+        if metadata["weights_url"].endswith(".weights.h5"):
+            local_weights_path = "model.weights.h5"
 
         weights = keras.utils.get_file(
             local_weights_path,
