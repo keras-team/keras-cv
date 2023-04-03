@@ -18,14 +18,15 @@ retina_net_presets = {
     "retinanet_resnet50_pascalvoc": {
         "metadata": {
             "description": (
-                "ResNet classifier with 50 layers where the batch "
-                "normalization and ReLU activation precede the convolution "
-                "layers (v2 style). Trained on Imagenet 2012 classification "
-                "task."
+                "RetinaNet with a ResNet50 v1 backbone."
+                "Trained on PascalVOC 2012 object detection task, which "
+                "consists of 20 classes."
             ),
         },
         "config": {
             "backbone": resnet_v1_backbone_presets.backbone_presets["resnet50"],
+            # 21 used as an implicit background class marginally improves
+            # performance.
             "num_classes": 21,
         },
         "weights_url": "https://storage.googleapis.com/keras-cv/models/retinanet/pascal_voc/resnet50.weights.h5",
