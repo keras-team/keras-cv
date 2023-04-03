@@ -49,7 +49,7 @@ class RetinaNet(Task):
 
     Implements the RetinaNet architecture for object detection.  The constructor
     requires `num_classes`, `bounding_box_format`, and a backbone.  Optionally,
-    a custom label encoder, and prediction decoder may all be provided.
+    a custom label encoder, and prediction decoder may be provided.
 
     Usage:
     ```python
