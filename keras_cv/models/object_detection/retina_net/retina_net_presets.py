@@ -18,9 +18,10 @@ retina_net_presets = {
     "retinanet_resnet50_pascalvoc": {
         "metadata": {
             "description": (
-                "RetinaNet with a ResNet50 v1 backbone."
+                "RetinaNet with a ResNet50 v1 backbone. "
                 "Trained on PascalVOC 2012 object detection task, which "
-                "consists of 20 classes."
+                "consists of 20 classes.  This model achieves a final MaP of "
+                "0.33 on the evaluation set."
             ),
         },
         "config": {
