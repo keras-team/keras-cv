@@ -1,4 +1,4 @@
-# Copyright 2022 The KerasCV Authors
+# Copyright 2023 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,14 +15,14 @@
 import tensorflow as tf
 from tensorflow import keras
 
-from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
-    BaseImageAugmentationLayer,
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
+    VectorizedBaseImageAugmentationLayer,
 )
 from keras_cv.utils import preprocessing
 
 
 @keras.utils.register_keras_serializable(package="keras_cv")
-class RandomSharpness(BaseImageAugmentationLayer):
+class RandomSharpness(VectorizedBaseImageAugmentationLayer):
     """Randomly performs the sharpness operation on given images.
 
     The sharpness operation first performs a blur operation, then blends between
@@ -63,20 +63,19 @@ class RandomSharpness(BaseImageAugmentationLayer):
         self.factor = preprocessing.parse_factor(factor)
         self.seed = seed
 
-    def get_random_transformation(self, **kwargs):
-        return self.factor(dtype=self.compute_dtype)
+    def get_random_transformation_batch(self, batch_size, **kwargs):
+        return self.factor(
+            shape=(batch_size, 1, 1, 1), dtype=self.compute_dtype
+        )
 
-    def augment_image(self, image, transformation=None, **kwargs):
-        image = preprocessing.transform_value_range(
-            image,
+    def augment_images(self, images, transformations, **kwargs):
+        images = preprocessing.transform_value_range(
+            images,
             original_range=self.value_range,
             target_range=(0, 255),
             dtype=self.compute_dtype,
         )
-        original_image = image
-
-        # Make image 4D for conv operation.
-        image = tf.expand_dims(image, axis=0)
+        original_images = images
 
         # [1 1 1]
         # [1 5 1]
@@ -94,27 +93,28 @@ class RandomSharpness(BaseImageAugmentationLayer):
         )
 
         # Tile across channel dimension.
-        channels = tf.shape(image)[-1]
+        channels = tf.shape(images)[-1]
         kernel = tf.tile(kernel, [1, 1, channels, 1])
         strides = [1, 1, 1, 1]
 
         smoothed_image = tf.nn.depthwise_conv2d(
-            image, kernel, strides, padding="VALID", dilations=[1, 1]
+            images, kernel, strides, padding="VALID", dilations=[1, 1]
         )
         smoothed_image = tf.clip_by_value(smoothed_image, 0.0, 255.0)
-        smoothed_image = tf.squeeze(smoothed_image, axis=0)
 
         # For the borders of the resulting image, fill in the values of the
         # original image.
         mask = tf.ones_like(smoothed_image)
-        padded_mask = tf.pad(mask, [[1, 1], [1, 1], [0, 0]])
-        padded_smoothed_image = tf.pad(smoothed_image, [[1, 1], [1, 1], [0, 0]])
+        padded_mask = tf.pad(mask, [[0, 0], [1, 1], [1, 1], [0, 0]])
+        padded_smoothed_image = tf.pad(
+            smoothed_image, [[0, 0], [1, 1], [1, 1], [0, 0]]
+        )
 
         result = tf.where(
-            tf.equal(padded_mask, 1), padded_smoothed_image, original_image
+            tf.equal(padded_mask, 1), padded_smoothed_image, original_images
         )
         # Blend the final result.
-        result = preprocessing.blend(original_image, result, transformation)
+        result = preprocessing.blend(original_images, result, transformations)
         result = preprocessing.transform_value_range(
             result,
             original_range=(0, 255),
@@ -123,16 +123,25 @@ class RandomSharpness(BaseImageAugmentationLayer):
         )
         return result
 
-    def augment_bounding_boxes(self, bounding_boxes, transformation, **kwargs):
+    def augment_bounding_boxes(self, bounding_boxes, transformations, **kwargs):
         return bounding_boxes
 
-    def augment_label(self, label, transformation=None, **kwargs):
-        return label
+    def augment_labels(self, labels, transformations, **kwargs):
+        return labels
 
-    def augment_segmentation_mask(
-        self, segmentation_mask, transformation, **kwargs
+    def augment_segmentation_masks(
+        self, segmentation_masks, transformations, **kwargs
     ):
-        return segmentation_mask
+        return segmentation_masks
+
+    def augment_keypoints(self, keypoints, transformations, **kwargs):
+        return keypoints
+
+    def augment_ragged_image(self, image, transformation, **kwargs):
+        images = tf.expand_dims(image, axis=0)
+        new_transformation = tf.expand_dims(transformation, axis=0)
+        output = self.augment_images(images, new_transformation)
+        return tf.squeeze(output, axis=0)
 
     def get_config(self):
         config = super().get_config()

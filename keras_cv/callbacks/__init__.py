@@ -19,12 +19,4 @@ except ImportError:
         "not available."
     )
 
-try:
-    from keras_cv.callbacks.waymo_evaluation_callback import (
-        WaymoEvaluationCallback,
-    )
-except ImportError:
-    print(
-        "You do not have Waymo Open Dataset installed, so KerasCV Waymo metrics"
-        "are not available."
-    )
+from keras_cv.callbacks.waymo_evaluation_callback import WaymoEvaluationCallback

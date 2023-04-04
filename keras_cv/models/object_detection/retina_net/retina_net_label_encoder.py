@@ -21,12 +21,15 @@ from keras_cv.layers.object_detection import box_matcher
 from keras_cv.utils import target_gather
 
 
+@keras.utils.register_keras_serializable(package="keras_cv")
 class RetinaNetLabelEncoder(layers.Layer):
     """Transforms the raw labels into targets for training.
 
     This class has operations to generate targets for a batch of samples which
     is made up of the input images, bounding boxes for the objects present and
-    their class ids.
+    their class ids.  Targets are always represented in `center_yxwh` format.
+    This done for numerical reasons, to ensure numerical consistency when
+    training in any format.
 
     Args:
         bounding_box_format: The format of bounding boxes of input dataset.
@@ -121,7 +124,7 @@ class RetinaNetLabelEncoder(layers.Layer):
             anchors=anchor_boxes,
             boxes=matched_gt_boxes,
             anchor_format=self.bounding_box_format,
-            box_format="xywh",
+            box_format=self.bounding_box_format,
             variance=self.box_variance,
         )
         matched_gt_cls_ids = target_gather._target_gather(
@@ -187,12 +190,6 @@ class RetinaNetLabelEncoder(layers.Layer):
             )
 
         box_labels = bounding_box.to_dense(box_labels)
-        box_labels = bounding_box.convert_format(
-            box_labels,
-            source=self.bounding_box_format,
-            target="xywh",
-            images=images,
-        )
         if box_labels["classes"].get_shape().rank == 2:
             box_labels["classes"] = box_labels["classes"][..., tf.newaxis]
         anchor_boxes = self.anchor_generator(image_shape=tf.shape(images[0]))
@@ -205,12 +202,6 @@ class RetinaNetLabelEncoder(layers.Layer):
         )
 
         result = self._encode_sample(box_labels, anchor_boxes)
-        result = bounding_box.convert_format(
-            result,
-            source="xywh",
-            target=self.bounding_box_format,
-            images=images,
-        )
         encoded_box_targets = result["boxes"]
         class_targets = result["classes"]
         return encoded_box_targets, class_targets

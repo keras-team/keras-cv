@@ -192,17 +192,17 @@ class BoxCOCOMetrics(keras.metrics.Metric):
         # Wrap the result function in a py_function and scope it to /cpu:0
         obj_result = obj.result
 
-        def result_on_host_cpu():
+        def result_on_host_cpu(force):
             with tf.device("/cpu:0"):
                 # Without the call to `constant` `tf.py_function` selects the
                 # first index automatically and just returns obj_result()[0]
-                return tf.constant(obj_result(), obj.dtype)
+                return tf.constant(obj_result(force), obj.dtype)
 
         obj.result_on_host_cpu = result_on_host_cpu
 
-        def result_fn(self):
+        def result_fn(self, force=False):
             py_func_result = tf.py_function(
-                self.result_on_host_cpu, inp=[], Tout=obj.dtype
+                self.result_on_host_cpu, inp=[force], Tout=obj.dtype
             )
             result = {}
             for i, key in enumerate(METRIC_NAMES):

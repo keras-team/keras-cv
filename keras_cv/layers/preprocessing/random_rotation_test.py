@@ -1,4 +1,4 @@
-# Copyright 2022 The KerasCV Authors
+# Copyright 2023 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -32,6 +32,15 @@ class RandomRotationTest(tf.test.TestCase):
         layer = RandomRotation(0.5)
         actual_output = layer(input_images, training=False)
         self.assertAllClose(expected_output, actual_output)
+
+    def test_random_rotation_on_batched_images_independently(self):
+        image = tf.random.uniform((100, 100, 3))
+        batched_images = tf.stack((image, image), axis=0)
+        layer = RandomRotation(factor=0.5)
+
+        results = layer(batched_images)
+
+        self.assertNotAllClose(results[0], results[1])
 
     def test_config_with_custom_name(self):
         layer = RandomRotation(0.5, name="image_preproc")

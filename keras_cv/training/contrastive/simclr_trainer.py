@@ -50,7 +50,7 @@ class SimCLRTrainer(ContrastiveTrainer):
         )
 
 
-class SimCLRAugmenter(preprocessing.Augmenter):
+class SimCLRAugmenter(keras.Sequential):
     def __init__(
         self,
         value_range,

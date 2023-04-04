@@ -18,6 +18,7 @@ from tensorflow import keras
 from keras_cv import bounding_box
 
 
+@keras.utils.register_keras_serializable(package="keras_cv")
 class AnchorGenerator(keras.layers.Layer):
     """AnchorGenerator generates anchors for multiple feature maps.
 

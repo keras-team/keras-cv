@@ -122,6 +122,7 @@ class VectorizedAssertionLayer(VectorizedBaseImageAugmentationLayer):
         transformations=None,
         bounding_boxes=None,
         images=None,
+        raw_images=None,
         **kwargs
     ):
         assert isinstance(labels, TF_ALL_TENSOR_TYPES)
@@ -129,6 +130,7 @@ class VectorizedAssertionLayer(VectorizedBaseImageAugmentationLayer):
         assert isinstance(bounding_boxes["boxes"], TF_ALL_TENSOR_TYPES)
         assert isinstance(bounding_boxes["classes"], TF_ALL_TENSOR_TYPES)
         assert isinstance(images, TF_ALL_TENSOR_TYPES)
+        assert isinstance(raw_images, TF_ALL_TENSOR_TYPES)
         return labels
 
     def augment_bounding_boxes(
@@ -137,6 +139,7 @@ class VectorizedAssertionLayer(VectorizedBaseImageAugmentationLayer):
         transformations=None,
         labels=None,
         images=None,
+        raw_images=None,
         **kwargs
     ):
         assert isinstance(bounding_boxes["boxes"], TF_ALL_TENSOR_TYPES)
@@ -144,6 +147,7 @@ class VectorizedAssertionLayer(VectorizedBaseImageAugmentationLayer):
         assert isinstance(transformations, TF_ALL_TENSOR_TYPES)
         assert isinstance(labels, TF_ALL_TENSOR_TYPES)
         assert isinstance(images, TF_ALL_TENSOR_TYPES)
+        assert isinstance(raw_images, TF_ALL_TENSOR_TYPES)
         return bounding_boxes
 
     def augment_keypoints(
@@ -153,6 +157,7 @@ class VectorizedAssertionLayer(VectorizedBaseImageAugmentationLayer):
         labels=None,
         bounding_boxes=None,
         images=None,
+        raw_images=None,
         **kwargs
     ):
         assert isinstance(keypoints, TF_ALL_TENSOR_TYPES)
@@ -161,6 +166,7 @@ class VectorizedAssertionLayer(VectorizedBaseImageAugmentationLayer):
         assert isinstance(bounding_boxes["boxes"], TF_ALL_TENSOR_TYPES)
         assert isinstance(bounding_boxes["classes"], TF_ALL_TENSOR_TYPES)
         assert isinstance(images, TF_ALL_TENSOR_TYPES)
+        assert isinstance(raw_images, TF_ALL_TENSOR_TYPES)
         return keypoints
 
     def augment_segmentation_masks(
@@ -170,6 +176,7 @@ class VectorizedAssertionLayer(VectorizedBaseImageAugmentationLayer):
         labels=None,
         bounding_boxes=None,
         images=None,
+        raw_images=None,
         **kwargs
     ):
         assert isinstance(segmentation_masks, TF_ALL_TENSOR_TYPES)
@@ -178,6 +185,7 @@ class VectorizedAssertionLayer(VectorizedBaseImageAugmentationLayer):
         assert isinstance(bounding_boxes["boxes"], TF_ALL_TENSOR_TYPES)
         assert isinstance(bounding_boxes["classes"], TF_ALL_TENSOR_TYPES)
         assert isinstance(images, TF_ALL_TENSOR_TYPES)
+        assert isinstance(raw_images, TF_ALL_TENSOR_TYPES)
         return segmentation_masks
 
 

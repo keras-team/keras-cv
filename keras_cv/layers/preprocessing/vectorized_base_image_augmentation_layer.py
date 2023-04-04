@@ -33,6 +33,7 @@ BATCHED = "batched"
 USE_TARGETS = "use_targets"
 
 
+@keras.utils.register_keras_serializable(package="keras_cv")
 class VectorizedBaseImageAugmentationLayer(
     keras.__internal__.layers.BaseRandomLayer
 ):
@@ -273,6 +274,7 @@ class VectorizedBaseImageAugmentationLayer(
 
     def _batch_augment(self, inputs):
         images = inputs.get(IMAGES, None)
+        raw_images = images
         labels = inputs.get(LABELS, None)
         bounding_boxes = inputs.get(BOUNDING_BOXES, None)
         keypoints = inputs.get(KEYPOINTS, None)
@@ -315,6 +317,7 @@ class VectorizedBaseImageAugmentationLayer(
                 transformations=transformations,
                 bounding_boxes=bounding_boxes,
                 images=images,
+                raw_images=raw_images,
             )
             result[LABELS] = labels
 
@@ -324,6 +327,7 @@ class VectorizedBaseImageAugmentationLayer(
                 transformations=transformations,
                 labels=labels,
                 images=images,
+                raw_images=raw_images,
             )
             bounding_boxes = bounding_box.to_ragged(bounding_boxes)
             result[BOUNDING_BOXES] = bounding_boxes
@@ -335,6 +339,7 @@ class VectorizedBaseImageAugmentationLayer(
                 labels=labels,
                 bounding_boxes=bounding_boxes,
                 images=images,
+                raw_images=raw_images,
             )
             result[KEYPOINTS] = keypoints
         if segmentation_masks is not None:
@@ -344,6 +349,7 @@ class VectorizedBaseImageAugmentationLayer(
                 labels=labels,
                 bounding_boxes=bounding_boxes,
                 images=images,
+                raw_images=raw_images,
             )
             result[SEGMENTATION_MASKS] = segmentation_masks
 

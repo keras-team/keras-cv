@@ -13,6 +13,8 @@
 # limitations under the License.
 
 
+import warnings
+
 import tensorflow as tf
 from tensorflow import keras
 
@@ -106,7 +108,14 @@ class IoULoss(keras.losses.Loss):
         iou = bounding_box.compute_iou(y_true, y_pred, self.bounding_box_format)
         # pick out the diagonal for corresponding ious
         iou = tf.linalg.diag_part(iou)
-        iou = tf.reduce_mean(iou, axis=self.axis)
+        if self.axis == "no_reduction":
+            warnings.warn(
+                "`axis='no_reduction'` is a temporary API, and the API contract "
+                "will be replaced in the future with a more generic solution "
+                "covering all losses."
+            )
+        else:
+            iou = tf.reduce_mean(iou, axis=self.axis)
 
         if self.mode == "linear":
             loss = 1 - iou

@@ -19,7 +19,9 @@ import tensorflow as tf
 from keras_cv import bounding_box
 from keras_cv.metrics import BoxCOCOMetrics
 
-SAMPLE_FILE = os.path.dirname(os.path.abspath(__file__)) + "/sample_boxes.npz"
+SAMPLE_FILE = (
+    os.path.dirname(os.path.abspath(__file__)) + "/test_data/sample_boxes.npz"
+)
 
 
 def load_samples(fname):
@@ -83,6 +85,41 @@ class BoxCOCOMetricsTest(tf.test.TestCase):
         suite.update_state(y_true, y_pred)
         metrics = suite.result()
         #
+        for metric in metrics:
+            # The metrics do not match golden metrics because two batches were
+            # passed which actually modifies the final area under curve value.
+            self.assertNotEqual(metrics[metric], 0.0)
+
+    def test_coco_metric_graph_mode(self):
+        suite = BoxCOCOMetrics(bounding_box_format="xyxy", evaluate_freq=1)
+        y_true, y_pred, categories = load_samples(SAMPLE_FILE)
+
+        @tf.function()
+        def update_state(y_true, y_pred):
+            suite.update_state(y_true, y_pred)
+
+        @tf.function()
+        def result():
+            return suite.result()
+
+        metrics = result()
+        self.assertAllEqual(metrics, {key: 0 for key in golden_metrics})
+
+        update_state(y_true, y_pred)
+        metrics = result()
+        for metric in metrics:
+            self.assertNotEqual(metrics[metric], 0.0)
+
+    def test_coco_metric_suite_force_eval(self):
+        suite = BoxCOCOMetrics(bounding_box_format="xyxy", evaluate_freq=512)
+        y_true, y_pred, categories = load_samples(SAMPLE_FILE)
+
+        suite.update_state(y_true, y_pred)
+        metrics = suite.result()
+        self.assertAllEqual(metrics, {key: 0 for key in golden_metrics})
+
+        suite.update_state(y_true, y_pred)
+        metrics = suite.result(force=True)
         for metric in metrics:
             # The metrics do not match golden metrics because two batches were
             # passed which actually modifies the final area under curve value.

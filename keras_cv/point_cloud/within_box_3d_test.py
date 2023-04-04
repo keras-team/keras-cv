@@ -201,6 +201,7 @@ class WithinBox3DTest(tf.test.TestCase):
         or os.environ["TEST_CUSTOM_OPS"] != "true",
         reason="Requires binaries compiled from source",
     )
+    @pytest.mark.extra_large
     def test_equal(self):
         for _ in range(10000):
             with tf.device("cpu:0"):

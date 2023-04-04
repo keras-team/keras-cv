@@ -359,27 +359,30 @@ class CenterNetLabelEncoder(keras.layers.Layer):
         self._num_classes = num_classes
         self._top_k_heatmap = top_k_heatmap
 
-    def call(self, box_3d, box_classes, box_mask):
+    def call(self, inputs):
         """
         Args:
-          box_3d: [B, num_boxes, 7] 3d boxes in vehicle frame.
-          box_classes: [B, num_boxes, 1] 3d box classes, 0 represents
-            background.
-          box_mask: [B, num_boxes] 3d box masks, True means valid box, False
-            means invalid box.
+          inputs: dictionary of Tensors representing a batch of data. Must
+          contain 3D box targets under the key "3d_boxes".
         Returns:
-          heatmap: dict of class specific float Tensor in [B, H, W, Z] or
-            [B, H, W]
-          dense_box_3d:  dict of class specific float Tensor in [B, H, W, Z, 7]
-            or [B, H, W, 7]
-          top_k_heatmap_feature_idx_dict: dict of int Tensor in [B, k, 3] or
-            [B, k, 2].
+          A dictionary of Tensors with all of the original inputs, plus, for
+          each class, a new key with encoded CenterNet targets in the format:
+          ```
+          "class_{class_index}": {
+            "heatmap": float Tensor [B, H, W, Z] or [B, H, W]
+            "boxes": float Tensor [B, H, W, Z, 7] or [B, H, W, 7]
+            "tok_k_index": int Tensor [B, k, 3] or [B, k, 2]
+          }
+          ```
         where:
           H: number of voxels in y dimension
           W: number of voxels in x dimension
           Z: number of voxels in z dimension
           k: `top_k_heatmap` slice
         """
+        box_3d = inputs["3d_boxes"]["boxes"]
+        box_mask = inputs["3d_boxes"]["mask"]
+        box_classes = inputs["3d_boxes"]["classes"]
         # point_xyz - [B, num_boxes * max_num_voxels_per_box, 3]
         # heatmap - [B, num_boxes * max_num_voxels_per_box]
         # compute localized heatmap around its radius.
@@ -427,36 +430,31 @@ class CenterNetLabelEncoder(keras.layers.Layer):
             [dense_box_3d_center, dense_box_3d[..., 3:]], axis=-1
         )
 
-        heatmap_dict = {}
-        box_3d_dict = {}
-        top_k_heatmap_feature_idx_dict = {}
+        center_net_targets = {}
         for i in range(self._num_classes):
-            class_key = f"class_{i+1}"
             # Object class is 1-indexed (0 is background).
-            dense_box_class_i = tf.cast(
+            dense_box_classes_i = tf.cast(
                 tf.math.equal(dense_box_classes, i + 1),
                 dtype=dense_heatmap.dtype,
             )
-            # [B, H, W, Z]
-            dense_heatmap_i = dense_heatmap * dense_box_class_i
-            # [B, H, W, Z, 7]
-            dense_box_3d_i = dense_box_3d * dense_box_class_i[..., tf.newaxis]
+            dense_heatmap_i = dense_heatmap * dense_box_classes_i
+            dense_box_3d_i = dense_box_3d * dense_box_classes_i[..., tf.newaxis]
             # Remove z-dimension if this is 2D setup.
             if self._voxel_size[2] > INF_VOXEL_SIZE:
                 dense_heatmap_i = tf.squeeze(dense_heatmap_i, axis=-1)
                 dense_box_3d_i = tf.squeeze(dense_box_3d_i, axis=-2)
 
-            heatmap_dict[class_key] = dense_heatmap_i
-            box_3d_dict[class_key] = dense_box_3d_i
-
             top_k_heatmap_feature_idx_i = None
             if self._top_k_heatmap[i] > 0:
-                # [B, k, 2] or [B, k, 3]
                 top_k_heatmap_feature_idx_i = compute_top_k_heatmap_idx(
                     dense_heatmap_i, self._top_k_heatmap[i]
                 )
-            top_k_heatmap_feature_idx_dict[
-                class_key
-            ] = top_k_heatmap_feature_idx_i
 
-        return heatmap_dict, box_3d_dict, top_k_heatmap_feature_idx_dict
+            center_net_targets[f"class_{i+1}"] = {
+                "heatmap": dense_heatmap_i,
+                "boxes": dense_box_3d_i,
+                "top_k_index": top_k_heatmap_feature_idx_i,
+            }
+
+        inputs.update(center_net_targets)
+        return inputs

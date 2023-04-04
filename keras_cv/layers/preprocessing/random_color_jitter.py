@@ -104,7 +104,7 @@ class RandomColorJitter(VectorizedBaseImageAugmentationLayer):
             factor=self.brightness_factor, value_range=(0, 255), seed=self.seed
         )
         self.random_contrast = preprocessing.RandomContrast(
-            factor=self.contrast_factor, seed=self.seed
+            factor=self.contrast_factor, value_range=(0, 255), seed=self.seed
         )
         self.random_saturation = preprocessing.RandomSaturation(
             factor=self.saturation_factor, seed=self.seed

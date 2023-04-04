@@ -87,13 +87,18 @@ TEST_CONFIGURATIONS = [
             "seed": 1,
         },
     ),
-    ("RandomContrast", layers.RandomContrast, {"factor": 0.5}),
+    (
+        "RandomContrast",
+        layers.RandomContrast,
+        {"value_range": (0, 255), "factor": 0.5},
+    ),
     (
         "RandomGaussianBlur",
         layers.RandomGaussianBlur,
         {"kernel_size": 3, "factor": (0.0, 3.0)},
     ),
     ("RandomJpegQuality", layers.RandomJpegQuality, {"factor": (75, 100)}),
+    ("RandomRotation", layers.RandomRotation, {"factor": 0.5}),
     ("RandomSaturation", layers.RandomSaturation, {"factor": 0.5}),
     (
         "RandomSharpness",

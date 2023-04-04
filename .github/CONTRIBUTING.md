@@ -157,15 +157,15 @@ cp bazel-bin/keras_cv/custom_ops/*.so keras_cv/custom_ops/
 Tests which use custom ops are disabled by default, but can be run by setting the environment variable `TEST_CUSTOM_OPS=true`.
 
 ## Formatting the Code
-We use `flake8`, `isort` and `black` for code formatting. You can run
+We use `flake8`, `isort`, `black` and `clang-format` for code formatting.  You can run
 the following commands manually every time you want to format your code:
 
 - Run `shell/format.sh` to format your code
 - Run `shell/lint.sh` to check the result.
 
-If after running these the CI flow is still failing, try updating `flake8`, `isort` and `black`.
-This can be done by running `pip install --upgrade black`, `pip install --upgrade flake8`, and
-`pip install --upgrade isort`.
+If after running these the CI flow is still failing, try updating `flake8`, `isort`, `black` and `clang-format`.
+This can be done by running `pip install --upgrade black`, `pip install --upgrade flake8`,
+`pip install --upgrade isort` and `pip install --upgrade clang-format`
 
 Note: The linting checks could be automated activating  
       pre-commit hooks with `git config core.hooksPath .github/.githooks`

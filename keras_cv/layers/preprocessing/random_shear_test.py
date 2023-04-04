@@ -93,9 +93,11 @@ class RandomShearTest(tf.test.TestCase):
         self.assertEqual(outputs["images"].shape, [512, 512, 3])
 
     def test_area(self):
-        xs = tf.ones((512, 512, 3))
+        xs = tf.ones((1, 512, 512, 3))
         ys = {
-            "boxes": tf.constant([[0.3, 0.4, 0.5, 0.6], [0.9, 0.8, 1.0, 1.0]]),
+            "boxes": tf.constant(
+                [[[0.3, 0.4, 0.5, 0.6], [0.9, 0.8, 1.0, 1.0]]]
+            ),
             "classes": tf.constant([2, 3]),
         }
 
@@ -240,3 +242,32 @@ class RandomShearTest(tf.test.TestCase):
         outputs = layer({"images": xs, "bounding_boxes": ys})
         _, output_ys = outputs["images"], outputs["bounding_boxes"].to_tensor()
         self.assertAllClose(true_ys, output_ys, rtol=1e-02, atol=1e-03)
+
+    def test_random_shear_on_batched_images_independently(self):
+        image = tf.random.uniform(shape=(100, 100, 3))
+        input_images = tf.stack([image, image], axis=0)
+
+        layer = preprocessing.RandomShear(x_factor=0.5, y_factor=0.5)
+
+        results = layer(input_images)
+        self.assertNotAllClose(results[0], results[1])
+
+    def test_ragged_bounding_box(self):
+        images = tf.random.uniform((2, 16, 16, 3))
+
+        random_box = tf.constant(
+            [[[0.1, 0.2, 1, 1], [0.4, 0.6, 1, 1]]], dtype=tf.float32
+        )
+        random_box = tf.squeeze(random_box, axis=0)
+        random_box = tf.RaggedTensor.from_row_lengths(random_box, [1, 1])
+        classes = tf.ragged.constant([[0], [0]])
+        bounding_boxes = {"boxes": random_box, "classes": classes}
+        inputs = {"images": images, "bounding_boxes": bounding_boxes}
+
+        layer = preprocessing.RandomShear(
+            x_factor=(0.5, 0.5),
+            y_factor=(0.5, 0.5),
+            bounding_box_format="rel_xywh",
+        )
+
+        layer(inputs)

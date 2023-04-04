@@ -1,4 +1,4 @@
-# Copyright 2022 The KerasCV Authors
+# Copyright 2023 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -26,7 +26,6 @@ from keras_cv.layers.object_detection.multi_class_non_max_suppression import (
 )
 from keras_cv.layers.object_detection_3d.voxelization import DynamicVoxelization
 from keras_cv.layers.preprocessing.aug_mix import AugMix
-from keras_cv.layers.preprocessing.augmenter import Augmenter
 from keras_cv.layers.preprocessing.auto_contrast import AutoContrast
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
@@ -83,6 +82,9 @@ from keras_cv.layers.preprocessing.repeated_augmentation import (
 from keras_cv.layers.preprocessing.rescaling import Rescaling
 from keras_cv.layers.preprocessing.resizing import Resizing
 from keras_cv.layers.preprocessing.solarization import Solarization
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
+    VectorizedBaseImageAugmentationLayer,
+)
 from keras_cv.layers.preprocessing_3d.frustum_random_dropping_points import (
     FrustumRandomDroppingPoints,
 )
