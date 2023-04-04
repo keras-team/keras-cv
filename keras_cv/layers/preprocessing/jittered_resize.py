@@ -114,13 +114,6 @@ class JitteredResize(BaseImageAugmentationLayer):
         )
         self.crop_size = crop_size
         self.target_size = target_size
-        self._inference_resizing = layers.Resizing(
-            target_size[0],
-            target_size[1],
-            pad_to_aspect_ratio=True,
-            interpolation=interpolation,
-            bounding_box_format=bounding_box_format,
-        )
         self.bounding_box_format = bounding_box_format
         self.seed = seed
         self.force_output_dense_images = True
