@@ -253,8 +253,8 @@ class RetinaNet(Task):
                 )
             )
 
-        cls_pred = tf.concat(cls_pred, axis=1)
-        box_pred = tf.concat(box_pred, axis=1)
+        cls_pred = keras.layers.Concatenate(axis=1, name='classification')(cls_pred)
+        box_pred = keras.layers.Concatenate(axis=1, name='box')(box_pred)
         # box_pred is always in "center_yxhw" delta-encoded no matter what
         # format you pass in.
         return images, {"box": box_pred, "classification": cls_pred}
