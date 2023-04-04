@@ -16,9 +16,9 @@
 import tensorflow as tf
 from absl.testing import parameterized
 
-from keras_cv.models import regnet
+from keras_cv.models.backbones.regnet import regnet
 
-from .models_test import ModelsTest
+from keras_cv.models.models_test import ModelsTest
 
 MODEL_LIST = [
     (regnet.RegNetY002, 368, {}),
