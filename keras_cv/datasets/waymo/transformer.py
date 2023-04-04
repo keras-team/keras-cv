@@ -13,6 +13,7 @@
 # limitations under the License.
 """Transformer to convert Waymo Open Dataset proto to model inputs."""
 
+from typing import Any
 from typing import Dict
 from typing import List
 from typing import Sequence
@@ -769,6 +770,36 @@ def transform_to_vehicle_frame(
             tf.logical_not(tf.cast(frame["label_point_nlz"], tf.bool)),
         )
     return frame
+
+
+def convert_to_center_pillar_inputs(
+    frame: Dict[str, tf.Tensor]
+) -> Dict[str, Any]:
+    """Converts an input frame into CenterPillar input format.
+
+    Args:
+      frame: a dictionary of feature tensors from a Waymo Open Dataset frame
+
+    Returns:
+      A dictionary of two tensor dictionaries with keys "point_clouds"
+      and "3d_boxes".
+    """
+    point_clouds = {
+        "point_xyz": frame["point_xyz"],
+        "point_feature": frame["point_feature"],
+        "point_mask": frame["point_mask"],
+    }
+    boxes = {
+        "boxes": frame["label_box"],
+        "classes": frame["label_box_class"],
+        "difficulty": frame["label_box_detection_difficulty"],
+        "mask": frame["label_box_mask"],
+    }
+    y = {
+        "point_clouds": point_clouds,
+        "3d_boxes": boxes,
+    }
+    return y
 
 
 def build_tensors_for_augmentation(
