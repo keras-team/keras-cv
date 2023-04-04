@@ -158,7 +158,37 @@ class RetinaNet(Task):
             anchor_generator=anchor_generator,
             box_variance=BOX_VARIANCE,
         )
+
+        extractor_levels = [3, 4, 5]
+        extractor_layer_names = [
+            backbone.pyramid_level_inputs[i] for i in extractor_levels
+        ]
+        feature_extractor = get_feature_extractor(
+            backbone, extractor_layer_names, extractor_levels
+        )
+        feature_pyramid = FeaturePyramid()
+
+        prior_probability = keras.initializers.Constant(
+            -np.log((1 - 0.01) / 0.01)
+        )
+        classification_head = classification_head or PredictionHead(
+            output_filters=9 * num_classes,
+            bias_initializer=prior_probability,
+        )
+        box_head = box_head or PredictionHead(
+            output_filters=9 * 4, bias_initializer=keras.initializers.Zeros()
+        )
+
+        inputs, outputs = RetinaNet.build_forward(
+            feature_extractor,
+            feature_pyramid,
+            box_head,
+            classification_head,
+            num_classes,
+        )
         super().__init__(
+            inputs=inputs,
+            outputs=outputs,
             **kwargs,
         )
         self.label_encoder = label_encoder
@@ -184,15 +214,6 @@ class RetinaNet(Task):
 
         self.backbone = backbone
 
-        # initialize trainable networks
-        extractor_levels = [3, 4, 5]
-        extractor_layer_names = [
-            backbone.pyramid_level_inputs[i] for i in extractor_levels
-        ]
-        feature_extractor = get_feature_extractor(
-            backbone, extractor_layer_names, extractor_levels
-        )
-
         self.feature_extractor = feature_extractor
         self._prediction_decoder = (
             prediction_decoder
@@ -202,20 +223,41 @@ class RetinaNet(Task):
             )
         )
 
-        self.feature_pyramid = FeaturePyramid()
-        prior_probability = keras.initializers.Constant(
-            -np.log((1 - 0.01) / 0.01)
-        )
-
-        self.classification_head = classification_head or PredictionHead(
-            output_filters=9 * num_classes,
-            bias_initializer=prior_probability,
-        )
-
-        self.box_head = box_head or PredictionHead(
-            output_filters=9 * 4, bias_initializer=keras.initializers.Zeros()
-        )
+        self.feature_pyramid = feature_pyramid
+        self.classification_head = classification_head
+        self.box_head = box_head
         self.build(backbone.input_shape)
+
+    @staticmethod
+    def build_forward(
+        feature_extractor,
+        feature_pyramid,
+        box_head,
+        classification_head,
+        num_classes,
+    ):
+        images = keras.layers.Input(feature_extractor.input_shape[1:])
+
+        backbone_outputs = feature_extractor(images)
+        features = feature_pyramid(backbone_outputs)
+
+        N = tf.shape(images)[0]
+        cls_pred = []
+        box_pred = []
+        for feature in features:
+            box_pred.append(tf.reshape(box_head(feature), [N, -1, 4]))
+            cls_pred.append(
+                tf.reshape(
+                    classification_head(feature),
+                    [N, -1, num_classes],
+                )
+            )
+
+        cls_pred = tf.concat(cls_pred, axis=1)
+        box_pred = tf.concat(box_pred, axis=1)
+        # box_pred is always in "center_yxhw" delta-encoded no matter what
+        # format you pass in.
+        return images, [box_pred, cls_pred]
 
     def make_predict_function(self, force=False):
         return predict_utils.make_predict_function(self, force=force)
@@ -254,39 +296,6 @@ class RetinaNet(Task):
             strides=strides,
             clip_boxes=True,
         )
-
-    def call(self, images, training=None):
-        if isinstance(images, tf.RaggedTensor):
-            raise ValueError(
-                "`RetinaNet()` does not yet support inputs of type `RaggedTensor` for input images. "
-                "To correctly resize your images for object detection tasks, we recommend resizing using "
-                "`keras_cv.layers.Resizing(pad_to_aspect_ratio=True, bounding_box_format=your_format)`"
-                "on your inputs."
-            )
-        backbone_outputs = self.feature_extractor(images, training=training)
-        features = self.feature_pyramid(backbone_outputs, training=training)
-
-        N = tf.shape(images)[0]
-        cls_pred = []
-        box_pred = []
-        for feature in features:
-            box_pred.append(
-                tf.reshape(
-                    self.box_head(feature, training=training), [N, -1, 4]
-                )
-            )
-            cls_pred.append(
-                tf.reshape(
-                    self.classification_head(feature, training=training),
-                    [N, -1, self.num_classes],
-                )
-            )
-
-        cls_pred = tf.concat(cls_pred, axis=1)
-        box_pred = tf.concat(box_pred, axis=1)
-        # box_pred is always in "center_yxhw" delta-encoded no matter what
-        # format you pass in.
-        return box_pred, cls_pred
 
     def decode_predictions(self, predictions, images):
         box_pred, cls_pred = predictions
