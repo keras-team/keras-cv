@@ -257,7 +257,7 @@ class RetinaNet(Task):
         box_pred = tf.concat(box_pred, axis=1)
         # box_pred is always in "center_yxhw" delta-encoded no matter what
         # format you pass in.
-        return images, [box_pred, cls_pred]
+        return images, {"box": box_pred, "classification": cls_pred}
 
     def make_predict_function(self, force=False):
         return predict_utils.make_predict_function(self, force=force)
