@@ -198,7 +198,7 @@ class RetinaNetTest(tf.test.TestCase):
 
 
 @pytest.mark.large
-class RetinaNetSmokeTest(tf.test.TestCase, parameterized.TestCase):
+class RetinaNetSmokeTest(tf.test.TestCase):
     def test_backbone_preset_weight_loading(self):
         # Check that backbone preset weights loaded correctly
         _ = keras_cv.models.RetinaNet.from_preset(
