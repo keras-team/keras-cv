@@ -1,42 +1,29 @@
-# Copyright 2015 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2022 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#     https://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# ==============================================================================
-
-
-"""Utilies for image preprocessing and augmentation.
-
-Deprecated: `tf.keras.preprocessing.image` APIs do not operate on tensors and
-are not recommended for new code. Prefer loading data with
-`tf.keras.utils.image_dataset_from_directory`, and then transforming the output
-`tf.data.Dataset` with preprocessing layers. For more information, see the
-tutorials for [loading images](
-https://www.tensorflow.org/tutorials/load_data/images) and [augmenting images](
-https://www.tensorflow.org/tutorials/images/data_augmentation), as well as the
-[preprocessing layer guide](
-https://www.tensorflow.org/guide/keras/preprocessing_layers).
-"""
-
-import collections
-import multiprocessing
-import os
-import threading
-import warnings
 
 import numpy as np
+import tensorflow as tf
+from tensorflow import keras
 
-from keras_cv.layers.preprocessing.base_image_augmentation_layer import BaseImageAugmentationLayer
+from keras_cv import bounding_box
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
+    VectorizedBaseImageAugmentationLayer,
+)
 from keras_cv.utils import preprocessing
+
+# In order to support both unbatched and batched inputs, the horizontal
+# and verticle axis is reverse indexed
 H_AXIS = -3
 W_AXIS = -2
 
@@ -47,29 +34,47 @@ def get_range(x, name, center=0.0):
         if x==0:
             return None
         y = [center - x, center + x]
-    elif len(zoom_range) == 2 and all(
-        isinstance(val, (float, int)) for val in zoom_range
+    elif len(x) == 2 and all(
+        isinstance(val, (float, int)) for val in x
     ):
-        y = [zoom_range[0], zoom_range[1]]
+        y = [x[0], x[1]]
     else:
         raise ValueError(
-            "`%s` should be a float or " % name
+            f"`{name}` should be a float or "
             "a tuple or list of two floats. "
-            "Received: %s" % (zoom_range,)
+            f"Received: {x}"
         )
     return y
 
-class RandomAffineTransf(BaseImageAugmentationLayer):
-    """Generate batches of tensor image data with real-time data augmentation.
+@keras.utils.register_keras_serializable(package="keras_cv")
+class RandomAffineTransf(VectorizedBaseImageAugmentationLayer):
+    """A preprocessing layer which randomly apply an affine trasformation during training.
 
-     The data will be looped over (in batches).
+    This layer will apply random affine trasformation to each image, filling empty space
+    according to `fill_mode`.
 
-    Args:
+    By default, random trasformation is only applied during training.
+    At inference time, the layer does nothing. If you need to apply random
+    trasformation at inference time, set `training` to True when calling the layer.
+
+    Input pixel values can be of any range (e.g. `[0., 1.)` or `[0, 255]`) and
+    of interger or floating point dtype. By default, the layer will output
+    floats.
+
+    Input shape:
+      3D (unbatched) or 4D (batched) tensor with shape:
+      `(..., height, width, channels)`, in `"channels_last"` format
+
+    Output shape:
+      3D (unbatched) or 4D (batched) tensor with shape:
+      `(..., height, width, channels)`, in `"channels_last"` format
+
+    Arguments:
         rotation_range: Int. Degree range for random rotations.
         zoom_range: Float or [lower, upper]. Range for random zoom. If a float,
           `[lower, upper] = [1-zoom_range, 1+zoom_range]`.
-        width_shift_range: Float, 1-D array-like float fraction of total width
-        height_shift_range: Float, 1-D array-like float fraction of total height
+        width_shift_range: Float fraction of total width
+        height_shift_range: Float fraction of total height
         shear_range: Float. Shear Intensity (Shear angle in counter-clockwise
           direction in degrees)
         horizontal_flip: Boolean. Randomly flip inputs horizontally.
@@ -119,7 +124,7 @@ class RandomAffineTransf(BaseImageAugmentationLayer):
         super().__init__(seed=seed, force_generator=True, **kwargs)
         
         self.rotation_range = get_range(rotation_range,'rotation_range')
-        self.zoom_range = get_range(zoom_range,'rotation_range', 1.0)
+        self.zoom_range = get_range(zoom_range,'zoom_range', 1.0)
         self.width_shift_range = get_range(width_shift_range,'width_shift_range')
         self.height_shift_range = get_range(height_shift_range,'height_shift_range')
         self.shear_range = get_range(shear_range,'shear_range')
@@ -203,10 +208,11 @@ class RandomAffineTransf(BaseImageAugmentationLayer):
         
         if self.horizontal_flip:
             zx = torch.sign(self._random_generator.random_uniform(shape=[batch_size], minval=-1, maxval=1)) * zx
+        
         if self.vertical_flip:
             zy = torch.sign(self._random_generator.random_uniform(shape=[batch_size], minval=-1, maxval=1)) * zy
             
-        transform_parameters = {
+        transformations = {
             "theta": theta,
             "tx": tx,
             "ty": ty,
@@ -215,87 +221,84 @@ class RandomAffineTransf(BaseImageAugmentationLayer):
             "zy": zy,
         }
 
-        return transform_parameters
+        return transformations
 
-    def get_A(transform_parameters, img_hd, img_wd):
-        return tf.stack([tf.cast(get_affine_transform(
+    def get_A(transformations, img_hd, img_wd):
+        return get_affine_transform(
             img_hd, img_wd,
-            theta=transform_parameters["theta"][i],
-            tx=img_wd*transform_parameters["tx"][i],
-            ty=img_hd*transform_parameters["ty"][i],
-            shear=transform_parameters["shear"][i],
-            zx=transform_parameters["zx"][i],
-            zy=transform_parameters["zy"][i],
-        ), tf.float32) for i in range(len(transform_parameters["zy"]))], 0)
+            theta=transformations["theta"],
+            tx=transformations["tx"],
+            ty=transformations["ty"],
+            shear=transformations["shear"],
+            zx=transformations["zx"],
+            zy=transformations["zy"],
+        )
         
-    def augment_image(self, image, transformation, **kwargs):
-        return self._rotate_image(image, transformation)
+    def augment_images(self, images, transformations, **kwargs):
+        return self._mod_images(images, transformations)
         
-    def _mod_image(self, image, transformation):
-        image = preprocessing.ensure_tensor(image, self.compute_dtype)
-        original_shape = image.shape
-        image = tf.expand_dims(image, 0)
-        image_shape = tf.shape(image)
+    def _mod_images(self, images, transformations):
+        images = preprocessing.ensure_tensor(images, self.compute_dtype)
+        image_shape = tf.shape(images)
         img_hd = tf.cast(image_shape[H_AXIS], tf.float32)
         img_wd = tf.cast(image_shape[W_AXIS], tf.float32)
         
-        A = get_A(transform_parameters, img_hd, img_wd)
-        A = tf.concat(
+        A = get_A(transformations, img_hd, img_wd)
+        A = tf.stack(
             values=[
-                A[:, 0, 0, None],
-                A[:, 0, 1, None],
-                A[:, 0, 2, None],
-                A[:, 1, 0, None],
-                A[:, 1, 1, None],
-                A[:, 1, 2, None],
-                tf.zeros((len(A), 2), tf.float32),
+                A[..., 0, 0],
+                A[..., 0, 1],
+                A[..., 0, 2],
+                A[..., 1, 0],
+                A[..., 1, 1],
+                A[..., 1, 2],
+                A[..., 2, 1],
+                A[..., 2, 2],
             ],
-            axis=1,
+            axis=-1,
         )
-        output = preprocessing.transform(
-            image,
-            A,
+        images = preprocessing.transform(
+            images=images,
+            transforms=transforms,
             fill_mode=self.fill_mode,
             fill_value=self.fill_value,
             interpolation=self.interpolation,
         )
-        output = tf.squeeze(output, 0)
-        output.set_shape(original_shape)
-        return output
+        return images
     
     
-    def augment_segmentation_mask(
-        self, segmentation_mask, transformation, **kwargs
+    def augment_segmentation_masks(
+        self, segmentation_masks, transformations, **kwargs
     ):
         # If segmentation_classes is specified, we have a dense segmentation mask.
         # We therefore one-hot encode before rotation to avoid bad interpolation
         # during the rotation transformation. We then make the mask sparse
         # again using tf.argmax.
         if self.segmentation_classes:
-            one_hot_mask = tf.one_hot(
-                tf.squeeze(segmentation_mask, axis=-1),
+            segmentation_masks = tf.one_hot(
+                tf.squeeze(segmentation_masks, axis=-1),
                 self.segmentation_classes,
             )
-            rotated_one_hot_mask = self._mod_image(
-                one_hot_mask, transformation
+            segmentation_masks = self._mod_image(
+                segmentation_masks, transformations
             )
-            rotated_mask = tf.argmax(rotated_one_hot_mask, axis=-1)
-            return tf.expand_dims(rotated_mask, axis=-1)
+            segmentation_masks = tf.argmax(segmentation_masks, axis=-1)
+            return tf.expand_dims(segmentation_masks, axis=-1)
         else:
-            if segmentation_mask.shape[-1] == 1:
+            if segmentation_masks.shape[-1] == 1:
                 raise ValueError(
                     "Segmentation masks must be one-hot encoded, or "
                     "RandomOperations must be initialized with "
                     "`segmentation_classes`. `segmentation_classes` was not "
                     f"specified, and mask has shape {segmentation_mask.shape}"
                 )
-            rotated_mask = self._mod_image(segmentation_mask, transformation)
+            segmentation_masks = self._mod_image(segmentation_masks, transformations)
             # Round because we are in one-hot encoding, and we may have
             # pixels with ambugious value due to floating point math for rotation.
-            return tf.round(rotated_mask)
+            return tf.round(segmentation_masks)
 
     def augment_bounding_boxes(
-        self, bounding_boxes, transformation, image=None, **kwargs
+        self, bounding_boxes, transformations, images=None, **kwargs
     ):
         if self.bounding_box_format is None:
             raise ValueError(
@@ -309,38 +312,41 @@ class RandomAffineTransf(BaseImageAugmentationLayer):
             bounding_boxes,
             source=self.bounding_box_format,
             target="xyxy",
-            images=image,
+            images=images,
+            dtype=self.compute_dtype,
         )
-        image_shape = tf.shape(image)
+        image_shape = tf.shape(images)
         img_hd = tf.cast(image_shape[H_AXIS], tf.float32)
         img_wd = tf.cast(image_shape[W_AXIS], tf.float32)
-        A = get_A(transform_parameters, img_hd, img_wd).T
+        A = get_A(transformations, img_hd, img_wd)
         
         boxes = bounding_boxes["boxes"]
+        ones = tf.ones_like(boxes[..., 0])
         point = tf.stack(
             [
-                tf.stack([boxes[:, 0], boxes[:, 1], 1+0*boxes[:, 0]], axis=1),
-                tf.stack([boxes[:, 2], boxes[:, 1], 1+0*boxes[:, 0]], axis=1),
-                tf.stack([boxes[:, 2], boxes[:, 3], 1+0*boxes[:, 0]], axis=1),
-                tf.stack([boxes[:, 0], boxes[:, 3], 1+0*boxes[:, 0]], axis=1),
+                tf.stack([boxes[..., 0], boxes[..., 1], ones], axis=-1), 
+                tf.stack([boxes[..., 2], boxes[..., 3], ones], axis=-1),
+                tf.stack([boxes[..., 0], boxes[..., 3], ones], axis=-1),
+                tf.stack([boxes[..., 2], boxes[..., 1], ones], axis=-1),
             ],
-            axis=1,
+            axis=-1,
         )
-        out = point @ A[None,:,:]
-        out = out[:,:,:2]
+        print( tf.shape(A),  tf.shape(point))
+        out = tf.linalg.matmul(A, point)
+        out = out[...,:2,:] / out[...,2:3,:]
         
         # find readjusted coordinates of bounding box to represent it in corners
         # format
-        min_cordinates = tf.math.reduce_min(out, axis=1)
-        max_cordinates = tf.math.reduce_max(out, axis=1)
-        boxes = tf.concat([min_cordinates, max_cordinates], axis=1)
+        min_cordinates = tf.math.reduce_min(out, axis=-1)
+        max_cordinates = tf.math.reduce_max(out, axis=-1)
+        boxes = tf.concat([min_cordinates, max_cordinates], axis=-1)
 
         bounding_boxes = bounding_boxes.copy()
         bounding_boxes["boxes"] = boxes
         bounding_boxes = bounding_box.clip_to_image(
             bounding_boxes,
             bounding_box_format="xyxy",
-            images=image,
+            images=images,
         )
         # cordinates cannot be float values, it is casted to int32
         bounding_boxes = bounding_box.convert_format(
@@ -348,72 +354,98 @@ class RandomAffineTransf(BaseImageAugmentationLayer):
             source="xyxy",
             target=self.bounding_box_format,
             dtype=self.compute_dtype,
-            images=image,
+            images=images,
         )
         return bounding_boxes
 
-    def augment_label(self, label, transformation, **kwargs):
-        return label
+    def augment_labels(self, labels, transformations, **kwargs):
+        return labels
 
-def transform_matrix_offset_center(matrix, x, y):
-    o_x = float(x) / 2 - 0.5
-    o_y = float(y) / 2 - 0.5
-    offset_matrix = np.array([[1, 0, o_x], [0, 1, o_y], [0, 0, 1]])
-    reset_matrix = np.array([[1, 0, -o_x], [0, 1, -o_y], [0, 0, 1]])
-    transform_matrix = np.dot(np.dot(offset_matrix, matrix), reset_matrix)
-    return transform_matrix
+    
+def get_translation_matrix(x, y):
+    """Returns transform matrix(s) for the given translation(s).
+    Returns:
+      A tensor of shape `(..., 3, 3)`.
+    """
+    
+    ones = tf.ones_like(x)
+    zeros = tf.zeros_like(x)
+    return tf.stack(
+        values=[
+            tf.stack(values=[ ones, zeros,    -x], axis = -1),
+            tf.stack(values=[zeros,  ones,    -y], axis = -1),
+            tf.stack(values=[zeros, zeros,  ones], axis = -1),
+        ], axis=-2)
 
+def get_rotation_matrix(theta):
+    """Returns transform matrix(s) for given angle(s).
+    Returns:
+      A tensor of shape `(..., 3, 3)`.
+    """
+    theta = theta * np.pi / 180
+    ones = tf.ones_like(theta)
+    zeros = tf.zeros_like(theta)
+    cos = tf.math.cos(theta)
+    sin = ff.math.sin(theta)
+    return tf.stack(
+        values=[
+            tf.stack(values=[  cos,  -sin, zeros], axis = -1),
+            tf.stack(values=[  sin,   cos, zeros], axis = -1),
+            tf.stack(values=[zeros, zeros,  ones], axis = -1),
+        ], axis=-2)
+
+def get_shear_matrix(shear):
+    """Build ransform matrix(s) for given shear(s).
+    Returns:
+      A tensor of shape `(..., 3, 3)`
+    """
+    shear = shear * np.pi / 180
+    ones = tf.ones_like(shear)
+    zeros = tf.zeros_like(shear)
+    cos = tf.math.cos(shear)
+    sin = ff.math.sin(shear)
+    return tf.stack(
+        values=[
+            tf.stack(values=[ ones,  -sin, zeros], axis = -1),
+            tf.stack(values=[zeros,   cos, zeros], axis = -1),
+            tf.stack(values=[zeros, zeros,  ones], axis = -1),
+        ], axis=-2)
+
+def get_zoom_matrix(zx, zy):
+    """Build transform matrix(s) for given zoom.
+    Returns:
+      A tensor of shape `(..., 3, 3)`
+    """
+    ones = tf.ones_like(zx)
+    zeros = tf.zeros_like(zx)
+    return tf.stack(
+        values=[
+            tf.stack(values=[   zx, zeros, zeros], axis = -1),
+            tf.stack(values=[zeros,    zy, zeros], axis = -1),
+            tf.stack(values=[zeros, zeros,  ones], axis = -1),
+        ], axis=-2)
 
 def get_affine_transform(
     img_hd, img_wd,
-    theta=0,
-    tx=0,
-    ty=0,
-    shear=0,
-    zx=1,
-    zy=1,
+    theta,
+    tx,
+    ty,
+    shear,
+    zx,
+    zy,
+    name=None
 ):
-    
-    transform_matrix = None
-    if theta != 0:
-        theta = np.deg2rad(theta)
-        rotation_matrix = np.array(
-            [
-                [np.cos(theta), -np.sin(theta), 0],
-                [np.sin(theta), np.cos(theta), 0],
-                [0, 0, 1],
-            ]
-        )
-        transform_matrix = rotation_matrix
-
-    if tx != 0 or ty != 0:
-        shift_matrix = np.array([[1, 0, tx], [0, 1, ty], [0, 0, 1]])
-        if transform_matrix is None:
-            transform_matrix = shift_matrix
-        else:
-            transform_matrix = np.dot(transform_matrix, shift_matrix)
-
-    if shear != 0:
-        shear = np.deg2rad(shear)
-        shear_matrix = np.array(
-            [[1, -np.sin(shear), 0], [0, np.cos(shear), 0], [0, 0, 1]]
-        )
-        if transform_matrix is None:
-            transform_matrix = shear_matrix
-        else:
-            transform_matrix = np.dot(transform_matrix, shear_matrix)
-
-    if zx != 1 or zy != 1:
-        zoom_matrix = np.array([[zx, 0, 0], [0, zy, 0], [0, 0, 1]])
-        if transform_matrix is None:
-            transform_matrix = zoom_matrix
-        else:
-            transform_matrix = np.dot(transform_matrix, zoom_matrix)
-    
-    transform_matrix = transform_matrix_offset_center(
-        transform_matrix, img_hd, img_wd,
-    )
-       
-    return transform_matrix
+    with backend.name_scope(name or "translation_matrix"):
+        o_x = (img_wd - 1)/ 2.0
+        o_y = (img_hd - 1)/ 2.0
+        
+        transform_matrix = get_translation_matrix(-o_x, -o_y)[None, ...]
+        transform_matrix = tf.linalg.matmul(transform_matrix, get_rotation_matrix(theta))
+        transform_matrix = tf.linalg.matmul(transform_matrix, get_translation_matrix(img_wd*tx, img_hd*ty))
+        transform_matrix = tf.linalg.matmul(transform_matrix, get_shear_matrix(shear))
+        transform_matrix = tf.linalg.matmul(transform_matrix, get_zoom_matrix(zx, xy))
+        transform_matrix = tf.linalg.matmul(transform_matrix, get_translation_matrix(o_x, o_y)[None, ...])
+        
+        return transform_matrix
 
 

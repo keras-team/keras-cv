@@ -19,7 +19,8 @@ import os
 import pandas
 import numpy as np
 import tensorflow.compat.v2 as tf
-
+from functools import partial
+import keras
 from keras.utils import dataset_utils
 from keras.utils import image_utils
 
@@ -28,6 +29,7 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import LABELS
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import BOUNDING_BOXES 
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import KEYPOINTS 
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import SEGMENTATION_MASKS
+from keras_cv.layers.preprocessing import Rescaling
 
 ALLOWLIST_FORMATS = (".bmp", ".gif", ".jpeg", ".jpg", ".png")
 
@@ -78,68 +80,33 @@ def dataframe_from_directory(
     return dataframe
 
      
-def load_img(
-    path, num_channels, image_size=None, interpolation=None
-):
+def _load_img(path, root_path='./', num_channels=3):
     """Load an image from a path and resize it."""
+    #TODO path = tf.io.gfile.join(root_path, path)
     img = tf.io.read_file(path)
     img = tf.image.decode_image(
         img, channels=num_channels, expand_animations=False
     )
-    if image_size:
-        img = image_utils.smart_resize(
-            img, image_size, interpolation=interpolation
-        )
-        img.set_shape((image_size[0], image_size[1], num_channels))
     return img
 
+def _dict_to_tuple_fun(dat, dictname_input, dictname_target, max_boxes=None):
+    x = dat[dictname_input]
+    y = dat[dictname_target]
+    if dictname_target==BOUNDING_BOXES:
+        y = bounding_box.to_dense(y, max_boxes=max_boxes)
+    return x,y
 
-def _get_fun_load_class(class_mode, class_names=None):
-    if (not isinstance(class_mode, str)) and  callable(class_mode):
-        if class_names is not None:
-            raise ValueError(
-                'You can only pass `class_names` if '
-                '`class_mode` is "int" or "categorical".'
-            )  
-        return class_mode
 
-    if class_mode=='none':
-        if class_names is not None:
-            raise ValueError(
-                'You can only pass `class_names` if '
-                '`class_mode` is "int" or "categorical".'
-                f'Received: class_mode={labels}, and '
-                f"class_names={class_names}"
-            )                            
-        return lambda x: x
-    elif class_mode=='raw':
-        if class_names is not None:
-            raise ValueError(
-                'You can only pass `class_names` if '
-                '`class_mode` is "int" or "categorical".'
-                f'Received: class_mode={labels}, and '
-                f"class_names={class_names}"
-            )                            
-        return lambda x: tf.cast(x, "float32")
+
+def _get_fun_load_class(x, class_mode, num_classes):
+    if class_mode=='none':                               
+        return x
+    elif class_mode=='raw':                        
+        return tf.cast(x, "float32")
     elif class_mode=='int':
-        if class_names is None:
-            raise ValueError(
-                'You have to `class_names` if '
-                '`class_mode` is "int" or "categorical".'
-                f'Received: class_mode={labels}, and '
-                f"class_names={class_names}"
-            )
-        return lambda x: class_names.index(x)
+        return tf.cast(x, "int64")
     elif class_mode=='categorical':
-        if class_names is None:
-            raise ValueError(
-                'You have to `class_names` if '
-                '`class_mode` is "int" or "categorical".'
-                f'Received: class_mode={labels}, and '
-                f"class_names={class_names}"
-            ) 
-        num_classes = len(class_names)
-        return lambda x: tf.one_hot(class_names.index(x), num_classes)                     
+        return tf.one_hot(x, num_classes)
     else:
         raise ValueError(
             '`class_mode` argument must be callable or '
@@ -154,11 +121,14 @@ def dataset_from_dataframe(
     colname_target,
     load_fun_input,
     load_fun_target,
-    batch_size=None,
     shuffle=False,
-    dictname_input=None,
-    dictname_target=None,
     seed=None,
+    pre_batching_processing=None,
+    batch_size=None,
+    post_batching_processing=None,
+    dictname_input=IMAGES,
+    dictname_target=None,
+    dict_to_tuple=True,
 ):
     if seed is None:
         seed = np.random.randint(1e6)
@@ -169,39 +139,52 @@ def dataset_from_dataframe(
     
     if isinstance(dataframe, str):
         dataframe = pandas.read_csv(dataframe)
-
+    
     dataset = tf.data.Dataset.from_tensor_slices({
         dictname_input : dataframe[colname_input],
         dictname_target: dataframe[colname_target],
     })
+    
+    if shuffle:
+        dataset = dataset.shuffle(buffer_size=len(dataframe), seed=seed, reshuffle_each_iteration=True)
+        
+    #for a in dataset.take(9):
+    #    for k in a:
+    #        print(k, a[k].shape, a[k].dtype, a[k])
+    
     dataset = dataset.map( lambda x: {
             dictname_input : load_fun_input(x[dictname_input]),
             dictname_target: load_fun_target(x[dictname_target]),
     }, num_parallel_calls = tf.data.AUTOTUNE)
     
-    dataset = dataset.prefetch(tf.data.AUTOTUNE)
+    if pre_batching_processing is not None:
+        dataset = dataset.map(pre_batching_processing, num_parallel_calls = tf.data.AUTOTUNE)
+            
     if batch_size is not None:
-        if shuffle:
-            # Shuffle locally at each iteration
-            dataset = dataset.shuffle(buffer_size=batch_size * 8, seed=seed)
         dataset = dataset.batch(batch_size)
-    elif shuffle:
-        dataset = dataset.shuffle(buffer_size=1024, seed=seed)
+    
+    if post_batching_processing is not None:
+        dataset = dataset.map(post_batching_processing, num_parallel_calls = tf.data.AUTOTUNE)   
+        
+    if dict_to_tuple:
+        dataset = dataset.map(lambda x: _dict_to_tuple_fun(x,dictname_input, dictname_target),
+                              num_parallel_calls = tf.data.AUTOTUNE)
     
     return dataset
 
 
-def image_dataset_from_dataframe(
+def image_classification_dataset_from_dataframe(
     dataframe,
     root_path='./',
     class_names=None,
     class_mode="categorical",
     color_mode="rgb",
-    batch_size=32,
+    batch_size=None,
     shuffle=True,
     seed=None,
-    interpolation="bilinear",
-    image_size=None,
+    pre_batching_processing=None,
+    post_batching_processing=None,
+    include_rescaling=True,
     colname_image='image',
     colname_class='class',
 ):
@@ -222,8 +205,8 @@ def image_dataset_from_dataframe(
               encoded as a categorical vector
               (e.g. for `categorical_crossentropy` loss).
           - None (no labels).
-      class_names: Only valid if "class_mode" is not "raw". This is the explicit
-          list of class names. Used for the encoding
+      class_names: Only valid if "class_mode" is 'int' or 'categorical'. This is the explicit
+          list of class names esed for the encoding.
           (otherwise alphanumerical order is used).
       color_mode: One of "grayscale", "rgb", "rgba". Default: "rgb".
           Whether the images will be converted to
@@ -234,12 +217,8 @@ def image_dataset_from_dataframe(
       shuffle: Whether to shuffle the data. Default: True.
           If set to False, sorts the data in alphanumeric order.
       seed: Optional random seed for shuffling and transformations.
-      image_size: Size to resize images to after they are read from disk,
-              specified as `(height, width)`.
-              When it is `None` no resizeing is computed. Defaults to `None`.       
-      interpolation: String, the interpolation method used when resizing images.
-              Defaults to `bilinear`. Supports `bilinear`, `nearest`, `bicubic`,
-                `area`, `lanczos3`, `lanczos5`, `gaussian`, `mitchellcubic`.
+      pre_batching_processing: ???      
+      post_batching_processing: ???.
     Returns:
       A `tf.data.Dataset` object.
 
@@ -265,13 +244,33 @@ def image_dataset_from_dataframe(
     if isinstance(dataframe, str):
         dataframe = pandas.read_csv(dataframe)
     
+    num_classes = 0
     if class_mode in {"int", "categorical"}:
         if class_names is None:
             class_names = sorted(list(set(dataframe[colname_class])))
+        
+        dataframe = dataframe.copy()
         dataframe = dataframe[dataframe[colname_class].isin(class_names)]
-                                 
-    load_fun_target = _get_fun_load_class(class_mode, class_names)
-                                 
+        dataframe[colname_class] = [class_names.index(_) for _ in dataframe[colname_class]]
+        num_classes = len(class_names)
+        for index_class, name_class in enumerate(class_names):
+            num_img = np.sum(dataframe[colname_class]==index_class)
+            print(f"For class '{name_class}', there are {num_img} images.", flush=True)
+        
+    elif class_names:
+        raise ValueError(
+            'You can only pass `class_names` if '
+            '`class_mode` is "int" or "categorical".'
+            f'Received: class_mode={class_mode}, and '
+            f"class_names={class_names}"
+        )
+    
+    
+    if (not isinstance(class_mode, str)) and callable(class_mode):
+        load_fun_target = class_mode
+    else:
+        load_fun_target = partial(_get_fun_load_class, class_mode=class_mode, num_classes=num_classes)
+    
     if color_mode == "rgb":
         num_channels = 3
     elif color_mode == "rgba":
@@ -283,27 +282,35 @@ def image_dataset_from_dataframe(
             '`color_mode` must be one of {"rgb", "rgba", "grayscale"}. '
             f"Received: color_mode={color_mode}"
         ) 
-    interpolation = image_utils.get_interpolation(interpolation)
     
-    load_fun_input = lambda x: load_img(os.path.join(root_path,x), 
-                                        num_channels, image_size, interpolation)
-                                 
+    load_fun_input = partial(_load_img, root_path=root_path, num_channels=num_channels)
     
+    
+    if include_rescaling:
+        if post_batching_processing is None:
+            post_batching_processing = Rescaling(1 / 255.0)
+        else:
+            post_batching_processing = keras.Sequential(
+                layers=[post_batching_processing, Rescaling(1 / 255.0)])
+            
     dataset = dataset_from_dataframe(
         dataframe=dataframe,
         colname_input=colname_image,
         colname_target=colname_class,
         load_fun_input=load_fun_input,
         load_fun_target=load_fun_target,
-        batch_size=batch_size,
         shuffle=shuffle,
+        seed=seed,
+        pre_batching_processing=pre_batching_processing,
+        batch_size=batch_size,
+        post_batching_processing=post_batching_processing,
         dictname_input=IMAGES,
         dictname_target=LABELS,
-        seed=seed,
+        dict_to_tuple=True,
     )
     
-    # Users may need to reference `class_names`.
+    # Users may need to reference `class_names`, `batch_size` and `root_path`
     dataset.class_names = class_names
-    # Include file paths for images as attribute.
+    dataset.batch_size = batch_size
     dataset.root_path = root_path
     return dataset

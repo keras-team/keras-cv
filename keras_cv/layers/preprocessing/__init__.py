@@ -36,6 +36,7 @@ from keras_cv.layers.preprocessing.mix_up import MixUp
 from keras_cv.layers.preprocessing.mosaic import Mosaic
 from keras_cv.layers.preprocessing.posterization import Posterization
 from keras_cv.layers.preprocessing.rand_augment import RandAugment
+from keras_cv.layers.preprocessing.random_affine_transf import RandomAffineTransf
 from keras_cv.layers.preprocessing.random_augmentation_pipeline import (
     RandomAugmentationPipeline,
 )
