@@ -15,19 +15,19 @@ jobs:
         # https://github.com/bazelbuild/bazel/issues/14232#issuecomment-1011247429
         os: ['macos-12', 'windows-2019', 'ubuntu-18.04']
         py-version: ['3.7', '3.8', '3.9', '3.10']
-        tf-version: ['2.11.0']
+        tf-version: ['2.12.0']
         use-macos-arm: [false]
         include:
           - os: 'macos-12'
-            tf-version: '2.11.0'
+            tf-version: '2.12.0'
             py-version: '3.8'
             use-macos-arm: true
           - os: 'macos-12'
-            tf-version: '2.11.0'
+            tf-version: '2.12.0'
             py-version: '3.9'
             use-macos-arm: true
           - os: 'macos-12'
-            tf-version: '2.11.0'
+            tf-version: '2.12.0'
             py-version: '3.10'
             use-macos-arm: true
       fail-fast: false
@@ -99,7 +99,7 @@ jobs:
         python-version: 3.7
     - name: Build wheels
       run: |
-        pip install tensorflow==2.11.0
+        pip install tensorflow==2.12.0
         python -m pip install --upgrade pip setuptools wheel twine
         export BUILD_WITH_CUSTOM_OPS=false
         python setup.py sdist bdist_wheel

@@ -22,7 +22,7 @@ import warnings
 
 import tensorflow as tf
 
-TF_VERSION_FOR_ABI_COMPATIBILITY = "2.11"
+TF_VERSION_FOR_ABI_COMPATIBILITY = "2.12"
 abi_warning_already_raised = False
 
 
