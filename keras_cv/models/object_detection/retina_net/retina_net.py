@@ -253,8 +253,10 @@ class RetinaNet(Task):
                 )
             )
 
-        cls_pred = keras.layers.Concatenate(axis=1, name='classification')(cls_pred)
-        box_pred = keras.layers.Concatenate(axis=1, name='box')(box_pred)
+        cls_pred = keras.layers.Concatenate(axis=1, name="classification")(
+            cls_pred
+        )
+        box_pred = keras.layers.Concatenate(axis=1, name="box")(box_pred)
         # box_pred is always in "center_yxhw" delta-encoded no matter what
         # format you pass in.
         return images, {"box": box_pred, "classification": cls_pred}
