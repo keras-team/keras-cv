@@ -30,7 +30,7 @@ retina_net_presets = {
             # performance.
             "num_classes": 21,
         },
-        "weights_url": "https://storage.googleapis.com/keras-cv/models/retinanet/pascal_voc/resnet50.weights.h5",
-        "weights_hash": "48d48d0bc53d2d135bf1c565b9c46efd",
+        "weights_url": "https://storage.googleapis.com/keras-cv/models/retinanet/pascal_voc/resnet50_functional.weights.h5",
+        "weights_hash": "33d894c7707cc68cfa52f075273dafa9",
     },
 }

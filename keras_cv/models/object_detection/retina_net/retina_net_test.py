@@ -36,6 +36,21 @@ class RetinaNetTest(tf.test.TestCase):
         tf.config.set_soft_device_placement(True)
         keras.backend.clear_session()
 
+    def test_backbone_preset_weight_loading(self):
+        # Check that backbone preset weights loaded correctly
+        _ = keras_cv.models.RetinaNet.from_preset(
+            "resnet50_v2_imagenet",
+            num_classes=20,
+            bounding_box_format="xywh",
+        )
+
+    def test_full_preset_weight_loading(self):
+        # Check that backbone preset weights loaded correctly
+        _ = keras_cv.models.RetinaNet.from_preset(
+            "retinanet_resnet50_pascalvoc",
+            bounding_box_format="xywh",
+        )
+
     def test_retina_net_construction(self):
         retina_net = keras_cv.models.RetinaNet(
             num_classes=20,
