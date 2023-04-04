@@ -158,7 +158,8 @@ class RetinaNet(Task):
             anchor_generator=anchor_generator,
             box_variance=BOX_VARIANCE,
         )
-        super().__init__(
+        keras.Model.__init__(
+            self,
             **kwargs,
         )
         self.label_encoder = label_encoder
