@@ -298,7 +298,7 @@ class RetinaNet(Task):
         )
 
     def decode_predictions(self, predictions, images):
-        box_pred, cls_pred = predictions['box'], predictions['classification']
+        box_pred, cls_pred = predictions["box"], predictions["classification"]
         # box_pred is on "center_yxhw" format, convert to target format.
         anchors = self.anchor_generator(images[0])
         anchors = tf.concat(tf.nest.flatten(anchors), axis=0)
@@ -464,7 +464,7 @@ class RetinaNet(Task):
         # boxes are now in `center_yxhw`.  This is always the case in training
         with tf.GradientTape() as tape:
             outputs = self(x, training=True)
-            box_pred, cls_pred = outputs['box'], outputs['classification']
+            box_pred, cls_pred = outputs["box"], outputs["classification"]
             total_loss = self.compute_loss(
                 x, box_pred, cls_pred, boxes, classes
             )
@@ -506,7 +506,7 @@ class RetinaNet(Task):
         )
 
         outputs = self(x, training=False)
-        box_pred, cls_pred = outputs['box'], outputs['classification']
+        box_pred, cls_pred = outputs["box"], outputs["classification"]
         _ = self.compute_loss(x, box_pred, cls_pred, boxes, classes)
 
         if not self._has_user_metrics:
