@@ -30,7 +30,7 @@ To add a dependency for GPU tests:
 - Have a Keras team member update the Docker image for GPU tests by running the remaining steps
 - Create a `Dockerfile` with the following contents:
 ```
-FROM tensorflow/tensorflow:2.11.0-gpu
+FROM tensorflow/tensorflow:2.12.0-gpu
 RUN \
     apt-get -y update && \
     apt-get -y install openjdk-8-jdk && \
