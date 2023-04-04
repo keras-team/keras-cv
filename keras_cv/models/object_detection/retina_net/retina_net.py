@@ -51,7 +51,7 @@ class RetinaNet(Task):
     requires `num_classes`, `bounding_box_format`, and a backbone.  Optionally,
     a custom label encoder, and prediction decoder may be provided.
 
-    Usage:
+    Examples:
     ```python
     images = tf.ones(shape=(1, 512, 512, 3))
     labels = {
