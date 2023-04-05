@@ -36,13 +36,16 @@ def l1(y_true, y_pred, sigma=9.0):
 class CenterNetBoxRegressionLoss(keras.losses.Loss):
     """Implements a bin-based box regression loss for 3D bounding boxes.
 
+    This loss is meant for use as a box loss for
+    `keras_cv.models.MultiHeadCenterPillar`.
+
     Reference: https://arxiv.org/abs/1812.04244
 
-    Box3DRegressionLoss uses L1 loss on the individual components of boxes, with
-    the exception of the bin-based heading component of each box, where the bin
-    indicator outputs use cross entropy loss, and the heading residual uses L1
-    loss. The position (x/y/z) components of predictions are absolute, while
-    the size components are normalized to the anchor size.
+    CenterNetBoxRegressionLoss uses L1 loss on the individual components of
+    boxes, with the exception of the bin-based heading component of each box,
+    where the bin indicator outputs use cross entropy loss, and the heading
+    residual uses L1 loss. The position (x/y/z) components of predictions are
+    absolute, while the size components are normalized to the anchor size.
 
     Ground truth boxes are expected to follow the CENTER_XYZ_DXDYDZ_PHI format.
     Refer to https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box_3d/formats.py
