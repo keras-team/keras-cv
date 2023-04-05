@@ -59,7 +59,7 @@ class RandomAugmentationPipeline(BaseImageAugmentationLayer):
             `call()` method.
         rate: the rate at which to apply each augmentation.  This is applied on a per
             augmentation bases, so if `augmentations_per_image=3` and `rate=0.5`, the
-            odds an image will receive no augmentations is 0.5^3, or 0.5*0.5*0.5.
+            odds an image will receive no augmentations is 0.5^3, or 0.5 * 0.5 * 0.5.
         auto_vectorize: whether to use `tf.vectorized_map` or `tf.map_fn` to
             apply the augmentations.  This offers a significant performance boost, but
             can only be used if all the layers provided to the `layers` argument
