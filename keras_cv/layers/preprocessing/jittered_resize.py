@@ -118,9 +118,6 @@ class JitteredResize(BaseImageAugmentationLayer):
         self.force_output_dense_images = True
         self.auto_vectorize = False
 
-    def call(self, inputs):
-        return super().call(inputs)
-
     def get_random_transformation(self, image=None, **kwargs):
         original_image_shape = tf.shape(image)
         image_shape = tf.cast(original_image_shape[0:2], tf.float32)
