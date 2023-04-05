@@ -70,7 +70,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
         learning & fine-tuning](https://keras.io/guides/transfer_learning/).
 
     Args:
-        include_rescaling: bool, whether or not to rescale the inputs. If set to
+        include_rescaling: bool, whether to rescale the inputs. If set to
             True, inputs will be passed through a `Rescaling(1/255.0)` layer.
         include_top: bool, whether to include the fully-connected layer at the
             top of the network. If provided, num_classes must be provided.

@@ -36,7 +36,7 @@ class RepeatedAugmentation(BaseImageAugmentationLayer):
 
     Args:
         augmenters: the augmenters to use to augment the image
-        shuffle: whether or not to shuffle the result. Essential when using an
+        shuffle: whether to shuffle the result. Essential when using an
             asynchronous distribution strategy such as ParameterServerStrategy.
 
     Usage:
@@ -70,12 +70,10 @@ class RepeatedAugmentation(BaseImageAugmentationLayer):
     ```
 
     References:
-    - [DEIT implementation]
-      (https://github.com/facebookresearch/deit/blob/ee8893c8063f6937fec7096e47ba324c206e22b9/samplers.py#L8)
-    - [Original publication]
-      (https://openaccess.thecvf.com/content_CVPR_2020/papers/Hoffer_Augment_Your_Batch_Improving_Generalization_Through_Instance_Repetition_CVPR_2020_paper.pdf)
+    - [DEIT implementation](https://github.com/facebookresearch/deit/blob/ee8893c8063f6937fec7096e47ba324c206e22b9/samplers.py#L8)
+    - [Original publication](https://openaccess.thecvf.com/content_CVPR_2020/papers/Hoffer_Augment_Your_Batch_Improving_Generalization_Through_Instance_Repetition_CVPR_2020_paper.pdf)
 
-    """
+    """  # noqa: E501
 
     def __init__(self, augmenters, shuffle=True, **kwargs):
         super().__init__(**kwargs)

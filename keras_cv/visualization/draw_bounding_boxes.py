@@ -36,9 +36,9 @@ def draw_bounding_boxes(
 ):
     """Internal utility to draw bounding boxes on the target image.
 
-    Accepts a batch of images and batch of bounding boxes.  The function draws
+    Accepts a batch of images and batch of bounding boxes. The function draws
     the bounding boxes onto the image, and returns a new image tensor with the
-    annotated images.  This API is intentionally not exported, and is considered
+    annotated images. This API is intentionally not exported, and is considered
     an implementation detail.
 
     Args:
@@ -54,7 +54,7 @@ def draw_bounding_boxes(
             Defaults to 2.
         text_thickness: (Optional) the thickness for the text, defaults to
             `1.0`.
-        font_scale: (Optional) scale of font to draw in.  Defaults to `1.0`.
+        font_scale: (Optional) scale of font to draw in, defaults to `1.0`.
         class_mapping: (Optional) dictionary from class ID to class label.
 
     Returns:

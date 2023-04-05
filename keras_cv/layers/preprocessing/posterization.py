@@ -26,18 +26,16 @@ class Posterization(BaseImageAugmentationLayer):
     """Reduces the number of bits for each color channel.
 
     References:
-    - [AutoAugment: Learning Augmentation Policies from Data]
-      (https://arxiv.org/abs/1805.09501)
+    - [AutoAugment: Learning Augmentation Policies from Data](https://arxiv.org/abs/1805.09501)
     - [RandAugment: Practical automated data augmentation with a reduced search
-        space]
-      (https://arxiv.org/abs/1909.13719)
+        space](https://arxiv.org/abs/1909.13719)
 
     Args:
         value_range: a tuple or a list of two elements. The first value
             represents the lower bound for values in passed images, the second
             represents the upper bound. Images passed to the layer should have
             values within `value_range`. Defaults to `(0, 255)`.
-        bits: integer. The number of bits to keep for each channel. Must be a
+        bits: integer, the number of bits to keep for each channel. Must be a
             value between 1-8.
 
      Usage:
@@ -59,7 +57,7 @@ class Posterization(BaseImageAugmentationLayer):
         inputs: input tensor in two possible formats:
             1. single 3D (HWC) image or 4D (NHWC) batch of images.
             2. A dict of tensors where the images are under `"images"` key.
-    """
+    """  # noqa: E501
 
     def __init__(self, value_range, bits, **kwargs):
         super().__init__(**kwargs)

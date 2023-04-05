@@ -59,7 +59,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
     (CVPR 2022)
     This function returns a Keras {name} model.
     Args:
-        include_rescaling: bool, whether or not to Rescale the inputs. If set
+        include_rescaling: bool, whether to rescale the inputs. If set
             to `True`, inputs will be passed through a `Rescaling(1/255.0)`
             layer.
         include_top: bool, whether to include the fully-connected layer at the
@@ -92,7 +92,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
             use on the "top" layer. Ignored unless `include_top=True`. Set
             `classifier_activation=None` to return the logits of the "top"
             layer.
-        name: (Optional) name to pass to the model. Defaults to "{name}".
+        name: (Optional) name to pass to the model, defaults to "{name}".
 
     Returns:
       A `keras.Model` instance.
@@ -146,7 +146,7 @@ def apply_block(
     """ConvNeXt block.
     References:
       - https://arxiv.org/abs/2201.03545
-      - https://github.com/facebookresearch/ConvNeXt/blob/main/models/convnext.py  # noqa: E501
+      - https://github.com/facebookresearch/ConvNeXt/blob/main/models/convnext.py
     Notes:
       In the original ConvNeXt implementation (linked above), the authors use
       `Dense` layers for pointwise convolutions for increased efficiency.
@@ -161,7 +161,7 @@ def apply_block(
       name: name to path to the keras layer.
     Returns:
       A function representing a ConvNeXtBlock block.
-    """
+    """  # noqa: E501
     if name is None:
         name = "prestem" + str(backend.get_uid("prestem"))
 
@@ -219,7 +219,7 @@ def apply_head(x, num_classes, activation="softmax", name=None):
 class ConvNeXt(keras.Model):
     """Instantiates ConvNeXt architecture given specific configuration.
     Args:
-        include_rescaling: bool, whether or not to Rescale the inputs. If set
+        include_rescaling: bool, whether to rescale the inputs. If set
             to `True`, inputs will be passed through a `Rescaling(1/255.0)`
             layer.
         include_top: bool, whether to include the fully-connected layer at the
@@ -252,7 +252,7 @@ class ConvNeXt(keras.Model):
             use on the "top" layer. Ignored unless `include_top=True`. Set
             `classifier_activation=None` to return the logits of the "top"
             layer.
-        name: (Optional) name to pass to the model. Defaults to "convnext".
+        name: (Optional) name to pass to the model, defaults to "convnext".
     Returns:
       A `keras.Model` instance.
     Raises:

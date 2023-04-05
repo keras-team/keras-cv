@@ -38,7 +38,7 @@ class SqueezeAndExcite2D(layers.Layer):
         filters: Number of input and output filters. The number of input and
             output filters is same.
         ratio: Ratio for bottleneck filters. Number of bottleneck filters =
-            filters * ratio. Defaults to 0.25.
+            filters * ratio, defaults to 0.25.
         squeeze_activation: (Optional) String, callable (or
             keras.layers.Layer) or keras.activations.Activation instance
             denoting activation to be applied after squeeze convolution.

@@ -15,9 +15,9 @@
 
 """VGG19 model for KerasCV.
 Reference:
-  - [Very Deep Convolutional Networks for Large-Scale Image Recognition]
-    (https://arxiv.org/abs/1409.1556) (ICLR 2015)
-"""
+  - [Very Deep Convolutional Networks for Large-Scale Image Recognition](https://arxiv.org/abs/1409.1556)
+    (ICLR 2015)
+"""  # noqa: E501
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
@@ -30,11 +30,11 @@ from keras_cv.models.vgg16 import apply_vgg_block
 class VGG19(keras.Model):
     """
     Reference:
-    - [Very Deep Convolutional Networks for Large-Scale Image Recognition]
-      (https://arxiv.org/abs/1409.1556) (ICLR 2015)
+    - [Very Deep Convolutional Networks for Large-Scale Image Recognition](https://arxiv.org/abs/1409.1556)
+        (ICLR 2015)
     This class represents a Keras VGG19 model.
     Args:
-      include_rescaling: bool, whether or not to rescale the inputs. If set to
+      include_rescaling: bool, whether to rescale the inputs. If set to
         True, inputs will be passed through a `Rescaling(1/255.0)` layer.
       include_top: bool, whether to include the 3 fully-connected
         layers at the top of the network. If provided, num_classes must be
@@ -62,10 +62,10 @@ class VGG19(keras.Model):
         `classifier_activation=None` to return the logits of the "top" layer.
         When loading pretrained weights, `classifier_activation` can only
         be `None` or `"softmax"`.
-      name: (Optional) name to pass to the model. Defaults to "VGG19".
+      name: (Optional) name to pass to the model, defaults to "VGG19".
     Returns:
       A `keras.Model` instance.
-    """
+    """  # noqa: E501
 
     def __init__(
         self,

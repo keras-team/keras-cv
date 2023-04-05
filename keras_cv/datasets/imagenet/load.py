@@ -81,11 +81,11 @@ def load(
         batch_size: how many instances to include in batches after loading.
             Should only be specified if img_size is specified (so that images
             can be resized to the same size before batching).
-        shuffle: whether or not to shuffle the dataset. Defaults to True.
+        shuffle: whether to shuffle the dataset, defaults to True.
         shuffle_buffer: the size of the buffer to use in shuffling.
         reshuffle_each_iteration: whether to reshuffle the dataset on every
-            epoch. Defaults to False.
-        img_size: the size to resize the images to. Defaults to None, indicating
+            epoch, defaults to False.
+        img_size: the size to resize the images to, defaults to None, indicating
             that images should not be resized.
 
     Returns:

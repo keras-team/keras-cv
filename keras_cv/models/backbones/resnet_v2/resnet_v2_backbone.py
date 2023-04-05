@@ -13,11 +13,9 @@
 # limitations under the License.
 """ResNet models for Keras.
 Reference:
-  - [Identity Mappings in Deep Residual Networks]
-    (https://arxiv.org/abs/1603.05027) (ECCV 2016)
-  - [Based on the original keras.applications ResNet]
-    (https://github.com/keras-team/keras/blob/master/keras/applications/resnet_v2.py)
-"""
+  - [Identity Mappings in Deep Residual Networks](https://arxiv.org/abs/1603.05027) (ECCV 2016)
+  - [Based on the original keras.applications ResNet](https://github.com/keras-team/keras/blob/master/keras/applications/resnet_v2.py)
+"""  # noqa: E501
 
 import copy
 
@@ -53,8 +51,8 @@ def apply_basic_block(
     Args:
         x: input tensor.
         filters: int, filters of the basic layer.
-        kernel_size: int, kernel size of the bottleneck layer. Defaults to 3.
-        stride: int, stride of the first layer. Defaults to 1.
+        kernel_size: int, kernel size of the bottleneck layer, defaults to 3.
+        stride: int, stride of the first layer, defaults to 1.
         dilation: int, the dilation rate to use for dilated convolution.
             Defaults to 1.
         conv_shortcut: bool, uses convolution shortcut if `True`. If `False`
@@ -131,8 +129,8 @@ def apply_block(
     Args:
         x: input tensor.
         filters: int, filters of the basic layer.
-        kernel_size: int, kernel size of the bottleneck layer. Defaults to 3.
-        stride: int, stride of the first layer. Defaults to 1.
+        kernel_size: int, kernel size of the bottleneck layer, defaults to 3.
+        stride: int, stride of the first layer, defaults to 1.
         dilation: int, the dilation rate to use for dilated convolution.
             Defaults to 1.
         conv_shortcut: bool, uses convolution shortcut if `True`. If `False`
@@ -213,7 +211,7 @@ def apply_stack(
         x: input tensor.
         filters: int, filters of the layer in a block.
         blocks: int, blocks in the stacked blocks.
-        stride: int, stride of the first layer in the first block. Defaults
+        stride: int, stride of the first layer in the first block, defaults
             to 2.
         dilations: int, the dilation rate to use for dilated convolution.
             Defaults to 1.
@@ -262,8 +260,7 @@ class ResNetV2Backbone(Backbone):
     """Instantiates the ResNetV2 architecture.
 
     Reference:
-        - [Identity Mappings in Deep Residual Networks]
-          (https://arxiv.org/abs/1603.05027) (ECCV 2016)
+        - [Identity Mappings in Deep Residual Networks](https://arxiv.org/abs/1603.05027) (ECCV 2016)
 
     The difference in Resnet and ResNetV2 rests in the structure of their
     individual building blocks. In ResNetV2, the batch normalization and
@@ -271,9 +268,8 @@ class ResNetV2Backbone(Backbone):
     the batch normalization and ReLU activation are applied after the
     convolution layers.
 
-    For transfer learning use cases, make sure to read the
-    [guide to transfer learning & fine-tuning]
-    (https://keras.io/guides/transfer_learning/).
+    For transfer learning use cases, make sure to read the [guide to transfer
+    learning & fine-tuning](https://keras.io/guides/transfer_learning/).
 
     Args:
         stackwise_filters: list of ints, number of filters for each stack in
@@ -281,7 +277,7 @@ class ResNetV2Backbone(Backbone):
         stackwise_blocks: list of ints, number of blocks for each stack in the
             model.
         stackwise_strides: list of ints, stride for each stack in the model.
-        include_rescaling: bool, whether or not to Rescale the inputs. If set
+        include_rescaling: bool, whether to rescale the inputs. If set
             to `True`, inputs will be passed through a `Rescaling(1/255.0)`
             layer.
         stackwise_dilations: list of ints, dilation for each stack in the
@@ -310,7 +306,7 @@ class ResNetV2Backbone(Backbone):
     )
     output = model(input_data)
     ```
-    """
+    """  # noqa: E501
 
     def __init__(
         self,
@@ -412,8 +408,7 @@ class ResNetV2Backbone(Backbone):
 ALIAS_DOCSTRING = """ResNetV2Backbone model with {num_layers} layers.
 
     Reference:
-        - [Identity Mappings in Deep Residual Networks]
-          (https://arxiv.org/abs/1603.05027) (ECCV 2016)
+        - [Identity Mappings in Deep Residual Networks](https://arxiv.org/abs/1603.05027) (ECCV 2016)
 
     The difference in ResNet and ResNetV2 rests in the structure of their
     individual building blocks. In ResNetV2, the batch normalization and
@@ -421,12 +416,11 @@ ALIAS_DOCSTRING = """ResNetV2Backbone model with {num_layers} layers.
     the batch normalization and ReLU activation are applied after the
     convolution layers.
 
-    For transfer learning use cases, make sure to read the
-    [guide to transfer learning & fine-tuning]
-    (https://keras.io/guides/transfer_learning/).
+    For transfer learning use cases, make sure to read the [guide to transfer
+    learning & fine-tuning](https://keras.io/guides/transfer_learning/).
 
     Args:
-        include_rescaling: bool, whether or not to Rescale the inputs. If set
+        include_rescaling: bool, whether to rescale the inputs. If set
             to `True`, inputs will be passed through a `Rescaling(1/255.0)`
             layer.
         input_shape: optional shape tuple, defaults to (None, None, 3).
@@ -441,7 +435,7 @@ ALIAS_DOCSTRING = """ResNetV2Backbone model with {num_layers} layers.
     model = ResNet{num_layers}V2Backbone()
     output = model(input_data)
     ```
-"""
+"""  # noqa: E501
 
 
 class ResNet18V2Backbone(ResNetV2Backbone):

@@ -13,11 +13,11 @@
 # limitations under the License.
 """ViT (Vision Transformer) models for Keras.
 Reference:
-  - [An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale]
-    (https://arxiv.org/abs/2010.11929v2) (ICLR 2021)
+  - [An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale](https://arxiv.org/abs/2010.11929v2)
+    (ICLR 2021)
   - [How to train your ViT? Data, Augmentation, and Regularization in Vision
-     Transformers](https://arxiv.org/abs/2106.10270) (CoRR 2021)
-"""
+    Transformers](https://arxiv.org/abs/2106.10270) (CoRR 2021)
+"""  # noqa: E501
 
 import tensorflow as tf
 from tensorflow import keras
@@ -143,7 +143,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
     For transfer learning use cases, make sure to read the [guide to transfer
         learning & fine-tuning](https://keras.io/guides/transfer_learning/).
     Args:
-        include_rescaling: bool, whether or not to rescale the inputs. If set to
+        include_rescaling: bool, whether to rescale the inputs. If set to
             True, inputs will be passed through a `Rescaling(scale=1./255.0)`
             layer. Note that ViTs expect an input range of `[0..1]` if rescaling
             isn't used. Regardless of whether you supply `[0..1]` or the input
@@ -172,7 +172,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
             - `max` means that global max pooling will be applied.
             - `token_pooling`, default, means that the token at the start of the
                 sequences is used instead of regular pooling.
-        name: (Optional) name to pass to the model. Defaults to "{name}".
+        name: (Optional) name to pass to the model, defaults to "{name}".
         classifier_activation: A `str` or callable. The activation function to
             use on the "top" layer. Ignored unless `include_top=True`. Set
             `classifier_activation=None` to return the logits of the "top"
@@ -189,7 +189,7 @@ class ViT(keras.Model):
     Args:
         mlp_dim: the dimensionality of the hidden Dense layer in the transformer
             MLP head
-        include_rescaling: bool, whether or not to rescale the inputs. If set to
+        include_rescaling: bool, whether to rescale the inputs. If set to
             True, inputs will be passed through a `Rescaling(1/255.0)` layer.
         name: string, model name.
         include_top: bool, whether to include the fully-connected

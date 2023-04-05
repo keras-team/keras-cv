@@ -59,7 +59,7 @@ class RandomShear(VectorizedBaseImageAugmentationLayer):
             `None` is passed, no shear occurs on the Y axis. Defaults to `None`.
         interpolation: interpolation method used in the
             `ImageProjectiveTransformV3` op. Supported values are `"nearest"`
-            and `"bilinear"`. Defaults to `"bilinear"`.
+            and `"bilinear"`, defaults to `"bilinear"`.
         fill_mode: fill_mode in the `ImageProjectiveTransformV3` op. Supported
             values are `"reflect"`, `"wrap"`, `"constant"`, and `"nearest"`.
             Defaults to `"reflect"`.

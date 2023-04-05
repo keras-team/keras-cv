@@ -30,8 +30,7 @@ class RandomSharpness(VectorizedBaseImageAugmentationLayer):
     an image less sharp than they were in the original image.
 
     References:
-        - [PIL]
-          (https://pillow.readthedocs.io/en/stable/reference/ImageEnhance.html)
+        - [PIL](https://pillow.readthedocs.io/en/stable/reference/ImageEnhance.html)
 
     Args:
         factor: A tuple of two floats, a single float or
@@ -49,7 +48,7 @@ class RandomSharpness(VectorizedBaseImageAugmentationLayer):
             Represented as a two number tuple written [low, high].
             This is typically either `[0, 1]` or `[0, 255]` depending
             on how your preprocessing pipeline is set up.
-    """
+    """  # noqa: E501
 
     def __init__(
         self,

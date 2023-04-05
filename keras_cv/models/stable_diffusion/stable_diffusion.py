@@ -141,19 +141,18 @@ class StableDiffusionBase:
 
         Args:
             encoded_text: Tensor of shape (`batch_size`, 77, 768), or a Tensor
-            of shape (77, 768). When the batch axis is omitted, the same encoded
-            text will be used to produce every generated image.
-            batch_size: number of images to generate. Default: 1.
+                of shape (77, 768). When the batch axis is omitted, the same
+                encoded text will be used to produce every generated image.
+            batch_size: int, number of images to generate, defaults to 1.
             negative_prompt: a string containing information to negatively guide
-            the image generation (e.g. by removing or altering certain aspects
-            of the generated image).
-                Default: None.
-            num_steps: number of diffusion steps (controls image quality).
-                Default: 50.
-            unconditional_guidance_scale: float controling how closely the image
-                should adhere to the prompt. Larger values result in more
+                the image generation (e.g. by removing or altering certain
+                aspects of the generated image), defaults to None.
+            num_steps: int, number of diffusion steps (controls image quality),
+                defaults to 50.
+            unconditional_guidance_scale: float, controlling how closely the
+                image should adhere to the prompt. Larger values result in more
                 closely adhering to the prompt, but will make the image noisier.
-                Default: 7.5.
+                Defaults to 7.5.
             diffusion_noise: Tensor of shape (`batch_size`, img_height // 8,
                 img_width // 8, 4), or a Tensor of shape (img_height // 8,
                 img_width // 8, 4). Optional custom noise to seed the diffusion
@@ -266,18 +265,18 @@ class StableDiffusionBase:
                 mask will be used on all images.
             negative_prompt: a string containing information to negatively guide
                 the image generation (e.g. by removing or altering certain
-                aspects of the generated image). Default: None.
-            num_resamples: number of times to resample the generated mask
+                aspects of the generated image), defaults to None.
+            num_resamples: int, number of times to resample the generated mask
                 region. Increasing the number of resamples improves the semantic
                 fit of the generated mask region w.r.t the rest of the image.
-                Default: 1.
-            batch_size: number of images to generate. Default: 1.
-            num_steps: number of diffusion steps (controls image quality).
-                Default: 25.
-            unconditional_guidance_scale: float controlling how closely the
+                Defaults to 1.
+            batch_size: int, number of images to generate, defaults to 1.
+            num_steps: int, number of diffusion steps (controls image quality),
+                defaults to 25.
+            unconditional_guidance_scale: float, controlling how closely the
                 image should adhere to the prompt. Larger values result in more
                 closely adhering to the prompt, but will make the image noisier.
-                Default: 7.5.
+                Defaults to 7.5.
             diffusion_noise: (Optional) Tensor of shape (`batch_size`,
                 img_height // 8, img_width // 8, 4), or a Tensor of shape
                 (img_height // 8, img_width // 8, 4). Optional custom noise to
@@ -287,7 +286,7 @@ class StableDiffusionBase:
             seed: (Optional) integer which is used to seed the random generation
                 of diffusion noise, only to be specified if `diffusion_noise` is
                 None.
-            verbose: whether to print progress bar. Default: True.
+            verbose: bool, whether to print progress bar, defaults to True.
         """
         if diffusion_noise is not None and seed is not None:
             raise ValueError(
@@ -516,15 +515,15 @@ class StableDiffusion(StableDiffusionBase):
     description (called a "prompt").
 
     Arguments:
-        img_height: Height of the images to generate, in pixel. Note that only
-            multiples of 128 are supported; the value provided will be rounded
-            to the nearest valid value. Default: 512.
-        img_width: Width of the images to generate, in pixel. Note that only
-            multiples of 128 are supported; the value provided will be rounded
-            to the nearest valid value. Default: 512.
-        jit_compile: Whether to compile the underlying models to XLA.
-            This can lead to a significant speedup on some systems.
-            Default: False.
+        img_height: int, height of the images to generate, in pixel. Note that
+            only multiples of 128 are supported; the value provided will be
+            rounded to the nearest valid value. Defaults to 512.
+        img_width: int, width of the images to generate, in pixel. Note that
+            only multiples of 128 are supported; the value provided will be
+            rounded to the nearest valid value. Defaults to 512.
+        jit_compile: bool, whether to compile the underlying models to XLA.
+            This can lead to a significant speedup on some systems. Defaults to
+            False.
 
     Example:
 
@@ -544,11 +543,9 @@ class StableDiffusion(StableDiffusionBase):
     ```
 
     References:
-    - [About Stable Diffusion]
-      (https://stability.ai/blog/stable-diffusion-announcement)
-    - [Original implementation]
-      (https://github.com/CompVis/stable-diffusion)
-    """
+    - [About Stable Diffusion](https://stability.ai/blog/stable-diffusion-announcement)
+    - [Original implementation](https://github.com/CompVis/stable-diffusion)
+    """  # noqa: E501
 
     def __init__(
         self,
@@ -603,15 +600,15 @@ class StableDiffusionV2(StableDiffusionBase):
     description (called a "prompt").
 
     Arguments:
-        img_height: Height of the images to generate, in pixel. Note that only
-            multiples of 128 are supported; the value provided will be rounded
-            to the nearest valid value. Default: 512.
-        img_width: Width of the images to generate, in pixel. Note that only
-            multiples of 128 are supported; the value provided will be rounded
-            to the nearest valid value. Default: 512.
-        jit_compile: Whether to compile the underlying models to XLA.
-            This can lead to a significant speedup on some systems.
-            Default: False.
+        img_height: int, height of the images to generate, in pixel. Note that
+            only multiples of 128 are supported; the value provided will be
+            rounded to the nearest valid value. Defaults to 512.
+        img_width: int, width of the images to generate, in pixel. Note that
+            only multiples of 128 are supported; the value provided will be
+            rounded to the nearest valid value. Defaults to 512.
+        jit_compile: bool, whether to compile the underlying models to XLA.
+            This can lead to a significant speedup on some systems. Defaults to
+            False.
     Example:
 
     ```python
@@ -631,11 +628,9 @@ class StableDiffusionV2(StableDiffusionBase):
 
     References:
 
-    - [About Stable Diffusion]
-      (https://stability.ai/blog/stable-diffusion-announcement)
-    - [Original implementation]
-      (https://github.com/Stability-AI/stablediffusion)
-    """
+    - [About Stable Diffusion](https://stability.ai/blog/stable-diffusion-announcement)
+    - [Original implementation](https://github.com/Stability-AI/stablediffusion)
+    """  # noqa: E501
 
     def __init__(
         self,

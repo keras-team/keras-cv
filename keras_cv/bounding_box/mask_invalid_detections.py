@@ -34,7 +34,7 @@ def mask_invalid_detections(bounding_boxes, output_ragged=False):
         bounding_boxes: a dictionary complying with KerasCV bounding box format.
             In addition to the normal required keys, these boxes are also
             expected to have a `num_detections` key.
-        output_ragged: whether or not to output RaggedTensor based bounding
+        output_ragged: whether to output RaggedTensor based bounding
             boxes.
     Returns:
         bounding boxes with proper masking of the boxes according to

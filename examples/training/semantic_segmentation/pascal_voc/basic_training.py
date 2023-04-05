@@ -37,7 +37,7 @@ flags.DEFINE_string(
 flags.DEFINE_boolean(
     "mixed_precision",
     True,
-    "Whether or not to use FP16 mixed precision for training.",
+    "whether to use FP16 mixed precision for training.",
 )
 flags.DEFINE_string(
     "tensorboard_path",
@@ -70,7 +70,7 @@ if FLAGS.mixed_precision:
     logging.info("mixed precision training enabled")
     keras.mixed_precision.set_global_policy("mixed_float16")
 
-# Try to detect an available TPU. If none is present, default to
+# Try to detect an available TPU. If none is present, defaults to
 # MirroredStrategy
 try:
     tpu = tf.distribute.cluster_resolver.TPUClusterResolver.connect()

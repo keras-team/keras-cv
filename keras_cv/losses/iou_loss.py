@@ -34,15 +34,14 @@ class IoULoss(keras.losses.Loss):
     Args:
         bounding_box_format: a case-insensitive string (for example, "xyxy").
             Each bounding box is defined by these 4 values. For detailed
-            information on the supported formats, see the
-            [KerasCV bounding box documentation]
-            (https://keras.io/api/keras_cv/bounding_box/formats/).
+            information on the supported formats, see the [KerasCV bounding box
+            documentation](https://keras.io/api/keras_cv/bounding_box/formats/).
         mode: must be one of
             - `"linear"`. The loss will be calculated as 1 - iou
             - `"quadratic"`. The loss will be calculated as 1 - iou<sup>2</sup>
             - `"log"`. The loss will be calculated as -ln(iou)
             Defaults to "log".
-        axis: the axis along which to mean the ious. Defaults to -1.
+        axis: the axis along which to mean the ious, defaults to -1.
 
     References:
         - [UnitBox paper](https://arxiv.org/pdf/1608.01471)

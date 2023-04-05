@@ -41,7 +41,7 @@ def DarknetConvBlock(
             integer to the same value both dimensions.
         use_bias: Boolean, whether the layer uses a bias vector.
         activation: the activation applied after the BatchNorm layer. One of
-            "silu", "relu" or "leaky_relu". Defaults to "silu".
+            "silu", "relu" or "leaky_relu", defaults to "silu".
         name: the prefix for the layer names used in the block.
     """
 
@@ -140,8 +140,8 @@ def SpatialPyramidPoolingBottleneck(
             bottleneck convolution). If None, it will be equal to filters.
             Defaults to None.
         kernel_sizes: A list or tuple representing all the pool sizes used for
-            the pooling layers. Defaults to (5, 9, 13).
-        activation: Activation for the conv layers. Defaults to "silu".
+            the pooling layers, defaults to (5, 9, 13).
+        activation: Activation for the conv layers, defaults to "silu".
         name: the prefix for the layer names used in the block.
 
     Returns:
@@ -203,7 +203,7 @@ def DarknetConvBlockDepthwise(
             of the convolution along the height and width. Can be a single
             integer to the same value both dimensions.
         activation: the activation applied after the final layer. One of "silu",
-            "relu" or "leaky_relu". Defaults to "silu".
+            "relu" or "leaky_relu", defaults to "silu".
         name: the prefix for the layer names used in the block.
 
     """
@@ -245,12 +245,12 @@ class CrossStagePartial(layers.Layer):
             the layer bottleneck.
         residual: a boolean representing whether the value tensor before the
             bottleneck should be added to the output of the bottleneck as a
-            residual. Defaults to True.
+            residual, defaults to True.
         use_depthwise: a boolean value used to decide whether a depthwise conv
-            block should be used over a regular darknet block. Defaults to
+            block should be used over a regular darknet block, defaults to
             False.
         activation: the activation applied after the final layer. One of "silu",
-            "relu" or "leaky_relu". Defaults to "silu".
+            "relu" or "leaky_relu", defaults to "silu".
     """
 
     def __init__(
@@ -350,15 +350,14 @@ def Focus(name=None):
 
     If the dimensions of a batch input is (batch_size, width, height, channels),
     this layer converts the image into size (batch_size, width/2, height/2,
-    4*channels). See [the original discussion on YoloV5 Focus Layer]
-    (https://github.com/ultralytics/yolov5/discussions/3181).
+    4*channels). See [the original discussion on YoloV5 Focus Layer](https://github.com/ultralytics/yolov5/discussions/3181).
 
     Args:
         name: the name for the lambda layer used in the block.
 
     Returns:
         a function that takes an input Tensor representing a Focus layer.
-    """
+    """  # noqa: E501
 
     def apply(x):
         return layers.Lambda(

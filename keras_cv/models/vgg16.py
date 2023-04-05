@@ -15,9 +15,9 @@
 
 """VGG16 model for KerasCV.
 Reference:
-  - [Very Deep Convolutional Networks for Large-Scale Image Recognition]
-    (https://arxiv.org/abs/1409.1556) (ICLR 2015)
-"""
+  - [Very Deep Convolutional Networks for Large-Scale Image Recognition](https://arxiv.org/abs/1409.1556)
+    (ICLR 2015)
+"""  # noqa: E501
 
 import tensorflow as tf
 from tensorflow import keras
@@ -46,7 +46,7 @@ def apply_vgg_block(
         activation: str (or) callable, activation function for each CNN layer in
             block
         padding: str (or) callable, padding function for each CNN layer in block
-        max_pool: bool, whether or not to add MaxPooling2D layer at end of block
+        max_pool: bool, whether to add MaxPooling2D layer at end of block
         name: str, name of the block
 
     Returns:
@@ -69,11 +69,11 @@ def apply_vgg_block(
 class VGG16(keras.Model):
     """
     Reference:
-    - [Very Deep Convolutional Networks for Large-Scale Image Recognition]
-       (https://arxiv.org/abs/1409.1556) (ICLR 2015)
+    - [Very Deep Convolutional Networks for Large-Scale Image Recognition](https://arxiv.org/abs/1409.1556)
+        (ICLR 2015)
     This class represents a Keras VGG16 model.
     Args:
-      include_rescaling: bool, whether or not to rescale the inputs. If set to
+      include_rescaling: bool, whether to rescale the inputs. If set to
         True, inputs will be passed through a `Rescaling(1/255.0)` layer.
       include_top: bool, whether to include the 3 fully-connected
         layers at the top of the network. If provided, num_classes must be
@@ -101,10 +101,10 @@ class VGG16(keras.Model):
         `classifier_activation=None` to return the logits of the "top" layer.
         When loading pretrained weights, `classifier_activation` can only
         be `None` or `"softmax"`.
-      name: (Optional) name to pass to the model. Defaults to "VGG16".
+      name: (Optional) name to pass to the model, defaults to "VGG16".
     Returns:
       A `keras.Model` instance.
-    """
+    """  # noqa: E501
 
     def __init__(
         self,

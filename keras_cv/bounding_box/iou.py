@@ -93,19 +93,18 @@ def compute_iou(
         unbatched.
       bounding_box_format: a case-insensitive string which is one of `"xyxy"`,
         `"rel_xyxy"`, `"xyWH"`, `"center_xyWH"`, `"yxyx"`, `"rel_yxyx"`.
-        For detailed information on the supported format, see the
-        [KerasCV bounding box documentation]
-        (https://keras.io/api/keras_cv/bounding_box/formats/).
+        For detailed information on the supported format, see the [KerasCV
+        bounding box documentation](https://keras.io/api/keras_cv/bounding_box/formats/).
       use_masking: whether masking will be applied. This will mask all `boxes1`
         or `boxes2` that have values less than 0 in all its 4 dimensions.
         Default to `False`.
-      mask_val: int to mask those returned IOUs if the masking is True. Default
+      mask_val: int to mask those returned IOUs if the masking is True, defaults
         to -1.
 
     Returns:
       iou_lookup_table: a vector containing the pairwise ious of boxes1 and
         boxes2.
-    """
+    """  # noqa: E501
 
     boxes1_rank = len(boxes1.shape)
     boxes2_rank = len(boxes2.shape)

@@ -108,8 +108,8 @@ def plot_bounding_box_gallery(
         text_thickness: (Optional) the line_thickness for the text, defaults to
             `1.0`.
         font_scale: (Optional) font size to draw bounding boxes in.
-        legend: Whether or not to create a legend with the specified colors for
-            `y_true` and `y_pred`.  Defaults to False.
+        legend: whether to create a legend with the specified colors for
+            `y_true` and `y_pred`, defaults to False.
         kwargs: keyword arguments to propagate to
             `keras_cv.visualization.plot_image_gallery()`.
     """

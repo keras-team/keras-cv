@@ -47,9 +47,8 @@ class _RpnLabelEncoder(keras.layers.Layer):
 
     Args:
       anchor_format: The format of bounding boxes for anchors to generate. Refer
-        [to the keras.io docs]
-        (https://keras.io/api/keras_cv/bounding_box/formats/) for more details
-        on supported bounding box formats.
+        [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/) for more details on supported bounding box
+        formats.
       ground_truth_box_format: The format of bounding boxes for ground truth
         boxes to generate.
       positive_threshold: the float threshold to set an anchor to positive match
@@ -60,7 +59,7 @@ class _RpnLabelEncoder(keras.layers.Layer):
         samples to generate.
       positive_fraction: the fraction of positive samples to the total samples.
 
-    """
+    """  # noqa: E501
 
     def __init__(
         self,

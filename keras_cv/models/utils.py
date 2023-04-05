@@ -40,10 +40,10 @@ def as_backbone(self, min_level=None, max_level=None):
     the input image.
     Args:
         min_level: optional int, the lowest level of feature to be included in
-            the output. Default to model's lowest feature level
+            the output, defaults to model's lowest feature level
             (based on the model structure).
         max_level: optional int, the highest level of feature to be included in
-            the output. Default to model's highest feature level
+            the output, defaults to model's highest feature level
             (based on the model structure).
     Returns:
         a `keras.Model` which has dict as outputs.

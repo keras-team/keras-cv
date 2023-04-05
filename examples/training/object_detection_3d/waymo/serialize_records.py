@@ -19,10 +19,10 @@ import tensorflow as tf
 from keras_cv.datasets.waymo import build_tensors_for_augmentation
 from keras_cv.datasets.waymo import load
 
+# "gs://waymo_open_dataset_v_1_0_0_individual_files/training"
 TRAINING_RECORD_PATH = "./wod_records"
 # "gs://waymo_open_dataset_v_1_0_0_individual_files/training"
 TRANSFORMED_RECORD_PATH = "./wod_transformed"
-# "gs://waymo_open_dataset_v_1_0_0_individual_files/training"
 
 
 def _float_feature(value):

@@ -8,7 +8,7 @@ Description: Visualize ground truth and predicted bounding boxes for a given
 """
 
 """
-Plotting images from a TensorFlow dataset is easy with KerasCV.  Behold:
+Plotting images from a TensorFlow dataset is easy with KerasCV. Behold:
 """
 
 import tensorflow as tf

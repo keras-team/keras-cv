@@ -19,8 +19,8 @@ import tensorflow as tf
 from keras_cv.layers import preprocessing3d
 
 # use serialize_records to convert WOD frame to Tensors
-TRAINING_RECORD_PATH = "./wod_transformed"
 # "gs://waymo_open_dataset_v_1_0_0_individual_files/training"
+TRAINING_RECORD_PATH = "./wod_transformed"
 
 global_batch = 1
 

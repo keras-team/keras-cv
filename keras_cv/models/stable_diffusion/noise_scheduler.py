@@ -13,8 +13,8 @@
 # limitations under the License.
 """StableDiffusion Noise scheduler
 
-Adapted from https://github.com/huggingface/diffusers/blob/v0.3.0/src/diffusers/schedulers/scheduling_ddpm.py#L56  # noqa: E501
-"""
+Adapted from https://github.com/huggingface/diffusers/blob/v0.3.0/src/diffusers/schedulers/scheduling_ddpm.py#L56
+"""  # noqa: E501
 
 import tensorflow as tf
 

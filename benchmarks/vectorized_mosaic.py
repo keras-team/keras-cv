@@ -58,10 +58,8 @@ class OldMosaic(BaseImageAugmentationLayer):
             may contain additional information such as classes and confidence
             after these 4 values but these values will be ignored and returned
             as is. For detailed information on the supported formats, see the
-            [KerasCV bounding box documentation]
-            (https://keras.io/api/keras_cv/bounding_box/formats/).
-            Defaults to None.
-        seed: Integer. Used to create a random seed.
+            [KerasCV bounding box documentation](https://keras.io/api/keras_cv/bounding_box/formats/). Defaults to None.
+        seed: integer, used to create a random seed.
 
     References:
         - [Yolov4 paper](https://arxiv.org/pdf/2004.10934).
@@ -77,7 +75,7 @@ class OldMosaic(BaseImageAugmentationLayer):
     output = mosaic({'images': images, 'labels': labels})
     # output == {'images': updated_images, 'labels': updated_labels}
     ```
-    """
+    """  # noqa: E501
 
     def __init__(
         self, offset=(0.25, 0.75), bounding_box_format=None, seed=None, **kwargs

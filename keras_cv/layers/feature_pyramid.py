@@ -55,7 +55,7 @@ class FeaturePyramid(keras.layers.Layer):
         max_level: a python int for the highest level of the pyramid for
             feature extraction.
         num_channels: an integer representing the number of channels for the FPN
-            operations. Defaults to 256.
+            operations, defaults to 256.
         lateral_layers: a python dict with int keys that matches to each of the
             pyramid level. The values of the dict should be `keras.Layer`, which
             will be called with feature activation outputs from backbone at each

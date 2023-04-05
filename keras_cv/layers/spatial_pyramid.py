@@ -54,10 +54,10 @@ class SpatialPyramidPooling(keras.layers.Layer):
         Args:
             dilation_rates: A `list` of integers for parallel dilated conv.
                 Usually a sample choice of rates are [6, 12, 18].
-            num_channels: An `int` number of output channels. Default to 256.
-            activation: A `str` activation to be used. Default to 'relu'.
+            num_channels: An `int` number of output channels, defaults to 256.
+            activation: A `str` activation to be used, defaults to 'relu'.
             dropout: A `float` for the dropout rate of the final projection
-                output after the activations and batch norm. Default to 0.0,
+                output after the activations and batch norm, defaults to 0.0,
                 which means no dropout is applied to the output.
             **kwargs: Additional keyword arguments to be passed.
         """

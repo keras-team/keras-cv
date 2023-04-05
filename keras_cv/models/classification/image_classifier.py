@@ -39,7 +39,7 @@ class ImageClassifier(Task):
             dimension of the backbone output.
         num_classes: int, number of classes to predict.
         pooling: str, type of pooling layer. Must be one of "avg", "max".
-        activation: Optional `str` or callable. Defaults to "softmax". The
+        activation: Optional `str` or callable, defaults to "softmax". The
             activation function to use on the Dense layer. Set `activation=None`
             to return the output logits.
 

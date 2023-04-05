@@ -15,9 +15,8 @@
 """MLP Mixer models for KerasCV.
 
 Reference:
-  - [MLP-Mixer: An all-MLP Architecture for Vision]
-    (https://arxiv.org/abs/2105.01601)
-"""
+  - [MLP-Mixer: An all-MLP Architecture for Vision](https://arxiv.org/abs/2105.01601)
+"""  # noqa: E501
 
 import tensorflow as tf
 from tensorflow import keras
@@ -53,8 +52,7 @@ MODEL_CONFIGS = {
 BASE_DOCSTRING = """Instantiates the {name} architecture.
 
     Reference:
-        - [MLP-Mixer: An all-MLP Architecture for Vision]
-          (https://arxiv.org/abs/2105.01601)
+        - [MLP-Mixer: An all-MLP Architecture for Vision](https://arxiv.org/abs/2105.01601)
 
     This class represents a Keras {name} model.
 
@@ -62,7 +60,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
         learning & fine-tuning](https://keras.io/guides/transfer_learning/).
 
     Args:
-        include_rescaling: bool, whether or not to rescale the inputs. If set to
+        include_rescaling: bool, whether to rescale the inputs. If set to
             True, inputs will be passed through a `Rescaling(1/255.0)` layer.
         include_top: bool, whether to include the fully-connected layer at the
             top of the network. If provided, num_classes must be provided.
@@ -91,7 +89,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
 
     Returns:
       A `keras.Model` instance.
-"""
+"""  # noqa: E501
 
 
 def apply_mlp_block(x, mlp_dim, name=None):

@@ -33,15 +33,15 @@ class BinaryPenaltyReducedFocalCrossEntropy(keras.losses.Loss):
       alpha: a focusing parameter used to compute the focal factor.
         Defaults to 2.0. Note, this is equivalent to the `gamma` parameter in
         `keras.losses.BinaryFocalCrossentropy`.
-      beta: a float parameter, penalty exponent for negative labels. Defaults to
+      beta: a float parameter, penalty exponent for negative labels, defaults to
         4.0.
-      from_logits: Whether `y_pred` is expected to be a logits tensor. Defaults
+      from_logits: Whether `y_pred` is expected to be a logits tensor, defaults
         to `False`.
       positive_threshold: Anything bigger than this is treated as positive
-        label. Defaults to 0.99.
-      positive_weight: single scalar weight on positive examples. Defaults to
+        label, defaults to 0.99.
+      positive_weight: single scalar weight on positive examples, defaults to
         1.0.
-      negative_weight: single scalar weight on negative examples. Defaults to
+      negative_weight: single scalar weight on negative examples, defaults to
         1.0.
 
     Inputs:
@@ -50,9 +50,9 @@ class BinaryPenaltyReducedFocalCrossEntropy(keras.losses.Loss):
 
     References:
         - [Objects as Points](https://arxiv.org/pdf/1904.07850.pdf) Eq 1.
-        - [Cornernet: Detecting objects as paired keypoints]
-          (https://arxiv.org/abs/1808.01244) for `alpha` and `beta`.
-    """
+        - [Cornernet: Detecting objects as paired keypoints](https://arxiv.org/abs/1808.01244) for `alpha` and
+            `beta`.
+    """  # noqa: E501
 
     def __init__(
         self,

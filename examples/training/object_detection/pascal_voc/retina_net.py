@@ -13,12 +13,11 @@
 # limitations under the License.
 """
 Title: Train an Object Detection Model on Pascal VOC 2007 using KerasCV
-Author: [lukewood](https://github.com/LukeWood),
-        [tanzhenyu](https://github.com/tanzhenyu)
+Author: [lukewood](https://github.com/LukeWood), [tanzhenyu](https://github.com/tanzhenyu)
 Date created: 2022/09/27
 Last modified: 2023/03/29
 Description: Use KerasCV to train a RetinaNet on Pascal VOC 2007.
-"""
+"""  # noqa: E501
 import resource
 import sys
 
@@ -58,7 +57,7 @@ FLAGS(sys.argv)
 
 # parameters from RetinaNet [paper](https://arxiv.org/abs/1708.02002)
 
-# Try to detect an available TPU. If none is present, default to
+# Try to detect an available TPU. If none is present, defaults to
 # MirroredStrategy
 try:
     tpu = tf.distribute.cluster_resolver.TPUClusterResolver.connect()
@@ -226,8 +225,8 @@ callbacks = [
     keras.callbacks.ModelCheckpoint(FLAGS.weights_name, save_weights_only=True),
     # Temporarily need PyCOCOCallback to verify
     # a 1:1 comparison with the PyMetrics version.
-    # Currently, results do not match.  I have a feeling this is due
-    # to how we are creating the boxes in  `BoxCOCOMetrics`
+    # Currently, results do not match. I have a feeling this is due
+    # to how we are creating the boxes in `BoxCOCOMetrics`
     PyCOCOCallback(eval_ds, bounding_box_format="xywh"),
     EvaluateCOCOMetricsCallback(eval_ds),
     keras.callbacks.TensorBoard(log_dir=FLAGS.tensorboard_path),

@@ -47,8 +47,8 @@ BOX_VARIANCE = [0.1, 0.1, 0.2, 0.2]
 class RetinaNet(Task):
     """A Keras model implementing the RetinaNet meta-architecture.
 
-    Implements the RetinaNet architecture for object detection.  The constructor
-    requires `num_classes`, `bounding_box_format`, and a backbone.  Optionally,
+    Implements the RetinaNet architecture for object detection. The constructor
+    requires `num_classes`, `bounding_box_format`, and a backbone. Optionally,
     a custom label encoder, and prediction decoder may be provided.
 
     Examples:
@@ -333,7 +333,7 @@ class RetinaNet(Task):
         """compiles the RetinaNet.
 
         compile() mirrors the standard Keras compile() method, but has a few key
-        distinctions.  Primarily, all metrics must support bounding boxes, and
+        distinctions. Primarily, all metrics must support bounding boxes, and
         two losses must be provided: `box_loss` and `classification_loss`.
 
         Args:
@@ -345,7 +345,7 @@ class RetinaNet(Task):
                 is passed.
             weight_decay: a float for variable weight decay.
             metrics: KerasCV object detection metrics that accept decoded
-                bounding boxes as their inputs.  Examples of this metric type
+                bounding boxes as their inputs. Examples of this metric type
                 are `keras_cv.metrics.BoxRecall()` and
                 `keras_cv.metrics.BoxMeanAveragePrecision()`. When `metrics` are
                 included in the call to `compile()`, the RetinaNet will perform
@@ -404,7 +404,7 @@ class RetinaNet(Task):
     def compute_loss(self, x, box_pred, cls_pred, boxes, classes):
         if boxes.shape[-1] != 4:
             raise ValueError(
-                "boxes should have shape (None, None, 4).  Got "
+                "boxes should have shape (None, None, 4). Got "
                 f"boxes.shape={tuple(boxes.shape)}"
             )
 
@@ -461,7 +461,7 @@ class RetinaNet(Task):
             images=x,
         )
         boxes, classes = self.label_encoder(x, y_for_label_encoder)
-        # boxes are now in `center_yxhw`.  This is always the case in training
+        # boxes are now in `center_yxhw`. This is always the case in training
         with tf.GradientTape() as tape:
             outputs = self(x, training=True)
             box_pred, cls_pred = outputs["box"], outputs["classification"]
@@ -575,7 +575,7 @@ def _parse_box_loss(loss):
 
     raise ValueError(
         "Expected `box_loss` to be either a Keras Loss, "
-        f"callable, or the string 'SmoothL1'.  Got loss={loss}."
+        f"callable, or the string 'SmoothL1'. Got loss={loss}."
     )
 
 
@@ -592,5 +592,5 @@ def _parse_classification_loss(loss):
 
     raise ValueError(
         "Expected `classification_loss` to be either a Keras Loss, "
-        f"callable, or the string 'Focal'.  Got loss={loss}."
+        f"callable, or the string 'Focal'. Got loss={loss}."
     )

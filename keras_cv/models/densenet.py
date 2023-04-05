@@ -16,9 +16,8 @@
 
 Reference:
   - [Densely Connected Convolutional Networks](https://arxiv.org/abs/1608.06993)
-  - [Based on the Original keras.applications DenseNet]
-    (https://github.com/keras-team/keras/blob/master/keras/applications/densenet.py)
-"""
+  - [Based on the Original keras.applications DenseNet](https://github.com/keras-team/keras/blob/master/keras/applications/densenet.py)
+"""  # noqa: E501
 
 from tensorflow import keras
 from tensorflow.keras import backend
@@ -45,8 +44,7 @@ BN_EPSILON = 1.001e-5
 BASE_DOCSTRING = """Instantiates the {name} architecture.
 
     Reference:
-        - [Densely Connected Convolutional Networks (CVPR 2017)]
-          (https://arxiv.org/abs/1608.06993)
+        - [Densely Connected Convolutional Networks (CVPR 2017)](https://arxiv.org/abs/1608.06993)
 
     This function returns a Keras {name} model.
 
@@ -54,7 +52,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
         learning & fine-tuning](https://keras.io/guides/transfer_learning/).
 
     Args:
-        include_rescaling: bool, whether or not to Rescale the inputs. If set
+        include_rescaling: bool, whether to rescale the inputs. If set
             to `True`, inputs will be passed through a `Rescaling(1/255.0)`
             layer.
         include_top: bool, whether to include the fully-connected layer at the
@@ -76,7 +74,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
                 output of the last convolutional block, and thus the output of
                 the model will be a 2D tensor.
             - `max` means that global max pooling will be applied.
-        name: (Optional) name to pass to the model. Defaults to "{name}".
+        name: (Optional) name to pass to the model, defaults to "{name}".
         classifier_activation: A `str` or callable. The activation function to
             use on the "top" layer. Ignored unless `include_top=True`. Set
             `classifier_activation=None` to return the logits of the "top"
@@ -84,7 +82,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
 
     Returns:
       A `keras.Model` instance.
-"""
+"""  # noqa: E501
 
 
 def apply_dense_block(x, blocks, name=None):
@@ -95,7 +93,7 @@ def apply_dense_block(x, blocks, name=None):
       name: string, block label.
 
     Returns:
-      a function that takes an input Tensor representing a apply_dense_block.
+      a function that takes an input Tensor representing an apply_dense_block.
     """
     if name is None:
         name = f"dense_block_{backend.get_uid('dense_block')}"
@@ -174,8 +172,7 @@ class DenseNet(keras.Model):
     """Instantiates the DenseNet architecture.
 
     Reference:
-        - [Densely Connected Convolutional Networks (CVPR 2017)]
-          (https://arxiv.org/abs/1608.06993)
+        - [Densely Connected Convolutional Networks (CVPR 2017)](https://arxiv.org/abs/1608.06993)
 
     This function returns a Keras DenseNet model.
 
@@ -184,7 +181,7 @@ class DenseNet(keras.Model):
 
     Args:
         blocks: numbers of building blocks for the four dense layers.
-        include_rescaling: bool, whether or not to Rescale the inputs. If set
+        include_rescaling: bool, whether to rescale the inputs. If set
             to `True`, inputs will be passed through a `Rescaling(1/255.0)`
             layer.
         include_top: bool, whether to include the fully-connected layer at the
@@ -206,7 +203,7 @@ class DenseNet(keras.Model):
                 output of the last convolutional block, and thus the output of
                 the model will be a 2D tensor.
             - `max` means that global max pooling will be applied.
-        name: (Optional) name to pass to the model. Defaults to "DenseNet".
+        name: (Optional) name to pass to the model, defaults to "DenseNet".
         classifier_activation: A `str` or callable. The activation function to
             use on the "top" layer. Ignored unless `include_top=True`. Set
             `classifier_activation=None` to return the logits of the "top"
@@ -214,7 +211,7 @@ class DenseNet(keras.Model):
 
     Returns:
       A `keras.Model` instance.
-    """
+    """  # noqa: E501
 
     def __init__(
         self,

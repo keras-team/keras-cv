@@ -79,8 +79,8 @@ class MBConvBlock(layers.Layer):
             bn_momentum: default 0.9, the BatchNormalization momentum
             activation: default "swish", the activation function used between
                 convolution operations
-            survival_probability: float, default 0.8, the optional dropout rate
-                to apply before the output convolution
+            survival_probability: float, the optional dropout rate to apply
+                before the output convolution, defaults to 0.8
 
         Returns:
             A `tf.Tensor` representing a feature map, passed through the MBConv

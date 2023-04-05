@@ -33,8 +33,7 @@ class DropBlock2D(BaseRandomLayer):
     mentions using DropBlock in 3rd and 4th group of ResNet blocks.
 
     Reference:
-    - [DropBlock: A regularization method for convolutional networks]
-      (https://arxiv.org/abs/1810.12890)
+    - [DropBlock: A regularization method for convolutional networks](https://arxiv.org/abs/1810.12890)
 
     Args:
         rate: float. Probability of dropping a unit. Must be between 0 and 1.
@@ -137,7 +136,7 @@ class DropBlock2D(BaseRandomLayer):
     #     shape=(1, 4, 4),
     #     dtype=float32)
     ```
-    """
+    """  # noqa: E501
 
     def __init__(
         self,

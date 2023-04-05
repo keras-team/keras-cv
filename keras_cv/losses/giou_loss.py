@@ -34,15 +34,13 @@ class GIoULoss(keras.losses.Loss):
     Args:
         bounding_box_format: a case-insensitive string (for example, "xyxy").
             Each bounding box is defined by these 4 values.For detailed
-            information on the supported formats, see the
-            [KerasCV bounding box documentation]
-            (https://keras.io/api/keras_cv/bounding_box/formats/).
-        axis: the axis along which to mean the ious. Defaults to -1.
+            information on the supported formats, see the [KerasCV bounding box
+            documentation](https://keras.io/api/keras_cv/bounding_box/formats/).
+        axis: the axis along which to mean the ious, defaults to -1.
 
     References:
         - [GIoU paper](https://arxiv.org/pdf/1902.09630)
-        - [TFAddons Implementation]
-        (https://www.tensorflow.org/addons/api_docs/python/tfa/losses/GIoULoss)
+        - [TFAddons Implementation](https://www.tensorflow.org/addons/api_docs/python/tfa/losses/GIoULoss)
 
     Sample Usage:
     ```python
@@ -64,7 +62,7 @@ class GIoULoss(keras.losses.Loss):
     ```python
     model.compile(optimizer='adam', loss=keras_cv.losses.GIoULoss())
     ```
-    """
+    """  # noqa: E501
 
     def __init__(self, bounding_box_format, axis=-1, **kwargs):
         super().__init__(**kwargs)

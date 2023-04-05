@@ -78,17 +78,17 @@ flags.DEFINE_integer(
     "number of accelerators in use.",
 )
 flags.DEFINE_boolean(
-    "use_xla", True, "Whether or not to use XLA (jit_compile) for training."
+    "use_xla", True, "whether to use XLA (jit_compile) for training."
 )
 flags.DEFINE_boolean(
     "use_mixed_precision",
     False,
-    "Whether or not to use FP16 mixed precision for training.",
+    "whether to use FP16 mixed precision for training.",
 )
 flags.DEFINE_boolean(
     "use_ema",
     True,
-    "Whether or not to use exponential moving average weight updating",
+    "whether to use exponential moving average weight updating",
 )
 flags.DEFINE_float(
     "initial_learning_rate",
@@ -153,7 +153,7 @@ appropriate distribution strategy accordingly. We scale our learning rate and
 batch size based on the number of accelerators being used.
 """
 
-# Try to detect an available TPU. If none is present, default to
+# Try to detect an available TPU. If none is present, defaults to
 # MirroredStrategy
 try:
     tpu = tf.distribute.cluster_resolver.TPUClusterResolver.connect()

@@ -15,11 +15,9 @@
 """MobileNet v3 models for KerasCV.
 
 References:
-    - [Searching for MobileNetV3](https://arxiv.org/pdf/1905.02244.pdf)
-      (ICCV 2019)
-    - [Based on the original keras.applications MobileNetv3]
-      (https://github.com/keras-team/keras/blob/master/keras/applications/mobilenet_v3.py)
-"""
+    - [Searching for MobileNetV3](https://arxiv.org/pdf/1905.02244.pdf)(ICCV 2019)
+    - [Based on the original keras.applications MobileNetv3](https://github.com/keras-team/keras/blob/master/keras/applications/mobilenet_v3.py)
+"""  # noqa: E501
 
 import tensorflow as tf
 from tensorflow import keras
@@ -36,8 +34,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
 
     References:
         - [Searching for MobileNetV3](https://arxiv.org/abs/1905.02244)
-        - [Based on the Original keras.applications MobileNetv3]
-          (https://github.com/keras-team/keras/blob/master/keras/applications/mobilenet_v3.py)
+        - [Based on the Original keras.applications MobileNetv3](https://github.com/keras-team/keras/blob/master/keras/applications/mobilenet_v3.py)
 
     This class represents a Keras {name} model.
 
@@ -45,7 +42,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
         learning & fine-tuning](https://keras.io/guides/transfer_learning/).
 
     Args:
-        include_rescaling: bool, whether or not to rescale the inputs. If set to
+        include_rescaling: bool, whether to rescale the inputs. If set to
             True, inputs will be passed through a `Rescaling(scale=1 / 255)
             layer. Defaults to True.
         include_top: bool, whether to include the fully-connected layer at the
@@ -89,7 +86,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
 
     Returns:
         A `keras.Model` instance.
-"""
+"""  # noqa: E501
 
 
 def depth(x, divisor=8, min_value=None):
@@ -257,10 +254,8 @@ class MobileNetV3(keras.Model):
     """Instantiates the MobileNetV3 architecture.
 
     References:
-        - [Searching for MobileNetV3](https://arxiv.org/pdf/1905.02244.pdf)
-          (ICCV 2019)
-        - [Based on the Original keras.applications MobileNetv3]
-          (https://github.com/keras-team/keras/blob/master/keras/applications/mobilenet_v3.py)
+        - [Searching for MobileNetV3](https://arxiv.org/pdf/1905.02244.pdf)(ICCV 2019)
+        - [Based on the Original keras.applications MobileNetv3](https://github.com/keras-team/keras/blob/master/keras/applications/mobilenet_v3.py)
 
     This class represents a Keras MobileNetV3 model.
 
@@ -322,7 +317,7 @@ class MobileNetV3(keras.Model):
         ValueError: if `weights` represents an invalid path to the weights file
             and is not None.
         ValueError: if `include_top` is True and `num_classes` is not specified.
-    """
+    """  # noqa: E501
 
     def __init__(
         self,

@@ -59,16 +59,16 @@ BASE_DOCSTRING = """Represents the {name} architecture.
         - [CSPNet Paper](https://arxiv.org/pdf/1911.11929)
         - [YoloX Paper](https://arxiv.org/abs/2107.08430)
         - [YoloX implementation](https://github.com/ultralytics/yolov3)
-    For transfer learning use cases, make sure to read the
-    [guide to transfer learning & fine-tuning]
-    (https://keras.io/guides/transfer_learning/).
+    For transfer learning use cases, make sure to read the [guide to transfer
+    learning & fine-tuning](https://keras.io/guides/transfer_learning/).
     Args:
-        include_rescaling: bool, whether or not to rescale the inputs. If set to
+        include_rescaling: bool, whether to rescale the inputs. If set to
             True, inputs will be passed through a `Rescaling(1/255.0)` layer.
         include_top: bool, whether to include the fully-connected layer at the
             top of the network. If provided, `num_classes` must be provided.
         use_depthwise: a boolean value used to decide whether a depthwise conv
-            block should be used over a regular darknet block. Defaults to False
+            block should be used over a regular darknet block, defaults to
+            False.
         num_classes: integer, optional number of classes to classify images
             into. Only to be specified if `include_top` is True.
         weights: one of `None` (random initialization), a pretrained weight file
@@ -107,20 +107,20 @@ class CSPDarkNet(keras.Model):
         - [CSPNet Paper](https://arxiv.org/pdf/1911.11929)
         - [YoloX Paper](https://arxiv.org/abs/2107.08430)
         - [YoloX implementation](https://github.com/ultralytics/yolov3)
-    For transfer learning use cases, make sure to read the
-    [guide to transfer learning & fine-tuning]
-    (https://keras.io/guides/transfer_learning/).
+    For transfer learning use cases, make sure to read the [guide to transfer
+    learning & fine-tuning](https://keras.io/guides/transfer_learning/).
     Args:
         depth_multiplier: A float value used to calculate the base depth of the
             model this changes based the detection model being used.
         width_multiplier: A float value used to calculate the base width of the
             model this changes based the detection model being used.
-        include_rescaling: bool, whether or not to Rescale the inputs. If set to
+        include_rescaling: bool, whether to rescale the inputs. If set to
             True, inputs will be passed through a `Rescaling(1/255.0)` layer.
         include_top: bool, whether to include the fully-connected layer at the
             top of the network. If provided, `num_classes` must be provided.
         use_depthwise: a boolean value used to decide whether a depthwise conv
-            block should be used over a regular darknet block. Defaults to False
+            block should be used over a regular darknet block, defaults to
+            False.
         num_classes: optional int,optional number of classes to classify images
             into, only to be specified if `include_top` is True.
         weights: one of `None` (random initialization), a pretrained weight file
@@ -142,7 +142,7 @@ class CSPDarkNet(keras.Model):
             use on the "top" layer. Ignored unless `include_top=True`. Set
             `classifier_activation=None` to return the logits of the "top"
             layer.
-        name: (Optional) name to pass to the model. Defaults to "CSPDarkNet".
+        name: (Optional) name to pass to the model, defaults to "CSPDarkNet".
     Returns:
         A `keras.Model` instance.
     """

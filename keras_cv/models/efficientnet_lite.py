@@ -16,11 +16,10 @@
 """EfficientNet Lite models for Keras.
 
 Reference:
-    - [EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks]
-      (https://arxiv.org/abs/1905.11946) (ICML 2019)
-    - [Based on the original EfficientNet Lite's]
-      (https://github.com/tensorflow/tpu/tree/master/models/official/efficientnet/lite)
-"""
+    - [EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks](https://arxiv.org/abs/1905.11946)
+        (ICML 2019)
+    - [Based on the original EfficientNet Lite's](https://github.com/tensorflow/tpu/tree/master/models/official/efficientnet/lite)
+"""  # noqa: E501
 
 import copy
 import math
@@ -119,19 +118,18 @@ DENSE_KERNEL_INITIALIZER = {
 BASE_DOCSTRING = """Instantiates the {name} architecture.
 
     Reference:
-    - [EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks]
-      (https://arxiv.org/abs/1905.11946) (ICML 2019)
+    - [EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks](https://arxiv.org/abs/1905.11946)
+        (ICML 2019)
 
     This function returns a Keras {name} model.
 
-    For image classification use cases, see[this page for detailed examples]
-    (https://keras.io/api/applications/#usage-examples-for-image-classification-models).
+    For image classification use cases, see [this page for detailed examples](https://keras.io/api/applications/#usage-examples-for-image-classification-models).
 
     For transfer learning use cases, make sure to read the [guide to transfer
         learning & fine-tuning](https://keras.io/guides/transfer_learning/).
 
     Args:
-        include_rescaling: bool, whether or not to Rescale the inputs. If set
+        include_rescaling: bool, whether to rescale the inputs. If set
             to `True`, inputs will be passed through a `Rescaling(1/255.0)`
             layer.
         include_top: bool, whether to include the fully-connected layer at the
@@ -157,11 +155,11 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
             use on the "top" layer. Ignored unless `include_top=True`. Set
             `classifier_activation=None` to return the logits of the "top"
             layer.
-        name: (Optional) name to pass to the model. Defaults to "{name}".
+        name: (Optional) name to pass to the model, defaults to "{name}".
 
     Returns:
         A `keras.Model` instance.
-"""
+"""  # noqa: E501
 
 BN_AXIS = 3
 
@@ -303,7 +301,7 @@ class EfficientNetLite(keras.Model):
     coefficients.
 
     Args:
-        include_rescaling: whether to Rescale the inputs. If set to True,
+        include_rescaling: whether to rescale the inputs. If set to True,
             inputs will be passed through a `Rescaling(1/255.0)` layer.
         include_top: whether to include the fully-connected
             layer at the top of the network.

@@ -27,14 +27,13 @@ class RetinaNetLabelEncoder(layers.Layer):
 
     This class has operations to generate targets for a batch of samples which
     is made up of the input images, bounding boxes for the objects present and
-    their class ids.  Targets are always represented in `center_yxwh` format.
+    their class ids. Targets are always represented in `center_yxwh` format.
     This done for numerical reasons, to ensure numerical consistency when
     training in any format.
 
     Args:
         bounding_box_format: The format of bounding boxes of input dataset.
-            Refer [to the keras.io docs]
-            (https://keras.io/api/keras_cv/bounding_box/formats/) for more
+            Refer [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/) for more
             details on supported bounding box formats.
         anchor_generator: `keras_cv.layers.AnchorGenerator` instance to produce
             anchor boxes. Boxes are then used to encode labels on a per-image
@@ -44,12 +43,12 @@ class RetinaNetLabelEncoder(layers.Layer):
         negative_threshold: the float threshold to set an anchor to negative
             match to gt box. Values below it are negative matches.
         box_variance: The scaling factors used to scale the bounding box
-            targets. Defaults to (0.1, 0.1, 0.2, 0.2).
-        background_class: (Optional) The class ID used for the background class.
-            Defaults to -1.
-        ignore_class: (Optional) The class ID used for the ignore class.
-            Defaults to -2.
-    """
+            targets, defaults to (0.1, 0.1, 0.2, 0.2).
+        background_class: (Optional) The class ID used for the background class,
+            defaults to -1.
+        ignore_class: (Optional) The class ID used for the ignore class,
+            defaults to -2.
+    """  # noqa: E501
 
     def __init__(
         self,

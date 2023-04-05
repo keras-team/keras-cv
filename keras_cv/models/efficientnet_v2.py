@@ -16,11 +16,9 @@
 """EfficientNet V2 models for KerasCV.
 
 Reference:
-    - [EfficientNetV2: Smaller Models and Faster Training]
-      (https://arxiv.org/abs/2104.00298) (ICML 2021)
-    - [Based on the original keras.applications EfficientNetV2]
-      (https://github.com/keras-team/keras/blob/master/keras/applications/efficientnet_v2.py)
-"""
+    - [EfficientNetV2: Smaller Models and Faster Training](https://arxiv.org/abs/2104.00298) (ICML 2021)
+    - [Based on the original keras.applications EfficientNetV2](https://github.com/keras-team/keras/blob/master/keras/applications/efficientnet_v2.py)
+"""  # noqa: E501
 
 import copy
 import math
@@ -520,15 +518,14 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
     This function returns a Keras image classification model.
 
     For image classification use cases, see
-    [this page for detailed examples]
-    (https://keras.io/api/applications/#usage-examples-for-image-classification-models).
+    [this page for detailed examples](https://keras.io/api/applications/#usage-examples-for-image-classification-models).
 
     For transfer learning use cases, make sure to read the
     [guide to transfer learning & fine-tuning](
     https://keras.io/guides/transfer_learning/).
 
     Args:
-        include_rescaling: bool, whether or not to Rescale the inputs. If set
+        include_rescaling: bool, whether to rescale the inputs. If set
             to `True`, inputs will be passed through a `Rescaling(1/255.0)`
             layer.
         include_top: bool, whether to include the fully-connected layer at the
@@ -556,7 +553,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
             layer.
     Returns:
       A `keras.Model` instance.
-"""
+"""  # noqa: E501
 
 
 def round_filters(filters, width_coefficient, min_depth, depth_divisor):
@@ -580,7 +577,7 @@ class EfficientNetV2(keras.Model):
     """Instantiates the EfficientNetV2 architecture using given scaling
     coefficients.
     Args:
-        include_rescaling: bool, whether or not to Rescale the inputs. If set
+        include_rescaling: bool, whether to rescale the inputs. If set
             to `True`, inputs will be passed through a `Rescaling(1/255.0)`
             layer.
         include_top: bool, whether to include the fully-connected

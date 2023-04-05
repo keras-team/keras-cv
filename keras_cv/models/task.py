@@ -153,11 +153,11 @@ class Task(keras.Model):
         return model
 
     def __init_subclass__(cls, **kwargs):
-        # Use __init_subclass__ to setup a correct docstring for from_preset.
+        # Use __init_subclass__ to set up a correct docstring for from_preset.
         super().__init_subclass__(**kwargs)
 
         # If the subclass does not define from_preset, assign a wrapper so that
-        # each class can have an distinct docstring.
+        # each class can have a distinct docstring.
         if "from_preset" not in cls.__dict__:
 
             def from_preset(calling_cls, *args, **kwargs):

@@ -16,11 +16,10 @@
 """EfficientNet models for Keras.
 
 Reference:
-    - [EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks]
-      (https://arxiv.org/abs/1905.11946) (ICML 2019)
-    - [Based on the original keras.applications EfficientNet]
-      (https://github.com/keras-team/keras/blob/master/keras/applications/efficientnet.py)
-"""
+    - [EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks](https://arxiv.org/abs/1905.11946)
+        (ICML 2019)
+    - [Based on the original keras.applications EfficientNet](https://github.com/keras-team/keras/blob/master/keras/applications/efficientnet.py)
+"""  # noqa: E501
 
 import copy
 import math
@@ -127,21 +126,18 @@ DENSE_KERNEL_INITIALIZER = {
 BASE_DOCSTRING = """Instantiates the {name} architecture.
 
     Reference:
-    - [EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks]
-      (https://arxiv.org/abs/1905.11946) (ICML 2019)
+    - [EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks](https://arxiv.org/abs/1905.11946)
+        (ICML 2019)
 
     This class represents a Keras image classification model.
 
-    For image classification use cases, see
-    [this page for detailed examples]
-    (https://keras.io/api/applications/#usage-examples-for-image-classification-models).
+    For image classification use cases, see [this page for detailed examples](https://keras.io/api/applications/#usage-examples-for-image-classification-models).
 
-    For transfer learning use cases, make sure to read the
-    [guide to transfer learning & fine-tuning](
-    https://keras.io/guides/transfer_learning/).
+    For transfer learning use cases, make sure to read the [guide to transfer
+    learning & fine-tuning](https://keras.io/guides/transfer_learning/).
 
     Args:
-        include_rescaling: bool, whether or not to rescale the inputs. If set to
+        include_rescaling: bool, whether to rescale the inputs. If set to
             True, inputs will be passed through a `Rescaling(1/255.0)` layer.
         include_top: bool, Whether to include the fully-connected layer at the
             top of the network.
@@ -152,7 +148,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`) to
             use as image input for the model.
         pooling: Optional pooling mode for feature extraction when `include_top`
-            is `False`. Defaults to None.
+            is `False`, defaults to None.
             - `None` means that the output of the model will be the 4D tensor
                 output of the last convolutional layer.
             - `avg` means that global average pooling will be applied to the
@@ -161,7 +157,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
             - `max` means that global max pooling will be applied.
         num_classes: int, Optional number of classes to classify images into,
             only to be specified if `include_top` is True, and if no `weights`
-            argument is specified. Defaults to None.
+            argument is specified, defaults to None.
         classifier_activation: A `str` or callable. The activation function to
             use on the "top" layer. Ignored unless `include_top=True`. Set
             `classifier_activation=None` to return the logits of the "top"
@@ -170,7 +166,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
 
     Returns:
         A `keras.Model` instance.
-"""
+"""  # noqa: E501
 
 BN_AXIS = 3
 
@@ -412,7 +408,7 @@ def apply_efficientnet_block(
 class EfficientNet(keras.Model):
     """This class represents a Keras EfficientNet architecture.
     Args:
-        include_rescaling: bool, whether or not to rescale the inputs. If set to
+        include_rescaling: bool, whether to rescale the inputs. If set to
             True, inputs will be passed through a `Rescaling(1/255.0)` layer.
         include_top: bool, whether to include the fully-connected layer at the
             top of the network.

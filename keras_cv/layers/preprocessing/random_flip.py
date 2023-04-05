@@ -49,7 +49,7 @@ class RandomFlip(BaseImageAugmentationLayer):
 
     Arguments:
       mode: String indicating which flip mode to use. Can be `"horizontal"`,
-        `"vertical"`, or `"horizontal_and_vertical"`. Defaults to
+        `"vertical"`, or `"horizontal_and_vertical"`, defaults to
         `"horizontal"`. `"horizontal"` is a left-right flip and `"vertical"` is
         a top-bottom flip.
       seed: Integer. Used to create a random seed.

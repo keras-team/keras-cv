@@ -31,10 +31,8 @@ class AnchorGenerator(keras.layers.Layer):
     levels), or a dictionary from `{'level_{number}': [parameters at scale...]}`
 
     Args:
-      bounding_box_format: The format of bounding boxes to generate. Refer
-        [to the keras.io docs]
-        (https://keras.io/api/keras_cv/bounding_box/formats/) for more details
-        on supported bounding box formats.
+      bounding_box_format: The format of bounding boxes to generate. Refer [to
+        the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/) for more details on supported bounding box formats.
       sizes: A list of integers that represent the anchor sizes for each level,
         or a dictionary of integer lists with each key representing a level.
         For each anchor size, anchor height will be
@@ -47,8 +45,8 @@ class AnchorGenerator(keras.layers.Layer):
         height.
       strides: iterable of ints that represent the anchor stride size between
         center of anchors at each scale.
-      clip_boxes: Whether or not to clip generated anchor boxes to the image
-        size. Defaults to `False`.
+      clip_boxes: whether to clip generated anchor boxes to the image
+        size, defaults to `False`.
 
     Usage:
     ```python
@@ -75,7 +73,7 @@ class AnchorGenerator(keras.layers.Layer):
     Output: a dictionary with integer keys corresponding to each level of the
         feature pyramid. The size of the anchors at each level will be
         `(H/strides[i] * W/strides[i] * len(scales) * len(aspect_ratios), 4)`.
-    """
+    """  # noqa: E501
 
     def __init__(
         self,
@@ -214,8 +212,8 @@ class _SingleAnchorGenerator:
       stride: A single int represents the anchor stride size between center of
         each anchor.
       clip_boxes: Boolean to represent whether the anchor coordinates should be
-        clipped to the image size. Defaults to `False`.
-      dtype: (Optional) The data type to use for the output anchors. Defaults to
+        clipped to the image size, defaults to `False`.
+      dtype: (Optional) The data type to use for the output anchors, defaults to
         'float32'.
 
     """
