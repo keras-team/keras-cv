@@ -11,20 +11,23 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import time
 
+import matplotlib.pyplot as plt
+import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 
-from keras_cv import bounding_box
 from keras_cv import core
+from keras_cv.layers import RandomCropAndResize
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
-from keras_cv.utils import preprocessing
+from keras_cv.utils import preprocessing as preprocessing_utils
 
 
 @keras.utils.register_keras_serializable(package="keras_cv")
-class RandomCropAndResize(BaseImageAugmentationLayer):
+class OldRandomCropAndResize(BaseImageAugmentationLayer):
     """Randomly crops a part of an image and resizes it to provided size.
 
     This implementation takes an intuitive approach, where we crop the images to a
@@ -94,39 +97,37 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
         self.bounding_box_format = bounding_box_format
         self.force_output_dense_images = True
 
-    def get_random_transformation_batch(self, batch_size, **kwargs):
-        crop_area_factor = self.crop_area_factor((batch_size,))
-        aspect_ratio = self.aspect_ratio_factor(shape=(batch_size,))
-        new_heights = tf.clip_by_value(
-            tf.sqrt(crop_area_factor / aspect_ratio),
-            0.0,
-            1.0,
+    def get_random_transformation(
+        self, image=None, label=None, bounding_box=None, **kwargs
+    ):
+        crop_area_factor = self.crop_area_factor()
+        aspect_ratio = self.aspect_ratio_factor()
+
+        new_height = tf.clip_by_value(
+            tf.sqrt(crop_area_factor / aspect_ratio), 0.0, 1.0
         )  # to avoid unwanted/unintuitive effects
-
-        new_widths = tf.clip_by_value(
-            tf.sqrt(crop_area_factor * aspect_ratio),
-            0.0,
-            1.0,
+        new_width = tf.clip_by_value(
+            tf.sqrt(crop_area_factor * aspect_ratio), 0.0, 1.0
         )
 
-        height_offsets = self._random_generator.random_uniform(
-            shape=(batch_size,),
-            minval=tf.minimum(0.0, 1.0 - new_heights),
-            maxval=tf.maximum(0.0, 1.0 - new_heights),
+        height_offset = self._random_generator.random_uniform(
+            (),
+            minval=tf.minimum(0.0, 1.0 - new_height),
+            maxval=tf.maximum(0.0, 1.0 - new_height),
             dtype=tf.float32,
         )
 
-        width_offsets = self._random_generator.random_uniform(
-            shape=(batch_size,),
-            minval=tf.minimum(0.0, 1.0 - new_widths),
-            maxval=tf.maximum(0.0, 1.0 - new_widths),
+        width_offset = self._random_generator.random_uniform(
+            (),
+            minval=tf.minimum(0.0, 1.0 - new_width),
+            maxval=tf.maximum(0.0, 1.0 - new_width),
             dtype=tf.float32,
         )
 
-        y1 = height_offsets
-        y2 = height_offsets + new_heights
-        x1 = width_offsets
-        x2 = width_offsets + new_widths
+        y1 = height_offset
+        y2 = height_offset + new_height
+        x1 = width_offset
+        x2 = width_offset + new_width
 
         return [[y1, x1, y2, x2]]
 
@@ -191,7 +192,7 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
                 "`RandomCropAndResize(bounding_box_format='xyxy')`"
             )
 
-        bounding_boxes = bounding_box.convert_format(
+        bounding_boxes = bounding_boxes.convert_format(
             bounding_boxes,
             source=self.bounding_box_format,
             target="rel_xyxy",
@@ -202,12 +203,12 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
             bounding_boxes, transformation
         )
 
-        bounding_boxes = bounding_box.clip_to_image(
+        bounding_boxes = bounding_boxes.clip_to_image(
             bounding_boxes,
             bounding_box_format="rel_xyxy",
             images=image,
         )
-        bounding_boxes = bounding_box.convert_format(
+        bounding_boxes = bounding_boxes.convert_format(
             bounding_boxes,
             source="rel_xyxy",
             target=self.bounding_box_format,
@@ -313,3 +314,100 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
         )
 
         return tf.squeeze(augmented_image, axis=0)
+
+
+if __name__ == "__main__":
+    # Run benchmark
+    (x_train, _), _ = tf.keras.datasets.cifar10.load_data()
+    x_train = x_train.astype(np.float32)
+
+    num_images = [1, 2, 3, 4]
+    results = {}
+    aug_candidates = [RandomCropAndResize, OldRandomCropAndResize]
+    aug_args = {
+        "target_size": (233, 233),
+        "crop_area_factor": (1, 1),
+        "aspect_ratio_factor": (0.8, 1.0),
+    }
+    for aug in aug_candidates:
+        # Eager Mode
+        c = aug.__name__
+        layer = aug(**aug_args)
+        runtimes = []
+        print(f"Timing {c}")
+
+        for n_images in num_images:
+            # warmup
+            layer(x_train[:n_images])
+
+            t0 = time.time()
+            r1 = layer(x_train[:n_images])
+            t1 = time.time()
+            runtimes.append(t1 - t0)
+            print(f"Runtime for {c}, n_images={n_images}: {t1-t0}")
+        results[c] = runtimes
+
+        # Graph Mode
+        c = aug.__name__ + " Graph Mode"
+        layer = aug(**aug_args)
+
+        @tf.function()
+        def apply_aug(inputs):
+            return layer(inputs)
+
+        runtimes = []
+        print(f"Timing {c}")
+
+        for n_images in num_images:
+            # warmup
+            apply_aug(x_train[:n_images])
+
+            t0 = time.time()
+            r1 = apply_aug(x_train[:n_images])
+            t1 = time.time()
+            runtimes.append(t1 - t0)
+            print(f"Runtime for {c}, n_images={n_images}: {t1-t0}")
+        results[c] = runtimes
+
+        # XLA Mode
+        c = aug.__name__ + " XLA Mode"
+        layer = aug(**aug_args)
+
+        @tf.function(jit_compile=True)
+        def apply_aug(inputs):
+            return layer(inputs)
+
+        runtimes = []
+        print(f"Timing {c}")
+
+        for n_images in num_images:
+            # warmup
+            apply_aug(x_train[:n_images])
+
+            t0 = time.time()
+            r1 = apply_aug(x_train[:n_images])
+            t1 = time.time()
+            runtimes.append(t1 - t0)
+            print(f"Runtime for {c}, n_images={n_images}: {t1-t0}")
+        results[c] = runtimes
+
+    plt.figure()
+    for key in results:
+        plt.plot(num_images, results[key], label=key)
+        plt.xlabel("Number images")
+
+    plt.ylabel("Runtime (seconds)")
+    plt.legend()
+    plt.savefig("comparison.png")
+
+    # So we can actually see more relevant margins
+    del results[aug_candidates[1].__name__]
+    plt.figure()
+    for key in results:
+        plt.plot(num_images, results[key], label=key)
+        plt.xlabel("Number images")
+
+    plt.ylabel("Runtime (seconds)")
+    plt.legend()
+    plt.legend()
+    plt.savefig("comparison_no_old_eager.png")

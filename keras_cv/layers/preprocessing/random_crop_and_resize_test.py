@@ -1,4 +1,4 @@
-# Copyright 2022 The KerasCV Authors
+# Copyright 2023 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -83,7 +83,7 @@ class RandomCropAndResizeTest(tf.test.TestCase, parameterized.TestCase):
     def test_target_size_errors(self, target_size):
         with self.assertRaisesRegex(
             ValueError,
-            "`target_size` must be tuple of two integers. Received target_size=(.*)",
+            "`target_size` must be tuple of two integers. Received target_size=(.*)",  # noqa
         ):
             _ = preprocessing.RandomCropAndResize(
                 target_size=target_size,
@@ -100,7 +100,7 @@ class RandomCropAndResizeTest(tf.test.TestCase, parameterized.TestCase):
         with self.assertRaisesRegex(
             ValueError,
             "`aspect_ratio_factor` must be tuple of two positive floats or "
-            "keras_cv.core.FactorSampler instance. Received aspect_ratio_factor=(.*)",
+            "keras_cv.core.FactorSampler instance. Received aspect_ratio_factor=(.*)",  # noqa
         ):
             _ = preprocessing.RandomCropAndResize(
                 target_size=(224, 224),
@@ -116,23 +116,23 @@ class RandomCropAndResizeTest(tf.test.TestCase, parameterized.TestCase):
     def test_crop_area_factor_errors(self, crop_area_factor):
         with self.assertRaisesRegex(
             ValueError,
-            "`crop_area_factor` must be tuple of two positive floats less than or "
+            "`crop_area_factor` must be tuple of two positive floats less than or"
             "equal to 1 or keras_cv.core.FactorSampler instance. Received "
             "crop_area_factor=(.*)",
         ):
             _ = preprocessing.RandomCropAndResize(
                 target_size=(224, 224),
-                aspect_ratio_factor=(3 / 4, 4 / 3),
-                crop_area_factor=crop_area_factor,
+                aspect_ratio_factor=(1, 1),
+                crop_area_factor=(1, 1),
             )
 
     def test_augment_sparse_segmentation_mask(self):
-        num_classes = 8
+        classes = 8
 
         input_image_shape = (1, self.height, self.width, 3)
         mask_shape = (1, self.height, self.width, 1)
         image = tf.random.uniform(shape=input_image_shape, seed=self.seed)
-        mask = np.random.randint(2, size=mask_shape) * (num_classes - 1)
+        mask = np.random.randint(2, size=mask_shape) * (classes - 1)
 
         inputs = {"images": image, "segmentation_masks": mask}
 
@@ -160,17 +160,16 @@ class RandomCropAndResizeTest(tf.test.TestCase, parameterized.TestCase):
         self.assertAllInSet(output["segmentation_masks"], [0, 7])
 
     def test_augment_one_hot_segmentation_mask(self):
-        num_classes = 8
+        classes = 8
 
         input_image_shape = (1, self.height, self.width, 3)
         mask_shape = (1, self.height, self.width, 1)
         image = tf.random.uniform(shape=input_image_shape, seed=self.seed)
         mask = tf.one_hot(
             tf.squeeze(
-                np.random.randint(2, size=mask_shape) * (num_classes - 1),
-                axis=-1,
+                np.random.randint(2, size=mask_shape) * (classes - 1), axis=-1
             ),
-            num_classes,
+            classes,
         )
 
         inputs = {"images": image, "segmentation_masks": mask}
@@ -189,12 +188,17 @@ class RandomCropAndResizeTest(tf.test.TestCase, parameterized.TestCase):
         self.assertAllClose(output["segmentation_masks"], input_mask_resized)
 
     def test_augment_bounding_box_single(self):
-        image = tf.zeros([20, 20, 3])
+        image = tf.zeros(
+            [
+                20,
+                20,
+            ]
+        )
         boxes = {
             "boxes": tf.convert_to_tensor([[0, 0, 1, 1]]),
             "classes": tf.convert_to_tensor([0]),
         }
-        input = {"images": image, "bounding_boxes": boxes}
+        input = {"image": image, "bounding_boxes": boxes}
 
         layer = preprocessing.RandomCropAndResize(
             target_size=(10, 10),
@@ -258,14 +262,14 @@ class RandomCropAndResizeTest(tf.test.TestCase, parameterized.TestCase):
         )
 
     def test_augment_boxes_ragged(self):
-        image = tf.zeros([2, 20, 20, 3])
+        images = tf.zeros([2, 20, 20, 3])
         boxes = {
             "boxes": tf.ragged.constant(
                 [[[0, 0, 1, 1], [0, 0, 1, 1]], [[0, 0, 1, 1]]], dtype=tf.float32
             ),
             "classes": tf.ragged.constant([[0, 0], [0]]),
         }
-        input = {"images": image, "bounding_boxes": boxes}
+        input = {"images": images, "bounding_boxes": boxes}
         layer = preprocessing.RandomCropAndResize(
             target_size=(18, 18),
             crop_area_factor=(0.5**2, 0.5**2),
@@ -291,3 +295,28 @@ class RandomCropAndResizeTest(tf.test.TestCase, parameterized.TestCase):
         self.assertAllClose(
             expected_output["classes"], output["bounding_boxes"]["classes"]
         )
+
+    def test_random_crop_a_resize_on_batched_images(self):
+        image_shape = (100, 100, 3)
+        images = tf.random.uniform(shape=image_shape)
+
+        layer = preprocessing.RandomCropAndResize(
+            target_size=self.target_size,
+            aspect_ratio_factor=(3 / 4, 4 / 3),
+            crop_area_factor=(0.8, 1.0),
+        )
+        output = layer(images, training=False)
+        self.assertAllClose(output[0], output[1])
+
+    def test_random_crop_and_resize_on_batched_images_training(self):
+        image_shape = (100, 100, 3)
+        image = tf.random.uniform(shape=image_shape)
+
+        layer = preprocessing.RandomCropAndResize(
+            target_size=self.target_size,
+            aspect_ratio_factor=(3 / 4, 4 / 3),
+            crop_area_factor=(0.8, 1.0),
+        )
+
+        output = layer(image, training=True)
+        self.assertNotAllClose(output[0], output[1])
