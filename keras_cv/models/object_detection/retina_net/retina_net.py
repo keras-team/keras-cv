@@ -179,13 +179,34 @@ class RetinaNet(Task):
             output_filters=9 * 4, bias_initializer=keras.initializers.Zeros()
         )
 
-        inputs, outputs = RetinaNet.build_forward(
-            feature_extractor,
-            feature_pyramid,
-            box_head,
-            classification_head,
-            num_classes,
+        # Begin construction of forward pass
+        images = keras.layers.Input(feature_extractor.input_shape[1:])
+
+        backbone_outputs = feature_extractor(images)
+        features = feature_pyramid(backbone_outputs)
+
+        N = tf.shape(images)[0]
+        cls_pred = []
+        box_pred = []
+        for feature in features:
+            box_pred.append(tf.reshape(box_head(feature), [N, -1, 4]))
+            cls_pred.append(
+                tf.reshape(
+                    classification_head(feature),
+                    [N, -1, num_classes],
+                )
+            )
+
+        cls_pred = keras.layers.Concatenate(axis=1, name="classification")(
+            cls_pred
         )
+        box_pred = keras.layers.Concatenate(axis=1, name="box")(box_pred)
+        # box_pred is always in "center_yxhw" delta-encoded no matter what
+        # format you pass in.
+
+        inputs = images
+        outputs = {"box": box_pred, "classification": cls_pred}
+
         super().__init__(
             inputs=inputs,
             outputs=outputs,
@@ -227,39 +248,6 @@ class RetinaNet(Task):
         self.classification_head = classification_head
         self.box_head = box_head
         self.build(backbone.input_shape)
-
-    @staticmethod
-    def build_forward(
-        feature_extractor,
-        feature_pyramid,
-        box_head,
-        classification_head,
-        num_classes,
-    ):
-        images = keras.layers.Input(feature_extractor.input_shape[1:])
-
-        backbone_outputs = feature_extractor(images)
-        features = feature_pyramid(backbone_outputs)
-
-        N = tf.shape(images)[0]
-        cls_pred = []
-        box_pred = []
-        for feature in features:
-            box_pred.append(tf.reshape(box_head(feature), [N, -1, 4]))
-            cls_pred.append(
-                tf.reshape(
-                    classification_head(feature),
-                    [N, -1, num_classes],
-                )
-            )
-
-        cls_pred = keras.layers.Concatenate(axis=1, name="classification")(
-            cls_pred
-        )
-        box_pred = keras.layers.Concatenate(axis=1, name="box")(box_pred)
-        # box_pred is always in "center_yxhw" delta-encoded no matter what
-        # format you pass in.
-        return images, {"box": box_pred, "classification": cls_pred}
 
     def make_predict_function(self, force=False):
         return predict_utils.make_predict_function(self, force=force)
