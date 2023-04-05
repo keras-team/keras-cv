@@ -15,6 +15,7 @@
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
+from tensorflow.keras import backend
 
 from keras_cv import bounding_box
 from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
@@ -172,28 +173,28 @@ class RandomAffineTransf(VectorizedBaseImageAugmentationLayer):
                 shape=[batch_size,], minval=self.rotation_range[0], maxval=self.rotation_range[1]
             )
         else:
-            theta = tf.cast([0,]*batch_size, tf.float32)
+            theta = tf.zeros(batch_size, tf.float32)
 
         if self.height_shift_range:
-            tx = self._random_generator.random_uniform(
-                shape=[batch_size,], minval=-self.height_shift_range[0], maxval=self.height_shift_range[1]
+            ty = self._random_generator.random_uniform(
+                shape=[batch_size,], minval=self.height_shift_range[0], maxval=self.height_shift_range[1]
             )
         else:
-            tx = tf.cast([0,]*batch_size, tf.float32)
+            ty = tf.zeros(batch_size, tf.float32)
 
         if self.width_shift_range:
-            ty = self._random_generator.random_uniform(
-                shape=[batch_size,], minval=-self.width_shift_range[0], maxval=self.width_shift_range[1]
+            tx = self._random_generator.random_uniform(
+                shape=[batch_size,], minval=self.width_shift_range[0], maxval=self.width_shift_range[1]
             )
         else:
-            ty = tf.cast([0,]*batch_size, tf.float32)
+            tx = tf.zeros(batch_size, tf.float32)
 
         if self.shear_range:
             shear = self._random_generator.random_uniform(
                 shape=[batch_size], minval=self.shear_range[0], maxval=self.shear_range[1]
             )
         else:
-            shear = tf.cast([0,]*batch_size, tf.float32)
+            shear = tf.zeros(batch_size, tf.float32)
 
         if self.zoom_range:
             zx = self._random_generator.random_uniform(
@@ -203,14 +204,14 @@ class RandomAffineTransf(VectorizedBaseImageAugmentationLayer):
                 shape=[batch_size], minval=self.zoom_range[0], maxval=self.zoom_range[1]
             )
         else:
-            zx = tf.cast([1,]*batch_size, tf.float32)
-            zy = tf.cast([1,]*batch_size, tf.float32) 
+            zx = tf.ones(batch_size, tf.float32)
+            zy = tf.ones(batch_size, tf.float32) 
         
         if self.horizontal_flip:
-            zx = torch.sign(self._random_generator.random_uniform(shape=[batch_size], minval=-1, maxval=1)) * zx
+            zx = tf.sign(self._random_generator.random_uniform(shape=[batch_size], minval=-1, maxval=1)) * zx
         
         if self.vertical_flip:
-            zy = torch.sign(self._random_generator.random_uniform(shape=[batch_size], minval=-1, maxval=1)) * zy
+            zy = tf.sign(self._random_generator.random_uniform(shape=[batch_size], minval=-1, maxval=1)) * zy
             
         transformations = {
             "theta": theta,
@@ -223,7 +224,7 @@ class RandomAffineTransf(VectorizedBaseImageAugmentationLayer):
 
         return transformations
 
-    def get_A(transformations, img_hd, img_wd):
+    def get_A(self, transformations, img_hd, img_wd):
         return get_affine_transform(
             img_hd, img_wd,
             theta=transformations["theta"],
@@ -236,15 +237,21 @@ class RandomAffineTransf(VectorizedBaseImageAugmentationLayer):
         
     def augment_images(self, images, transformations, **kwargs):
         return self._mod_images(images, transformations)
-        
+    
+    def augment_ragged_image(self, image, transformation, **kwargs):
+        images = tf.expand_dims(image, axis=0)
+        transformations = {k: tf.expand_dims(transformation[k], axis=0) for k in transformation}
+        images = self.augment_images(images, transformations)
+        return tf.squeeze(images, axis=0)
+    
     def _mod_images(self, images, transformations):
         images = preprocessing.ensure_tensor(images, self.compute_dtype)
         image_shape = tf.shape(images)
         img_hd = tf.cast(image_shape[H_AXIS], tf.float32)
         img_wd = tf.cast(image_shape[W_AXIS], tf.float32)
         
-        A = get_A(transformations, img_hd, img_wd)
-        A = tf.stack(
+        A = self.get_A(transformations, img_hd, img_wd)
+        transforms = tf.stack(
             values=[
                 A[..., 0, 0],
                 A[..., 0, 1],
@@ -252,11 +259,12 @@ class RandomAffineTransf(VectorizedBaseImageAugmentationLayer):
                 A[..., 1, 0],
                 A[..., 1, 1],
                 A[..., 1, 2],
+                A[..., 2, 0],
                 A[..., 2, 1],
-                A[..., 2, 2],
             ],
             axis=-1,
         )
+        #tf.print(A)
         images = preprocessing.transform(
             images=images,
             transforms=transforms,
@@ -308,6 +316,10 @@ class RandomAffineTransf(VectorizedBaseImageAugmentationLayer):
                 "`RandomOperations(bounding_box_format='xyxy')`"
             )
 
+        # Edge case: boxes is a tf.RaggedTensor
+        if isinstance(bounding_boxes["boxes"], tf.RaggedTensor):
+            bounding_boxes = bounding_box.to_dense(bounding_boxes)
+        
         bounding_boxes = bounding_box.convert_format(
             bounding_boxes,
             source=self.bounding_box_format,
@@ -315,10 +327,13 @@ class RandomAffineTransf(VectorizedBaseImageAugmentationLayer):
             images=images,
             dtype=self.compute_dtype,
         )
+        
+        
         image_shape = tf.shape(images)
+        tf.print(image_shape)
         img_hd = tf.cast(image_shape[H_AXIS], tf.float32)
         img_wd = tf.cast(image_shape[W_AXIS], tf.float32)
-        A = get_A(transformations, img_hd, img_wd)
+        A = self.get_A(transformations, img_hd, img_wd)[:, None, :, :]
         
         boxes = bounding_boxes["boxes"]
         ones = tf.ones_like(boxes[..., 0])
@@ -331,7 +346,7 @@ class RandomAffineTransf(VectorizedBaseImageAugmentationLayer):
             ],
             axis=-1,
         )
-        print( tf.shape(A),  tf.shape(point))
+        tf.print(A.shape, point.shape)
         out = tf.linalg.matmul(A, point)
         out = out[...,:2,:] / out[...,2:3,:]
         
@@ -386,7 +401,7 @@ def get_rotation_matrix(theta):
     ones = tf.ones_like(theta)
     zeros = tf.zeros_like(theta)
     cos = tf.math.cos(theta)
-    sin = ff.math.sin(theta)
+    sin = tf.math.sin(theta)
     return tf.stack(
         values=[
             tf.stack(values=[  cos,  -sin, zeros], axis = -1),
@@ -403,7 +418,7 @@ def get_shear_matrix(shear):
     ones = tf.ones_like(shear)
     zeros = tf.zeros_like(shear)
     cos = tf.math.cos(shear)
-    sin = ff.math.sin(shear)
+    sin = tf.math.sin(shear)
     return tf.stack(
         values=[
             tf.stack(values=[ ones,  -sin, zeros], axis = -1),
@@ -420,8 +435,8 @@ def get_zoom_matrix(zx, zy):
     zeros = tf.zeros_like(zx)
     return tf.stack(
         values=[
-            tf.stack(values=[   zx, zeros, zeros], axis = -1),
-            tf.stack(values=[zeros,    zy, zeros], axis = -1),
+            tf.stack(values=[1./zx, zeros, zeros], axis = -1),
+            tf.stack(values=[zeros, 1./zy, zeros], axis = -1),
             tf.stack(values=[zeros, zeros,  ones], axis = -1),
         ], axis=-2)
 
@@ -443,7 +458,7 @@ def get_affine_transform(
         transform_matrix = tf.linalg.matmul(transform_matrix, get_rotation_matrix(theta))
         transform_matrix = tf.linalg.matmul(transform_matrix, get_translation_matrix(img_wd*tx, img_hd*ty))
         transform_matrix = tf.linalg.matmul(transform_matrix, get_shear_matrix(shear))
-        transform_matrix = tf.linalg.matmul(transform_matrix, get_zoom_matrix(zx, xy))
+        transform_matrix = tf.linalg.matmul(transform_matrix, get_zoom_matrix(zx, zy))
         transform_matrix = tf.linalg.matmul(transform_matrix, get_translation_matrix(o_x, o_y)[None, ...])
         
         return transform_matrix
