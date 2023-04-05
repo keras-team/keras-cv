@@ -20,7 +20,6 @@ import tensorflow as tf
 from tensorflow import keras
 
 import keras_cv
-from keras_cv import layers
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
@@ -114,26 +113,10 @@ class JitteredResize(BaseImageAugmentationLayer):
         )
         self.crop_size = crop_size
         self.target_size = target_size
-        self._inference_resizing = layers.Resizing(
-            target_size[0],
-            target_size[1],
-            pad_to_aspect_ratio=True,
-            interpolation=interpolation,
-            bounding_box_format=bounding_box_format,
-        )
         self.bounding_box_format = bounding_box_format
         self.seed = seed
         self.force_output_dense_images = True
         self.auto_vectorize = False
-
-    def call(self, inputs, training=True):
-        if training:
-            return super().call(inputs, training)
-        else:
-            inputs = self._ensure_inputs_are_compute_dtype(inputs)
-            inputs, meta_data = self._format_inputs(inputs)
-            output = self._inference_resizing(inputs)
-            return self._format_output(output, meta_data)
 
     def get_random_transformation(self, image=None, **kwargs):
         original_image_shape = tf.shape(image)
