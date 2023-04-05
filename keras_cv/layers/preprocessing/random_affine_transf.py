@@ -47,6 +47,7 @@ def get_range(x, name, center=0.0):
         )
     return y
 
+
 @keras.utils.register_keras_serializable(package="keras_cv")
 class RandomAffineTransf(VectorizedBaseImageAugmentationLayer):
     """A preprocessing layer which randomly apply an affine trasformation during training.
@@ -253,18 +254,12 @@ class RandomAffineTransf(VectorizedBaseImageAugmentationLayer):
         A = self.get_A(transformations, img_hd, img_wd)
         transforms = tf.stack(
             values=[
-                A[..., 0, 0],
-                A[..., 0, 1],
-                A[..., 0, 2],
-                A[..., 1, 0],
-                A[..., 1, 1],
-                A[..., 1, 2],
-                A[..., 2, 0],
-                A[..., 2, 1],
+                A[..., 0, 0], A[..., 0, 1], A[..., 0, 2],
+                A[..., 1, 0], A[..., 1, 1], A[..., 1, 2],
+                A[..., 2, 0], A[..., 2, 1],
             ],
             axis=-1,
         )
-        #tf.print(A)
         images = preprocessing.transform(
             images=images,
             transforms=transforms,
@@ -323,17 +318,16 @@ class RandomAffineTransf(VectorizedBaseImageAugmentationLayer):
         bounding_boxes = bounding_box.convert_format(
             bounding_boxes,
             source=self.bounding_box_format,
-            target="xyxy",
+            target="rel_xyxy",
             images=images,
             dtype=self.compute_dtype,
         )
         
-        
-        image_shape = tf.shape(images)
-        tf.print(image_shape)
-        img_hd = tf.cast(image_shape[H_AXIS], tf.float32)
-        img_wd = tf.cast(image_shape[W_AXIS], tf.float32)
-        A = self.get_A(transformations, img_hd, img_wd)[:, None, :, :]
+        #image_shape = tf.shape(images)
+        #img_hd = tf.cast(image_shape[H_AXIS], tf.float32)
+        #img_wd = tf.cast(image_shape[W_AXIS], tf.float32)
+        #A = self.get_A(transformations, img_hd, img_wd)
+        A = self.get_A(transformations, 1.0, 1.0)
         
         boxes = bounding_boxes["boxes"]
         ones = tf.ones_like(boxes[..., 0])
@@ -346,8 +340,9 @@ class RandomAffineTransf(VectorizedBaseImageAugmentationLayer):
             ],
             axis=-1,
         )
-        tf.print(A.shape, point.shape)
-        out = tf.linalg.matmul(A, point)
+        
+        A = tf.linalg.pinv(A)
+        out = tf.linalg.matmul(A[:, None, :, :], point)
         out = out[...,:2,:] / out[...,2:3,:]
         
         # find readjusted coordinates of bounding box to represent it in corners
@@ -360,13 +355,13 @@ class RandomAffineTransf(VectorizedBaseImageAugmentationLayer):
         bounding_boxes["boxes"] = boxes
         bounding_boxes = bounding_box.clip_to_image(
             bounding_boxes,
-            bounding_box_format="xyxy",
+            bounding_box_format="rel_xyxy",
             images=images,
         )
         # cordinates cannot be float values, it is casted to int32
         bounding_boxes = bounding_box.convert_format(
             bounding_boxes,
-            source="xyxy",
+            source="rel_xyxy",
             target=self.bounding_box_format,
             dtype=self.compute_dtype,
             images=images,
@@ -451,8 +446,8 @@ def get_affine_transform(
     name=None
 ):
     with backend.name_scope(name or "translation_matrix"):
-        o_x = (img_wd - 1)/ 2.0
-        o_y = (img_hd - 1)/ 2.0
+        o_x = img_wd / 2.0
+        o_y = img_hd / 2.0
         
         transform_matrix = get_translation_matrix(-o_x, -o_y)[None, ...]
         transform_matrix = tf.linalg.matmul(transform_matrix, get_rotation_matrix(theta))
