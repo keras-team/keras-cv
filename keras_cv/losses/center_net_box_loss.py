@@ -33,7 +33,7 @@ def l1(y_true, y_pred, sigma=9.0):
     return tf.reduce_sum(loss, axis=-1)
 
 
-class CenterNetBoxRegressionLoss(keras.losses.Loss):
+class CenterNetBoxLoss(keras.losses.Loss):
     """Implements a bin-based box regression loss for 3D bounding boxes.
 
     This loss is meant for use as a box loss for
@@ -41,7 +41,7 @@ class CenterNetBoxRegressionLoss(keras.losses.Loss):
 
     Reference: https://arxiv.org/abs/1812.04244
 
-    CenterNetBoxRegressionLoss uses L1 loss on the individual components of
+    CenterNetBoxLoss uses L1 loss on the individual components of
     boxes, with the exception of the bin-based heading component of each box,
     where the bin indicator outputs use cross entropy loss, and the heading
     residual uses L1 loss. The position (x/y/z) components of predictions are

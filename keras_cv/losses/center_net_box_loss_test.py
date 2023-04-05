@@ -18,7 +18,7 @@ from absl.testing import parameterized
 import keras_cv
 
 
-class CenterNetBoxRegressionLoss(tf.test.TestCase, parameterized.TestCase):
+class CenterNetBoxLoss(tf.test.TestCase, parameterized.TestCase):
     @parameterized.named_parameters(
         (
             "none",
@@ -32,7 +32,7 @@ class CenterNetBoxRegressionLoss(tf.test.TestCase, parameterized.TestCase):
         ("sum_over_batch_size", "sum_over_batch_size", ()),
     )
     def test_proper_output_shapes(self, reduction, target_size):
-        loss = keras_cv.losses.CenterNetBoxRegressionLoss(
+        loss = keras_cv.losses.CenterNetBoxLoss(
             num_heading_bins=4, anchor_size=[1.0, 1.0, 1.0], reduction=reduction
         )
         result = loss(
