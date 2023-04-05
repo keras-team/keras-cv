@@ -130,13 +130,9 @@ class RetinaNetTest(tf.test.TestCase):
         _ = retina_net(xs)
         variable_names = [x.name for x in retina_net.trainable_variables]
         # classification_head
-        self.assertIn(
-            "RetinaNet/prediction_head/conv2d_8/kernel:0", variable_names
-        )
+        self.assertIn("prediction_head/conv2d_8/kernel:0", variable_names)
         # box_head
-        self.assertIn(
-            "RetinaNet/prediction_head_1/conv2d_12/kernel:0", variable_names
-        )
+        self.assertIn("prediction_head_1/conv2d_12/kernel:0", variable_names)
 
     def test_weights_change(self):
         bounding_box_format = "xywh"
@@ -200,3 +196,25 @@ class RetinaNetTest(tf.test.TestCase):
         )
         serialized_2 = keras.utils.serialize_keras_object(restored)
         self.assertEqual(serialized_1, serialized_2)
+
+
+@pytest.mark.large
+class RetinaNetSmokeTest(tf.test.TestCase):
+    def test_backbone_preset_weight_loading(self):
+        # Check that backbone preset weights loaded correctly
+        # TODO(lukewood): need to forward pass test once proper weights are
+        # implemented
+        keras_cv.models.RetinaNet.from_preset(
+            "resnet50_v2_imagenet",
+            num_classes=20,
+            bounding_box_format="xywh",
+        )
+
+    def test_full_preset_weight_loading(self):
+        # Check that backbone preset weights loaded correctly
+        # TODO(lukewood): need to forward pass test once proper weights are
+        # implemented
+        keras_cv.models.RetinaNet.from_preset(
+            "retinanet_resnet50_pascalvoc",
+            bounding_box_format="xywh",
+        )

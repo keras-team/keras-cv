@@ -41,7 +41,7 @@ class OldRandomRotation(BaseImageAugmentationLayer):
     rotations at inference time, set `training` to True when calling the layer.
 
     Input pixel values can be of any range (e.g. `[0., 1.)` or `[0, 255]`) and
-    of interger or floating point dtype. By default, the layer will output
+    of integer or floating point dtype. By default, the layer will output
     floats.
 
     Input shape:
@@ -154,9 +154,10 @@ class OldRandomRotation(BaseImageAugmentationLayer):
     ):
         if self.bounding_box_format is None:
             raise ValueError(
-                "`RandomRotation()` was called with bounding boxes,"
-                "but no `bounding_box_format` was specified in the constructor."
-                "Please specify a bounding box format in the constructor. i.e."
+                "`RandomRotation()` was called with bounding boxes, "
+                "but no `bounding_box_format` was specified in the "
+                "constructor. Please specify a bounding box format in the "
+                "constructor. i.e. "
                 "`RandomRotation(bounding_box_format='xyxy')`"
             )
 
@@ -190,7 +191,7 @@ class OldRandomRotation(BaseImageAugmentationLayer):
         )
         # point_x : x coordinates of all corners of the bounding box
         point_x = tf.gather(point, [0], axis=2)
-        # point_y : y cordinates of all corners of the bounding box
+        # point_y : y coordinates of all corners of the bounding box
         point_y = tf.gather(point, [1], axis=2)
         # rotated bounding box coordinates
         # new_x : new position of x coordinates of corners of bounding box
@@ -217,9 +218,9 @@ class OldRandomRotation(BaseImageAugmentationLayer):
         out = tf.concat([new_x, new_y], axis=2)
         # find readjusted coordinates of bounding box to represent it in corners
         # format
-        min_cordinates = tf.math.reduce_min(out, axis=1)
-        max_cordinates = tf.math.reduce_max(out, axis=1)
-        boxes = tf.concat([min_cordinates, max_cordinates], axis=1)
+        min_coordinates = tf.math.reduce_min(out, axis=1)
+        max_coordinates = tf.math.reduce_max(out, axis=1)
+        boxes = tf.concat([min_coordinates, max_coordinates], axis=1)
 
         bounding_boxes = bounding_boxes.copy()
         bounding_boxes["boxes"] = boxes
@@ -228,7 +229,7 @@ class OldRandomRotation(BaseImageAugmentationLayer):
             bounding_box_format="xyxy",
             images=image,
         )
-        # cordinates cannot be float values, it is casted to int32
+        # coordinates cannot be float values, it is casted to int32
         bounding_boxes = bounding_box.convert_format(
             bounding_boxes,
             source="xyxy",
@@ -244,10 +245,10 @@ class OldRandomRotation(BaseImageAugmentationLayer):
     def augment_segmentation_mask(
         self, segmentation_mask, transformation, **kwargs
     ):
-        # If segmentation_classes is specified, we have a dense segmentation mask.
-        # We therefore one-hot encode before rotation to avoid bad interpolation
-        # during the rotation transformation. We then make the mask sparse
-        # again using tf.argmax.
+        # If segmentation_classes is specified, we have a dense segmentation
+        # mask. We therefore one-hot encode before rotation to avoid bad
+        # interpolation during the rotation transformation. We then make the
+        # mask sparse again using tf.argmax.
         if self.segmentation_classes:
             one_hot_mask = tf.one_hot(
                 tf.squeeze(segmentation_mask, axis=-1),
@@ -268,7 +269,8 @@ class OldRandomRotation(BaseImageAugmentationLayer):
                 )
             rotated_mask = self._rotate_image(segmentation_mask, transformation)
             # Round because we are in one-hot encoding, and we may have
-            # pixels with ambugious value due to floating point math for rotation.
+            # pixels with ambiguous value due to floating point math for
+            # rotation.
             return tf.round(rotated_mask)
 
     def get_config(self):

@@ -43,16 +43,17 @@ def draw_bounding_boxes(
 
     Args:
         images: a batch Tensor of images to plot bounding boxes onto.
-        bounding_boxes: a Tensor of batched bounding boxes to plot onto the provided
-            images
+        bounding_boxes: a Tensor of batched bounding boxes to plot onto the
+            provided images.
         color: the color in which to plot the bounding boxes
         bounding_box_format: The format of bounding boxes to plot onto the
             images. Refer
-            [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
+            [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)  # noqa: E501
             for more details on supported bounding box formats.
         line_thickness: (Optional) line_thickness for the box and text labels.
             Defaults to 2.
-        text_thickness: (Optional) the lthickness for the text, defaults to `1.0`.
+        text_thickness: (Optional) the thickness for the text, defaults to
+            `1.0`.
         font_scale: (Optional) scale of font to draw in.  Defaults to `1.0`.
         class_mapping: (Optional) dictionary from class ID to class label.
 
@@ -92,7 +93,7 @@ def draw_bounding_boxes(
 
             if class_id == -1:
                 continue
-            # force conversion back to contigous array
+            # force conversion back to contiguous array
             x, y, x2, y2 = int(x), int(y), int(x2), int(y2)
             cv2.rectangle(
                 image,

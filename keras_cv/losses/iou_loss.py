@@ -110,9 +110,9 @@ class IoULoss(keras.losses.Loss):
         iou = tf.linalg.diag_part(iou)
         if self.axis == "no_reduction":
             warnings.warn(
-                "`axis='no_reduction'` is a temporary API, and the API contract "
-                "will be replaced in the future with a more generic solution "
-                "covering all losses."
+                "`axis='no_reduction'` is a temporary API, and the API "
+                "contract will be replaced in the future with a more generic "
+                "solution covering all losses."
             )
         else:
             iou = tf.reduce_mean(iou, axis=self.axis)
