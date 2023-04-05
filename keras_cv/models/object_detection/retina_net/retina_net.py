@@ -185,15 +185,15 @@ class RetinaNet(Task):
         backbone_outputs = feature_extractor(images)
         features = feature_pyramid(backbone_outputs)
 
-        N = tf.shape(images)[0]
+        batch_size = tf.shape(images)[0]
         cls_pred = []
         box_pred = []
         for feature in features:
-            box_pred.append(tf.reshape(box_head(feature), [N, -1, 4]))
+            box_pred.append(tf.reshape(box_head(feature), [batch_size, -1, 4]))
             cls_pred.append(
                 tf.reshape(
                     classification_head(feature),
-                    [N, -1, num_classes],
+                    [batch_size, -1, num_classes],
                 )
             )
 

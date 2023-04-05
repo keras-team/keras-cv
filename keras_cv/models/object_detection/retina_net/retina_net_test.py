@@ -213,7 +213,7 @@ class RetinaNetSmokeTest(tf.test.TestCase):
         # Check that backbone preset weights loaded correctly
         # TODO(lukewood): need to forward pass test once proper weights are
         # implemented
-        _ = keras_cv.models.RetinaNet.from_preset(
+        keras_cv.models.RetinaNet.from_preset(
             "retinanet_resnet50_pascalvoc",
             bounding_box_format="xywh",
         )

@@ -31,6 +31,6 @@ retina_net_presets = {
             "num_classes": 21,
         },
         "weights_url": "https://storage.googleapis.com/keras-cv/models/retinanet/pascal_voc/resnet50.weights.h5",
-        "weights_hash": "d402696d8adb0c3dd82ef0039d0e4c1c",
+        "weights_hash": "c9b11357b289512adf1e6077ab7da73f",
     },
 }
