@@ -46,25 +46,25 @@ def conv_bn(
     kernel_size=1,
     strides=1,
     activation="swish",
-    name="",
+    name=None,
 ):
     if kernel_size > 1:
         inputs = layers.ZeroPadding2D(
-            padding=kernel_size // 2, name=name and name + "pad"
+            padding=kernel_size // 2, name=f"{name}_pad"
         )(inputs)
 
     nn = layers.Conv2D(
         filters=output_channel,
         kernel_size=kernel_size,
         strides=strides,
-        padding="VALID",
+        padding="valid",
         use_bias=False,
-        name=name and name + "conv",
+        name=f"{name}_conv",
     )(inputs)
     nn = layers.BatchNormalization(
         momentum=BATCH_NORM_MOMENTUM,
         epsilon=BATCH_NORM_EPSILON,
-        name=name and name + "bn",
+        name=f"{name}_bn",
     )(nn)
     nn = layers.Activation(activation, name=name)(nn)
     return nn
@@ -77,7 +77,7 @@ def csp_with_2_conv(
     shortcut=True,
     expansion=0.5,
     activation="swish",
-    name="",
+    name=None,
 ):
     channel_axis = -1
     channels = channels if channels > 0 else inputs.shape[channel_axis]
@@ -88,7 +88,7 @@ def csp_with_2_conv(
         hidden_channels * 2,
         kernel_size=1,
         activation=activation,
-        name=name + "pre_",
+        name=f"{name}_pre",
     )
     short, deep = tf.split(pre, 2, axis=channel_axis)
 
@@ -99,14 +99,14 @@ def csp_with_2_conv(
             hidden_channels,
             kernel_size=3,
             activation=activation,
-            name=name + "pre_{}_1_".format(id),
+            name=f"{name}_pre_{id}_1",
         )
         deep = conv_bn(
             deep,
             hidden_channels,
             kernel_size=3,
             activation=activation,
-            name=name + "pre_{}_2_".format(id),
+            name=f"{name}_pre_{id}_2",
         )
         deep = (out[-1] + deep) if shortcut else deep
         out.append(deep)
@@ -116,13 +116,13 @@ def csp_with_2_conv(
         channels,
         kernel_size=1,
         activation=activation,
-        name=name + "output_",
+        name=f"{name}_output",
     )
     return out
 
 
 def spatial_pyramid_pooling_fast(
-    inputs, pool_size=5, activation="swish", name=""
+    inputs, pool_size=5, activation="swish", name=None
 ):
     channel_axis = -1
     input_channels = inputs.shape[channel_axis]
@@ -133,17 +133,17 @@ def spatial_pyramid_pooling_fast(
         hidden_channels,
         kernel_size=1,
         activation=activation,
-        name=name + "pre_",
+        name=f"{name}_pre",
     )
-    pool_1 = layers.MaxPool2D(pool_size=pool_size, strides=1, padding="SAME")(
-        nn
-    )
-    pool_2 = layers.MaxPool2D(pool_size=pool_size, strides=1, padding="SAME")(
-        pool_1
-    )
-    pool_3 = layers.MaxPool2D(pool_size=pool_size, strides=1, padding="SAME")(
-        pool_2
-    )
+    pool_1 = layers.MaxPool2D(
+        pool_size=pool_size, strides=1, padding="same", name=f"{name}_pool1"
+    )(nn)
+    pool_2 = layers.MaxPool2D(
+        pool_size=pool_size, strides=1, padding="same", name=f"{name}_pool2"
+    )(pool_1)
+    pool_3 = layers.MaxPool2D(
+        pool_size=pool_size, strides=1, padding="same", name=f"{name}_pool3"
+    )(pool_2)
 
     out = tf.concat([nn, pool_1, pool_2, pool_3], axis=channel_axis)
     out = conv_bn(
@@ -151,7 +151,7 @@ def spatial_pyramid_pooling_fast(
         input_channels,
         kernel_size=1,
         activation=activation,
-        name=name + "output_",
+        name=f"{name}_output",
     )
     return out
 
@@ -166,7 +166,7 @@ class YOLOV8Backbone(Backbone):
         depths=[3, 6, 6, 3],
         input_shape=(512, 512, 3),
         activation="swish",
-        model_name="yolov8_backbone",
+        **kwargs,
     ):
         inputs = layers.Input(input_shape)
 
@@ -183,7 +183,7 @@ class YOLOV8Backbone(Backbone):
             kernel_size=3,
             strides=2,
             activation=activation,
-            name="stem_1_",
+            name="stem_1",
         )
         nn = conv_bn(
             nn,
@@ -191,14 +191,14 @@ class YOLOV8Backbone(Backbone):
             kernel_size=3,
             strides=2,
             activation=activation,
-            name="stem_2_",
+            name="stem_2",
         )
 
         """ blocks """
         pyramid_level_inputs = {0: nn.node.layer.name}
         features = {0: nn}
         for stack_id, (channel, depth) in enumerate(zip(channels, depths)):
-            stack_name = "stack{}_".format(stack_id + 1)
+            stack_name = f"stack{stack_id + 1}"
             if stack_id >= 1:
                 nn = conv_bn(
                     nn,
@@ -206,14 +206,14 @@ class YOLOV8Backbone(Backbone):
                     kernel_size=3,
                     strides=2,
                     activation=activation,
-                    name=stack_name + "downsample_",
+                    name=f"{stack_name}_downsample",
                 )
             nn = csp_with_2_conv(
                 nn,
                 depth=depth,
                 expansion=0.5,
                 activation=activation,
-                name=stack_name + "c2f_",
+                name=f"{stack_name}_c2f",
             )
 
             if stack_id == len(depths) - 1:
@@ -221,12 +221,12 @@ class YOLOV8Backbone(Backbone):
                     nn,
                     pool_size=5,
                     activation=activation,
-                    name=stack_name + "spp_fast_",
+                    name=f"{stack_name}_spp_fast",
                 )
             pyramid_level_inputs[stack_id + 1] = nn.node.layer.name
             features[stack_id + 1] = nn
 
-        super().__init__(inputs=inputs, outputs=features, name=model_name)
+        super().__init__(inputs=inputs, outputs=features, **kwargs)
         self.pyramid_level_inputs = pyramid_level_inputs
 
     @classproperty
@@ -240,7 +240,7 @@ class YOLOV8Backbone(Backbone):
         return {}
 
 
-def path_aggregation_fpn(features, depth=3, name=""):
+def path_aggregation_fpn(features, depth=3, name=None):
     # yolov8
     # 9: p5 1024 ---+----------------------+-> 21: out2 1024
     #               v [up 1024 -> concat]  ^ [down 512 -> concat]
@@ -250,11 +250,8 @@ def path_aggregation_fpn(features, depth=3, name=""):
     # features: [p3, p4, p5]
     channel_axis = -1
     upsamples = [features[-1]]
-    p_name = "p{}_".format(len(features) + 2)
     # upsamples: [p5], features[:-1][::-1]: [p4, p3] -> [p5, p4p5, p3p4p5]
     for id, feature in enumerate(features[:-1][::-1]):
-        cur_p_name = "p{}".format(len(features) + 1 - id)
-        p_name = cur_p_name + p_name
         size = tf.shape(feature)[1:-1]
         nn = tf.image.resize(upsamples[-1], size, method="nearest")
         nn = tf.concat([nn, feature], axis=channel_axis)
@@ -266,21 +263,21 @@ def path_aggregation_fpn(features, depth=3, name=""):
             depth=depth,
             shortcut=False,
             activation="swish",
-            name=name + p_name,
+            name=f"{name}_p{len(features) + 1 - id}",
         )
         upsamples.append(nn)
 
     downsamples = [upsamples[-1]]
     # downsamples: [p3p4p5], upsamples[:-1][::-1]: [p4p5, p5] -> [p3p4p5, p3p4p5 + p4p5, p3p4p5 + p4p5 + p5]
     for id, ii in enumerate(upsamples[:-1][::-1]):
-        cur_name = name + "c3n{}_".format(id + 3)
+        cur_name = f"{name}_c3n{id + 3}"
         nn = conv_bn(
             downsamples[-1],
             downsamples[-1].shape[channel_axis],
             kernel_size=3,
             strides=2,
             activation="swish",
-            name=cur_name + "down_",
+            name=f"{cur_name}_down",
         )
         nn = tf.concat([nn, ii], axis=channel_axis)
 
@@ -301,32 +298,32 @@ def yolov8_head(
     inputs,
     num_classes=80,
     bbox_len=64,
-    name="",
+    name="yolov8_head",
 ):
     outputs = []
     reg_channels = max(16, bbox_len, inputs[0].shape[-1] // 4)
     cls_channels = max(num_classes, inputs[0].shape[-1])
     for id, feature in enumerate(inputs):
-        cur_name = name + "{}_".format(id + 1)
+        cur_name = f"{name}_{id+1}"
 
         reg_nn = conv_bn(
             feature,
             reg_channels,
             3,
             activation="swish",
-            name=cur_name + "reg_1_",
+            name=f"{cur_name}_reg_1",
         )
         reg_nn = conv_bn(
             reg_nn,
             reg_channels,
             3,
             activation="swish",
-            name=cur_name + "reg_2_",
+            name=f"{cur_name}_reg_2",
         )
         reg_out = layers.Conv2D(
             filters=bbox_len,
             kernel_size=1,
-            name=cur_name + "reg_3_" + "conv",
+            name=f"{cur_name}_reg_3_conv",
         )(reg_nn)
 
         cls_nn = conv_bn(
@@ -334,27 +331,27 @@ def yolov8_head(
             cls_channels,
             3,
             activation="swish",
-            name=cur_name + "cls_1_",
+            name=f"{cur_name}_cls_1",
         )
         cls_nn = conv_bn(
             cls_nn,
             cls_channels,
             3,
             activation="swish",
-            name=cur_name + "cls_2_",
+            name=f"{cur_name}_cls_2",
         )
         cls_out = layers.Conv2D(
             filters=num_classes,
             kernel_size=1,
-            name=cur_name + "cls_3_" + "conv",
+            name=f"{cur_name}_cls_3_conv",
         )(cls_nn)
-        cls_out = layers.Activation("sigmoid", name=cur_name + "classifier_")(
+        cls_out = layers.Activation("sigmoid", name=f"{cur_name}_classifier")(
             cls_out
         )
 
         out = tf.concat([reg_out, cls_out], axis=-1)
         out = layers.Reshape(
-            [-1, out.shape[-1]], name=cur_name + "output_reshape"
+            [-1, out.shape[-1]], name=f"{cur_name}_output_reshape"
         )(out)
         outputs.append(out)
 
@@ -388,11 +385,8 @@ def decode_boxes(preds, anchors, regression_max=16):
     return tf.concat([preds_top_left, pred_bottom_right, preds_others], axis=-1)
 
 
-""" YOLOV8 models """
-
-
 @keras.utils.register_keras_serializable(package="keras_cv")
-class YOLOv8(Task):
+class YOLOV8(Task):
     def __init__(
         self,
         bounding_box_format,
@@ -400,6 +394,7 @@ class YOLOv8(Task):
         fpn_depth,
         prediction_decoder=None,
         num_classes=80,
+        **kwargs
         # TODO(ianstenbit): anchor generator, label encoder
     ):
         extractor_levels = [2, 3, 4]
@@ -417,19 +412,18 @@ class YOLOv8(Task):
 
         # Apply the FPN
         fpn_features = path_aggregation_fpn(
-            features, depth=fpn_depth, name="pafpn_"
+            features, depth=fpn_depth, name="pa_fpn"
         )
 
         outputs = yolov8_head(
             fpn_features,
             num_classes,
             64,  # bbox_len
-            name="head_",
         )
         outputs = layers.Activation(
             "linear", dtype="float32", name="outputs_fp32"
         )(outputs)
-        super().__init__(inputs=images, outputs=outputs)
+        super().__init__(inputs=images, outputs=outputs, **kwargs)
 
         self.bounding_box_format = bounding_box_format
         self.prediction_decoder = (
