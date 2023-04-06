@@ -95,3 +95,11 @@ class MosaicTest(tf.test.TestCase):
             ValueError, "Mosaic received labels with type"
         ):
             _ = layer(inputs)
+
+    def test_image_input(self):
+        xs = tf.ones((2, 512, 512, 3))
+        layer = Mosaic()
+        with self.assertRaisesRegexp(
+            ValueError, "Mosaic expects inputs in a dictionary with format"
+        ):
+            _ = layer(xs)
