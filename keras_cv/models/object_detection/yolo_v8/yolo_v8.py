@@ -397,7 +397,7 @@ class YOLOv8(Task):
         self,
         bounding_box_format,
         backbone,
-        depths=[1, 2, 2, 1],
+        fpn_depth,
         prediction_decoder=None,
         num_classes=80,
         # TODO(ianstenbit): anchor generator, label encoder
@@ -417,7 +417,7 @@ class YOLOv8(Task):
 
         # Apply the FPN
         fpn_features = path_aggregation_fpn(
-            features, depth=depths[-1], name="pafpn_"
+            features, depth=fpn_depth, name="pafpn_"
         )
 
         outputs = yolov8_head(

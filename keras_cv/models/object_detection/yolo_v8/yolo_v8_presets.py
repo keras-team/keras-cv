@@ -97,6 +97,7 @@ yolo_v8_presets = {
         "config": {
             "backbone": yolo_v8_backbone_presets["yolov8_n_coco"],
             "num_classes": 80,
+            "fpn_depth": 1,
         },
         "weights_url": "https://storage.googleapis.com/keras-cv/models/yolov8/coco/yolov8_n.h5",
         "weights_hash": "82d15d5a20cd2cf8bb2ab46cd3b7e9a9e0b32930844fcc4bd894099331a8e6fa",
@@ -108,9 +109,8 @@ yolo_v8_presets = {
         "config": {
             "backbone": yolo_v8_backbone_presets["yolov8_s_coco"],
             "num_classes": 80,
+            "fpn_depth": 1,
         },
-        "weights_url": "https://storage.googleapis.com/keras-cv/models/yolov8/coco/yolov8_s.h5",
-        "weights_hash": "TBD",
     },
     "yolov8_m_coco": {
         "metadata": {
@@ -119,9 +119,8 @@ yolo_v8_presets = {
         "config": {
             "backbone": yolo_v8_backbone_presets["yolov8_m_coco"],
             "num_classes": 80,
+            "fpn_depth": 2,
         },
-        "weights_url": "https://storage.googleapis.com/keras-cv/models/yolov8/coco/yolov8_m.h5",
-        "weights_hash": "TBD",
     },
     "yolov8_l_coco": {
         "metadata": {
@@ -130,9 +129,8 @@ yolo_v8_presets = {
         "config": {
             "backbone": yolo_v8_backbone_presets["yolov8_l_coco"],
             "num_classes": 80,
+            "fpn_depth": 3,
         },
-        "weights_url": "https://storage.googleapis.com/keras-cv/models/yolov8/coco/yolov8_l.h5",
-        "weights_hash": "TBD",
     },
     "yolov8_x_coco": {
         "metadata": {
@@ -141,9 +139,8 @@ yolo_v8_presets = {
         "config": {
             "backbone": yolo_v8_backbone_presets["yolov8_x_coco"],
             "num_classes": 80,
+            "fpn_depth": 3,
         },
-        "weights_url": "https://storage.googleapis.com/keras-cv/models/yolov8/coco/yolov8_x.h5",
-        "weights_hash": "TBD",
     },
     "yolov8_x6_coco": {
         "metadata": {
@@ -152,8 +149,7 @@ yolo_v8_presets = {
         "config": {
             "backbone": yolo_v8_backbone_presets["yolov8_x6_coco"],
             "num_classes": 80,
+            "fpn_depth": 3,
         },
-        "weights_url": "https://storage.googleapis.com/keras-cv/models/yolov8/coco/yolov8_x6.h5",
-        "weights_hash": "TBD",
     },
 }
