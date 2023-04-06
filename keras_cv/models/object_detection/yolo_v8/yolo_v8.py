@@ -463,11 +463,14 @@ class YOLOV8(Task):
         metrics=None,
         **kwargs,
     ):
-        self.box_loss = keras_cv.losses.SmoothL1Loss(
+        self.box_loss = box_loss or keras_cv.losses.SmoothL1Loss(
             l1_cutoff=1.0, reduction=keras.losses.Reduction.SUM
         )
-        self.classification_loss = keras_cv.losses.FocalLoss(
-            from_logits=False, reduction=keras.losses.Reduction.SUM
+        self.classification_loss = (
+            classification_loss
+            or keras_cv.losses.FocalLoss(
+                from_logits=False, reduction=keras.losses.Reduction.SUM
+            )
         )
 
         losses = {
