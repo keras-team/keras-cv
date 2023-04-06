@@ -115,11 +115,3 @@ class RandomChannelShiftTest(tf.test.TestCase, parameterized.TestCase):
         self.assertEqual(reconstructed_layer.value_range, layer.value_range)
         self.assertEqual(reconstructed_layer.seed, layer.seed)
         self.assertEqual(reconstructed_layer.channels, layer.channels)
-
-    def test_inference(self):
-        layer = preprocessing.RandomChannelShift(
-            factor=0.8, value_range=(0, 255)
-        )
-        inputs = np.random.randint(0, 255, size=(224, 224, 3))
-        output = layer(inputs, training=False)
-        self.assertAllClose(inputs, output)

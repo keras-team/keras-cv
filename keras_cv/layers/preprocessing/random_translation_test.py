@@ -185,13 +185,6 @@ class RandomTranslationTest(tf.test.TestCase, parameterized.TestCase):
             expected_output = np.reshape(expected_output, (1, 5, 5, 1))
             self.assertAllEqual(expected_output, output_image)
 
-    def test_random_translation_inference(self):
-        input_images = np.random.random((2, 5, 8, 3)).astype(np.float32)
-        expected_output = input_images
-        layer = preprocessing.RandomTranslation(0.5, 0.5)
-        actual_output = layer(input_images, training=False)
-        self.assertAllClose(expected_output, actual_output)
-
     def test_random_translation_on_batched_images_independently(self):
         image = tf.random.uniform(shape=(100, 100, 3))
         input_images = tf.stack([image, image], axis=0)

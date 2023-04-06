@@ -259,19 +259,6 @@ class RandomlyZoomedCrop(VectorizedBaseImageAugmentationLayer):
                 axis=1,
             )
 
-    def call(self, inputs, training=True):
-        if training:
-            return super().call(inputs, training)
-        else:
-            inputs = self._ensure_inputs_are_compute_dtype(inputs)
-            inputs, meta_data = self._format_inputs(inputs)
-            output = inputs
-            # self._resize() returns valid results for both batched and
-            # unbatched
-            output[IMAGES] = self._resize(inputs[IMAGES])
-
-            return self._format_output(output, meta_data)
-
     def _resize(self, images, **kwargs):
         resizing_layer = keras.layers.Resizing(
             self.height, self.width, **kwargs

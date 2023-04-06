@@ -86,16 +86,6 @@ class MosaicTest(tf.test.TestCase):
         ):
             _ = layer(xs)
 
-    def test_single_image_input(self):
-        xs = tf.ones((512, 512, 3))
-        ys = tf.one_hot(tf.constant([1]), 2)
-        inputs = {"images": xs, "labels": ys}
-        layer = Mosaic()
-        with self.assertRaisesRegexp(
-            ValueError, "Mosaic received a single image to `call`"
-        ):
-            _ = layer(inputs)
-
     def test_int_labels(self):
         xs = tf.ones((2, 512, 512, 3))
         ys = tf.one_hot(tf.constant([1, 0]), 2, dtype=tf.int32)
@@ -105,11 +95,3 @@ class MosaicTest(tf.test.TestCase):
             ValueError, "Mosaic received labels with type"
         ):
             _ = layer(inputs)
-
-    def test_image_input(self):
-        xs = tf.ones((2, 512, 512, 3))
-        layer = Mosaic()
-        with self.assertRaisesRegexp(
-            ValueError, "Mosaic expects inputs in a dictionary with format"
-        ):
-            _ = layer(xs)
