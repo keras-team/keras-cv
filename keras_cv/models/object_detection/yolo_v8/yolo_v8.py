@@ -24,6 +24,7 @@ from keras_cv.models.backbones.backbone_presets import backbone_presets
 from keras_cv.models.backbones.backbone_presets import (
     backbone_presets_with_weights,
 )
+from keras_cv.models.object_detection import predict_utils
 from keras_cv.models.object_detection.__internal__ import unpack_input
 from keras_cv.models.object_detection.retina_net import RetinaNetLabelEncoder
 from keras_cv.models.object_detection.yolo_v8.compat_anchor_generation import (
@@ -31,6 +32,9 @@ from keras_cv.models.object_detection.yolo_v8.compat_anchor_generation import (
 )
 from keras_cv.models.object_detection.yolo_v8.yolo_v8_presets import (
     yolo_v8_backbone_presets,
+)
+from keras_cv.models.object_detection.yolo_v8.yolo_v8_presets import (
+    yolo_v8_backbone_presets_with_weights,
 )
 from keras_cv.models.object_detection.yolo_v8.yolo_v8_presets import (
     yolo_v8_presets,
@@ -240,7 +244,7 @@ class YOLOV8Backbone(Backbone):
     @classproperty
     def presets_with_weights(cls):
         """Dictionary of preset names and configurations that include weights."""
-        return {}
+        return copy.deepcopy(yolo_v8_backbone_presets_with_weights)
 
 
 def path_aggregation_fpn(features, depth=3, name=None):
@@ -363,12 +367,7 @@ def yolov8_head(
 
 
 def decode_boxes(preds, anchors, regression_max=16):
-    preds_bbox, preds_others = tf.split(
-        preds, [4 * regression_max, -1], axis=-1
-    )
-    preds_bbox = tf.reshape(
-        preds_bbox, [*preds_bbox.shape[:-1], 4, regression_max]
-    )
+    preds_bbox = tf.reshape(preds, (-1, preds.shape[1], 4, regression_max))
     preds_bbox = tf.nn.softmax(preds_bbox, axis=-1) * tf.range(
         regression_max, dtype="float32"
     )
@@ -385,7 +384,7 @@ def decode_boxes(preds, anchors, regression_max=16):
 
     preds_top_left = bboxes_center - 0.5 * bboxes_hw
     pred_bottom_right = preds_top_left + bboxes_hw
-    return tf.concat([preds_top_left, pred_bottom_right, preds_others], axis=-1)
+    return tf.concat([preds_top_left, pred_bottom_right], axis=-1)
 
 
 @keras.utils.register_keras_serializable(package="keras_cv")
@@ -427,11 +426,17 @@ class YOLOV8(Task):
             "linear", dtype="float32", name="outputs_fp32"
         )(outputs)
         boxes, scores = outputs[:, :, :64], outputs[:, :, 64:]
-        outputs = {"boxes": boxes, "classes": scores}
+
+        # Hack to make metrics pretty.
+        classes = keras.layers.Concatenate(axis=1, name="class")([scores])
+        boxes = keras.layers.Concatenate(axis=1, name="box")([boxes])
+
+        outputs = {"boxes": boxes, "classes": classes}
         super().__init__(inputs=images, outputs=outputs, **kwargs)
 
         # Gross hack for an anchor generator (for now)
         anchor_generator = lambda image_shape: {0: get_anchors(image_shape)}
+        # This anchor generator generates rel_yxyx anchors
         anchor_generator.bounding_box_format = "rel_yxyx"
         self.anchor_generator = anchor_generator
 
@@ -507,6 +512,25 @@ class YOLOV8(Task):
         y_pred = self.decode_predictions(outputs, x)
         return self.compute_metrics(x, y, y_pred, sample_weight=None)
 
+    def test_step(self, data):
+        x, y = unpack_input(data)
+        boxes, classes = self.label_encoder(x, y)
+        boxes = bounding_box.convert_format(
+            boxes,
+            source=self.label_encoder.bounding_box_format,
+            target=self.bounding_box_format,
+            images=x,
+        )
+
+        outputs = self(x, training=False)
+        box_pred, cls_pred = outputs["boxes"], outputs["classes"]
+        _ = self.compute_loss(x, box_pred, cls_pred, boxes, classes)
+
+        if not self._has_user_metrics:
+            return super().compute_metrics(x, {}, {}, sample_weight={})
+        y_pred = self.decode_predictions(outputs, x)
+        return self.compute_metrics(x, y, y_pred, sample_weight=None)
+
     def compute_loss(self, x, box_pred, cls_pred, boxes, classes):
         cls_labels = tf.one_hot(
             tf.cast(classes, dtype=tf.int32),
@@ -518,7 +542,7 @@ class YOLOV8(Task):
         box_pred = decode_boxes(box_pred, anchors)
 
         positive_mask = tf.cast(tf.greater(classes, -1.0), dtype=tf.float32)
-        normalizer = tf.reduce_sum(positive_mask)
+        normalizer = tf.maximum(tf.reduce_sum(positive_mask), 1)
         cls_weights = tf.cast(
             tf.math.not_equal(classes, -2.0), dtype=tf.float32
         )
@@ -555,6 +579,9 @@ class YOLOV8(Task):
         decoded_boxes = decode_boxes(boxes, anchors, regression_max=64 // 4)
 
         return self.prediction_decoder(decoded_boxes, scores)
+
+    def make_predict_function(self, force=False):
+        return predict_utils.make_predict_function(self, force=force)
 
     @classproperty
     def presets(cls):
