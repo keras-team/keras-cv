@@ -24,7 +24,7 @@ def _create_bounding_box_dataset(
     xs = tf.random.normal(shape=(1, 512, 512, 3), dtype=tf.float32)
     xs = tf.tile(xs, [5, 1, 1, 1])
 
-    y_classes = tf.zeros((5, 3), dtype=tf.float32)
+    y_classes = tf.one_hot(tf.zeros(5, dtype=tf.int32), 3)
 
     ys = tf.constant(
         [

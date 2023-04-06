@@ -432,8 +432,9 @@ class YOLOV8(Task):
 
         # Gross hack for an anchor generator (for now)
         anchor_generator = lambda image_shape: {0: get_anchors(image_shape)}
-        anchor_generator.bounding_box_format = bounding_box_format
+        anchor_generator.bounding_box_format = "rel_yxyx"
         self.anchor_generator = anchor_generator
+
         self.label_encoder = RetinaNetLabelEncoder(
             bounding_box_format=bounding_box_format,
             anchor_generator=anchor_generator,
@@ -476,14 +477,17 @@ class YOLOV8(Task):
     def train_step(self, data):
         x, y = unpack_input(data)
 
+        # Boxes are now encoded in center_yxhw
         boxes, classes = self.label_encoder(x, y)
 
-        # boxes = bounding_box.convert_format(
-        #     boxes,
-        #     source=self.bounding_box_format,
-        #     target="rel_yxyx",
-        #     images=x,
-        # )
+        # Since we're currently using the RetinaNetLabelEncoder, we have
+        # boxes in center_yxhw, and we want bounding_box_format.
+        boxes = bounding_box.convert_format(
+            boxes,
+            source="center_yxhw",
+            target=self.bounding_box_format,
+            images=x,
+        )
 
         with tf.GradientTape() as tape:
             outputs = self(x, training=True)
