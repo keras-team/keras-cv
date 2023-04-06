@@ -12,10 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import copy
-import math
 
 import tensorflow as tf
-from keras import initializers
 from keras import layers
 from tensorflow import keras
 
@@ -303,8 +301,6 @@ def yolov8_head(
     inputs,
     num_classes=80,
     bbox_len=64,
-    num_anchors=1,
-    use_object_scores=False,
     name="",
 ):
     outputs = []
@@ -328,7 +324,7 @@ def yolov8_head(
             name=cur_name + "reg_2_",
         )
         reg_out = layers.Conv2D(
-            filters=bbox_len * num_anchors,
+            filters=bbox_len,
             kernel_size=1,
             name=cur_name + "reg_3_" + "conv",
         )(reg_nn)
@@ -348,7 +344,7 @@ def yolov8_head(
             name=cur_name + "cls_2_",
         )
         cls_out = layers.Conv2D(
-            filters=num_classes * num_anchors,
+            filters=num_classes,
             kernel_size=1,
             name=cur_name + "cls_3_" + "conv",
         )(cls_nn)
@@ -356,22 +352,7 @@ def yolov8_head(
             cls_out
         )
 
-        # obj_preds
-        if use_object_scores:
-            obj_out = layers.Conv2D(
-                filters=num_anchors,
-                kernel_size=1,
-                bias_initializer=initializers.constant(
-                    -math.log((1 - 0.01) / 0.01)
-                ),
-                name=cur_name + "object_" + "conv",
-            )(reg_nn)
-            obj_out = layers.Activation("sigmoid", name=name + "object_out_")(
-                obj_out
-            )
-            out = tf.concat([reg_out, cls_out, obj_out], axis=-1)
-        else:
-            out = tf.concat([reg_out, cls_out], axis=-1)
+        out = tf.concat([reg_out, cls_out], axis=-1)
         out = layers.Reshape(
             [-1, out.shape[-1]], name=cur_name + "output_reshape"
         )(out)
@@ -419,6 +400,7 @@ class YOLOv8(Task):
         depths=[1, 2, 2, 1],
         prediction_decoder=None,
         num_classes=80,
+        # TODO(ianstenbit): anchor generator, label encoder
     ):
         extractor_levels = [2, 3, 4]
         if 5 in backbone.pyramid_level_inputs.keys():
@@ -442,8 +424,6 @@ class YOLOv8(Task):
             fpn_features,
             num_classes,
             64,  # bbox_len
-            1,  # num_anchors
-            False,  # use_object_scores
             name="head_",
         )
         outputs = layers.Activation(
