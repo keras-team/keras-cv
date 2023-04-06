@@ -4,7 +4,6 @@ import math
 import tensorflow as tf
 from keras import initializers
 from keras import layers
-from keras_cv_attention_models.coco import anchors_func
 from tensorflow import keras
 
 import keras_cv
@@ -427,15 +426,8 @@ class YOLOv8(Task):
         self,
         backbone,
         depths=[1, 2, 2, 1],
-        extractor_levels=[2, 3, 4],  # [Detector parameters]
-        bbox_len=64,  # Typical value is 4, for yolov8 reg_max=16 -> bbox_len = 16 * 4 == 64
-        num_anchors="auto",  # "auto" means: anchors_mode=="anchor_free" -> 1, anchors_mode=="yolor" -> 3, else 9
-        use_object_scores="auto",  # "auto" means: True if anchors_mode=="anchor_free" or anchors_mode=="yolor", else False
+        extractor_levels=[2, 3, 4],
         num_classes=80,
-        model_name="yolov8",
-        pyramid_levels_min=3,  # Init anchors for model prediction.
-        anchor_scale="auto",  # Init anchors for model prediction. "auto" means 1 if (anchors_mode=="anchor_free" or anchors_mode=="yolor"), else 4
-        rescale_mode="raw01",  # For decode predictions, raw01 means input value in range [0, 1].
     ):
         extractor_layer_names = [
             backbone.pyramid_level_inputs[i] for i in extractor_levels
@@ -447,16 +439,7 @@ class YOLOv8(Task):
         images = layers.Input(feature_extractor.input_shape[1:])
         features = list(feature_extractor(images).values())
 
-        (
-            use_object_scores,
-            num_anchors,
-            anchor_scale,
-        ) = anchors_func.get_anchors_mode_parameters(
-            "yolov8", use_object_scores, num_anchors, anchor_scale
-        )
-
-        # fpn = FeaturePyramid(depth=depths[-1])
-        # fpn_features = fpn(features)
+        # Apply the FPN
         fpn_features = path_aggregation_fpn(
             features, depth=depths[-1], name="pafpn_"
         )
@@ -464,9 +447,9 @@ class YOLOv8(Task):
         outputs = yolov8_head(
             fpn_features,
             num_classes,
-            bbox_len,
-            num_anchors,
-            use_object_scores,
+            64,  # bbox_len
+            1,  # num_anchors
+            False,  # use_object_scores
             name="head_",
         )
         outputs = layers.Activation(
@@ -506,7 +489,6 @@ def YOLOv8_N(
             depths=[1, 2, 2, 1],
         ),
         num_classes=num_classes,
-        model_name="yolov8_n",
     )
 
 
