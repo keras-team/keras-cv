@@ -17,9 +17,6 @@ from tensorflow import keras
 
 from keras_cv import bounding_box
 from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
-    BATCHED,
-)
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
     BOUNDING_BOXES,
 )
 from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (

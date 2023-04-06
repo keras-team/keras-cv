@@ -18,9 +18,6 @@ from tensorflow import keras
 
 from keras_cv import core
 from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
-    IMAGES,
-)
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
     VectorizedBaseImageAugmentationLayer,
 )
 from keras_cv.utils import preprocessing as preprocessing_utils
