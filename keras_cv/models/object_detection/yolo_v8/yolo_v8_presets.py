@@ -38,7 +38,7 @@ yolo_v8_presets = {
             "backbone": yolo_v8_backbone_presets["yolov8_n_coco"],
             "num_classes": 80,
         },
-        "weights_url": "https://storage.googleapis.com/keras-cv/models/yolov8/coco/yolov8_n.weights.h5",
+        "weights_url": "https://storage.googleapis.com/keras-cv/models/yolov8/coco/yolov8_n.h5",
         "weights_hash": "82d15d5a20cd2cf8bb2ab46cd3b7e9a9e0b32930844fcc4bd894099331a8e6fa",
     },
 }
