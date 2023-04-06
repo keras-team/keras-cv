@@ -18,11 +18,14 @@ from keras import layers
 from tensorflow import keras
 
 import keras_cv
+from keras_cv import bounding_box
 from keras_cv.models.backbones.backbone import Backbone
 from keras_cv.models.backbones.backbone_presets import backbone_presets
 from keras_cv.models.backbones.backbone_presets import (
     backbone_presets_with_weights,
 )
+from keras_cv.models.object_detection.__internal__ import unpack_input
+from keras_cv.models.object_detection.retina_net import RetinaNetLabelEncoder
 from keras_cv.models.object_detection.yolo_v8.compat_anchor_generation import (
     get_anchors,
 )
@@ -423,8 +426,18 @@ class YOLOV8(Task):
         outputs = layers.Activation(
             "linear", dtype="float32", name="outputs_fp32"
         )(outputs)
+        boxes, scores = outputs[:, :, :64], outputs[:, :, 64:]
+        outputs = {"boxes": boxes, "classes": scores}
         super().__init__(inputs=images, outputs=outputs, **kwargs)
 
+        # Gross hack for an anchor generator (for now)
+        anchor_generator = lambda image_shape: {0: get_anchors(image_shape)}
+        anchor_generator.bounding_box_format = bounding_box_format
+        self.anchor_generator = anchor_generator
+        self.label_encoder = RetinaNetLabelEncoder(
+            bounding_box_format=bounding_box_format,
+            anchor_generator=anchor_generator,
+        )
         self.bounding_box_format = bounding_box_format
         self.prediction_decoder = (
             prediction_decoder
@@ -435,15 +448,103 @@ class YOLOV8(Task):
                 iou_threshold=0.5,
             )
         )
+        self.num_classes = num_classes
+
+    def compile(
+        self,
+        box_loss=None,
+        classification_loss=None,
+        metrics=None,
+        **kwargs,
+    ):
+        self.box_loss = keras_cv.losses.SmoothL1Loss(
+            l1_cutoff=1.0, reduction=keras.losses.Reduction.SUM
+        )
+        self.classification_loss = keras_cv.losses.FocalLoss(
+            from_logits=False, reduction=keras.losses.Reduction.SUM
+        )
+
+        losses = {
+            "boxes": self.box_loss,
+            "classes": self.classification_loss,
+        }
+
+        self._has_user_metrics = metrics is not None and len(metrics) != 0
+        self._user_metrics = metrics
+        super().compile(loss=losses, **kwargs)
+
+    def train_step(self, data):
+        x, y = unpack_input(data)
+
+        boxes, classes = self.label_encoder(x, y)
+
+        # boxes = bounding_box.convert_format(
+        #     boxes,
+        #     source=self.bounding_box_format,
+        #     target="rel_yxyx",
+        #     images=x,
+        # )
+
+        with tf.GradientTape() as tape:
+            outputs = self(x, training=True)
+            box_pred, cls_pred = outputs["boxes"], outputs["classes"]
+            total_loss = self.compute_loss(
+                x, box_pred, cls_pred, boxes, classes
+            )
+
+        # Training specific code
+        trainable_vars = self.trainable_variables
+        gradients = tape.gradient(total_loss, trainable_vars)
+        self.optimizer.apply_gradients(zip(gradients, trainable_vars))
+
+        if not self._has_user_metrics:
+            return super().compute_metrics(x, {}, {}, sample_weight={})
+
+        y_pred = self.decode_predictions(outputs, x)
+        return self.compute_metrics(x, y, y_pred, sample_weight=None)
+
+    def compute_loss(self, x, box_pred, cls_pred, boxes, classes):
+        cls_labels = tf.one_hot(
+            tf.cast(classes, dtype=tf.int32),
+            depth=self.num_classes,
+            dtype=tf.float32,
+        )
+
+        anchors = get_anchors(x.shape[1:], pyramid_levels=[3, 5])
+        box_pred = decode_boxes(box_pred, anchors)
+
+        positive_mask = tf.cast(tf.greater(classes, -1.0), dtype=tf.float32)
+        normalizer = tf.reduce_sum(positive_mask)
+        cls_weights = tf.cast(
+            tf.math.not_equal(classes, -2.0), dtype=tf.float32
+        )
+        cls_weights /= normalizer
+        box_weights = positive_mask / normalizer
+
+        y_true = {
+            "boxes": boxes,
+            "classes": cls_labels,
+        }
+        y_pred = {
+            "boxes": box_pred,
+            "classes": cls_pred,
+        }
+        sample_weights = {
+            "boxes": box_weights,
+            "classes": cls_weights,
+        }
+
+        return super().compute_loss(
+            x=x, y=y_true, y_pred=y_pred, sample_weight=sample_weights
+        )
 
     def decode_predictions(
         self,
         pred,
         input_shape=None,
     ):
-        pred = tf.cast(pred, tf.float32)
-
-        boxes, scores = pred[:, :, :64], pred[:, :, 64:]
+        boxes = pred["boxes"]
+        scores = pred["classes"]
 
         anchors = get_anchors((640, 640, 3), pyramid_levels=[3, 5])
 

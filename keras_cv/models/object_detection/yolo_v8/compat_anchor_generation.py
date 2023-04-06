@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import numpy as np
 import tensorflow as tf
 
 """
@@ -32,7 +31,7 @@ def get_feature_sizes(input_shape, pyramid_levels=[3, 7]):
 
 
 def get_anchors(
-    input_shape=(512, 512, 3),
+    image_shape=(512, 512, 3),
     pyramid_levels=[3, 5],
     aspect_ratios=[1],
     num_scales=1,
@@ -41,10 +40,10 @@ def get_anchors(
 ):
     # base anchors
     scales = [2 ** (ii / num_scales) * anchor_scale for ii in range(num_scales)]
-    aspect_ratios_tensor = np.array(aspect_ratios, dtype="float32")
+    aspect_ratios_tensor = tf.constant(aspect_ratios, dtype="float32")
     if len(aspect_ratios_tensor.shape) == 1:
         # aspect_ratios = [0.5, 1, 2]
-        sqrt_ratios = np.sqrt(aspect_ratios_tensor)
+        sqrt_ratios = tf.sqrt(aspect_ratios_tensor)
         ww_ratios, hh_ratios = sqrt_ratios, 1 / sqrt_ratios
     else:
         # aspect_ratios = [(1, 1), (1.4, 0.7), (0.7, 1.4)]
@@ -52,17 +51,17 @@ def get_anchors(
             aspect_ratios_tensor[:, 0],
             aspect_ratios_tensor[:, 1],
         )
-    base_anchors_hh = np.reshape(
-        np.expand_dims(scales, 1) * np.expand_dims(hh_ratios, 0), [-1]
+    base_anchors_hh = tf.reshape(
+        tf.expand_dims(scales, 1) * tf.expand_dims(hh_ratios, 0), [-1]
     )
-    base_anchors_ww = np.reshape(
-        np.expand_dims(scales, 1) * np.expand_dims(ww_ratios, 0), [-1]
+    base_anchors_ww = tf.reshape(
+        tf.expand_dims(scales, 1) * tf.expand_dims(ww_ratios, 0), [-1]
     )
     base_anchors_hh_half, base_anchors_ww_half = (
         base_anchors_hh / 2,
         base_anchors_ww / 2,
     )
-    base_anchors = np.stack(
+    base_anchors = tf.stack(
         [
             base_anchors_hh_half * -1,
             base_anchors_ww_half * -1,
@@ -75,7 +74,7 @@ def get_anchors(
 
     # make grid
     pyramid_levels = list(range(min(pyramid_levels), max(pyramid_levels) + 1))
-    feature_sizes = get_feature_sizes(input_shape, pyramid_levels)
+    feature_sizes = get_feature_sizes(image_shape, pyramid_levels)
 
     all_anchors = []
     for level in pyramid_levels:
@@ -86,22 +85,22 @@ def get_anchors(
         top, left = (
             (0, 0) if grid_zero_start else (stride_hh / 2, stride_ww / 2)
         )
-        hh_centers = np.arange(top, input_shape[0], stride_hh)
-        ww_centers = np.arange(left, input_shape[1], stride_ww)
-        ww_grid, hh_grid = np.meshgrid(ww_centers, hh_centers)
-        grid = np.reshape(
-            np.stack([hh_grid, ww_grid, hh_grid, ww_grid], 2), [-1, 1, 4]
+        hh_centers = tf.range(top, image_shape[0], stride_hh)
+        ww_centers = tf.range(left, image_shape[1], stride_ww)
+        ww_grid, hh_grid = tf.meshgrid(ww_centers, hh_centers)
+        grid = tf.reshape(
+            tf.stack([hh_grid, ww_grid, hh_grid, ww_grid], 2), [-1, 1, 4]
         )
-        anchors = np.expand_dims(
+        anchors = tf.expand_dims(
             base_anchors * [stride_hh, stride_ww, stride_hh, stride_ww], 0
-        ) + grid.astype(base_anchors.dtype)
-        anchors = np.reshape(anchors, [-1, 4])
+        ) + tf.cast(grid, base_anchors.dtype)
+        anchors = tf.reshape(anchors, [-1, 4])
         all_anchors.append(anchors)
-    all_anchors = np.concatenate(all_anchors, axis=0) / [
-        input_shape[0],
-        input_shape[1],
-        input_shape[0],
-        input_shape[1],
+    all_anchors = tf.concat(all_anchors, axis=0) / [
+        image_shape[0],
+        image_shape[1],
+        image_shape[0],
+        image_shape[1],
     ]
 
-    return tf.convert_to_tensor(all_anchors.astype("float32"))
+    return tf.cast(all_anchors, tf.float32)
