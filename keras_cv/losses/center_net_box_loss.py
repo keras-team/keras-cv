@@ -56,7 +56,7 @@ class CenterNetBoxLoss(keras.losses.Loss):
     Args:
         num_heading_bins: int, number of bins used for predicting box heading.
         anchor_size: list of 3 ints, anchor sizes for the x, y, and z axes.
-    """
+    """  # noqa: E501
 
     def __init__(self, num_heading_bins, anchor_size, **kwargs):
         super().__init__(**kwargs)
