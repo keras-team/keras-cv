@@ -37,7 +37,7 @@ class RandomCopyPaste(base_augmentation_layer_3d.BaseAugmentationLayer3D):
     We load 5 times max_paste_bounding_boxes to check overlap.
     If a to-be-pasted bounding box overlaps with existing background point clouds, we paste the additional bounding box and replace the
     background point clouds with object point clouds.
-    During inference time, the output will be identical to input. Call the layer with `training=True` to paste bounding boxes.
+    During inference time, the output will be identical to input.
 
     Input shape:
       point_clouds: 3D (multi frames) float32 Tensor with shape
@@ -251,42 +251,37 @@ class RandomCopyPaste(base_augmentation_layer_3d.BaseAugmentationLayer3D):
         )
         return result
 
-    def call(self, inputs, training=True):
-        if training:
-            point_clouds = inputs[POINT_CLOUDS]
-            bounding_boxes = inputs[BOUNDING_BOXES]
-            if point_clouds.shape.rank == 3 and bounding_boxes.shape.rank == 3:
-                return self._augment(inputs)
-            elif (
-                point_clouds.shape.rank == 4 and bounding_boxes.shape.rank == 4
-            ):
-                batch = point_clouds.get_shape().as_list()[0]
-                point_clouds_list = []
-                bounding_boxes_list = []
-                for i in range(batch):
-                    no_batch_inputs = {
-                        POINT_CLOUDS: inputs[POINT_CLOUDS][i],
-                        BOUNDING_BOXES: inputs[BOUNDING_BOXES][i],
-                        OBJECT_POINT_CLOUDS: inputs[OBJECT_POINT_CLOUDS][i],
-                        OBJECT_BOUNDING_BOXES: inputs[OBJECT_BOUNDING_BOXES][i],
-                    }
-                    no_batch_result = self._augment(no_batch_inputs)
-                    point_clouds_list += [
-                        no_batch_result[POINT_CLOUDS][tf.newaxis, ...]
-                    ]
-                    bounding_boxes_list += [
-                        no_batch_result[BOUNDING_BOXES][tf.newaxis, ...]
-                    ]
+    def call(self, inputs):
+        point_clouds = inputs[POINT_CLOUDS]
+        bounding_boxes = inputs[BOUNDING_BOXES]
+        if point_clouds.shape.rank == 3 and bounding_boxes.shape.rank == 3:
+            return self._augment(inputs)
+        elif point_clouds.shape.rank == 4 and bounding_boxes.shape.rank == 4:
+            batch = point_clouds.get_shape().as_list()[0]
+            point_clouds_list = []
+            bounding_boxes_list = []
+            for i in range(batch):
+                no_batch_inputs = {
+                    POINT_CLOUDS: inputs[POINT_CLOUDS][i],
+                    BOUNDING_BOXES: inputs[BOUNDING_BOXES][i],
+                    OBJECT_POINT_CLOUDS: inputs[OBJECT_POINT_CLOUDS][i],
+                    OBJECT_BOUNDING_BOXES: inputs[OBJECT_BOUNDING_BOXES][i],
+                }
+                no_batch_result = self._augment(no_batch_inputs)
+                point_clouds_list += [
+                    no_batch_result[POINT_CLOUDS][tf.newaxis, ...]
+                ]
+                bounding_boxes_list += [
+                    no_batch_result[BOUNDING_BOXES][tf.newaxis, ...]
+                ]
 
-                inputs[POINT_CLOUDS] = tf.concat(point_clouds_list, axis=0)
-                inputs[BOUNDING_BOXES] = tf.concat(bounding_boxes_list, axis=0)
-                return inputs
-            else:
-                raise ValueError(
-                    "Point clouds augmentation layers are expecting inputs point clouds and bounding boxes to "
-                    "be rank 3D (Frame, Point, Feature) or 4D (Batch, Frame, Point, Feature) tensors. Got shape: {} and {}".format(
-                        point_clouds.shape, bounding_boxes.shape
-                    )
-                )
-        else:
+            inputs[POINT_CLOUDS] = tf.concat(point_clouds_list, axis=0)
+            inputs[BOUNDING_BOXES] = tf.concat(bounding_boxes_list, axis=0)
             return inputs
+        else:
+            raise ValueError(
+                "Point clouds augmentation layers are expecting inputs point clouds and bounding boxes to "
+                "be rank 3D (Frame, Point, Feature) or 4D (Batch, Frame, Point, Feature) tensors. Got shape: {} and {}".format(
+                    point_clouds.shape, bounding_boxes.shape
+                )
+            )
