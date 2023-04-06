@@ -407,29 +407,6 @@ def decode_boxes(preds, anchors, regression_max=16):
     return tf.concat([preds_top_left, pred_bottom_right, preds_others], axis=-1)
 
 
-def decode_predictions(
-    pred,
-    confidence_threshold=0.3,
-    iou_threshold=0.5,
-    input_shape=None,
-):
-    pred = tf.cast(pred, tf.float32)
-
-    boxes, scores = pred[:, :, :64], pred[:, :, 64:]
-
-    anchors = get_anchors((640, 640, 3), pyramid_levels=[3, 5])
-
-    decoded_boxes = decode_boxes(boxes, anchors, regression_max=64 // 4)
-
-    nms_layer = keras_cv.layers.MultiClassNonMaxSuppression(
-        bounding_box_format="rel_yxyx",
-        from_logits=False,
-        iou_threshold=iou_threshold,
-        confidence_threshold=confidence_threshold,
-    )
-    return nms_layer(decoded_boxes, scores)
-
-
 """ YOLOV8 models """
 
 
@@ -437,8 +414,10 @@ def decode_predictions(
 class YOLOv8(Task):
     def __init__(
         self,
+        bounding_box_format,
         backbone,
         depths=[1, 2, 2, 1],
+        prediction_decoder=None,
         num_classes=80,
     ):
         extractor_levels = [2, 3, 4]
@@ -472,7 +451,31 @@ class YOLOv8(Task):
         )(outputs)
         super().__init__(inputs=images, outputs=outputs)
 
-        self.decode_predictions = decode_predictions
+        self.bounding_box_format = bounding_box_format
+        self.prediction_decoder = (
+            prediction_decoder
+            or keras_cv.layers.MultiClassNonMaxSuppression(
+                bounding_box_format=bounding_box_format,
+                from_logits=False,
+                confidence_threshold=0.3,
+                iou_threshold=0.5,
+            )
+        )
+
+    def decode_predictions(
+        self,
+        pred,
+        input_shape=None,
+    ):
+        pred = tf.cast(pred, tf.float32)
+
+        boxes, scores = pred[:, :, :64], pred[:, :, 64:]
+
+        anchors = get_anchors((640, 640, 3), pyramid_levels=[3, 5])
+
+        decoded_boxes = decode_boxes(boxes, anchors, regression_max=64 // 4)
+
+        return self.prediction_decoder(decoded_boxes, scores)
 
     @classproperty
     def presets(cls):
