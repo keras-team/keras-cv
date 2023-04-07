@@ -24,7 +24,7 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 H_AXIS = -3
 W_AXIS = -2
 
-supported_keys = ["images", "labels", "targets", "bounding_boxes"]
+supported_keys = ["images", "labels", "targets", "bounding_boxes", "segmentation_masks"]
 
 
 class Resizing(BaseImageAugmentationLayer):
@@ -64,6 +64,10 @@ class Resizing(BaseImageAugmentationLayer):
         bounding_box_format: The format of bounding boxes of input dataset. Refer to
             https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box/converters.py
             for more details on supported bounding box formats.
+        segmentation_classes: an optional integer with the number of classes in
+            the input segmentation mask. Required iff augmenting data with sparse
+            (non one-hot) segmentation masks. Include the background class in this
+            count (e.g. for segmenting dog vs background, this should be set to 2).
     """
 
     def __init__(
@@ -74,6 +78,7 @@ class Resizing(BaseImageAugmentationLayer):
         crop_to_aspect_ratio=False,
         pad_to_aspect_ratio=False,
         bounding_box_format=None,
+        segmentation_classes=None,
         **kwargs,
     ):
         self.height = height
@@ -86,6 +91,7 @@ class Resizing(BaseImageAugmentationLayer):
         )
         self.bounding_box_format = bounding_box_format
         self.force_output_dense_images = True
+        self.segmentation_classes = segmentation_classes
 
         if pad_to_aspect_ratio and crop_to_aspect_ratio:
             raise ValueError(
@@ -111,11 +117,16 @@ class Resizing(BaseImageAugmentationLayer):
     def _augment(self, inputs):
         images = inputs.get("images", None)
         bounding_boxes = inputs.get("bounding_boxes", None)
+        segmentation_masks = inputs.get("segmentation_masks", None)
 
         if images is not None:
             images = tf.expand_dims(images, axis=0)
             inputs["images"] = images
 
+        if segmentation_masks is not None:
+            segmentation_masks = tf.expand_dims(segmentation_masks, axis=0)
+            inputs["segmentation_masks"] = segmentation_masks
+            
         if bounding_boxes is not None:
             bounding_boxes = bounding_boxes.copy()
             bounding_boxes["classes"] = tf.expand_dims(
@@ -131,6 +142,10 @@ class Resizing(BaseImageAugmentationLayer):
         if images is not None:
             images = tf.squeeze(outputs["images"], axis=0)
             inputs["images"] = images
+            
+        if segmentation_masks is not None:
+            segmentation_masks = tf.squeeze(outputs["segmentation_masks"], axis=0)
+            inputs["segmentation_masks"] = segmentation_masks
 
         if bounding_boxes is not None:
             outputs["bounding_boxes"]["classes"] = tf.squeeze(
@@ -159,7 +174,8 @@ class Resizing(BaseImageAugmentationLayer):
         def resize_single_with_pad_to_aspect(x):
             image = x.get("images", None)
             bounding_boxes = x.get("bounding_boxes", None)
-
+            segmentation_masks = x.get("segmentation_masks", None)
+            
             # images must be dense-able at this point.
             if isinstance(image, tf.RaggedTensor):
                 image = image.to_tensor()
@@ -167,15 +183,7 @@ class Resizing(BaseImageAugmentationLayer):
             img_size = tf.shape(image)
             img_height = tf.cast(img_size[H_AXIS], self.compute_dtype)
             img_width = tf.cast(img_size[W_AXIS], self.compute_dtype)
-            if bounding_boxes is not None:
-                bounding_boxes = bounding_box.to_dense(bounding_boxes)
-                bounding_boxes = keras_cv.bounding_box.convert_format(
-                    bounding_boxes,
-                    image_shape=img_size,
-                    source=self.bounding_box_format,
-                    target="rel_xyxy",
-                )
-
+            
             # how much we scale height by to hit target height
             height_scale = self.height / img_height
             width_scale = self.width / img_width
@@ -189,17 +197,65 @@ class Resizing(BaseImageAugmentationLayer):
                 size=(target_height, target_width),
                 method=self._interpolation_method,
             )
+            image = tf.image.pad_to_bounding_box(
+                image, 0, 0, self.height, self.width
+            )
+            x["images"] = image
+            
+            if segmentation_masks is not None:
+                # images must be dense-able at this point.
+                if isinstance(segmentation_masks, tf.RaggedTensor):
+                    segmentation_masks = segmentation_masks.to_tensor()
+                
+                if self.segmentation_classes:
+                    one_hot_mask = tf.one_hot(
+                        tf.squeeze(segmentation_masks, axis=-1),
+                        self.segmentation_classes,
+                    )
+                    one_hot_mask = tf.image.resize(
+                        one_hot_mask,
+                        size=(target_height, target_width),
+                        method=self._interpolation_method,
+                    )
+                    one_hot_mask = tf.image.pad_to_bounding_box(
+                        one_hot_mask, 0, 0, self.height, self.width
+                    )
+                    segmentation_masks = tf.argmax(one_hot_mask, axis=-1)
+                    x["segmentation_masks"] = tf.expand_dims(segmentation_masks, axis=-1)
+                else:
+                    if segmentation_masks.shape[-1] == 1:
+                        raise ValueError(
+                            "Segmentation masks must be one-hot encoded, or "
+                            "RandomRotate must be initialized with "
+                            "`segmentation_classes`. `segmentation_classes` was not "
+                            f"specified, and mask has shape {segmentation_mask.shape}"
+                        )
+                    segmentation_masks = tf.image.resize(
+                        segmentation_masks,
+                        size=(target_height, target_width),
+                        method=self._interpolation_method,
+                    )
+                    segmentation_masks = tf.image.pad_to_bounding_box(
+                        segmentation_masks, 0, 0, self.height, self.width
+                    )
+                    # Round because we are in one-hot encoding, and we may have
+                    # pixels with ambugious value due to floating point math for rotation.
+                    x["segmentation_masks"] = tf.round(segmentation_masks)
+            
             if bounding_boxes is not None:
+                bounding_boxes = bounding_box.to_dense(bounding_boxes)
+                bounding_boxes = keras_cv.bounding_box.convert_format(
+                    bounding_boxes,
+                    image_shape=img_size,
+                    source=self.bounding_box_format,
+                    target="rel_xyxy",
+                )
                 bounding_boxes = keras_cv.bounding_box.convert_format(
                     bounding_boxes,
                     images=image,
                     source="rel_xyxy",
                     target="xyxy",
                 )
-            image = tf.image.pad_to_bounding_box(
-                image, 0, 0, self.height, self.width
-            )
-            if bounding_boxes is not None:
                 bounding_boxes = keras_cv.bounding_box.clip_to_image(
                     bounding_boxes, images=image, bounding_box_format="xyxy"
                 )
@@ -209,13 +265,10 @@ class Resizing(BaseImageAugmentationLayer):
                     source="xyxy",
                     target=self.bounding_box_format,
                 )
-            inputs["images"] = image
-
-            if bounding_boxes is not None:
-                inputs["bounding_boxes"] = keras_cv.bounding_box.to_ragged(
+                x["bounding_boxes"] = keras_cv.bounding_box.to_ragged(
                     bounding_boxes
                 )
-            return inputs
+            return x
 
         size_as_shape = tf.TensorShape((self.height, self.width))
         shape = size_as_shape + inputs["images"].shape[-1:]
@@ -226,6 +279,11 @@ class Resizing(BaseImageAugmentationLayer):
         if bounding_boxes is not None:
             boxes_spec = self._compute_bounding_box_signature(bounding_boxes)
             fn_output_signature["bounding_boxes"] = boxes_spec
+            
+        segmentation_masks = inputs.get("segmentation_masks", None)
+        if segmentation_masks is not None:
+            shape = size_as_shape + inputs["segmentation_masks"].shape[-1:]
+            fn_output_signature["segmentation_masks"] = tf.TensorSpec(shape, self.compute_dtype)
 
         return tf.map_fn(
             resize_single_with_pad_to_aspect,
@@ -236,11 +294,18 @@ class Resizing(BaseImageAugmentationLayer):
     def _resize_with_crop(self, inputs):
         images = inputs.get("images", None)
         bounding_boxes = inputs.get("bounding_boxes", None)
+        segmentation_masks = inputs.get("segmentation_masks", None)
         if bounding_boxes is not None:
             raise ValueError(
                 "Resizing(crop_to_aspect_ratio=True) does not support "
                 "bounding box inputs.  Please use `pad_to_aspect_ratio=True` when "
                 "processing bounding boxes with Resizing()."
+            )
+        if segmentation_masks is not None:
+            raise ValueError(
+                "Resizing(crop_to_aspect_ratio=True) does not support "
+                "segmentation mask inputs.  Please use `pad_to_aspect_ratio=True` when "
+                "processing segmentation masks with Resizing()."
             )
         inputs["images"] = images
         size = [self.height, self.width]
@@ -322,6 +387,7 @@ class Resizing(BaseImageAugmentationLayer):
             "crop_to_aspect_ratio": self.crop_to_aspect_ratio,
             "pad_to_aspect_ratio": self.pad_to_aspect_ratio,
             "bounding_box_format": self.bounding_box_format,
+            "segmentation_classes": self.segmentation_classes,
         }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))

@@ -282,7 +282,7 @@ class RandomAffineTransf(VectorizedBaseImageAugmentationLayer):
                 tf.squeeze(segmentation_masks, axis=-1),
                 self.segmentation_classes,
             )
-            segmentation_masks = self._mod_image(
+            segmentation_masks = self._mod_images(
                 segmentation_masks, transformations
             )
             segmentation_masks = tf.argmax(segmentation_masks, axis=-1)
@@ -295,7 +295,7 @@ class RandomAffineTransf(VectorizedBaseImageAugmentationLayer):
                     "`segmentation_classes`. `segmentation_classes` was not "
                     f"specified, and mask has shape {segmentation_mask.shape}"
                 )
-            segmentation_masks = self._mod_image(segmentation_masks, transformations)
+            segmentation_masks = self._mod_images(segmentation_masks, transformations)
             # Round because we are in one-hot encoding, and we may have
             # pixels with ambugious value due to floating point math for rotation.
             return tf.round(segmentation_masks)

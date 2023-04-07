@@ -20,6 +20,7 @@ import pandas
 import numpy as np
 import tensorflow.compat.v2 as tf
 from functools import partial
+from PIL import Image
 import keras
 from keras.utils import dataset_utils
 from keras.utils import image_utils
@@ -87,6 +88,19 @@ def _load_img(path, num_channels=3):
         img, channels=num_channels, expand_animations=False
     )
     return img
+
+def _load_map_np(path):
+    if isinstance(path, np.ndarray):
+        path = path.item()
+    return np.asarray(Image.open(path.decode()), np.int64)
+
+def _load_map(path, class_mode, num_classes):
+    y = tf.numpy_function(_load_map_np, [path,], Tout=tf.int64)
+    y.set_shape([None, None])
+    if class_mode=='categorical':
+        y = tf.one_hot(y, num_classes)
+    return y
+    
 
 def _dict_to_tuple_fun(dat, dictname_input, dictname_target, max_boxes=None):
     x = dat[dictname_input]
@@ -351,6 +365,131 @@ def image_classification_dataset_from_dataframe(
     dataset.root_path = root_path
     return dataset
 
+def image_segmentation_dataset_from_dataframe(
+    dataframe,
+    class_names,
+    root_path='./',
+    class_mode="categorical",
+    color_mode="rgb",
+    batch_size=None,
+    shuffle=True,
+    seed=None,
+    pre_batching_processing=None,
+    post_batching_processing=None,
+    include_rescaling=False,
+    colname_image='image',
+    colname_mask='segmentation_mask',
+):
+    """Generates a `tf.data.Dataset` from a dataframe.
+
+    Then calling `image_dataset_from_dataframe(dataframe)`
+    will return a `tf.data.Dataset` that yields batches of
+    images from the subdirectories `class_a` and `class_b`, together with labels
+    0 and 1 (0 corresponding to `class_a` and 1 corresponding to `class_b`).
+
+    Args:
+      dataframe: Dataframe with list of images.    
+      class_mode: String describing the encoding of classes. Options are:
+          - 'int': means that the classes are encoded as integers
+              (e.g. for `sparse_categorical_crossentropy` loss).
+          - 'categorical' means that the classes are
+              encoded as a categorical vector
+              (e.g. for `categorical_crossentropy` loss).
+      class_names: Only valid if "class_mode" is 'int' or 'categorical'. This is the explicit
+          list of class names esed for the encoding.
+          (otherwise alphanumerical order is used).
+      color_mode: One of "grayscale", "rgb", "rgba". Default: "rgb".
+          Whether the images will be converted to
+          have 1, 3, or 4 channels.
+      batch_size: Size of the batches of data. Default: 32.
+        If `None`, the data will not be batched
+        (the dataset will yield individual samples).
+      shuffle: Whether to shuffle the data. Default: True.
+          If set to False, sorts the data in alphanumeric order.
+      seed: Optional random seed for shuffling and transformations.
+      pre_batching_processing: ???      
+      post_batching_processing: ???.
+    Returns:
+      A `tf.data.Dataset` object.
+
+    Rules regarding labels format:
+
+      - if `class_mode` is `int`, the labels are an `int32` tensor of shape
+        `(batch_size,)`.
+      - if `class_mode` is `raw`, the classes are converted.
+      - if `class_mode` is `categorical`, the labels are a `float32` tensor
+        of shape `(batch_size, num_classes)`, representing a one-hot
+        encoding of the class index.
+
+    Rules regarding number of channels in the yielded images:
+
+      - if `color_mode` is `grayscale`,
+        there's 1 channel in the image tensors.
+      - if `color_mode` is `rgb`,
+        there are 3 channels in the image tensors.
+      - if `color_mode` is `rgba`,
+        there are 4 channels in the image tensors.
+    """
+   
+    if isinstance(dataframe, str):
+        dataframe = pandas.read_csv(dataframe)
+    dataframe = dataframe.copy()
+    
+    if root_path is not None:
+        dataframe[colname_image] = [os.path.join(root_path, _) for _ in dataframe[colname_image]]
+        dataframe[colname_mask ] = [os.path.join(root_path, _) for _ in dataframe[colname_mask ]]
+    
+    num_classes = len(class_names)
+    load_fun_target = partial(_load_map, class_mode=class_mode, num_classes=num_classes)
+    
+    if color_mode == "rgb":
+        num_channels = 3
+    elif color_mode == "rgba":
+        num_channels = 4
+    elif color_mode == "grayscale":
+        num_channels = 1
+    else:
+        raise ValueError(
+            '`color_mode` must be one of {"rgb", "rgba", "grayscale"}. '
+            f"Received: color_mode={color_mode}"
+        ) 
+    
+    load_fun_input = partial(_load_img, num_channels=num_channels)
+    
+    
+    if include_rescaling:
+        if post_batching_processing is None:
+            post_batching_processing = Rescaling(1 / 255.0)
+        else:
+            post_batching_processing = keras.Sequential(
+                layers=[post_batching_processing, Rescaling(1 / 255.0)])
+    
+    if shuffle:
+        if seed is None:
+            seed = np.random.randint(1e6)
+        dataframe = dataframe.sample(frac=1, random_state=seed)
+    
+    dataset = dataset_from_dataframe(
+        dataframe=dataframe,
+        colname_input=colname_image,
+        colname_target=colname_mask,
+        load_fun_input=load_fun_input,
+        load_fun_target=load_fun_target,
+        shuffle=shuffle,
+        seed=seed,
+        pre_batching_processing=pre_batching_processing,
+        batch_size=batch_size,
+        post_batching_processing=post_batching_processing,
+        dictname_input=IMAGES,
+        dictname_target=SEGMENTATION_MASKS,
+        dict_to_tuple=True,
+    )
+    
+    # Users may need to reference `class_names`, `batch_size` and `root_path`
+    dataset.class_names = class_names
+    dataset.batch_size = batch_size
+    dataset.root_path = root_path
+    return dataset
 
 def _get_objdetect_generator(dataframe, colname_image, colname_class, colname_box):
     list_img = list(set(dataframe[colname_image]))
