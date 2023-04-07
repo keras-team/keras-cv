@@ -94,19 +94,3 @@ keras_cv.visualization.plot_bounding_box_gallery(
     legend=True,
     class_mapping=class_mapping,
 )
-
-
-keras_cv.visualization.plot_bounding_box_gallery(
-    images,
-    value_range=(0, 255),
-    bounding_box_format="xywh",
-    y_pred=boxes,
-    scale=5,
-    rows=2,
-    cols=2,
-    line_thickness=4,
-    font_scale=1,
-    text_thickness=2,
-    legend=True,
-    class_mapping=class_mapping,
-)
