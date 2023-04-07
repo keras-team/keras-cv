@@ -134,6 +134,26 @@ class RetinaNetTest(tf.test.TestCase):
         # box_head
         self.assertIn("prediction_head_1/conv2d_12/kernel:0", variable_names)
 
+    def test_no_nans(self):
+        retina_net = keras_cv.models.RetinaNet(
+            num_classes=2,
+            bounding_box_format="xywh",
+            backbone=keras_cv.models.ResNet50V2Backbone(),
+        )
+
+        retina_net.compile(
+            optimizer=optimizers.Adam(),
+            classification_loss="focal",
+            box_loss="smoothl1",
+        )
+        xs, ys = _create_bounding_box_dataset(bounding_box_format)
+        ys = {"classes": tf.constant([]), "boxes": tf.constant([[]])}
+        # call once
+        retina_net.fit(xs, ys, epochs=1)
+        weights = retina_net.get_weights()
+        for weight in weights:
+            self.assertFalse(tf.math.reduce_any(tf.math.is_nan(weight)))
+
     def test_weights_change(self):
         bounding_box_format = "xywh"
         retinanet = keras_cv.models.RetinaNet(

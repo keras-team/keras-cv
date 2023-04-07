@@ -416,7 +416,7 @@ class RetinaNet(Task):
         )
 
         positive_mask = tf.cast(tf.greater(classes, -1.0), dtype=tf.float32)
-        normalizer = tf.reduce_sum(positive_mask)
+        normalizer = tf.reduce_sum(positive_mask) + keras.backend.epsilon()
         cls_weights = tf.cast(
             tf.math.not_equal(classes, -2.0), dtype=tf.float32
         )
