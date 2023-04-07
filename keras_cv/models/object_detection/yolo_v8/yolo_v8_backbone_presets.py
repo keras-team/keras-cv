@@ -1,0 +1,112 @@
+# Copyright 2023 The KerasCV Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+"""YOLOv8 Backbone presets."""
+
+# TODO(ianstenbit): This should preferably use CSPDarkNet presets eventually
+backbone_presets_no_weights = {
+    "yolov8_n_backbone": {
+        "metadata": {
+            "description": ("YOLOv8_N backbone"),
+        },
+        "class_name": "keras_cv.models>YOLOV8Backbone",
+        "config": {
+            "include_rescaling": True,
+            "input_shape": (None, None, 3),
+            "channels": [32, 64, 128, 256],
+            "depths": [1, 2, 2, 1],
+        },
+    },
+    "yolov8_s_backbone": {
+        "metadata": {
+            "description": ("YOLOv8_S backbone"),
+        },
+        "class_name": "keras_cv.models>YOLOV8Backbone",
+        "config": {
+            "include_rescaling": True,
+            "input_shape": (None, None, 3),
+            "channels": [64, 128, 256, 512],
+            "depths": [1, 2, 2, 1],
+        },
+    },
+    "yolov8_m_backbone": {
+        "metadata": {
+            "description": ("YOLOv8_M backbone"),
+        },
+        "class_name": "keras_cv.models>YOLOV8Backbone",
+        "config": {
+            "include_rescaling": True,
+            "input_shape": (None, None, 3),
+            "channels": [96, 192, 384, 768],
+            "depths": [2, 4, 4, 2],
+        },
+    },
+    "yolov8_l_backbone": {
+        "metadata": {
+            "description": ("YOLOv8_L backbone"),
+        },
+        "class_name": "keras_cv.models>YOLOV8Backbone",
+        "config": {
+            "include_rescaling": True,
+            "input_shape": (None, None, 3),
+            "channels": [128, 256, 512, 512],
+            "depths": [3, 6, 6, 3],
+        },
+    },
+    "yolov8_x_backbone": {
+        "metadata": {
+            "description": ("YOLOv8_X backbone"),
+        },
+        "class_name": "keras_cv.models>YOLOV8Backbone",
+        "config": {
+            "include_rescaling": True,
+            "input_shape": (None, None, 3),
+            "channels": [160, 320, 640, 640],
+            "depths": [3, 6, 6, 3],
+        },
+    },
+    "yolov8_x6_backbone": {
+        "metadata": {
+            "description": ("YOLOv8_X6 backbone"),
+        },
+        "class_name": "keras_cv.models>YOLOV8Backbone",
+        "config": {
+            "include_rescaling": True,
+            "input_shape": (None, None, 3),
+            "channels": [160, 320, 640, 640, 640],
+            "depths": [3, 6, 6, 3, 3],
+        },
+    },
+}
+
+backbone_presets_with_weights = {
+    "yolov8_n_backbone_coco": {
+        "metadata": {"description": ("TODO: ianstenbit")},
+        "class_name": "keras_cv.models>YOLOV8Backbone",
+        "config": backbone_presets_no_weights["yolov8_n_backbone"]["config"],
+        "weights_url": "https://storage.googleapis.com/keras-cv/models/yolov8/coco/yolov8_n_backbone.h5",
+        "weights_hash": "636ba3cba064c7c457e30a0e4759716006c305c30876df1c1caf2e56b99eab6c",
+    },
+    "yolov8_s_backbone_coco": {
+        "metadata": {"description": ("TODO: ianstenbit")},
+        "class_name": "keras_cv.models>YOLOV8Backbone",
+        "config": backbone_presets_no_weights["yolov8_n_backbone"]["config"],
+        "weights_url": "https://storage.googleapis.com/keras-cv/models/yolov8/coco/yolov8_s_backbone.h5",
+        "weights_hash": "49ab5da87d6b36a1943e7f111a1960355171332c25312b6cc01526baaecf1b69",
+    },
+}
+
+backbone_presets = {
+    **backbone_presets_no_weights,
+    **backbone_presets_with_weights,
+}

@@ -21,7 +21,6 @@ import keras_cv
 from keras_cv import bounding_box
 from keras_cv import layers as cv_layers
 from keras_cv.bounding_box.converters import _decode_deltas_to_boxes
-from keras_cv.models.backbones.backbone import Backbone
 from keras_cv.models.backbones.backbone_presets import backbone_presets
 from keras_cv.models.backbones.backbone_presets import (
     backbone_presets_with_weights,
@@ -32,11 +31,9 @@ from keras_cv.models.object_detection.retina_net import RetinaNetLabelEncoder
 from keras_cv.models.object_detection.yolo_v8.compat_anchor_generation import (
     get_anchors,
 )
-from keras_cv.models.object_detection.yolo_v8.yolo_v8_presets import (
-    yolo_v8_backbone_presets,
-)
-from keras_cv.models.object_detection.yolo_v8.yolo_v8_presets import (
-    yolo_v8_backbone_presets_with_weights,
+from keras_cv.models.object_detection.yolo_v8.yolo_v8_layers import conv_bn
+from keras_cv.models.object_detection.yolo_v8.yolo_v8_layers import (
+    csp_with_2_conv,
 )
 from keras_cv.models.object_detection.yolo_v8.yolo_v8_presets import (
     yolo_v8_presets,
@@ -45,210 +42,7 @@ from keras_cv.models.task import Task
 from keras_cv.utils.python_utils import classproperty
 from keras_cv.utils.train import get_feature_extractor
 
-BATCH_NORM_EPSILON = 1e-3
-BATCH_NORM_MOMENTUM = 0.97
-
 BOX_VARIANCE = [0.1, 0.1, 0.2, 0.2]
-
-
-def conv_bn(
-    inputs,
-    output_channel,
-    kernel_size=1,
-    strides=1,
-    activation="swish",
-    name=None,
-):
-    if kernel_size > 1:
-        inputs = layers.ZeroPadding2D(
-            padding=kernel_size // 2, name=f"{name}_pad"
-        )(inputs)
-
-    nn = layers.Conv2D(
-        filters=output_channel,
-        kernel_size=kernel_size,
-        strides=strides,
-        padding="valid",
-        use_bias=False,
-        name=f"{name}_conv",
-    )(inputs)
-    nn = layers.BatchNormalization(
-        momentum=BATCH_NORM_MOMENTUM,
-        epsilon=BATCH_NORM_EPSILON,
-        name=f"{name}_bn",
-    )(nn)
-    nn = layers.Activation(activation, name=name)(nn)
-    return nn
-
-
-def csp_with_2_conv(
-    inputs,
-    channels=-1,
-    depth=2,
-    shortcut=True,
-    expansion=0.5,
-    activation="swish",
-    name=None,
-):
-    channel_axis = -1
-    channels = channels if channels > 0 else inputs.shape[channel_axis]
-    hidden_channels = int(channels * expansion)
-
-    pre = conv_bn(
-        inputs,
-        hidden_channels * 2,
-        kernel_size=1,
-        activation=activation,
-        name=f"{name}_pre",
-    )
-    short, deep = tf.split(pre, 2, axis=channel_axis)
-
-    out = [short, deep]
-    for id in range(depth):
-        deep = conv_bn(
-            deep,
-            hidden_channels,
-            kernel_size=3,
-            activation=activation,
-            name=f"{name}_pre_{id}_1",
-        )
-        deep = conv_bn(
-            deep,
-            hidden_channels,
-            kernel_size=3,
-            activation=activation,
-            name=f"{name}_pre_{id}_2",
-        )
-        deep = (out[-1] + deep) if shortcut else deep
-        out.append(deep)
-    out = tf.concat(out, axis=channel_axis)
-    out = conv_bn(
-        out,
-        channels,
-        kernel_size=1,
-        activation=activation,
-        name=f"{name}_output",
-    )
-    return out
-
-
-def spatial_pyramid_pooling_fast(
-    inputs, pool_size=5, activation="swish", name=None
-):
-    channel_axis = -1
-    input_channels = inputs.shape[channel_axis]
-    hidden_channels = int(input_channels // 2)
-
-    nn = conv_bn(
-        inputs,
-        hidden_channels,
-        kernel_size=1,
-        activation=activation,
-        name=f"{name}_pre",
-    )
-    pool_1 = layers.MaxPool2D(
-        pool_size=pool_size, strides=1, padding="same", name=f"{name}_pool1"
-    )(nn)
-    pool_2 = layers.MaxPool2D(
-        pool_size=pool_size, strides=1, padding="same", name=f"{name}_pool2"
-    )(pool_1)
-    pool_3 = layers.MaxPool2D(
-        pool_size=pool_size, strides=1, padding="same", name=f"{name}_pool3"
-    )(pool_2)
-
-    out = tf.concat([nn, pool_1, pool_2, pool_3], axis=channel_axis)
-    out = conv_bn(
-        out,
-        input_channels,
-        kernel_size=1,
-        activation=activation,
-        name=f"{name}_output",
-    )
-    return out
-
-
-# This should probably just be a CSPDarknet. That's an outstanding TODO
-@keras.utils.register_keras_serializable(package="keras_cv.models")
-class YOLOV8Backbone(Backbone):
-    def __init__(
-        self,
-        include_rescaling,
-        channels=[128, 256, 512, 1024],
-        depths=[3, 6, 6, 3],
-        input_shape=(512, 512, 3),
-        activation="swish",
-        **kwargs,
-    ):
-        inputs = layers.Input(input_shape)
-
-        x = inputs
-        if include_rescaling:
-            x = layers.Rescaling(1 / 255.0)(x)
-
-        """ Stem """
-        # stem_width = stem_width if stem_width > 0 else channels[0]
-        stem_width = channels[0]
-        nn = conv_bn(
-            x,
-            stem_width // 2,
-            kernel_size=3,
-            strides=2,
-            activation=activation,
-            name="stem_1",
-        )
-        nn = conv_bn(
-            nn,
-            stem_width,
-            kernel_size=3,
-            strides=2,
-            activation=activation,
-            name="stem_2",
-        )
-
-        """ blocks """
-        pyramid_level_inputs = {0: nn.node.layer.name}
-        features = {0: nn}
-        for stack_id, (channel, depth) in enumerate(zip(channels, depths)):
-            stack_name = f"stack{stack_id + 1}"
-            if stack_id >= 1:
-                nn = conv_bn(
-                    nn,
-                    channel,
-                    kernel_size=3,
-                    strides=2,
-                    activation=activation,
-                    name=f"{stack_name}_downsample",
-                )
-            nn = csp_with_2_conv(
-                nn,
-                depth=depth,
-                expansion=0.5,
-                activation=activation,
-                name=f"{stack_name}_c2f",
-            )
-
-            if stack_id == len(depths) - 1:
-                nn = spatial_pyramid_pooling_fast(
-                    nn,
-                    pool_size=5,
-                    activation=activation,
-                    name=f"{stack_name}_spp_fast",
-                )
-            pyramid_level_inputs[stack_id + 1] = nn.node.layer.name
-            features[stack_id + 1] = nn
-
-        super().__init__(inputs=inputs, outputs=features, **kwargs)
-        self.pyramid_level_inputs = pyramid_level_inputs
-
-    @classproperty
-    def presets(cls):
-        """Dictionary of preset names and configurations."""
-        return copy.deepcopy(yolo_v8_backbone_presets)
-
-    @classproperty
-    def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include weights."""
-        return copy.deepcopy(yolo_v8_backbone_presets_with_weights)
 
 
 def path_aggregation_fpn(features, depth=3, name=None):
