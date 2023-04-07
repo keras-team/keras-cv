@@ -27,15 +27,6 @@ class RandomAspectRatioTest(tf.test.TestCase):
         output = layer(image, training=True)
         self.assertNotEqual(output.shape, image.shape)
 
-    def test_inference_preserves_image(self):
-        # Checks if original and augmented images are different
-        input_image_shape = (8, 100, 100, 3)
-        image = tf.random.uniform(shape=input_image_shape)
-
-        layer = layers.RandomAspectRatio(factor=(0.9, 1.1))
-        output = layer(image, training=False)
-        self.assertAllClose(image, output)
-
     def test_grayscale(self):
         # Checks if original and augmented images are different
         input_image_shape = (8, 100, 100, 1)

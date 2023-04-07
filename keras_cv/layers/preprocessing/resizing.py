@@ -273,22 +273,6 @@ class Resizing(BaseImageAugmentationLayer):
         inputs["images"] = images
         return inputs
 
-    def call(self, inputs, training=True):
-        inputs = self._ensure_inputs_are_compute_dtype(inputs)
-        inputs, metadata = self._format_inputs(inputs)
-        self._check_inputs(inputs)
-        images = inputs["images"]
-        if images.shape.rank == 3:
-            return self._format_output(self._augment(inputs), metadata)
-        elif images.shape.rank == 4:
-            return self._format_output(self._batch_augment(inputs), metadata)
-        else:
-            raise ValueError(
-                "Image augmentation layers are expecting inputs to be "
-                "rank 3 (HWC) or 4D (NHWC) tensors. Got shape: "
-                f"{images.shape}"
-            )
-
     def _check_inputs(self, inputs):
         for key in inputs:
             if key not in supported_keys:

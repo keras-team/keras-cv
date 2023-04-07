@@ -59,21 +59,6 @@ class RandomCropAndResizeTest(tf.test.TestCase, parameterized.TestCase):
         self.assertAllEqual(output.shape, (4, 224, 224, 1))
         self.assertNotAllClose(output, input_image_resized)
 
-    def test_preserves_image(self):
-        image_shape = (self.batch_size, self.height, self.width, 3)
-        image = tf.random.uniform(shape=image_shape)
-
-        layer = preprocessing.RandomCropAndResize(
-            target_size=self.target_size,
-            aspect_ratio_factor=(3 / 4, 4 / 3),
-            crop_area_factor=(0.8, 1.0),
-        )
-
-        input_resized = tf.image.resize(image, self.target_size)
-        output = layer(image, training=False)
-
-        self.assertAllClose(output, input_resized)
-
     @parameterized.named_parameters(
         ("Not tuple or list", dict()),
         ("Length not equal to 2", [1, 2, 3]),
