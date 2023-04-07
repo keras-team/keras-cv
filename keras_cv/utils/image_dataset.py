@@ -167,7 +167,9 @@ def dataset_from_dataframe(
         num_elements = len(dataframe)
     
     if shuffle:
-        dataset = dataset.shuffle(buffer_size=num_elements, seed=seed, reshuffle_each_iteration=True)
+        buffer_size = min(10*batch_size, num_elements//2) if batch_size is not None else num_elements//4
+        print('shuffling with buffer_size %d'%buffer_size)
+        dataset = dataset.shuffle(buffer_size=buffer_size, seed=seed, reshuffle_each_iteration=True)
     
     dataset = dataset.map( lambda x: {
             dictname_input : load_fun_input(x[colname_input]),
@@ -271,7 +273,7 @@ def image_classification_dataset_from_dataframe(
         dataframe = pandas.read_csv(dataframe)
     dataframe = dataframe.copy()
     
-    if root_path not None:
+    if root_path is not None:
         dataframe[colname_image] = [os.path.join(root_path, _) for _ in dataframe[colname_image]]
     
     num_classes = 0
@@ -321,7 +323,12 @@ def image_classification_dataset_from_dataframe(
         else:
             post_batching_processing = keras.Sequential(
                 layers=[post_batching_processing, Rescaling(1 / 255.0)])
-            
+    
+    if shuffle:
+        if seed is None:
+            seed = np.random.randint(1e6)
+        dataframe = dataframe.sample(frac=1, random_state=seed)
+    
     dataset = dataset_from_dataframe(
         dataframe=dataframe,
         colname_input=colname_image,
@@ -433,7 +440,7 @@ def image_objdetect_dataset_from_dataframe(
         dataframe = pandas.read_csv(dataframe)
     dataframe = dataframe.copy()
     
-    if root_path not None:
+    if root_path is not None:
         dataframe[colname_image] = [os.path.join(root_path, _) for _ in dataframe[colname_image]]
     
     num_classes = 0
@@ -483,6 +490,11 @@ def image_objdetect_dataset_from_dataframe(
     
     list_img = list(set(dataframe[colname_image]))
     num_img = len(list_img)
+    if shuffle:
+        if seed is None:
+            seed = np.random.randint(1e6)
+        np.random.RandomState(seed).shuffle(list_img)
+    
     generator = ({
         IMAGES: image,
         BOUNDING_BOXES: {
