@@ -23,7 +23,7 @@ from functools import partial
 import keras
 from keras.utils import dataset_utils
 from keras.utils import image_utils
-
+from keras_cv import bounding_box
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import IMAGES
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import LABELS
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import BOUNDING_BOXES 
@@ -80,9 +80,8 @@ def dataframe_from_directory(
     return dataframe
 
      
-def _load_img(path, root_path='./', num_channels=3):
+def _load_img(path, num_channels=3):
     """Load an image from a path and resize it."""
-    #TODO path = tf.io.gfile.join(root_path, path)
     img = tf.io.read_file(path)
     img = tf.image.decode_image(
         img, channels=num_channels, expand_animations=False
@@ -97,23 +96,37 @@ def _dict_to_tuple_fun(dat, dictname_input, dictname_target, max_boxes=None):
     return x,y
 
 
-
 def _get_fun_load_class(x, class_mode, num_classes):
-    if class_mode=='none':                               
+    if (not isinstance(class_mode, str)) and callable(class_mode):
+        return class_mode(x)
+    elif class_mode=='none':
         return x
     elif class_mode=='raw':                        
         return tf.cast(x, "float32")
     elif class_mode=='int':
         return tf.cast(x, "int64")
     elif class_mode=='categorical':
-        return tf.one_hot(x, num_classes)
+        return tf.one_hot(tf.cast(x, "int64"), num_classes)
     else:
         raise ValueError(
             '`class_mode` argument must be callable or '
             'one of "int", "categorical", or "raw". '
             f'Received: class_mode={class_mode}'
         )                       
-    
+
+
+def _get_fun_load_bounding_box(x, bounding_box_input_format, bounding_box_format, class_mode, num_classes):
+    x = {
+        'boxes': tf.cast(x['boxes'], 'float32'),
+        'classes': _get_fun_load_class(x['classes'], class_mode=class_mode, num_classes=num_classes),
+    }
+    x = bounding_box.convert_format(
+            x,
+            source=bounding_box_input_format,
+            target=bounding_box_format,
+            dtype='float32',
+        )
+    return x
 
 def dataset_from_dataframe(
     dataframe,
@@ -140,22 +153,30 @@ def dataset_from_dataframe(
     if isinstance(dataframe, str):
         dataframe = pandas.read_csv(dataframe)
     
-    dataset = tf.data.Dataset.from_tensor_slices({
-        dictname_input : dataframe[colname_input],
-        dictname_target: dataframe[colname_target],
-    })
+    if isinstance(dataframe, tf.data.Dataset):
+        dataset = dataframe
+        try:
+            num_elements = dataframe.length
+        except:
+            num_elements = len(dataframe)
+    else:
+        dataset = tf.data.Dataset.from_tensor_slices({
+            colname_input : dataframe[colname_input],
+            colname_target: dataframe[colname_target],
+        })
+        num_elements = len(dataframe)
     
     if shuffle:
-        dataset = dataset.shuffle(buffer_size=len(dataframe), seed=seed, reshuffle_each_iteration=True)
-        
-    #for a in dataset.take(9):
-    #    for k in a:
-    #        print(k, a[k].shape, a[k].dtype, a[k])
+        dataset = dataset.shuffle(buffer_size=num_elements, seed=seed, reshuffle_each_iteration=True)
     
     dataset = dataset.map( lambda x: {
-            dictname_input : load_fun_input(x[dictname_input]),
-            dictname_target: load_fun_target(x[dictname_target]),
+            dictname_input : load_fun_input(x[colname_input]),
+            dictname_target: load_fun_target(x[colname_target]),
     }, num_parallel_calls = tf.data.AUTOTUNE)
+         
+    #for a in dataset.take(9):
+    #    for k in a:
+    #        print(k, a[k])
     
     if pre_batching_processing is not None:
         dataset = dataset.map(pre_batching_processing, num_parallel_calls = tf.data.AUTOTUNE)
@@ -189,7 +210,7 @@ def image_classification_dataset_from_dataframe(
     seed=None,
     pre_batching_processing=None,
     post_batching_processing=None,
-    include_rescaling=True,
+    include_rescaling=False,
     colname_image='image',
     colname_class='class',
 ):
@@ -248,13 +269,16 @@ def image_classification_dataset_from_dataframe(
    
     if isinstance(dataframe, str):
         dataframe = pandas.read_csv(dataframe)
+    dataframe = dataframe.copy()
+    
+    if root_path not None:
+        dataframe[colname_image] = [os.path.join(root_path, _) for _ in dataframe[colname_image]]
     
     num_classes = 0
     if class_mode in {"int", "categorical"}:
         if class_names is None:
             class_names = sorted(list(set(dataframe[colname_class])))
         
-        dataframe = dataframe.copy()
         dataframe = dataframe[dataframe[colname_class].isin(class_names)]
         dataframe[colname_class] = [class_names.index(_) for _ in dataframe[colname_class]]
         num_classes = len(class_names)
@@ -288,7 +312,7 @@ def image_classification_dataset_from_dataframe(
             f"Received: color_mode={color_mode}"
         ) 
     
-    load_fun_input = partial(_load_img, root_path=root_path, num_channels=num_channels)
+    load_fun_input = partial(_load_img, num_channels=num_channels)
     
     
     if include_rescaling:
@@ -317,5 +341,184 @@ def image_classification_dataset_from_dataframe(
     # Users may need to reference `class_names`, `batch_size` and `root_path`
     dataset.class_names = class_names
     dataset.batch_size = batch_size
+    dataset.root_path = root_path
+    return dataset
+
+
+def _get_objdetect_generator(dataframe, colname_image, colname_class, colname_box):
+    list_img = list(set(dataframe[colname_image]))
+    for image in list_img:
+        sel = dataframe[dataframe[colname_image]==image]
+        yield { 
+            IMAGES: image,
+            BOUNDING_BOXES: {
+                'boxes': sel[colname_box].values,
+                'classes': sel[colname_class].values,
+            }
+        }
+
+
+def image_objdetect_dataset_from_dataframe(
+    dataframe,
+    root_path=None,
+    class_names=None,
+    class_mode="int",
+    color_mode="rgb",
+    batch_size=None,
+    shuffle=True,
+    seed=None,
+    pre_batching_processing=None,
+    post_batching_processing=None,
+    include_rescaling=False,
+    colname_image='image',
+    colname_class='class',
+    colname_box=['xmin','ymin','xmax','ymax'],
+    bounding_box_input_format='xyxy',
+    bounding_box_format='xyxy',
+):
+    """Generates a `tf.data.Dataset` from a dataframe.
+
+    Then calling `image_objdetect_dataset_from_dataframe(dataframe)`
+    will return a `tf.data.Dataset` that yields batches of
+    images from the subdirectories `class_a` and `class_b`, together with labels
+    0 and 1 (0 corresponding to `class_a` and 1 corresponding to `class_b`).
+
+    Args:
+      dataframe: Dataframe with list of images.    
+      class_mode: String describing the encoding of classes. Options are:
+          - 'raw': means that the classes are not encoded
+          - 'int': means that the classes are encoded as integers
+              (e.g. for `sparse_categorical_crossentropy` loss).
+          - 'categorical' means that the classes are
+              encoded as a categorical vector
+              (e.g. for `categorical_crossentropy` loss).
+          - None (no labels).
+      class_names: Only valid if "class_mode" is 'int' or 'categorical'. This is the explicit
+          list of class names esed for the encoding.
+          (otherwise alphanumerical order is used).
+      color_mode: One of "grayscale", "rgb", "rgba". Default: "rgb".
+          Whether the images will be converted to
+          have 1, 3, or 4 channels.
+      batch_size: Size of the batches of data. Default: 32.
+        If `None`, the data will not be batched
+        (the dataset will yield individual samples).
+      shuffle: Whether to shuffle the data. Default: True.
+          If set to False, sorts the data in alphanumeric order.
+      seed: Optional random seed for shuffling and transformations.
+      pre_batching_processing: ???      
+      post_batching_processing: ???.
+    Returns:
+      A `tf.data.Dataset` object.
+
+    Rules regarding labels format:
+
+      - if `class_mode` is `int`, the labels are an `int32` tensor of shape
+        `(batch_size,)`.
+      - if `class_mode` is `raw`, the classes are converted.
+      - if `class_mode` is `categorical`, the labels are a `float32` tensor
+        of shape `(batch_size, num_classes)`, representing a one-hot
+        encoding of the class index.
+
+    Rules regarding number of channels in the yielded images:
+
+      - if `color_mode` is `grayscale`,
+        there's 1 channel in the image tensors.
+      - if `color_mode` is `rgb`,
+        there are 3 channels in the image tensors.
+      - if `color_mode` is `rgba`,
+        there are 4 channels in the image tensors.
+    """
+   
+    if isinstance(dataframe, str):
+        dataframe = pandas.read_csv(dataframe)
+    dataframe = dataframe.copy()
+    
+    if root_path not None:
+        dataframe[colname_image] = [os.path.join(root_path, _) for _ in dataframe[colname_image]]
+    
+    num_classes = 0
+    if class_mode in {"int", "categorical"}:
+        if class_names is None:
+            class_names = sorted(list(set(dataframe[colname_class])))
+        
+        dataframe = dataframe[dataframe[colname_class].isin(class_names)]
+        dataframe[colname_class] = [class_names.index(_) for _ in dataframe[colname_class]]
+        num_classes = len(class_names)
+        for index_class, name_class in enumerate(class_names):
+            num_img = np.sum(dataframe[colname_class]==index_class)
+            print(f"For class '{name_class}', there are {num_img} images.", flush=True)
+    elif class_names:
+        raise ValueError(
+            'You can only pass `class_names` if '
+            '`class_mode` is "int" or "categorical".'
+            f'Received: class_mode={class_mode}, and '
+            f"class_names={class_names}"
+        )
+    
+    if color_mode == "rgb":
+        num_channels = 3
+    elif color_mode == "rgba":
+        num_channels = 4
+    elif color_mode == "grayscale":
+        num_channels = 1
+    else:
+        raise ValueError(
+            '`color_mode` must be one of {"rgb", "rgba", "grayscale"}. '
+            f"Received: color_mode={color_mode}"
+        ) 
+    
+    load_fun_input = partial(_load_img, num_channels=num_channels)
+    
+    load_fun_target = partial(_get_fun_load_bounding_box, 
+                              bounding_box_input_format=bounding_box_input_format,
+                              bounding_box_format=bounding_box_format,
+                              class_mode=class_mode, num_classes=num_classes)
+    
+    if include_rescaling:
+        if post_batching_processing is None:
+            post_batching_processing = Rescaling(1 / 255.0)
+        else:
+            post_batching_processing = keras.Sequential(
+                layers=[post_batching_processing, Rescaling(1 / 255.0)])
+    
+    list_img = list(set(dataframe[colname_image]))
+    num_img = len(list_img)
+    generator = ({
+        IMAGES: image,
+        BOUNDING_BOXES: {
+            'boxes': dataframe[dataframe[colname_image]==image][colname_box].values,
+            'classes': dataframe[dataframe[colname_image]==image][colname_class].values,
+        }
+    } for image in list_img)
+    
+    dataset = tf.data.Dataset.from_generator(lambda : generator, output_signature = 
+                                         {IMAGES: tf.TensorSpec(shape=(), dtype='string'),
+                                          BOUNDING_BOXES: {
+                                              'boxes': tf.TensorSpec(shape=(None, 4), dtype='float32'),
+                                              'classes': tf.TensorSpec(shape=(None,), dtype='float32'),
+                                            }
+                                          } )
+    dataset.length = num_img
+    
+    dataset = dataset_from_dataframe(
+        dataframe=dataset,
+        colname_input=IMAGES,
+        colname_target=BOUNDING_BOXES,
+        load_fun_input=load_fun_input,
+        load_fun_target=load_fun_target,
+        shuffle=shuffle,
+        seed=seed,
+        pre_batching_processing=pre_batching_processing,
+        batch_size=batch_size,
+        post_batching_processing=post_batching_processing,
+        dictname_input=IMAGES,
+        dictname_target=BOUNDING_BOXES,
+        dict_to_tuple=True,
+    )
+    
+    # Users may need to reference `class_names`, `batch_size` and `root_path`
+    dataset.class_names = class_names
+    dataset.batch_size = batch_size
+    dataset.bounding_box_format = bounding_box_format
     dataset.root_path = root_path
     return dataset
