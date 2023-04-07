@@ -26,8 +26,7 @@ class RandomHue(VectorizedBaseImageAugmentationLayer):
     """Randomly adjusts the hue on given images.
 
     This layer will randomly increase/reduce the hue for the input RGB
-    images. At inference time, the output will be identical to the input.
-    Call the layer with `training=True` to adjust the brightness of the input.
+    images.
 
     The image hue is adjusted by converting the image(s) to HSV and rotating the
     hue channel (H) by delta. The image is then converted back to RGB.

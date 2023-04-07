@@ -26,8 +26,7 @@ class RandomSaturation(VectorizedBaseImageAugmentationLayer):
     """Randomly adjusts the saturation on given images.
 
     This layer will randomly increase/reduce the saturation for the input RGB
-    images. At inference time, the output will be identical to the input.
-    Call the layer with `training=True` to adjust the saturation of the input.
+    images.
 
     Args:
         factor: A tuple of two floats, a single float or
