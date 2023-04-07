@@ -66,14 +66,15 @@ class LazySO:
 
         user_version = tf.__version__
         warnings.warn(
-            f"You are currently using TensorFlow {user_version} and trying to load a KerasCV custom op."
-            "\n"
-            f"KerasCV has compiled its custom ops against TensorFlow {TF_VERSION_FOR_ABI_COMPATIBILITY}, "
-            "and there are no compatibility guarantees between the two versions. "
-            "\n"
-            "This means that you might get segfaults when loading the custom op, "
-            "or other kind of low-level errors.\n If you do, do not file an issue "
-            "on Github. This is a known limitation.",
+            f"You are currently using TensorFlow {user_version} and "
+            f"trying to load a KerasCV custom op.\n"
+            f"KerasCV has compiled its custom ops against TensorFlow "
+            f"{TF_VERSION_FOR_ABI_COMPATIBILITY}, and there are no "
+            f"compatibility guarantees between the two versions.\n"
+            "This means that you might get segfaults when loading the custom "
+            "op, or other kind of low-level errors.\n"
+            "If you do, do not file an issue on Github. "
+            "This is a known limitation.",
             UserWarning,
         )
         abi_warning_already_raised = True

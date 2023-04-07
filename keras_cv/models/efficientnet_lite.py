@@ -16,10 +16,10 @@
 """EfficientNet Lite models for Keras.
 
 Reference:
-    - [EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks](
-        https://arxiv.org/abs/1905.11946) (ICML 2019)
+    - [EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks](https://arxiv.org/abs/1905.11946)
+        (ICML 2019)
     - [Based on the original EfficientNet Lite's](https://github.com/tensorflow/tpu/tree/master/models/official/efficientnet/lite)
-"""
+"""  # noqa: E501
 
 import copy
 import math
@@ -118,48 +118,48 @@ DENSE_KERNEL_INITIALIZER = {
 BASE_DOCSTRING = """Instantiates the {name} architecture.
 
     Reference:
-    - [EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks](
-        https://arxiv.org/abs/1905.11946) (ICML 2019)
+    - [EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks](https://arxiv.org/abs/1905.11946)
+        (ICML 2019)
 
     This function returns a Keras {name} model.
 
-    For image classification use cases, see
-    [this page for detailed examples](
-    https://keras.io/api/applications/#usage-examples-for-image-classification-models).
+    For image classification use cases, see [this page for detailed examples](https://keras.io/api/applications/#usage-examples-for-image-classification-models).
 
-    For transfer learning use cases, make sure to read the [guide to transfer
-        learning & fine-tuning](https://keras.io/guides/transfer_learning/).
+    For transfer learning use cases, make sure to read the
+    [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
 
     Args:
-        include_rescaling: bool, whether or not to Rescale the inputs. If set
+        include_rescaling: bool, whether to rescale the inputs. If set
             to `True`, inputs will be passed through a `Rescaling(1/255.0)`
             layer.
-        include_top: bool, whether to include the fully-connected layer at
-            the top of the network.  If provided, `num_classes` must be provided.
-        num_classes: optional int, number of classes to classify images into (only
-            to be specified if `include_top` is `True`).
+        include_top: bool, whether to include the fully-connected layer at the
+            top of the network. If provided, `num_classes` must be provided.
+        num_classes: optional int, number of classes to classify images into
+            (only to be specified if `include_top` is `True`).
         weights: one of `None` (random initialization), a pretrained weight file
-            path, or a reference to pre-trained weights (e.g. 'imagenet/classification')
-            (see available pre-trained weights in weights.py)
+            path, or a reference to pre-trained weights (e.g.
+            'imagenet/classification')(see available pre-trained weights in
+            weights.py)
         input_shape: optional shape tuple, defaults to (None, None, 3).
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
             to use as image input for the model.
         pooling: optional pooling mode for feature extraction
             when `include_top` is `False`.
-            - `None` means that the output of the model will be the 4D tensor output
-                of the last convolutional block.
-            - `avg` means that global average pooling will be applied to the output
-                of the last convolutional block, and thus the output of the model will
-                be a 2D tensor.
+            - `None` means that the output of the model will be the 4D tensor
+                output of the last convolutional block.
+            - `avg` means that global average pooling will be applied to the
+                output of the last convolutional block, and thus the output of
+                the model will be a 2D tensor.
             - `max` means that global max pooling will be applied.
-        classifier_activation: A `str` or callable. The activation function to use
-            on the "top" layer. Ignored unless `include_top=True`. Set
-            `classifier_activation=None` to return the logits of the "top" layer.
-        name: (Optional) name to pass to the model.  Defaults to "{name}".
+        classifier_activation: A `str` or callable. The activation function to
+            use on the "top" layer. Ignored unless `include_top=True`. Set
+            `classifier_activation=None` to return the logits of the "top"
+            layer.
+        name: (Optional) name to pass to the model, defaults to "{name}".
 
     Returns:
         A `keras.Model` instance.
-"""
+"""  # noqa: E501
 
 BN_AXIS = 3
 
@@ -297,10 +297,11 @@ def apply_efficient_net_lite_block(
 
 @keras.utils.register_keras_serializable(package="keras_cv.models")
 class EfficientNetLite(keras.Model):
-    """Instantiates the EfficientNetLite architecture using given scaling coefficients.
+    """Instantiates the EfficientNetLite architecture using given scaling
+    coefficients.
 
     Args:
-        include_rescaling: whether to Rescale the inputs. If set to True,
+        include_rescaling: whether to rescale the inputs. If set to True,
             inputs will be passed through a `Rescaling(1/255.0)` layer.
         include_top: whether to include the fully-connected
             layer at the top of the network.
@@ -333,9 +334,10 @@ class EfficientNetLite(keras.Model):
         num_classes: optional number of classes to classify images
             into, only to be specified if `include_top` is True, and
             if no `weights` argument is specified.
-        classifier_activation: A `str` or callable. The activation function to use
-            on the "top" layer. Ignored unless `include_top=True`. Set
-            `classifier_activation=None` to return the logits of the "top" layer.
+        classifier_activation: A `str` or callable. The activation function to
+            use on the "top" layer. Ignored unless `include_top=True`. Set
+            `classifier_activation=None` to return the logits of the "top"
+            layer.
 
         Returns:
             A `keras.Model` instance.
@@ -344,8 +346,8 @@ class EfficientNetLite(keras.Model):
             ValueError: if `blocks_args` is invalid.
             ValueError: in case of invalid argument for `weights`,
                 or invalid input shape.
-            ValueError: if `classifier_activation` is not `softmax` or `None` when
-                using a pretrained top layer.
+            ValueError: if `classifier_activation` is not `softmax` or `None`
+                when using a pretrained top layer.
     """
 
     def __init__(

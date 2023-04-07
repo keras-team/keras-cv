@@ -65,7 +65,8 @@ class RandomDropBoxTest(tf.test.TestCase):
             BOUNDING_BOXES: bounding_boxes,
         }
         outputs = add_layer(inputs)
-        # Drop the first object bounding box [0, 0, 0, 4, 4, 4, 0, 1] and points.
+        # Drop the first object bounding box [0, 0, 0, 4, 4, 4, 0, 1] and
+        # points.
         augmented_point_clouds = np.array(
             [
                 [
@@ -272,8 +273,10 @@ class RandomDropBoxTest(tf.test.TestCase):
             BOUNDING_BOXES: bounding_boxes,
         }
         outputs = add_layer(inputs)
-        # Batch 0: drop the first bounding box [0, 0, 0, 4, 4, 4, 0, 1] and points,
-        # Batch 1,2: drop the second bounding box [20, 20, 20, 3, 3, 3, 0, 2] and points,
+        # Batch 0: drop the first bounding box [0, 0, 0, 4, 4, 4, 0, 1] and
+        #       points,
+        # Batch 1,2: drop the second bounding box [20, 20, 20, 3, 3, 3, 0, 2]
+        #       and points,
         augmented_point_clouds = np.array(
             [
                 [

@@ -16,7 +16,8 @@ Title: Training a KerasCV model for Imagenet Classification
 Author: [ianjjohnson](https://github.com/ianjjohnson)
 Date created: 2022/07/25
 Last modified: 2022/07/25
-Description: Use KerasCV to train an image classifier using modern best practices
+Description: Use KerasCV to train an image classifier using modern best
+             practices
 """
 
 import math
@@ -36,8 +37,10 @@ from keras_cv.datasets import imagenet
 
 """
 ## Overview
-KerasCV makes training state-of-the-art classification models easy by providing implementations of modern models, preprocessing techniques, and layers.
-In this tutorial, we walk through training a model against the Imagenet dataset using Keras and KerasCV.
+KerasCV makes training state-of-the-art classification models easy by providing
+implementations of modern models, preprocessing techniques, and layers.
+In this tutorial, we walk through training a model against the Imagenet dataset
+using Keras and KerasCV.
 This tutorial requires you to have KerasCV installed:
 ```shell
 pip install keras-cv
@@ -71,30 +74,33 @@ flags.DEFINE_string(
 flags.DEFINE_integer(
     "batch_size",
     128,
-    "Batch size for training and evaluation. This will be multiplied by the number of accelerators in use.",
+    "Batch size for training and evaluation. This will be multiplied by the "
+    "number of accelerators in use.",
 )
 flags.DEFINE_boolean(
-    "use_xla", True, "Whether or not to use XLA (jit_compile) for training."
+    "use_xla", True, "whether to use XLA (jit_compile) for training."
 )
 flags.DEFINE_boolean(
     "use_mixed_precision",
     False,
-    "Whether or not to use FP16 mixed precision for training.",
+    "whether to use FP16 mixed precision for training.",
 )
 flags.DEFINE_boolean(
     "use_ema",
     True,
-    "Whether or not to use exponential moving average weight updating",
+    "whether to use exponential moving average weight updating",
 )
 flags.DEFINE_float(
     "initial_learning_rate",
     0.05,
-    "Initial learning rate which will reduce on plateau. This will be multiplied by the number of accelerators in use",
+    "Initial learning rate which will reduce on plateau. This will be "
+    "multiplied by the number of accelerators in use",
 )
 flags.DEFINE_string(
     "model_kwargs",
     "{}",
-    "Keyword argument dictionary to pass to the constructor of the model being trained",
+    "Keyword argument dictionary to pass to the constructor of the model being "
+    "trained",
 )
 
 flags.DEFINE_string(
@@ -106,13 +112,16 @@ flags.DEFINE_string(
 flags.DEFINE_float(
     "warmup_steps_percentage",
     0.1,
-    "For how many steps expressed in percentage (0..1 float) of total steps should the schedule warm up if we're using the warmup schedule",
+    "For how many steps expressed in percentage (0..1 float) of total steps "
+    "should the schedule warm up if we're using the warmup schedule",
 )
 
 flags.DEFINE_float(
     "warmup_hold_steps_percentage",
     0.45,
-    "For how many steps expressed in percentage (0..1 float) of total steps should the schedule hold the initial learning rate after warmup is finished, and before applying cosine decay.",
+    "For how many steps expressed in percentage (0..1 float) of total steps "
+    "should the schedule hold the initial learning rate after warmup is "
+    "finished, and before applying cosine decay.",
 )
 
 flags.DEFINE_float(
@@ -144,7 +153,8 @@ appropriate distribution strategy accordingly. We scale our learning rate and
 batch size based on the number of accelerators being used.
 """
 
-# Try to detect an available TPU. If none is present, default to MirroredStrategy
+# Try to detect an available TPU. If none is present, defaults to
+# MirroredStrategy
 try:
     tpu = tf.distribute.cluster_resolver.TPUClusterResolver.connect()
     strategy = tf.distribute.TPUStrategy(tpu)
@@ -159,7 +169,8 @@ BATCH_SIZE = FLAGS.batch_size * strategy.num_replicas_in_sync
 INITIAL_LEARNING_RATE = (
     FLAGS.initial_learning_rate * strategy.num_replicas_in_sync
 )
-"""TFRecord-based tf.data.Dataset loads lazily so we can't get the length of the dataset. Temporary."""
+"""TFRecord-based tf.data.Dataset loads lazily so we can't get the length of
+the dataset. Temporary."""
 NUM_IMAGES = 1281167
 
 """
@@ -246,9 +257,11 @@ with strategy.scope():
 
 """
 Optional LR schedule with cosine decay instead of ReduceLROnPlateau
-TODO: Replace with Core Keras LRWarmup when it's released. This is a temporary solution.
+TODO: Replace with Core Keras LRWarmup when it's released. This is a temporary
+solution.
 
-Convinience method for calculating LR at given timestep, for the WarmUpCosineDecay class.
+Convenience method for calculating LR at given timestep, for the
+WarmUpCosineDecay class.
 """
 
 
@@ -289,19 +302,25 @@ def lr_warmup_cosine_decay(
 
 
 """
-LearningRateSchedule implementing the learning rate warmup with cosine decay strategy.
-Learning rate warmup should help with initial training instability,
+LearningRateSchedule implementing the learning rate warmup with cosine decay
+strategy. Learning rate warmup should help with initial training instability,
 while the decay strategy may be variable, cosine being a popular choice.
 
-The schedule will start from 0.0 (or supplied start_lr) and gradually "warm up" linearly to the target_lr.
-From there, it will apply a cosine decay to the learning rate, after an optional holding period.
+The schedule will start from 0.0 (or supplied start_lr) and gradually "warm up"
+linearly to the target_lr. From there, it will apply a cosine decay to the
+learning rate, after an optional holding period.
 
 args:
-    - [float] start_lr: default 0.0, the starting learning rate at the beginning of training from which the warmup starts
-    - [float] target_lr: default 1e-2, the target (initial) learning rate from which you'd usually start without a LR warmup schedule
-    - [int] warmup_steps: number of training steps to warm up for expressed in batches
-    - [int] total_steps: the total steps (epochs * number of batches per epoch) in the dataset
-    - [int] hold: optional argument to hold the target_lr before applying cosine decay on it
+    - [float] start_lr: default 0.0, the starting learning rate at the beginning
+        of training from which the warmup starts
+    - [float] target_lr: default 1e-2, the target (initial) learning rate from
+        which you'd usually start without a LR warmup schedule
+    - [int] warmup_steps: number of training steps to warm up for expressed in
+        batches
+    - [int] total_steps: the total steps (epochs * number of batches per epoch)
+        in the dataset
+    - [int] hold: optional argument to hold the target_lr before applying cosine
+        decay on it
 
 """
 
@@ -343,7 +362,8 @@ schedule = WarmUpCosineDecay(
 
 """
 Next, we pick an optimizer. Here we use SGD.
-Note that learning rate will decrease over time due to the ReduceLROnPlateau callback or with the LRWarmup scheduler.
+Note that learning rate will decrease over time due to the ReduceLROnPlateau
+callback or with the LRWarmup scheduler.
 """
 
 with strategy.scope():
@@ -364,13 +384,15 @@ with strategy.scope():
         )
 
 """
-Next, we pick a loss function. We use CategoricalCrossentropy with label smoothing.
+Next, we pick a loss function. We use CategoricalCrossentropy with label
+smoothing.
 """
 loss_fn = losses.CategoricalCrossentropy(label_smoothing=0.1)
 
 
 """
-Next, we specify the metrics that we want to track. For this example, we track accuracy.
+Next, we specify the metrics that we want to track. For this example, we track
+accuracy.
 """
 with strategy.scope():
     training_metrics = [

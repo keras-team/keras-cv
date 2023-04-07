@@ -27,18 +27,20 @@ class DeepLabV3(keras.Model):
     """A segmentation model based on DeepLab v3.
 
     Args:
-        num_classes: int, the number of classes for the detection model. Note that
-            the num_classes doesn't contain the background class, and the classes
-            from the data should be represented by integers with range
+        num_classes: int, the number of classes for the detection model. Note
+            that the num_classes doesn't contain the background class, and the
+            classes from the data should be represented by integers with range
             [0, num_classes).
-        backbone: Optional backbone network for the model. Should be a KerasCV model.
+        backbone: Optional backbone network for the model. Should be a KerasCV
+            model.
         weights: Weights for the complete DeepLabV3 model. one of `None` (random
             initialization), a pretrained weight file path, or a reference to
-            pre-trained weights (e.g. 'imagenet/classification' or 'voc/segmentation') (see available
-            pre-trained weights in weights.py)
-        spatial_pyramid_pooling: Also known as Atrous Spatial Pyramid Pooling (ASPP).
-            Performs spatial pooling on different spatial levels in the pyramid, with
-            dilation.
+            pre-trained weights (e.g. 'imagenet/classification' or
+            'voc/segmentation') (see available pre-trained weights in
+            weights.py)
+        spatial_pyramid_pooling: Also known as Atrous Spatial Pyramid Pooling
+            (ASPP). Performs spatial pooling on different spatial levels in the
+            pyramid, with dilation.
         segmentation_head: Optional `keras.Layer` that predict the segmentation
             mask based on feature from backbone and feature from decoder.
     """
@@ -59,15 +61,17 @@ class DeepLabV3(keras.Model):
         if not isinstance(backbone, keras.layers.Layer):
             raise ValueError(
                 "Argument `backbone` must be a `keras.layers.Layer` instance. "
-                f"Received instead backbone={backbone} (of type {type(backbone)})."
+                f"Received instead backbone={backbone} (of type "
+                f"{type(backbone)})."
             )
 
         if weights and not tf.io.gfile.exists(
             parse_weights(weights, True, "deeplabv3")
         ):
             raise ValueError(
-                "The `weights` argument should be either `None` or the path to the "
-                "weights file to be loaded. Weights file not found at location: {weights}"
+                "The `weights` argument should be either `None` or the path "
+                "to the weights file to be loaded. Weights file not found at "
+                "location: {weights}"
             )
 
         inputs = utils.parse_model_inputs(input_shape, input_tensor)
@@ -78,9 +82,9 @@ class DeepLabV3(keras.Model):
 
         if input_shape[0] is None and input_shape[1] is None:
             raise ValueError(
-                "Input shapes for both the backbone and DeepLabV3 cannot be `None`. "
-                f"Received: input_shape={input_shape} and "
-                f"backbone.input_shape={backbone.input_shape[1:]}"
+                "Input shapes for both the backbone and DeepLabV3 cannot be "
+                "`None`. Received: input_shape={input_shape} and "
+                "backbone.input_shape={backbone.input_shape[1:]}"
             )
 
         height = input_shape[0]
@@ -189,27 +193,30 @@ class SegmentationHead(layers.Layer):
     segmentation mask (pixel level classifications) as the output for the model.
 
     Args:
-        num_classes: int, number of output classes for the prediction. This should
-            include all the classes (e.g. background) for the model to predict.
-        convolutions: int, number of `Conv2D` layers that are stacked before the final
-            classification layer. Defaults to 2.
-        filters: int, number of filter/channels for the the conv2D layers.
+        num_classes: int, number of output classes for the prediction. This
+            should include all the classes (e.g. background) for the model to
+            predict.
+        convolutions: int, number of `Conv2D` layers that are stacked before the
+            final classification layer, defaults to 2.
+        filters: int, number of filter/channels for the conv2D layers.
             Defaults to 256.
-        activations: str or function, activation functions between the
-            conv2D layers and the final classification layer. Defaults to `"relu"`.
-        output_scale_factor: int, or a pair of ints. Factor for upsampling the output mask.
-            This is useful to scale the output mask back to same size as the input
-            image. When single int is provided, the mask will be scaled with same
-            ratio on both width and height. When a pair of ints are provided, they will
-            be parsed as `(height_factor, width_factor)`. Defaults to `None`, which means
-            no resize will happen to the output mask tensor.
-        kernel_size: int, the kernel size to be used in each of the convolutional blocks.
-            Defaults to 3.
-        use_bias: boolean, whether to use bias or not in each of the convolutional blocks.
-            Defaults to False since the blocks use `BatchNormalization`
-            after each convolution, rendering bias obsolete.
+        activations: str or function, activation functions between the conv2D
+            layers and the final classification layer, defaults to `"relu"`.
+        output_scale_factor: int, or a pair of ints. Factor for upsampling the
+            output mask. This is useful to scale the output mask back to same
+            size as the input image. When single int is provided, the mask will
+            be scaled with same ratio on both width and height. When a pair of
+            ints are provided, they will be parsed as `(height_factor,
+            width_factor)`. Defaults to `None`, which means no resize will
+            happen to the output mask tensor.
+        kernel_size: int, the kernel size to be used in each of the
+            convolutional blocks, defaults to 3.
+        use_bias: boolean, whether to use bias or not in each of the
+            convolutional blocks, defaults to False since the blocks use
+            `BatchNormalization` after each convolution, rendering bias
+            obsolete.
         activation: str or function, activation to apply in the classification
-            layer (output of the head). Defaults to `"softmax"`.
+            layer (output of the head), defaults to `"softmax"`.
 
     Examples:
 
@@ -223,7 +230,8 @@ class SegmentationHead(layers.Layer):
     head = SegmentationHead(num_classes=11)
 
     output = head(inputs)
-    # output tensor has shape [2, 32, 32, 11]. It has the same resolution as the p3.
+    # output tensor has shape [2, 32, 32, 11]. It has the same resolution as
+    the p3.
     ```
     """
 
@@ -274,8 +282,8 @@ class SegmentationHead(layers.Layer):
             use_bias=False,
             padding="same",
             activation=self.activation,
-            # Force the dtype of the classification head to float32 to avoid the NAN loss
-            # issue when used with mixed precision API.
+            # Force the dtype of the classification head to float32 to avoid the
+            # NAN loss issue when used with mixed precision API.
             dtype=tf.float32,
         )
 
@@ -284,9 +292,10 @@ class SegmentationHead(layers.Layer):
     def call(self, inputs):
         """Forward path for the segmentation head.
 
-        For now, it accepts the output from the decoder only, which is a dict with int
-        key and tensor as value (level-> processed feature output). The head will use the
-        lowest level of feature output as the input for the head.
+        For now, it accepts the output from the decoder only, which is a dict
+        with int key and tensor as value (level-> processed feature output). The
+        head will use the lowest level of feature output as the input for the
+        head.
         """
         if not isinstance(inputs, dict):
             raise ValueError(

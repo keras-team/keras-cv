@@ -15,7 +15,7 @@
 import tensorflow as tf
 from tensorflow import keras
 
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     VectorizedBaseImageAugmentationLayer,
 )
 from keras_cv.utils import preprocessing
@@ -26,9 +26,9 @@ class AutoContrast(VectorizedBaseImageAugmentationLayer):
     """Performs the AutoContrast operation on an image.
 
     Auto contrast stretches the values of an image across the entire available
-    `value_range`. This makes differences between pixels more obvious. An example of
-    this is if an image only has values `[0, 1]` out of the range `[0, 255]`, auto
-    contrast will change the `1` values to be `255`.
+    `value_range`. This makes differences between pixels more obvious. An
+    example of this is if an image only has values `[0, 1]` out of the range
+    `[0, 255]`, auto contrast will change the `1` values to be `255`.
 
     Args:
         value_range: the range of values the incoming images will have.

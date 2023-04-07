@@ -32,7 +32,8 @@ class RetinaNetTest(tf.test.TestCase):
         # Code before yield runs before the test
         tf.config.set_soft_device_placement(False)
         yield
-        # Reset soft device placement to not interfere with other unit test files
+        # Reset soft device placement to not interfere with other unit test
+        # files
         tf.config.set_soft_device_placement(True)
         keras.backend.clear_session()
 
@@ -55,7 +56,7 @@ class RetinaNetTest(tf.test.TestCase):
     @pytest.mark.skipif(
         "INTEGRATION" not in os.environ or os.environ["INTEGRATION"] != "true",
         reason="Takes a long time to run, only runs when INTEGRATION "
-        "environment variable is set.  To run the test please run: \n"
+        "environment variable is set. To run the test please run: \n"
         "`INTEGRATION=true pytest keras_cv/",
     )
     def test_retina_net_call(self):

@@ -15,10 +15,13 @@
 
 Credits:
 
-- Original implementation: https://github.com/CompVis/stable-diffusion
-- Initial TF/Keras port: https://github.com/divamgupta/stable-diffusion-tensorflow
+- Original implementation:
+  https://github.com/CompVis/stable-diffusion
+- Initial TF/Keras port:
+  https://github.com/divamgupta/stable-diffusion-tensorflow
 
-The current implementation is a rewrite of the initial TF/Keras port by Divam Gupta.
+The current implementation is a rewrite of the initial TF/Keras port by
+Divam Gupta.
 """
 
 import math
@@ -138,19 +141,18 @@ class StableDiffusionBase:
 
         Args:
             encoded_text: Tensor of shape (`batch_size`, 77, 768), or a Tensor
-            of shape (77, 768). When the batch axis is omitted, the same encoded
-            text will be used to produce every generated image.
-            batch_size: number of images to generate. Default: 1.
+                of shape (77, 768). When the batch axis is omitted, the same
+                encoded text will be used to produce every generated image.
+            batch_size: int, number of images to generate, defaults to 1.
             negative_prompt: a string containing information to negatively guide
-            the image generation (e.g. by removing or altering certain aspects
-            of the generated image).
-                Default: None.
-            num_steps: number of diffusion steps (controls image quality).
-                Default: 50.
-            unconditional_guidance_scale: float controling how closely the image
-                should adhere to the prompt. Larger values result in more
+                the image generation (e.g. by removing or altering certain
+                aspects of the generated image), defaults to None.
+            num_steps: int, number of diffusion steps (controls image quality),
+                defaults to 50.
+            unconditional_guidance_scale: float, controlling how closely the
+                image should adhere to the prompt. Larger values result in more
                 closely adhering to the prompt, but will make the image noisier.
-                Default: 7.5.
+                Defaults to 7.5.
             diffusion_noise: Tensor of shape (`batch_size`, img_height // 8,
                 img_width // 8, 4), or a Tensor of shape (img_height // 8,
                 img_width // 8, 4). Optional custom noise to seed the diffusion
@@ -249,45 +251,48 @@ class StableDiffusionBase:
         seed=None,
         verbose=True,
     ):
-        """Inpaints a masked section of the provided image based on the provided prompt.
+        """Inpaints a masked section of the provided image based on the provided
+        prompt.
         Note that this currently does not support mixed precision.
 
         Args:
             prompt: A string representing the prompt for generation.
             image: Tensor of shape (`batch_size`, `image_height`, `image_width`,
-                3) with RGB values in [0, 255]. When the batch is omitted, the same
-                image will be used as the starting image.
+                3) with RGB values in [0, 255]. When the batch is omitted, the
+                same image will be used as the starting image.
             mask: Tensor of shape (`batch_size`, `image_height`, `image_width`)
-                with binary values 0 or 1. When the batch is omitted, the same mask
-                will be used on all images.
+                with binary values 0 or 1. When the batch is omitted, the same
+                mask will be used on all images.
             negative_prompt: a string containing information to negatively guide
-            the image generation (e.g. by removing or altering certain aspects
-            of the generated image).
-                Default: None.
-            num_resamples: number of times to resample the generated mask region.
-                Increasing the number of resamples improves the semantic fit of the
-                generated mask region w.r.t the rest of the image. Default: 1.
-            batch_size: number of images to generate. Default: 1.
-            num_steps: number of diffusion steps (controls image quality).
-                Default: 25.
-            unconditional_guidance_scale: float controlling how closely the image
-                should adhere to the prompt. Larger values result in more
+                the image generation (e.g. by removing or altering certain
+                aspects of the generated image), defaults to None.
+            num_resamples: int, number of times to resample the generated mask
+                region. Increasing the number of resamples improves the semantic
+                fit of the generated mask region w.r.t the rest of the image.
+                Defaults to 1.
+            batch_size: int, number of images to generate, defaults to 1.
+            num_steps: int, number of diffusion steps (controls image quality),
+                defaults to 25.
+            unconditional_guidance_scale: float, controlling how closely the
+                image should adhere to the prompt. Larger values result in more
                 closely adhering to the prompt, but will make the image noisier.
-                Default: 7.5.
+                Defaults to 7.5.
             diffusion_noise: (Optional) Tensor of shape (`batch_size`,
                 img_height // 8, img_width // 8, 4), or a Tensor of shape
                 (img_height // 8, img_width // 8, 4). Optional custom noise to
                 seed the diffusion process. When the batch axis is omitted, the
-                same noise will be used to seed diffusion for every generated image.
-            seed: (Optional) integer which is used to seed the random generation of
-                diffusion noise, only to be specified if `diffusion_noise` is None.
-            verbose: whether to print progress bar. Default: True.
+                same noise will be used to seed diffusion for every generated
+                image.
+            seed: (Optional) integer which is used to seed the random generation
+                of diffusion noise, only to be specified if `diffusion_noise` is
+                None.
+            verbose: bool, whether to print progress bar, defaults to True.
         """
         if diffusion_noise is not None and seed is not None:
             raise ValueError(
                 "Please pass either diffusion_noise or seed to inpaint(), seed "
-                "is only used to generate diffusion noise when it is not provided. "
-                "Received both diffusion_noise and seed."
+                "is only used to generate diffusion noise when it is not"
+                "provided. Received both diffusion_noise and seed."
             )
 
         encoded_text = self.encode_text(prompt)
@@ -405,7 +410,8 @@ class StableDiffusionBase:
         return unconditional_context
 
     def _expand_tensor(self, text_embedding, batch_size):
-        """Extends a tensor by repeating it to fit the shape of the given batch size."""
+        """Extends a tensor by repeating it to fit the shape of the given batch
+        size."""
         text_embedding = tf.squeeze(text_embedding)
         if text_embedding.shape.rank == 2:
             text_embedding = tf.repeat(
@@ -440,8 +446,9 @@ class StableDiffusionBase:
 
     @property
     def decoder(self):
-        """decoder returns the diffusion image decoder model with pretrained weights.
-        Can be overriden for tasks where the decoder needs to be modified.
+        """decoder returns the diffusion image decoder model with pretrained
+        weights. Can be overriden for tasks where the decoder needs to be
+        modified.
         """
         if self._decoder is None:
             self._decoder = Decoder(self.img_height, self.img_width)
@@ -452,7 +459,8 @@ class StableDiffusionBase:
     @property
     def tokenizer(self):
         """tokenizer returns the tokenizer used for text inputs.
-        Can be overriden for tasks like textual inversion where the tokenizer needs to be modified.
+        Can be overriden for tasks like textual inversion where the tokenizer
+        needs to be modified.
         """
         if self._tokenizer is None:
             self._tokenizer = SimpleTokenizer()
@@ -503,18 +511,19 @@ class StableDiffusion(StableDiffusionBase):
     future changes to these APIs.
 
     Stable Diffusion is a powerful image generation model that can be used,
-    among other things, to generate pictures according to a short text description
-    (called a "prompt").
+    among other things, to generate pictures according to a short text
+    description (called a "prompt").
 
     Arguments:
-        img_height: Height of the images to generate, in pixel. Note that only
-            multiples of 128 are supported; the value provided will be rounded
-            to the nearest valid value. Default: 512.
-        img_width: Width of the images to generate, in pixel. Note that only
-            multiples of 128 are supported; the value provided will be rounded
-            to the nearest valid value. Default: 512.
-        jit_compile: Whether to compile the underlying models to XLA.
-            This can lead to a significant speedup on some systems. Default: False.
+        img_height: int, height of the images to generate, in pixel. Note that
+            only multiples of 128 are supported; the value provided will be
+            rounded to the nearest valid value. Defaults to 512.
+        img_width: int, width of the images to generate, in pixel. Note that
+            only multiples of 128 are supported; the value provided will be
+            rounded to the nearest valid value. Defaults to 512.
+        jit_compile: bool, whether to compile the underlying models to XLA.
+            This can lead to a significant speedup on some systems. Defaults to
+            False.
 
     Example:
 
@@ -536,7 +545,7 @@ class StableDiffusion(StableDiffusionBase):
     References:
     - [About Stable Diffusion](https://stability.ai/blog/stable-diffusion-announcement)
     - [Original implementation](https://github.com/CompVis/stable-diffusion)
-    """
+    """  # noqa: E501
 
     def __init__(
         self,
@@ -548,7 +557,7 @@ class StableDiffusion(StableDiffusionBase):
         print(
             "By using this model checkpoint, you acknowledge that its usage is "
             "subject to the terms of the CreativeML Open RAIL-M license at "
-            "https://raw.githubusercontent.com/CompVis/stable-diffusion/main/LICENSE"
+            "https://raw.githubusercontent.com/CompVis/stable-diffusion/main/LICENSE"  # noqa: E501
         )
 
     @property
@@ -566,7 +575,8 @@ class StableDiffusion(StableDiffusionBase):
     @property
     def diffusion_model(self):
         """diffusion_model returns the diffusion model with pretrained weights.
-        Can be overriden for tasks where the diffusion model needs to be modified.
+        Can be overriden for tasks where the diffusion model needs to be
+        modified.
         """
         if self._diffusion_model is None:
             self._diffusion_model = DiffusionModel(
@@ -581,23 +591,24 @@ class StableDiffusionV2(StableDiffusionBase):
     """Keras implementation of Stable Diffusion v2.
 
     Note that the StableDiffusion API, as well as the APIs of the sub-components
-    of StableDiffusionV2 (e.g. ImageEncoder, DiffusionModelV2) should be considered
-    unstable at this point. We do not guarantee backwards compatability for
-    future changes to these APIs.
+    of StableDiffusionV2 (e.g. ImageEncoder, DiffusionModelV2) should be
+    considered unstable at this point. We do not guarantee backwards
+    compatability for future changes to these APIs.
 
     Stable Diffusion is a powerful image generation model that can be used,
-    among other things, to generate pictures according to a short text description
-    (called a "prompt").
+    among other things, to generate pictures according to a short text
+    description (called a "prompt").
 
     Arguments:
-        img_height: Height of the images to generate, in pixel. Note that only
-            multiples of 128 are supported; the value provided will be rounded
-            to the nearest valid value. Default: 512.
-        img_width: Width of the images to generate, in pixel. Note that only
-            multiples of 128 are supported; the value provided will be rounded
-            to the nearest valid value. Default: 512.
-        jit_compile: Whether to compile the underlying models to XLA.
-            This can lead to a significant speedup on some systems. Default: False.
+        img_height: int, height of the images to generate, in pixel. Note that
+            only multiples of 128 are supported; the value provided will be
+            rounded to the nearest valid value. Defaults to 512.
+        img_width: int, width of the images to generate, in pixel. Note that
+            only multiples of 128 are supported; the value provided will be
+            rounded to the nearest valid value. Defaults to 512.
+        jit_compile: bool, whether to compile the underlying models to XLA.
+            This can lead to a significant speedup on some systems. Defaults to
+            False.
     Example:
 
     ```python
@@ -619,7 +630,7 @@ class StableDiffusionV2(StableDiffusionBase):
 
     - [About Stable Diffusion](https://stability.ai/blog/stable-diffusion-announcement)
     - [Original implementation](https://github.com/Stability-AI/stablediffusion)
-    """
+    """  # noqa: E501
 
     def __init__(
         self,
@@ -649,7 +660,8 @@ class StableDiffusionV2(StableDiffusionBase):
     @property
     def diffusion_model(self):
         """diffusion_model returns the diffusion model with pretrained weights.
-        Can be overriden for tasks where the diffusion model needs to be modified.
+        Can be overriden for tasks where the diffusion model needs to be
+        modified.
         """
         if self._diffusion_model is None:
             self._diffusion_model = DiffusionModelV2(

@@ -41,14 +41,14 @@ from keras_cv.utils.train import get_feature_extractor
 BOX_VARIANCE = [0.1, 0.1, 0.2, 0.2]
 
 
-# TODO(jbischof): Generalize `FeaturePyramid` class to allow for any P-levels and
-# add `feature_pyramid_levels` param.
+# TODO(jbischof): Generalize `FeaturePyramid` class to allow for any P-levels
+#  and add `feature_pyramid_levels` param.
 @keras.utils.register_keras_serializable(package="keras_cv")
 class RetinaNet(Task):
     """A Keras model implementing the RetinaNet meta-architecture.
 
-    Implements the RetinaNet architecture for object detection.  The constructor
-    requires `num_classes`, `bounding_box_format`, and a backbone.  Optionally,
+    Implements the RetinaNet architecture for object detection. The constructor
+    requires `num_classes`, `bounding_box_format`, and a backbone. Optionally,
     a custom label encoder, and prediction decoder may be provided.
 
     Examples:
@@ -86,43 +86,46 @@ class RetinaNet(Task):
     ```
 
     Args:
-        num_classes: the number of classes in your dataset excluding the background
-            class.  classes should be represented by integers in the range
-            [0, num_classes).
-        bounding_box_format: The format of bounding boxes of input dataset. Refer
+        num_classes: the number of classes in your dataset excluding the
+            background class. Classes should be represented by integers in the
+            range [0, num_classes).
+        bounding_box_format: The format of bounding boxes of input dataset.
+            Refer
             [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
             for more details on supported bounding box formats.
         backbone: `keras.Model`. Must implement the `pyramid_level_inputs`
             property with keys 3, 4, and 5 and layer names as values. A somewhat
             sensible backbone to use in many cases is the:
             `keras_cv.models.ResNetBackbone.from_preset("resnet50_imagenet")`
-        anchor_generator: (Optional) a `keras_cv.layers.AnchorGenerator`.  If provided,
-            the anchor generator will be passed to both the `label_encoder` and the
-            `prediction_decoder`.  Only to be used when both `label_encoder` and
-            `prediction_decoder` are both `None`.  Defaults to an anchor generator with
-            the parameterization: `strides=[2**i for i in range(3, 8)]`,
+        anchor_generator: (Optional) a `keras_cv.layers.AnchorGenerator`. If
+            provided, the anchor generator will be passed to both the
+            `label_encoder` and the `prediction_decoder`. Only to be used when
+            both `label_encoder` and `prediction_decoder` are both `None`.
+            Defaults to an anchor generator with the parameterization:
+            `strides=[2**i for i in range(3, 8)]`,
             `scales=[2**x for x in [0, 1 / 3, 2 / 3]]`,
             `sizes=[32.0, 64.0, 128.0, 256.0, 512.0]`,
             and `aspect_ratios=[0.5, 1.0, 2.0]`.
         label_encoder: (Optional) a keras.Layer that accepts an image Tensor, a
-            bounding box Tensor and a bounding box class Tensor to its `call()` method,
-            and returns RetinaNet training targets.  By default, a KerasCV standard
-            `RetinaNetLabelEncoder` is created and used.  Results of this object's
-            `call()` method are passed to the `loss` object for `box_loss` and
-            `classification_loss` the `y_true` argument.
-        prediction_decoder: (Optional)  A `keras.layers.Layer` that is responsible
-            for transforming RetinaNet predictions into usable bounding box
-            Tensors.  If not provided, a default is provided.  The default
-            `prediction_decoder` layer is a
+            bounding box Tensor and a bounding box class Tensor to its `call()`
+            method, and returns RetinaNet training targets. By default, a
+            KerasCV standard `RetinaNetLabelEncoder` is created and used.
+            Results of this object's `call()` method are passed to the `loss`
+            object for `box_loss` and `classification_loss` the `y_true`
+            argument.
+        prediction_decoder: (Optional)  A `keras.layers.Layer` that is
+            responsible for transforming RetinaNet predictions into usable
+            bounding box Tensors. If not provided, a default is provided. The
+            default `prediction_decoder` layer is a
             `keras_cv.layers.MultiClassNonMaxSuppression` layer, which uses
             a Non-Max Suppression for box pruning.
-        classification_head: (Optional) A `keras.Layer` that performs classification of
-            the bounding boxes.  If not provided, a simple ConvNet with 3 layers will be
-            used.
-        box_head: (Optional) A `keras.Layer` that performs regression of
-            the bounding boxes.  If not provided, a simple ConvNet with 3 layers will be
-            used.
-    """
+        classification_head: (Optional) A `keras.Layer` that performs
+            classification of the bounding boxes. If not provided, a simple
+            ConvNet with 3 layers will be used.
+        box_head: (Optional) A `keras.Layer` that performs regression of the
+            bounding boxes. If not provided, a simple ConvNet with 3 layers
+            will be used.
+    """  # noqa: E501
 
     def __init__(
         self,
@@ -141,13 +144,14 @@ class RetinaNet(Task):
         ):
             raise ValueError(
                 "`anchor_generator` is only to be provided when "
-                "both `label_encoder` and `prediction_decoder` are both `None`. "
-                f"Received `anchor_generator={anchor_generator}` "
+                "both `label_encoder` and `prediction_decoder` are both "
+                f"`None`. Received `anchor_generator={anchor_generator}` "
                 f"`label_encoder={label_encoder}`, "
-                f"`prediction_decoder={prediction_decoder}`. To customize the behavior of "
-                "the anchor_generator inside of a custom `label_encoder` or custom "
-                "`prediction_decoder` you should provide both to `RetinaNet`, and ensure "
-                "that the `anchor_generator` provided to both is identical"
+                f"`prediction_decoder={prediction_decoder}`. To customize the "
+                "behavior of the anchor_generator inside of a custom "
+                "`label_encoder` or custom `prediction_decoder` you should "
+                "provide both to `RetinaNet`, and ensure that the "
+                "`anchor_generator` provided to both is identical"
             )
         anchor_generator = (
             anchor_generator
@@ -217,9 +221,10 @@ class RetinaNet(Task):
         if bounding_box_format.lower() != "xywh":
             raise ValueError(
                 "`keras_cv.models.RetinaNet` only supports the 'xywh' "
-                "`bounding_box_format`.  In future releases, more formats will be "
-                "supported.  For now, please pass `bounding_box_format='xywh'`. "
-                f"Received `bounding_box_format={bounding_box_format}`"
+                "`bounding_box_format`. In future releases, more formats will "
+                "be supported. For now, please pass "
+                "`bounding_box_format='xywh'`. Received "
+                f"`bounding_box_format={bounding_box_format}`"
             )
 
         self.bounding_box_format = bounding_box_format
@@ -227,10 +232,10 @@ class RetinaNet(Task):
         if num_classes == 1:
             raise ValueError(
                 "RetinaNet must always have at least 2 classes. "
-                "This is because logits are passed through a `tf.softmax()` call "
-                "before `MultiClassNonMaxSuppression()` is applied.  If only "
-                "a single class is present, the model will always give a score of "
-                "`1` for the single present class."
+                "This is because logits are passed through a `tf.softmax()` "
+                "call before `MultiClassNonMaxSuppression()` is applied. If "
+                "only a single class is present, the model will always give a "
+                "score of `1` for the single present class."
             )
 
         self.backbone = backbone
@@ -328,33 +333,34 @@ class RetinaNet(Task):
         """compiles the RetinaNet.
 
         compile() mirrors the standard Keras compile() method, but has a few key
-        distinctions.  Primarily, all metrics must support bounding boxes, and
+        distinctions. Primarily, all metrics must support bounding boxes, and
         two losses must be provided: `box_loss` and `classification_loss`.
 
         Args:
-            box_loss: a Keras loss to use for box offset regression.  Preconfigured
-                losses are provided when the string "huber" or "smoothl1" are passed.
+            box_loss: a Keras loss to use for box offset regression.
+                Preconfigured losses are provided when the string "huber" or
+                "smoothl1" are passed.
             classification_loss: a Keras loss to use for box classification.
-                A preconfigured `FocalLoss` is provided when the string "focal" is
-                passed.
+                A preconfigured `FocalLoss` is provided when the string "focal"
+                is passed.
             weight_decay: a float for variable weight decay.
             metrics: KerasCV object detection metrics that accept decoded
-                bounding boxes as their inputs.  Examples of this metric type are
-                `keras_cv.metrics.BoxRecall()` and
-                `keras_cv.metrics.BoxMeanAveragePrecision()`.  When `metrics` are
+                bounding boxes as their inputs. Examples of this metric type
+                are `keras_cv.metrics.BoxRecall()` and
+                `keras_cv.metrics.BoxMeanAveragePrecision()`. When `metrics` are
                 included in the call to `compile()`, the RetinaNet will perform
-                non max suppression decoding during the forward pass.  By
-                default the RetinaNet uses a
+                non-max suppression decoding during the forward pass. By
+                default, the RetinaNet uses a
                 `keras_cv.layers.MultiClassNonMaxSuppression()` layer to
-                perform decoding.  This behavior can be customized by passing in a
-                `prediction_decoder` to the constructor or by modifying the
+                perform decoding. This behavior can be customized by passing in
+                a `prediction_decoder` to the constructor or by modifying the
                 `prediction_decoder` attribute on the model. It should be noted
-                that the default non max suppression operation does not have
+                that the default non-max suppression operation does not have
                 TPU support, and thus when training on TPU metrics must be
                 evaluated in a `keras.utils.SidecarEvaluator` or a
                 `keras.callbacks.Callback`.
-            kwargs: most other `keras.Model.compile()` arguments are supported and
-                propagated to the `keras.Model` class.
+            kwargs: most other `keras.Model.compile()` arguments are supported
+                and propagated to the `keras.Model` class.
         """
         if loss is not None:
             raise ValueError(
@@ -377,9 +383,11 @@ class RetinaNet(Task):
             if box_loss.bounding_box_format != self.bounding_box_format:
                 raise ValueError(
                     "Wrong `bounding_box_format` passed to `box_loss` in "
-                    "`RetinaNet.compile()`. "
-                    f"Got `box_loss.bounding_box_format={box_loss.bounding_box_format}`, "
-                    f"want `box_loss.bounding_box_format={self.bounding_box_format}`"
+                    "`RetinaNet.compile()`. Got "
+                    "`box_loss.bounding_box_format="
+                    f"{box_loss.bounding_box_format}`, want "
+                    "`box_loss.bounding_box_format="
+                    f"{self.bounding_box_format}`"
                 )
 
         self.box_loss = box_loss
@@ -396,21 +404,23 @@ class RetinaNet(Task):
     def compute_loss(self, x, box_pred, cls_pred, boxes, classes):
         if boxes.shape[-1] != 4:
             raise ValueError(
-                "boxes should have shape (None, None, 4).  Got "
+                "boxes should have shape (None, None, 4). Got "
                 f"boxes.shape={tuple(boxes.shape)}"
             )
 
         if box_pred.shape[-1] != 4:
             raise ValueError(
-                "box_pred should have shape (None, None, 4). "
-                f"Got box_pred.shape={tuple(box_pred.shape)}.  Does your model's `num_classes` "
-                "parameter match your losses `num_classes` parameter?"
+                "box_pred should have shape (None, None, 4). Got "
+                f"box_pred.shape={tuple(box_pred.shape)}. Does your model's "
+                "`num_classes` parameter match your losses `num_classes` "
+                "parameter?"
             )
         if cls_pred.shape[-1] != self.num_classes:
             raise ValueError(
-                "cls_pred should have shape (None, None, 4). "
-                f"Got cls_pred.shape={tuple(cls_pred.shape)}.  Does your model's `num_classes` "
-                "parameter match your losses `num_classes` parameter?"
+                "cls_pred should have shape (None, None, 4). Got "
+                f"cls_pred.shape={tuple(cls_pred.shape)}. Does your model's "
+                "`num_classes` parameter match your losses `num_classes` "
+                "parameter?"
             )
 
         cls_labels = tf.one_hot(
@@ -451,7 +461,7 @@ class RetinaNet(Task):
             images=x,
         )
         boxes, classes = self.label_encoder(x, y_for_label_encoder)
-        # boxes are now in `center_yxhw`.  This is always the case in training
+        # boxes are now in `center_yxhw`. This is always the case in training
         with tf.GradientTape() as tape:
             outputs = self(x, training=True)
             box_pred, cls_pred = outputs["box"], outputs["classification"]
@@ -537,14 +547,16 @@ class RetinaNet(Task):
 
     @classproperty
     def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include weights."""
+        """Dictionary of preset names and configurations that include
+        weights."""
         return copy.deepcopy(
             {**backbone_presets_with_weights, **retina_net_presets}
         )
 
     @classproperty
     def backbone_presets(cls):
-        """Dictionary of preset names and configurations of compatible backbones."""
+        """Dictionary of preset names and configurations of compatible
+        backbones."""
         return copy.deepcopy(backbone_presets)
 
 
@@ -563,7 +575,7 @@ def _parse_box_loss(loss):
 
     raise ValueError(
         "Expected `box_loss` to be either a Keras Loss, "
-        f"callable, or the string 'SmoothL1'.  Got loss={loss}."
+        f"callable, or the string 'SmoothL1'. Got loss={loss}."
     )
 
 
@@ -580,5 +592,5 @@ def _parse_classification_loss(loss):
 
     raise ValueError(
         "Expected `classification_loss` to be either a Keras Loss, "
-        f"callable, or the string 'Focal'.  Got loss={loss}."
+        f"callable, or the string 'Focal'. Got loss={loss}."
     )

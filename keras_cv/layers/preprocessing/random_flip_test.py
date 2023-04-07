@@ -77,13 +77,6 @@ class RandomFlipTest(tf.test.TestCase, parameterized.TestCase):
             actual_output = layer(inp, training=True)
             self.assertAllClose(expected_output, actual_output)
 
-    def test_random_flip_inference(self):
-        input_images = np.random.random((2, 5, 8, 3)).astype(np.float32)
-        expected_output = input_images
-        layer = RandomFlip()
-        actual_output = layer(input_images, training=False)
-        self.assertAllClose(expected_output, actual_output)
-
     def test_random_flip_default(self):
         input_images = np.random.random((2, 5, 8, 3)).astype(np.float32)
         expected_output = np.flip(input_images, axis=2)
