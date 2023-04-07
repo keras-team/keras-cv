@@ -17,6 +17,9 @@ from tensorflow import keras
 
 from keras_cv import bounding_box
 from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
+    BATCHED,
+)
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
     BOUNDING_BOXES,
 )
 from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
@@ -265,6 +268,17 @@ class Mosaic(VectorizedBaseImageAugmentationLayer):
     def _batch_augment(self, inputs):
         self._validate_inputs(inputs)
         return super()._batch_augment(inputs)
+
+    def call(self, inputs):
+        _, metadata = self._format_inputs(inputs)
+        if metadata[BATCHED] is not True:
+            raise ValueError(
+                "Mosaic received a single image to `call`. The "
+                "layer relies on combining multiple examples, and as such "
+                "will not behave as expected. Please call the layer with 4 "
+                "or more samples."
+            )
+        return super().call(inputs=inputs)
 
     def _validate_inputs(self, inputs):
         images = inputs.get(IMAGES, None)
