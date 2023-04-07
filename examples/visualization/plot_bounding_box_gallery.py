@@ -84,7 +84,7 @@ keras_cv.visualization.plot_bounding_box_gallery(
     images,
     value_range=(0, 255),
     bounding_box_format="xywh",
-    y_pred=boxes,
+    y_true=boxes,
     scale=5,
     rows=2,
     cols=2,
