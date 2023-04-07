@@ -77,9 +77,8 @@ class BaseImageAugmentationLayer(keras.__internal__.layers.BaseRandomLayer):
 
     The output of the `call()` will be the same structure as the inputs.
 
-    The `call()` will handle the logic detecting the training/inference mode,
-    unpack the inputs, forward to the correct function, and pack the output back
-    to the same structure as the inputs.
+    The `call()` will unpack the inputs, forward to the correct function, and
+    pack the output back to the same structure as the inputs.
 
     By default the `call()` method leverages the `tf.vectorized_map()` function.
     Auto-vectorization can be disabled by setting `self.auto_vectorize = False`

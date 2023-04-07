@@ -27,10 +27,10 @@ W_AXIS = -2
 
 @keras.utils.register_keras_serializable(package="keras_cv")
 class RandomTranslation(VectorizedBaseImageAugmentationLayer):
-    """A preprocessing layer which randomly translates images during training.
+    """A preprocessing layer which randomly translates images.
 
-    This layer will apply random translations to each image during training,
-    filling empty space according to `fill_mode`.
+    This layer will apply random translations to each image, filling empty
+    space according to `fill_mode`.
 
     Input pixel values can be of any range (e.g. `[0., 1.)` or `[0, 255]`) and
     of integer or floating point dtype. By default, the layer will output

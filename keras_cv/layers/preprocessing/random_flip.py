@@ -33,11 +33,10 @@ HORIZONTAL_AND_VERTICAL = "horizontal_and_vertical"
 
 @keras.utils.register_keras_serializable(package="keras_cv")
 class RandomFlip(BaseImageAugmentationLayer):
-    """A preprocessing layer which randomly flips images during training.
+    """A preprocessing layer which randomly flips images.
 
     This layer will flip the images horizontally and or vertically based on the
-    `mode` attribute. During inference time, the output will be identical to
-    input. Call the layer with `training=True` to flip the input.
+    `mode` attribute.
 
     Input shape:
       3D (unbatched) or 4D (batched) tensor with shape:

@@ -30,7 +30,7 @@ W_AXIS = -2
 
 @keras.utils.register_keras_serializable(package="keras_cv")
 class RandomZoom(VectorizedBaseImageAugmentationLayer):
-    """A preprocessing layer which randomly zooms images during training.
+    """A preprocessing layer which randomly zooms images.
 
     This layer will randomly zoom in or out on each axis of an image
     independently, filling empty space according to `fill_mode`.
