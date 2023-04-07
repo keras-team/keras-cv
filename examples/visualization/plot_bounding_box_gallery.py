@@ -37,12 +37,16 @@ def unpackage_tfds_inputs(inputs):
         target="xywh",
     )
     classes = tf.cast(inputs["objects"]["label"], tf.float32)
-    bounding_boxes = {"classes": classes, "boxes": boxes}
+    bounding_boxes = {
+        "classes": classes,
+        "confidence": tf.random.uniform(tf.shape(classes), minval=0, maxval=1),
+        "boxes": boxes,
+    }
     return image, bounding_boxes
 
 
 train_ds = train_ds.map(unpackage_tfds_inputs)
-train_ds = train_ds.apply(tf.data.experimental.dense_to_ragged_batch(16))
+train_ds = train_ds.ragged_batch(16)
 images, boxes = next(iter(train_ds.take(1)))
 
 """
@@ -82,29 +86,12 @@ keras_cv.visualization.plot_bounding_box_gallery(
     value_range=(0, 255),
     bounding_box_format="xywh",
     y_true=boxes,
-    scale=3,
+    scale=5,
     rows=2,
     cols=2,
     line_thickness=4,
-    font_scale=1,
-    legend=True,
-    class_mapping=class_mapping,
-)
-
-"""
-Same but with `y_pred`:
-"""
-
-keras_cv.visualization.plot_bounding_box_gallery(
-    images,
-    value_range=(0, 255),
-    bounding_box_format="xywh",
-    y_pred=boxes,
-    scale=3,
-    rows=2,
-    cols=2,
-    line_thickness=4,
-    font_scale=1,
+    font_scale=0.5,
+    text_thickness=2,
     legend=True,
     class_mapping=class_mapping,
 )

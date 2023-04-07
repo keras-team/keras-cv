@@ -86,10 +86,14 @@ def draw_bounding_boxes(
             "boxes": bounding_boxes["boxes"][i],
             "classes": bounding_boxes["classes"][i],
         }
+        if "confidence" in bounding_boxes:
+            bounding_box_batch["confidence"] = bounding_boxes["confidence"][i]
+
         image = utils.to_numpy(images[i]).astype("uint8")
         for b_id in range(bounding_box_batch["boxes"].shape[0]):
             x, y, x2, y2 = bounding_box_batch["boxes"][b_id].astype(int)
             class_id = bounding_box_batch["classes"][b_id].astype(int)
+            confidence = bounding_box_batch.get("confidence", None)
 
             if class_id == -1:
                 continue
@@ -104,12 +108,19 @@ def draw_bounding_boxes(
             )
             cv2.rectangle(image, (x, y), (x2, y2), color, line_thickness)
             class_id = int(class_id)
+
             if class_id in class_mapping:
                 label = class_mapping[class_id]
+                if confidence is not None:
+                    label = f"{label} | {confidence[b_id]:.2f}"
+
+                x, y = _find_text_location(
+                    x, y, font_scale, line_thickness, outline_factor
+                )
                 cv2.putText(
                     image,
                     label,
-                    (x, y - 10),
+                    (x, y),
                     cv2.FONT_HERSHEY_SIMPLEX,
                     font_scale,
                     (0, 0, 0, 0.5),
@@ -118,7 +129,7 @@ def draw_bounding_boxes(
                 cv2.putText(
                     image,
                     label,
-                    (x, y - 10),
+                    (x, y),
                     cv2.FONT_HERSHEY_SIMPLEX,
                     font_scale,
                     color,
@@ -126,3 +137,18 @@ def draw_bounding_boxes(
                 )
         result.append(image)
     return np.array(result).astype(int)
+
+
+def _find_text_location(x, y, font_scale, line_thickness, outline_factor):
+    font_height = int(font_scale * 12)
+    target_y = y - int(8 + outline_factor)
+    if target_y - (2 * font_height) > 0:
+        return x, y - int(8 + outline_factor)
+
+    line_offset = line_thickness + outline_factor
+    static_offset = 3
+
+    return (
+        x + outline_factor + static_offset,
+        y + (2 * font_height) + line_offset + static_offset,
+    )
