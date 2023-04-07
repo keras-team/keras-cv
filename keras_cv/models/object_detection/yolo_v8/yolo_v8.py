@@ -199,11 +199,12 @@ class YOLOV8(Task):
         bounding_box_format,
         backbone,
         fpn_depth,
+        num_classes,
+        anchor_generator=None,
+        label_encoder=None,
         prediction_decoder=None,
-        num_classes=80,
         temp_use_hacky_encoding=False,
-        **kwargs
-        # TODO(ianstenbit): anchor generator, label encoder
+        **kwargs,
     ):
         extractor_levels = [2, 3, 4]
         if 5 in backbone.pyramid_level_inputs.keys():
@@ -249,15 +250,18 @@ class YOLOV8(Task):
             self.anchor_generator = anchor_generator
         else:
             # Anchors for self-training
-            self.anchor_generator = cv_layers.AnchorGenerator(
-                bounding_box_format,
-                sizes=[80, 40, 20],  # This will need to be adaptive
-                aspect_ratios=[1],
-                scales=[1],
-                strides=[8, 16, 32],  # Same here
+            self.anchor_generator = (
+                anchor_generator
+                or cv_layers.AnchorGenerator(
+                    bounding_box_format,
+                    sizes=[80, 40, 20],  # This will need to be adaptive
+                    aspect_ratios=[1],
+                    scales=[1],
+                    strides=[8, 16, 32],  # Same here
+                )
             )
 
-        self.label_encoder = RetinaNetLabelEncoder(
+        self.label_encoder = label_encoder or RetinaNetLabelEncoder(
             bounding_box_format=bounding_box_format,
             anchor_generator=self.anchor_generator,
             box_variance=BOX_VARIANCE,
