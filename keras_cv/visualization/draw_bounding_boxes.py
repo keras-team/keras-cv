@@ -138,18 +138,16 @@ def draw_bounding_boxes(
     return np.array(result).astype(int)
 
 
-def _find_text_location(
-    x, y, font_scale, line_thickness, outline_factor
-):
+def _find_text_location(x, y, font_scale, line_thickness, outline_factor):
     font_height = int(font_scale * 12)
     target_y = y - int(8 + outline_factor)
-    if target_y - (2*font_height) > 0:
+    if target_y - (2 * font_height) > 0:
         return x, y - int(8 + outline_factor)
 
-    line_offset = line_thickness+outline_factor
+    line_offset = line_thickness + outline_factor
     static_offset = 3
 
     return (
         x + outline_factor + static_offset,
-        y + (2*font_height) + line_offset + static_offset,
+        y + (2 * font_height) + line_offset + static_offset,
     )
