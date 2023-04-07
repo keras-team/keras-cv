@@ -601,6 +601,7 @@ class YOLOV8(Task):
             decoded_boxes = decode_boxes(boxes, anchors)
         else:
             anchors = self.anchor_generator(images[0])
+            anchors = tf.concat(tf.nest.flatten(anchors), axis=0)
             decoded_boxes = _decode_deltas_to_boxes(
                 anchors=anchors,
                 boxes_delta=boxes,
