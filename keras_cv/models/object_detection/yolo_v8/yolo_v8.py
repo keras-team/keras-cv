@@ -172,19 +172,55 @@ def decode_regression_to_boxes(preds, regression_max=16):
     return tf.reduce_sum(preds_bbox, axis=-1)
 
 
+def encode_boxes(boxes, anchors, box_format, image_shape):
+    # Converts rel_yxyx anchors to rel_center_yxhw
+    anchors_hw = anchors[:, 2:] - anchors[:, :2]
+    anchors_yx = (anchors[:, :2] + anchors[:, 2:]) * 0.5
+
+    boxes = bounding_box.convert_format(
+        boxes, source=box_format, target="center_xywh", image_shape=image_shape
+    )
+
+    # Convert boxes from center_xywh to rel_center_yxhw
+    scaling_factor = list(image_shape[:2][::-1]) * 2
+    boxes /= scaling_factor
+    boxes_xy, boxes_wh = tf.split(boxes, [2, 2], axis=-1)
+
+    boxes_yx = tf.concat([boxes_xy[..., 1, tf.newaxis], boxes_xy[..., 0, tf.newaxis]], axis=-1)
+    boxes_hw = tf.concat([boxes_wh[..., 1, tf.newaxis], boxes_wh[..., 0, tf.newaxis]], axis=-1)
+
+    p1 = (0.5 * boxes_hw - boxes_yx + anchors_yx) / anchors_hw
+    p2 = (0.5 * boxes_hw + boxes_yx - anchors_yx) / anchors_hw
+
+    encoded_boxes = tf.concat([p1, p2], axis=-1)
+
+    return encoded_boxes
+
 def decode_boxes(preds, anchors):
-    # Boxes expected to be in rel_yxyx format
+    # Boxes expected to be in encoded format
     preds_top_left, preds_bottom_right = tf.split(preds, [2, 2], axis=-1)
 
-    # Converts rel_yxyx anchors to rel_yxhw
+    # Converts rel_yxyx anchors to rel_center_yxhw
     anchors_hw = anchors[:, 2:] - anchors[:, :2]
     anchors_center = (anchors[:, :2] + anchors[:, 2:]) * 0.5
 
-    bboxes_center = (
-        preds_bottom_right - preds_top_left
-    ) / 2 * anchors_hw + anchors_center
-    bboxes_hw = (preds_bottom_right + preds_top_left) * anchors_hw
+    pred_sum = preds_bottom_right + preds_top_left
+    pred_hw_half = (preds_bottom_right - preds_top_left) / 2
 
+    # p2 + p1 = boxes_hw / anchors_hw
+    # p2 - p1 = 2 * (boxes_yx - anchors_yx) / anchors_hw
+
+    # p1 + p1 + 2 (boxes_yx - anchors_yx) / anchors_hw = boxes_hw / anchors_hw
+    # 2p1 = (boxes_hw - 2 * boxes_yx + 2 * anchors_yx) / anchors_hw
+    # p1 = 0.5 * (boxes_hw - 2 * boxes_yx + 2 * anchors_yx) / anchors_hw
+    # p2 = [2 * (boxes_yx - anchors_yx) + 0.5 * (boxes_hw - 2 * boxes_yx + 2 * anchors_yx)] / anchors_hw
+    # p2 = [2 * boxes_yx - 2 * anchors_yx + 0.5 * boxes_hw - 1 * boxes_yx + 1 * anchors_yx] / anchors_hw
+    # p2 = (boxes_yx - anchors_yx + 0.5 * boxes_hw) / anchors_hw
+
+    bboxes_center = pred_hw_half * anchors_hw + anchors_center
+    bboxes_hw = pred_sum * anchors_hw
+
+    # Preds in rel_yxyx
     preds_top_left = bboxes_center - 0.5 * bboxes_hw
     pred_bottom_right = preds_top_left + bboxes_hw
 
