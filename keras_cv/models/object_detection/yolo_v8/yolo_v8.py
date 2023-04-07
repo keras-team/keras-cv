@@ -588,26 +588,25 @@ class YOLOV8(Task):
     def decode_predictions(
         self,
         pred,
-        input_shape=None,
+        images,
     ):
         boxes = pred["boxes"]
         scores = pred["classes"]
 
         boxes = decode_regression_to_boxes(boxes, 64 // 4)
 
-        anchors = get_anchors((640, 640, 3), pyramid_levels=[3, 5])
-
         if self.temp_use_hacky_encoding:
             # For pretrained:
+            anchors = get_anchors((640, 640, 3), pyramid_levels=[3, 5])
             decoded_boxes = decode_boxes(boxes, anchors)
         else:
+            anchors = self.anchor_generator(images[0])
             decoded_boxes = _decode_deltas_to_boxes(
                 anchors=anchors,
                 boxes_delta=boxes,
                 anchor_format=self.anchor_generator.bounding_box_format,
                 box_format=self.bounding_box_format,
                 variance=BOX_VARIANCE,
-                image_shape=(640, 640, 3),
             )
 
         return self.prediction_decoder(decoded_boxes, scores)
