@@ -197,10 +197,6 @@ class Resizing(BaseImageAugmentationLayer):
                 size=(target_height, target_width),
                 method=self._interpolation_method,
             )
-            image = tf.image.pad_to_bounding_box(
-                image, 0, 0, self.height, self.width
-            )
-            x["images"] = image
             
             if segmentation_masks is not None:
                 # images must be dense-able at this point.
@@ -256,6 +252,9 @@ class Resizing(BaseImageAugmentationLayer):
                     source="rel_xyxy",
                     target="xyxy",
                 )
+                image = tf.image.pad_to_bounding_box(
+                    image, 0, 0, self.height, self.width
+                )
                 bounding_boxes = keras_cv.bounding_box.clip_to_image(
                     bounding_boxes, images=image, bounding_box_format="xyxy"
                 )
@@ -268,6 +267,12 @@ class Resizing(BaseImageAugmentationLayer):
                 x["bounding_boxes"] = keras_cv.bounding_box.to_ragged(
                     bounding_boxes
                 )
+            else:
+                image = tf.image.pad_to_bounding_box(
+                    image, 0, 0, self.height, self.width
+                )
+            x["images"] = image
+            
             return x
 
         size_as_shape = tf.TensorShape((self.height, self.width))
