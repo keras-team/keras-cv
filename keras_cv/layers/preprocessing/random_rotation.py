@@ -30,14 +30,10 @@ W_AXIS = -2
 
 @keras.utils.register_keras_serializable(package="keras_cv")
 class RandomRotation(VectorizedBaseImageAugmentationLayer):
-    """A preprocessing layer which randomly rotates images during training.
+    """A preprocessing layer which randomly rotates images.
 
     This layer will apply random rotations to each image, filling empty space
     according to `fill_mode`.
-
-    By default, random rotations are only applied during training.
-    At inference time, the layer does nothing. If you need to apply random
-    rotations at inference time, set `training` to True when calling the layer.
 
     Input pixel values can be of any range (e.g. `[0., 1.)` or `[0, 255]`) and
     of interger or floating point dtype. By default, the layer will output

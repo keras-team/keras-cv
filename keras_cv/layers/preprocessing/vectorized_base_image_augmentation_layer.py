@@ -70,9 +70,8 @@ class VectorizedBaseImageAugmentationLayer(
     The output of the `call()` will be in two formats, which will be the same
     structure as the inputs.
 
-    The `call()` will handle the logic detecting the training/inference mode,
-    unpack the inputs, forward to the correct function, and pack the output back
-    to the same structure as the inputs.
+    The `call()` will unpack the inputs, forward to the correct function, and
+    pack the output back to the same structure as the inputs.
 
     Note that since the randomness is also a common functionality, this layer
     also includes a keras.backend.RandomGenerator, which can be used to

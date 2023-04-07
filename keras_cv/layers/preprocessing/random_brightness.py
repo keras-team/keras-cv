@@ -23,15 +23,13 @@ from keras_cv.utils import preprocessing as preprocessing_utils
 
 @keras.utils.register_keras_serializable(package="keras_cv")
 class RandomBrightness(VectorizedBaseImageAugmentationLayer):
-    """A preprocessing layer which randomly adjusts brightness during training.
+    """A preprocessing layer which randomly adjusts brightness.
+
     This layer will randomly increase/reduce the brightness for the input RGB
     images.
 
-    At inference time, the output will be identical to the input.
-    Call the layer with `training=True` to adjust the brightness of the input.
-
-    Note that different brightness adjustment factors
-    will be apply to each the images in the batch.
+    Note that different brightness adjustment factors will be apply to each the
+    images in the batch.
 
     Args:
       factor: Float or a list/tuple of 2 floats between -1.0 and 1.0. The
