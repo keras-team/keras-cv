@@ -454,6 +454,7 @@ class YOLOV8(Task):
                 iou_threshold=0.5,
             )
         )
+        self.backbone = backbone
         self.num_classes = num_classes
 
     def compile(

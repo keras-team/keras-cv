@@ -97,6 +97,13 @@ yolo_v8_backbone_presets_with_weights = {
         "weights_url": "https://storage.googleapis.com/keras-cv/models/yolov8/coco/yolov8_n_backbone.h5",
         "weights_hash": "636ba3cba064c7c457e30a0e4759716006c305c30876df1c1caf2e56b99eab6c",
     },
+    "yolov8_s_coco": {
+        "metadata": {"description": ("TODO: ianstenbit")},
+        "class_name": "keras_cv.models>YOLOV8Backbone",
+        "config": yolo_v8_backbone_presets_no_weights["yolov8_s"]["config"],
+        "weights_url": "https://storage.googleapis.com/keras-cv/models/yolov8/coco/yolov8_s_backbone.h5",
+        "weights_hash": "49ab5da87d6b36a1943e7f111a1960355171332c25312b6cc01526baaecf1b69",
+    },
 }
 
 yolo_v8_backbone_presets = {
@@ -115,7 +122,7 @@ yolo_v8_presets = {
             "fpn_depth": 1,
         },
         "weights_url": "https://storage.googleapis.com/keras-cv/models/yolov8/coco/yolov8_n.h5",
-        "weights_hash": "82d15d5a20cd2cf8bb2ab46cd3b7e9a9e0b32930844fcc4bd894099331a8e6fa",
+        "weights_hash": "2b96bd128a70a67a7226496319c1d4d8e33335e551b71b5a726bdc854b65e888",
     },
     "yolov8_s_coco": {
         "metadata": {
@@ -126,6 +133,8 @@ yolo_v8_presets = {
             "num_classes": 80,
             "fpn_depth": 1,
         },
+        "weights_url": "https://storage.googleapis.com/keras-cv/models/yolov8/coco/yolov8_s.h5",
+        "weights_hash": "3976460072d0b2d767540b4bafd07b4eaf12eeb4bcee9f53dab69968e8e7d95e",
     },
     "yolov8_m_coco": {
         "metadata": {
