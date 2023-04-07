@@ -17,13 +17,13 @@ import tensorflow as tf
 from tensorflow import keras
 
 from keras_cv import bounding_box
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     VectorizedBaseImageAugmentationLayer,
 )
 from keras_cv.utils import preprocessing as preprocessing_utils
 
 # In order to support both unbatched and batched inputs, the horizontal
-# and verticle axis is reverse indexed
+# and vertical axis is reverse indexed
 H_AXIS = -3
 W_AXIS = -2
 
@@ -36,7 +36,7 @@ class RandomRotation(VectorizedBaseImageAugmentationLayer):
     according to `fill_mode`.
 
     Input pixel values can be of any range (e.g. `[0., 1.)` or `[0, 255]`) and
-    of interger or floating point dtype. By default, the layer will output
+    of integer or floating point dtype. By default, the layer will output
     floats.
 
     Input shape:
@@ -212,7 +212,7 @@ class RandomRotation(VectorizedBaseImageAugmentationLayer):
             bounding_box_format="xyxy",
             images=raw_images,
         )
-        # cordinates cannot be float values, it is casted to int32
+        # coordinates cannot be float values, it is cast to int32
         bounding_boxes = bounding_box.convert_format(
             bounding_boxes,
             source="xyxy",

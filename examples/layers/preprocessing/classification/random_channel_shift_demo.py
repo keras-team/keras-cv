@@ -13,9 +13,11 @@
 # limitations under the License.
 
 
-"""random_channel_shift_demo.py shows how to use the RandomChannelShift preprocessing
-layer.  Operates on the oxford_flowers102 dataset.  In this script the flowers
-are loaded, then are passed through the preprocessing layers.
+"""random_channel_shift_demo.py shows how to use the RandomChannelShift
+preprocessing layer.
+
+Operates on the oxford_flowers102 dataset. In this script the flowers are
+loaded, then are passed through the preprocessing layers.
 Finally, they are shown using matplotlib.
 """
 

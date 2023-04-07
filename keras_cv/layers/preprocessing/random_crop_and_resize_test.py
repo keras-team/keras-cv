@@ -68,7 +68,8 @@ class RandomCropAndResizeTest(tf.test.TestCase, parameterized.TestCase):
     def test_target_size_errors(self, target_size):
         with self.assertRaisesRegex(
             ValueError,
-            "`target_size` must be tuple of two integers. Received target_size=(.*)",
+            "`target_size` must be tuple of two integers. "
+            "Received target_size=(.*)",
         ):
             _ = preprocessing.RandomCropAndResize(
                 target_size=target_size,
@@ -85,7 +86,8 @@ class RandomCropAndResizeTest(tf.test.TestCase, parameterized.TestCase):
         with self.assertRaisesRegex(
             ValueError,
             "`aspect_ratio_factor` must be tuple of two positive floats or "
-            "keras_cv.core.FactorSampler instance. Received aspect_ratio_factor=(.*)",
+            "keras_cv.core.FactorSampler instance. "
+            "Received aspect_ratio_factor=(.*)",
         ):
             _ = preprocessing.RandomCropAndResize(
                 target_size=(224, 224),
@@ -101,9 +103,9 @@ class RandomCropAndResizeTest(tf.test.TestCase, parameterized.TestCase):
     def test_crop_area_factor_errors(self, crop_area_factor):
         with self.assertRaisesRegex(
             ValueError,
-            "`crop_area_factor` must be tuple of two positive floats less than or "
-            "equal to 1 or keras_cv.core.FactorSampler instance. Received "
-            "crop_area_factor=(.*)",
+            "`crop_area_factor` must be tuple of two positive floats less than "
+            "or equal to 1 or keras_cv.core.FactorSampler instance. "
+            "Received crop_area_factor=(.*)",
         ):
             _ = preprocessing.RandomCropAndResize(
                 target_size=(224, 224),

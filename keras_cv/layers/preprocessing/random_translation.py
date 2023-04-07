@@ -16,7 +16,7 @@ import tensorflow as tf
 from tensorflow import keras
 
 import keras_cv
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     VectorizedBaseImageAugmentationLayer,
 )
 from keras_cv.utils import preprocessing as preprocessing_utils
@@ -43,7 +43,7 @@ class RandomTranslation(VectorizedBaseImageAugmentationLayer):
           shifting image down. When represented as a single positive float, this
           value is used for both the upper and lower bound. For instance,
           `height_factor=(-0.2, 0.3)` results in an output shifted by a random
-          amount in the range `[-20%, +30%]`.  `height_factor=0.2` results in an
+          amount in the range `[-20%, +30%]`. `height_factor=0.2` results in an
           output height shifted by a random amount in the range `[-20%, +20%]`.
       width_factor: a float represented as fraction of value, or a tuple of size
           2 representing lower and upper bound for shifting horizontally. A
@@ -70,10 +70,11 @@ class RandomTranslation(VectorizedBaseImageAugmentationLayer):
       seed: Integer. Used to create a random seed.
       fill_value: a float represents the value to be filled outside the
           boundaries when `fill_mode="constant"`.
-      bounding_box_format: The format of bounding boxes of input dataset. Refer to
+      bounding_box_format: The format of bounding boxes of input dataset.
+          Refer to
           https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box/converters.py
-          for more details on supported bounding box formats. This is required when
-          augmenting data which includes bounding boxes.
+          for more details on supported bounding box formats. This is required
+          when augmenting data which includes bounding boxes.
 
     Input shape:
         3D (unbatched) or 4D (batched) tensor with shape:

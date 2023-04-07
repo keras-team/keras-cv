@@ -25,7 +25,8 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 
 
 class OldGrayscale(BaseImageAugmentationLayer):
-    """Grayscale is a preprocessing layer that transforms RGB images to Grayscale images.
+    """Grayscale is a preprocessing layer that transforms RGB images to
+    Grayscale images.
     Input images should have values in the range of [0, 255].
     Input shape:
         3D (unbatched) or 4D (batched) tensor with shape:

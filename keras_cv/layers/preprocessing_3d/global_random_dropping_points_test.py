@@ -42,8 +42,8 @@ class GlobalDropPointsTest(tf.test.TestCase):
         inputs = {POINT_CLOUDS: point_clouds, BOUNDING_BOXES: bounding_boxes}
         outputs = add_layer(inputs)
         self.assertNotAllClose(inputs, outputs)
-        # The augmented point clouds in the first frame should be the same as the
-        # augmented point clouds in the second frame.
+        # The augmented point clouds in the first frame should be the same as
+        # the augmented point clouds in the second frame.
         self.assertAllClose(outputs[POINT_CLOUDS][0], outputs[POINT_CLOUDS][1])
 
     def test_not_augment_point_clouds_and_bounding_boxes(self):

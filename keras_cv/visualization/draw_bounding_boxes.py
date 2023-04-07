@@ -36,15 +36,15 @@ def draw_bounding_boxes(
 ):
     """Internal utility to draw bounding boxes on the target image.
 
-    Accepts a batch of images and batch of bounding boxes.  The function draws
+    Accepts a batch of images and batch of bounding boxes. The function draws
     the bounding boxes onto the image, and returns a new image tensor with the
-    annotated images.  This API is intentionally not exported, and is considered
+    annotated images. This API is intentionally not exported, and is considered
     an implementation detail.
 
     Args:
         images: a batch Tensor of images to plot bounding boxes onto.
-        bounding_boxes: a Tensor of batched bounding boxes to plot onto the provided
-            images
+        bounding_boxes: a Tensor of batched bounding boxes to plot onto the
+            provided images.
         color: the color in which to plot the bounding boxes
         bounding_box_format: The format of bounding boxes to plot onto the
             images. Refer
@@ -52,13 +52,14 @@ def draw_bounding_boxes(
             for more details on supported bounding box formats.
         line_thickness: (Optional) line_thickness for the box and text labels.
             Defaults to 2.
-        text_thickness: (Optional) the lthickness for the text, defaults to `1.0`.
-        font_scale: (Optional) scale of font to draw in.  Defaults to `1.0`.
+        text_thickness: (Optional) the thickness for the text, defaults to
+            `1.0`.
+        font_scale: (Optional) scale of font to draw in, defaults to `1.0`.
         class_mapping: (Optional) dictionary from class ID to class label.
 
     Returns:
         the input `images` with provided bounding boxes plotted on top of them
-    """
+    """  # noqa: E501
     assert_cv2_installed("draw_bounding_boxes")
     bounding_boxes = bounding_box.convert_format(
         bounding_boxes, source=bounding_box_format, target="xyxy", images=images
@@ -92,7 +93,7 @@ def draw_bounding_boxes(
 
             if class_id == -1:
                 continue
-            # force conversion back to contigous array
+            # force conversion back to contiguous array
             x, y, x2, y2 = int(x), int(y), int(x2), int(y2)
             cv2.rectangle(
                 image,

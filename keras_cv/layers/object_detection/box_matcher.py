@@ -29,23 +29,25 @@ class BoxMatcher(keras.layers.Layer):
 
     The settings include `thresholds` and `match_values`, for example if:
     1) thresholds=[negative_threshold, positive_threshold], and
-       match_values=[negative_value=0, ignore_value=-1, positive_value=1]: the rows will
-       be assigned to positive_value if its argmax result >=
+       match_values=[negative_value=0, ignore_value=-1, positive_value=1]: the
+       rows will be assigned to positive_value if its argmax result >=
        positive_threshold; the rows will be assigned to negative_value if its
-       argmax result < negative_threshold, and the rows will be assigned
-       to ignore_value if its argmax result is between [negative_threshold, positive_threshold).
+       argmax result < negative_threshold, and the rows will be assigned to
+       ignore_value if its argmax result is between [negative_threshold,
+       positive_threshold).
     2) thresholds=[negative_threshold, positive_threshold], and
-       match_values=[ignore_value=-1, negative_value=0, positive_value=1]: the rows will
-       be assigned to positive_value if its argmax result >=
+       match_values=[ignore_value=-1, negative_value=0, positive_value=1]: the
+       rows will be assigned to positive_value if its argmax result >=
        positive_threshold; the rows will be assigned to ignore_value if its
-       argmax result < negative_threshold, and the rows will be assigned
-       to negative_value if its argmax result is between [negative_threshold ,positive_threshold).
-       This is different from case 1) by swapping first two
+       argmax result < negative_threshold, and the rows will be assigned to
+       negative_value if its argmax result is between [negative_threshold,
+       positive_threshold). This is different from case 1) by swapping first two
        values.
     3) thresholds=[positive_threshold], and
-       match_values=[negative_values, positive_value]: the rows will be assigned to
-       positive value if its argmax result >= positive_threshold; the rows
-       will be assigned to negative_value if its argmax result < negative_threshold.
+       match_values=[negative_values, positive_value]: the rows will be assigned
+       to positive value if its argmax result >= positive_threshold; the rows
+       will be assigned to negative_value if its argmax result <
+       negative_threshold.
 
     Args:
         thresholds: A sorted list of floats to classify the matches into
@@ -125,14 +127,16 @@ class BoxMatcher(keras.layers.Layer):
 
         def _match_when_cols_are_empty():
             """Performs matching when the rows of similarity matrix are empty.
-            When the rows are empty, all detections are false positives. So we return
-            a tensor of -1's to indicate that the rows do not match to any columns.
+            When the rows are empty, all detections are false positives. So we
+            return a tensor of -1's to indicate that the rows do not match to
+            any columns.
             Returns:
-                matched_columns: An integer tensor of shape [batch_size, num_rows]
-                  storing the index of the matched column for each row.
-                matched_values: An integer tensor of shape [batch_size, num_rows]
-                  storing the match type indicator (e.g. positive or negative
-                  or ignored match).
+                matched_columns: An integer tensor of shape [batch_size,
+                    num_rows] storing the index of the matched column for each
+                    row.
+                matched_values: An integer tensor of shape [batch_size,
+                    num_rows] storing the match type indicator (e.g. positive or
+                    negative or ignored match).
             """
             with tf.name_scope("empty_boxes"):
                 matched_columns = tf.zeros(
@@ -144,20 +148,23 @@ class BoxMatcher(keras.layers.Layer):
                 return matched_columns, matched_values
 
         def _match_when_cols_are_non_empty():
-            """Performs matching when the rows of similarity matrix are non empty.
+            """Performs matching when the rows of similarity matrix are
+            non-empty.
             Returns:
-                matched_columns: An integer tensor of shape [batch_size, num_rows]
-                  storing the index of the matched column for each row.
-                matched_values: An integer tensor of shape [batch_size, num_rows]
-                  storing the match type indicator (e.g. positive or negative
-                  or ignored match).
+                matched_columns: An integer tensor of shape [batch_size,
+                    num_rows] storing the index of the matched column for each
+                    row.
+                matched_values: An integer tensor of shape [batch_size,
+                    num_rows] storing the match type indicator (e.g. positive or
+                    negative or ignored match).
             """
             with tf.name_scope("non_empty_boxes"):
                 matched_columns = tf.argmax(
                     similarity_matrix, axis=-1, output_type=tf.int32
                 )
 
-                # Get logical indices of ignored and unmatched columns as tf.int64
+                # Get logical indices of ignored and unmatched columns as
+                # tf.int64
                 matched_vals = tf.reduce_max(similarity_matrix, axis=-1)
                 matched_values = tf.zeros([batch_size, num_rows], tf.int32)
 
@@ -176,18 +183,19 @@ class BoxMatcher(keras.layers.Layer):
                     )
 
                 if self.force_match_for_each_col:
-                    # [batch_size, num_cols], for each column (groundtruth_box), find the
-                    # best matching row (anchor).
+                    # [batch_size, num_cols], for each column (groundtruth_box),
+                    # find the best matching row (anchor).
                     matching_rows = tf.argmax(
                         input=similarity_matrix, axis=1, output_type=tf.int32
                     )
-                    # [batch_size, num_cols, num_rows], a transposed 0-1 mapping matrix M,
-                    # where M[j, i] = 1 means column j is matched to row i.
+                    # [batch_size, num_cols, num_rows], a transposed 0-1 mapping
+                    # matrix M, where M[j, i] = 1 means column j is matched to
+                    # row i.
                     column_to_row_match_mapping = tf.one_hot(
                         matching_rows, depth=num_rows
                     )
-                    # [batch_size, num_rows], for each row (anchor), find the matched
-                    # column (groundtruth_box).
+                    # [batch_size, num_rows], for each row (anchor), find the
+                    # matched column (groundtruth_box).
                     force_matched_columns = tf.argmax(
                         input=column_to_row_match_mapping,
                         axis=1,

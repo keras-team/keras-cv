@@ -24,8 +24,8 @@ class StochasticDepth(keras.layers.Layer):
     individual samples but across the entire batch.
 
     Reference:
-        - [Deep Networks with Stochastic Depth](https://arxiv.org/abs/1603.09382).
-        - Docstring taken from [stochastic_depth.py](https://tinyurl.com/mr3y2af6)
+        - [Deep Networks with Stochastic Depth](https://arxiv.org/abs/1603.09382)
+        - [Docstring taken from [stochastic_depth.py](https://tinyurl.com/mr3y2af6)
 
     Args:
         rate: float, the probability of the residual branch being dropped.
@@ -51,7 +51,7 @@ class StochasticDepth(keras.layers.Layer):
     $$
     x[0] + (1 - rate) * x[1]
     $$
-    """
+    """  # noqa: E501
 
     def __init__(self, rate=0.5, **kwargs):
         super().__init__(**kwargs)

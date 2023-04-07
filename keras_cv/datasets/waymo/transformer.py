@@ -57,8 +57,8 @@ WOD_FRAME_OUTPUT_SIGNATURE = {
     "label_point_nlz": tf.TensorSpec([None], tf.int32),
 }
 
-# Maximum number of points from all lidars excluding the top lidar.
-# Please refer to https://arxiv.org/pdf/1912.04838.pdf Figure 1 for sensor layouts.
+# Maximum number of points from all lidars excluding the top lidar. Please refer
+# to https://arxiv.org/pdf/1912.04838.pdf Figure 1 for sensor layouts.
 _MAX_NUM_NON_TOP_LIDAR_POINTS = 30000
 
 
@@ -265,16 +265,16 @@ def _get_point_lidar(
     frame,
     max_num_points: int,
 ) -> struct.PointTensors:
-    """Gets point related tensors for non top lidar.
+    """Gets point related tensors for non-top lidar.
 
-    The main differences from top lidar extraction are related to second return and
-    point down sampling.
+    The main differences from top lidar extraction are related to second return
+    and point down sampling.
 
     Args:
       ris: Mapping from lidar ID to range image tensor. The ri format is [range,
         intensity, elongation, is_in_nlz].
       frame: a Waymo Open Dataset frame.
-      max_num_points: maximum number of points from non top lidar.
+      max_num_points: maximum number of points from non-top lidar.
 
     Returns:
       Point related tensors.
@@ -351,7 +351,7 @@ def _get_point(frame, max_num_lidar_points: int) -> struct.PointTensors:
 
     Args:
       frame: a Waymo Open Dataset frame.
-      max_num_lidar_points: maximum number of points from non top lidars.
+      max_num_lidar_points: maximum number of points from non-top lidars.
 
     Returns:
       Point related tensors.
@@ -612,8 +612,9 @@ def _box_3d_global_to_vehicle(
 def build_tensors_from_wod_frame(frame) -> Dict[str, tf.Tensor]:
     """Builds tensors from a Waymo Open Dataset frame.
 
-    This function is to convert range image to point cloud. User can also work with
-    range image directly with frame_utils functions from waymo_open_dataset.
+    This function is to convert range image to point cloud. User can also work
+    with range image directly with frame_utils functions from
+    waymo_open_dataset.
 
     Args:
       frame: a Waymo Open Dataset frame.
@@ -659,13 +660,13 @@ def build_tensors_from_wod_frame(frame) -> Dict[str, tf.Tensor]:
         "point_xyz": point_tensors.point_xyz,
         "point_feature": point_tensors.point_feature,
         "point_mask": tf.ones([num_points], dtype=tf.bool),
-        "point_range_image_row_col_sensor_id": point_tensors.point_range_image_row_col_sensor_id,
+        "point_range_image_row_col_sensor_id": point_tensors.point_range_image_row_col_sensor_id,  # noqa: E501
         "label_box": point_label_tensors.label_box,
         "label_box_id": point_label_tensors.label_box_id,
         "label_box_meta": point_label_tensors.label_box_meta,
         "label_box_class": point_label_tensors.label_box_class,
         "label_box_density": point_label_tensors.label_box_density,
-        "label_box_detection_difficulty": point_label_tensors.label_box_detection_difficulty,
+        "label_box_detection_difficulty": point_label_tensors.label_box_detection_difficulty,  # noqa: E501
         "label_box_mask": point_label_tensors.label_box_mask,
         "label_point_class": point_label_tensors.label_point_class,
         "label_point_nlz": point_tensors.label_point_nlz,
@@ -722,10 +723,12 @@ def pad_or_trim_tensors(
 def transform_to_vehicle_frame(
     frame: Dict[str, tf.Tensor]
 ) -> Dict[str, tf.Tensor]:
-    """Transform tensors in a frame from global coordinates to vehicle coordinates.
+    """Transform tensors in a frame from global coordinates to vehicle
+    coordinates.
 
     Args:
-      frame: a dictionary of feature tensors from a Waymo Open Dataset frame in global frame.
+      frame: a dictionary of feature tensors from a Waymo Open Dataset frame in
+        global frame.
 
 
     Returns:

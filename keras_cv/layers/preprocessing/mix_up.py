@@ -27,9 +27,9 @@ class MixUp(BaseImageAugmentationLayer):
 
     Args:
         alpha: Float between 0 and 1. Inverse scale parameter for the gamma
-            distribution. This controls the shape of the distribution from which the
-            smoothing values are sampled. Defaults to 0.2, which is a recommended value
-            when training an imagenet1k classification model.
+            distribution. This controls the shape of the distribution from which
+            the smoothing values are sampled. Defaults to 0.2, which is a
+            recommended value when training an imagenet1k classification model.
         seed: Integer. Used to create a random seed.
 
     References:
@@ -43,7 +43,9 @@ class MixUp(BaseImageAugmentationLayer):
     # Labels must be floating-point and one-hot encoded
     labels = tf.cast(tf.one_hot(labels, 10), tf.float32)
     mixup = keras_cv.layers.preprocessing.MixUp(10)
-    augmented_images, updated_labels = mixup({'images': images, 'labels': labels})
+    augmented_images, updated_labels = mixup(
+        {'images': images, 'labels': labels}
+    )
     # output == {'images': updated_images, 'labels': updated_labels}
     ```
     """

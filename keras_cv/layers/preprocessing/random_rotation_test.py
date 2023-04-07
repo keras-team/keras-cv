@@ -157,7 +157,8 @@ class RandomRotationTest(tf.test.TestCase):
         masks = np.random.randint(2, size=(2, 20, 20, 1)) * (num_classes - 1)
         inputs = {"images": input_images, "segmentation_masks": masks}
 
-        # Attempting to rotate a sparse mask without specifying num_classes fails.
+        # Attempting to rotate a sparse mask without specifying num_classes
+        # fails.
         bad_layer = RandomRotation(factor=(0.25, 0.25))
         with self.assertRaisesRegex(ValueError, "masks must be one-hot"):
             outputs = bad_layer(inputs)
@@ -170,7 +171,7 @@ class RandomRotationTest(tf.test.TestCase):
         expected_masks = np.rot90(masks, axes=(1, 2))
         self.assertAllClose(expected_masks, outputs["segmentation_masks"])
 
-        # 45 degree rotation. Only verifies that no interpolation takes place.
+        # 45-degree rotation. Only verifies that no interpolation takes place.
         layer = RandomRotation(
             factor=(0.125, 0.125), segmentation_classes=num_classes
         )

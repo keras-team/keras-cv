@@ -25,7 +25,7 @@ from keras_cv.utils import target_gather
 @keras.utils.register_keras_serializable(package="keras_cv")
 class _ROISampler(keras.layers.Layer):
     """
-    Sample ROIs for loss related calucation.
+    Sample ROIs for loss related calculation.
 
     With proposals (ROIs) and ground truth, it performs the following:
     1) compute IOU similarity matrix
@@ -34,28 +34,29 @@ class _ROISampler(keras.layers.Layer):
 
     `append_gt_boxes` augments proposals with ground truth boxes. This is
     useful in 2 stage detection networks during initialization where the
-    1st stage often cannot produce good proposals for 2nd stage. Setting it
-    to True will allow it to generate more reasonable proposals at the begining.
+    1st stage often cannot produce good proposals for 2nd stage. Setting it to
+    True will allow it to generate more reasonable proposals at the beginning.
 
-    `background_class` allow users to set the labels for background proposals. Default
-    is 0, where users need to manually shift the incoming `gt_classes` if its range is
-    [0, num_classes).
+    `background_class` allow users to set the labels for background proposals.
+    Default is 0, where users need to manually shift the incoming `gt_classes`
+    if its range is [0, num_classes).
 
     Args:
       bounding_box_format: The format of bounding boxes to generate. Refer
         [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
         for more details on supported bounding box formats.
-      roi_matcher: a `BoxMatcher` object that matches proposals
-        with ground truth boxes. the positive match must be 1 and negative match must be -1.
+      roi_matcher: a `BoxMatcher` object that matches proposals with ground
+        truth boxes. The positive match must be 1 and negative match must be -1.
         Such assumption is not being validated here.
-      positive_fraction: the positive ratio w.r.t `num_sampled_rois`. Defaults to 0.25.
-      background_class: the background class which is used to map returned the sampled
-        ground truth which is classified as background.
+      positive_fraction: the positive ratio w.r.t `num_sampled_rois`, defaults
+        to 0.25.
+      background_class: the background class which is used to map returned the
+        sampled ground truth which is classified as background.
       num_sampled_rois: the number of sampled proposals per image for
-        further (loss) calculation. Defaults to 256.
+        further (loss) calculation, defaults to 256.
       append_gt_boxes: boolean, whether gt_boxes will be appended to rois
-        before sample the rois. Defaults to True.
-    """
+        before sample the rois, defaults to True.
+    """  # noqa: E501
 
     def __init__(
         self,
@@ -107,7 +108,8 @@ class _ROISampler(keras.layers.Layer):
             )
         if num_rois < self.num_sampled_rois:
             raise ValueError(
-                f"num_rois must be less than `num_sampled_rois` ({self.num_sampled_rois}), got {num_rois}"
+                "num_rois must be less than `num_sampled_rois` "
+                f"({self.num_sampled_rois}), got {num_rois}"
             )
         rois = bounding_box.convert_format(
             rois, source=self.bounding_box_format, target="yxyx"

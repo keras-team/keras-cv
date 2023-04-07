@@ -27,8 +27,8 @@ class PascalVocSegmentationDataTest(tf.test.TestCase):
     def setUp(self):
         super().setUp()
         self.tempdir = self.get_tempdir()
-        # Note that this will not work with bazel, need to be rewrite into relying on
-        # FLAGS.test_srcdir
+        # Note that this will not work with bazel, need to be rewritten into
+        # relying on FLAGS.test_srcdir
         self.test_data_tar_path = os.path.abspath(
             os.path.join(
                 os.path.abspath(__file__),
@@ -47,8 +47,8 @@ class PascalVocSegmentationDataTest(tf.test.TestCase):
         return self.create_tempdir().full_path
 
     def test_download_data(self):
-        # Since the original data package is too large, we use a small package as a
-        # replacement.
+        # Since the original data package is too large, we use a small package
+        # as a replacement.
         local_data_dir = os.path.join(self.tempdir, "pascal_voc_2012/")
         test_data_dir = segmentation._download_data_file(
             data_url=pathlib.Path(self.test_data_tar_path).as_uri(),
@@ -57,7 +57,8 @@ class PascalVocSegmentationDataTest(tf.test.TestCase):
         )
 
         self.assertTrue(os.path.exists(test_data_dir))
-        # Make sure the data is unzipped correctly and populated with correct content
+        # Make sure the data is unzipped correctly and populated with correct
+        # content.
         expected_subdirs = [
             "Annotations",
             "ImageSets",
@@ -78,8 +79,8 @@ class PascalVocSegmentationDataTest(tf.test.TestCase):
             local_dir_path=local_data_dir,
         )
 
-        # Touch a file in the test_data_dir and make sure it exists (not being override)
-        # when invoke the _download_data_file again
+        # Touch a file in the test_data_dir and make sure it exists (not being
+        # overridden) when invoking the _download_data_file again
         os.makedirs(os.path.join(test_data_dir, "Annotations", "dummy_dir"))
         segmentation._download_data_file(
             data_url=pathlib.Path(self.test_data_tar_path).as_uri(),
@@ -182,8 +183,8 @@ class PascalVocSegmentationDataTest(tf.test.TestCase):
         self.assertEquals(
             tf.reduce_min(mask), 0
         )  # The 0 value is for the background
-        # The mask contains two classes, 1 and 15, see the label section in the previous
-        # test case.
+        # The mask contains two classes, 1 and 15, see the label section in the
+        # previous test case.
         self.assertEquals(
             tf.reduce_sum(tf.cast(tf.equal(mask, 1), tf.int32)), 4734
         )
@@ -321,8 +322,8 @@ class PascalVocSegmentationDataTest(tf.test.TestCase):
         self.assertEquals(
             tf.reduce_min(png), 0
         )  # The 0 value is for the background
-        # The mask contains two classes, 1 and 15, see the label section in the previous
-        # test case.
+        # The mask contains two classes, 1 and 15, see the label section in the
+        # previous test case.
         self.assertEquals(
             tf.reduce_sum(tf.cast(tf.equal(png, 1), tf.int32)), 4734
         )

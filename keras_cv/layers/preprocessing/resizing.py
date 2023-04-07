@@ -32,7 +32,7 @@ class Resizing(BaseImageAugmentationLayer):
 
     This layer resizes an image input to a target height and width. The input
     should be a 4D (batched) or 3D (unbatched) tensor in `"channels_last"`
-    format.  Input pixel values can be of any range (e.g. `[0., 1.)` or `[0,
+    format. Input pixel values can be of any range (e.g. `[0., 1.)` or `[0,
     255]`) and of integer or floating point dtype. By default, the layer will
     output floats.
 
@@ -46,22 +46,24 @@ class Resizing(BaseImageAugmentationLayer):
     Args:
         height: Integer, the height of the output shape.
         width: Integer, the width of the output shape.
-        interpolation: String, the interpolation method. Defaults to `"bilinear"`.
-            Supports `"bilinear"`, `"nearest"`, `"bicubic"`, `"area"`, `"lanczos3"`,
-            `"lanczos5"`, `"gaussian"`, `"mitchellcubic"`.
-        crop_to_aspect_ratio: If True, resize the images without aspect
-            ratio distortion. When the original aspect ratio differs from the target
-            aspect ratio, the output image will be cropped so as to return the
-            largest possible window in the image (of size `(height, width)`) that
-            matches the target aspect ratio. By default
+        interpolation: String, the interpolation method, defaults to
+            `"bilinear"`. Supports `"bilinear"`, `"nearest"`, `"bicubic"`,
+            `"area"`, `"lanczos3"`, `"lanczos5"`, `"gaussian"`,
+            `"mitchellcubic"`.
+        crop_to_aspect_ratio: If True, resize the images without aspect ratio
+            distortion. When the original aspect ratio differs from the target
+            aspect ratio, the output image will be cropped to return the largest
+            possible window in the image (of size `(height, width)`) that
+            matches the target aspect ratio. By default,
             (`crop_to_aspect_ratio=False`), aspect ratio may not be preserved.
-        pad_to_aspect_ratio: If True, resize the images without aspect
-            ratio distortion. When the original aspect ratio differs from the target
-            aspect ratio, the output image will be padded so as to return the
-            largest possible resize of the image (of size `(height, width)`) that
-            matches the target aspect ratio. By default
+        pad_to_aspect_ratio: If True, resize the images without aspect ratio
+            distortion. When the original aspect ratio differs from the target
+            aspect ratio, the output image will be padded to return the largest
+            possible resize of the image (of size `(height, width)`) that
+            matches the target aspect ratio. By default,
             (`pad_to_aspect_ratio=False`), aspect ratio may not be preserved.
-        bounding_box_format: The format of bounding boxes of input dataset. Refer to
+        bounding_box_format: The format of bounding boxes of input dataset.
+            Refer to
             https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box/converters.py
             for more details on supported bounding box formats.
     """
@@ -96,7 +98,7 @@ class Resizing(BaseImageAugmentationLayer):
         if not pad_to_aspect_ratio and bounding_box_format:
             raise ValueError(
                 "Resizing() only supports bounding boxes when in "
-                "`pad_to_aspect_ratio=True` mode.  "
+                "`pad_to_aspect_ratio=True` mode. "
                 "Please pass `pad_to_aspect_ratio=True`"
                 "when processing bounding boxes with `Resizing()`"
             )
@@ -239,15 +241,15 @@ class Resizing(BaseImageAugmentationLayer):
         if bounding_boxes is not None:
             raise ValueError(
                 "Resizing(crop_to_aspect_ratio=True) does not support "
-                "bounding box inputs.  Please use `pad_to_aspect_ratio=True` when "
-                "processing bounding boxes with Resizing()."
+                "bounding box inputs. Please use `pad_to_aspect_ratio=True` "
+                "when processing bounding boxes with Resizing()."
             )
         inputs["images"] = images
         size = [self.height, self.width]
 
         # tf.image.resize will always output float32 and operate more
         # efficiently on float32 unless interpolation is nearest, in which case
-        # ouput type matches input type.
+        # output type matches input type.
         if self.interpolation == "nearest":
             input_dtype = self.compute_dtype
         else:
@@ -288,8 +290,9 @@ class Resizing(BaseImageAugmentationLayer):
             and self.bounding_box_format is None
         ):
             raise ValueError(
-                "Resizing requires `bounding_box_format` to be set "
-                "when augmenting bounding boxes, but `self.bounding_box_format=None`."
+                "Resizing requires `bounding_box_format` to be set when "
+                "augmenting bounding boxes, but "
+                "`self.bounding_box_format=None`."
             )
 
         if self.crop_to_aspect_ratio:

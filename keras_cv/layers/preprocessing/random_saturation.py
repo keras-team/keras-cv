@@ -15,7 +15,7 @@
 import tensorflow as tf
 from tensorflow import keras
 
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     VectorizedBaseImageAugmentationLayer,
 )
 from keras_cv.utils import preprocessing as preprocessing_utils
@@ -29,16 +29,16 @@ class RandomSaturation(VectorizedBaseImageAugmentationLayer):
     images.
 
     Args:
-        factor: A tuple of two floats, a single float or `keras_cv.FactorSampler`.
-            `factor` controls the extent to which the image saturation is impacted.
-            `factor=0.5` makes this layer perform a no-op operation. `factor=0.0` makes
-            the image to be fully grayscale. `factor=1.0` makes the image to be fully
-            saturated.
-            Values should be between `0.0` and `1.0`. If a tuple is used, a `factor`
-            is sampled between the two values for every image augmented.  If a single
-            float is used, a value between `0.0` and the passed float is sampled.
-            In order to ensure the value is always the same, please pass a tuple with
-            two identical floats: `(0.5, 0.5)`.
+        factor: A tuple of two floats, a single float or
+            `keras_cv.FactorSampler`. `factor` controls the extent to which the
+            image saturation is impacted. `factor=0.5` makes this layer perform
+            a no-op operation. `factor=0.0` makes the image to be fully
+            grayscale. `factor=1.0` makes the image to be fully saturated.
+            Values should be between `0.0` and `1.0`. If a tuple is used, a
+            `factor` is sampled between the two values for every image
+            augmented. If a single float is used, a value between `0.0` and the
+            passed float is sampled. In order to ensure the value is always the
+            same, please pass a tuple with two identical floats: `(0.5, 0.5)`.
         seed: Integer. Used to create a random seed.
 
     Usage:
@@ -68,9 +68,9 @@ class RandomSaturation(VectorizedBaseImageAugmentationLayer):
 
     def augment_images(self, images, transformations, **kwargs):
         # Convert the factor range from [0, 1] to [0, +inf]. Note that the
-        # tf.image.adjust_saturation is trying to apply the following math formula
-        # `output_saturation = input_saturation * factor`. We use the following
-        # method to the do the mapping.
+        # tf.image.adjust_saturation is trying to apply the following math
+        # formula `output_saturation = input_saturation * factor`. We use the
+        # following method to the do the mapping.
         # `y = x / (1 - x)`.
         # This will ensure:
         #   y = +inf when x = 1 (full saturation)
@@ -78,8 +78,8 @@ class RandomSaturation(VectorizedBaseImageAugmentationLayer):
         #   y = 0 when x = 0 (full gray scale)
 
         # Convert the transformation to tensor in case it is a float. When
-        # transformation is 1.0, then it will result in to divide by zero error, but
-        # it will be handled correctly when it is a one tensor.
+        # transformation is 1.0, then it will result in to divide by zero error,
+        # but it will be handled correctly when it is a one tensor.
         transformations = tf.convert_to_tensor(transformations)
         adjust_factors = transformations / (1 - transformations)
         adjust_factors = tf.cast(adjust_factors, dtype=images.dtype)

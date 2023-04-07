@@ -25,19 +25,19 @@ class SpatialPyramidPooling(keras.layers.Layer):
     """Implements the Atrous Spatial Pyramid Pooling.
 
     References:
-        [Rethinking Atrous Convolution for Semantic Image Segmentation](
-          https://arxiv.org/pdf/1706.05587.pdf)
-    [Encoder-Decoder with Atrous Separable Convolution for Semantic Image
-        Segmentation](https://arxiv.org/pdf/1802.02611.pdf)
+        [Rethinking Atrous Convolution for Semantic Image Segmentation](https://arxiv.org/pdf/1706.05587.pdf)
+        [Encoder-Decoder with Atrous Separable Convolution for Semantic Image Segmentation](https://arxiv.org/pdf/1802.02611.pdf)
 
     inp = keras.layers.Input((384, 384, 3))
-    backbone = keras.applications.EfficientNetB0(input_tensor=inp, include_top=False)
+    backbone = keras.applications.EfficientNetB0(
+        input_tensor=inp,
+        include_top=False)
     output = backbone(inp)
     output = keras_cv.layers.SpatialPyramidPooling(
         dilation_rates=[6, 12, 18])(output)
 
     # output[4].shape = [None, 16, 16, 256]
-    """
+    """  # noqa: E501
 
     def __init__(
         self,
@@ -50,13 +50,13 @@ class SpatialPyramidPooling(keras.layers.Layer):
         """Initializes an Atrous Spatial Pyramid Pooling layer.
 
         Args:
-            dilation_rates: A `list` of integers for parallel dilated conv. Usually a
-                sample choice of rates are [6, 12, 18].
-            num_channels: An `int` number of output channels. Default to 256.
-            activation: A `str` activation to be used. Default to 'relu'.
-            dropout: A `float` for the dropout rate of the final projection output after
-                the activations and batch norm. Default to 0.0, which means no dropout is
-                applied to the output.
+            dilation_rates: A `list` of integers for parallel dilated conv.
+                Usually a sample choice of rates are [6, 12, 18].
+            num_channels: An `int` number of output channels, defaults to 256.
+            activation: A `str` activation to be used, defaults to 'relu'.
+            dropout: A `float` for the dropout rate of the final projection
+                output after the activations and batch norm, defaults to 0.0,
+                which means no dropout is applied to the output.
             **kwargs: Additional keyword arguments to be passed.
         """
         super().__init__(**kwargs)
@@ -70,9 +70,9 @@ class SpatialPyramidPooling(keras.layers.Layer):
         width = input_shape[2]
         channels = input_shape[3]
 
-        # This is the parallel networks that process the input features with different
-        # dilation rates. The output from each channel will be merged together and feed
-        # to the output.
+        # This is the parallel networks that process the input features with
+        # different dilation rates. The output from each channel will be merged
+        # together and feed to the output.
         self.aspp_parallel_channels = []
 
         # Channel1 with Conv2D and 1x1 kernel size.
@@ -89,8 +89,8 @@ class SpatialPyramidPooling(keras.layers.Layer):
         )
         self.aspp_parallel_channels.append(conv_sequential)
 
-        # Channel 2 and afterwards are based on self.dilation_rates, and each of them
-        # will have conv2D with 3x3 kernel size.
+        # Channel 2 and afterwards are based on self.dilation_rates, and each of
+        # them will have conv2D with 3x3 kernel size.
         for dilation_rate in self.dilation_rates:
             conv_sequential = keras.Sequential(
                 [

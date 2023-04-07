@@ -19,8 +19,8 @@ import keras_cv
 def _create_bounding_box_dataset(
     bounding_box_format, use_dictionary_box_format=False
 ):
-    # Just about the easiest dataset you can have, all classes are 0, all boxes are
-    # exactly the same.  [1, 1, 2, 2] are the coordinates in xyxy
+    # Just about the easiest dataset you can have, all classes are 0, all boxes
+    # are exactly the same. [1, 1, 2, 2] are the coordinates in xyxy.
     xs = tf.random.normal(shape=(1, 512, 512, 3), dtype=tf.float32)
     xs = tf.tile(xs, [5, 1, 1, 1])
 

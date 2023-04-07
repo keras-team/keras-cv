@@ -61,12 +61,14 @@ class Task(keras.Model):
 
     @classproperty
     def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include weights."""
+        """Dictionary of preset names and configurations that include
+        weights."""
         return {}
 
     @classproperty
     def backbone_presets(cls):
-        """Dictionary of preset names and configurations for compatible backbones."""
+        """Dictionary of preset names and configurations for compatible
+        backbones."""
         return {}
 
     @classmethod
@@ -76,7 +78,8 @@ class Task(keras.Model):
         load_weights=None,
         **kwargs,
     ):
-        """Instantiate {{model_name}} model from preset architecture and weights.
+        """Instantiate {{model_name}} model from preset architecture and
+        weights.
 
         Args:
             preset: string. Must be one of "{{preset_names}}".
@@ -150,11 +153,11 @@ class Task(keras.Model):
         return model
 
     def __init_subclass__(cls, **kwargs):
-        # Use __init_subclass__ to setup a correct docstring for from_preset.
+        # Use __init_subclass__ to set up a correct docstring for from_preset.
         super().__init_subclass__(**kwargs)
 
         # If the subclass does not define from_preset, assign a wrapper so that
-        # each class can have an distinct docstring.
+        # each class can have a distinct docstring.
         if "from_preset" not in cls.__dict__:
 
             def from_preset(calling_cls, *args, **kwargs):

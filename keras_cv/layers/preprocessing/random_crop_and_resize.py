@@ -27,36 +27,37 @@ from keras_cv.utils import preprocessing
 class RandomCropAndResize(BaseImageAugmentationLayer):
     """Randomly crops a part of an image and resizes it to provided size.
 
-    This implementation takes an intuitive approach, where we crop the images to a
-    random height and width, and then resize them. To do this, we first sample a
-    random value for area using `crop_area_factor` and a value for aspect ratio using
-    `aspect_ratio_factor`. Further we get the new height and width by
-    dividing and multiplying the old height and width by the random area
+    This implementation takes an intuitive approach, where we crop the images to
+    a random height and width, and then resize them. To do this, we first sample
+    a random value for area using `crop_area_factor` and a value for aspect
+    ratio using `aspect_ratio_factor`. Further we get the new height and width
+    by dividing and multiplying the old height and width by the random area
     respectively. We then sample offsets for height and width and clip them such
-    that the cropped area does not exceed image boundaries. Finally we do the
+    that the cropped area does not exceed image boundaries. Finally, we do the
     actual cropping operation and resize the image to `target_size`.
 
     Args:
-        target_size: A tuple of two integers used as the target size to ultimately crop
-            images to.
+        target_size: A tuple of two integers used as the target size to
+            ultimately crop images to.
         crop_area_factor: A tuple of two floats, ConstantFactorSampler or
-            UniformFactorSampler. The ratio of area of the cropped part to
-            that of original image is sampled using this factor. Represents the
-            lower and upper bounds for the area relative to the original image
-            of the cropped image before resizing it to `target_size`.  For
+            UniformFactorSampler. The ratio of area of the cropped part to that
+            of original image is sampled using this factor. Represents the lower
+            and upper bounds for the area relative to the original image of the
+            cropped image before resizing it to `target_size`. For
             self-supervised pretraining a common value for this parameter is
-            `(0.08, 1.0)`.  For fine tuning and classification a common value for this
-            is `0.8, 1.0`.
+            `(0.08, 1.0)`. For fine tuning and classification a common value for
+            this is `0.8, 1.0`.
         aspect_ratio_factor: A tuple of two floats, ConstantFactorSampler or
             UniformFactorSampler. Aspect ratio means the ratio of width to
-            height of the cropped image. In the context of this layer, the aspect ratio
-            sampled represents a value to distort the aspect ratio by.
-            Represents the lower and upper bound for the aspect ratio of the
-            cropped image before resizing it to `target_size`.  For most tasks, this
-            should be `(3/4, 4/3)`.  To perform a no-op provide the value `(1.0, 1.0)`.
+            height of the cropped image. In the context of this layer, the
+            aspect ratio sampled represents a value to distort the aspect ratio
+            by. Represents the lower and upper bound for the aspect ratio of the
+            cropped image before resizing it to `target_size`. For most tasks,
+            this should be `(3/4, 4/3)`. To perform a no-op provide the value
+            `(1.0, 1.0)`.
         interpolation: (Optional) A string specifying the sampling method for
-            resizing. Defaults to "bilinear".
-        seed: (Optional) Used to create a random seed. Defaults to None.
+            resizing, defaults to "bilinear".
+        seed: (Optional) Used to create a random seed, defaults to None.
     """
 
     def __init__(
@@ -224,9 +225,9 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
             or isinstance(crop_area_factor, int)
         ):
             raise ValueError(
-                "`crop_area_factor` must be tuple of two positive floats less than "
-                "or equal to 1 or keras_cv.core.FactorSampler instance. Received "
-                f"crop_area_factor={crop_area_factor}"
+                "`crop_area_factor` must be tuple of two positive floats less "
+                "than or equal to 1 or keras_cv.core.FactorSampler instance. "
+                f"Received crop_area_factor={crop_area_factor}"
             )
 
         if (

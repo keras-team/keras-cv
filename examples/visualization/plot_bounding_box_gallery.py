@@ -7,8 +7,9 @@ Description: Visualize bounding boxes for a given dataset.
 """
 
 """
-`keras_cv.visualization.plot_bounding_box_gallery()` is a function dedicated to the
-visualization of bounding boxes predicted by a `keras_cv` object detection model.
+`keras_cv.visualization.plot_bounding_box_gallery()` is a function dedicated to
+the visualization of bounding boxes predicted by a `keras_cv` object detection
+model.
 """
 
 import tensorflow as tf

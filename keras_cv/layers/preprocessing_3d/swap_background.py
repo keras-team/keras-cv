@@ -28,16 +28,20 @@ POINTCLOUD_LABEL_INDEX = base_augmentation_layer_3d.POINTCLOUD_LABEL_INDEX
 
 @keras.utils.register_keras_serializable(package="keras_cv")
 class SwapBackground(base_augmentation_layer_3d.BaseAugmentationLayer3D):
-    """A preprocessing layer which swaps the backgrounds of two scenes during training.
+    """A preprocessing layer which swaps the backgrounds of two scenes during
+    training.
 
-    This layer will extract object point clouds and bounding boxes from an additional scene and paste it on to the training
-    scene while removing the objects in the training scene.
-    First, removing all the objects point clouds and bounding boxes in the training scene.
-    Second, extracting object point clouds and bounding boxes from an additional scene.
-    Third, removing backgrounds points clouds in the training scene that overlap with the additional object bounding boxes.
-    Last, pasting the additional object point clouds and bounding boxes to the training background scene.
+    This layer will extract object point clouds and bounding boxes from an
+    additional scene and paste it on to the training scene while removing the
+    objects in the training scene. First, removing all the objects point clouds
+    and bounding boxes in the training scene. Second, extracting object point
+    clouds and bounding boxes from an additional scene. Third, removing
+    backgrounds points clouds in the training scene that overlap with the
+    additional object bounding boxes. Last, pasting the additional object point
+    clouds and bounding boxes to the training background scene.
 
-    During inference time, the output will be identical to input. Call the layer with `training=True` to swap backgrounds between two scenes.
+    During inference time, the output will be identical to input. Call the layer
+    with `training=True` to swap backgrounds between two scenes.
 
     Input shape:
       point_clouds: 3D (multi frames) float32 Tensor with shape
@@ -50,7 +54,8 @@ class SwapBackground(base_augmentation_layer_3d.BaseAugmentationLayer3D):
         for more details on supported bounding box formats.
 
     Output shape:
-      A tuple of two Tensors (point_clouds, bounding_boxes) with the same shape as input Tensors.
+      A tuple of two Tensors (point_clouds, bounding_boxes) with the same shape
+      as input Tensors.
 
     """
 
@@ -69,7 +74,8 @@ class SwapBackground(base_augmentation_layer_3d.BaseAugmentationLayer3D):
         additional_bounding_boxes,
         **kwargs
     ):
-        # Use the current frame bounding boxes to determine valid bounding boxes.
+        # Use the current frame bounding boxes to determine valid bounding
+        # boxes.
         bounding_boxes = tf.boolean_mask(
             bounding_boxes,
             bounding_boxes[0, :, CENTER_XYZ_DXDYDZ_PHI.CLASS] > 0,
@@ -103,7 +109,8 @@ class SwapBackground(base_augmentation_layer_3d.BaseAugmentationLayer3D):
             0.0,
         )
 
-        # Remove backgorund points in point_clouds overlaps with additional_bounding_boxes.
+        # Remove background points in point_clouds overlaps with
+        # additional_bounding_boxes.
         points_overlaps_additional_bounding_boxes = is_within_any_box3d(
             point_clouds[..., :3],
             additional_bounding_boxes[..., : CENTER_XYZ_DXDYDZ_PHI.CLASS],

@@ -31,7 +31,7 @@ class ResNetPresetSmokeTest(tf.test.TestCase, parameterized.TestCase):
     """
     A smoke test for ResNet presets we run continuously.
     This only tests the smallest weights we have available. Run with:
-    `pytest keras_cv/models/backbones/resnet_v1/resnet_v1_backbone_presets_test.py --run_large`
+    `pytest keras_cv/models/backbones/resnet_v1/resnet_v1_backbone_presets_test.py --run_large`  # noqa: E501
     """
 
     def setUp(self):
@@ -110,7 +110,7 @@ class ResNetPresetFullTest(tf.test.TestCase, parameterized.TestCase):
     Test the full enumeration of our preset.
     This every presets for ResNet and is only run manually.
     Run with:
-    `pytest keras_cv/models/backbones/resnet_v1/resnet_v1_backbone_presets_test.py --run_extra_large`
+    `pytest keras_cv/models/backbones/resnet_v1/resnet_v1_backbone_presets_test.py --run_extra_large`  # noqa: E501
     """
 
     def test_load_resnet(self):

@@ -13,9 +13,11 @@
 # limitations under the License.
 """ViT (Vision Transformer) models for Keras.
 Reference:
-  - [An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale](https://arxiv.org/abs/2010.11929v2) (ICLR 2021)
-  - [How to train your ViT? Data, Augmentation, and Regularization in Vision Transformers](https://arxiv.org/abs/2106.10270) (CoRR 2021)
-"""
+  - [An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale](https://arxiv.org/abs/2010.11929v2)
+    (ICLR 2021)
+  - [How to train your ViT? Data, Augmentation, and Regularization in Vision Transformers](https://arxiv.org/abs/2106.10270)
+    (CoRR 2021)
+"""  # noqa: E501
 
 import tensorflow as tf
 from tensorflow import keras
@@ -121,10 +123,12 @@ MODEL_CONFIGS = {
 
 BASE_DOCSTRING = """Instantiates the {name} architecture.
     Reference:
-        - [An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale](https://arxiv.org/abs/2010.11929v2) (ICLR 2021)
+        - [An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale](https://arxiv.org/abs/2010.11929v2)
+        (ICLR 2021)
     This function returns a Keras {name} model.
 
-    The naming convention of ViT models follows: ViTSize_Patch-size (i.e. ViTS16).
+    The naming convention of ViT models follows: ViTSize_Patch-size
+        (i.e. ViTS16).
     The following sizes were released in the original paper:
         - S (Small)
         - B (Base)
@@ -133,46 +137,49 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
         - Ti (Tiny)
         - H (Huge)
 
-    The parameter configurations for all of these sizes, at patch sizes 16 and 32 are made available, following the naming convention
-    laid out above.
+    The parameter configurations for all of these sizes, at patch sizes 16 and
+    32 are made available, following the naming convention laid out above.
 
-    For transfer learning use cases, make sure to read the [guide to transfer
-        learning & fine-tuning](https://keras.io/guides/transfer_learning/).
+    For transfer learning use cases, make sure to read the
+    [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
     Args:
-        include_rescaling: bool, whether or not to Rescale the inputs. If set to True,
-            inputs will be passed through a `Rescaling(scale=1./255.0)` layer. Note that ViTs
-            expect an input range of `[0..1]` if rescaling isn't used. Regardless of whether
-            you supply `[0..1]` or the input is rescaled to `[0..1]`, the inputs will further be
-            rescaled to `[-1..1]`.
-        include_top: bool, whether to include the fully-connected layer at the top of the
-            network.  If provided, num_classes must be provided.
-        num_classes: optional int, number of classes to classify images into, only to be
-            specified if `include_top` is True.
+        include_rescaling: bool, whether to rescale the inputs. If set to
+            True, inputs will be passed through a `Rescaling(scale=1./255.0)`
+            layer. Note that ViTs expect an input range of `[0..1]` if rescaling
+            isn't used. Regardless of whether you supply `[0..1]` or the input
+            is rescaled to `[0..1]`, the inputs will further be rescaled to
+            `[-1..1]`.
+        include_top: bool, whether to include the fully-connected layer at the
+            top of the network. If provided, num_classes must be provided.
+        num_classes: optional int, number of classes to classify images into,
+            only to be specified if `include_top` is True.
         weights: one of `None` (random initialization), a pretrained weight file
-            path, or a reference to pre-trained weights (e.g. 'imagenet/classification')
-            (see available pre-trained weights in weights.py). Note that the 'imagenet'
-            weights only work on an input shape of (224, 224, 3) due to the input shape dependent
+            path, or a reference to pre-trained weights
+            (e.g. 'imagenet/classification') (see available pre-trained weights
+            in weights.py). Note that the 'imagenet' weights only work on an
+            input shape of (224, 224, 3) due to the input shape dependent
             patching and flattening logic.
         input_shape: optional shape tuple, defaults to (None, None, 3).
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
             to use as image input for the model.
         pooling: optional pooling mode for feature extraction
             when `include_top` is `False`.
-            - `None` means that the output of the model will be the 4D tensor output
-                of the last convolutional block.
-            - `avg` means that global average pooling will be applied to the output
-                of the last convolutional block, and thus the output of the model will
-                be a 2D tensor.
+            - `None` means that the output of the model will be the 4D tensor
+                output of the last convolutional block.
+            - `avg` means that global average pooling will be applied to the
+                output of the last convolutional block, and thus the output of
+                the model will be a 2D tensor.
             - `max` means that global max pooling will be applied.
             - `token_pooling`, default, means that the token at the start of the
                 sequences is used instead of regular pooling.
-        name: (Optional) name to pass to the model.  Defaults to "{name}".
-        classifier_activation: A `str` or callable. The activation function to use
-            on the "top" layer. Ignored unless `include_top=True`. Set
-            `classifier_activation=None` to return the logits of the "top" layer.
+        name: (Optional) name to pass to the model, defaults to "{name}".
+        classifier_activation: A `str` or callable. The activation function to
+            use on the "top" layer. Ignored unless `include_top=True`. Set
+            `classifier_activation=None` to return the logits of the "top"
+            layer.
     Returns:
       A `keras.Model` instance.
-"""
+"""  # noqa: E501
 
 
 @keras.utils.register_keras_serializable(package="keras_cv.models")
@@ -182,8 +189,8 @@ class ViT(keras.Model):
     Args:
         mlp_dim: the dimensionality of the hidden Dense layer in the transformer
             MLP head
-        include_rescaling: bool, whether or not to Rescale the inputs. If set to True,
-            inputs will be passed through a `Rescaling(1/255.0)` layer.
+        include_rescaling: bool, whether to rescale the inputs. If set to
+            True, inputs will be passed through a `Rescaling(1/255.0)` layer.
         name: string, model name.
         include_top: bool, whether to include the fully-connected
             layer at the top of the network.
@@ -208,10 +215,10 @@ class ViT(keras.Model):
         num_classes: optional number of classes to classify images
             into, only to be specified if `include_top` is True.
                     mlp_dim:
-        project_dim: the latent dimensionality to be projected into in the output
-            of each stacked transformer encoder
-        activation: the activation function to use in the first `layers.Dense` layer
-            in the MLP head of the transformer encoder
+        project_dim: the latent dimensionality to be projected into in the
+            output of each stacked transformer encoder
+        activation: the activation function to use in the first `layers.Dense`
+            layer in the MLP head of the transformer encoder
         attention_dropout: the dropout rate to apply to the `MultiHeadAttention`
             in each transformer encoder
         mlp_dropout: the dropout rate to apply between `layers.Dense` layers
@@ -222,9 +229,10 @@ class ViT(keras.Model):
             in the Vision Transformer
         patch_size: the patch size to be supplied to the Patching layer to turn
             input images into a flattened sequence of patches
-        classifier_activation: A `str` or callable. The activation function to use
-            on the "top" layer. Ignored unless `include_top=True`. Set
-            `classifier_activation=None` to return the logits of the "top" layer.
+        classifier_activation: A `str` or callable. The activation function to
+            use on the "top" layer. Ignored unless `include_top=True`. Set
+            `classifier_activation=None` to return the logits of the "top"
+            layer.
         **kwargs: Pass-through keyword arguments to `keras.Model`.
     """
 
@@ -250,8 +258,9 @@ class ViT(keras.Model):
     ):
         if weights and not tf.io.gfile.exists(weights):
             raise ValueError(
-                "The `weights` argument should be either `None` or the path to the "
-                "weights file to be loaded. Weights file not found at location: {weights}"
+                "The `weights` argument should be either `None` or the path "
+                "to the weights file to be loaded. Weights file not found at "
+                "location: {weights}"
             )
 
         if include_top and not num_classes:
