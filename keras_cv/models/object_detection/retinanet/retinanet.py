@@ -416,7 +416,7 @@ class RetinaNet(Task):
         )
 
         positive_mask = tf.cast(tf.greater(classes, -1.0), dtype=tf.float32)
-        normalizer = tf.reduce_sum(positive_mask) + keras.backend.epsilon()
+        normalizer = tf.reduce_sum(positive_mask)
         cls_weights = tf.cast(
             tf.math.not_equal(classes, -2.0), dtype=tf.float32
         )
@@ -434,6 +434,16 @@ class RetinaNet(Task):
             "box": box_weights,
             "classification": cls_weights,
         }
+        zero_weight = {
+            "box": tf.zeros_like(box_weights),
+            "classification": tf.zeros_like(cls_weights),
+        }
+
+        sample_weights = tf.cond(
+            normalizer == 0,
+            lambda: zero_weight,
+            lambda: sample_weights,
+        )
         return super().compute_loss(
             x=x, y=y_true, y_pred=y_pred, sample_weight=sample_weights
         )

@@ -146,10 +146,18 @@ class RetinaNetTest(tf.test.TestCase):
             classification_loss="focal",
             box_loss="smoothl1",
         )
-        xs, ys = _create_bounding_box_dataset(bounding_box_format)
-        ys = {"classes": tf.constant([]), "boxes": tf.constant([[]])}
-        # call once
-        retina_net.fit(xs, ys, epochs=1)
+
+        # only a -1 box
+        xs = tf.ones((1, 512, 512, 3), tf.float32)
+        ys = {
+            "classes": tf.constant([[-1]], tf.float32),
+            "boxes": tf.constant([[[0, 0, 0, 0]]], tf.float32),
+        }
+        ds = tf.data.Dataset.from_tensor_slices((xs, ys))
+        ds = ds.repeat(2)
+        ds = ds.ragged_batch(2)
+        retina_net.fit(ds, epochs=1)
+
         weights = retina_net.get_weights()
         for weight in weights:
             self.assertFalse(tf.math.reduce_any(tf.math.is_nan(weight)))
