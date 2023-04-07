@@ -27,8 +27,7 @@ class Posterization(BaseImageAugmentationLayer):
 
     References:
     - [AutoAugment: Learning Augmentation Policies from Data](https://arxiv.org/abs/1805.09501)
-    - [RandAugment: Practical automated data augmentation with a reduced search
-        space](https://arxiv.org/abs/1909.13719)
+    - [RandAugment: Practical automated data augmentation with a reduced search space](https://arxiv.org/abs/1909.13719)
 
     Args:
         value_range: a tuple or a list of two elements. The first value

@@ -59,8 +59,8 @@ BASE_DOCSTRING = """Represents the {name} architecture.
         - [CSPNet Paper](https://arxiv.org/pdf/1911.11929)
         - [YoloX Paper](https://arxiv.org/abs/2107.08430)
         - [YoloX implementation](https://github.com/ultralytics/yolov3)
-    For transfer learning use cases, make sure to read the [guide to transfer
-    learning & fine-tuning](https://keras.io/guides/transfer_learning/).
+    For transfer learning use cases, make sure to read the
+    [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
     Args:
         include_rescaling: bool, whether to rescale the inputs. If set to
             True, inputs will be passed through a `Rescaling(1/255.0)` layer.
@@ -93,7 +93,7 @@ BASE_DOCSTRING = """Represents the {name} architecture.
         name: string, optional name to pass to the model, defaults to "{name}".
     Returns:
         A `keras.Model` instance.
-"""
+"""  # noqa: E501
 
 
 @keras.utils.register_keras_serializable(package="keras_cv.models")
@@ -107,8 +107,8 @@ class CSPDarkNet(keras.Model):
         - [CSPNet Paper](https://arxiv.org/pdf/1911.11929)
         - [YoloX Paper](https://arxiv.org/abs/2107.08430)
         - [YoloX implementation](https://github.com/ultralytics/yolov3)
-    For transfer learning use cases, make sure to read the [guide to transfer
-    learning & fine-tuning](https://keras.io/guides/transfer_learning/).
+    For transfer learning use cases, make sure to read the
+    [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
     Args:
         depth_multiplier: A float value used to calculate the base depth of the
             model this changes based the detection model being used.
@@ -145,7 +145,7 @@ class CSPDarkNet(keras.Model):
         name: (Optional) name to pass to the model, defaults to "CSPDarkNet".
     Returns:
         A `keras.Model` instance.
-    """
+    """  # noqa: E501
 
     def __init__(
         self,

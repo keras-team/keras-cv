@@ -41,8 +41,7 @@ BASE_DOCSTRING = """Represents the {name} architecture.
         - [YoloV3 implementation](https://github.com/ultralytics/yolov3)
 
     For transfer learning use cases, make sure to read the
-    [guide to transfer learning & fine-tuning](
-        https://keras.io/guides/transfer_learning/).
+    [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
 
     Args:
         include_rescaling: bool, whether to rescale the inputs. If set to
@@ -68,7 +67,7 @@ BASE_DOCSTRING = """Represents the {name} architecture.
 
     Returns:
         A `keras.Model` instance.
-"""
+"""  # noqa: E501
 
 
 @keras.utils.register_keras_serializable(package="keras_cv.models")
@@ -83,8 +82,8 @@ class DarkNet(keras.Model):
     Reference:
         - [YoloV3 Paper](https://arxiv.org/abs/1804.02767)
         - [YoloV3 implementation](https://github.com/ultralytics/yolov3)
-    For transfer learning use cases, make sure to read the [guide to transfer
-    learning & fine-tuning](https://keras.io/guides/transfer_learning/).
+    For transfer learning use cases, make sure to read the
+    [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
 
     Args:
         blocks: integer, numbers of building blocks from the layer dark2 to
@@ -116,7 +115,7 @@ class DarkNet(keras.Model):
 
     Returns:
         A `keras.Model` instance.
-    """
+    """  # noqa: E501
 
     def __init__(
         self,

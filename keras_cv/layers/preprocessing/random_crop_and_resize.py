@@ -129,24 +129,6 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
 
         return [[y1, x1, y2, x2]]
 
-    def call(self, inputs, training=True):
-        if training:
-            return super().call(inputs, training)
-        else:
-            inputs = self._ensure_inputs_are_compute_dtype(inputs)
-            inputs, meta_data = self._format_inputs(inputs)
-            output = inputs
-            # self._resize() returns valid results for both batched and
-            # unbatched
-            output["images"] = self._resize(inputs["images"])
-
-            if "segmentation_masks" in inputs:
-                output["segmentation_masks"] = self._resize(
-                    inputs["segmentation_masks"], interpolation="nearest"
-                )
-
-            return self._format_output(output, meta_data)
-
     def compute_image_signature(self, images):
         return tf.TensorSpec(
             shape=(self.target_size[0], self.target_size[1], images.shape[-1]),

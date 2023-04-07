@@ -91,7 +91,7 @@ class RetinaNet(Task):
             range [0, num_classes).
         bounding_box_format: The format of bounding boxes of input dataset.
             Refer
-            [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)  # noqa: E501
+            [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
             for more details on supported bounding box formats.
         backbone: `keras.Model`. Must implement the `pyramid_level_inputs`
             property with keys 3, 4, and 5 and layer names as values. A somewhat
@@ -125,7 +125,7 @@ class RetinaNet(Task):
         box_head: (Optional) A `keras.Layer` that performs regression of the
             bounding boxes. If not provided, a simple ConvNet with 3 layers
             will be used.
-    """
+    """  # noqa: E501
 
     def __init__(
         self,

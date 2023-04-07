@@ -25,7 +25,7 @@ class StochasticDepth(keras.layers.Layer):
 
     Reference:
         - [Deep Networks with Stochastic Depth](https://arxiv.org/abs/1603.09382)
-        - Docstring taken from [stochastic_depth.py](https://tinyurl.com/mr3y2af6)
+        - [Docstring taken from [stochastic_depth.py](https://tinyurl.com/mr3y2af6)
 
     Args:
         rate: float, the probability of the residual branch being dropped.

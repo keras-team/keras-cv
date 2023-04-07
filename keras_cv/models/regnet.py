@@ -209,10 +209,11 @@ BASE_DOCSTRING = """This class represents the {name} architecture.
     - [Designing Network Design Spaces](https://arxiv.org/abs/2003.13678)
     (CVPR 2020)
 
-  For image classification use cases, see [this page for detailed examples](https://keras.io/api/applications/#usage-examples-for-image-classification-models).
+  For image classification use cases, see
+  [this page for detailed examples](https://keras.io/api/applications/#usage-examples-for-image-classification-models).
 
-  For transfer learning use cases, make sure to read the [guide to transfer
-  learning & fine-tuning](https://keras.io/guides/transfer_learning/).
+  For transfer learning use cases, make sure to read the
+  [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
 
 
   The naming of models is as follows: `RegNet<block_type><flops>` where

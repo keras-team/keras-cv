@@ -34,11 +34,8 @@ class FusedMBConvBlock(layers.Layer):
     """
     Implementation of the FusedMBConv block (Fused Mobile Inverted Residual
     Bottleneck) from:
-        (EfficientNet-EdgeTPU: Creating Accelerator-Optimized Neural Networks
-        with AutoML)
-        [https://ai.googleblog.com/2019/08/efficientnet-edgetpu-creating.html]
-        (EfficientNetV2: Smaller Models and Faster Training)
-        [https://arxiv.org/abs/2104.00298v3].
+        [EfficientNet-EdgeTPU: Creating Accelerator-Optimized Neural Networks with AutoML](https://ai.googleblog.com/2019/08/efficientnet-edgetpu-creating.html)
+        [EfficientNetV2: Smaller Models and Faster Training](https://arxiv.org/abs/2104.00298v3).
 
     FusedMBConv blocks are based on MBConv blocks, and replace the depthwise and
     1x1 output convolution blocks with a single 3x3 convolution block, fusing
@@ -87,7 +84,7 @@ class FusedMBConvBlock(layers.Layer):
     output = layer(inputs)
     output.shape # TensorShape([1, 224, 224, 48])
     ```
-    """
+    """  # noqa: E501
 
     def __init__(
         self,

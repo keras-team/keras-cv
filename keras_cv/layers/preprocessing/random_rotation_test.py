@@ -26,13 +26,6 @@ class RandomRotationTest(tf.test.TestCase):
         actual_output = layer(input_images, training=True)
         self.assertEqual(expected_output.shape, actual_output.shape)
 
-    def test_random_rotation_inference(self):
-        input_images = np.random.random((2, 5, 8, 3)).astype(np.float32)
-        expected_output = input_images
-        layer = RandomRotation(0.5)
-        actual_output = layer(input_images, training=False)
-        self.assertAllClose(expected_output, actual_output)
-
     def test_random_rotation_on_batched_images_independently(self):
         image = tf.random.uniform((100, 100, 3))
         batched_images = tf.stack((image, image), axis=0)

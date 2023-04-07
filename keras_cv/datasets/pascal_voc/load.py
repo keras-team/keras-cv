@@ -61,9 +61,9 @@ def load(
         split: the split string passed to the `tensorflow_datasets.load()` call.
             Should be one of "train", "test", or "validation."
         bounding_box_format: the keras_cv bounding box format to load the boxes
-            into. For a list of supported formats, please refer [to the keras.io
-            docs](https://keras.io/api/keras_cv/bounding_box/formats/) for more
-            details on supported bounding box formats.
+            into. For a list of supported formats, please refer
+            [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
+            for more details on supported bounding box formats.
         batch_size: how many instances to include in batches after loading
         shuffle_buffer: the size of the buffer to use in shuffling.
         shuffle_files: (Optional) whether to shuffle files, defaults to
@@ -76,7 +76,7 @@ def load(
         containing keys {"images": images, "bounding_boxes": bounding_boxes}
         where images is a Tensor of shape [batch, H, W, 3] and bounding_boxes is
         a `tf.RaggedTensor` of shape [batch, None, 5].
-    """
+    """  # noqa: E501
     if dataset not in ["voc/2007", "voc/2012"]:
         raise ValueError(
             "keras_cv.datasets.pascal_voc.load() expects the `dataset` "

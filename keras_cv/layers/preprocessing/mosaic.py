@@ -59,8 +59,8 @@ class Mosaic(VectorizedBaseImageAugmentationLayer):
             bounding box is defined by at least these 4 values. The inputs may
             contain additional information such as classes and confidence after
             these 4 values but these values will be ignored and returned as is.
-            For detailed information on the supported formats, see the [KerasCV
-            bounding box documentation](https://keras.io/api/keras_cv/bounding_box/formats/).
+            For detailed information on the supported formats, see the
+            [KerasCV bounding box documentation](https://keras.io/api/keras_cv/bounding_box/formats/).
             Defaults to None.
         seed: integer, used to create a random seed.
 
@@ -268,17 +268,16 @@ class Mosaic(VectorizedBaseImageAugmentationLayer):
         self._validate_inputs(inputs)
         return super()._batch_augment(inputs)
 
-    def call(self, inputs, training=True):
-        if training is True:
-            _, metadata = self._format_inputs(inputs)
-            if metadata[BATCHED] is not True:
-                raise ValueError(
-                    "Mosaic received a single image to `call`. The "
-                    "layer relies on combining multiple examples, and as such "
-                    "will not behave as expected. Please call the layer with 4 "
-                    "or more samples."
-                )
-        return super().call(inputs=inputs, training=training)
+    def call(self, inputs):
+        _, metadata = self._format_inputs(inputs)
+        if metadata[BATCHED] is not True:
+            raise ValueError(
+                "Mosaic received a single image to `call`. The "
+                "layer relies on combining multiple examples, and as such "
+                "will not behave as expected. Please call the layer with 4 "
+                "or more samples."
+            )
+        return super().call(inputs=inputs)
 
     def _validate_inputs(self, inputs):
         images = inputs.get(IMAGES, None)

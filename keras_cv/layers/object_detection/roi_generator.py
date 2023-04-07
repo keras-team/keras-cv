@@ -45,8 +45,8 @@ class ROIGenerator(keras.layers.Layer):
 
     Args:
         bounding_box_format: a case-insensitive string.
-            For detailed information on the supported format, see the [KerasCV
-            bounding box documentation](https://keras.io/api/keras_cv/bounding_box/formats/).
+            For detailed information on the supported format, see the
+            [KerasCV bounding box documentation](https://keras.io/api/keras_cv/bounding_box/formats/).
         pre_nms_topk_train: int. number of top k scoring proposals to keep
             before applying NMS in training mode. When RPN is run on multiple
             feature maps / levels (as in FPN) this number is per

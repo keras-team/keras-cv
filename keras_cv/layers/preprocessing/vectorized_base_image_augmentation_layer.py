@@ -358,24 +358,18 @@ class VectorizedBaseImageAugmentationLayer(
             result[key] = inputs[key]
         return result
 
-    def call(self, inputs, training=True):
-        # TODO(lukewood): remove training=False behavior.
+    def call(self, inputs):
         inputs = self._ensure_inputs_are_compute_dtype(inputs)
-        if training:
-            inputs, metadata = self._format_inputs(inputs)
-            images = inputs[IMAGES]
-            if images.shape.rank == 3 or images.shape.rank == 4:
-                return self._format_output(
-                    self._batch_augment(inputs), metadata
-                )
-            else:
-                raise ValueError(
-                    "Image augmentation layers are expecting inputs to be "
-                    "rank 3 (HWC) or 4D (NHWC) tensors. Got shape: "
-                    f"{images.shape}"
-                )
+        inputs, metadata = self._format_inputs(inputs)
+        images = inputs[IMAGES]
+        if images.shape.rank == 3 or images.shape.rank == 4:
+            return self._format_output(self._batch_augment(inputs), metadata)
         else:
-            return inputs
+            raise ValueError(
+                "Image augmentation layers are expecting inputs to be "
+                "rank 3 (HWC) or 4D (NHWC) tensors. Got shape: "
+                f"{images.shape}"
+            )
 
     def _format_inputs(self, inputs):
         metadata = {IS_DICT: True, USE_TARGETS: False}

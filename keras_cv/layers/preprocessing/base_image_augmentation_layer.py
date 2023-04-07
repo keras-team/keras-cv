@@ -1,4 +1,4 @@
-# Copyright 2022 The KerasCV Authors
+# Copyright 2023 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -391,25 +391,20 @@ class BaseImageAugmentationLayer(keras.__internal__.layers.BaseRandomLayer):
         """
         return None
 
-    def call(self, inputs, training=True):
+    def call(self, inputs):
         inputs = self._ensure_inputs_are_compute_dtype(inputs)
-        if training:
-            inputs, metadata = self._format_inputs(inputs)
-            images = inputs[IMAGES]
-            if images.shape.rank == 3:
-                return self._format_output(self._augment(inputs), metadata)
-            elif images.shape.rank == 4:
-                return self._format_output(
-                    self._batch_augment(inputs), metadata
-                )
-            else:
-                raise ValueError(
-                    "Image augmentation layers are expecting inputs to be "
-                    "rank 3 (HWC) or 4D (NHWC) tensors. Got shape: "
-                    f"{images.shape}"
-                )
+        inputs, metadata = self._format_inputs(inputs)
+        images = inputs[IMAGES]
+        if images.shape.rank == 3:
+            return self._format_output(self._augment(inputs), metadata)
+        elif images.shape.rank == 4:
+            return self._format_output(self._batch_augment(inputs), metadata)
         else:
-            return inputs
+            raise ValueError(
+                "Image augmentation layers are expecting inputs to be "
+                "rank 3 (HWC) or 4D (NHWC) tensors. Got shape: "
+                f"{images.shape}"
+            )
 
     def _augment(self, inputs):
         raw_image = inputs.get(IMAGES, None)

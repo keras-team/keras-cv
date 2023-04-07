@@ -15,8 +15,8 @@
 Reference:
   - [An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale](https://arxiv.org/abs/2010.11929v2)
     (ICLR 2021)
-  - [How to train your ViT? Data, Augmentation, and Regularization in Vision
-    Transformers](https://arxiv.org/abs/2106.10270) (CoRR 2021)
+  - [How to train your ViT? Data, Augmentation, and Regularization in Vision Transformers](https://arxiv.org/abs/2106.10270)
+    (CoRR 2021)
 """  # noqa: E501
 
 import tensorflow as tf
@@ -123,8 +123,8 @@ MODEL_CONFIGS = {
 
 BASE_DOCSTRING = """Instantiates the {name} architecture.
     Reference:
-        - [An Image is Worth 16x16 Words: Transformers for Image Recognition at
-           Scale](https://arxiv.org/abs/2010.11929v2) (ICLR 2021)
+        - [An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale](https://arxiv.org/abs/2010.11929v2)
+        (ICLR 2021)
     This function returns a Keras {name} model.
 
     The naming convention of ViT models follows: ViTSize_Patch-size
@@ -140,8 +140,8 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
     The parameter configurations for all of these sizes, at patch sizes 16 and
     32 are made available, following the naming convention laid out above.
 
-    For transfer learning use cases, make sure to read the [guide to transfer
-        learning & fine-tuning](https://keras.io/guides/transfer_learning/).
+    For transfer learning use cases, make sure to read the
+    [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
     Args:
         include_rescaling: bool, whether to rescale the inputs. If set to
             True, inputs will be passed through a `Rescaling(scale=1./255.0)`
@@ -179,7 +179,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
             layer.
     Returns:
       A `keras.Model` instance.
-"""
+"""  # noqa: E501
 
 
 @keras.utils.register_keras_serializable(package="keras_cv.models")

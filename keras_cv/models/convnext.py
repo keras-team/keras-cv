@@ -55,8 +55,8 @@ MODEL_CONFIGS = {
 }
 
 BASE_DOCSTRING = """Instantiates the {name} architecture.
-    - [A ConvNet for the 2020s](https://arxiv.org/abs/2201.03545)
-    (CVPR 2022)
+    - [A ConvNet for the 2020s](https://arxiv.org/abs/2201.03545) (CVPR 2022)
+
     This function returns a Keras {name} model.
     Args:
         include_rescaling: bool, whether to rescale the inputs. If set

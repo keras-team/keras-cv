@@ -268,8 +268,8 @@ class ResNetV2Backbone(Backbone):
     the batch normalization and ReLU activation are applied after the
     convolution layers.
 
-    For transfer learning use cases, make sure to read the [guide to transfer
-    learning & fine-tuning](https://keras.io/guides/transfer_learning/).
+    For transfer learning use cases, make sure to read the
+    [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
 
     Args:
         stackwise_filters: list of ints, number of filters for each stack in
@@ -416,8 +416,8 @@ ALIAS_DOCSTRING = """ResNetV2Backbone model with {num_layers} layers.
     the batch normalization and ReLU activation are applied after the
     convolution layers.
 
-    For transfer learning use cases, make sure to read the [guide to transfer
-    learning & fine-tuning](https://keras.io/guides/transfer_learning/).
+    For transfer learning use cases, make sure to read the
+    [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
 
     Args:
         include_rescaling: bool, whether to rescale the inputs. If set

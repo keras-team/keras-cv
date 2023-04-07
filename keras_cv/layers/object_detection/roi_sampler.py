@@ -42,8 +42,9 @@ class _ROISampler(keras.layers.Layer):
     if its range is [0, num_classes).
 
     Args:
-      bounding_box_format: The format of bounding boxes to generate. Refer [to
-        the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/) for more details on supported bounding box formats.
+      bounding_box_format: The format of bounding boxes to generate. Refer
+        [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
+        for more details on supported bounding box formats.
       roi_matcher: a `BoxMatcher` object that matches proposals with ground
         truth boxes. The positive match must be 1 and negative match must be -1.
         Such assumption is not being validated here.

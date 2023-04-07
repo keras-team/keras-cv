@@ -25,10 +25,8 @@ class SpatialPyramidPooling(keras.layers.Layer):
     """Implements the Atrous Spatial Pyramid Pooling.
 
     References:
-        [Rethinking Atrous Convolution for Semantic Image Segmentation](
-          https://arxiv.org/pdf/1706.05587.pdf)
-    [Encoder-Decoder with Atrous Separable Convolution for Semantic Image
-        Segmentation](https://arxiv.org/pdf/1802.02611.pdf)
+        [Rethinking Atrous Convolution for Semantic Image Segmentation](https://arxiv.org/pdf/1706.05587.pdf)
+        [Encoder-Decoder with Atrous Separable Convolution for Semantic Image Segmentation](https://arxiv.org/pdf/1802.02611.pdf)
 
     inp = keras.layers.Input((384, 384, 3))
     backbone = keras.applications.EfficientNetB0(
@@ -39,7 +37,7 @@ class SpatialPyramidPooling(keras.layers.Layer):
         dilation_rates=[6, 12, 18])(output)
 
     # output[4].shape = [None, 16, 16, 256]
-    """
+    """  # noqa: E501
 
     def __init__(
         self,

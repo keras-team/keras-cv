@@ -48,7 +48,7 @@ def draw_bounding_boxes(
         color: the color in which to plot the bounding boxes
         bounding_box_format: The format of bounding boxes to plot onto the
             images. Refer
-            [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)  # noqa: E501
+            [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
             for more details on supported bounding box formats.
         line_thickness: (Optional) line_thickness for the box and text labels.
             Defaults to 2.
@@ -59,7 +59,7 @@ def draw_bounding_boxes(
 
     Returns:
         the input `images` with provided bounding boxes plotted on top of them
-    """
+    """  # noqa: E501
     assert_cv2_installed("draw_bounding_boxes")
     bounding_boxes = bounding_box.convert_format(
         bounding_boxes, source=bounding_box_format, target="xyxy", images=images

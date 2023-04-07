@@ -47,8 +47,7 @@ class MBConvBlock(layers.Layer):
         """
         Implementation of the MBConv block (Mobile Inverted Residual Bottleneck)
         from:
-            (MobileNetV2: Inverted Residuals and Linear Bottlenecks)
-            [https://arxiv.org/abs/1801.04381v4].
+            [MobileNetV2: Inverted Residuals and Linear Bottlenecks](https://arxiv.org/abs/1801.04381v4).
 
         MBConv blocks are common blocks used in mobile-oriented and efficient
         architectures, present in architectures such as MobileNet, EfficientNet,
@@ -96,7 +95,8 @@ class MBConvBlock(layers.Layer):
         output = layer(inputs)
         output.shape # TensorShape([1, 64, 64, 32])
         ```
-        """
+        """  # noqa: E501
+
         super().__init__(**kwargs)
         self.input_filters = input_filters
         self.output_filters = output_filters

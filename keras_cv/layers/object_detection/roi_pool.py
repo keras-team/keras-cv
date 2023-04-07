@@ -33,8 +33,8 @@ class ROIPooler(keras.layers.Layer):
 
     Args:
         bounding_box_format: a case-insensitive string.
-            For detailed information on the supported format, see the [KerasCV
-            bounding box documentation](https://keras.io/api/keras_cv/bounding_box/formats/).
+            For detailed information on the supported format, see the
+            [KerasCV bounding box documentation](https://keras.io/api/keras_cv/bounding_box/formats/).
         target_size: List or Tuple of 2 integers of the pooled shape
         image_shape: List of Tuple of 3 integers, or `TensorShape` of the input
             image shape.

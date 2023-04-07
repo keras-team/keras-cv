@@ -226,7 +226,7 @@ class ResNetBackbone(Backbone):
     """Instantiates the ResNet architecture.
 
     Reference:
-        - [Deep Residual Learning for Image Recognition](https://arxiv.org/abs/1512.03385)  # noqa: E501
+        - [Deep Residual Learning for Image Recognition](https://arxiv.org/abs/1512.03385)
 
     The difference in ResNetV1 and ResNetV2 rests in the structure of their
     individual building blocks. In ResNetV2, the batch normalization and
@@ -235,7 +235,7 @@ class ResNetBackbone(Backbone):
     convolution layers.
 
     For transfer learning use cases, make sure to read the
-    [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).  # noqa: E501
+    [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
 
     Args:
         stackwise_filters: list of ints, number of filters for each stack in
@@ -269,7 +269,7 @@ class ResNetBackbone(Backbone):
     )
     output = model(input_data)
     ```
-    """
+    """  # noqa: E501
 
     def __init__(
         self,
@@ -360,7 +360,7 @@ class ResNetBackbone(Backbone):
 ALIAS_DOCSTRING = """ResNetBackbone (V1) model with {num_layers} layers.
 
     Reference:
-        - [Deep Residual Learning for Image Recognition](https://arxiv.org/abs/1512.03385)  # noqa: E501
+        - [Deep Residual Learning for Image Recognition](https://arxiv.org/abs/1512.03385)
 
     The difference in ResNetV1 and ResNetV2 rests in the structure of their
     individual building blocks. In ResNetV2, the batch normalization and
@@ -369,7 +369,7 @@ ALIAS_DOCSTRING = """ResNetBackbone (V1) model with {num_layers} layers.
     convolution layers.
 
     For transfer learning use cases, make sure to read the
-    [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).  # noqa: E501
+    [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
 
     Args:
         include_rescaling: bool, whether to rescale the inputs. If set
@@ -387,7 +387,7 @@ ALIAS_DOCSTRING = """ResNetBackbone (V1) model with {num_layers} layers.
     model = ResNet{num_layers}Backbone()
     output = model(input_data)
     ```
-"""
+"""  # noqa: E501
 
 
 class ResNet18Backbone(ResNetBackbone):

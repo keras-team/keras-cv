@@ -125,8 +125,8 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
 
     For image classification use cases, see [this page for detailed examples](https://keras.io/api/applications/#usage-examples-for-image-classification-models).
 
-    For transfer learning use cases, make sure to read the [guide to transfer
-        learning & fine-tuning](https://keras.io/guides/transfer_learning/).
+    For transfer learning use cases, make sure to read the
+    [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
 
     Args:
         include_rescaling: bool, whether to rescale the inputs. If set

@@ -31,8 +31,9 @@ class AnchorGenerator(keras.layers.Layer):
     levels), or a dictionary from `{'level_{number}': [parameters at scale...]}`
 
     Args:
-      bounding_box_format: The format of bounding boxes to generate. Refer [to
-        the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/) for more details on supported bounding box formats.
+      bounding_box_format: The format of bounding boxes to generate. Refer
+        [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
+        for more details on supported bounding box formats.
       sizes: A list of integers that represent the anchor sizes for each level,
         or a dictionary of integer lists with each key representing a level.
         For each anchor size, anchor height will be
