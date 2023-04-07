@@ -19,6 +19,8 @@ from tensorflow import keras
 
 import keras_cv
 from keras_cv import bounding_box
+from keras_cv import layers as cv_layers
+from keras_cv.bounding_box.converters import _decode_deltas_to_boxes
 from keras_cv.models.backbones.backbone import Backbone
 from keras_cv.models.backbones.backbone_presets import backbone_presets
 from keras_cv.models.backbones.backbone_presets import (
@@ -45,6 +47,8 @@ from keras_cv.utils.train import get_feature_extractor
 
 BATCH_NORM_EPSILON = 1e-3
 BATCH_NORM_MOMENTUM = 0.97
+
+BOX_VARIANCE = [0.1, 0.1, 0.2, 0.2]
 
 
 def conv_bn(
@@ -366,14 +370,19 @@ def yolov8_head(
     return outputs
 
 
-def decode_boxes(preds, anchors, regression_max=16):
+def decode_regression_to_boxes(preds, regression_max=16):
     preds_bbox = tf.reshape(preds, (-1, preds.shape[1], 4, regression_max))
     preds_bbox = tf.nn.softmax(preds_bbox, axis=-1) * tf.range(
         regression_max, dtype="float32"
     )
-    preds_bbox = tf.reduce_sum(preds_bbox, axis=-1)
-    preds_top_left, preds_bottom_right = tf.split(preds_bbox, [2, 2], axis=-1)
+    return tf.reduce_sum(preds_bbox, axis=-1)
 
+
+def decode_boxes(preds, anchors):
+    # Boxes expected to be in rel_yxyx format
+    preds_top_left, preds_bottom_right = tf.split(preds, [2, 2], axis=-1)
+
+    # Converts rel_yxyx anchors to rel_yxhw
     anchors_hw = anchors[:, 2:] - anchors[:, :2]
     anchors_center = (anchors[:, :2] + anchors[:, 2:]) * 0.5
 
@@ -384,6 +393,8 @@ def decode_boxes(preds, anchors, regression_max=16):
 
     preds_top_left = bboxes_center - 0.5 * bboxes_hw
     pred_bottom_right = preds_top_left + bboxes_hw
+
+    # Returns results in rel_yxyx
     return tf.concat([preds_top_left, pred_bottom_right], axis=-1)
 
 
@@ -396,6 +407,7 @@ class YOLOV8(Task):
         fpn_depth,
         prediction_decoder=None,
         num_classes=80,
+        temp_use_hacky_encoding=False,
         **kwargs
         # TODO(ianstenbit): anchor generator, label encoder
     ):
@@ -434,15 +446,27 @@ class YOLOV8(Task):
         outputs = {"boxes": boxes, "classes": classes}
         super().__init__(inputs=images, outputs=outputs, **kwargs)
 
-        # Gross hack for an anchor generator (for now)
-        anchor_generator = lambda image_shape: {0: get_anchors(image_shape)}
-        # This anchor generator generates rel_yxyx anchors
-        anchor_generator.bounding_box_format = "rel_yxyx"
-        self.anchor_generator = anchor_generator
+        if temp_use_hacky_encoding:
+            # Anchors for pre-trained
+            # Gross hack for an anchor generator (for now)
+            anchor_generator = lambda image_shape: {0: get_anchors(image_shape)}
+            # This anchor generator generates rel_yxyx anchors
+            anchor_generator.bounding_box_format = "rel_yxyx"
+            self.anchor_generator = anchor_generator
+        else:
+            # Anchors for self-training
+            self.anchor_generator = cv_layers.AnchorGenerator(
+                bounding_box_format,
+                sizes=[80, 40, 20],  # This will need to be adaptive
+                aspect_ratios=[1],
+                scales=[1],
+                strides=[8, 16, 32],  # Same here
+            )
 
         self.label_encoder = RetinaNetLabelEncoder(
             bounding_box_format=bounding_box_format,
-            anchor_generator=anchor_generator,
+            anchor_generator=self.anchor_generator,
+            box_variance=BOX_VARIANCE,
         )
         self.bounding_box_format = bounding_box_format
         self.prediction_decoder = (
@@ -456,6 +480,7 @@ class YOLOV8(Task):
         )
         self.backbone = backbone
         self.num_classes = num_classes
+        self.temp_use_hacky_encoding = temp_use_hacky_encoding
 
     def compile(
         self,
@@ -486,17 +511,8 @@ class YOLOV8(Task):
     def train_step(self, data):
         x, y = unpack_input(data)
 
-        # Boxes are now encoded in center_yxhw
+        # Boxes are now delta-encoded in center_yxhw
         boxes, classes = self.label_encoder(x, y)
-
-        # Since we're currently using the RetinaNetLabelEncoder, we have
-        # boxes in center_yxhw, and we want bounding_box_format.
-        boxes = bounding_box.convert_format(
-            boxes,
-            source="center_yxhw",
-            target=self.bounding_box_format,
-            images=x,
-        )
 
         with tf.GradientTape() as tape:
             outputs = self(x, training=True)
@@ -542,8 +558,7 @@ class YOLOV8(Task):
             dtype=tf.float32,
         )
 
-        anchors = get_anchors(x.shape[1:], pyramid_levels=[3, 5])
-        box_pred = decode_boxes(box_pred, anchors)
+        box_pred = decode_regression_to_boxes(box_pred, 64 // 4)
 
         positive_mask = tf.cast(tf.greater(classes, -1.0), dtype=tf.float32)
         normalizer = tf.maximum(tf.reduce_sum(positive_mask), 1)
@@ -578,9 +593,22 @@ class YOLOV8(Task):
         boxes = pred["boxes"]
         scores = pred["classes"]
 
+        boxes = decode_regression_to_boxes(boxes, 64 // 4)
+
         anchors = get_anchors((640, 640, 3), pyramid_levels=[3, 5])
 
-        decoded_boxes = decode_boxes(boxes, anchors, regression_max=64 // 4)
+        if self.temp_use_hacky_encoding:
+            # For pretrained:
+            decoded_boxes = decode_boxes(boxes, anchors)
+        else:
+            decoded_boxes = _decode_deltas_to_boxes(
+                anchors=anchors,
+                boxes_delta=boxes,
+                anchor_format=self.anchor_generator.bounding_box_format,
+                box_format=self.bounding_box_format,
+                variance=BOX_VARIANCE,
+                image_shape=(640, 640, 3),
+            )
 
         return self.prediction_decoder(decoded_boxes, scores)
 

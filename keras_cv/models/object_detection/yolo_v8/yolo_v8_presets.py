@@ -120,6 +120,7 @@ yolo_v8_presets = {
             "backbone": yolo_v8_backbone_presets["yolov8_n"],
             "num_classes": 80,
             "fpn_depth": 1,
+            "temp_use_hacky_encoding": True,
         },
         "weights_url": "https://storage.googleapis.com/keras-cv/models/yolov8/coco/yolov8_n.h5",
         "weights_hash": "2b96bd128a70a67a7226496319c1d4d8e33335e551b71b5a726bdc854b65e888",
@@ -132,6 +133,7 @@ yolo_v8_presets = {
             "backbone": yolo_v8_backbone_presets["yolov8_s"],
             "num_classes": 80,
             "fpn_depth": 1,
+            "temp_use_hacky_encoding": True,
         },
         "weights_url": "https://storage.googleapis.com/keras-cv/models/yolov8/coco/yolov8_s.h5",
         "weights_hash": "3976460072d0b2d767540b4bafd07b4eaf12eeb4bcee9f53dab69968e8e7d95e",
@@ -144,6 +146,7 @@ yolo_v8_presets = {
             "backbone": yolo_v8_backbone_presets["yolov8_m"],
             "num_classes": 80,
             "fpn_depth": 2,
+            "temp_use_hacky_encoding": True,
         },
     },
     "yolov8_l_coco": {
@@ -154,6 +157,7 @@ yolo_v8_presets = {
             "backbone": yolo_v8_backbone_presets["yolov8_l"],
             "num_classes": 80,
             "fpn_depth": 3,
+            "temp_use_hacky_encoding": True,
         },
     },
     "yolov8_x_coco": {
@@ -164,6 +168,7 @@ yolo_v8_presets = {
             "backbone": yolo_v8_backbone_presets["yolov8_x"],
             "num_classes": 80,
             "fpn_depth": 3,
+            "temp_use_hacky_encoding": True,
         },
     },
     "yolov8_x6_coco": {
@@ -174,6 +179,7 @@ yolo_v8_presets = {
             "backbone": yolo_v8_backbone_presets["yolov8_x6"],
             "num_classes": 80,
             "fpn_depth": 3,
+            "temp_use_hacky_encoding": True,
         },
     },
 }
