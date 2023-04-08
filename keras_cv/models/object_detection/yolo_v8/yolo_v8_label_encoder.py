@@ -133,9 +133,15 @@ class YOLOV8LabelEncoder(layers.Layer):
         matched_gt_boxes = target_gather._target_gather(
             gt_boxes, matched_gt_idx
         )
+        anchors_for_encoding = bounding_box.convert_format(
+            anchor_boxes,
+            source=self.anchor_generator.bounding_box_format,
+            target="rel_yxyx",
+            images=images[0],
+        )
         box_target = encode_boxes(
             matched_gt_boxes,
-            anchor_boxes,
+            anchors_for_encoding,
             box_format=self.bounding_box_format,
             images=images,
         )

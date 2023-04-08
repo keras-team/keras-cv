@@ -388,7 +388,7 @@ class YOLOV8(Task):
             anchors,
             source=self.anchor_generator.bounding_box_format,
             target="rel_yxyx",
-            images=images,
+            images=images[0],
         )
 
         decoded_boxes = decode_boxes(boxes, anchors)
