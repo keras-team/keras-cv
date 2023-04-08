@@ -149,6 +149,7 @@ def dataset_from_dataframe(
     load_fun_input,
     load_fun_target,
     shuffle=False,
+    buffer_shuffle_size=None,
     seed=None,
     pre_batching_processing=None,
     batch_size=None,
@@ -169,48 +170,50 @@ def dataset_from_dataframe(
     
     if isinstance(dataframe, tf.data.Dataset):
         dataset = dataframe
-        try:
-            num_elements = dataframe.length
-        except:
-            num_elements = len(dataframe)
+        num_elements = dataframe.cardinality()
     else:
         dataset = tf.data.Dataset.from_tensor_slices({
             colname_input : dataframe[colname_input],
             colname_target: dataframe[colname_target],
         })
-        num_elements = len(dataframe)
+        num_elements = len(dataframe[colname_input])
     
     if shuffle:
-        buffer_size = min(10*batch_size, num_elements//2) if batch_size is not None else num_elements//4
-        print('shuffling with buffer_size %d'%buffer_size)
-        dataset = dataset.shuffle(buffer_size=buffer_size, seed=seed, reshuffle_each_iteration=True)
+        if buffer_shuffle_size is None:
+            if batch_size is not None:
+                buffer_shuffle_size = 10*batch_size
+            elif num_elements>3:
+                buffer_shuffle_size = num_elements//4
+            else:
+                buffer_shuffle_size = 1024
+        print('shuffling with buffer_size %d'%buffer_shuffle_size)
+        dataset = dataset.shuffle(buffer_size=buffer_shuffle_size, seed=seed, reshuffle_each_iteration=True)
     
     dataset = dataset.map( lambda x: {
             dictname_input : load_fun_input(x[colname_input]),
             dictname_target: load_fun_target(x[colname_target]),
-    }, num_parallel_calls = tf.data.AUTOTUNE)
-         
+    })
+
     #for a in dataset.take(9):
     #    for k in a:
     #        print(k, a[k])
     
     if pre_batching_processing is not None:
         dataset = dataset.map(pre_batching_processing, num_parallel_calls = tf.data.AUTOTUNE)
-            
+
     if batch_size is not None:
         try:
             dataset = dataset.ragged_batch(batch_size)
             #dataset = dataset.batch(batch_size)
         except:
             dataset = dataset.apply(tf.data.experimental.dense_to_ragged_batch(batch_size))
-    
+
     if post_batching_processing is not None:
-        dataset = dataset.map(post_batching_processing, num_parallel_calls = tf.data.AUTOTUNE)   
-        
+        dataset = dataset.map(post_batching_processing, num_parallel_calls = tf.data.AUTOTUNE)
+
     if dict_to_tuple:
-        dataset = dataset.map(lambda x: _dict_to_tuple_fun(x,dictname_input, dictname_target),
-                              num_parallel_calls = tf.data.AUTOTUNE)
-    
+        dataset = dataset.map(lambda x: _dict_to_tuple_fun(x,dictname_input, dictname_target))
+
     dataset = dataset.prefetch(tf.data.AUTOTUNE)
     return dataset
 
@@ -649,7 +652,7 @@ def image_objdetect_dataset_from_dataframe(
                                               'classes': tf.TensorSpec(shape=(None,), dtype='float32'),
                                             }
                                           } )
-    dataset.length = num_img
+    dataset = dataset.apply(tf.data.experimental.assert_cardinality(num_img))
     
     dataset = dataset_from_dataframe(
         dataframe=dataset,
