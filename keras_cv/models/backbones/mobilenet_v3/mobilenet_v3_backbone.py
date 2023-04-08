@@ -12,14 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""MobileNet v3 models for KerasCV.
+"""MobileNet v3 backbone model for KerasCV.
 
 References:
     - [Searching for MobileNetV3](https://arxiv.org/pdf/1905.02244.pdf)
     (ICCV 2019)
-    - [Based on the original keras.applications MobileNetv3]
-    (https://github.com/keras-team/keras/blob/master/keras/applications/mobilenet_v3.py)
-"""
+    - [Based on the original keras.applications MobileNetv3](https://github.com/keras-team/keras/blob/master/keras/applications/mobilenet_v3.py)
+"""  # noqa: E501
 
 import copy
 
@@ -31,7 +30,7 @@ from tensorflow.keras.utils import custom_object_scope
 from keras_cv import layers as cv_layers
 from keras_cv.models import utils
 from keras_cv.models.backbones.backbone import Backbone
-from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_backbone_presets import (
+from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_backbone_presets import (  # noqa: E501
     backbone_presets,
 )
 from keras_cv.utils.python_utils import classproperty
@@ -39,7 +38,7 @@ from keras_cv.utils.python_utils import classproperty
 channel_axis = -1
 
 
-def depth(x, divisor=8, min_value=None):
+def adjust_channels(x, divisor=8, min_value=None):
     """Ensure that all layers have a channel number that is divisible by the
     `divisor`.
 
@@ -108,7 +107,7 @@ def apply_inverted_res_block(
     stride,
     se_ratio,
     activation,
-    block_id,
+    expansion_index,
     name=None,
 ):
     """An Inverted Residual Block.
@@ -116,15 +115,15 @@ def apply_inverted_res_block(
     Args:
         x: input tensor.
         expansion: integer, the expansion ratio, multiplied with infilters to
-            get the minimum value passed to depth.
+            get the minimum value passed to adjust_channels.
         filters: integer, number of filters for convolution layer.
         kernel_size: integer, the kernel size for DepthWise Convolutions.
         stride: integer, the stride length for DepthWise Convolutions.
         se_ratio: float, ratio for bottleneck filters. Number of bottleneck
             filters = filters * se_ratio.
         activation: the activation layer to use.
-        block_id: integer, a unique identification if you want to use expanded
-            convolutions.
+        expansion_index: integer, a unique identification if you want to use
+            expanded convolutions.
         name: string, layer label.
 
     Returns:
@@ -137,11 +136,11 @@ def apply_inverted_res_block(
     prefix = "expanded_conv/"
     infilters = backend.int_shape(x)[channel_axis]
 
-    if block_id:
-        prefix = f"expanded_conv_{block_id}"
+    if expansion_index:
+        prefix = f"expanded_conv_{expansion_index}"
 
         x = layers.Conv2D(
-            depth(infilters * expansion),
+            adjust_channels(infilters * expansion),
             kernel_size=1,
             padding="same",
             use_bias=False,
@@ -173,7 +172,7 @@ def apply_inverted_res_block(
     if se_ratio:
         with custom_object_scope({"hard_sigmoid": apply_hard_sigmoid}):
             x = cv_layers.SqueezeAndExcite2D(
-                filters=depth(infilters * expansion),
+                filters=adjust_channels(infilters * expansion),
                 ratio=se_ratio,
                 squeeze_activation="relu",
                 excite_activation="hard_sigmoid",
@@ -199,6 +198,92 @@ def apply_inverted_res_block(
     return x
 
 
+def stack_fn_v3small(x, kernel, activation, se_ratio, alpha=1.0):
+    x = apply_inverted_res_block(
+        x, 1, adjust_channels(16 * alpha), 3, 2, se_ratio, layers.ReLU(), 0
+    )
+    x = apply_inverted_res_block(
+        x, 72.0 / 16, adjust_channels(24 * alpha), 3, 2, None, layers.ReLU(), 1
+    )
+    x = apply_inverted_res_block(
+        x, 88.0 / 24, adjust_channels(24 * alpha), 3, 1, None, layers.ReLU(), 2
+    )
+    x = apply_inverted_res_block(
+        x, 4, adjust_channels(40 * alpha), kernel, 2, se_ratio, activation, 3
+    )
+    x = apply_inverted_res_block(
+        x, 6, adjust_channels(40 * alpha), kernel, 1, se_ratio, activation, 4
+    )
+    x = apply_inverted_res_block(
+        x, 6, adjust_channels(40 * alpha), kernel, 1, se_ratio, activation, 5
+    )
+    x = apply_inverted_res_block(
+        x, 3, adjust_channels(48 * alpha), kernel, 1, se_ratio, activation, 6
+    )
+    x = apply_inverted_res_block(
+        x, 3, adjust_channels(48 * alpha), kernel, 1, se_ratio, activation, 7
+    )
+    x = apply_inverted_res_block(
+        x, 6, adjust_channels(96 * alpha), kernel, 2, se_ratio, activation, 8
+    )
+    x = apply_inverted_res_block(
+        x, 6, adjust_channels(96 * alpha), kernel, 1, se_ratio, activation, 9
+    )
+    x = apply_inverted_res_block(
+        x, 6, adjust_channels(96 * alpha), kernel, 1, se_ratio, activation, 10
+    )
+    return x
+
+
+def stack_fn_v3large(x, kernel, activation, se_ratio, alpha=1.0):
+    x = apply_inverted_res_block(
+        x, 1, adjust_channels(16 * alpha), 3, 1, None, layers.ReLU(), 0
+    )
+    x = apply_inverted_res_block(
+        x, 4, adjust_channels(24 * alpha), 3, 2, None, layers.ReLU(), 1
+    )
+    x = apply_inverted_res_block(
+        x, 3, adjust_channels(24 * alpha), 3, 1, None, layers.ReLU(), 2
+    )
+    x = apply_inverted_res_block(
+        x, 3, adjust_channels(40 * alpha), kernel, 2, se_ratio, layers.ReLU(), 3
+    )
+    x = apply_inverted_res_block(
+        x, 3, adjust_channels(40 * alpha), kernel, 1, se_ratio, layers.ReLU(), 4
+    )
+    x = apply_inverted_res_block(
+        x, 3, adjust_channels(40 * alpha), kernel, 1, se_ratio, layers.ReLU(), 5
+    )
+    x = apply_inverted_res_block(
+        x, 6, adjust_channels(80 * alpha), 3, 2, None, activation, 6
+    )
+    x = apply_inverted_res_block(
+        x, 2.5, adjust_channels(80 * alpha), 3, 1, None, activation, 7
+    )
+    x = apply_inverted_res_block(
+        x, 2.3, adjust_channels(80 * alpha), 3, 1, None, activation, 8
+    )
+    x = apply_inverted_res_block(
+        x, 2.3, adjust_channels(80 * alpha), 3, 1, None, activation, 9
+    )
+    x = apply_inverted_res_block(
+        x, 6, adjust_channels(112 * alpha), 3, 1, se_ratio, activation, 10
+    )
+    x = apply_inverted_res_block(
+        x, 6, adjust_channels(112 * alpha), 3, 1, se_ratio, activation, 11
+    )
+    x = apply_inverted_res_block(
+        x, 6, adjust_channels(160 * alpha), kernel, 2, se_ratio, activation, 12
+    )
+    x = apply_inverted_res_block(
+        x, 6, adjust_channels(160 * alpha), kernel, 1, se_ratio, activation, 13
+    )
+    x = apply_inverted_res_block(
+        x, 6, adjust_channels(160 * alpha), kernel, 1, se_ratio, activation, 14
+    )
+    return x
+
+
 @keras.utils.register_keras_serializable(package="keras_cv.models")
 class MobileNetV3Backbone(Backbone):
     """Instantiates the MobileNetV3 architecture.
@@ -206,16 +291,15 @@ class MobileNetV3Backbone(Backbone):
     References:
         - [Searching for MobileNetV3](https://arxiv.org/pdf/1905.02244.pdf)
         (ICCV 2019)
-        - [Based on the Original keras.applications MobileNetv3]
-        (https://github.com/keras-team/keras/blob/master/keras/applications/mobilenet_v3.py)
+        - [Based on the Original keras.applications MobileNetv3](https://github.com/keras-team/keras/blob/master/keras/applications/mobilenet_v3.py)
 
-    For transfer learning use cases, make sure to read the [guide to transfer
-        learning & fine-tuning](https://keras.io/guides/transfer_learning/).
+    For transfer learning use cases, make sure to read the
+    [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
 
     Args:
         stack_fn: a function that returns tensors passed through Inverted
             Residual Blocks.
-        last_point_ch: integer, the number of filters for the convolution layer.
+        filters: integer, the number of filters for the convolution layer.
         include_rescaling: bool, whether to rescale the inputs. If set to True,
             inputs will be passed through a `Rescaling(scale=1 / 255)`
             layer.
@@ -247,18 +331,18 @@ class MobileNetV3Backbone(Backbone):
     # Randomly initialized backbone with a custom config
     model = MobileNetV3Backbone(
         stack_fn=None,
-        last_point_ch=1024,
+        filters=1024,
         include_rescaling=False,
     )
     output = model(input_data)
     ```
-    """
+    """  # noqa: E501
 
     def __init__(
         self,
         *,
-        stack_fn,
-        last_point_ch,
+        stack_fn_type="MobileNetV3Small",
+        filters,
         include_rescaling,
         input_shape=(None, None, 3),
         input_tensor=None,
@@ -267,6 +351,17 @@ class MobileNetV3Backbone(Backbone):
         dropout_rate=0.2,
         **kwargs,
     ):
+        if stack_fn_type == "MobileNetV3Small":
+            stack_fn = stack_fn_v3small
+        elif stack_fn_type == "MobileNetV3Large":
+            stack_fn = stack_fn_v3large
+        else:
+            raise ValueError(
+                """`stack_fn_type` must be either "MobileNetV3Small" or
+                "MobileNetV3Large". """
+                f"Received stack_fn_type={stack_fn_type}."
+            )
+
         if minimalistic:
             kernel = 3
             activation = layers.ReLU()
@@ -300,12 +395,12 @@ class MobileNetV3Backbone(Backbone):
 
         x = stack_fn(x, kernel, activation, se_ratio)
 
-        last_conv_ch = depth(backend.int_shape(x)[channel_axis] * 6)
+        last_conv_ch = adjust_channels(backend.int_shape(x)[channel_axis] * 6)
 
         # if the width multiplier is greater than 1 we
         # increase the number of output channels
         if alpha > 1.0:
-            last_point_ch = depth(last_point_ch * alpha)
+            filters = adjust_channels(filters * alpha)
         x = layers.Conv2D(
             last_conv_ch,
             kernel_size=1,
@@ -324,7 +419,7 @@ class MobileNetV3Backbone(Backbone):
         super().__init__(inputs=inputs, outputs=x, **kwargs)
 
         self.stack_fn = stack_fn
-        self.last_point_ch = last_point_ch
+        self.filters = filters
         self.include_rescaling = include_rescaling
         self.input_tensor = input_tensor
         self.alpha = alpha
@@ -336,7 +431,7 @@ class MobileNetV3Backbone(Backbone):
         config.update(
             {
                 "stack_fn": self.stack_fn,
-                "last_point_ch": self.last_point_ch,
+                "filters": self.filters,
                 "include_rescaling": self.include_rescaling,
                 "input_shape": self.input_shape[1:],
                 "input_tensor": self.input_tensor,
@@ -357,11 +452,10 @@ ALIAS_DOCSTRING = """MobileNetV3Backbone model with {num_layers} layers.
 
     References:
         - [Searching for MobileNetV3](https://arxiv.org/abs/1905.02244)
-        - [Based on the Original keras.applications MobileNetv3]
-        (https://github.com/keras-team/keras/blob/master/keras/applications/mobilenet_v3.py)
+        - [Based on the Original keras.applications MobileNetv3](https://github.com/keras-team/keras/blob/master/keras/applications/mobilenet_v3.py)
 
-    For transfer learning use cases, make sure to read the [guide to transfer
-        learning & fine-tuning](https://keras.io/guides/transfer_learning/).
+    For transfer learning use cases, make sure to read the
+    [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
 
     Args:
         include_rescaling: bool, whether or not to rescale the inputs. If set to
@@ -379,12 +473,13 @@ ALIAS_DOCSTRING = """MobileNetV3Backbone model with {num_layers} layers.
     model = {name}Backbone()
     output = model(input_data)
     ```
-"""
+"""  # noqa: E501
 
 
 class MobileNetV3SmallBackbone(MobileNetV3Backbone):
     def __new__(
         cls,
+        stack_fn_type="MobileNetV3Small",
         include_rescaling=True,
         input_shape=(None, None, 3),
         input_tensor=None,
@@ -409,6 +504,7 @@ class MobileNetV3SmallBackbone(MobileNetV3Backbone):
 class MobileNetV3LargeBackbone(MobileNetV3Backbone):
     def __new__(
         cls,
+        stack_fn_type="MobileNetV3Large",
         include_rescaling=True,
         input_shape=(None, None, 3),
         input_tensor=None,

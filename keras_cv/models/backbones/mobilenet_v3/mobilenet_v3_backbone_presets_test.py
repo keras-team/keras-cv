@@ -28,7 +28,7 @@ class MobileNetV3PresetFullTest(tf.test.TestCase, parameterized.TestCase):
     This tests every preset for MobileNetV3 and is only run manually.
     Run with:
     `pytest keras_cv/models/backbones/mobilenet_v3/mobilenet_v3_backbone_presets_test.py --run_extra_large`
-    """
+    """  # noqa: E501
 
     def test_load_resnet(self):
         input_data = tf.ones(shape=(2, 224, 224, 3))
