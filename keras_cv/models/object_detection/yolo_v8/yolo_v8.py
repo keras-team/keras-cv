@@ -19,7 +19,6 @@ from tensorflow import keras
 
 import keras_cv
 from keras_cv import bounding_box
-from keras_cv import layers as cv_layers
 from keras_cv.models.backbones.backbone_presets import backbone_presets
 from keras_cv.models.backbones.backbone_presets import (
     backbone_presets_with_weights,
@@ -385,6 +384,13 @@ class YOLOV8(Task):
 
         anchors = self.anchor_generator(image_shape=(640, 640, 3))
         anchors = tf.concat(tf.nest.flatten(anchors), axis=0)
+        anchors = bounding_box.convert_format(
+            anchors,
+            source=self.anchor_generator.bounding_box_format,
+            target="rel_yxyx",
+            images=images,
+        )
+
         decoded_boxes = decode_boxes(boxes, anchors)
         decoded_boxes = bounding_box.convert_format(
             decoded_boxes,

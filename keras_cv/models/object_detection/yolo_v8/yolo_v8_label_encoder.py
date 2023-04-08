@@ -117,7 +117,7 @@ class YOLOV8LabelEncoder(layers.Layer):
 
         anchors_for_iou = bounding_box.convert_format(
             anchor_boxes,
-            source="rel_yxyx",
+            source=self.anchor_generator.bounding_box_format,
             target=self.bounding_box_format,
             images=images[0],
         )
