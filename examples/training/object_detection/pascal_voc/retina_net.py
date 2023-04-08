@@ -38,7 +38,7 @@ resource.setrlimit(resource.RLIMIT_NOFILE, (high, high))
 
 flags.DEFINE_integer(
     "epochs",
-    35,
+    100,
     "Number of epochs to run for.",
 )
 
@@ -68,7 +68,7 @@ except ValueError:
 
 BATCH_SIZE = 4
 GLOBAL_BATCH_SIZE = BATCH_SIZE * strategy.num_replicas_in_sync
-BASE_LR = 0.01 * GLOBAL_BATCH_SIZE / 16
+BASE_LR = 0.005 * GLOBAL_BATCH_SIZE / 16
 print("Number of accelerators: ", strategy.num_replicas_in_sync)
 print("Global Batch Size: ", GLOBAL_BATCH_SIZE)
 
@@ -186,10 +186,6 @@ with strategy.scope():
 model.prediction_decoder = keras_cv.layers.MultiClassNonMaxSuppression(
     bounding_box_format="xywh", confidence_threshold=0.5, from_logits=True
 )
-
-for layer in model.feature_extractor.layers:
-    if isinstance(layer, (keras.layers.BatchNormalization)):
-        layer.trainable = False
 
 model.compile(
     classification_loss="focal",
