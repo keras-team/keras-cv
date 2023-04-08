@@ -73,20 +73,21 @@ backbone_presets_no_weights = {
 }
 
 backbone_presets_with_weights = {
-    "resnet50_imagenet": {
+    "DenseNet121_imagenet": {
         "metadata": {
             "description": (
 
             ),
         },
-        "class_name": "keras_cv.models>ResNetBackbone",
-        "config": backbone_presets_no_weights["resnet50"]["config"],
-        "weights_url": "https://storage.googleapis.com/keras-cv/models/resnet50/imagenet/classification-v0-notop.h5",  # noqa: E501
-        "weights_hash": "dc5f6d8f929c78d0fc192afecc67b11ac2166e9d8b9ef945742368ae254c07af",  # noqa: E501
+        "class_name": "keras_cv.models>DenseNetBackbone",
+        "config": backbone_presets_no_weights["DenseNet121"]["config"],
+        "weights_url": "13de3d077ad9d9816b9a0acc78215201d9b6e216c7ed8e71d69cc914f8f0775b",  # noqa: E501
+        "weights_hash": "709afe0321d9f2b2562e562ff9d0dc44cca10ed09e0e2cfba08d783ff4dab6bf",  # noqa: E501
     },
 }
 
 
 backbone_presets = {
     **backbone_presets_no_weights,
+    **backbone_presets_with_weights,
 }
