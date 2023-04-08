@@ -251,13 +251,7 @@ class YOLOV8(Task):
             anchor_generator.bounding_box_format = "rel_yxyx"
             self.anchor_generator = anchor_generator
         else:
-            self.anchor_generator = cv_layers.AnchorGenerator(
-                bounding_box_format,
-                sizes=[80, 40, 20],  # This will need to be adaptive
-                aspect_ratios=[1],
-                scales=[1],
-                strides=[8, 16, 32],  # Same here
-            )
+            self.anchor_generator = anchor_generator
 
         self.label_encoder = label_encoder or YOLOV8LabelEncoder(
             bounding_box_format=bounding_box_format,
@@ -389,7 +383,8 @@ class YOLOV8(Task):
 
         boxes = decode_regression_to_boxes(boxes, 64 // 4)
 
-        anchors = get_anchors((640, 640, 3), pyramid_levels=[3, 5])
+        anchors = self.anchor_generator(image_shape=(640, 640, 3))
+        anchors = tf.concat(tf.nest.flatten(anchors), axis=0)
         decoded_boxes = decode_boxes(boxes, anchors)
         decoded_boxes = bounding_box.convert_format(
             decoded_boxes,
