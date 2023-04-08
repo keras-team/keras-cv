@@ -186,8 +186,12 @@ def encode_boxes(boxes, anchors, box_format, image_shape):
     boxes /= scaling_factor
     boxes_xy, boxes_wh = tf.split(boxes, [2, 2], axis=-1)
 
-    boxes_yx = tf.concat([boxes_xy[..., 1, tf.newaxis], boxes_xy[..., 0, tf.newaxis]], axis=-1)
-    boxes_hw = tf.concat([boxes_wh[..., 1, tf.newaxis], boxes_wh[..., 0, tf.newaxis]], axis=-1)
+    boxes_yx = tf.concat(
+        [boxes_xy[..., 1, tf.newaxis], boxes_xy[..., 0, tf.newaxis]], axis=-1
+    )
+    boxes_hw = tf.concat(
+        [boxes_wh[..., 1, tf.newaxis], boxes_wh[..., 0, tf.newaxis]], axis=-1
+    )
 
     p1 = (0.5 * boxes_hw - boxes_yx + anchors_yx) / anchors_hw
     p2 = (0.5 * boxes_hw + boxes_yx - anchors_yx) / anchors_hw
@@ -195,6 +199,7 @@ def encode_boxes(boxes, anchors, box_format, image_shape):
     encoded_boxes = tf.concat([p1, p2], axis=-1)
 
     return encoded_boxes
+
 
 def decode_boxes(preds, anchors):
     # Boxes expected to be in encoded format
@@ -206,16 +211,6 @@ def decode_boxes(preds, anchors):
 
     pred_sum = preds_bottom_right + preds_top_left
     pred_hw_half = (preds_bottom_right - preds_top_left) / 2
-
-    # p2 + p1 = boxes_hw / anchors_hw
-    # p2 - p1 = 2 * (boxes_yx - anchors_yx) / anchors_hw
-
-    # p1 + p1 + 2 (boxes_yx - anchors_yx) / anchors_hw = boxes_hw / anchors_hw
-    # 2p1 = (boxes_hw - 2 * boxes_yx + 2 * anchors_yx) / anchors_hw
-    # p1 = 0.5 * (boxes_hw - 2 * boxes_yx + 2 * anchors_yx) / anchors_hw
-    # p2 = [2 * (boxes_yx - anchors_yx) + 0.5 * (boxes_hw - 2 * boxes_yx + 2 * anchors_yx)] / anchors_hw
-    # p2 = [2 * boxes_yx - 2 * anchors_yx + 0.5 * boxes_hw - 1 * boxes_yx + 1 * anchors_yx] / anchors_hw
-    # p2 = (boxes_yx - anchors_yx + 0.5 * boxes_hw) / anchors_hw
 
     bboxes_center = pred_hw_half * anchors_hw + anchors_center
     bboxes_hw = pred_sum * anchors_hw
