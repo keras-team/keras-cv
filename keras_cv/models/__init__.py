@@ -13,6 +13,9 @@
 # limitations under the License.
 
 from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_backbone import (
+    MobileNetV3Backbone,
+)
+from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_backbone import (
     MobileNetV3LargeBackbone,
 )
 from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_backbone import (

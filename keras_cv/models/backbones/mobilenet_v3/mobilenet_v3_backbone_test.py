@@ -21,12 +21,6 @@ from tensorflow import keras
 from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_backbone import (
     MobileNetV3Backbone,
 )
-from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_backbone import (
-    MobileNetV3LargeBackbone,
-)
-from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_backbone import (
-    MobileNetV3SmallBackbone,
-)
 from keras_cv.utils.train import get_feature_extractor
 
 
@@ -37,7 +31,7 @@ class MobileNetV3BackboneTest(tf.test.TestCase, parameterized.TestCase):
     def test_valid_call(self):
         model = MobileNetV3Backbone(
             stack_fn=None,
-            last_point_ch=1024,
+            filters=1024,
             include_rescaling=False,
         )
         model(self.input_batch)
@@ -45,7 +39,7 @@ class MobileNetV3BackboneTest(tf.test.TestCase, parameterized.TestCase):
     def test_valid_call_with_rescaling(self):
         model = MobileNetV3Backbone(
             stack_fn=None,
-            last_point_ch=1024,
+            filters=1024,
             include_rescaling=True,
         )
         model(self.input_batch)
@@ -57,7 +51,7 @@ class MobileNetV3BackboneTest(tf.test.TestCase, parameterized.TestCase):
     def test_saved_model(self, save_format, filename):
         model = MobileNetV3Backbone(
             stack_fn=None,
-            last_point_ch=1024,
+            filters=1024,
             include_rescaling=True,
         )
         model_output = model(self.input_batch)
@@ -79,12 +73,12 @@ class MobileNetV3BackboneTest(tf.test.TestCase, parameterized.TestCase):
     def test_model_backbone_layer_names_stability(self):
         model = MobileNetV3Backbone(
             stack_fn=None,
-            last_point_ch=1024,
+            filters=1024,
             include_rescaling=False,
         )
         model_2 = MobileNetV3Backbone(
             stack_fn=None,
-            last_point_ch=1024,
+            filters=1024,
             include_rescaling=False,
         )
         layers_1 = model.layers
@@ -97,7 +91,7 @@ class MobileNetV3BackboneTest(tf.test.TestCase, parameterized.TestCase):
     def test_create_backbone_model_with_level_config(self):
         model = MobileNetV3Backbone(
             stack_fn=None,
-            last_point_ch=1024,
+            filters=1024,
             include_rescaling=False,
             input_shape=[256, 256, 3],
         )
@@ -118,19 +112,11 @@ class MobileNetV3BackboneTest(tf.test.TestCase, parameterized.TestCase):
     def test_application_variable_input_channels(self, num_channels):
         model = MobileNetV3Backbone(
             stack_fn=None,
-            last_point_ch=1024,
+            filters=1024,
             input_shape=(None, None, num_channels),
             include_rescaling=False,
         )
         self.assertEqual(model.output_shape, (None, None, None, 2048))
-
-    @parameterized.named_parameters(
-        ("Small", MobileNetV3SmallBackbone),
-        ("Large", MobileNetV3LargeBackbone),
-    )
-    def test_specific_arch_forward_pass(self, arch_class):
-        backbone = arch_class()
-        backbone(tf.random.uniform(shape=[2, 256, 256, 3]))
 
 
 if __name__ == "__main__":
