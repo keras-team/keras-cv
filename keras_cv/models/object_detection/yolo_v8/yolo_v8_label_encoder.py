@@ -114,8 +114,17 @@ class YOLOV8LabelEncoder(layers.Layer):
         """
         gt_boxes = box_labels["boxes"]
         gt_classes = box_labels["classes"]
+
+        anchors_for_iou = bounding_box.convert_format(
+            anchor_boxes,
+            source="rel_yxyx",
+            target=self.bounding_box_format,
+            images=images[0],
+        )
         iou_matrix = bounding_box.compute_iou(
-            anchor_boxes, gt_boxes, bounding_box_format="xywh"
+            anchors_for_iou,
+            gt_boxes,
+            bounding_box_format=self.bounding_box_format,
         )
         matched_gt_idx, matched_vals = self.box_matcher(iou_matrix)
         matched_vals = matched_vals[..., tf.newaxis]
