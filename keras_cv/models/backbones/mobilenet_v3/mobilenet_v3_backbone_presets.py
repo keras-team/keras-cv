@@ -26,6 +26,7 @@ backbone_presets_no_weights = {
         },
         "class_name": "keras_cv.models>MobileNetV3Backbone",
         "config": {
+            "stack_fn_type": "MobileNetV3Small",
             "filters": 1024,
             "include_rescaling": True,
             "input_shape": (None, None, 3),
@@ -45,6 +46,7 @@ backbone_presets_no_weights = {
         },
         "class_name": "keras_cv.models>MobileNetV3Backbone",
         "config": {
+            "stack_fn_type": "MobileNetV3Large",
             "filters": 1280,
             "include_rescaling": True,
             "input_shape": (None, None, 3),
