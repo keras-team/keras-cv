@@ -26,7 +26,6 @@ yolo_v8_presets = {
             ],
             "num_classes": 80,
             "fpn_depth": 1,
-            "temp_use_hacky_encoding": True,
         },
         "class_name": "keras_cv.models>YOLOV8",
         "weights_url": "https://storage.googleapis.com/keras-cv/models/yolov8/coco/yolov8_n.h5",
@@ -42,7 +41,6 @@ yolo_v8_presets = {
             ],
             "num_classes": 80,
             "fpn_depth": 1,
-            "temp_use_hacky_encoding": True,
         },
         "weights_url": "https://storage.googleapis.com/keras-cv/models/yolov8/coco/yolov8_s.h5",
         "weights_hash": "3976460072d0b2d767540b4bafd07b4eaf12eeb4bcee9f53dab69968e8e7d95e",
@@ -57,7 +55,6 @@ yolo_v8_presets = {
             ],
             "num_classes": 80,
             "fpn_depth": 2,
-            "temp_use_hacky_encoding": True,
         },
     },
     "yolov8_l_coco": {
@@ -70,7 +67,6 @@ yolo_v8_presets = {
             ],
             "num_classes": 80,
             "fpn_depth": 3,
-            "temp_use_hacky_encoding": True,
         },
     },
     "yolov8_x_coco": {
@@ -83,7 +79,6 @@ yolo_v8_presets = {
             ],
             "num_classes": 80,
             "fpn_depth": 3,
-            "temp_use_hacky_encoding": True,
         },
     },
     "yolov8_x6_coco": {
@@ -96,7 +91,6 @@ yolo_v8_presets = {
             ],
             "num_classes": 80,
             "fpn_depth": 3,
-            "temp_use_hacky_encoding": True,
         },
     },
 }
