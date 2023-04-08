@@ -198,89 +198,71 @@ def apply_inverted_res_block(
     return x
 
 
+v3Small = {
+    "stackwise_expansion": [1, 72.0 / 16, 88.0 / 24, 4, 6, 6, 3, 3, 6, 6, 6],
+    "stackwise_filters": [16, 24, 24, 40, 40, 40, 48, 48, 96, 96, 96],
+    "stackwise_stride": [2, 2, 1, 2, 1, 1, 1, 1, 2, 1, 1],
+}
+v3Large = {
+    "stackwise_expansion": [1, 4, 3, 3, 3, 3, 6, 2.5, 2.3, 2.3, 6, 6, 6, 6, 6],
+    "stackwise_filters": [
+        16,
+        24,
+        24,
+        40,
+        40,
+        40,
+        80,
+        80,
+        80,
+        80,
+        112,
+        112,
+        160,
+        160,
+        160,
+    ],
+    "stackwise_kernel_size": [1, 2, 1, 2, 1, 1, 2, 1, 1, 1, 1, 1, 2, 1, 1],
+}
+
+
 def stack_fn_v3small(x, kernel, activation, se_ratio, alpha=1.0):
-    x = apply_inverted_res_block(
-        x, 1, adjust_channels(16 * alpha), 3, 2, se_ratio, layers.ReLU(), 0
-    )
-    x = apply_inverted_res_block(
-        x, 72.0 / 16, adjust_channels(24 * alpha), 3, 2, None, layers.ReLU(), 1
-    )
-    x = apply_inverted_res_block(
-        x, 88.0 / 24, adjust_channels(24 * alpha), 3, 1, None, layers.ReLU(), 2
-    )
-    x = apply_inverted_res_block(
-        x, 4, adjust_channels(40 * alpha), kernel, 2, se_ratio, activation, 3
-    )
-    x = apply_inverted_res_block(
-        x, 6, adjust_channels(40 * alpha), kernel, 1, se_ratio, activation, 4
-    )
-    x = apply_inverted_res_block(
-        x, 6, adjust_channels(40 * alpha), kernel, 1, se_ratio, activation, 5
-    )
-    x = apply_inverted_res_block(
-        x, 3, adjust_channels(48 * alpha), kernel, 1, se_ratio, activation, 6
-    )
-    x = apply_inverted_res_block(
-        x, 3, adjust_channels(48 * alpha), kernel, 1, se_ratio, activation, 7
-    )
-    x = apply_inverted_res_block(
-        x, 6, adjust_channels(96 * alpha), kernel, 2, se_ratio, activation, 8
-    )
-    x = apply_inverted_res_block(
-        x, 6, adjust_channels(96 * alpha), kernel, 1, se_ratio, activation, 9
-    )
-    x = apply_inverted_res_block(
-        x, 6, adjust_channels(96 * alpha), kernel, 1, se_ratio, activation, 10
-    )
+    for stack_index in range(11):
+        x = apply_inverted_res_block(
+            x,
+            expansion=v3Small["stackwise_expansion"][stack_index],
+            filters=adjust_channels(
+                (v3Small["stackwise_filters"][stack_index]) * alpha
+            ),
+            kernel_size=3 if stack_index < 3 else kernel,
+            stride=v3Small["stackwise_stride"][stack_index],
+            se_ratio=se_ratio if stack_index == 0 or stack_index > 2 else None,
+            activation=layers.ReLU() if stack_index < 3 else activation,
+            expansion_index=stack_index,
+            name=f"stack_{stack_index}",
+        )
     return x
 
 
 def stack_fn_v3large(x, kernel, activation, se_ratio, alpha=1.0):
-    x = apply_inverted_res_block(
-        x, 1, adjust_channels(16 * alpha), 3, 1, None, layers.ReLU(), 0
-    )
-    x = apply_inverted_res_block(
-        x, 4, adjust_channels(24 * alpha), 3, 2, None, layers.ReLU(), 1
-    )
-    x = apply_inverted_res_block(
-        x, 3, adjust_channels(24 * alpha), 3, 1, None, layers.ReLU(), 2
-    )
-    x = apply_inverted_res_block(
-        x, 3, adjust_channels(40 * alpha), kernel, 2, se_ratio, layers.ReLU(), 3
-    )
-    x = apply_inverted_res_block(
-        x, 3, adjust_channels(40 * alpha), kernel, 1, se_ratio, layers.ReLU(), 4
-    )
-    x = apply_inverted_res_block(
-        x, 3, adjust_channels(40 * alpha), kernel, 1, se_ratio, layers.ReLU(), 5
-    )
-    x = apply_inverted_res_block(
-        x, 6, adjust_channels(80 * alpha), 3, 2, None, activation, 6
-    )
-    x = apply_inverted_res_block(
-        x, 2.5, adjust_channels(80 * alpha), 3, 1, None, activation, 7
-    )
-    x = apply_inverted_res_block(
-        x, 2.3, adjust_channels(80 * alpha), 3, 1, None, activation, 8
-    )
-    x = apply_inverted_res_block(
-        x, 2.3, adjust_channels(80 * alpha), 3, 1, None, activation, 9
-    )
-    x = apply_inverted_res_block(
-        x, 6, adjust_channels(112 * alpha), 3, 1, se_ratio, activation, 10
-    )
-    x = apply_inverted_res_block(
-        x, 6, adjust_channels(112 * alpha), 3, 1, se_ratio, activation, 11
-    )
-    x = apply_inverted_res_block(
-        x, 6, adjust_channels(160 * alpha), kernel, 2, se_ratio, activation, 12
-    )
-    x = apply_inverted_res_block(
-        x, 6, adjust_channels(160 * alpha), kernel, 1, se_ratio, activation, 13
-    )
-    x = apply_inverted_res_block(
-        x, 6, adjust_channels(160 * alpha), kernel, 1, se_ratio, activation, 14
-    )
+    for stack_index in range(15):
+        x = apply_inverted_res_block(
+            x,
+            expansion=v3Large["stackwise_expansion"][stack_index],
+            filters=adjust_channels(
+                (v3Large["stackwise_filters"][stack_index]) * alpha
+            ),
+            kernel_size=3
+            if stack_index < 3 or (5 < stack_index < 12)
+            else kernel,
+            stride=v3Large["stackwise_stride"][stack_index],
+            se_ratio=se_ratio
+            if stack_index > 9 or (2 < stack_index < 6)
+            else None,
+            activation=layers.ReLU() if stack_index < 6 else activation,
+            expansion_index=stack_index,
+            name=f"stack_{stack_index}",
+        )
     return x
 
 
@@ -418,7 +400,7 @@ class MobileNetV3Backbone(Backbone):
 
         super().__init__(inputs=inputs, outputs=x, **kwargs)
 
-        self.stack_fn = stack_fn
+        self.stack_fn_type = stack_fn_type
         self.filters = filters
         self.include_rescaling = include_rescaling
         self.input_tensor = input_tensor
@@ -430,7 +412,7 @@ class MobileNetV3Backbone(Backbone):
         config = super().get_config()
         config.update(
             {
-                "stack_fn": self.stack_fn,
+                "stack_fn_type": self.stack_fn_type,
                 "filters": self.filters,
                 "include_rescaling": self.include_rescaling,
                 "input_shape": self.input_shape[1:],
@@ -479,7 +461,6 @@ ALIAS_DOCSTRING = """MobileNetV3Backbone model with {num_layers} layers.
 class MobileNetV3SmallBackbone(MobileNetV3Backbone):
     def __new__(
         cls,
-        stack_fn_type="MobileNetV3Small",
         include_rescaling=True,
         input_shape=(None, None, 3),
         input_tensor=None,
@@ -504,7 +485,6 @@ class MobileNetV3SmallBackbone(MobileNetV3Backbone):
 class MobileNetV3LargeBackbone(MobileNetV3Backbone):
     def __new__(
         cls,
-        stack_fn_type="MobileNetV3Large",
         include_rescaling=True,
         input_shape=(None, None, 3),
         input_tensor=None,
