@@ -31,7 +31,7 @@ def encode_boxes(boxes, anchors, box_format, images):
     )
 
     # Convert boxes from center_xywh to rel_center_yxhw
-    scaling_factor = list(images.shape[:2][::-1]) * 2
+    scaling_factor = list(images.shape[1:3][::-1]) * 2
     boxes /= scaling_factor
     boxes_xy, boxes_wh = tf.split(boxes, [2, 2], axis=-1)
 
