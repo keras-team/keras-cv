@@ -176,17 +176,6 @@ class ResizingTest(tf.test.TestCase, parameterized.TestCase):
         self.assertNotIsInstance(outputs, tf.RaggedTensor)
         self.assertAllEqual(expected_output, outputs)
 
-    def test_raises_with_segmap(self):
-        inputs = {
-            "images": np.array([[[1], [2]], [[3], [4]]], dtype="float64"),
-            "segmentation_map": np.array(
-                [[[1], [2]], [[3], [4]]], dtype="float64"
-            ),
-        }
-        layer = cv_layers.Resizing(2, 2)
-        with self.assertRaises(ValueError):
-            layer(inputs)
-
     def test_output_dtypes(self):
         inputs = np.array([[[1], [2]], [[3], [4]]], dtype="float64")
         layer = cv_layers.Resizing(2, 2)

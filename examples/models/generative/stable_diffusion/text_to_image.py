@@ -3,7 +3,8 @@ Title: Generate an image from a text prompt using StableDiffusion
 Author: fchollet
 Date created: 2022/09/24
 Last modified: 2022/09/24
-Description: Use StableDiffusion to generate an image according to a short text description.
+Description: Use StableDiffusion to generate an image according to a short text
+             description.
 """
 
 from PIL import Image

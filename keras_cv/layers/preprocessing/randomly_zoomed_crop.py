@@ -17,10 +17,7 @@ from keras import backend
 from tensorflow import keras
 
 from keras_cv import core
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
-    IMAGES,
-)
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     VectorizedBaseImageAugmentationLayer,
 )
 from keras_cv.utils import preprocessing as preprocessing_utils
@@ -37,7 +34,7 @@ class RandomlyZoomedCrop(VectorizedBaseImageAugmentationLayer):
     amount of distortion in the image is proportional to the `zoom_factor`
     argument. To do this, we first sample a random value for `zoom_factor` and
     `aspect_ratio_factor`. Further we deduce a `crop_size` which abides by the
-    calculated aspect ratio. Finally we do the actual cropping operation and
+    calculated aspect ratio. Finally, we do the actual cropping operation and
     resize the image to `(height, width)`.
 
     Args:
@@ -52,12 +49,12 @@ class RandomlyZoomedCrop(VectorizedBaseImageAugmentationLayer):
             aspect ratio sampled represents a value to distort the aspect ratio
             by.
             Represents the lower and upper bound for the aspect ratio of the
-            cropped image before resizing it to `(height, width)`.  For most
-            tasks, this should be `(3/4, 4/3)`.  To perform a no-op provide the
+            cropped image before resizing it to `(height, width)`. For most
+            tasks, this should be `(3/4, 4/3)`. To perform a no-op provide the
             value `(1.0, 1.0)`.
         interpolation: (Optional) A string specifying the sampling method for
-            resizing. Defaults to "bilinear".
-        seed: (Optional) Used to create a random seed. Defaults to None.
+            resizing, defaults to "bilinear".
+        seed: (Optional) Used to create a random seed, defaults to None.
     """
 
     def __init__(
@@ -258,19 +255,6 @@ class RandomlyZoomedCrop(VectorizedBaseImageAugmentationLayer):
                 ],
                 axis=1,
             )
-
-    def call(self, inputs, training=True):
-        if training:
-            return super().call(inputs, training)
-        else:
-            inputs = self._ensure_inputs_are_compute_dtype(inputs)
-            inputs, meta_data = self._format_inputs(inputs)
-            output = inputs
-            # self._resize() returns valid results for both batched and
-            # unbatched
-            output[IMAGES] = self._resize(inputs[IMAGES])
-
-            return self._format_output(output, meta_data)
 
     def _resize(self, images, **kwargs):
         resizing_layer = keras.layers.Resizing(

@@ -17,30 +17,26 @@ import tensorflow as tf
 from tensorflow import keras
 
 from keras_cv import bounding_box
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     VectorizedBaseImageAugmentationLayer,
 )
 from keras_cv.utils import preprocessing as preprocessing_utils
 
 # In order to support both unbatched and batched inputs, the horizontal
-# and verticle axis is reverse indexed
+# and vertical axis is reverse indexed
 H_AXIS = -3
 W_AXIS = -2
 
 
 @keras.utils.register_keras_serializable(package="keras_cv")
 class RandomRotation(VectorizedBaseImageAugmentationLayer):
-    """A preprocessing layer which randomly rotates images during training.
+    """A preprocessing layer which randomly rotates images.
 
     This layer will apply random rotations to each image, filling empty space
     according to `fill_mode`.
 
-    By default, random rotations are only applied during training.
-    At inference time, the layer does nothing. If you need to apply random
-    rotations at inference time, set `training` to True when calling the layer.
-
     Input pixel values can be of any range (e.g. `[0., 1.)` or `[0, 255]`) and
-    of interger or floating point dtype. By default, the layer will output
+    of integer or floating point dtype. By default, the layer will output
     floats.
 
     Input shape:
@@ -216,7 +212,7 @@ class RandomRotation(VectorizedBaseImageAugmentationLayer):
             bounding_box_format="xyxy",
             images=raw_images,
         )
-        # cordinates cannot be float values, it is casted to int32
+        # coordinates cannot be float values, it is cast to int32
         bounding_boxes = bounding_box.convert_format(
             bounding_boxes,
             source="xyxy",

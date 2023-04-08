@@ -47,21 +47,29 @@ class ROIGenerator(keras.layers.Layer):
         bounding_box_format: a case-insensitive string.
             For detailed information on the supported format, see the
             [KerasCV bounding box documentation](https://keras.io/api/keras_cv/bounding_box/formats/).
-        pre_nms_topk_train: int. number of top k scoring proposals to keep before applying NMS in training mode.
-            When RPN is run on multiple feature maps / levels (as in FPN) this number is per
+        pre_nms_topk_train: int. number of top k scoring proposals to keep
+            before applying NMS in training mode. When RPN is run on multiple
+            feature maps / levels (as in FPN) this number is per
             feature map / level.
-        nms_score_threshold_train: float. score threshold to use for NMS in training mode.
-        nms_iou_threshold_train: float. IOU threshold to use for NMS in training mode.
-        post_nms_topk_train: int. number of top k scoring proposals to keep after applying NMS in training mode.
-            When RPN is run on multiple feature maps / levels (as in FPN) this number is per
+        nms_score_threshold_train: float. score threshold to use for NMS in
+            training mode.
+        nms_iou_threshold_train: float. IOU threshold to use for NMS in training
+            mode.
+        post_nms_topk_train: int. number of top k scoring proposals to keep
+            after applying NMS in training mode. When RPN is run on multiple
+            feature maps / levels (as in FPN) this number is per
             feature map / level.
-        pre_nms_topk_test: int. number of top k scoring proposals to keep before applying NMS in inference mode.
-            When RPN is run on multiple feature maps / levels (as in FPN) this number is per
+        pre_nms_topk_test: int. number of top k scoring proposals to keep before
+            applying NMS in inference mode. When RPN is run on multiple
+            feature maps / levels (as in FPN) this number is per
             feature map / level.
-        nms_score_threshold_test: float. score threshold to use for NMS in inference mode.
-        nms_iou_threshold_test: float. IOU threshold to use for NMS in inference mode.
-        post_nms_topk_test: int. number of top k scoring proposals to keep after applying NMS in inference mode.
-            When RPN is run on multiple feature maps / levels (as in FPN) this number is per
+        nms_score_threshold_test: float. score threshold to use for NMS in
+            inference mode.
+        nms_iou_threshold_test: float. IOU threshold to use for NMS in inference
+            mode.
+        post_nms_topk_test: int. number of top k scoring proposals to keep after
+            applying NMS in inference mode. When RPN is run on multiple
+            feature maps / levels (as in FPN) this number is per
             feature map / level.
 
     Usage:
@@ -72,7 +80,7 @@ class ROIGenerator(keras.layers.Layer):
     rois, roi_scores = roi_generator(boxes, scores, training=True)
     ```
 
-    """
+    """  # noqa: E501
 
     def __init__(
         self,
@@ -107,12 +115,14 @@ class ROIGenerator(keras.layers.Layer):
     ) -> Tuple[tf.Tensor, tf.Tensor]:
         """
         Args:
-          multi_level_boxes: float Tensor. A dictionary or single Tensor of boxes, one per level. shape is
-            [batch_size, num_boxes, 4] each level, in `bounding_box_format`.
-            The boxes from RPNs are usually encoded as deltas w.r.t to anchors,
-            they need to be decoded before passing in here.
-          multi_level_scores: float Tensor. A dictionary or single Tensor of scores, usually confidence scores,
-            one per level. shape is [batch_size, num_boxes] each level.
+          multi_level_boxes: float Tensor. A dictionary or single Tensor of
+            boxes, one per level. Shape is [batch_size, num_boxes, 4] each
+            level, in `bounding_box_format`. The boxes from RPNs are usually
+            encoded as deltas w.r.t to anchors, they need to be decoded before
+            passing in here.
+          multi_level_scores: float Tensor. A dictionary or single Tensor of
+            scores, typically confidence scores, one per level. Shape is
+            [batch_size, num_boxes] each level.
 
         Returns:
           rois: float Tensor of [batch_size, post_nms_topk, 4]

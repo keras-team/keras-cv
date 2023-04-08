@@ -19,9 +19,9 @@ to open a PR without discussion.
 
 ### Step 2. Make code changes
 
-To make code changes, you need to fork the repository. You will need to setup a
+To make code changes, you need to fork the repository. You will need to set up a
 development environment and run the unit tests. This is covered in section
-"Setup environment".
+"set up environment".
 
 If your code change involves introducing a new API change, please see our
 [API Design Guidelines](API_DESIGN.md).
@@ -43,7 +43,7 @@ The agreement can be found at [https://cla.developers.google.com/clas](https://c
 
 ### Step 5. Code review
 
-CI tests will automatically be run directly on your pull request.  Their
+CI tests will automatically be run directly on your pull request. Their
 status will be reported back via GitHub actions.
 
 There may be
@@ -92,7 +92,7 @@ We currently support only a small handful of ops that run on CPU and are not use
 
 If you are updating existing custom ops, you can re-compile the binaries from source using the instructions in the `Tests that require custom ops` section below.
 
-## Setup environment
+## set up environment
 
 Setting up your KerasCV development environment requires you to fork the KerasCV repository,
 clone the repository, install dependencies, and execute `python setup.py develop`.
@@ -157,7 +157,7 @@ cp bazel-bin/keras_cv/custom_ops/*.so keras_cv/custom_ops/
 Tests which use custom ops are disabled by default, but can be run by setting the environment variable `TEST_CUSTOM_OPS=true`.
 
 ## Formatting the Code
-We use `flake8`, `isort`, `black` and `clang-format` for code formatting.  You can run
+We use `flake8`, `isort`, `black` and `clang-format` for code formatting. You can run
 the following commands manually every time you want to format your code:
 
 - Run `shell/format.sh` to format your code

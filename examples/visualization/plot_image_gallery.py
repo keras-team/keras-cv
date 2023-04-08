@@ -3,11 +3,12 @@ Title: Plot an image gallery
 Author: [lukewood](https://lukewood.xyz)
 Date created: 2022/10/16
 Last modified: 2022/10/16
-Description: Visualize ground truth and predicted bounding boxes for a given dataset.
+Description: Visualize ground truth and predicted bounding boxes for a given
+             dataset.
 """
 
 """
-Plotting images from a TensorFlow dataset is easy with KerasCV.  Behold:
+Plotting images from a TensorFlow dataset is easy with KerasCV. Behold:
 """
 
 import tensorflow as tf
