@@ -506,7 +506,6 @@ def _get_objdetect_generator(dataframe, colname_image, colname_class, colname_bo
             }
         }
 
-
 def image_objdetect_dataset_from_dataframe(
     dataframe,
     root_path=None,
@@ -637,15 +636,10 @@ def image_objdetect_dataset_from_dataframe(
             seed = np.random.randint(1e6)
         np.random.RandomState(seed).shuffle(list_img)
     
-    generator = ({
-        IMAGES: image,
-        BOUNDING_BOXES: {
-            'boxes': dataframe[dataframe[colname_image]==image][colname_box].values,
-            'classes': dataframe[dataframe[colname_image]==image][colname_class].values,
-        }
-    } for image in list_img)
+    generator = partial(_get_objdetect_generator, dataframe=dataframe, 
+                        colname_image=colname_image, colname_class=colname_class, colname_box=colname_box)
     
-    dataset = tf.data.Dataset.from_generator(lambda : generator, output_signature = 
+    dataset = tf.data.Dataset.from_generator(generator, output_signature = 
                                          {IMAGES: tf.TensorSpec(shape=(), dtype='string'),
                                           BOUNDING_BOXES: {
                                               'boxes': tf.TensorSpec(shape=(None, 4), dtype='float32'),
