@@ -29,10 +29,6 @@ from tensorflow import keras
 
 import keras_cv
 
-# Temporarily need PyCOCOCallback to verify
-# a 1:1 comparison with the PyMetrics version.
-from keras_cv.callbacks import PyCOCOCallback
-
 low, high = resource.getrlimit(resource.RLIMIT_NOFILE)
 resource.setrlimit(resource.RLIMIT_NOFILE, (high, high))
 
@@ -44,7 +40,7 @@ flags.DEFINE_integer(
 
 flags.DEFINE_string(
     "weights_name",
-    "weights_{epoch:02d}.h5",
+    "weights_{epoch:02d}.weights.h5",
     "Directory which will be used to store weight checkpoints.",
 )
 flags.DEFINE_string(
@@ -223,8 +219,7 @@ callbacks = [
     # a 1:1 comparison with the PyMetrics version.
     # Currently, results do not match. I have a feeling this is due
     # to how we are creating the boxes in `BoxCOCOMetrics`
-    PyCOCOCallback(eval_ds, bounding_box_format="xywh"),
-    EvaluateCOCOMetricsCallback(eval_ds),
+    PyCOCOCallback(eval_ds, bounding_box_format='xywh'),
     keras.callbacks.TensorBoard(log_dir=FLAGS.tensorboard_path),
 ]
 
