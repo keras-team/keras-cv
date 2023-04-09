@@ -17,6 +17,6 @@ from keras_cv.models.object_detection.retina_net.feature_pyramid import (
 from keras_cv.models.object_detection.retina_net.prediction_head import (
     PredictionHead,
 )
-from keras_cv.models.object_detection.retina_net.retina_net_label_encoder import (
+from keras_cv.models.object_detection.retina_net.retina_net_label_encoder import (  # noqa: E501
     RetinaNetLabelEncoder,
 )

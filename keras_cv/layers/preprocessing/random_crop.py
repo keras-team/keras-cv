@@ -17,7 +17,7 @@ import tensorflow as tf
 from tensorflow import keras
 
 from keras_cv import bounding_box
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     VectorizedBaseImageAugmentationLayer,
 )
 
@@ -29,16 +29,14 @@ W_AXIS = -2
 
 @keras.utils.register_keras_serializable(package="keras_cv")
 class RandomCrop(VectorizedBaseImageAugmentationLayer):
-    """A preprocessing layer which randomly crops images during training.
+    """A preprocessing layer which randomly crops images.
 
-    During training, this layer will randomly choose a location to crop images
-    down to a target size.
+    This layer will randomly choose a location to crop images down to a target
+    size.
 
-    During inference, and during training if an input image is smaller than the
-    target size, the input will be resized and cropped to return the largest
-    possible window in the image that matches the target aspect ratio. If you
-    want to apply random cropping during inference, you can set the training
-    parameter to True when calling the layer.
+    If an input image is smaller than the target size, the input will be
+    resized and cropped to return the largest possible window in the image that
+    matches the target aspect ratio.
 
     Input pixel values can be of any range (e.g. `[0., 1.)` or `[0, 255]`) and
     of interger or floating point dtype.

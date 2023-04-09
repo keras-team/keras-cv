@@ -26,12 +26,12 @@ class Equalization(BaseImageAugmentationLayer):
     """Equalization performs histogram equalization on a channel-wise basis.
 
     Args:
-        value_range: a tuple or a list of two elements. The first value represents
-            the lower bound for values in passed images, the second represents the
-            upper bound. Images passed to the layer should have values within
-            `value_range`.
-        bins: Integer indicating the number of bins to use in histogram equalization.
-            Should be in the range [0, 256].
+        value_range: a tuple or a list of two elements. The first value
+            represents the lower bound for values in passed images, the second
+            represents the upper bound. Images passed to the layer should have
+            values within `value_range`.
+        bins: Integer indicating the number of bins to use in histogram
+            equalization. Should be in the range [0, 256].
 
     Usage:
     ```python
@@ -43,8 +43,8 @@ class Equalization(BaseImageAugmentationLayer):
     ```
 
     Call arguments:
-        images: Tensor of pixels in range [0, 255], in RGB format.  Can be
-            of type float or int.  Should be in NHWC format.
+        images: Tensor of pixels in range [0, 255], in RGB format. Can be
+            of type float or int. Should be in NHWC format.
     """
 
     def __init__(self, value_range, bins=256, **kwargs):
@@ -64,9 +64,10 @@ class Equalization(BaseImageAugmentationLayer):
         # Compute the histogram of the image channel.
         histogram = tf.histogram_fixed_width(image, [0, 255], nbins=self.bins)
 
-        # For the purposes of computing the step, filter out the nonzeros.
-        # Zeroes are replaced by a big number while calculating min to keep shape
-        # constant across input sizes for compatibility with vectorized_map
+        # For the purposes of computing the step, filter out the non-zeros.
+        # Zeroes are replaced by a big number while calculating min to keep
+        # shape constant across input sizes for compatibility with
+        # vectorized_map
 
         big_number = 1410065408
         histogram_without_zeroes = tf.where(
@@ -85,11 +86,11 @@ class Equalization(BaseImageAugmentationLayer):
             lookup_table = (tf.cumsum(histogram) + (step // 2)) // step
             # Shift lookup_table, prepending with 0.
             lookup_table = tf.concat([[0], lookup_table[:-1]], 0)
-            # Clip the counts to be in range.  This is done
+            # Clip the counts to be in range. This is done
             # in the C code for image.point.
             return tf.clip_by_value(lookup_table, 0, 255)
 
-        # If step is zero, return the original image.  Otherwise, build
+        # If step is zero, return the original image. Otherwise, build
         # lookup table from the full histogram and step and then index from it.
         result = tf.cond(
             tf.equal(step, 0),

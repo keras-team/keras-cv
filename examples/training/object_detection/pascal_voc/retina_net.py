@@ -17,7 +17,7 @@ Author: [lukewood](https://github.com/LukeWood), [tanzhenyu](https://github.com/
 Date created: 2022/09/27
 Last modified: 2023/03/29
 Description: Use KerasCV to train a RetinaNet on Pascal VOC 2007.
-"""
+"""  # noqa: E501
 import resource
 import sys
 
@@ -57,7 +57,8 @@ FLAGS(sys.argv)
 
 # parameters from RetinaNet [paper](https://arxiv.org/abs/1708.02002)
 
-# Try to detect an available TPU. If none is present, default to MirroredStrategy
+# Try to detect an available TPU. If none is present, defaults to
+# MirroredStrategy
 try:
     tpu = tf.distribute.cluster_resolver.TPUClusterResolver.connect()
     strategy = tf.distribute.TPUStrategy(tpu)
@@ -156,10 +157,11 @@ eval_ds = eval_ds.prefetch(tf.data.AUTOTUNE)
 """
 ## Model creation
 
-We'll use the KerasCV API to construct a RetinaNet model.  In this tutorial we use
-a pretrained ResNet50 backbone using weights.  In order to perform fine-tuning, we
-freeze the backbone before training.  When `include_rescaling=True` is set, inputs to
-the model are expected to be in the range `[0, 255]`.
+We'll use the KerasCV API to construct a RetinaNet model. In this tutorial we
+use a pretrained ResNet50 backbone using weights. In order to perform
+fine-tuning, we freeze the backbone before training. When
+`include_rescaling=True` is set, inputs to the model are expected to be in the
+range `[0, 255]`.
 """
 
 with strategy.scope():
@@ -223,8 +225,8 @@ callbacks = [
     keras.callbacks.ModelCheckpoint(FLAGS.weights_name, save_weights_only=True),
     # Temporarily need PyCOCOCallback to verify
     # a 1:1 comparison with the PyMetrics version.
-    # Currently, results do not match.  I have a feeling this is due
-    # to how we are creating the boxes in  `BoxCOCOMetrics`
+    # Currently, results do not match. I have a feeling this is due
+    # to how we are creating the boxes in `BoxCOCOMetrics`
     PyCOCOCallback(eval_ds, bounding_box_format="xywh"),
     EvaluateCOCOMetricsCallback(eval_ds),
     keras.callbacks.TensorBoard(log_dir=FLAGS.tensorboard_path),

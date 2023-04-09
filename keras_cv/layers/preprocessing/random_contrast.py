@@ -15,7 +15,7 @@
 import tensorflow as tf
 from tensorflow import keras
 
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     VectorizedBaseImageAugmentationLayer,
 )
 from keras_cv.utils import preprocessing as preprocessing_utils
@@ -23,11 +23,11 @@ from keras_cv.utils import preprocessing as preprocessing_utils
 
 @keras.utils.register_keras_serializable(package="keras_cv")
 class RandomContrast(VectorizedBaseImageAugmentationLayer):
-    """RandomContrast randomly adjusts contrast during training.
+    """RandomContrast randomly adjusts contrast.
 
     This layer will randomly adjust the contrast of an image or images by a
     random factor. Contrast is adjusted independently for each channel of each
-    image during training.
+    image.
 
     For each channel, this layer computes the mean of the image pixels in the
     channel and then adjusts each component `x` of each pixel to

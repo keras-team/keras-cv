@@ -52,31 +52,34 @@ class GridMask(BaseImageAugmentationLayer):
             Ratio determines the ratio from spacings to grid masks.
             Lower values make the grid
             size smaller, and higher values make the grid mask large.
-            Floats should be in the range [0, 1].  0.5 indicates that grid and
+            Floats should be in the range [0, 1]. 0.5 indicates that grid and
             spacing will be of equal size. To always use the same value, pass a
             `keras_cv.ConstantFactorSampler()`.
 
             Defaults to `(0, 0.5)`.
         rotation_factor:
-            The rotation_factor will be used to randomly rotate the grid_mask during
-            training. Default to 0.1, which results in an output rotating by a
-            random amount in the range [-10% * 2pi, 10% * 2pi].
+            The rotation_factor will be used to randomly rotate the grid_mask
+            during training. Default to 0.1, which results in an output rotating
+            by a random amount in the range [-10% * 2pi, 10% * 2pi].
 
             A float represented as fraction of 2 Pi, or a tuple of size 2
             representing lower and upper bound for rotating clockwise and
-            counter-clockwise. A positive values means rotating counter clock-wise,
-            while a negative value means clock-wise. When represented as a single
-            float, this value is used for both the upper and lower bound. For
-            instance, factor=(-0.2, 0.3) results in an output rotation by a random
-            amount in the range [-20% * 2pi, 30% * 2pi]. factor=0.2 results in an
-            output rotating by a random amount in the range [-20% * 2pi, 20% * 2pi].
+            counter-clockwise. A positive values means rotating counter
+            clock-wise, while a negative value means clock-wise. When
+            represented as a single float, this value is used for both the upper
+            and lower bound. For instance, factor=(-0.2, 0.3) results in an
+            output rotation by a random amount in the range [-20% * 2pi,
+            30% * 2pi]. factor=0.2 results in an output rotating by a random
+            amount in the range [-20% * 2pi, 20% * 2pi].
 
         fill_mode: Pixels inside the gridblock are filled according to the given
-            mode (one of `{"constant", "gaussian_noise"}`). Default: "constant".
+            mode (one of `{"constant", "gaussian_noise"}`), defaults to
+            "constant".
             - *constant*: Pixels are filled with the same constant value.
             - *gaussian_noise*: Pixels are filled with random gaussian noise.
-        fill_value: an integer represents of value to be filled inside the gridblock
-            when `fill_mode="constant"`. Valid integer range [0 to 255]
+        fill_value: an integer represents of value to be filled inside the
+            gridblock when `fill_mode="constant"`. Valid integer range
+            [0 to 255]
         seed: Integer. Used to create a random seed.
 
     Usage:
@@ -107,7 +110,7 @@ class GridMask(BaseImageAugmentationLayer):
         if isinstance(rotation_factor, core.FactorSampler):
             raise ValueError(
                 "Currently `GridMask.rotation_factor` does not support the "
-                "`FactorSampler` API.  This will be supported in the next Keras "
+                "`FactorSampler` API. This will be supported in the next Keras "
                 "release. For now, please pass a float for the "
                 "`rotation_factor` argument."
             )
@@ -136,7 +139,7 @@ class GridMask(BaseImageAugmentationLayer):
         if fill_mode not in ["constant", "gaussian_noise", "random"]:
             raise ValueError(
                 '`fill_mode` should be "constant", '
-                f'"gaussian_noise", or "random".  Got `fill_mode`={fill_mode}'
+                f'"gaussian_noise", or "random". Got `fill_mode`={fill_mode}'
             )
 
     def get_random_transformation(

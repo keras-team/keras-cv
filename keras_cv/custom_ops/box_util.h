@@ -80,7 +80,7 @@ class RotatedBox2D {
 
   // Returns true if this box and 'other' might intersect.
   //
-  // If this returns false, the two boxes definitely do not intersect.  If this
+  // If this returns false, the two boxes definitely do not intersect. If this
   // returns true, it is still possible that the two boxes do not intersect, and
   // the more expensive intersection code will be called.
   bool MaybeIntersects(const RotatedBox2D& other) const;
@@ -101,13 +101,13 @@ class RotatedBox2D {
   // dimension.
   bool extreme_box_dim_ = false;
 
-  // The following fields are computed on demand.  They are logically
+  // The following fields are computed on demand. They are logically
   // const.
 
-  // Cached area.  Access via Area() public API.
+  // Cached area. Access via Area() public API.
   mutable double area_ = -1;
 
-  // Stores the vertices of the box.  Access via box_vertices().
+  // Stores the vertices of the box. Access via box_vertices().
   mutable std::vector<Vertex> box_vertices_;
 };
 

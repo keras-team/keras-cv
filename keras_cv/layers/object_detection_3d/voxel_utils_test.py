@@ -18,7 +18,9 @@ from keras_cv.layers.object_detection_3d import voxel_utils
 
 
 class PadOrTrimToTest(tf.test.TestCase):
-    """Tests for pad_or_trim_to, branched from https://github.com/tensorflow/lingvo/blob/master/lingvo/core/py_utils_test.py."""
+    """Tests for pad_or_trim_to, branched from
+    https://github.com/tensorflow/lingvo/blob/master/lingvo/core/py_utils_test.py.
+    """
 
     def test_2D_constant_shape_pad(self):
         x = tf.random.normal(shape=(3, 3), seed=123456)

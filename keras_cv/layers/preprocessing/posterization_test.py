@@ -88,8 +88,8 @@ class PosterizationTest(tf.test.TestCase):
         """Posterization in numpy, based on Albumentations:
 
         The algorithm is basically:
-        1. create a lookup table of all possible input pixel values to pixel values
-            after posterize
+        1. create a lookup table of all possible input pixel values to pixel
+            values after posterize
         2. map each pixel in the input to created lookup table.
 
         Source:

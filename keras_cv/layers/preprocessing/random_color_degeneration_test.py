@@ -58,7 +58,8 @@ class RandomColorDegenerationTest(tf.test.TestCase):
         # The formula for luma is result= 0.2989*r + 0.5870*g + 0.1140*b
         luma_result = 0.2989 + 2 * 0.5870 + 3 * 0.1140
 
-        # with factor=0.7, luma_result should be blended at a 70% rate with the original
+        # with factor=0.7, luma_result should be blended at a 70% rate with the
+        # original
         r_result = luma_result * 0.7 + 1 * 0.3
         g_result = luma_result * 0.7 + 2 * 0.3
         b_result = luma_result * 0.7 + 3 * 0.3
