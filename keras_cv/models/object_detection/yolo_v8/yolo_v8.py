@@ -38,8 +38,6 @@ from keras_cv.models.task import Task
 from keras_cv.utils.python_utils import classproperty
 from keras_cv.utils.train import get_feature_extractor
 
-BOX_VARIANCE = [0.1, 0.1, 0.2, 0.2]
-
 
 def path_aggregation_fpn(features, depth=3, name=None):
     # yolov8
