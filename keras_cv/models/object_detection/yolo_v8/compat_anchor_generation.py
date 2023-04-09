@@ -68,7 +68,6 @@ def get_anchors(
         ],
         axis=1,
     )
-    # base_anchors = tf.gather(base_anchors, [3, 6, 0, 4, 7, 1, 5, 8, 2])  # re-order according to official generated anchors
 
     # make grid
     pyramid_levels = list(range(min(pyramid_levels), max(pyramid_levels) + 1))

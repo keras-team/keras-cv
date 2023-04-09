@@ -69,7 +69,8 @@ def path_aggregation_fpn(features, depth=3, name=None):
         upsamples.append(nn)
 
     downsamples = [upsamples[-1]]
-    # downsamples: [p3p4p5], upsamples[:-1][::-1]: [p4p5, p5] -> [p3p4p5, p3p4p5 + p4p5, p3p4p5 + p4p5 + p5]
+    # downsamples: [p3p4p5], upsamples[:-1][::-1]:
+    # [p4p5, p5] -> [p3p4p5, p3p4p5 + p4p5, p3p4p5 + p4p5 + p5]
     for id, ii in enumerate(upsamples[:-1][::-1]):
         cur_name = f"{name}_c3n{id + 3}"
         nn = conv_bn(
@@ -280,12 +281,14 @@ class YOLOV8(Task):
 
     @classproperty
     def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include weights."""
+        """Dictionary of preset names and configurations that include
+        weights."""
         return copy.deepcopy(
             {**backbone_presets_with_weights, **yolo_v8_presets}
         )
 
     @classproperty
     def backbone_presets(cls):
-        """Dictionary of preset names and configurations of compatible backbones."""
+        """Dictionary of preset names and configurations of compatible
+        backbones."""
         return copy.deepcopy(backbone_presets)

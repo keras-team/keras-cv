@@ -146,5 +146,6 @@ class YOLOV8Backbone(Backbone):
 
     @classproperty
     def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include weights."""
+        """Dictionary of preset names and configurations that include
+        weights."""
         return copy.deepcopy(backbone_presets_with_weights)

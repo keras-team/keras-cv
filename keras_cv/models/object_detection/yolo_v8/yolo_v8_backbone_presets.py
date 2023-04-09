@@ -83,8 +83,8 @@ backbone_presets_with_weights = {
         },
         "class_name": "keras_cv.models>YOLOV8Backbone",
         "config": backbone_presets_no_weights["yolov8_n_backbone"]["config"],
-        "weights_url": "https://storage.googleapis.com/keras-cv/models/yolov8/coco/yolov8_n_backbone.h5",
-        "weights_hash": "636ba3cba064c7c457e30a0e4759716006c305c30876df1c1caf2e56b99eab6c",
+        "weights_url": "https://storage.googleapis.com/keras-cv/models/yolov8/coco/yolov8_n_backbone.h5",  # noqa: E501
+        "weights_hash": "636ba3cba064c7c457e30a0e4759716006c305c30876df1c1caf2e56b99eab6c",  # noqa: E501
     },
     "yolov8_s_backbone_coco": {
         "metadata": {
@@ -92,8 +92,8 @@ backbone_presets_with_weights = {
         },
         "class_name": "keras_cv.models>YOLOV8Backbone",
         "config": backbone_presets_no_weights["yolov8_n_backbone"]["config"],
-        "weights_url": "https://storage.googleapis.com/keras-cv/models/yolov8/coco/yolov8_s_backbone.h5",
-        "weights_hash": "49ab5da87d6b36a1943e7f111a1960355171332c25312b6cc01526baaecf1b69",
+        "weights_url": "https://storage.googleapis.com/keras-cv/models/yolov8/coco/yolov8_s_backbone.h5",  # noqa: E501
+        "weights_hash": "49ab5da87d6b36a1943e7f111a1960355171332c25312b6cc01526baaecf1b69",  # noqa: E501
     },
     "yolov8_m_backbone_coco": {
         "metadata": {
@@ -101,8 +101,8 @@ backbone_presets_with_weights = {
         },
         "class_name": "keras_cv.models>YOLOV8Backbone",
         "config": backbone_presets_no_weights["yolov8_m_backbone"]["config"],
-        "weights_url": "https://storage.googleapis.com/keras-cv/models/yolov8/coco/yolov8_m_backbone.h5",
-        "weights_hash": "a9719807699a2540da14aa7f9a0dda272d400d30c40a956298a63a2805aa6436",
+        "weights_url": "https://storage.googleapis.com/keras-cv/models/yolov8/coco/yolov8_m_backbone.h5",  # noqa: E501
+        "weights_hash": "a9719807699a2540da14aa7f9a0dda272d400d30c40a956298a63a2805aa6436",  # noqa: E501
     },
     "yolov8_l_backbone_coco": {
         "metadata": {
@@ -110,8 +110,8 @@ backbone_presets_with_weights = {
         },
         "class_name": "keras_cv.models>YOLOV8Backbone",
         "config": backbone_presets_no_weights["yolov8_l_backbone"]["config"],
-        "weights_url": "https://storage.googleapis.com/keras-cv/models/yolov8/coco/yolov8_l_backbone.h5",
-        "weights_hash": "2c94ffe75492491974c6d7347d5c1d1aa209d8f6d78c63ab62df0f5dd51680b9",
+        "weights_url": "https://storage.googleapis.com/keras-cv/models/yolov8/coco/yolov8_l_backbone.h5",  # noqa: E501
+        "weights_hash": "2c94ffe75492491974c6d7347d5c1d1aa209d8f6d78c63ab62df0f5dd51680b9",  # noqa: E501
     },
     "yolov8_x_backbone_coco": {
         "metadata": {
@@ -119,8 +119,8 @@ backbone_presets_with_weights = {
         },
         "class_name": "keras_cv.models>YOLOV8Backbone",
         "config": backbone_presets_no_weights["yolov8_x_backbone"]["config"],
-        "weights_url": "https://storage.googleapis.com/keras-cv/models/yolov8/coco/yolov8_x_backbone.h5",
-        "weights_hash": "ce0cc3235eacaffc4a9824e28b2366e674b6d42befc4c7b77f3be7d1d39960bd",
+        "weights_url": "https://storage.googleapis.com/keras-cv/models/yolov8/coco/yolov8_x_backbone.h5",  # noqa: E501
+        "weights_hash": "ce0cc3235eacaffc4a9824e28b2366e674b6d42befc4c7b77f3be7d1d39960bd",  # noqa: E501
     },
 }
 
