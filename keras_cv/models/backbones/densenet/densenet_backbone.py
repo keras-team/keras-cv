@@ -18,6 +18,7 @@ Reference:
   - [Densely Connected Convolutional Networks](https://arxiv.org/abs/1608.06993)
   - [Based on the Original keras.applications DenseNet](https://github.com/keras-team/keras/blob/master/keras/applications/densenet.py)
 """  # noqa: E501
+import copy
 
 from tensorflow import keras
 from tensorflow.keras import backend
@@ -25,6 +26,14 @@ from tensorflow.keras import layers
 
 from keras_cv.models import utils
 from keras_cv.models.backbones.backbone import Backbone
+
+from keras_cv.models.backbones.densenet.densenet_backbone_presets import (
+    backbone_presets,
+)
+from keras_cv.models.backbones.densenet.densenet_backbone_presets import (
+    backbone_presets_with_weights,
+)
+from keras_cv.utils.python_utils import classproperty
 
 MODEL_CONFIGS = {
     "DenseNet121": {
@@ -284,72 +293,103 @@ class DenseNetBackbone(Backbone):
         })
         return config
     
-    @classmethod
-    def from_config(cls, config):
-        return cls(**config)
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return copy.deepcopy(backbone_presets)
+    
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include
+        weights."""
+        return copy.deepcopy(backbone_presets_with_weights)
 
 
-def DenseNet121Backbone(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    name="DenseNet121",
-    **kwargs,
-):
-    return DenseNetBackbone(
-        blocks=MODEL_CONFIGS["DenseNet121"]["blocks"],
-        include_rescaling=include_rescaling,
-        input_shape=input_shape,
-        input_tensor=input_tensor,
+def DenseNet121Backbone(DenseNetBackbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return DenseNetBackbone.from_preset("densenet121", **kwargs)
+    
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
+    
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include weights."""
+        return {}
 
 
-def DenseNet169Backbone(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    name="DenseNet169",
-    **kwargs,
-):
-    return DenseNetBackbone(
-        blocks=MODEL_CONFIGS["DenseNet169"]["blocks"],
-        include_rescaling=include_rescaling,
-        input_shape=input_shape,
-        input_tensor=input_tensor,
+def DenseNet169Backbone(DenseNetBackbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return DenseNetBackbone.from_preset("densenet169", **kwargs)
+    
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
+    
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include weights."""
+        return {}
 
 
-def DenseNet201Backbone(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    name="DenseNet201",
-    **kwargs,
-):
-    return DenseNetBackbone(
-        blocks=MODEL_CONFIGS["DenseNet201"]["blocks"],
-        include_rescaling=include_rescaling,
-        input_shape=input_shape,
-        input_tensor=input_tensor,
+def DenseNet201Backbone(DenseNetBackbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return DenseNetBackbone.from_preset("densenet201", **kwargs)
+    
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
+    
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include weights."""
+        return {}
 
 
 setattr(DenseNet121Backbone, "__doc__", BASE_DOCSTRING.format(name="DenseNet121"))

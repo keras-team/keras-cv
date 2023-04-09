@@ -13,17 +13,6 @@
 # limitations under the License.
 """Densenet model preset configurations."""
 
-MODEL_CONFIGS = {
-    "DenseNet121": {
-        "blocks": [6, 12, 24, 16],
-    },
-    "DenseNet169": {
-        "blocks": [6, 12, 32, 32],
-    },
-    "DenseNet201": {
-        "blocks": [6, 12, 48, 32],
-    },
-}
 backbone_presets_no_weights = {
     "DenseNet121": {
         "metadata": {
