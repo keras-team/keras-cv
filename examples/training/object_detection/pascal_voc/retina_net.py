@@ -26,6 +26,7 @@ import tensorflow_datasets as tfds
 import tqdm
 from absl import flags
 from tensorflow import keras
+from keras_cv.callbacks import PyCOCOCallback
 
 import keras_cv
 
@@ -123,6 +124,24 @@ augmenter = keras.Sequential(
         ),
     ]
 )
+
+
+rand_augment = keras_cv.layers.RandAugment(
+    value_range=(0, 255),
+    augmentations_per_image=2,
+    magnitude=0.2,
+    rate=0.5,
+    magnitude_stddev=0.1,
+    geometric=False,
+)
+
+
+def apply_rand_augment(inputs):
+    inputs["images"] = rand_augment(inputs["images"])
+    return inputs
+
+
+train_ds = train_ds.map(apply_rand_augment)
 train_ds = train_ds.apply(
     tf.data.experimental.dense_to_ragged_batch(BATCH_SIZE)
 )
@@ -219,7 +238,7 @@ callbacks = [
     # a 1:1 comparison with the PyMetrics version.
     # Currently, results do not match. I have a feeling this is due
     # to how we are creating the boxes in `BoxCOCOMetrics`
-    PyCOCOCallback(eval_ds, bounding_box_format='xywh'),
+    PyCOCOCallback(eval_ds, bounding_box_format="xywh"),
     keras.callbacks.TensorBoard(log_dir=FLAGS.tensorboard_path),
 ]
 
