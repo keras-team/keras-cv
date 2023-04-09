@@ -66,7 +66,7 @@ def spatial_pyramid_pooling_fast(
     return out
 
 
-# This should probably just be a CSPDarknet. That's an outstanding TODO
+# TODO(ianstenbit) This should probably just be a CSPDarknet
 @keras.utils.register_keras_serializable(package="keras_cv.models")
 class YOLOV8Backbone(Backbone):
     def __init__(
