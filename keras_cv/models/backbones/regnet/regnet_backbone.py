@@ -18,6 +18,8 @@ References:
     - [Based on the Original keras.applications RegNet](https://github.com/keras-team/keras/blob/master/keras/applications/regnet.py)
 """
 
+import copy
+
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import backend
@@ -25,184 +27,17 @@ from tensorflow.keras import layers
 
 from keras_cv.layers import SqueezeAndExcite2D
 from keras_cv.models import utils
+from keras_cv.models.backbones.backbone import Backbone
+from keras_cv.models.backbones.regnet.regnetx_backbone_presets import (
+    backbone_presets_x,
+)
+from keras_cv.models.backbones.regnet.regnety_backbone_presets import (
+    backbone_presets_y,
+)
 from keras_cv.models.weights import parse_weights
-
-# The widths and depths are deduced from a quantized linear function. For
-# more information, please refer to "Designing Network Design Spaces" by
-# Radosavovic et al.
+from keras_cv.utils.python_utils import classproperty
 
 # BatchNorm momentum and epsilon values taken from original implementation.
-
-MODEL_CONFIGS = {
-    "x002": {
-        "depths": [1, 1, 4, 7],
-        "widths": [24, 56, 152, 368],
-        "group_width": 8,
-        "default_size": 224,
-        "block_type": "X",
-    },
-    "x004": {
-        "depths": [1, 2, 7, 12],
-        "widths": [32, 64, 160, 384],
-        "group_width": 16,
-        "default_size": 224,
-        "block_type": "X",
-    },
-    "x006": {
-        "depths": [1, 3, 5, 7],
-        "widths": [48, 96, 240, 528],
-        "group_width": 24,
-        "default_size": 224,
-        "block_type": "X",
-    },
-    "x008": {
-        "depths": [1, 3, 7, 5],
-        "widths": [64, 128, 288, 672],
-        "group_width": 16,
-        "default_size": 224,
-        "block_type": "X",
-    },
-    "x016": {
-        "depths": [2, 4, 10, 2],
-        "widths": [72, 168, 408, 912],
-        "group_width": 24,
-        "default_size": 224,
-        "block_type": "X",
-    },
-    "x032": {
-        "depths": [2, 6, 15, 2],
-        "widths": [96, 192, 432, 1008],
-        "group_width": 48,
-        "default_size": 224,
-        "block_type": "X",
-    },
-    "x040": {
-        "depths": [2, 5, 14, 2],
-        "widths": [80, 240, 560, 1360],
-        "group_width": 40,
-        "default_size": 224,
-        "block_type": "X",
-    },
-    "x064": {
-        "depths": [2, 4, 10, 1],
-        "widths": [168, 392, 784, 1624],
-        "group_width": 56,
-        "default_size": 224,
-        "block_type": "X",
-    },
-    "x080": {
-        "depths": [2, 5, 15, 1],
-        "widths": [80, 240, 720, 1920],
-        "group_width": 120,
-        "default_size": 224,
-        "block_type": "X",
-    },
-    "x120": {
-        "depths": [2, 5, 11, 1],
-        "widths": [224, 448, 896, 2240],
-        "group_width": 112,
-        "default_size": 224,
-        "block_type": "X",
-    },
-    "x160": {
-        "depths": [2, 6, 13, 1],
-        "widths": [256, 512, 896, 2048],
-        "group_width": 128,
-        "default_size": 224,
-        "block_type": "X",
-    },
-    "x320": {
-        "depths": [2, 7, 13, 1],
-        "widths": [336, 672, 1344, 2520],
-        "group_width": 168,
-        "default_size": 224,
-        "block_type": "X",
-    },
-    "y002": {
-        "depths": [1, 1, 4, 7],
-        "widths": [24, 56, 152, 368],
-        "group_width": 8,
-        "default_size": 224,
-        "block_type": "Y",
-    },
-    "y004": {
-        "depths": [1, 3, 6, 6],
-        "widths": [48, 104, 208, 440],
-        "group_width": 8,
-        "default_size": 224,
-        "block_type": "Y",
-    },
-    "y006": {
-        "depths": [1, 3, 7, 4],
-        "widths": [48, 112, 256, 608],
-        "group_width": 16,
-        "default_size": 224,
-        "block_type": "Y",
-    },
-    "y008": {
-        "depths": [1, 3, 8, 2],
-        "widths": [64, 128, 320, 768],
-        "group_width": 16,
-        "default_size": 224,
-        "block_type": "Y",
-    },
-    "y016": {
-        "depths": [2, 6, 17, 2],
-        "widths": [48, 120, 336, 888],
-        "group_width": 24,
-        "default_size": 224,
-        "block_type": "Y",
-    },
-    "y032": {
-        "depths": [2, 5, 13, 1],
-        "widths": [72, 216, 576, 1512],
-        "group_width": 24,
-        "default_size": 224,
-        "block_type": "Y",
-    },
-    "y040": {
-        "depths": [2, 6, 12, 2],
-        "widths": [128, 192, 512, 1088],
-        "group_width": 64,
-        "default_size": 224,
-        "block_type": "Y",
-    },
-    "y064": {
-        "depths": [2, 7, 14, 2],
-        "widths": [144, 288, 576, 1296],
-        "group_width": 72,
-        "default_size": 224,
-        "block_type": "Y",
-    },
-    "y080": {
-        "depths": [2, 4, 10, 1],
-        "widths": [168, 448, 896, 2016],
-        "group_width": 56,
-        "default_size": 224,
-        "block_type": "Y",
-    },
-    "y120": {
-        "depths": [2, 5, 11, 1],
-        "widths": [224, 448, 896, 2240],
-        "group_width": 112,
-        "default_size": 224,
-        "block_type": "Y",
-    },
-    "y160": {
-        "depths": [2, 4, 11, 1],
-        "widths": [224, 448, 1232, 3024],
-        "group_width": 112,
-        "default_size": 224,
-        "block_type": "Y",
-    },
-    "y320": {
-        "depths": [2, 5, 12, 1],
-        "widths": [232, 696, 1392, 3712],
-        "group_width": 232,
-        "default_size": 224,
-        "block_type": "Y",
-    },
-}
 
 BASE_DOCSTRING = """This class represents the {name} architecture.
 
@@ -666,7 +501,7 @@ def apply_head(x, num_classes=None, name=None, activation=None):
 
 
 @keras.utils.register_keras_serializable(package="keras_cv.models")
-class RegNet(keras.Model):
+class RegNetBackBone(Backbone):
     """
     This class represents the architecture of RegNet
     Args:
@@ -712,6 +547,7 @@ class RegNet(keras.Model):
 
     def __init__(
         self,
+        *,
         depths,
         widths,
         group_width,
@@ -801,794 +637,875 @@ class RegNet(keras.Model):
         self.classifier_activation = classifier_activation
 
     def get_config(self):
-        return {
-            "depths": self.depths,
-            "widths": self.widths,
-            "group_width": self.group_width,
-            "block_type": self.block_type,
-            "include_rescaling": self.include_rescaling,
-            "include_top": self.include_top,
-            "num_classes": self.num_classes,
-            "model_name": self.model_name,
-            "input_tensor": self.input_tensor,
-            "input_shape": self.input_shape[1:],
-            "pooling": self.pooling,
-            "classifier_activation": self.classifier_activation,
-            "trainable": self.trainable,
-        }
+        config = super().get_config()
+        config.update(
+            {
+                "depths": self.depths,
+                "widths": self.widths,
+                "group_width": self.group_width,
+                "block_type": self.block_type,
+                "include_rescaling": self.include_rescaling,
+                "include_top": self.include_top,
+                "num_classes": self.num_classes,
+                "model_name": self.model_name,
+                "input_tensor": self.input_tensor,
+                "input_shape": self.input_shape[1:],
+                "pooling": self.pooling,
+                "classifier_activation": self.classifier_activation,
+                "trainable": self.trainable,
+            }
+        )
 
-    @classmethod
-    def from_config(cls, config):
-        return cls(**config)
+    @classproperty
+    def presetsx(cls):
+        """Dictionary of preset names and configurations."""
+        return copy.deepcopy(backbone_presets_x)
+
+    @classproperty
+    def presetsy(cls):
+        """Dictionary of preset names and configurations."""
+        return copy.deepcopy(backbone_presets_y)
 
 
 # Instantiating variants
-def RegNetX002(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_tensor=None,
-    input_shape=(None, None, 3),
-    pooling=None,
-    model_name="regnetx002",
-    classifier_activation="softmax",
-    **kwargs,
-):
-    return RegNet(
-        MODEL_CONFIGS["x002"]["depths"],
-        MODEL_CONFIGS["x002"]["widths"],
-        MODEL_CONFIGS["x002"]["group_width"],
-        MODEL_CONFIGS["x002"]["block_type"],
-        model_name=model_name,
-        include_top=include_top,
-        include_rescaling=include_rescaling,
-        weights=parse_weights(weights, include_top, "regnetx002"),
-        input_tensor=input_tensor,
-        input_shape=input_shape,
-        pooling=pooling,
-        num_classes=num_classes,
-        classifier_activation=classifier_activation,
+class RegNetX002Backbone(RegNetBackBone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        include_top=False,
+        num_classes=None,
+        weights=None,
+        input_tensor=None,
+        input_shape=(None, None, 3),
+        pooling=None,
+        classifier_activation="softmax",
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "include_top": include_top,
+                "num_classes": num_classes,
+                "weights": parse_weights(weights, include_top, "regnetx002"),
+                "input_tensor": input_tensor,
+                "input_shape": input_shape,
+                "pooling": pooling,
+                "classifier_activation": classifier_activation,
+            }
+        )
+        return RegNetBackBone.from_preset("regnetx002", **kwargs)
+
+    @classproperty
+    def presetsx(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
 
 
-def RegNetX004(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_tensor=None,
-    input_shape=(None, None, 3),
-    pooling=None,
-    model_name="regnetx004",
-    classifier_activation="softmax",
-    **kwargs,
-):
-    return RegNet(
-        MODEL_CONFIGS["x004"]["depths"],
-        MODEL_CONFIGS["x004"]["widths"],
-        MODEL_CONFIGS["x004"]["group_width"],
-        MODEL_CONFIGS["x004"]["block_type"],
-        model_name=model_name,
-        include_top=include_top,
-        include_rescaling=include_rescaling,
-        weights=parse_weights(weights, include_top, "regnetx004"),
-        input_tensor=input_tensor,
-        input_shape=input_shape,
-        pooling=pooling,
-        num_classes=num_classes,
-        classifier_activation=classifier_activation,
+class RegNetX004Backbone(RegNetBackBone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        include_top=False,
+        num_classes=None,
+        weights=None,
+        input_tensor=None,
+        input_shape=(None, None, 3),
+        pooling=None,
+        classifier_activation="softmax",
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "include_top": include_top,
+                "num_classes": num_classes,
+                "weights": parse_weights(weights, include_top, "regnetx004"),
+                "input_tensor": input_tensor,
+                "input_shape": input_shape,
+                "pooling": pooling,
+                "classifier_activation": classifier_activation,
+            }
+        )
+        return RegNetBackBone.from_preset("regnetx004", **kwargs)
+
+    @classproperty
+    def presetsx(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
 
 
-def RegNetX006(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_tensor=None,
-    input_shape=(None, None, 3),
-    pooling=None,
-    model_name="regnetx006",
-    classifier_activation="softmax",
-    **kwargs,
-):
-    return RegNet(
-        MODEL_CONFIGS["x006"]["depths"],
-        MODEL_CONFIGS["x006"]["widths"],
-        MODEL_CONFIGS["x006"]["group_width"],
-        MODEL_CONFIGS["x006"]["block_type"],
-        model_name=model_name,
-        include_top=include_top,
-        include_rescaling=include_rescaling,
-        weights=parse_weights(weights, include_top, "regnetx006"),
-        input_tensor=input_tensor,
-        input_shape=input_shape,
-        pooling=pooling,
-        num_classes=num_classes,
-        classifier_activation=classifier_activation,
+class RegNetX006Backbone(RegNetBackBone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        include_top=False,
+        num_classes=None,
+        weights=None,
+        input_tensor=None,
+        input_shape=(None, None, 3),
+        pooling=None,
+        classifier_activation="softmax",
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "include_top": include_top,
+                "num_classes": num_classes,
+                "weights": parse_weights(weights, include_top, "regnetx006"),
+                "input_tensor": input_tensor,
+                "input_shape": input_shape,
+                "pooling": pooling,
+                "classifier_activation": classifier_activation,
+            }
+        )
+        return RegNetBackBone.from_preset("regnetx006", **kwargs)
+
+    @classproperty
+    def presetsx(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
 
 
-def RegNetX008(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_tensor=None,
-    input_shape=(None, None, 3),
-    pooling=None,
-    model_name="regnetx008",
-    classifier_activation="softmax",
-    **kwargs,
-):
-    return RegNet(
-        MODEL_CONFIGS["x008"]["depths"],
-        MODEL_CONFIGS["x008"]["widths"],
-        MODEL_CONFIGS["x008"]["group_width"],
-        MODEL_CONFIGS["x008"]["block_type"],
-        model_name=model_name,
-        include_top=include_top,
-        include_rescaling=include_rescaling,
-        weights=parse_weights(weights, include_top, "regnetx008"),
-        input_tensor=input_tensor,
-        input_shape=input_shape,
-        pooling=pooling,
-        num_classes=num_classes,
-        classifier_activation=classifier_activation,
+class RegNetX008Backbone(RegNetBackBone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        include_top=False,
+        num_classes=None,
+        weights=None,
+        input_tensor=None,
+        input_shape=(None, None, 3),
+        pooling=None,
+        classifier_activation="softmax",
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "include_top": include_top,
+                "num_classes": num_classes,
+                "weights": parse_weights(weights, include_top, "regnetx008"),
+                "input_tensor": input_tensor,
+                "input_shape": input_shape,
+                "pooling": pooling,
+                "classifier_activation": classifier_activation,
+            }
+        )
+        return RegNetBackBone.from_preset("regnetx008", **kwargs)
+
+    @classproperty
+    def presetsx(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
 
 
-def RegNetX016(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_tensor=None,
-    input_shape=(None, None, 3),
-    pooling=None,
-    model_name="regnetx016",
-    classifier_activation="softmax",
-    **kwargs,
-):
-    return RegNet(
-        MODEL_CONFIGS["x016"]["depths"],
-        MODEL_CONFIGS["x016"]["widths"],
-        MODEL_CONFIGS["x016"]["group_width"],
-        MODEL_CONFIGS["x016"]["block_type"],
-        model_name=model_name,
-        include_top=include_top,
-        include_rescaling=include_rescaling,
-        weights=parse_weights(weights, include_top, "regnetx016"),
-        input_tensor=input_tensor,
-        input_shape=input_shape,
-        pooling=pooling,
-        num_classes=num_classes,
-        classifier_activation=classifier_activation,
+class RegNetX016Backbone(RegNetBackBone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        include_top=False,
+        num_classes=None,
+        weights=None,
+        input_tensor=None,
+        input_shape=(None, None, 3),
+        pooling=None,
+        classifier_activation="softmax",
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "include_top": include_top,
+                "num_classes": num_classes,
+                "weights": parse_weights(weights, include_top, "regnetx016"),
+                "input_tensor": input_tensor,
+                "input_shape": input_shape,
+                "pooling": pooling,
+                "classifier_activation": classifier_activation,
+            }
+        )
+        return RegNetBackBone.from_preset("regnetx016", **kwargs)
+
+    @classproperty
+    def presetsx(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
 
 
-def RegNetX032(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_tensor=None,
-    input_shape=(None, None, 3),
-    pooling=None,
-    model_name="regnetx032",
-    classifier_activation="softmax",
-    **kwargs,
-):
-    return RegNet(
-        MODEL_CONFIGS["x032"]["depths"],
-        MODEL_CONFIGS["x032"]["widths"],
-        MODEL_CONFIGS["x032"]["group_width"],
-        MODEL_CONFIGS["x032"]["block_type"],
-        model_name=model_name,
-        include_top=include_top,
-        include_rescaling=include_rescaling,
-        weights=parse_weights(weights, include_top, "regnetx032"),
-        input_tensor=input_tensor,
-        input_shape=input_shape,
-        pooling=pooling,
-        num_classes=num_classes,
-        classifier_activation=classifier_activation,
+class RegNetX032Backbone(RegNetBackBone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        include_top=False,
+        num_classes=None,
+        weights=None,
+        input_tensor=None,
+        input_shape=(None, None, 3),
+        pooling=None,
+        classifier_activation="softmax",
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "include_top": include_top,
+                "num_classes": num_classes,
+                "weights": parse_weights(weights, include_top, "regnetx032"),
+                "input_tensor": input_tensor,
+                "input_shape": input_shape,
+                "pooling": pooling,
+                "classifier_activation": classifier_activation,
+            }
+        )
+        return RegNetBackBone.from_preset("regnetx032", **kwargs)
+
+    @classproperty
+    def presetsx(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
 
 
-def RegNetX040(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_tensor=None,
-    input_shape=(None, None, 3),
-    pooling=None,
-    model_name="regnetx040",
-    classifier_activation="softmax",
-    **kwargs,
-):
-    return RegNet(
-        MODEL_CONFIGS["x040"]["depths"],
-        MODEL_CONFIGS["x040"]["widths"],
-        MODEL_CONFIGS["x040"]["group_width"],
-        MODEL_CONFIGS["x040"]["block_type"],
-        model_name=model_name,
-        include_top=include_top,
-        include_rescaling=include_rescaling,
-        weights=parse_weights(weights, include_top, "regnetx040"),
-        input_tensor=input_tensor,
-        input_shape=input_shape,
-        pooling=pooling,
-        num_classes=num_classes,
-        classifier_activation=classifier_activation,
+class RegNetX040Backbone(RegNetBackBone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        include_top=False,
+        num_classes=None,
+        weights=None,
+        input_tensor=None,
+        input_shape=(None, None, 3),
+        pooling=None,
+        classifier_activation="softmax",
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "include_top": include_top,
+                "num_classes": num_classes,
+                "weights": parse_weights(weights, include_top, "regnetx040"),
+                "input_tensor": input_tensor,
+                "input_shape": input_shape,
+                "pooling": pooling,
+                "classifier_activation": classifier_activation,
+            }
+        )
+        return RegNetBackBone.from_preset("regnetx040", **kwargs)
+
+    @classproperty
+    def presetsx(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
 
 
-def RegNetX064(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_tensor=None,
-    input_shape=(None, None, 3),
-    pooling=None,
-    model_name="regnetx064",
-    classifier_activation="softmax",
-    **kwargs,
-):
-    return RegNet(
-        MODEL_CONFIGS["x064"]["depths"],
-        MODEL_CONFIGS["x064"]["widths"],
-        MODEL_CONFIGS["x064"]["group_width"],
-        MODEL_CONFIGS["x064"]["block_type"],
-        model_name=model_name,
-        include_top=include_top,
-        include_rescaling=include_rescaling,
-        weights=parse_weights(weights, include_top, "regnetx064"),
-        input_tensor=input_tensor,
-        input_shape=input_shape,
-        pooling=pooling,
-        num_classes=num_classes,
-        classifier_activation=classifier_activation,
+class RegNetX064Backbone(RegNetBackBone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        include_top=False,
+        num_classes=None,
+        weights=None,
+        input_tensor=None,
+        input_shape=(None, None, 3),
+        pooling=None,
+        classifier_activation="softmax",
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "include_top": include_top,
+                "num_classes": num_classes,
+                "weights": parse_weights(weights, include_top, "regnetx064"),
+                "input_tensor": input_tensor,
+                "input_shape": input_shape,
+                "pooling": pooling,
+                "classifier_activation": classifier_activation,
+            }
+        )
+        return RegNetBackBone.from_preset("regnetx064", **kwargs)
+
+    @classproperty
+    def presetsx(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
 
 
-def RegNetX080(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_tensor=None,
-    input_shape=(None, None, 3),
-    pooling=None,
-    model_name="regnetx080",
-    classifier_activation="softmax",
-    **kwargs,
-):
-    return RegNet(
-        MODEL_CONFIGS["x080"]["depths"],
-        MODEL_CONFIGS["x080"]["widths"],
-        MODEL_CONFIGS["x080"]["group_width"],
-        MODEL_CONFIGS["x080"]["block_type"],
-        model_name=model_name,
-        include_top=include_top,
-        include_rescaling=include_rescaling,
-        weights=parse_weights(weights, include_top, "regnetx080"),
-        input_tensor=input_tensor,
-        input_shape=input_shape,
-        pooling=pooling,
-        num_classes=num_classes,
-        classifier_activation=classifier_activation,
+class RegNetX080Backbone(RegNetBackBone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        include_top=False,
+        num_classes=None,
+        weights=None,
+        input_tensor=None,
+        input_shape=(None, None, 3),
+        pooling=None,
+        classifier_activation="softmax",
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "include_top": include_top,
+                "num_classes": num_classes,
+                "weights": parse_weights(weights, include_top, "regnetx080"),
+                "input_tensor": input_tensor,
+                "input_shape": input_shape,
+                "pooling": pooling,
+                "classifier_activation": classifier_activation,
+            }
+        )
+        return RegNetBackBone.from_preset("regnetx080", **kwargs)
+
+    @classproperty
+    def presetsx(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
 
 
-def RegNetX120(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_tensor=None,
-    input_shape=(None, None, 3),
-    pooling=None,
-    model_name="regnetx120",
-    classifier_activation="softmax",
-    **kwargs,
-):
-    return RegNet(
-        MODEL_CONFIGS["x120"]["depths"],
-        MODEL_CONFIGS["x120"]["widths"],
-        MODEL_CONFIGS["x120"]["group_width"],
-        MODEL_CONFIGS["x120"]["block_type"],
-        model_name=model_name,
-        include_top=include_top,
-        include_rescaling=include_rescaling,
-        weights=parse_weights(weights, include_top, "regnetx120"),
-        input_tensor=input_tensor,
-        input_shape=input_shape,
-        pooling=pooling,
-        num_classes=num_classes,
-        classifier_activation=classifier_activation,
+class RegNetX120Backbone(RegNetBackBone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        include_top=False,
+        num_classes=None,
+        weights=None,
+        input_tensor=None,
+        input_shape=(None, None, 3),
+        pooling=None,
+        classifier_activation="softmax",
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "include_top": include_top,
+                "num_classes": num_classes,
+                "weights": parse_weights(weights, include_top, "regnetx120"),
+                "input_tensor": input_tensor,
+                "input_shape": input_shape,
+                "pooling": pooling,
+                "classifier_activation": classifier_activation,
+            }
+        )
+        return RegNetBackBone.from_preset("regnetx120", **kwargs)
+
+    @classproperty
+    def presetsx(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
 
 
-def RegNetX160(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_tensor=None,
-    input_shape=(None, None, 3),
-    pooling=None,
-    model_name="regnetx160",
-    classifier_activation="softmax",
-    **kwargs,
-):
-    return RegNet(
-        MODEL_CONFIGS["x160"]["depths"],
-        MODEL_CONFIGS["x160"]["widths"],
-        MODEL_CONFIGS["x160"]["group_width"],
-        MODEL_CONFIGS["x160"]["block_type"],
-        model_name=model_name,
-        include_top=include_top,
-        include_rescaling=include_rescaling,
-        weights=parse_weights(weights, include_top, "regnetx160"),
-        input_tensor=input_tensor,
-        input_shape=input_shape,
-        pooling=pooling,
-        num_classes=num_classes,
-        classifier_activation=classifier_activation,
+class RegNetX160Backbone(RegNetBackBone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        include_top=False,
+        num_classes=None,
+        weights=None,
+        input_tensor=None,
+        input_shape=(None, None, 3),
+        pooling=None,
+        classifier_activation="softmax",
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "include_top": include_top,
+                "num_classes": num_classes,
+                "weights": parse_weights(weights, include_top, "regnetx160"),
+                "input_tensor": input_tensor,
+                "input_shape": input_shape,
+                "pooling": pooling,
+                "classifier_activation": classifier_activation,
+            }
+        )
+        return RegNetBackBone.from_preset("regnetx160", **kwargs)
+
+    @classproperty
+    def presetsx(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
 
 
-def RegNetX320(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_tensor=None,
-    input_shape=(None, None, 3),
-    pooling=None,
-    model_name="regnetx320",
-    classifier_activation="softmax",
-    **kwargs,
-):
-    return RegNet(
-        MODEL_CONFIGS["x320"]["depths"],
-        MODEL_CONFIGS["x320"]["widths"],
-        MODEL_CONFIGS["x320"]["group_width"],
-        MODEL_CONFIGS["x320"]["block_type"],
-        model_name=model_name,
-        include_top=include_top,
-        include_rescaling=include_rescaling,
-        weights=parse_weights(weights, include_top, "regnetx320"),
-        input_tensor=input_tensor,
-        input_shape=input_shape,
-        pooling=pooling,
-        num_classes=num_classes,
-        classifier_activation=classifier_activation,
+class RegNetX320Backbone(RegNetBackBone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        include_top=False,
+        num_classes=None,
+        weights=None,
+        input_tensor=None,
+        input_shape=(None, None, 3),
+        pooling=None,
+        classifier_activation="softmax",
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "include_top": include_top,
+                "num_classes": num_classes,
+                "weights": parse_weights(weights, include_top, "regnetx320"),
+                "input_tensor": input_tensor,
+                "input_shape": input_shape,
+                "pooling": pooling,
+                "classifier_activation": classifier_activation,
+            }
+        )
+        return RegNetBackBone.from_preset("regnetx320", **kwargs)
+
+    @classproperty
+    def presetsx(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
 
 
-def RegNetY002(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_tensor=None,
-    input_shape=(None, None, 3),
-    pooling=None,
-    model_name="regnety002",
-    classifier_activation="softmax",
-    **kwargs,
-):
-    return RegNet(
-        MODEL_CONFIGS["y002"]["depths"],
-        MODEL_CONFIGS["y002"]["widths"],
-        MODEL_CONFIGS["y002"]["group_width"],
-        MODEL_CONFIGS["y002"]["block_type"],
-        model_name=model_name,
-        include_top=include_top,
-        include_rescaling=include_rescaling,
-        weights=parse_weights(weights, include_top, "regnety002"),
-        input_tensor=input_tensor,
-        input_shape=input_shape,
-        pooling=pooling,
-        num_classes=num_classes,
-        classifier_activation=classifier_activation,
+class RegNetY002Backbone(RegNetBackBone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        include_top=False,
+        num_classes=None,
+        weights=None,
+        input_tensor=None,
+        input_shape=(None, None, 3),
+        pooling=None,
+        classifier_activation="softmax",
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "include_top": include_top,
+                "num_classes": num_classes,
+                "weights": parse_weights(weights, include_top, "regnety002"),
+                "input_tensor": input_tensor,
+                "input_shape": input_shape,
+                "pooling": pooling,
+                "classifier_activation": classifier_activation,
+            }
+        )
+        return RegNetBackBone.from_preset("regnety002", **kwargs)
+
+    @classproperty
+    def presetsy(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
 
 
-def RegNetY004(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_tensor=None,
-    input_shape=(None, None, 3),
-    pooling=None,
-    model_name="regnety004",
-    classifier_activation="softmax",
-    **kwargs,
-):
-    return RegNet(
-        MODEL_CONFIGS["y004"]["depths"],
-        MODEL_CONFIGS["y004"]["widths"],
-        MODEL_CONFIGS["y004"]["group_width"],
-        MODEL_CONFIGS["y004"]["block_type"],
-        model_name=model_name,
-        include_top=include_top,
-        include_rescaling=include_rescaling,
-        weights=parse_weights(weights, include_top, "regnety004"),
-        input_tensor=input_tensor,
-        input_shape=input_shape,
-        pooling=pooling,
-        num_classes=num_classes,
-        classifier_activation=classifier_activation,
+class RegNetY004Backbone(RegNetBackBone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        include_top=False,
+        num_classes=None,
+        weights=None,
+        input_tensor=None,
+        input_shape=(None, None, 3),
+        pooling=None,
+        classifier_activation="softmax",
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "include_top": include_top,
+                "num_classes": num_classes,
+                "weights": parse_weights(weights, include_top, "regnety004"),
+                "input_tensor": input_tensor,
+                "input_shape": input_shape,
+                "pooling": pooling,
+                "classifier_activation": classifier_activation,
+            }
+        )
+        return RegNetBackBone.from_preset("regnety004", **kwargs)
+
+    @classproperty
+    def presetsy(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
 
 
-def RegNetY006(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_tensor=None,
-    input_shape=(None, None, 3),
-    pooling=None,
-    model_name="regnety006",
-    classifier_activation="softmax",
-    **kwargs,
-):
-    return RegNet(
-        MODEL_CONFIGS["y006"]["depths"],
-        MODEL_CONFIGS["y006"]["widths"],
-        MODEL_CONFIGS["y006"]["group_width"],
-        MODEL_CONFIGS["y006"]["block_type"],
-        model_name=model_name,
-        include_top=include_top,
-        include_rescaling=include_rescaling,
-        weights=parse_weights(weights, include_top, "regnety006"),
-        input_tensor=input_tensor,
-        input_shape=input_shape,
-        pooling=pooling,
-        num_classes=num_classes,
-        classifier_activation=classifier_activation,
+class RegNetY006Backbone(RegNetBackBone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        include_top=False,
+        num_classes=None,
+        weights=None,
+        input_tensor=None,
+        input_shape=(None, None, 3),
+        pooling=None,
+        classifier_activation="softmax",
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "include_top": include_top,
+                "num_classes": num_classes,
+                "weights": parse_weights(weights, include_top, "regnety006"),
+                "input_tensor": input_tensor,
+                "input_shape": input_shape,
+                "pooling": pooling,
+                "classifier_activation": classifier_activation,
+            }
+        )
+        return RegNetBackBone.from_preset("regnety006", **kwargs)
+
+    @classproperty
+    def presetsy(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
 
 
-def RegNetY008(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_tensor=None,
-    input_shape=(None, None, 3),
-    pooling=None,
-    model_name="regnety008",
-    classifier_activation="softmax",
-    **kwargs,
-):
-    return RegNet(
-        MODEL_CONFIGS["y008"]["depths"],
-        MODEL_CONFIGS["y008"]["widths"],
-        MODEL_CONFIGS["y008"]["group_width"],
-        MODEL_CONFIGS["y008"]["block_type"],
-        model_name=model_name,
-        include_top=include_top,
-        include_rescaling=include_rescaling,
-        weights=parse_weights(weights, include_top, "regnety008"),
-        input_tensor=input_tensor,
-        input_shape=input_shape,
-        pooling=pooling,
-        num_classes=num_classes,
-        classifier_activation=classifier_activation,
+class RegNetY008Backbone(RegNetBackBone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        include_top=False,
+        num_classes=None,
+        weights=None,
+        input_tensor=None,
+        input_shape=(None, None, 3),
+        pooling=None,
+        classifier_activation="softmax",
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "include_top": include_top,
+                "num_classes": num_classes,
+                "weights": parse_weights(weights, include_top, "regnety008"),
+                "input_tensor": input_tensor,
+                "input_shape": input_shape,
+                "pooling": pooling,
+                "classifier_activation": classifier_activation,
+            }
+        )
+        return RegNetBackBone.from_preset("regnety008", **kwargs)
+
+    @classproperty
+    def presetsy(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
 
 
-def RegNetY016(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_tensor=None,
-    input_shape=(None, None, 3),
-    pooling=None,
-    model_name="regnety016",
-    classifier_activation="softmax",
-    **kwargs,
-):
-    return RegNet(
-        MODEL_CONFIGS["y016"]["depths"],
-        MODEL_CONFIGS["y016"]["widths"],
-        MODEL_CONFIGS["y016"]["group_width"],
-        MODEL_CONFIGS["y016"]["block_type"],
-        model_name=model_name,
-        include_top=include_top,
-        include_rescaling=include_rescaling,
-        weights=parse_weights(weights, include_top, "regnety016"),
-        input_tensor=input_tensor,
-        input_shape=input_shape,
-        pooling=pooling,
-        num_classes=num_classes,
-        classifier_activation=classifier_activation,
+class RegNetY016Backbone(RegNetBackBone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        include_top=False,
+        num_classes=None,
+        weights=None,
+        input_tensor=None,
+        input_shape=(None, None, 3),
+        pooling=None,
+        classifier_activation="softmax",
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "include_top": include_top,
+                "num_classes": num_classes,
+                "weights": parse_weights(weights, include_top, "regnety016"),
+                "input_tensor": input_tensor,
+                "input_shape": input_shape,
+                "pooling": pooling,
+                "classifier_activation": classifier_activation,
+            }
+        )
+        return RegNetBackBone.from_preset("regnety016", **kwargs)
+
+    @classproperty
+    def presetsy(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
 
 
-def RegNetY032(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_tensor=None,
-    input_shape=(None, None, 3),
-    pooling=None,
-    model_name="regnety032",
-    classifier_activation="softmax",
-    **kwargs,
-):
-    return RegNet(
-        MODEL_CONFIGS["y032"]["depths"],
-        MODEL_CONFIGS["y032"]["widths"],
-        MODEL_CONFIGS["y032"]["group_width"],
-        MODEL_CONFIGS["y032"]["block_type"],
-        model_name=model_name,
-        include_top=include_top,
-        include_rescaling=include_rescaling,
-        weights=parse_weights(weights, include_top, "regnety032"),
-        input_tensor=input_tensor,
-        input_shape=input_shape,
-        pooling=pooling,
-        num_classes=num_classes,
-        classifier_activation=classifier_activation,
+class RegNetY032Backbone(RegNetBackBone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        include_top=False,
+        num_classes=None,
+        weights=None,
+        input_tensor=None,
+        input_shape=(None, None, 3),
+        pooling=None,
+        classifier_activation="softmax",
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "include_top": include_top,
+                "num_classes": num_classes,
+                "weights": parse_weights(weights, include_top, "regnety032"),
+                "input_tensor": input_tensor,
+                "input_shape": input_shape,
+                "pooling": pooling,
+                "classifier_activation": classifier_activation,
+            }
+        )
+        return RegNetBackBone.from_preset("regnety032", **kwargs)
+
+    @classproperty
+    def presetsy(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
 
 
-def RegNetY040(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_tensor=None,
-    input_shape=(None, None, 3),
-    pooling=None,
-    model_name="regnety040",
-    classifier_activation="softmax",
-    **kwargs,
-):
-    return RegNet(
-        MODEL_CONFIGS["y040"]["depths"],
-        MODEL_CONFIGS["y040"]["widths"],
-        MODEL_CONFIGS["y040"]["group_width"],
-        MODEL_CONFIGS["y040"]["block_type"],
-        model_name=model_name,
-        include_top=include_top,
-        include_rescaling=include_rescaling,
-        weights=parse_weights(weights, include_top, "regnety040"),
-        input_tensor=input_tensor,
-        input_shape=input_shape,
-        pooling=pooling,
-        num_classes=num_classes,
-        classifier_activation=classifier_activation,
+class RegNetY040Backbone(RegNetBackBone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        include_top=False,
+        num_classes=None,
+        weights=None,
+        input_tensor=None,
+        input_shape=(None, None, 3),
+        pooling=None,
+        classifier_activation="softmax",
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "include_top": include_top,
+                "num_classes": num_classes,
+                "weights": parse_weights(weights, include_top, "regnety040"),
+                "input_tensor": input_tensor,
+                "input_shape": input_shape,
+                "pooling": pooling,
+                "classifier_activation": classifier_activation,
+            }
+        )
+        return RegNetBackBone.from_preset("regnety040", **kwargs)
+
+    @classproperty
+    def presetsy(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
 
 
-def RegNetY064(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_tensor=None,
-    input_shape=(None, None, 3),
-    pooling=None,
-    model_name="regnety064",
-    classifier_activation="softmax",
-    **kwargs,
-):
-    return RegNet(
-        MODEL_CONFIGS["y064"]["depths"],
-        MODEL_CONFIGS["y064"]["widths"],
-        MODEL_CONFIGS["y064"]["group_width"],
-        MODEL_CONFIGS["y064"]["block_type"],
-        model_name=model_name,
-        include_top=include_top,
-        include_rescaling=include_rescaling,
-        weights=parse_weights(weights, include_top, "regnety064"),
-        input_tensor=input_tensor,
-        input_shape=input_shape,
-        pooling=pooling,
-        num_classes=num_classes,
-        classifier_activation=classifier_activation,
+class RegNetY064Backbone(RegNetBackBone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        include_top=False,
+        num_classes=None,
+        weights=None,
+        input_tensor=None,
+        input_shape=(None, None, 3),
+        pooling=None,
+        classifier_activation="softmax",
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "include_top": include_top,
+                "num_classes": num_classes,
+                "weights": parse_weights(weights, include_top, "regnety064"),
+                "input_tensor": input_tensor,
+                "input_shape": input_shape,
+                "pooling": pooling,
+                "classifier_activation": classifier_activation,
+            }
+        )
+        return RegNetBackBone.from_preset("regnety064", **kwargs)
+
+    @classproperty
+    def presetsy(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
 
 
-def RegNetY080(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_tensor=None,
-    input_shape=(None, None, 3),
-    pooling=None,
-    model_name="regnety080",
-    classifier_activation="softmax",
-    **kwargs,
-):
-    return RegNet(
-        MODEL_CONFIGS["y080"]["depths"],
-        MODEL_CONFIGS["y080"]["widths"],
-        MODEL_CONFIGS["y080"]["group_width"],
-        MODEL_CONFIGS["y080"]["block_type"],
-        model_name=model_name,
-        include_top=include_top,
-        include_rescaling=include_rescaling,
-        weights=parse_weights(weights, include_top, "regnety080"),
-        input_tensor=input_tensor,
-        input_shape=input_shape,
-        pooling=pooling,
-        num_classes=num_classes,
-        classifier_activation=classifier_activation,
+class RegNetY080Backbone(RegNetBackBone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        include_top=False,
+        num_classes=None,
+        weights=None,
+        input_tensor=None,
+        input_shape=(None, None, 3),
+        pooling=None,
+        classifier_activation="softmax",
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "include_top": include_top,
+                "num_classes": num_classes,
+                "weights": parse_weights(weights, include_top, "regnety080"),
+                "input_tensor": input_tensor,
+                "input_shape": input_shape,
+                "pooling": pooling,
+                "classifier_activation": classifier_activation,
+            }
+        )
+        return RegNetBackBone.from_preset("regnety080", **kwargs)
+
+    @classproperty
+    def presetsy(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
 
 
-def RegNetY120(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_tensor=None,
-    input_shape=(None, None, 3),
-    pooling=None,
-    model_name="regnety120",
-    classifier_activation="softmax",
-    **kwargs,
-):
-    return RegNet(
-        MODEL_CONFIGS["y120"]["depths"],
-        MODEL_CONFIGS["y120"]["widths"],
-        MODEL_CONFIGS["y120"]["group_width"],
-        MODEL_CONFIGS["y120"]["block_type"],
-        model_name=model_name,
-        include_top=include_top,
-        include_rescaling=include_rescaling,
-        weights=parse_weights(weights, include_top, "regnety120"),
-        input_tensor=input_tensor,
-        input_shape=input_shape,
-        pooling=pooling,
-        num_classes=num_classes,
-        classifier_activation=classifier_activation,
+class RegNetY120Backbone(RegNetBackBone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        include_top=False,
+        num_classes=None,
+        weights=None,
+        input_tensor=None,
+        input_shape=(None, None, 3),
+        pooling=None,
+        classifier_activation="softmax",
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "include_top": include_top,
+                "num_classes": num_classes,
+                "weights": parse_weights(weights, include_top, "regnety120"),
+                "input_tensor": input_tensor,
+                "input_shape": input_shape,
+                "pooling": pooling,
+                "classifier_activation": classifier_activation,
+            }
+        )
+        return RegNetBackBone.from_preset("regnety120", **kwargs)
+
+    @classproperty
+    def presetsy(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
 
 
-def RegNetY160(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_tensor=None,
-    input_shape=(None, None, 3),
-    pooling=None,
-    model_name="regnety160",
-    classifier_activation="softmax",
-    **kwargs,
-):
-    return RegNet(
-        MODEL_CONFIGS["y160"]["depths"],
-        MODEL_CONFIGS["y160"]["widths"],
-        MODEL_CONFIGS["y160"]["group_width"],
-        MODEL_CONFIGS["y160"]["block_type"],
-        model_name=model_name,
-        include_top=include_top,
-        include_rescaling=include_rescaling,
-        weights=parse_weights(weights, include_top, "regnety160"),
-        input_tensor=input_tensor,
-        input_shape=input_shape,
-        pooling=pooling,
-        num_classes=num_classes,
-        classifier_activation=classifier_activation,
+class RegNetY160Backbone(RegNetBackBone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        include_top=False,
+        num_classes=None,
+        weights=None,
+        input_tensor=None,
+        input_shape=(None, None, 3),
+        pooling=None,
+        classifier_activation="softmax",
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "include_top": include_top,
+                "num_classes": num_classes,
+                "weights": parse_weights(weights, include_top, "regnety160"),
+                "input_tensor": input_tensor,
+                "input_shape": input_shape,
+                "pooling": pooling,
+                "classifier_activation": classifier_activation,
+            }
+        )
+        return RegNetBackBone.from_preset("regnety160", **kwargs)
+
+    @classproperty
+    def presetsy(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
 
 
-def RegNetY320(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_tensor=None,
-    input_shape=(None, None, 3),
-    pooling=None,
-    model_name="regnety320",
-    classifier_activation="softmax",
-    **kwargs,
-):
-    return RegNet(
-        MODEL_CONFIGS["y320"]["depths"],
-        MODEL_CONFIGS["y320"]["widths"],
-        MODEL_CONFIGS["y320"]["group_width"],
-        MODEL_CONFIGS["y320"]["block_type"],
-        model_name=model_name,
-        include_top=include_top,
-        include_rescaling=include_rescaling,
-        weights=parse_weights(weights, include_top, "regnety320"),
-        input_tensor=input_tensor,
-        input_shape=input_shape,
-        pooling=pooling,
-        num_classes=num_classes,
-        classifier_activation=classifier_activation,
+class RegNetY320Backbone(RegNetBackBone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        include_top=False,
+        num_classes=None,
+        weights=None,
+        input_tensor=None,
+        input_shape=(None, None, 3),
+        pooling=None,
+        classifier_activation="softmax",
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "include_top": include_top,
+                "num_classes": num_classes,
+                "weights": parse_weights(weights, include_top, "regnety320"),
+                "input_tensor": input_tensor,
+                "input_shape": input_shape,
+                "pooling": pooling,
+                "classifier_activation": classifier_activation,
+            }
+        )
+        return RegNetBackBone.from_preset("regnety320", **kwargs)
+
+    @classproperty
+    def presetsy(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
 
 
-RegNetX002.__doc__ = BASE_DOCSTRING.format(name="RegNetX002")
-RegNetX004.__doc__ = BASE_DOCSTRING.format(name="RegNetX004")
-RegNetX006.__doc__ = BASE_DOCSTRING.format(name="RegNetX006")
-RegNetX008.__doc__ = BASE_DOCSTRING.format(name="RegNetX008")
-RegNetX016.__doc__ = BASE_DOCSTRING.format(name="RegNetX016")
-RegNetX032.__doc__ = BASE_DOCSTRING.format(name="RegNetX032")
-RegNetX040.__doc__ = BASE_DOCSTRING.format(name="RegNetX040")
-RegNetX064.__doc__ = BASE_DOCSTRING.format(name="RegNetX064")
-RegNetX080.__doc__ = BASE_DOCSTRING.format(name="RegNetX080")
-RegNetX120.__doc__ = BASE_DOCSTRING.format(name="RegNetX120")
-RegNetX160.__doc__ = BASE_DOCSTRING.format(name="RegNetX160")
-RegNetX320.__doc__ = BASE_DOCSTRING.format(name="RegNetX320")
+RegNetX002Backbone.__doc__ = BASE_DOCSTRING.format(name="RegNetX002Backbone")
+RegNetX004Backbone.__doc__ = BASE_DOCSTRING.format(name="RegNetX004Backbone")
+RegNetX006Backbone.__doc__ = BASE_DOCSTRING.format(name="RegNetX006Backbone")
+RegNetX008Backbone.__doc__ = BASE_DOCSTRING.format(name="RegNetX008Backbone")
+RegNetX016Backbone.__doc__ = BASE_DOCSTRING.format(name="RegNetX016Backbone")
+RegNetX032Backbone.__doc__ = BASE_DOCSTRING.format(name="RegNetX032Backbone")
+RegNetX040Backbone.__doc__ = BASE_DOCSTRING.format(name="RegNetX040Backbone")
+RegNetX064Backbone.__doc__ = BASE_DOCSTRING.format(name="RegNetX064Backbone")
+RegNetX080Backbone.__doc__ = BASE_DOCSTRING.format(name="RegNetX080Backbone")
+RegNetX120Backbone.__doc__ = BASE_DOCSTRING.format(name="RegNetX120Backbone")
+RegNetX160Backbone.__doc__ = BASE_DOCSTRING.format(name="RegNetX160Backbone")
+RegNetX320Backbone.__doc__ = BASE_DOCSTRING.format(name="RegNetX320Backbone")
 
-RegNetY002.__doc__ = BASE_DOCSTRING.format(name="RegNetY002")
-RegNetY004.__doc__ = BASE_DOCSTRING.format(name="RegNetY004")
-RegNetY006.__doc__ = BASE_DOCSTRING.format(name="RegNetY006")
-RegNetY008.__doc__ = BASE_DOCSTRING.format(name="RegNetY008")
-RegNetY016.__doc__ = BASE_DOCSTRING.format(name="RegNetY016")
-RegNetY032.__doc__ = BASE_DOCSTRING.format(name="RegNetY032")
-RegNetY040.__doc__ = BASE_DOCSTRING.format(name="RegNetY040")
-RegNetY064.__doc__ = BASE_DOCSTRING.format(name="RegNetY064")
-RegNetY080.__doc__ = BASE_DOCSTRING.format(name="RegNetY080")
-RegNetY120.__doc__ = BASE_DOCSTRING.format(name="RegNetY120")
-RegNetY160.__doc__ = BASE_DOCSTRING.format(name="RegNetY160")
-RegNetY320.__doc__ = BASE_DOCSTRING.format(name="RegNetY320")
+RegNetY002Backbone.__doc__ = BASE_DOCSTRING.format(name="RegNetY002Backbone")
+RegNetY004Backbone.__doc__ = BASE_DOCSTRING.format(name="RegNetY004Backbone")
+RegNetY006Backbone.__doc__ = BASE_DOCSTRING.format(name="RegNetY006Backbone")
+RegNetY008Backbone.__doc__ = BASE_DOCSTRING.format(name="RegNetY008Backbone")
+RegNetY016Backbone.__doc__ = BASE_DOCSTRING.format(name="RegNetY016Backbone")
+RegNetY032Backbone.__doc__ = BASE_DOCSTRING.format(name="RegNetY032Backbone")
+RegNetY040Backbone.__doc__ = BASE_DOCSTRING.format(name="RegNetY040Backbone")
+RegNetY064Backbone.__doc__ = BASE_DOCSTRING.format(name="RegNetY064Backbone")
+RegNetY080Backbone.__doc__ = BASE_DOCSTRING.format(name="RegNetY080Backbone")
+RegNetY120Backbone.__doc__ = BASE_DOCSTRING.format(name="RegNetY120Backbone")
+RegNetY160Backbone.__doc__ = BASE_DOCSTRING.format(name="RegNetY160Backbone")
+RegNetY320Backbone.__doc__ = BASE_DOCSTRING.format(name="RegNetY320Backbone")

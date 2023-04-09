@@ -12,30 +12,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from keras_cv.models.backbones.regnet import RegNetX002
-from keras_cv.models.backbones.regnet import RegNetX004
-from keras_cv.models.backbones.regnet import RegNetX006
-from keras_cv.models.backbones.regnet import RegNetX008
-from keras_cv.models.backbones.regnet import RegNetX016
-from keras_cv.models.backbones.regnet import RegNetX032
-from keras_cv.models.backbones.regnet import RegNetX040
-from keras_cv.models.backbones.regnet import RegNetX064
-from keras_cv.models.backbones.regnet import RegNetX080
-from keras_cv.models.backbones.regnet import RegNetX120
-from keras_cv.models.backbones.regnet import RegNetX160
-from keras_cv.models.backbones.regnet import RegNetX320
-from keras_cv.models.backbones.regnet import RegNetY002
-from keras_cv.models.backbones.regnet import RegNetY004
-from keras_cv.models.backbones.regnet import RegNetY006
-from keras_cv.models.backbones.regnet import RegNetY008
-from keras_cv.models.backbones.regnet import RegNetY016
-from keras_cv.models.backbones.regnet import RegNetY032
-from keras_cv.models.backbones.regnet import RegNetY040
-from keras_cv.models.backbones.regnet import RegNetY064
-from keras_cv.models.backbones.regnet import RegNetY080
-from keras_cv.models.backbones.regnet import RegNetY120
-from keras_cv.models.backbones.regnet import RegNetY160
-from keras_cv.models.backbones.regnet import RegNetY320
+from keras_cv.models.backbones.regnet.regnet_backbone import RegNetX002
+from keras_cv.models.backbones.regnet.regnet_backbone import RegNetX004
+from keras_cv.models.backbones.regnet.regnet_backbone import RegNetX006
+from keras_cv.models.backbones.regnet.regnet_backbone import RegNetX008
+from keras_cv.models.backbones.regnet.regnet_backbone import RegNetX016
+from keras_cv.models.backbones.regnet.regnet_backbone import RegNetX032
+from keras_cv.models.backbones.regnet.regnet_backbone import RegNetX040
+from keras_cv.models.backbones.regnet.regnet_backbone import RegNetX064
+from keras_cv.models.backbones.regnet.regnet_backbone import RegNetX080
+from keras_cv.models.backbones.regnet.regnet_backbone import RegNetX120
+from keras_cv.models.backbones.regnet.regnet_backbone import RegNetX160
+from keras_cv.models.backbones.regnet.regnet_backbone import RegNetX320
+from keras_cv.models.backbones.regnet.regnet_backbone import RegNetY002
+from keras_cv.models.backbones.regnet.regnet_backbone import RegNetY004
+from keras_cv.models.backbones.regnet.regnet_backbone import RegNetY006
+from keras_cv.models.backbones.regnet.regnet_backbone import RegNetY008
+from keras_cv.models.backbones.regnet.regnet_backbone import RegNetY016
+from keras_cv.models.backbones.regnet.regnet_backbone import RegNetY032
+from keras_cv.models.backbones.regnet.regnet_backbone import RegNetY040
+from keras_cv.models.backbones.regnet.regnet_backbone import RegNetY064
+from keras_cv.models.backbones.regnet.regnet_backbone import RegNetY080
+from keras_cv.models.backbones.regnet.regnet_backbone import RegNetY120
+from keras_cv.models.backbones.regnet.regnet_backbone import RegNetY160
+from keras_cv.models.backbones.regnet.regnet_backbone import RegNetY320
 from keras_cv.models.backbones.resnet_v1.resnet_v1_backbone import (
     ResNet18Backbone,
 )
