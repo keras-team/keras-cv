@@ -27,12 +27,12 @@ from keras_cv.models.object_detection import predict_utils
 from keras_cv.models.object_detection.yolo_v8.compat_anchor_generation import (
     get_anchors,
 )
+from keras_cv.models.object_detection.yolo_v8.yolo_v8_detector_presets import (
+    yolo_v8_detector_presets,
+)
 from keras_cv.models.object_detection.yolo_v8.yolo_v8_layers import conv_bn
 from keras_cv.models.object_detection.yolo_v8.yolo_v8_layers import (
     csp_with_2_conv,
-)
-from keras_cv.models.object_detection.yolo_v8.yolo_v8_presets import (
-    yolo_v8_presets,
 )
 from keras_cv.models.task import Task
 from keras_cv.utils.python_utils import classproperty
@@ -190,8 +190,43 @@ def decode_boxes(preds, anchors):
 
 
 @keras.utils.register_keras_serializable(package="keras_cv")
-class YOLOV8(Task):
-    """A pretrained-only (not yet trainable) YOLOV8 model."""
+class YOLOV8Detector(Task):
+    """
+    Implements the YOLOV8 architecture for object detection.
+
+    Note: this implementation **does not yet support training**, and is
+    for presets only.
+
+    Examples:
+    ```python
+    images = tf.ones(shape=(1, 512, 512, 3))
+    model = keras_cv.models.YOLOV8Detector.from_preset("yolov8_n_coco", bounding_box_format="xywh")
+
+    predictions = model.predict(images)
+    ```
+
+    Args:
+        num_classes: the number of classes in your dataset excluding the
+            background class. Classes should be represented by integers in the
+            range [0, num_classes).
+        bounding_box_format: The format of bounding boxes of input dataset.
+            Refer
+            [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
+            for more details on supported bounding box formats.
+        backbone: `keras.Model`. Must implement the `pyramid_level_inputs`
+            property with keys 3, 4, and 5 and layer names as values. A
+            sensible backbone to use in many cases is the
+            `keras_cv.models.YOLOV8Backbone`
+        fpn_depth: integer, a specification of the depth for the Feature
+            Pyramid Network. This is usually 1, 2, or 3, depending on the
+            size of your YOLOV8Detector model.
+        prediction_decoder: (Optional)  A `keras.layers.Layer` that is
+            responsible for transforming RetinaNet predictions into usable
+            bounding box Tensors. If not provided, a default is provided. The
+            default `prediction_decoder` layer is a
+            `keras_cv.layers.MultiClassNonMaxSuppression` layer, which uses
+            a Non-Max Suppression for box pruning.
+    """  # noqa: E501
 
     def __init__(
         self,
@@ -275,14 +310,14 @@ class YOLOV8(Task):
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
-        return copy.deepcopy({**backbone_presets, **yolo_v8_presets})
+        return copy.deepcopy({**backbone_presets, **yolo_v8_detector_presets})
 
     @classproperty
     def presets_with_weights(cls):
         """Dictionary of preset names and configurations that include
         weights."""
         return copy.deepcopy(
-            {**backbone_presets_with_weights, **yolo_v8_presets}
+            {**backbone_presets_with_weights, **yolo_v8_detector_presets}
         )
 
     @classproperty

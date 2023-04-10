@@ -15,10 +15,12 @@
 
 from keras_cv.models.object_detection.yolo_v8 import yolo_v8_backbone_presets
 
-yolo_v8_presets = {
+yolo_v8_detector_presets = {
     "yolov8_n_coco": {
         "metadata": {
-            "description": ("An extra small YOLOV8 model pretrained on COCO"),
+            "description": (
+                "An extra small YOLOV8Detector model pretrained on COCO"
+            ),
         },
         "config": {
             "backbone": yolo_v8_backbone_presets.backbone_presets[
@@ -33,7 +35,7 @@ yolo_v8_presets = {
     },
     "yolov8_s_coco": {
         "metadata": {
-            "description": ("A small YOLOV8 model pretrained on COCO"),
+            "description": ("A small YOLOV8Detector model pretrained on COCO"),
         },
         "config": {
             "backbone": yolo_v8_backbone_presets.backbone_presets[
@@ -47,7 +49,7 @@ yolo_v8_presets = {
     },
     "yolov8_m_coco": {
         "metadata": {
-            "description": ("A medium YOLOV8 model pretrained on COCO"),
+            "description": ("A medium YOLOV8Detector model pretrained on COCO"),
         },
         "config": {
             "backbone": yolo_v8_backbone_presets.backbone_presets[
@@ -61,7 +63,7 @@ yolo_v8_presets = {
     },
     "yolov8_l_coco": {
         "metadata": {
-            "description": ("A large YOLOV8 model pretrained on COCO"),
+            "description": ("A large YOLOV8Detector model pretrained on COCO"),
         },
         "config": {
             "backbone": yolo_v8_backbone_presets.backbone_presets[
@@ -75,7 +77,9 @@ yolo_v8_presets = {
     },
     "yolov8_x_coco": {
         "metadata": {
-            "description": ("An extra large YOLOV8 model pretrained on COCO"),
+            "description": (
+                "An extra large YOLOV8Detector model pretrained on COCO"
+            ),
         },
         "config": {
             "backbone": yolo_v8_backbone_presets.backbone_presets[
