@@ -182,7 +182,7 @@ range `[0, 255]`.
 with strategy.scope():
     model = keras_cv.models.RetinaNet(
         # number of classes to be used in box classification
-        num_classes=21,
+        num_classes=20,
         # For more info on supported bounding box formats, visit
         # https://keras.io/api/keras_cv/bounding_box/
         bounding_box_format="xywh",
