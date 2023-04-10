@@ -28,9 +28,6 @@ from absl import flags
 from tensorflow import keras
 
 import keras_cv
-
-# Temporarily need PyCOCOCallback to verify
-# a 1:1 comparison with the PyMetrics version.
 from keras_cv.callbacks import PyCOCOCallback
 
 low, high = resource.getrlimit(resource.RLIMIT_NOFILE)
@@ -38,13 +35,13 @@ resource.setrlimit(resource.RLIMIT_NOFILE, (high, high))
 
 flags.DEFINE_integer(
     "epochs",
-    35,
+    100,
     "Number of epochs to run for.",
 )
 
 flags.DEFINE_string(
     "weights_name",
-    "weights_{epoch:02d}.h5",
+    "weights_{epoch:02d}.weights.h5",
     "Directory which will be used to store weight checkpoints.",
 )
 flags.DEFINE_string(
@@ -68,7 +65,7 @@ except ValueError:
 
 BATCH_SIZE = 4
 GLOBAL_BATCH_SIZE = BATCH_SIZE * strategy.num_replicas_in_sync
-BASE_LR = 0.01 * GLOBAL_BATCH_SIZE / 16
+BASE_LR = 0.005 * GLOBAL_BATCH_SIZE / 16
 print("Number of accelerators: ", strategy.num_replicas_in_sync)
 print("Global Batch Size: ", GLOBAL_BATCH_SIZE)
 
@@ -127,6 +124,24 @@ augmenter = keras.Sequential(
         ),
     ]
 )
+
+
+rand_augment = keras_cv.layers.RandAugment(
+    value_range=(0, 255),
+    augmentations_per_image=2,
+    magnitude=0.2,
+    rate=0.5,
+    magnitude_stddev=0.1,
+    geometric=False,
+)
+
+
+def apply_rand_augment(inputs):
+    inputs["images"] = rand_augment(inputs["images"])
+    return inputs
+
+
+train_ds = train_ds.map(apply_rand_augment)
 train_ds = train_ds.apply(
     tf.data.experimental.dense_to_ragged_batch(BATCH_SIZE)
 )
@@ -187,10 +202,6 @@ model.prediction_decoder = keras_cv.layers.MultiClassNonMaxSuppression(
     bounding_box_format="xywh", confidence_threshold=0.5, from_logits=True
 )
 
-for layer in model.feature_extractor.layers:
-    if isinstance(layer, (keras.layers.BatchNormalization)):
-        layer.trainable = False
-
 model.compile(
     classification_loss="focal",
     box_loss="smoothl1",
@@ -228,7 +239,6 @@ callbacks = [
     # Currently, results do not match. I have a feeling this is due
     # to how we are creating the boxes in `BoxCOCOMetrics`
     PyCOCOCallback(eval_ds, bounding_box_format="xywh"),
-    EvaluateCOCOMetricsCallback(eval_ds),
     keras.callbacks.TensorBoard(log_dir=FLAGS.tensorboard_path),
 ]
 
