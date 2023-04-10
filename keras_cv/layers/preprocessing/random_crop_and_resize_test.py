@@ -291,7 +291,7 @@ class RandomCropAndResizeTest(tf.test.TestCase, parameterized.TestCase):
         )
         self.assertAllClose(
             expected_output["boxes"], output["bounding_boxes"]["boxes"]
-        )
+         )
         self.assertAllClose(
             expected_output["classes"], output["bounding_boxes"]["classes"]
         )
