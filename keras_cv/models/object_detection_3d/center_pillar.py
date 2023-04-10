@@ -195,7 +195,10 @@ class MultiHeadCenterPillar(keras.Model):
 
         Args:
             heatmap_loss: a Keras loss to use for heatmap regression.
-            box_loss: a Keras loss to use for box regression.
+            box_loss: a Keras loss to use for box regression, or a list of Keras
+                losses for box regression, one for each class. If only one loss
+                is specified, it will be used for all classes, otherwise exactly
+                one loss should be specified per class.
             kwargs: other `keras.Model.compile()` arguments are supported and
                 propagated to the `keras.Model` class.
         """
