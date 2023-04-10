@@ -19,6 +19,7 @@ from keras_cv.point_cloud.point_cloud import coordinate_transform
 from keras_cv.point_cloud.point_cloud import group_points_by_boxes
 from keras_cv.point_cloud.point_cloud import is_within_any_box3d
 from keras_cv.point_cloud.point_cloud import is_within_any_box3d_v2
+from keras_cv.point_cloud.point_cloud import is_within_any_box3d_v3
 from keras_cv.point_cloud.point_cloud import is_within_box2d
 from keras_cv.point_cloud.point_cloud import is_within_box3d
 from keras_cv.point_cloud.point_cloud import spherical_coordinate_transform
