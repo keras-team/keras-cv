@@ -1,4 +1,4 @@
-# Copyright 2022 The KerasCV Authors
+# Copyright 2023 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@ import tensorflow as tf
 from tensorflow import keras
 
 from keras_cv import bounding_box
-from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
-    BaseImageAugmentationLayer,
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
+    VectorizedBaseImageAugmentationLayer,
 )
 
 # In order to support both unbatched and batched inputs, the horizontal
@@ -32,7 +32,7 @@ HORIZONTAL_AND_VERTICAL = "horizontal_and_vertical"
 
 
 @keras.utils.register_keras_serializable(package="keras_cv")
-class RandomFlip(BaseImageAugmentationLayer):
+class RandomFlip(VectorizedBaseImageAugmentationLayer):
     """A preprocessing layer which randomly flips images.
 
     This layer will flip the images horizontally and or vertically based on the
@@ -78,82 +78,49 @@ class RandomFlip(BaseImageAugmentationLayer):
                 "RandomFlip layer {name} received an unknown mode="
                 "{arg}".format(name=self.name, arg=mode)
             )
-        self.auto_vectorize = True
         self.bounding_box_format = bounding_box_format
+        self.rate = 0.5
 
-    def augment_label(self, label, transformation, **kwargs):
-        return label
+    def get_random_transformation_batch(self, batch_size, **kwargs):
+        flip_horizontals = tf.zeros(shape=(batch_size, 1))
+        flip_verticals = tf.zeros(shape=(batch_size, 1))
 
-    def augment_image(self, image, transformation, **kwargs):
-        return RandomFlip._flip_image(image, transformation)
-
-    def get_random_transformation(self, **kwargs):
-        flip_horizontal = False
-        flip_vertical = False
         if self.horizontal:
-            flip_horizontal = (
-                self._random_generator.random_uniform(shape=[]) > 0.5
+            flip_horizontals = self._random_generator.random_uniform(
+                shape=(batch_size, 1)
             )
+
         if self.vertical:
-            flip_vertical = (
-                self._random_generator.random_uniform(shape=[]) > 0.5
+            flip_verticals = self._random_generator.random_uniform(
+                shape=(batch_size, 1)
             )
+
         return {
-            "flip_horizontal": tf.cast(flip_horizontal, dtype=tf.bool),
-            "flip_vertical": tf.cast(flip_vertical, dtype=tf.bool),
+            "flip_horizontals": flip_horizontals,
+            "flip_verticals": flip_verticals,
         }
 
-    def _flip_image(image, transformation):
-        flipped_output = tf.cond(
-            transformation["flip_horizontal"],
-            lambda: tf.image.flip_left_right(image),
-            lambda: image,
+    def augment_ragged_image(self, image, transformation, **kwargs):
+        image = tf.expand_dims(image, axis=0)
+        flip_horizontals = transformation["flip_horizontals"]
+        flip_verticals = transformation["flip_verticals"]
+        transformation = {
+            "flip_horizontals": tf.expand_dims(flip_horizontals, axis=0),
+            "flip_verticals": tf.expand_dims(flip_verticals, axis=0),
+        }
+        image = self.augment_images(
+            images=image, transformations=transformation, **kwargs
         )
-        flipped_output = tf.cond(
-            transformation["flip_vertical"],
-            lambda: tf.image.flip_up_down(flipped_output),
-            lambda: flipped_output,
-        )
-        flipped_output.set_shape(image.shape)
-        return flipped_output
+        return tf.squeeze(image, axis=0)
 
-    def _flip_bounding_boxes_horizontal(bounding_boxes):
-        x1, x2, x3, x4 = tf.split(
-            bounding_boxes["boxes"], [1, 1, 1, 1], axis=-1
-        )
-        output = tf.stack(
-            [
-                1 - x3,
-                x2,
-                1 - x1,
-                x4,
-            ],
-            axis=-1,
-        )
-        bounding_boxes = bounding_boxes.copy()
-        bounding_boxes["boxes"] = tf.squeeze(output, axis=1)
-        return bounding_boxes
+    def augment_images(self, images, transformations, **kwargs):
+        return self._flip_images(images, transformations)
 
-    def _flip_bounding_boxes_vertical(bounding_boxes):
-        x1, x2, x3, x4 = tf.split(
-            bounding_boxes["boxes"], [1, 1, 1, 1], axis=-1
-        )
-        output = tf.stack(
-            [
-                x1,
-                1 - x4,
-                x3,
-                1 - x2,
-            ],
-            axis=-1,
-        )
-        output = tf.squeeze(output, axis=1)
-        bounding_boxes = bounding_boxes.copy()
-        bounding_boxes["boxes"] = output
-        return bounding_boxes
+    def augment_labels(self, labels, transformations, **kwargs):
+        return labels
 
     def augment_bounding_boxes(
-        self, bounding_boxes, transformation=None, image=None, **kwargs
+        self, bounding_boxes, transformations=None, raw_images=None, **kwargs
     ):
         if self.bounding_box_format is None:
             raise ValueError(
@@ -162,44 +129,114 @@ class RandomFlip(BaseImageAugmentationLayer):
                 "Please specify a bounding box format in the constructor. i.e."
                 "`RandomFlip(bounding_box_format='xyxy')`"
             )
-        bounding_boxes = bounding_boxes.copy()
+        bounding_boxes = bounding_box.to_dense(bounding_boxes)
         bounding_boxes = bounding_box.convert_format(
             bounding_boxes,
             source=self.bounding_box_format,
             target="rel_xyxy",
-            images=image,
+            images=raw_images,
         )
-        bounding_boxes = tf.cond(
-            transformation["flip_horizontal"],
-            lambda: RandomFlip._flip_bounding_boxes_horizontal(bounding_boxes),
-            lambda: bounding_boxes,
+        boxes = bounding_boxes["boxes"]
+        batch_size = tf.shape(boxes)[0]
+        max_boxes = tf.shape(boxes)[1]
+        flip_horizontals = transformations["flip_horizontals"]
+        flip_verticals = transformations["flip_verticals"]
+
+        # broadcast
+        flip_horizontals = (
+            tf.ones(shape=(batch_size, max_boxes, 4))
+            * flip_horizontals[:, tf.newaxis, :]
         )
-        bounding_boxes = tf.cond(
-            transformation["flip_vertical"],
-            lambda: RandomFlip._flip_bounding_boxes_vertical(bounding_boxes),
-            lambda: bounding_boxes,
+        flip_verticals = (
+            tf.ones(shape=(batch_size, max_boxes, 4))
+            * flip_verticals[:, tf.newaxis, :]
         )
+
+        boxes = tf.where(
+            flip_horizontals > self.rate,
+            self._flip_boxes_horizontal(boxes),
+            boxes,
+        )
+        boxes = tf.where(
+            flip_verticals > self.rate,
+            self._flip_boxes_vertical(boxes),
+            boxes,
+        )
+
+        bounding_boxes = bounding_boxes.copy()
+        bounding_boxes["boxes"] = boxes
         bounding_boxes = bounding_box.clip_to_image(
             bounding_boxes,
             bounding_box_format="rel_xyxy",
-            images=image,
+            images=raw_images,
         )
         bounding_boxes = bounding_box.convert_format(
             bounding_boxes,
             source="rel_xyxy",
             target=self.bounding_box_format,
             dtype=self.compute_dtype,
-            images=image,
+            images=raw_images,
         )
-        return bounding_box.to_ragged(bounding_boxes)
+        return bounding_boxes
 
-    def augment_segmentation_mask(
-        self, segmentation_mask, transformation=None, **kwargs
+    def augment_segmentation_masks(
+        self, segmentation_masks, transformations=None, **kwargs
     ):
-        return RandomFlip._flip_image(segmentation_mask, transformation)
+        return self._flip_images(segmentation_masks, transformations)
 
-    def compute_output_shape(self, input_shape):
-        return input_shape
+    def _get_image_shape(self, images):
+        if isinstance(images, tf.RaggedTensor):
+            heights = tf.reshape(images.row_lengths(), (-1, 1))
+            widths = tf.reshape(
+                tf.reduce_max(images.row_lengths(axis=2), 1), (-1, 1)
+            )
+        else:
+            batch_size = tf.shape(images)[0]
+            heights = tf.repeat(tf.shape(images)[H_AXIS], repeats=[batch_size])
+            heights = tf.reshape(heights, shape=(-1, 1))
+            widths = tf.repeat(tf.shape(images)[W_AXIS], repeats=[batch_size])
+            widths = tf.reshape(widths, shape=(-1, 1))
+        return tf.cast(heights, dtype=tf.int32), tf.cast(widths, dtype=tf.int32)
+
+    def _flip_images(self, images, transformations):
+        batch_size = tf.shape(images)[0]
+        height, width = tf.shape(images)[1], tf.shape(images)[2]
+        channel = tf.shape(images)[3]
+        flip_horizontals = transformations["flip_horizontals"]
+        flip_verticals = transformations["flip_verticals"]
+
+        # broadcast
+        flip_horizontals = (
+            tf.ones(shape=(batch_size, height, width, channel))
+            * flip_horizontals[:, tf.newaxis, tf.newaxis, :]
+        )
+        flip_verticals = (
+            tf.ones(shape=(batch_size, height, width, channel))
+            * flip_verticals[:, tf.newaxis, tf.newaxis, :]
+        )
+
+        flipped_outputs = tf.where(
+            flip_horizontals > self.rate,
+            tf.image.flip_left_right(images),
+            images,
+        )
+        flipped_outputs = tf.where(
+            flip_verticals > self.rate,
+            tf.image.flip_up_down(flipped_outputs),
+            flipped_outputs,
+        )
+        flipped_outputs.set_shape(images.shape)
+        return flipped_outputs
+
+    def _flip_boxes_horizontal(self, boxes):
+        x1, x2, x3, x4 = tf.split(boxes, 4, axis=-1)
+        outputs = tf.concat([1 - x3, x2, 1 - x1, x4], axis=-1)
+        return outputs
+
+    def _flip_boxes_vertical(self, boxes):
+        x1, x2, x3, x4 = tf.split(boxes, 4, axis=-1)
+        outputs = tf.concat([x1, 1 - x4, x3, 1 - x2], axis=-1)
+        return outputs
 
     def get_config(self):
         config = {
@@ -209,3 +246,7 @@ class RandomFlip(BaseImageAugmentationLayer):
         }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)
