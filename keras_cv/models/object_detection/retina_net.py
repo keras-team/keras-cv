@@ -28,10 +28,10 @@ from keras_cv.models.backbones.backbone_presets import (
 )
 from keras_cv.models.object_detection import predict_utils
 from keras_cv.models.object_detection.__internal__ import unpack_input
-from keras_cv.models.object_detection.retina_net import FeaturePyramid
-from keras_cv.models.object_detection.retina_net import PredictionHead
-from keras_cv.models.object_detection.retina_net import RetinaNetLabelEncoder
-from keras_cv.models.object_detection.retina_net.retina_net_presets import (
+from keras_cv.models.object_detection.feature_pyramid import FeaturePyramid
+from keras_cv.models.object_detection.prediction_head import PredictionHead
+from keras_cv.models.object_detection.retina_net_label_encoder import RetinaNetLabelEncoder
+from keras_cv.models.object_detection.retina_net_presets import (
     retina_net_presets,
 )
 from keras_cv.models.task import Task
