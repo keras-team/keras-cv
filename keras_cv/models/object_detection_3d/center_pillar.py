@@ -200,9 +200,14 @@ class MultiHeadCenterPillar(keras.Model):
                 propagated to the `keras.Model` class.
         """
         losses = {}
+
+        if box_loss is not None and not isinstance(box_loss, list):
+            box_loss = [
+                box_loss for _ in range(self._multiclass_head._num_classes)
+            ]
         for i in range(self._multiclass_head._num_classes):
             losses[f"heatmap_class_{i+1}"] = heatmap_loss
-            losses[f"box_class_{i+1}"] = box_loss
+            losses[f"box_class_{i+1}"] = box_loss[i]
 
         super().compile(loss=losses, **kwargs)
 
