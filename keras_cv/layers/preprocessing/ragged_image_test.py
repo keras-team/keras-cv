@@ -23,6 +23,15 @@ CONSISTENT_OUTPUT_TEST_CONFIGURATIONS = [
     ("Grayscale", layers.Grayscale, {}),
     ("GridMask", layers.GridMask, {}),
     (
+        "JitteredResize",
+        layers.JitteredResize,
+        {
+            "target_size": (224, 224),
+            "scale_factor": (0.8, 1.25),
+            "bounding_box_format": "xywh",
+        },
+    ),
+    (
         "Posterization",
         layers.Posterization,
         {"bits": 3, "value_range": (0, 255)},
@@ -123,15 +132,6 @@ DENSE_OUTPUT_TEST_CONFIGURATIONS = [
         {
             "height": 224,
             "width": 224,
-        },
-    ),
-    (
-        "JitteredResize",
-        layers.JitteredResize,
-        {
-            "target_size": (224, 224),
-            "scale_factor": (0.8, 1.25),
-            "bounding_box_format": "xywh",
         },
     ),
 ]
