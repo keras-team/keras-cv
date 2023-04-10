@@ -85,9 +85,6 @@ BASE_DOCSTRING = """This class represents the {name} architecture.
         Defaults to `"softmax"`.
         When loading pretrained weights, `classifier_activation` can only
         be `None` or `"softmax"`.
-
-  Returns:
-    A `keras.Model` instance.
 """
 
 

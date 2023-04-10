@@ -11,7 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""ResNetV1 model preset configurations."""
+"""RegNet model preset configurations."""
+# The widths and depths are deduced from a quantized linear function. For
+# more information, please refer to "Designing Network Design Spaces" by
+# Radosavovic et al.
 
 backbone_presets_no_weights = {
     "regnety002": {
