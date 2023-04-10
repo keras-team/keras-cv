@@ -26,9 +26,9 @@ import tensorflow_datasets as tfds
 import tqdm
 from absl import flags
 from tensorflow import keras
-from keras_cv.callbacks import PyCOCOCallback
 
 import keras_cv
+from keras_cv.callbacks import PyCOCOCallback
 
 low, high = resource.getrlimit(resource.RLIMIT_NOFILE)
 resource.setrlimit(resource.RLIMIT_NOFILE, (high, high))
