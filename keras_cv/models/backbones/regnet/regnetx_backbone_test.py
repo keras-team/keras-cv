@@ -12,54 +12,153 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 
 import tensorflow as tf
 from absl.testing import parameterized
+from tensorflow import keras
 
-from keras_cv.models.backbones.regnet import regnet
-from keras_cv.models.models_test import ModelsTest
-
-MODEL_LIST = [
-    (regnet.RegNetX002, 368, {}),
-]
-
-"""
-Below are other configurations that we omit from our CI but that can/should
-be tested manually when making changes to this model.
-(regnet.RegNetX004, 384, {}),
-(regnet.RegNetX006, 528, {}),
-(regnet.RegNetX008, 672, {}),
-(regnet.RegNetX016, 912, {}),
-(regnet.RegNetX032, 1008, {}),
-(regnet.RegNetX040, 1360, {}),
-(regnet.RegNetX064, 1624, {}),
-(regnet.RegNetX080, 1920, {}),
-(regnet.RegNetX120, 2240, {}),
-(regnet.RegNetX160, 2048, {}),
-(regnet.RegNetX320, 2520, {}),
-"""
+from keras_cv.models.backbones.regnet.regnet_backbone import RegNetBackBone
+from keras_cv.models.backbones.regnet.regnet_backbone import RegNetX002Backbone
+from keras_cv.models.backbones.regnet.regnet_backbone import RegNetX004Backbone
+from keras_cv.models.backbones.regnet.regnet_backbone import RegNetX006Backbone
+from keras_cv.models.backbones.regnet.regnet_backbone import RegNetX008Backbone
+from keras_cv.models.backbones.regnet.regnet_backbone import RegNetX016Backbone
+from keras_cv.models.backbones.regnet.regnet_backbone import RegNetX032Backbone
+from keras_cv.models.backbones.regnet.regnet_backbone import RegNetX040Backbone
+from keras_cv.models.backbones.regnet.regnet_backbone import RegNetX064Backbone
+from keras_cv.models.backbones.regnet.regnet_backbone import RegNetX080Backbone
+from keras_cv.models.backbones.regnet.regnet_backbone import RegNetX120Backbone
+from keras_cv.models.backbones.regnet.regnet_backbone import RegNetX160Backbone
+from keras_cv.models.backbones.regnet.regnet_backbone import RegNetX320Backbone
 
 
-class RegNetXTest(ModelsTest, tf.test.TestCase, parameterized.TestCase):
-    @parameterized.parameters(*MODEL_LIST)
-    def test_application_base(self, app, _, args):
-        super()._test_application_base(app, _, args)
+class RegNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
+    def setUp(self):
+        self.input_batch = tf.ones(shape=(2, 224, 224, 3))
 
-    @parameterized.parameters(*MODEL_LIST)
-    def test_application_with_rescaling(self, app, last_dim, args):
-        super()._test_application_with_rescaling(app, last_dim, args)
+    def test_valid_call(self):
+        model = RegNetBackBone(
+            depths=[1, 1, 4, 7],
+            widths=[24, 56, 152, 368],
+            group_width=8,
+            default_size=224,
+            include_rescaling=False,
+        )
+        model(self.input_batch)
 
-    @parameterized.parameters(*MODEL_LIST)
-    def test_application_pooling(self, app, last_dim, args):
-        super()._test_application_pooling(app, last_dim, args)
+    def test_valid_call_applications_model(self):
+        model = RegNetX002Backbone()
+        model(self.input_batch)
 
-    @parameterized.parameters(*MODEL_LIST)
-    def test_application_variable_input_channels(self, app, last_dim, args):
-        super()._test_application_variable_input_channels(app, last_dim, args)
+    def test_valid_call_with_rescaling(self):
+        model = RegNetBackBone(
+            depths=[1, 1, 4, 7],
+            widths=[24, 56, 152, 368],
+            group_width=8,
+            default_size=224,
+            include_rescaling=True,
+        )
+        model(self.input_batch)
 
-    @parameterized.parameters(*MODEL_LIST)
-    def test_model_can_be_used_as_backbone(self, app, last_dim, args):
-        super()._test_model_can_be_used_as_backbone(app, last_dim, args)
+    @parameterized.named_parameters(
+        ("tf_format", "tf", "model"),
+        ("keras_format", "keras_v3", "model.keras"),
+    )
+    def test_saved_model(self, save_format, filename):
+        model = RegNetBackBone(
+            depths=[1, 1, 4, 7],
+            widths=[24, 56, 152, 368],
+            group_width=8,
+            default_size=224,
+            include_rescaling=False,
+        )
+        model_output = model(self.input_batch)
+        save_path = os.path.join(self.get_temp_dir(), filename)
+        model.save(save_path, save_format=save_format)
+        restored_model = keras.models.load_model(save_path)
+
+        # Check we got the real object back.
+        self.assertIsInstance(restored_model, RegNetBackBone)
+
+        # Check that output matches.
+        restored_output = restored_model(self.input_batch)
+        self.assertAllClose(model_output, restored_output)
+
+    @parameterized.named_parameters(
+        ("tf_format", "tf", "model"),
+        ("keras_format", "keras_v3", "model.keras"),
+    )
+    def test_saved_alias_model(self, save_format, filename):
+        model = RegNetX002Backbone()
+        model_output = model(self.input_batch)
+        save_path = os.path.join(self.get_temp_dir(), filename)
+        model.save(save_path, save_format=save_format)
+        restored_model = keras.models.load_model(save_path)
+
+        # Check we got the real object back.
+        # Note that these aliases serialized as the base class
+        self.assertIsInstance(restored_model, RegNetBackBone)
+
+        # Check that output matches.
+        restored_output = restored_model(self.input_batch)
+        self.assertAllClose(model_output, restored_output)
+
+    def test_model_backbone_layer_names_stability(self):
+        model = RegNetBackBone(
+            depths=[1, 1, 4, 7],
+            widths=[24, 56, 152, 368],
+            group_width=8,
+            default_size=224,
+            include_rescaling=False,
+        )
+        model_2 = RegNetBackBone(
+            depths=[1, 1, 4, 7],
+            widths=[24, 56, 152, 368],
+            group_width=8,
+            default_size=224,
+            include_rescaling=False,
+        )
+        layers_1 = model.layers
+        layers_2 = model_2.layers
+        for i in range(len(layers_1)):
+            if "input" in layers_1[i].name:
+                continue
+            self.assertEquals(layers_1[i].name, layers_2[i].name)
+
+    @parameterized.named_parameters(
+        ("one_channel", 1),
+        ("four_channels", 4),
+    )
+    def test_application_variable_input_channels(self, num_channels):
+        # RegNetX002 model
+        model = RegNetBackBone(
+            depths=[1, 1, 4, 7],
+            widths=[24, 56, 152, 368],
+            group_width=8,
+            default_size=224,
+            input_shape=(None, None, num_channels),
+            include_rescaling=False,
+        )
+        self.assertEqual(model.output_shape, (None, None, None, 2048))
+
+    @parameterized.named_parameters(
+        ("x002", RegNetX002Backbone),
+        ("x004", RegNetX004Backbone),
+        ("x006", RegNetX006Backbone),
+        ("x008", RegNetX008Backbone),
+        ("x016", RegNetX016Backbone),
+        ("x032", RegNetX032Backbone),
+        ("x040", RegNetX040Backbone),
+        ("x064", RegNetX064Backbone),
+        ("x080", RegNetX080Backbone),
+        ("x120", RegNetX120Backbone),
+        ("x160", RegNetX160Backbone),
+        ("x320", RegNetX320Backbone),
+    )
+    def test_specific_arch_forward_pass(self, arch_class):
+        backbone = arch_class()
+        backbone(tf.random.uniform(shape=[2, 256, 256, 3]))
 
 
 if __name__ == "__main__":
