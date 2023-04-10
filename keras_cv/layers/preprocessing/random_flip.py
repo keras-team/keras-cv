@@ -184,20 +184,6 @@ class RandomFlip(VectorizedBaseImageAugmentationLayer):
     ):
         return self._flip_images(segmentation_masks, transformations)
 
-    def _get_image_shape(self, images):
-        if isinstance(images, tf.RaggedTensor):
-            heights = tf.reshape(images.row_lengths(), (-1, 1))
-            widths = tf.reshape(
-                tf.reduce_max(images.row_lengths(axis=2), 1), (-1, 1)
-            )
-        else:
-            batch_size = tf.shape(images)[0]
-            heights = tf.repeat(tf.shape(images)[H_AXIS], repeats=[batch_size])
-            heights = tf.reshape(heights, shape=(-1, 1))
-            widths = tf.repeat(tf.shape(images)[W_AXIS], repeats=[batch_size])
-            widths = tf.reshape(widths, shape=(-1, 1))
-        return tf.cast(heights, dtype=tf.int32), tf.cast(widths, dtype=tf.int32)
-
     def _flip_images(self, images, transformations):
         batch_size = tf.shape(images)[0]
         height, width = tf.shape(images)[1], tf.shape(images)[2]
