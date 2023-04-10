@@ -529,6 +529,16 @@ class RetinaNet(Task):
                 metrics[metric.name] = result
         return metrics
 
+    @classmethod
+    def from_config(cls, config):
+        config["backbone"] = keras.utils.deserialize_keras_object(
+            config["backbone"]
+        )
+        config["classification_head"] = keras.utils.deserialize_keras_object(
+            config["classification_head"]
+        )
+        return super().from_config(config)
+
     def get_config(self):
         return {
             "num_classes": self.num_classes,
