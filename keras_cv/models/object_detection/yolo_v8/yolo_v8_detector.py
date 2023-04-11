@@ -24,9 +24,6 @@ from keras_cv.models.backbones.backbone_presets import (
     backbone_presets_with_weights,
 )
 from keras_cv.models.object_detection import predict_utils
-from keras_cv.models.object_detection.yolo_v8.compat_anchor_generation import (
-    get_anchors,
-)
 from keras_cv.models.object_detection.yolo_v8.yolo_v8_detector_presets import (
     yolo_v8_detector_presets,
 )
@@ -37,6 +34,43 @@ from keras_cv.models.object_detection.yolo_v8.yolo_v8_layers import (
 from keras_cv.models.task import Task
 from keras_cv.utils.python_utils import classproperty
 from keras_cv.utils.train import get_feature_extractor
+
+
+def get_anchors(
+    image_shape=(512, 512, 3),
+    strides=[8, 16, 32],
+    base_anchors=[-0.5, -0.5, 0.5, 0.5],
+):
+    base_anchors = tf.constant(base_anchors, dtype=tf.float32)
+
+    all_anchors = []
+    for stride in strides:
+        top, left = (stride / 2, stride / 2)
+        hh_centers = tf.range(top, image_shape[0], stride)
+        ww_centers = tf.range(left, image_shape[1], stride)
+        ww_grid, hh_grid = tf.meshgrid(ww_centers, hh_centers)
+        grid = tf.cast(
+            tf.reshape(
+                tf.stack([hh_grid, ww_grid, hh_grid, ww_grid], 2), [-1, 1, 4]
+            ),
+            tf.float32,
+        )
+        anchors = (
+            tf.expand_dims(base_anchors * [stride, stride, stride, stride], 0)
+            + grid
+        )
+        anchors = tf.reshape(anchors, [-1, 4])
+        all_anchors.append(anchors)
+
+    all_anchors = tf.concat(all_anchors, axis=0)
+    all_anchors = bounding_box.convert_format(
+        all_anchors,
+        source="yxyx",
+        target="rel_yxyx",
+        image_shape=list(image_shape),
+    )
+
+    return tf.cast(all_anchors, tf.float32)
 
 
 def path_aggregation_fpn(features, depth=3, name=None):
