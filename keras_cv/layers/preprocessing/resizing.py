@@ -20,6 +20,7 @@ from keras_cv import bounding_box
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
+from random_affine_transf import process_segmentation_masks
 
 H_AXIS = -3
 W_AXIS = -2
@@ -169,6 +170,12 @@ class Resizing(BaseImageAugmentationLayer):
 
         inputs["images"] = images
         return inputs
+    
+    def _mod_image(self, images, size):
+        return tf.image.pad_to_bounding_box(tf.image.resize(images,
+                                            size=size,
+                                            method=self._interpolation_method
+                                            ), 0, 0, self.height, self.width)
 
     def _resize_with_pad(self, inputs):
         def resize_single_with_pad_to_aspect(x):
@@ -203,40 +210,8 @@ class Resizing(BaseImageAugmentationLayer):
                 if isinstance(segmentation_masks, tf.RaggedTensor):
                     segmentation_masks = segmentation_masks.to_tensor()
                 
-                if self.segmentation_classes:
-                    one_hot_mask = tf.one_hot(
-                        tf.squeeze(segmentation_masks, axis=-1),
-                        self.segmentation_classes,
-                    )
-                    one_hot_mask = tf.image.resize(
-                        one_hot_mask,
-                        size=(target_height, target_width),
-                        method=self._interpolation_method,
-                    )
-                    one_hot_mask = tf.image.pad_to_bounding_box(
-                        one_hot_mask, 0, 0, self.height, self.width
-                    )
-                    segmentation_masks = tf.argmax(one_hot_mask, axis=-1)
-                    x["segmentation_masks"] = tf.expand_dims(segmentation_masks, axis=-1)
-                else:
-                    if segmentation_masks.shape[-1] == 1:
-                        raise ValueError(
-                            "Segmentation masks must be one-hot encoded, or "
-                            "RandomRotate must be initialized with "
-                            "`segmentation_classes`. `segmentation_classes` was not "
-                            f"specified, and mask has shape {segmentation_mask.shape}"
-                        )
-                    segmentation_masks = tf.image.resize(
-                        segmentation_masks,
-                        size=(target_height, target_width),
-                        method=self._interpolation_method,
-                    )
-                    segmentation_masks = tf.image.pad_to_bounding_box(
-                        segmentation_masks, 0, 0, self.height, self.width
-                    )
-                    # Round because we are in one-hot encoding, and we may have
-                    # pixels with ambugious value due to floating point math for rotation.
-                    x["segmentation_masks"] = tf.round(segmentation_masks)
+                x["segmentation_masks"] = process_segmentation_masks(segmentation_masks,
+                        self.segmentation_classes, self._mod_image, size=(target_height, target_width))
             
             if bounding_boxes is not None:
                 bounding_boxes = bounding_box.to_dense(bounding_boxes)
