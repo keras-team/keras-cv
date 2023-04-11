@@ -33,7 +33,8 @@ class YoloXLabelEncoderTest(tf.test.TestCase):
 
         with self.assertRaisesRegexp(
             ValueError,
-            "method does not support RaggedTensor inputs for the `images` argument.",
+            "method does not support RaggedTensor inputs for the `images` "
+            "argument.",
         ):
             layer(images, box_labels)
 

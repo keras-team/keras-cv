@@ -23,18 +23,19 @@ from keras_cv import bounding_box
 class YoloXPredictionDecoder(keras.layers.Layer):
     """Decodes the predictions from YoloX head.
 
-    This layer is similar to the decoding code in `YoloX.compute_losses`. This is
-    followed by a bounding box suppression layer.
+    This layer is similar to the decoding code in `YoloX.compute_losses`. This
+    is followed by a bounding box suppression layer.
 
     Arguments:
-        bounding_box_format:  The format of bounding boxes of input dataset. Refer
-            [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
+        bounding_box_format:  The format of bounding boxes of input dataset.
+            Refer to https://keras.io/api/keras_cv/bounding_box/formats/
             for more details on supported bounding box formats.
-        num_classes: The number of classes to be considered for the classification head.
+        num_classes: The number of classes to be considered for the
+            classification head.
         suppression_layer: A `keras.layers.Layer` that follows the same API
-            signature of the `keras_cv.layers.MultiClassNonMaxSuppression` layer.
-            This layer should perform a suppression operation such as Non Max Suppression,
-            or Soft Non-Max Suppression.
+            signature of the `keras_cv.layers.MultiClassNonMaxSuppression`
+            layer. This layer should perform a suppression operation such as Non
+            Max Suppression, or Soft Non-Max Suppression.
     """
 
     def __init__(
@@ -63,7 +64,8 @@ class YoloXPredictionDecoder(keras.layers.Layer):
                 "`suppression_layer` must have the same `bounding_box_format` "
                 "as the `YoloXPredictionDecoder()` layer. "
                 "Received `YoloXPredictionDecoder.bounding_box_format="
-                f"{self.bounding_box_format}`, `suppression_layer={suppression_layer}`."
+                f"{self.bounding_box_format}`, "
+                f"`suppression_layer={suppression_layer}`."
             )
         self.built = True
 
@@ -79,7 +81,8 @@ class YoloXPredictionDecoder(keras.layers.Layer):
 
         # 5 + self.num_classes is a concatenation of bounding boxes (length=4)
         # + objectness score (length=1) + num_classes
-        # this reshape is simply collapsing axes 1 and 2 of x into a single dimension
+        # this reshape is simply collapsing axes 1 and 2 of x into a single
+        # dimension
         predictions = [
             tf.reshape(x, [batch_size, -1, 5 + self.num_classes])
             for x in predictions
