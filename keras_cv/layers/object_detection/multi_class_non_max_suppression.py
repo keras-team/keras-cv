@@ -33,7 +33,7 @@ class MultiClassNonMaxSuppression(keras.layers.Layer):
         IoU threshold for two boxes to be considered same for suppression.
         Defaults to 0.5.
       confidence_threshold: a float value in the range [0, 1]. All boxes with
-        confidence below this value will be discarded, defaults to 0.9.
+        confidence below this value will be discarded, defaults to 0.5.
       max_detections: the maximum detections to consider after nms is applied. A
         large number may trigger significant memory overhead, defaults to 100.
       max_detections_per_class: the maximum detections to consider per class
@@ -45,7 +45,7 @@ class MultiClassNonMaxSuppression(keras.layers.Layer):
         bounding_box_format,
         from_logits,
         iou_threshold=0.5,
-        confidence_threshold=0.9,
+        confidence_threshold=0.5,
         max_detections=100,
         max_detections_per_class=100,
         **kwargs,
