@@ -30,15 +30,17 @@ class YoloXLabelEncoder(layers.Layer):
         if isinstance(images, tf.RaggedTensor):
             raise ValueError(
                 "`YoloXLabelEncoder`'s `call()` method does not "
-                "support RaggedTensor inputs for the `images` argument.  Received "
-                f"`type(images)={type(images)}`."
+                "support RaggedTensor inputs for the `images` argument. "
+                f"Received `type(images)={type(images)}`."
             )
 
         if box_labels["classes"].get_shape().rank != 2:
             raise ValueError(
                 "`YoloXLabelEncoder`'s `call()` method expects a label encoded "
-                "`box_labels['classes']` argument of shape `(batch_size, num_boxes)`. "
-                f"`Received box_labels['classes'].shape={box_labels['classes'].shape}`."
+                "`box_labels['classes']` argument of shape "
+                "`(batch_size, num_boxes)`. "
+                "`Received box_labels['classes'].shape="
+                f"{box_labels['classes'].shape}`."
             )
 
         box_labels = bounding_box.to_dense(box_labels)

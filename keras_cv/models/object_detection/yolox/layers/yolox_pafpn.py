@@ -23,21 +23,24 @@ from keras_cv.models.__internal__.darknet_utils import DarknetConvBlockDepthwise
 class YoloXPAFPN(keras.layers.Layer):
     """The YoloX PAFPN.
 
-    YoloX PAFPN is an FPN layer used in YoloX models. The YoloX PAFPN is based on the
-    feature pyramid module used in Path Aggregation networks (PANet).
+    YoloX PAFPN is an FPN layer used in YoloX models. The YoloX PAFPN is based
+    on the feature pyramid module used in Path Aggregation networks (PANet).
 
     Arguments:
-        depth_multiplier: A float value used to calculate the base depth of the model
-            this changes based on the detection model being used. Defaults to 1.0.
-        width_multiplier: A float value used to calculate the base width of the model
-            this changes based on the detection model being used. Defaults to 1.0.
-        in_channels: A list representing the number of filters in the FPN output.
-            The length of the list will be same as the number of outputs. Defaults to
-            (256, 512, 1024).
-        use_depthwise: a boolean value used to decide whether a depthwise conv block
-            should be used over a regular darknet block. Defaults to False.
-        activation: the activation applied after the BatchNorm layer. One of "silu",
-            "relu" or "leaky_relu". Defaults to "silu".
+        depth_multiplier: A float value used to calculate the base depth of the
+            model this changes based on the detection model being used. Defaults
+            to 1.0.
+        width_multiplier: A float value used to calculate the base width of the
+            model this changes based on the detection model being used. Defaults
+            to 1.0.
+        in_channels: A list representing the number of filters in the FPN
+            output. The length of the list will be same as the number of
+            outputs. Defaults to `(256, 512, 1024)`.
+        use_depthwise: a boolean value used to decide whether a depthwise conv
+            block should be used over a regular darknet block. Defaults to
+            `False`.
+        activation: the activation applied after the BatchNorm layer. One of
+            `"silu"`, `"relu"` or `"leaky_relu"`. Defaults to `"silu"`.
     """
 
     def __init__(
