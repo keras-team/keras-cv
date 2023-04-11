@@ -164,27 +164,22 @@ class BaseAugmentationLayer3D(keras.__internal__.layers.BaseRandomLayer):
         """
         return None
 
-    def call(self, inputs, training=True):
-        if training:
-            point_clouds = inputs[POINT_CLOUDS]
-            bounding_boxes = inputs[BOUNDING_BOXES]
-            if point_clouds.shape.rank == 3 and bounding_boxes.shape.rank == 3:
-                return self._augment(inputs)
-            elif (
-                point_clouds.shape.rank == 4 and bounding_boxes.shape.rank == 4
-            ):
-                return self._batch_augment(inputs)
-            else:
-                raise ValueError(
-                    "Point clouds augmentation layers are expecting inputs "
-                    "point clouds and bounding boxes to be rank 3D (Frame, "
-                    "Point, Feature) or 4D (Batch, Frame, Point, Feature) "
-                    "tensors. Got shape: {} and {}".format(
-                        point_clouds.shape, bounding_boxes.shape
-                    )
-                )
+    def call(self, inputs):
+        point_clouds = inputs[POINT_CLOUDS]
+        bounding_boxes = inputs[BOUNDING_BOXES]
+        if point_clouds.shape.rank == 3 and bounding_boxes.shape.rank == 3:
+            return self._augment(inputs)
+        elif point_clouds.shape.rank == 4 and bounding_boxes.shape.rank == 4:
+            return self._batch_augment(inputs)
         else:
-            return inputs
+            raise ValueError(
+                "Point clouds augmentation layers are expecting inputs "
+                "point clouds and bounding boxes to be rank 3D (Frame, Point, "
+                "Feature) or 4D (Batch, Frame, Point, Feature) tensors. Got "
+                "shape: {} and {}".format(
+                    point_clouds.shape, bounding_boxes.shape
+                )
+            )
 
     def _augment(self, inputs):
         point_clouds = inputs.get(POINT_CLOUDS, None)

@@ -29,9 +29,7 @@ class GlobalRandomScaling(base_augmentation_layer_3d.BaseAugmentationLayer3D):
 
     This layer will randomly scale the whole scene along the  X, Y, and Z axes
     based on a randomly sampled scaling factor between [min_scaling_factor,
-    max_scaling_factor] following a uniform distribution. During inference time,
-    the output will be identical to input. Call the layer with `training=True`
-    to scale the input.
+    max_scaling_factor] following a uniform distribution.
 
     Input shape:
       point_clouds: 3D (multi frames) float32 Tensor with shape
