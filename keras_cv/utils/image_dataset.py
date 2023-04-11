@@ -593,8 +593,8 @@ def image_objdetect_dataset_from_dataframe(
         dataframe[colname_class] = [class_names.index(_) for _ in dataframe[colname_class]]
         num_classes = len(class_names)
         for index_class, name_class in enumerate(class_names):
-            num_img = np.sum(dataframe[colname_class]==index_class)
-            print(f"For class '{name_class}', there are {num_img} images.", flush=True)
+            num_boxes = np.sum(dataframe[colname_class]==index_class)
+            print(f"For class '{name_class}', there are {num_boxes} boxes.", flush=True)
     elif class_names:
         raise ValueError(
             'You can only pass `class_names` if '

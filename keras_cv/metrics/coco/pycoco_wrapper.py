@@ -233,3 +233,52 @@ def compute_pycoco_metrics(groundtruths, predictions):
         metrics_dict[name] = metrics[i].astype(np.float32)
 
     return metrics_dict
+
+
+def compute_dataset_pycoco_metrics(model, dataset, bounding_box_format):
+    from tdqm import tqdm
+    index_source = 0
+    
+    ground_truth = {}
+    ground_truth["source_id"] = list()
+    ground_truth["height"] = list()
+    ground_truth["width"] = list()
+    ground_truth["num_detections"] = list()
+    ground_truth["boxes"] = list()
+    ground_truth["classes"] = list()
+
+    predictions = {}
+    predictions["source_id"] = list()
+    predictions["detection_boxes"] = list()
+    predictions["detection_classes"] = list()
+    predictions["detection_scores"] = list()
+    predictions["num_detections"] = list()
+        
+    for imges, gt_boxes in tqdm(dataset):
+        boxes_pred = model.predict(imges)
+        boxes_pred = {k: tf.convert_to_tensor(boxes_pred[k]) for k in boxes_pred}
+        
+        gt_boxes = bounding_box.convert_format(
+            gt_boxes, source=bounding_box_format, target="yxyx"
+        )
+        boxes_pred = bounding_box.convert_format(
+            boxes_pred, source=bounding_box_format, target="yxyx"
+        )
+        
+        for index_0 in range(len(imges)):
+            index_source = index_source+1
+            ground_truth["source_id"].append(index_source)
+            ground_truth["height"].append(imges[index_0].shape[-3])
+            ground_truth["width"].append(imges[index_0].shape[-2])
+            ground_truth["num_detections"].append(len(gt_boxes["boxes"][index_0]))
+            ground_truth["boxes"].append(gt_boxes["boxes"][index_0])
+            ground_truth["classes"].append(gt_classes["classes"][index_0])
+
+            predictions["source_id"].append(index_source)
+            predictions["detection_boxes"].append(boxes_pred["boxes"][index_0])
+            predictions["detection_classes"].append(boxes_pred["classes"][index_0])
+            predictions["detection_scores"].append(boxes_pred["confidence"][index_0])
+            predictions["num_detections"].append(boxes_pred["num_detections"][index_0])
+            
+    return compute_pycoco_metrics(ground_truth, predictions)
+    
