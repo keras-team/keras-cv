@@ -51,10 +51,17 @@ class RandomCrop(BaseImageAugmentationLayer):
       height: Integer, the height of the output shape.
       width: Integer, the width of the output shape.
       seed: Integer. Used to create a random seed.
+      bounding_box_format: The format of bounding boxes of input dataset. Refer
+        https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box/converters.py
+        for more details on supported bounding box formats.
+      segmentation_classes: an optional integer with the number of classes in
+        the input segmentation mask. Required iff augmenting data with sparse
+        (non one-hot) segmentation masks. Include the background class in this
+        count (e.g. for segmenting dog vs background, this should be set to 2).
     """
 
     def __init__(
-        self, height, width, seed=None, bounding_box_format=None, **kwargs
+        self, height, width, seed=None, bounding_box_format=None, segmentation_classes=None, **kwargs
     ):
         super().__init__(
             **kwargs, autocast=False, seed=seed, force_generator=True
@@ -64,6 +71,7 @@ class RandomCrop(BaseImageAugmentationLayer):
         self.seed = seed
         self.auto_vectorize = False
         self.bounding_box_format = bounding_box_format
+        self.segmentation_classes = segmentation_classes
 
     def get_random_transformation(self, image=None, **kwargs):
         image_shape = tf.shape(image)
@@ -189,6 +197,7 @@ class RandomCrop(BaseImageAugmentationLayer):
             "width": self.width,
             "seed": self.seed,
             "bounding_box_format": self.bounding_box_format,
+            "segmentation_classes": self.segmentation_classes,
         }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
