@@ -20,6 +20,7 @@ from keras_cv import bounding_box
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
+from random_affine_transf import process_segmentation_masks
 
 # In order to support both unbatched and batched inputs, the horizontal
 # and verticle axis is reverse indexed
@@ -68,6 +69,9 @@ class CentralCrop(BaseImageAugmentationLayer):
         return {"top": h_start, "left": w_start}
 
     def augment_image(self, image, transformation, **kwargs):
+        return self._crop_image(image, transformation)
+    
+    def _crop_image(self, image, transformation):
         image_shape = tf.shape(image)
         h_diff = image_shape[H_AXIS] - self.height
         w_diff = image_shape[W_AXIS] - self.width
@@ -126,6 +130,12 @@ class CentralCrop(BaseImageAugmentationLayer):
         )
         return bounding_boxes
 
+    def augment_segmentation_mask(
+        self, segmentation_mask, transformation, **kwargs
+    ):
+        return process_segmentation_masks(segmentation_mask, segmentation_classes,
+                                   self._crop_image, transformation=transformation)
+    
     def _crop(self, image, transformation):
         top = transformation["top"]
         left = transformation["left"]

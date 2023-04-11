@@ -29,6 +29,32 @@ H_AXIS = -3
 W_AXIS = -2
 
 
+def process_segmentation_masks(segmentation_masks, segmentation_classes, function, **kwargs):
+    if segmentation_classes<2:
+        # If segmentation_classes less than 2, we have a binary segmentation mask.
+        segmentation_masks = function(segmentation_masks, **kwargs)
+        return segmentation_masks
+    elif segmentation_classes:
+        # If segmentation_classes is specified, we have a int segmentation mask.
+        segmentation_masks = tf.one_hot(segmentation_masks, segmentation_classes)
+        segmentation_masks = function(segmentation_masks, **kwargs)
+        segmentation_masks = tf.argmax(segmentation_masks, axis=-1)
+        return segmentation_masks
+    else:
+        # We therefore one-hot encode before trasformation to avoid bad interpolation
+        # during the transformation transformation. We then make the mask sparse
+        # again using tf.argmax.
+        if segmentation_masks.shape[-1] == 1:
+            raise ValueError(
+                "Segmentation masks must be one-hot encoded, or "
+                "RandomOperations must be initialized with "
+                "`segmentation_classes`. `segmentation_classes` was not "
+                f"specified, and mask has shape {segmentation_mask.shape}"
+            )
+        segmentation_masks = function(segmentation_masks, **kwargs)
+        # Round because we are in one-hot encoding, and we may have
+        # pixels with ambugious value due to floating point math for rotation.
+        return tf.round(segmentation_masks)
 
 def get_range(x, name, center=0.0):
     if isinstance(x, (float, int)):
@@ -273,33 +299,9 @@ class RandomAffineTransf(VectorizedBaseImageAugmentationLayer):
     def augment_segmentation_masks(
         self, segmentation_masks, transformations, **kwargs
     ):
-        # If segmentation_classes is specified, we have a dense segmentation mask.
-        # We therefore one-hot encode before rotation to avoid bad interpolation
-        # during the rotation transformation. We then make the mask sparse
-        # again using tf.argmax.
-        if self.segmentation_classes:
-            segmentation_masks = tf.one_hot(
-                tf.squeeze(segmentation_masks, axis=-1),
-                self.segmentation_classes,
-            )
-            segmentation_masks = self._mod_images(
-                segmentation_masks, transformations
-            )
-            segmentation_masks = tf.argmax(segmentation_masks, axis=-1)
-            return tf.expand_dims(segmentation_masks, axis=-1)
-        else:
-            if segmentation_masks.shape[-1] == 1:
-                raise ValueError(
-                    "Segmentation masks must be one-hot encoded, or "
-                    "RandomOperations must be initialized with "
-                    "`segmentation_classes`. `segmentation_classes` was not "
-                    f"specified, and mask has shape {segmentation_mask.shape}"
-                )
-            segmentation_masks = self._mod_images(segmentation_masks, transformations)
-            # Round because we are in one-hot encoding, and we may have
-            # pixels with ambugious value due to floating point math for rotation.
-            return tf.round(segmentation_masks)
-
+        return process_segmentation_masks(segmentation_masks, self.segmentation_classes,
+                                          self._mod_images, transformations=transformations)
+    
     def augment_bounding_boxes(
         self, bounding_boxes, transformations, images=None, **kwargs
     ):

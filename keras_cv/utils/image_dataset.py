@@ -97,7 +97,10 @@ def _load_map_np(path):
 def _load_map(path, class_mode, num_classes):
     y = tf.numpy_function(_load_map_np, [path,], Tout=tf.int64)
     y.set_shape([None, None])
-    if class_mode=='categorical':
+    if class_mode=='binary':
+        y = tf.cast(y, tf.float32)/255.0
+        y = tf.expand_dims(y, -1)
+    elif class_mode=='categorical':
         y = tf.one_hot(y, num_classes)
     return y
     

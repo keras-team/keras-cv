@@ -20,6 +20,7 @@ from keras_cv import bounding_box
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
+from random_affine_transf import process_segmentation_masks
 
 # In order to support both unbatched and batched inputs, the horizontal
 # and verticle axis is reverse indexed
@@ -148,32 +149,8 @@ class RandomCrop(BaseImageAugmentationLayer):
     def augment_segmentation_mask(
         self, segmentation_mask, transformation, **kwargs
     ):
-        # If segmentation_classes is specified, we have a dense segmentation mask.
-        # We therefore one-hot encode before rotation to avoid bad interpolation
-        # during the rotation transformation. We then make the mask sparse
-        # again using tf.argmax.
-        if self.segmentation_classes:
-            one_hot_mask = tf.one_hot(
-                tf.squeeze(segmentation_mask, axis=-1),
-                self.segmentation_classes,
-            )
-            one_hot_mask = self._crop_image(
-                one_hot_mask, transformation
-            )
-            one_hot_mask = tf.argmax(one_hot_mask, axis=-1)
-            return tf.expand_dims(one_hot_mask, axis=-1)
-        else:
-            if segmentation_mask.shape[-1] == 1:
-                raise ValueError(
-                    "Segmentation masks must be one-hot encoded, or "
-                    "RandomRotate must be initialized with "
-                    "`segmentation_classes`. `segmentation_classes` was not "
-                    f"specified, and mask has shape {segmentation_mask.shape}"
-                )
-            segmentation_mask = self._crop_image(segmentation_mask, transformation)
-            # Round because we are in one-hot encoding, and we may have
-            # pixels with ambugious value due to floating point math for rotation.
-            return tf.round(segmentation_mask)
+        return process_segmentation_masks(segmentation_mask, segmentation_classes,
+                                   self._crop_image, transformation=transformation)
         
     def _crop(self, image, transformation):
         top = transformation["top"]
