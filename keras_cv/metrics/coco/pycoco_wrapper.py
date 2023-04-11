@@ -236,7 +236,7 @@ def compute_pycoco_metrics(groundtruths, predictions):
 
 
 def compute_dataset_pycoco_metrics(model, dataset, bounding_box_format):
-    from tdqm import tqdm
+    from tqdm import tqdm
     index_source = 0
     
     ground_truth = {}
