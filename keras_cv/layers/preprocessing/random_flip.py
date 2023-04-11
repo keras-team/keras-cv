@@ -66,7 +66,7 @@ class RandomFlip(VectorizedBaseImageAugmentationLayer):
         rate=0.5,
         seed=None,
         bounding_box_format=None,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(seed=seed, force_generator=True, **kwargs)
         self.mode = mode
@@ -86,6 +86,10 @@ class RandomFlip(VectorizedBaseImageAugmentationLayer):
                 "{arg}".format(name=self.name, arg=mode)
             )
         self.bounding_box_format = bounding_box_format
+        if rate < 0.0 or rate > 1.0:
+            raise ValueError(
+                f"`rate` should be inside of range [0, 1]. Got rate={rate}"
+            )
         self.rate = rate
 
     def get_random_transformation_batch(self, batch_size, **kwargs):
@@ -160,12 +164,12 @@ class RandomFlip(VectorizedBaseImageAugmentationLayer):
         )
 
         boxes = tf.where(
-            flip_horizontals > self.rate,
+            flip_horizontals > (1.0 - self.rate),
             self._flip_boxes_horizontal(boxes),
             boxes,
         )
         boxes = tf.where(
-            flip_verticals > self.rate,
+            flip_verticals > (1.0 - self.rate),
             self._flip_boxes_vertical(boxes),
             boxes,
         )
@@ -209,12 +213,12 @@ class RandomFlip(VectorizedBaseImageAugmentationLayer):
         )
 
         flipped_outputs = tf.where(
-            flip_horizontals > self.rate,
+            flip_horizontals > (1.0 - self.rate),
             tf.image.flip_left_right(images),
             images,
         )
         flipped_outputs = tf.where(
-            flip_verticals > self.rate,
+            flip_verticals > (1.0 - self.rate),
             tf.image.flip_up_down(flipped_outputs),
             flipped_outputs,
         )
