@@ -39,18 +39,20 @@ class RandomFlip(VectorizedBaseImageAugmentationLayer):
     `mode` attribute.
 
     Input shape:
-      3D (unbatched) or 4D (batched) tensor with shape:
-      `(..., height, width, channels)`, in `"channels_last"` format.
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., height, width, channels)`, in `"channels_last"` format.
 
     Output shape:
-      3D (unbatched) or 4D (batched) tensor with shape:
-      `(..., height, width, channels)`, in `"channels_last"` format.
+        3D (unbatched) or 4D (batched) tensor with shape:
+        `(..., height, width, channels)`, in `"channels_last"` format.
 
     Arguments:
       mode: String indicating which flip mode to use. Can be `"horizontal"`,
         `"vertical"`, or `"horizontal_and_vertical"`, defaults to
         `"horizontal"`. `"horizontal"` is a left-right flip and `"vertical"` is
         a top-bottom flip.
+      rate: A float that controls the frequency of flipping. 1.0 indicates that
+        images are always flipped. 0.0 indicates no flipping. Defaults to 0.5.
       seed: Integer. Used to create a random seed.
       bounding_box_format: The format of bounding boxes of input dataset.
         Refer to
@@ -59,7 +61,12 @@ class RandomFlip(VectorizedBaseImageAugmentationLayer):
     """
 
     def __init__(
-        self, mode=HORIZONTAL, seed=None, bounding_box_format=None, **kwargs
+        self,
+        mode=HORIZONTAL,
+        rate=0.5,
+        seed=None,
+        bounding_box_format=None,
+        **kwargs
     ):
         super().__init__(seed=seed, force_generator=True, **kwargs)
         self.mode = mode
@@ -79,7 +86,7 @@ class RandomFlip(VectorizedBaseImageAugmentationLayer):
                 "{arg}".format(name=self.name, arg=mode)
             )
         self.bounding_box_format = bounding_box_format
-        self.rate = 0.5
+        self.rate = rate
 
     def get_random_transformation_batch(self, batch_size, **kwargs):
         flip_horizontals = tf.zeros(shape=(batch_size, 1))
@@ -227,6 +234,7 @@ class RandomFlip(VectorizedBaseImageAugmentationLayer):
     def get_config(self):
         config = {
             "mode": self.mode,
+            "rate": self.rate,
             "seed": self.seed,
             "bounding_box_format": self.bounding_box_format,
         }
