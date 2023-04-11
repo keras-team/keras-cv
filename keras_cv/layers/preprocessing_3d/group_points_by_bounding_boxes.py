@@ -35,7 +35,6 @@ class GroupPointsByBoundingBoxes(
 
     This layer will group point clouds based on bounding boxes and generate
     OBJECT_POINT_CLOUDS and OBJECT_BOUNDING_BOXES tensors.
-    During inference time, the output will be identical to input.
 
     Input shape:
       point_clouds: 3D (multi frames) float32 Tensor with shape
