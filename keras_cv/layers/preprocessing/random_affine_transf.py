@@ -50,7 +50,7 @@ def get_range(x, name, center=0.0):
 
 @keras.utils.register_keras_serializable(package="keras_cv")
 class RandomAffineTransf(VectorizedBaseImageAugmentationLayer):
-    """A preprocessing layer which randomly apply an affine trasformation during training.
+    """A preprocessing layer which randomly applies an affine trasformation during training.
 
     This layer will apply random affine trasformation to each image, filling empty space
     according to `fill_mode`.
