@@ -20,7 +20,7 @@ from keras_cv import bounding_box
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
-from random_affine_transf import process_segmentation_masks
+from keras_cv.layers.preprocessing.random_affine_transf import process_segmentation_masks
 
 H_AXIS = -3
 W_AXIS = -2
