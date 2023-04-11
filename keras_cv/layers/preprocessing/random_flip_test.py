@@ -91,6 +91,34 @@ class RandomFlipTest(tf.test.TestCase, parameterized.TestCase):
             actual_output = layer(input_images)
             self.assertAllClose(expected_output, actual_output)
 
+    def test_random_flip_low_rate(self):
+        input_images = np.random.random((2, 5, 8, 3)).astype(np.float32)
+        expected_output = input_images
+        # mock_random > 0.5 but no flipping occurs due to low rate
+        mock_random = tf.convert_to_tensor([[0.6], [0.6]])
+        layer = RandomFlip(rate=0.1)
+        with unittest.mock.patch.object(
+            layer._random_generator,
+            "random_uniform",
+            return_value=mock_random,
+        ):
+            actual_output = layer(input_images)
+        self.assertAllClose(expected_output, actual_output)
+
+    def test_random_flip_high_rate(self):
+        input_images = np.random.random((2, 5, 8, 3)).astype(np.float32)
+        expected_output = np.flip(input_images, axis=2)
+        # mock_random is small (0.2) but flipping still occurs due to high rate
+        mock_random = tf.convert_to_tensor([[0.2], [0.2]])
+        layer = RandomFlip(rate=0.9)
+        with unittest.mock.patch.object(
+            layer._random_generator,
+            "random_uniform",
+            return_value=mock_random,
+        ):
+            actual_output = layer(input_images)
+        self.assertAllClose(expected_output, actual_output)
+
     def test_config_with_custom_name(self):
         layer = RandomFlip(name="image_preproc")
         config = layer.get_config()
