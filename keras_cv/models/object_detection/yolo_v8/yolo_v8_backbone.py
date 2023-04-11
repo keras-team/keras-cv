@@ -138,6 +138,22 @@ class YOLOV8Backbone(Backbone):
 
         super().__init__(inputs=inputs, outputs=features, **kwargs)
         self.pyramid_level_inputs = pyramid_level_inputs
+        self.channels = channels
+        self.depths = depths
+        self.include_rescaling = include_rescaling
+
+    def get_config(self):
+        config = super().get_config()
+        config.update(
+            {
+                "include_rescaling": self.include_rescaling,
+                # Remove batch dimension from `input_shape`
+                "input_shape": self.input_shape[1:],
+                "channels": self.channels,
+                "depths": self.depths,
+            }
+        )
+        return config
 
     @classproperty
     def presets(cls):
