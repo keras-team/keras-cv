@@ -18,7 +18,7 @@ BATCH_NORM_EPSILON = 1e-3
 BATCH_NORM_MOMENTUM = 0.97
 
 
-def conv_bn(
+def apply_conv_bn(
     inputs,
     output_channel,
     kernel_size=1,
@@ -31,7 +31,7 @@ def conv_bn(
             padding=kernel_size // 2, name=f"{name}_pad"
         )(inputs)
 
-    nn = layers.Conv2D(
+    x = layers.Conv2D(
         filters=output_channel,
         kernel_size=kernel_size,
         strides=strides,
@@ -39,16 +39,16 @@ def conv_bn(
         use_bias=False,
         name=f"{name}_conv",
     )(inputs)
-    nn = layers.BatchNormalization(
+    x = layers.BatchNormalization(
         momentum=BATCH_NORM_MOMENTUM,
         epsilon=BATCH_NORM_EPSILON,
         name=f"{name}_bn",
-    )(nn)
-    nn = layers.Activation(activation, name=name)(nn)
-    return nn
+    )(x)
+    x = layers.Activation(activation, name=name)(x)
+    return x
 
 
-def csp_with_2_conv(
+def apply_csp_block(
     inputs,
     channels=-1,
     depth=2,
@@ -61,7 +61,7 @@ def csp_with_2_conv(
     channels = channels if channels > 0 else inputs.shape[channel_axis]
     hidden_channels = int(channels * expansion)
 
-    pre = conv_bn(
+    pre = apply_conv_bn(
         inputs,
         hidden_channels * 2,
         kernel_size=1,
@@ -72,14 +72,14 @@ def csp_with_2_conv(
 
     out = [short, deep]
     for id in range(depth):
-        deep = conv_bn(
+        deep = apply_conv_bn(
             deep,
             hidden_channels,
             kernel_size=3,
             activation=activation,
             name=f"{name}_pre_{id}_1",
         )
-        deep = conv_bn(
+        deep = apply_conv_bn(
             deep,
             hidden_channels,
             kernel_size=3,
@@ -89,7 +89,7 @@ def csp_with_2_conv(
         deep = (out[-1] + deep) if shortcut else deep
         out.append(deep)
     out = tf.concat(out, axis=channel_axis)
-    out = conv_bn(
+    out = apply_conv_bn(
         out,
         channels,
         kernel_size=1,

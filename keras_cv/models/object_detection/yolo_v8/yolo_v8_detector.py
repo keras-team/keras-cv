@@ -27,9 +27,11 @@ from keras_cv.models.object_detection import predict_utils
 from keras_cv.models.object_detection.yolo_v8.yolo_v8_detector_presets import (
     yolo_v8_detector_presets,
 )
-from keras_cv.models.object_detection.yolo_v8.yolo_v8_layers import conv_bn
 from keras_cv.models.object_detection.yolo_v8.yolo_v8_layers import (
-    csp_with_2_conv,
+    apply_conv_bn,
+)
+from keras_cv.models.object_detection.yolo_v8.yolo_v8_layers import (
+    apply_csp_block,
 )
 from keras_cv.models.task import Task
 from keras_cv.utils.python_utils import classproperty
@@ -86,26 +88,26 @@ def path_aggregation_fpn(features, depth=3, name=None):
     # upsamples: [p5], features[:-1][::-1]: [p4, p3] -> [p5, p4p5, p3p4p5]
     for id, feature in enumerate(features[:-1][::-1]):
         size = tf.shape(feature)[1:-1]
-        nn = tf.image.resize(upsamples[-1], size, method="nearest")
-        nn = tf.concat([nn, feature], axis=channel_axis)
+        x = tf.image.resize(upsamples[-1], size, method="nearest")
+        x = tf.concat([x, feature], axis=channel_axis)
 
         out_channel = feature.shape[channel_axis]
-        nn = csp_with_2_conv(
-            nn,
+        x = apply_csp_block(
+            x,
             channels=out_channel,
             depth=depth,
             shortcut=False,
             activation="swish",
             name=f"{name}_p{len(features) + 1 - id}",
         )
-        upsamples.append(nn)
+        upsamples.append(x)
 
     downsamples = [upsamples[-1]]
     # downsamples: [p3p4p5], upsamples[:-1][::-1]:
     # [p4p5, p5] -> [p3p4p5, p3p4p5 + p4p5, p3p4p5 + p4p5 + p5]
     for id, ii in enumerate(upsamples[:-1][::-1]):
         cur_name = f"{name}_c3n{id + 3}"
-        nn = conv_bn(
+        x = apply_conv_bn(
             downsamples[-1],
             downsamples[-1].shape[channel_axis],
             kernel_size=3,
@@ -113,18 +115,18 @@ def path_aggregation_fpn(features, depth=3, name=None):
             activation="swish",
             name=f"{cur_name}_down",
         )
-        nn = tf.concat([nn, ii], axis=channel_axis)
+        x = tf.concat([x, ii], axis=channel_axis)
 
         out_channel = ii.shape[channel_axis]
-        nn = csp_with_2_conv(
-            nn,
+        x = apply_csp_block(
+            x,
             channels=out_channel,
             depth=depth,
             shortcut=False,
             activation="swish",
             name=cur_name,
         )
-        downsamples.append(nn)
+        downsamples.append(x)
     return downsamples
 
 
@@ -140,15 +142,15 @@ def yolov8_head(
     for id, feature in enumerate(inputs):
         cur_name = f"{name}_{id+1}"
 
-        reg_nn = conv_bn(
+        reg_x = apply_conv_bn(
             feature,
             reg_channels,
             3,
             activation="swish",
             name=f"{cur_name}_reg_1",
         )
-        reg_nn = conv_bn(
-            reg_nn,
+        reg_x = apply_conv_bn(
+            reg_x,
             reg_channels,
             3,
             activation="swish",
@@ -158,17 +160,17 @@ def yolov8_head(
             filters=bbox_len,
             kernel_size=1,
             name=f"{cur_name}_reg_3_conv",
-        )(reg_nn)
+        )(reg_x)
 
-        cls_nn = conv_bn(
+        cls_x = apply_conv_bn(
             feature,
             cls_channels,
             3,
             activation="swish",
             name=f"{cur_name}_cls_1",
         )
-        cls_nn = conv_bn(
-            cls_nn,
+        cls_x = apply_conv_bn(
+            cls_x,
             cls_channels,
             3,
             activation="swish",
@@ -178,7 +180,7 @@ def yolov8_head(
             filters=num_classes,
             kernel_size=1,
             name=f"{cur_name}_cls_3_conv",
-        )(cls_nn)
+        )(cls_x)
         cls_out = layers.Activation("sigmoid", name=f"{cur_name}_classifier")(
             cls_out
         )

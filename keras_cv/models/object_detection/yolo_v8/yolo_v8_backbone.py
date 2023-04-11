@@ -24,21 +24,23 @@ from keras_cv.models.object_detection.yolo_v8.yolo_v8_backbone_presets import (
 from keras_cv.models.object_detection.yolo_v8.yolo_v8_backbone_presets import (
     backbone_presets_with_weights,
 )
-from keras_cv.models.object_detection.yolo_v8.yolo_v8_layers import conv_bn
 from keras_cv.models.object_detection.yolo_v8.yolo_v8_layers import (
-    csp_with_2_conv,
+    apply_conv_bn,
+)
+from keras_cv.models.object_detection.yolo_v8.yolo_v8_layers import (
+    apply_csp_block,
 )
 from keras_cv.utils.python_utils import classproperty
 
 
-def spatial_pyramid_pooling_fast(
+def apply_spatial_pyramid_pooling_fast(
     inputs, pool_size=5, activation="swish", name=None
 ):
     channel_axis = -1
     input_channels = inputs.shape[channel_axis]
     hidden_channels = int(input_channels // 2)
 
-    nn = conv_bn(
+    nn = apply_conv_bn(
         inputs,
         hidden_channels,
         kernel_size=1,
@@ -56,7 +58,7 @@ def spatial_pyramid_pooling_fast(
     )(pool_2)
 
     out = tf.concat([nn, pool_1, pool_2, pool_3], axis=channel_axis)
-    out = conv_bn(
+    out = apply_conv_bn(
         out,
         input_channels,
         kernel_size=1,
@@ -87,7 +89,7 @@ class YOLOV8Backbone(Backbone):
         """ Stem """
         # stem_width = stem_width if stem_width > 0 else channels[0]
         stem_width = channels[0]
-        nn = conv_bn(
+        x = apply_conv_bn(
             x,
             stem_width // 2,
             kernel_size=3,
@@ -95,8 +97,8 @@ class YOLOV8Backbone(Backbone):
             activation=activation,
             name="stem_1",
         )
-        nn = conv_bn(
-            nn,
+        x = apply_conv_bn(
+            x,
             stem_width,
             kernel_size=3,
             strides=2,
@@ -105,21 +107,20 @@ class YOLOV8Backbone(Backbone):
         )
 
         """ blocks """
-        pyramid_level_inputs = {0: nn.node.layer.name}
-        features = {0: nn}
+        pyramid_level_inputs = {0: x.node.layer.name}
         for stack_id, (channel, depth) in enumerate(zip(channels, depths)):
             stack_name = f"stack{stack_id + 1}"
             if stack_id >= 1:
-                nn = conv_bn(
-                    nn,
+                x = apply_conv_bn(
+                    x,
                     channel,
                     kernel_size=3,
                     strides=2,
                     activation=activation,
                     name=f"{stack_name}_downsample",
                 )
-            nn = csp_with_2_conv(
-                nn,
+            x = apply_csp_block(
+                x,
                 depth=depth,
                 expansion=0.5,
                 activation=activation,
@@ -127,16 +128,15 @@ class YOLOV8Backbone(Backbone):
             )
 
             if stack_id == len(depths) - 1:
-                nn = spatial_pyramid_pooling_fast(
-                    nn,
+                x = apply_spatial_pyramid_pooling_fast(
+                    x,
                     pool_size=5,
                     activation=activation,
                     name=f"{stack_name}_spp_fast",
                 )
-            pyramid_level_inputs[stack_id + 1] = nn.node.layer.name
-            features[stack_id + 1] = nn
+            pyramid_level_inputs[stack_id + 1] = x.node.layer.name
 
-        super().__init__(inputs=inputs, outputs=features, **kwargs)
+        super().__init__(inputs=inputs, outputs=x, **kwargs)
         self.pyramid_level_inputs = pyramid_level_inputs
         self.channels = channels
         self.depths = depths
