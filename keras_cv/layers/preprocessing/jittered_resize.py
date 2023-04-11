@@ -69,7 +69,6 @@ class JitteredResize(VectorizedBaseImageAugmentationLayer):
         seed: (Optional) integer to use as the random seed.
 
     Usage:
-
     ```python
     train_ds = load_object_detection_dataset()
     jittered_resize = layers.JitteredResize(
@@ -192,14 +191,14 @@ class JitteredResize(VectorizedBaseImageAugmentationLayer):
         # unpackage augmentation arguments
         scaled_sizes = transformations["scaled_sizes"]
         offsets = transformations["offsets"]
-        inputs_for_augment_images_fn = {
-            "IMAGES": images,
-            "SCALE_SIZES": scaled_sizes,
-            "OFFSETS": offsets,
+        inputs_for_resize_and_crop_single_image = {
+            "images": images,
+            "scaled_sizes": scaled_sizes,
+            "offsets": offsets,
         }
         scaled_images = tf.map_fn(
-            self._augment_images_fn,
-            inputs_for_augment_images_fn,
+            self.resize_and_crop_single_image,
+            inputs_for_resize_and_crop_single_image,
             fn_output_signature=tf.float32,
         )
         return tf.cast(scaled_images, self.compute_dtype)
@@ -263,10 +262,10 @@ class JitteredResize(VectorizedBaseImageAugmentationLayer):
             widths = tf.reshape(widths, shape=(-1, 1))
         return tf.cast(heights, dtype=tf.int32), tf.cast(widths, dtype=tf.int32)
 
-    def _augment_images_fn(self, inputs):
-        image = inputs.get("IMAGES", None)
-        scaled_size = inputs.get("SCALE_SIZES", None)
-        offset = inputs.get("OFFSETS", None)
+    def resize_and_crop_single_image(self, inputs):
+        image = inputs.get("images", None)
+        scaled_size = inputs.get("scaled_sizes", None)
+        offset = inputs.get("offsets", None)
 
         scaled_image = tf.image.resize(image, tf.cast(scaled_size, tf.int32))
         scaled_image = scaled_image[
@@ -295,8 +294,4 @@ class JitteredResize(VectorizedBaseImageAugmentationLayer):
 
     @classmethod
     def from_config(cls, config):
-        if isinstance(config["scale_factor"], dict):
-            config["scale_factor"] = keras.utils.deserialize_keras_object(
-                config["scale_factor"]
-            )
         return cls(**config)
