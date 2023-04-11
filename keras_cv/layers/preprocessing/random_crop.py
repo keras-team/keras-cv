@@ -149,7 +149,7 @@ class RandomCrop(BaseImageAugmentationLayer):
     def augment_segmentation_mask(
         self, segmentation_mask, transformation, **kwargs
     ):
-        return process_segmentation_masks(segmentation_mask, segmentation_classes,
+        return process_segmentation_masks(segmentation_mask, self.segmentation_classes,
                                    self._crop_image, transformation=transformation)
         
     def _crop(self, image, transformation):

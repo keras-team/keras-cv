@@ -47,10 +47,17 @@ class CentralCrop(BaseImageAugmentationLayer):
     Args:
       height: Integer, the height of the output shape.
       width: Integer, the width of the output shape.
+      bounding_box_format: The format of bounding boxes of input dataset. Refer
+        https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box/converters.py
+        for more details on supported bounding box formats.
+      segmentation_classes: an optional integer with the number of classes in
+        the input segmentation mask. Required iff augmenting data with sparse
+        (non one-hot) segmentation masks. Include the background class in this
+        count (e.g. for segmenting dog vs background, this should be set to 2).
     """
 
     def __init__(
-        self, height, width, bounding_box_format=None, **kwargs
+        self, height, width, bounding_box_format=None, segmentation_classes=None, **kwargs
     ):
         super().__init__(
             **kwargs, autocast=False, force_generator=True
@@ -59,6 +66,7 @@ class CentralCrop(BaseImageAugmentationLayer):
         self.width = width
         self.auto_vectorize = False
         self.bounding_box_format = bounding_box_format
+        self.segmentation_classes = segmentation_classes
 
     def get_random_transformation(self, image=None, **kwargs):
         image_shape = tf.shape(image)
@@ -133,7 +141,7 @@ class CentralCrop(BaseImageAugmentationLayer):
     def augment_segmentation_mask(
         self, segmentation_mask, transformation, **kwargs
     ):
-        return process_segmentation_masks(segmentation_mask, segmentation_classes,
+        return process_segmentation_masks(segmentation_mask, self.segmentation_classes,
                                    self._crop_image, transformation=transformation)
     
     def _crop(self, image, transformation):
@@ -157,6 +165,7 @@ class CentralCrop(BaseImageAugmentationLayer):
             "height": self.height,
             "width": self.width,
             "bounding_box_format": self.bounding_box_format,
+            "segmentation_classes": self.segmentation_classes,
         }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
