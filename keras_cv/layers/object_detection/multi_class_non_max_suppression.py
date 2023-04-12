@@ -25,7 +25,8 @@ class MultiClassNonMaxSuppression(keras.layers.Layer):
 
     Arguments:
       bounding_box_format: The format of bounding boxes of input dataset. Refer
-        [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/) for more details on supported bounding box
+        [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
+        for more details on supported bounding box
         formats.
       from_logits: boolean, True means input score is logits, False means
         confidence.
@@ -59,7 +60,9 @@ class MultiClassNonMaxSuppression(keras.layers.Layer):
         self.max_detections_per_class = max_detections_per_class
         self.built = True
 
-    def call(self, box_prediction, class_prediction, images=None, image_shape=None):
+    def call(
+        self, box_prediction, class_prediction, images=None, image_shape=None
+    ):
         """Accepts images and raw predictions, and returns bounding box
         predictions.
 
@@ -77,7 +80,7 @@ class MultiClassNonMaxSuppression(keras.layers.Layer):
             source=self.bounding_box_format,
             target=target_format,
             images=images,
-            image_shape=image_shape
+            image_shape=image_shape,
         )
         if self.from_logits:
             class_prediction = tf.math.sigmoid(class_prediction)
@@ -102,7 +105,7 @@ class MultiClassNonMaxSuppression(keras.layers.Layer):
             source=target_format,
             target=self.bounding_box_format,
             images=images,
-            image_shape=image_shape
+            image_shape=image_shape,
         )
         bounding_boxes = {
             "boxes": box_prediction,
