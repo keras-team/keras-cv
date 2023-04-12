@@ -31,13 +31,13 @@ W_AXIS = -2
 @keras.utils.register_keras_serializable(package="keras_cv")
 class CentralCrop(BaseImageAugmentationLayer):
     """A preprocessing layer which central crops images during training.
-    During training, The layer will crop all the images at the senter.
-    At inference time, and during training if an input image is smaller than the
-    target size, the input will be resized and cropped so as to return the
-    largest possible window in the image that matches the target aspect ratio.
-    Input pixel values can be of any range (e.g. `[0., 1.)` or `[0, 255]`) and
-    of interger or floating point dtype. By default, the layer will output
-    floats.
+    During training, The layer will crop all the images at the center.
+    At training time if an input image is smaller than the
+    target size and at inference time, the input will be resized and cropped 
+    so as to return the largest possible window in the image that matches 
+    the target aspect ratio. Input pixel values can be of any range 
+    (e.g. `[0., 1.)` or `[0, 255]`) and of interger or floating point dtype. 
+    By default, the layer will output floats.
     Input shape:
       3D (unbatched) or 4D (batched) tensor with shape:
       `(..., height, width, channels)`, in `"channels_last"` format.
@@ -51,7 +51,7 @@ class CentralCrop(BaseImageAugmentationLayer):
         https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box/converters.py
         for more details on supported bounding box formats.
       segmentation_classes: an optional integer with the number of classes in
-        the input segmentation mask. Required iff augmenting data with sparse
+        the input segmentation mask. Required if augmenting data with sparse
         (non one-hot) segmentation masks. Include the background class in this
         count (e.g. for segmenting dog vs background, this should be set to 2).
     """
