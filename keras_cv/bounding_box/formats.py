@@ -23,7 +23,7 @@ class XYXY:
 
     The XYXY format consists of the following required indices:
 
-    - LEFT: left hand side of the bounding box
+    - LEFT: left of the bounding box
     - TOP: top of the bounding box
     - RIGHT: right of the bounding box
     - BOTTOM: bottom of the bounding box
@@ -38,13 +38,13 @@ class XYXY:
 class REL_XYXY:
     """REL_XYXY contains axis indices for the REL_XYXY format.
 
-    REL_XYXY is like XYXY, but each value is relative to the width and height of the
-    origin image.  Values are percentages of the origin images' width and height
-    respectively.
+    REL_XYXY is like XYXY, but each value is relative to the width and height of
+    the origin image. Values are percentages of the origin images' width and
+    height respectively.
 
     The REL_XYXY format consists of the following required indices:
 
-    - LEFT: left hand side of the bounding box
+    - LEFT: left of the bounding box
     - TOP: top of the bounding box
     - RIGHT: right of the bounding box
     - BOTTOM: bottom of the bounding box
@@ -97,9 +97,9 @@ class XYWH:
 class REL_XYWH:
     """REL_XYWH contains axis indices for the XYWH format.
 
-    REL_XYXY is like XYWH, but each value is relative to the width and height of the
-    origin image.  Values are percentages of the origin images' width and height
-    respectively.
+    REL_XYXY is like XYWH, but each value is relative to the width and height of
+    the origin image. Values are percentages of the origin images' width and
+    height respectively.
 
     - X: X coordinate of the left of the bounding box
     - Y: Y coordinate of the top of the bounding box
@@ -121,7 +121,7 @@ class YXYX:
     The YXYX format consists of the following required indices:
 
     - TOP: top of the bounding box
-    - LEFT: left hand side of the bounding box
+    - LEFT: left of the bounding box
     - BOTTOM: bottom of the bounding box
     - RIGHT: right of the bounding box
     """
@@ -135,14 +135,14 @@ class YXYX:
 class REL_YXYX:
     """REL_YXYX contains axis indices for the REL_YXYX format.
 
-    REL_YXYX is like YXYX, but each value is relative to the width and height of the
-    origin image.  Values are percentages of the origin images' width and height
-    respectively.
+    REL_YXYX is like YXYX, but each value is relative to the width and height of
+    the origin image. Values are percentages of the origin images' width and
+    height respectively.
 
     The REL_YXYX format consists of the following required indices:
 
     - TOP: top of the bounding box
-    - LEFT: left hand side of the bounding box
+    - LEFT: left of the bounding box
     - BOTTOM: bottom of the bounding box
     - RIGHT: right of the bounding box
     """

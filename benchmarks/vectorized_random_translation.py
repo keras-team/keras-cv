@@ -94,7 +94,7 @@ class OldRandomTranslation(BaseImageAugmentationLayer):
           shifting image down. When represented as a single positive float, this
           value is used for both the upper and lower bound. For instance,
           `height_factor=(-0.2, 0.3)` results in an output shifted by a random
-          amount in the range `[-20%, +30%]`.  `height_factor=0.2` results in an
+          amount in the range `[-20%, +30%]`. `height_factor=0.2` results in an
           output height shifted by a random amount in the range `[-20%, +20%]`.
       width_factor: a float represented as fraction of value, or a tuple of size
           2 representing lower and upper bound for shifting horizontally. A

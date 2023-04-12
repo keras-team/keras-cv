@@ -26,13 +26,14 @@ class PatchingAndEmbedding(layers.Layer):
     Layer to patchify images, prepend a class token, positionally embed and
     create a projection of patches for Vision Transformers
 
-    The layer expects a batch of input images and returns batches of patches, flattened as a sequence
-    and projected onto `project_dims`. If the height and width of the images
-    aren't divisible by the patch size, the supplied padding type is used (or 'VALID' by default).
+    The layer expects a batch of input images and returns batches of patches,
+    flattened as a sequence and projected onto `project_dims`. If the height and
+    width of the images aren't divisible by the patch size, the supplied padding
+    type is used (or 'VALID' by default).
 
     Reference:
-        An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale
-        by Alexey Dosovitskiy et al. (https://arxiv.org/abs/2010.11929)
+        An Image is Worth 16x16 Words: Transformers for Image Recognition at
+        Scale by Alexey Dosovitskiy et al. (https://arxiv.org/abs/2010.11929)
 
     Args:
         project_dim: the dimensionality of the project_dim
@@ -40,15 +41,16 @@ class PatchingAndEmbedding(layers.Layer):
         padding: default 'VALID', the padding to apply for patchifying images
 
     Returns:
-        Patchified and linearly projected input images, including a prepended learnable class token
-        with shape (batch, num_patches+1, project_dim)
+        Patchified and linearly projected input images, including a prepended
+        learnable class token with shape (batch, num_patches+1, project_dim)
 
     Basic usage:
 
     ```
     images = #... batch of images
-    encoded_patches = keras_cv.layers.PatchingAndEmbedding(project_dim=project_dim
-                                                          patch_size=patch_size)(patches)
+    encoded_patches = keras_cv.layers.PatchingAndEmbedding(
+        project_dim=project_dim,
+        patch_size=patch_size)(patches)
     print(encoded_patches.shape) # (1, 197, 1024)
     ```
     """
@@ -60,11 +62,13 @@ class PatchingAndEmbedding(layers.Layer):
         self.padding = padding
         if patch_size < 0:
             raise ValueError(
-                f"The patch_size cannot be a negative number. Received {patch_size}"
+                "The patch_size cannot be a negative number. Received "
+                f"{patch_size}"
             )
         if padding not in ["VALID", "SAME"]:
             raise ValueError(
-                f"Padding must be either 'SAME' or 'VALID', but {padding} was passed."
+                f"Padding must be either 'SAME' or 'VALID', but {padding} was "
+                "passed."
             )
         self.projection = layers.Conv2D(
             filters=self.project_dim,
@@ -101,7 +105,8 @@ class PatchingAndEmbedding(layers.Layer):
             interpolate: A `bool` to enable or disable interpolation
             interpolate_height: An `int` representing interpolated height
             interpolate_width: An `int` representing interpolated width
-            patch_size: An `int` representing the new patch size if interpolation is used
+            patch_size: An `int` representing the new patch size if
+                interpolation is used
 
         Returns:
             `A tf.Tensor` of shape [batch, patch_num+1, embedding_dim]
@@ -118,7 +123,8 @@ class PatchingAndEmbedding(layers.Layer):
             ),
         )
 
-        # Add learnable class token before linear projection and positional embedding
+        # Add learnable class token before linear projection and positional
+        # embedding
         flattened_shapes = tf.shape(patches_flattened)
         class_token_broadcast = tf.cast(
             tf.broadcast_to(
@@ -154,7 +160,8 @@ class PatchingAndEmbedding(layers.Layer):
             patch_size,
         ):
             raise ValueError(
-                "`None of `interpolate_width`, `interpolate_height` and `patch_size` cannot be None if `interpolate` is True"
+                "`None of `interpolate_width`, `interpolate_height` and "
+                "`patch_size` cannot be None if `interpolate` is True"
             )
         else:
             encoded = patches_flattened + self.position_embedding(positions)
@@ -164,8 +171,9 @@ class PatchingAndEmbedding(layers.Layer):
         self, embedding, height, width, patch_size
     ):
         """
-        Allows for pre-trained position embedding interpolation. This trick allows you to fine-tune a ViT
-        on higher resolution images than it was trained on.
+        Allows for pre-trained position embedding interpolation. This trick
+        allows you to fine-tune a ViT on higher resolution images than it was
+        trained on.
 
         Based on:
         https://github.com/huggingface/transformers/blob/main/src/transformers/models/vit/modeling_tf_vit.py

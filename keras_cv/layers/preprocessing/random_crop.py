@@ -14,13 +14,11 @@
 
 
 import tensorflow as tf
-from tensorflow import keras
 
 from keras_cv import bounding_box
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
-from keras_cv.layers.preprocessing.random_affine_transf import process_segmentation_masks
 
 # In order to support both unbatched and batched inputs, the horizontal
 # and verticle axis is reverse indexed
@@ -28,7 +26,7 @@ H_AXIS = -3
 W_AXIS = -2
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class RandomCrop(BaseImageAugmentationLayer):
     """A preprocessing layer which randomly crops images during training.
     During training, this layer will randomly choose a location to crop images
@@ -52,27 +50,15 @@ class RandomCrop(BaseImageAugmentationLayer):
       height: Integer, the height of the output shape.
       width: Integer, the width of the output shape.
       seed: Integer. Used to create a random seed.
-      bounding_box_format: The format of bounding boxes of input dataset. Refer
-        https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box/converters.py
-        for more details on supported bounding box formats.
-      segmentation_classes: an optional integer with the number of classes in
-        the input segmentation mask. Required iff augmenting data with sparse
-        (non one-hot) segmentation masks. Include the background class in this
-        count (e.g. for segmenting dog vs background, this should be set to 2).
     """
 
-    def __init__(
-        self, height, width, seed=None, bounding_box_format=None, segmentation_classes=None, **kwargs
-    ):
-        super().__init__(
-            **kwargs, autocast=False, seed=seed, force_generator=True
-        )
+    def __init__(self, height, width, seed=None, bounding_box_format=None, **kwargs):
+        super().__init__(**kwargs, autocast=False, seed=seed, force_generator=True)
         self.height = height
         self.width = width
         self.seed = seed
         self.auto_vectorize = False
         self.bounding_box_format = bounding_box_format
-        self.segmentation_classes = segmentation_classes
 
     def get_random_transformation(self, image=None, **kwargs):
         image_shape = tf.shape(image)
@@ -85,9 +71,6 @@ class RandomCrop(BaseImageAugmentationLayer):
         return {"top": h_start, "left": w_start}
 
     def augment_image(self, image, transformation, **kwargs):
-        return self._crop_image(image, transformation)
-    
-    def _crop_image(self, image, transformation):
         image_shape = tf.shape(image)
         h_diff = image_shape[H_AXIS] - self.height
         w_diff = image_shape[W_AXIS] - self.width
@@ -124,9 +107,7 @@ class RandomCrop(BaseImageAugmentationLayer):
         w_diff = image_shape[W_AXIS] - self.width
         bounding_boxes = tf.cond(
             tf.reduce_all((h_diff >= 0, w_diff >= 0)),
-            lambda: self._crop_bounding_boxes(
-                image, bounding_boxes, transformation
-            ),
+            lambda: self._crop_bounding_boxes(image, bounding_boxes, transformation),
             lambda: self._resize_bounding_boxes(
                 image,
                 bounding_boxes,
@@ -146,21 +127,13 @@ class RandomCrop(BaseImageAugmentationLayer):
         )
         return bounding_boxes
 
-    def augment_segmentation_mask(
-        self, segmentation_mask, transformation, **kwargs
-    ):
-        return process_segmentation_masks(segmentation_mask, self.segmentation_classes,
-                                   self._crop_image, transformation=transformation)
-        
     def _crop(self, image, transformation):
         top = transformation["top"]
         left = transformation["left"]
-        return tf.image.crop_to_bounding_box(
-            image, top, left, self.height, self.width
-        )
+        return tf.image.crop_to_bounding_box(image, top, left, self.height, self.width)
 
     def _resize(self, image):
-        resizing_layer = keras.layers.Resizing(self.height, self.width)
+        resizing_layer = tf.keras.layers.Resizing(self.height, self.width)
         outputs = resizing_layer(image)
         # smart_resize will always output float32, so we need to re-cast.
         return tf.cast(outputs, self.compute_dtype)
@@ -174,7 +147,6 @@ class RandomCrop(BaseImageAugmentationLayer):
             "width": self.width,
             "seed": self.seed,
             "bounding_box_format": self.bounding_box_format,
-            "segmentation_classes": self.segmentation_classes,
         }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
@@ -183,9 +155,7 @@ class RandomCrop(BaseImageAugmentationLayer):
         top = tf.cast(transformation["top"], dtype=self.compute_dtype)
         left = tf.cast(transformation["left"], dtype=self.compute_dtype)
         output = bounding_boxes.copy()
-        x1, y1, x2, y2 = tf.split(
-            bounding_boxes["boxes"], [1, 1, 1, 1], axis=-1
-        )
+        x1, y1, x2, y2 = tf.split(bounding_boxes["boxes"], [1, 1, 1, 1], axis=-1)
         output["boxes"] = tf.concat(
             [
                 x1 - left,
@@ -200,15 +170,9 @@ class RandomCrop(BaseImageAugmentationLayer):
     def _resize_bounding_boxes(self, image, bounding_boxes):
         output = bounding_boxes.copy()
         image_shape = tf.shape(image)
-        x_scale = tf.cast(
-            self.width / image_shape[W_AXIS], dtype=self.compute_dtype
-        )
-        y_scale = tf.cast(
-            self.height / image_shape[H_AXIS], dtype=self.compute_dtype
-        )
-        x1, y1, x2, y2 = tf.split(
-            bounding_boxes["boxes"], [1, 1, 1, 1], axis=-1
-        )
+        x_scale = tf.cast(self.width / image_shape[W_AXIS], dtype=self.compute_dtype)
+        y_scale = tf.cast(self.height / image_shape[H_AXIS], dtype=self.compute_dtype)
+        x1, y1, x2, y2 = tf.split(bounding_boxes["boxes"], [1, 1, 1, 1], axis=-1)
         output["boxes"] = tf.concat(
             [
                 x1 * x_scale,

@@ -33,11 +33,10 @@ HORIZONTAL_AND_VERTICAL = "horizontal_and_vertical"
 
 @keras.utils.register_keras_serializable(package="keras_cv")
 class RandomFlip(BaseImageAugmentationLayer):
-    """A preprocessing layer which randomly flips images during training.
+    """A preprocessing layer which randomly flips images.
 
     This layer will flip the images horizontally and or vertically based on the
-    `mode` attribute. During inference time, the output will be identical to
-    input. Call the layer with `training=True` to flip the input.
+    `mode` attribute.
 
     Input shape:
       3D (unbatched) or 4D (batched) tensor with shape:
@@ -49,11 +48,12 @@ class RandomFlip(BaseImageAugmentationLayer):
 
     Arguments:
       mode: String indicating which flip mode to use. Can be `"horizontal"`,
-        `"vertical"`, or `"horizontal_and_vertical"`. Defaults to
+        `"vertical"`, or `"horizontal_and_vertical"`, defaults to
         `"horizontal"`. `"horizontal"` is a left-right flip and `"vertical"` is
         a top-bottom flip.
       seed: Integer. Used to create a random seed.
-      bounding_box_format: The format of bounding boxes of input dataset. Refer to
+      bounding_box_format: The format of bounding boxes of input dataset.
+        Refer to
         https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box/converters.py
         for more details on supported bounding box formats.
     """

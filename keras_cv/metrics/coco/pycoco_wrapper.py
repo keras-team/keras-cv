@@ -49,8 +49,8 @@ class PyCOCOWrapper(COCO):
         """Instantiates a COCO-style API object.
         Args:
           eval_type: either 'box' or 'mask'.
-          annotation_file: a JSON file that stores annotations of the eval dataset.
-            This is required if `gt_dataset` is not provided.
+          annotation_file: a JSON file that stores annotations of the eval
+            dataset. This is required if `gt_dataset` is not provided.
           gt_dataset: the groundtruth eval datatset in COCO API format.
         """
 
@@ -63,14 +63,14 @@ class PyCOCOWrapper(COCO):
     def loadRes(self, predictions):
         """Loads result file and return a result api object.
         Args:
-          predictions: a list of dictionary each representing an annotation in COCO
-            format. The required fields are `image_id`, `category_id`, `score`,
-            `bbox`, `segmentation`.
+          predictions: a list of dictionary each representing an annotation in
+            COCO format. The required fields are `image_id`, `category_id`,
+            `score`, `bbox`, `segmentation`.
         Returns:
           res: result COCO api object.
         Raises:
-          ValueError: if the set of image id from predictions is not the subset of
-            the set of image id of the groundtruth dataset.
+          ValueError: if the set of image id from predictions is not the subset
+            of the set of image id of the groundtruth dataset.
         """
         res = COCO()
         res.dataset["images"] = copy.deepcopy(self.dataset["images"])

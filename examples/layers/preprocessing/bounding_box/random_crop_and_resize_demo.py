@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-random_crop_and_resize_demo.py shows how to use the RandomCropAndResize preprocessing layer for
-object detection.
+random_crop_and_resize_demo.py shows how to use the RandomCropAndResize
+preprocessing layer for object detection.
 """
 import demo_utils
 import tensorflow as tf

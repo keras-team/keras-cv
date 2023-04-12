@@ -132,8 +132,10 @@ class ROIGeneratorTest(tf.test.TestCase):
         expected_rois = tf.concat([expected_rois, tf.zeros([2, 1, 4])], axis=1)
         rpn_boxes = {2: rpn_boxes}
         rpn_scores = tf.constant([[0.6, 0.9, 0.2, 0.3], [0.1, 0.8, 0.3, 0.5]])
-        # 1st batch -- selecting the 1st, then 3rd, then 2nd as they don't overlap
-        # 2nd batch -- selecting the 1st, then 3rd, then 0th as they don't overlap
+        # 1st batch -- selecting the 1st, then 3rd, then 2nd as they don't
+        #   overlap
+        # 2nd batch -- selecting the 1st, then 3rd, then 0th as they don't
+        #   overlap
         expected_roi_scores = tf.gather(
             rpn_scores, [[1, 3, 2], [1, 3, 0]], batch_dims=1
         )
@@ -179,8 +181,10 @@ class ROIGeneratorTest(tf.test.TestCase):
         )
         rpn_boxes = {2: rpn_boxes[0:1], 3: rpn_boxes[1:2]}
         rpn_scores = tf.constant([[0.6, 0.9, 0.2, 0.3], [0.1, 0.8, 0.3, 0.5]])
-        # 1st batch -- selecting the 1st, then 3rd, then 2nd as they don't overlap
-        # 2nd batch -- selecting the 1st, then 3rd, then 0th as they don't overlap
+        # 1st batch -- selecting the 1st, then 3rd, then 2nd as they don't
+        #   overlap
+        # 2nd batch -- selecting the 1st, then 3rd, then 0th as they don't
+        #   overlap
         expected_roi_scores = [
             [
                 0.9,
@@ -232,8 +236,10 @@ class ROIGeneratorTest(tf.test.TestCase):
         )
         rpn_boxes = {2: rpn_boxes[0:1], 3: rpn_boxes[1:2]}
         rpn_scores = tf.constant([[0.6, 0.9, 0.2, 0.3], [0.1, 0.8, 0.3, 0.5]])
-        # 1st batch -- selecting the 1st, then 0th, then 3rd, then 2nd as they don't overlap
-        # 2nd batch -- selecting the 1st, then 3rd, then 2nd, then 0th as they don't overlap
+        # 1st batch -- selecting the 1st, then 0th, then 3rd, then 2nd as they
+        #   don't overlap
+        # 2nd batch -- selecting the 1st, then 3rd, then 2nd, then 0th as they
+        #   don't overlap
         expected_roi_scores = [
             [
                 0.9,

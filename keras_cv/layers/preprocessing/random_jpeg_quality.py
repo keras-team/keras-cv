@@ -25,12 +25,13 @@ from keras_cv.utils import preprocessing
 class RandomJpegQuality(BaseImageAugmentationLayer):
     """Applies Random Jpeg compression artifacts to an image.
 
-    Performs the jpeg compression algorithm on the image.  This layer can used in order
-    to ensure your model is robust to artifacts introduced by JPEG compresion.
+    Performs the jpeg compression algorithm on the image. This layer can be used
+    in order to ensure your model is robust to artifacts introduced by JPEG
+    compression.
 
     Args:
-        factor: 2 element tuple or 2 element list.  During augmentation, a random number
-        is drawn from the factor distribution.  This value is passed to
+        factor: 2 element tuple or 2 element list. During augmentation, a random
+        number is drawn from the factor distribution. This value is passed to
         `tf.image.adjust_jpeg_quality()`.
         seed: Integer. Used to create a random seed.
 

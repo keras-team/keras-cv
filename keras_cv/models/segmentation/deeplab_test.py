@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-
 import pytest
 import tensorflow as tf
 import tensorflow_datasets as tfds
@@ -47,7 +45,8 @@ class DeeplabTest(tf.test.TestCase):
     def test_missing_input_shapes(self):
         with self.assertRaisesRegex(
             ValueError,
-            "Input shapes for both the backbone and DeepLabV3 cannot be `None`.",
+            "Input shapes for both the backbone and DeepLabV3 "
+            "cannot be `None`.",
         ):
             backbone = ResNet50V2Backbone()
             segmentation.DeepLabV3(num_classes=11, backbone=backbone)
@@ -90,12 +89,7 @@ class DeeplabTest(tf.test.TestCase):
                 backbone=tf.Module(),
             )
 
-    @pytest.mark.skipif(
-        "REGRESSION" not in os.environ or os.environ["REGRESSION"] != "true",
-        reason="Takes a long time to run, only runs when REGRESSION "
-        "environment variable is set.  To run the test please run: \n"
-        "`REGRESSION=true pytest keras_cv/",
-    )
+    @pytest.mark.extra_large
     def test_model_train(self):
         backbone = ResNet50V2Backbone(
             input_shape=[384, 384, 3],

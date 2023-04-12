@@ -43,9 +43,11 @@ def balanced_sample(
     N = positive_matches.get_shape().as_list()[-1]
     if N < num_samples:
         raise ValueError(
-            f"passed in {positive_matches.shape} has less element than {num_samples}"
+            "passed in {positive_matches.shape} has less element than "
+            f"{num_samples}"
         )
-    # random_val = tf.random.uniform(tf.shape(positive_matches), minval=0., maxval=1.)
+    # random_val = tf.random.uniform(tf.shape(positive_matches), minval=0.,
+    # maxval=1.)
     zeros = tf.zeros_like(positive_matches, dtype=tf.float32)
     ones = tf.ones_like(positive_matches, dtype=tf.float32)
     ones_rand = ones + tf.random.uniform(ones.shape, minval=-0.2, maxval=0.2)

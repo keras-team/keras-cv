@@ -28,13 +28,17 @@ POINTCLOUD_FEATURE_INDEX = base_augmentation_layer_3d.POINTCLOUD_FEATURE_INDEX
 class FrustumRandomPointFeatureNoise(
     base_augmentation_layer_3d.BaseAugmentationLayer3D
 ):
-    """A preprocessing layer which randomly add noise to point features within a randomly generated frustum during training.
+    """A preprocessing layer which randomly add noise to point features within a
+    randomly generated frustum during training.
 
-    This layer will randomly select a point from the point cloud as the center of a frustum then generate a frustum based
-    on r_distance, theta_width, and phi_width. Uniformly sampled features noise from [1-max_noise_level, 1+max_noise_level] will be multiplied
-    to points inside the selected frustum. Here, we perturbe point features other than (x, y, z, class).
-    The point_clouds tensor shape must be specific and cannot be dynamic.
-    During inference time, the output will be identical to input. Call the layer with `training=True` to add noise to the input points.
+    This layer will randomly select a point from the point cloud as the center
+    of a frustum then generate a frustum based on r_distance, theta_width, and
+    phi_width. Uniformly sampled features noise from [1-max_noise_level,
+    1+max_noise_level] will be multiplied to points inside the selected frustum.
+    Here, we perturbe point features other than (x, y, z, class). The
+    point_clouds tensor shape must be specific and cannot be dynamic. During
+    inference time, the output will be identical to input. Call the layer with
+    `training=True` to add noise to the input points.
 
     Input shape:
       point_clouds: 3D (multi frames) float32 Tensor with shape
@@ -53,8 +57,10 @@ class FrustumRandomPointFeatureNoise(
       r_distance: A float scalar sets the starting distance of a frustum.
       theta_width: A float scalar sets the theta width of a frustum.
       phi_width: A float scalar sets the phi width of a frustum.
-      max_noise_level: A float scalar sets the sampled feature noise range [1-max_noise_level, 1+max_noise_level].
-      exclude_classes: An optional int scalar or a list of ints. Points with the specified class(es) will not be modified.
+      max_noise_level: A float scalar sets the sampled feature noise range
+        [1-max_noise_level, 1+max_noise_level].
+      exclude_classes: An optional int scalar or a list of ints. Points with the
+        specified class(es) will not be modified.
 
     """
 
@@ -98,7 +104,8 @@ class FrustumRandomPointFeatureNoise(
         }
 
     def get_random_transformation(self, point_clouds, **kwargs):
-        # Randomly select a point from the first frame as the center of the frustum.
+        # Randomly select a point from the first frame as the center of the
+        # frustum.
         valid_points = point_clouds[0, :, POINTCLOUD_LABEL_INDEX] > 0
         num_valid_points = tf.math.reduce_sum(tf.cast(valid_points, tf.int32))
         randomly_select_point_index = tf.random.uniform(
@@ -149,8 +156,8 @@ class FrustumRandomPointFeatureNoise(
     ):
         point_noise = transformation["point_noise"]
 
-        # Do not add noise to points that are protected by setting the corresponding
-        # point_noise = 1.0.
+        # Do not add noise to points that are protected by setting the
+        # corresponding point_noise = 1.0.
         protected_points = tf.zeros_like(point_clouds[..., -1], dtype=tf.bool)
         for excluded_class in self._exclude_classes:
             protected_points |= point_clouds[..., -1] == excluded_class

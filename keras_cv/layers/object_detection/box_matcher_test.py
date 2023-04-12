@@ -107,8 +107,8 @@ class BoxMatcherTest(tf.test.TestCase):
         self.assertAllEqual(
             negative_matches.numpy(), [False, False, False, False]
         )
-        # the first anchor cannot be matched to 4th gt box given that is matched to
-        # the last anchor.
+        # the first anchor cannot be matched to 4th gt box given that is matched
+        # to the last anchor.
         self.assertAllEqual(match_indices.numpy(), [1, 2, 0, 3])
         self.assertAllEqual(matched_values.numpy(), [1, 1, 1, 1])
 

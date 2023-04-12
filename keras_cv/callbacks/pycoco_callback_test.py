@@ -35,6 +35,7 @@ class PyCOCOCallbackTest(tf.test.TestCase):
         model = keras_cv.models.RetinaNet(
             num_classes=10,
             bounding_box_format="xywh",
+            backbone=keras_cv.models.ResNet50V2Backbone(),
         )
         # all metric formats must match
         model.compile(
@@ -60,9 +61,9 @@ class PyCOCOCallbackTest(tf.test.TestCase):
         )
 
     @pytest.mark.skip(
-        reason="Causing OOMs on GitHub actions.  This is not a "
-        "user facing API and will be replaced in a matter of weeks, so we "
-        "shouldn't invest engineering resources into working around the OOMs here."
+        reason="Causing OOMs on GitHub actions. This is not a user facing API "
+        "and will be replaced in a matter of weeks, so we shouldn't "
+        "invest engineering resources into working around the OOMs here."
     )
     def test_model_fit_rcnn(self):
         model = keras_cv.models.FasterRCNN(

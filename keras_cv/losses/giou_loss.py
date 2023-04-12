@@ -13,6 +13,8 @@
 # limitations under the License.
 
 
+import warnings
+
 import tensorflow as tf
 from tensorflow import keras
 
@@ -22,18 +24,19 @@ from keras_cv import bounding_box
 class GIoULoss(keras.losses.Loss):
     """Implements the Generalized IoU Loss
 
-    GIoU loss is a modified IoU loss commonly used for object detection. This loss aims
-    to directly optimize the IoU score between true boxes and predicted boxes. GIoU loss
-    adds a penalty term to the IoU loss that takes in account the area of the
-    smallest box enclosing both the boxes being considered for the iou. The length of
-    the last dimension should be 4 to represent the bounding boxes.
+    GIoU loss is a modified IoU loss commonly used for object detection. This
+    loss aims to directly optimize the IoU score between true boxes and
+    predicted boxes. GIoU loss adds a penalty term to the IoU loss that takes in
+    account the area of the smallest box enclosing both the boxes being
+    considered for the iou. The length of the last dimension should be 4 to
+    represent the bounding boxes.
 
     Args:
         bounding_box_format: a case-insensitive string (for example, "xyxy").
-            Each bounding box is defined by these 4 values.For detailed information
-            on the supported formats, see the
-            [KerasCV bounding box documentation](https://keras.io/api/keras_cv/bounding_box/formats/).
-        axis: the axis along which to mean the ious. Defaults to -1.
+            Each bounding box is defined by these 4 values.For detailed
+            information on the supported formats, see the [KerasCV bounding box
+            documentation](https://keras.io/api/keras_cv/bounding_box/formats/).
+        axis: the axis along which to mean the ious, defaults to -1.
 
     References:
         - [GIoU paper](https://arxiv.org/pdf/1902.09630)
@@ -41,8 +44,16 @@ class GIoULoss(keras.losses.Loss):
 
     Sample Usage:
     ```python
-    y_true = tf.random.uniform((5, 10, 5), minval=0, maxval=10, dtype=tf.dtypes.int32)
-    y_pred = tf.random.uniform((5, 10, 4), minval=0, maxval=10, dtype=tf.dtypes.int32)
+    y_true = tf.random.uniform(
+        (5, 10, 5),
+        minval=0,
+        maxval=10,
+        dtype=tf.dtypes.int32)
+    y_pred = tf.random.uniform(
+        (5, 10, 4),
+        minval=0,
+        maxval=10,
+        dtype=tf.dtypes.int32)
     loss = GIoULoss(bounding_box_format = "xyWH")
     loss(y_true, y_pred).numpy()
     ```
@@ -51,7 +62,7 @@ class GIoULoss(keras.losses.Loss):
     ```python
     model.compile(optimizer='adam', loss=keras_cv.losses.GIoULoss())
     ```
-    """
+    """  # noqa: E501
 
     def __init__(self, bounding_box_format, axis=-1, **kwargs):
         super().__init__(**kwargs)
@@ -86,17 +97,17 @@ class GIoULoss(keras.losses.Loss):
 
         if boxes1_rank not in [2, 3]:
             raise ValueError(
-                "compute_iou() expects boxes1 to be batched, or "
-                f"to be unbatched. Received len(boxes1.shape)={boxes1_rank}, "
-                f"len(boxes2.shape)={boxes2_rank}. Expected either len(boxes1.shape)=2 AND "
-                "or len(boxes1.shape)=3."
+                "compute_iou() expects boxes1 to be batched, or to be "
+                f"unbatched. Received len(boxes1.shape)={boxes1_rank}, "
+                f"len(boxes2.shape)={boxes2_rank}. Expected either "
+                "len(boxes1.shape)=2 AND or len(boxes1.shape)=3."
             )
         if boxes2_rank not in [2, 3]:
             raise ValueError(
-                "compute_iou() expects boxes2 to be batched, or "
-                f"to be unbatched. Received len(boxes1.shape)={boxes1_rank}, "
-                f"len(boxes2.shape)={boxes2_rank}. Expected either len(boxes2.shape)=2 AND "
-                "or len(boxes2.shape)=3."
+                "compute_iou() expects boxes2 to be batched, or to be "
+                f"unbatched. Received len(boxes1.shape)={boxes1_rank}, "
+                f"len(boxes2.shape)={boxes2_rank}. Expected either "
+                "len(boxes2.shape)=2 AND or len(boxes2.shape)=3."
             )
 
         target_format = "yxyx"
@@ -131,8 +142,8 @@ class GIoULoss(keras.losses.Loss):
     def call(self, y_true, y_pred, sample_weight=None):
         if sample_weight is not None:
             raise ValueError(
-                "GIoULoss does not support sample_weight. Please ensure that sample_weight=None."
-                f"got sample_weight={sample_weight}"
+                "GIoULoss does not support sample_weight. Please ensure "
+                f"sample_weight=None. Got sample_weight={sample_weight}"
             )
 
         y_pred = tf.convert_to_tensor(y_pred)
@@ -140,26 +151,34 @@ class GIoULoss(keras.losses.Loss):
 
         if y_pred.shape[-1] != 4:
             raise ValueError(
-                "GIoULoss expects y_pred.shape[-1] to be 4 to represent "
-                f"the bounding boxes. Received y_pred.shape[-1]={y_pred.shape[-1]}."
+                "GIoULoss expects y_pred.shape[-1] to be 4 to represent the "
+                f"bounding boxes. Received y_pred.shape[-1]={y_pred.shape[-1]}."
             )
 
         if y_true.shape[-1] != 4:
             raise ValueError(
-                "GIoULoss expects y_true.shape[-1] to be 4 to represent "
-                f"the bounding boxes. Received y_true.shape[-1]={y_true.shape[-1]}."
+                "GIoULoss expects y_true.shape[-1] to be 4 to represent the "
+                f"bounding boxes. Received y_true.shape[-1]={y_true.shape[-1]}."
             )
 
         if y_true.shape[-2] != y_pred.shape[-2]:
             raise ValueError(
-                "GIoULoss expects number of boxes in y_pred to be equal to the number "
-                f"of boxes in y_true. Received number of boxes in y_true={y_true.shape[-2]} "
-                f"and number of boxes in y_pred={y_pred.shape[-2]}."
+                "GIoULoss expects number of boxes in y_pred to be equal to the "
+                "number of boxes in y_true. Received number of boxes in "
+                f"y_true={y_true.shape[-2]} and number of boxes in "
+                f"y_pred={y_pred.shape[-2]}."
             )
 
         giou = self._compute_giou(y_true, y_pred)
         giou = tf.linalg.diag_part(giou)
-        giou = tf.reduce_mean(giou, axis=self.axis)
+        if self.axis == "no_reduction":
+            warnings.warn(
+                "`axis='no_reduction'` is a temporary API, and the API "
+                "contract will be replaced in the future with a more generic "
+                "solution covering all losses."
+            )
+        else:
+            giou = tf.reduce_mean(giou, axis=self.axis)
 
         return 1 - giou
 
