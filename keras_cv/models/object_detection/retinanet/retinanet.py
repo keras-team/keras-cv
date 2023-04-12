@@ -277,7 +277,8 @@ class RetinaNet(Task):
     def decode_predictions(self, predictions, images):
         box_pred, cls_pred = predictions["box"], predictions["classification"]
         # box_pred is on "center_yxhw" format, convert to target format.
-        anchors = self.anchor_generator(images[0])
+        image_shape = tf.shape(images[0])
+        anchors = self.anchor_generator(image_shape=image_shape)
         anchors = tf.concat(tf.nest.flatten(anchors), axis=0)
 
         box_pred = _decode_deltas_to_boxes(
@@ -286,21 +287,23 @@ class RetinaNet(Task):
             anchor_format=self.anchor_generator.bounding_box_format,
             box_format=self.bounding_box_format,
             variance=BOX_VARIANCE,
-            images=images,
+            image_shape=image_shape,
         )
         # box_pred is now in "self.bounding_box_format" format
         box_pred = bounding_box.convert_format(
             box_pred,
             source=self.bounding_box_format,
             target=self.prediction_decoder.bounding_box_format,
-            images=images,
+            image_shape=image_shape,
         )
-        y_pred = self.prediction_decoder(box_pred, cls_pred, image=image)
+        y_pred = self.prediction_decoder(
+            box_pred, cls_pred, image_shape=image_shape
+        )
         y_pred["boxes"] = bounding_box.convert_format(
             y_pred["boxes"],
             source=self.prediction_decoder.bounding_box_format,
             target=self.bounding_box_format,
-            images=images,
+            image_shape=image_shape,
         )
         return y_pred
 

@@ -36,7 +36,7 @@ def _encode_box_to_deltas(
     anchor_format: str,
     box_format: str,
     variance: Optional[Union[List[float], tf.Tensor]] = None,
-    images=None,
+    image_shape=None,
 ):
     """Converts bounding_boxes from `center_yxhw` to delta format."""
     if variance is not None:
@@ -47,10 +47,13 @@ def _encode_box_to_deltas(
         if var_len != 4:
             raise ValueError(f"`variance` must be length 4, got {variance}")
     encoded_anchors = convert_format(
-        anchors, source=anchor_format, target="center_yxhw", images=images
+        anchors,
+        source=anchor_format,
+        target="center_yxhw",
+        image_shape=image_shape,
     )
     boxes = convert_format(
-        boxes, source=box_format, target="center_yxhw", images=images
+        boxes, source=box_format, target="center_yxhw", image_shape=image_shape
     )
     anchor_dimensions = tf.maximum(
         encoded_anchors[..., 2:], keras.backend.epsilon()
@@ -75,7 +78,7 @@ def _decode_deltas_to_boxes(
     anchor_format: str,
     box_format: str,
     variance: Optional[Union[List[float], tf.Tensor]] = None,
-    images=None,
+    image_shape=None,
 ):
     """Converts bounding_boxes from delta format to `center_yxhw`."""
     if variance is not None:
@@ -89,7 +92,10 @@ def _decode_deltas_to_boxes(
 
     def decode_single_level(anchor, box_delta):
         encoded_anchor = convert_format(
-            anchor, source=anchor_format, target="center_yxhw", images=images
+            anchor,
+            source=anchor_format,
+            target="center_yxhw",
+            image_shape=image_shape,
         )
         if variance is not None:
             box_delta = box_delta * variance
@@ -103,7 +109,10 @@ def _decode_deltas_to_boxes(
             axis=-1,
         )
         box = convert_format(
-            box, source="center_yxhw", target=box_format, images=images
+            box,
+            source="center_yxhw",
+            target=box_format,
+            image_shape=image_shape,
         )
         return box
 
