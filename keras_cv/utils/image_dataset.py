@@ -254,7 +254,7 @@ def image_classification_dataset_from_dataframe(
               (e.g. for `categorical_crossentropy` loss).
           - None (no labels).
       class_names: Only valid if "class_mode" is 'int' or 'categorical'. This is the explicit
-          list of class names esed for the encoding.
+          list of class names used for the encoding.
           (otherwise alphanumerical order is used).
       color_mode: One of "grayscale", "rgb", "rgba". Default: "rgb".
           Whether the images will be converted to
@@ -265,8 +265,8 @@ def image_classification_dataset_from_dataframe(
       shuffle: Whether to shuffle the data. Default: True.
           If set to False, sorts the data in alphanumeric order.
       seed: Optional random seed for shuffling and transformations.
-      pre_batching_processing: ???      
-      post_batching_processing: ???.
+      pre_batching_processing: The operation(s) to apply before the data is put into a batch.      
+      post_batching_processing: The operation(s) to apply after tha data has been batched.
     Returns:
       A `tf.data.Dataset` object.
 
