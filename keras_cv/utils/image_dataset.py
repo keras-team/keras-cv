@@ -388,7 +388,7 @@ def image_segmentation_dataset_from_dataframe(
 ):
     """Generates a `tf.data.Dataset` from a dataframe.
 
-    Then calling `image_dataset_from_dataframe(dataframe)`
+    Calling `image_dataset_from_dataframe(dataframe)`
     will return a `tf.data.Dataset` that yields batches of
     images from the subdirectories `class_a` and `class_b`, together with labels
     0 and 1 (0 corresponding to `class_a` and 1 corresponding to `class_b`).
@@ -413,8 +413,8 @@ def image_segmentation_dataset_from_dataframe(
       shuffle: Whether to shuffle the data. Default: True.
           If set to False, sorts the data in alphanumeric order.
       seed: Optional random seed for shuffling and transformations.
-      pre_batching_processing: ???      
-      post_batching_processing: ???.
+      pre_batching_processing: The operation(s) to apply before the data is put into a batch.      
+      post_batching_processing: The operation(s) to apply after tha data has been batched.
     Returns:
       A `tf.data.Dataset` object.
 
@@ -529,7 +529,7 @@ def image_objdetect_dataset_from_dataframe(
 ):
     """Generates a `tf.data.Dataset` from a dataframe.
 
-    Then calling `image_objdetect_dataset_from_dataframe(dataframe)`
+    Calling `image_objdetect_dataset_from_dataframe(dataframe)`
     will return a `tf.data.Dataset` that yields batches of
     images from the subdirectories `class_a` and `class_b`, together with labels
     0 and 1 (0 corresponding to `class_a` and 1 corresponding to `class_b`).
@@ -556,8 +556,8 @@ def image_objdetect_dataset_from_dataframe(
       shuffle: Whether to shuffle the data. Default: True.
           If set to False, sorts the data in alphanumeric order.
       seed: Optional random seed for shuffling and transformations.
-      pre_batching_processing: ???      
-      post_batching_processing: ???.
+      pre_batching_processing: The operation(s) to apply before the data is put into a batch.      
+      post_batching_processing: The operation(s) to apply after tha data has been batched.
     Returns:
       A `tf.data.Dataset` object.
 
