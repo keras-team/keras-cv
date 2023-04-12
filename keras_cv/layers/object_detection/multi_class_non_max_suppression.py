@@ -59,7 +59,7 @@ class MultiClassNonMaxSuppression(keras.layers.Layer):
         self.max_detections_per_class = max_detections_per_class
         self.built = True
 
-    def call(self, box_prediction, class_prediction):
+    def call(self, box_prediction, class_prediction, images=None):
         """Accepts images and raw predictions, and returns bounding box
         predictions.
 
@@ -76,6 +76,7 @@ class MultiClassNonMaxSuppression(keras.layers.Layer):
             box_prediction,
             source=self.bounding_box_format,
             target=target_format,
+            images=images,
         )
         if self.from_logits:
             class_prediction = tf.math.sigmoid(class_prediction)
@@ -99,6 +100,7 @@ class MultiClassNonMaxSuppression(keras.layers.Layer):
             box_prediction,
             source=target_format,
             target=self.bounding_box_format,
+            images=images,
         )
         bounding_boxes = {
             "boxes": box_prediction,

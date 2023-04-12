@@ -286,6 +286,7 @@ class RetinaNet(Task):
             anchor_format=self.anchor_generator.bounding_box_format,
             box_format=self.bounding_box_format,
             variance=BOX_VARIANCE,
+            images=images,
         )
         # box_pred is now in "self.bounding_box_format" format
         box_pred = bounding_box.convert_format(
@@ -294,7 +295,7 @@ class RetinaNet(Task):
             target=self.prediction_decoder.bounding_box_format,
             images=images,
         )
-        y_pred = self.prediction_decoder(box_pred, cls_pred)
+        y_pred = self.prediction_decoder(box_pred, cls_pred, image=image)
         y_pred["boxes"] = bounding_box.convert_format(
             y_pred["boxes"],
             source=self.prediction_decoder.bounding_box_format,
