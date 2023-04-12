@@ -218,15 +218,6 @@ class RetinaNet(Task):
         )
         self.label_encoder = label_encoder
         self.anchor_generator = anchor_generator
-        if bounding_box_format.lower() != "xywh":
-            raise ValueError(
-                "`keras_cv.models.RetinaNet` only supports the 'xywh' "
-                "`bounding_box_format`. In future releases, more formats will "
-                "be supported. For now, please pass "
-                "`bounding_box_format='xywh'`. Received "
-                f"`bounding_box_format={bounding_box_format}`"
-            )
-
         self.bounding_box_format = bounding_box_format
         self.num_classes = num_classes
         self.backbone = backbone
