@@ -59,6 +59,7 @@ TEST_CONFIGURATIONS = [
         layers.RandomCutout,
         {"height_factor": 0.2, "width_factor": 0.2},
     ),
+    ("RandomFlip", layers.RandomFlip, {"mode": "horizontal"}),
     (
         "RandomHue",
         layers.RandomHue,
