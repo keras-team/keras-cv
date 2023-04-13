@@ -12,19 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_backbone import (
+
+
+from keras_cv.models.backbones.effnet_lite.effnet_lite_backbone import (
     EfficientNetLiteB0Backbone,
 )
-from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_backbone import (
+from keras_cv.models.backbones.effnet_lite.effnet_lite_backbone import (
     EfficientNetLiteB1Backbone,
 )
-from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_backbone import (
+from keras_cv.models.backbones.effnet_lite.effnet_lite_backbone import (
     EfficientNetLiteB2Backbone,
 )
-from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_backbone import (
+from keras_cv.models.backbones.effnet_lite.effnet_lite_backbone import (
     EfficientNetLiteB3Backbone,
 )
-from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_backbone import (
+from keras_cv.models.backbones.effnet_lite.effnet_lite_backbone import (
     EfficientNetLiteB4Backbone,
 )
 from keras_cv.models.backbones.resnet_v1.resnet_v1_backbone import (
