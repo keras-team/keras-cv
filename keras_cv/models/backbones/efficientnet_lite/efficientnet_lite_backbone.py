@@ -35,7 +35,6 @@ from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_backbone_pres
 )
 from keras_cv.utils.python_utils import classproperty
 
-
 BN_AXIS = 3
 
 
