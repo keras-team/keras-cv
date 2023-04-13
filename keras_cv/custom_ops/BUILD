@@ -28,6 +28,8 @@ cc_binary(
         "ops/pairwise_iou_op.cc",
         "kernels/withinbox_op.cc",
         "ops/withinbox_op.cc",
+        "kernels/within_any_box_op.cc",
+        "ops/within_any_box_op.cc",
     ],
     linkshared = 1,
     deps = [

@@ -28,8 +28,6 @@ class GlobalRandomDroppingPoints(
     """A preprocessing layer which randomly drops point during training.
 
     This layer will randomly drop points based on keep_probability.
-    During inference time, the output will be identical to input. Call the layer
-    with `training=True` to drop the input points.
 
     Input shape:
       point_clouds: 3D (multi frames) float32 Tensor with shape

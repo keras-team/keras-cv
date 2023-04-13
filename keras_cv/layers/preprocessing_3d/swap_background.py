@@ -40,9 +40,6 @@ class SwapBackground(base_augmentation_layer_3d.BaseAugmentationLayer3D):
     additional object bounding boxes. Last, pasting the additional object point
     clouds and bounding boxes to the training background scene.
 
-    During inference time, the output will be identical to input. Call the layer
-    with `training=True` to swap backgrounds between two scenes.
-
     Input shape:
       point_clouds: 3D (multi frames) float32 Tensor with shape
         [num of frames, num of points, num of point features].
