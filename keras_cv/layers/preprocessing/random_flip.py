@@ -59,7 +59,7 @@ class RandomFlip(VectorizedBaseImageAugmentationLayer):
             Refer to
             https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box/converters.py
             for more details on supported bounding box formats.
-    """
+    """  # noqa: E501
 
     def __init__(
         self,
