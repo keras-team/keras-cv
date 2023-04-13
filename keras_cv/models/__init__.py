@@ -13,7 +13,6 @@
 # limitations under the License.
 
 
-
 from keras_cv.models.backbones.effnet_lite.effnet_lite_backbone import (
     EfficientNetLiteB0Backbone,
 )
