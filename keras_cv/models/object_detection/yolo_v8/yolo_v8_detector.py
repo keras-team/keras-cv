@@ -24,8 +24,15 @@ from keras_cv.models.backbones.backbone_presets import (
     backbone_presets_with_weights,
 )
 from keras_cv.models.object_detection import predict_utils
+from keras_cv.models.object_detection.__internal__ import unpack_input
 from keras_cv.models.object_detection.yolo_v8.yolo_v8_detector_presets import (
     yolo_v8_detector_presets,
+)
+from keras_cv.models.object_detection.yolo_v8.yolo_v8_iou_loss import (
+    YOLOV8IoULoss,
+)
+from keras_cv.models.object_detection.yolo_v8.yolo_v8_label_encoder import (
+    YOLOV8LabelEncoder,
 )
 from keras_cv.models.object_detection.yolo_v8.yolo_v8_layers import (
     apply_conv_bn,
@@ -41,15 +48,15 @@ from keras_cv.utils.train import get_feature_extractor
 def get_anchors(
     image_shape=(512, 512, 3),
     strides=[8, 16, 32],
-    base_anchors=[-0.5, -0.5, 0.5, 0.5],
+    base_anchors=[0.5, 0.5, 0.5, 0.5],
 ):
     base_anchors = tf.constant(base_anchors, dtype=tf.float32)
 
     all_anchors = []
+    all_strides = []
     for stride in strides:
-        top, left = (stride / 2, stride / 2)
-        hh_centers = tf.range(top, image_shape[0], stride)
-        ww_centers = tf.range(left, image_shape[1], stride)
+        hh_centers = tf.range(start=0, limit=image_shape[0], delta=stride)
+        ww_centers = tf.range(start=0, limit=image_shape[1], delta=stride)
         ww_grid, hh_grid = tf.meshgrid(ww_centers, hh_centers)
         grid = tf.cast(
             tf.reshape(
@@ -63,16 +70,20 @@ def get_anchors(
         )
         anchors = tf.reshape(anchors, [-1, 4])
         all_anchors.append(anchors)
+        all_strides.append(tf.repeat(stride, anchors.shape[0]))
 
     all_anchors = tf.concat(all_anchors, axis=0)
-    all_anchors = bounding_box.convert_format(
-        all_anchors,
-        source="yxyx",
-        target="rel_yxyx",
-        image_shape=list(image_shape),
-    )
+    all_anchors = tf.cast(all_anchors, tf.float32)
 
-    return tf.cast(all_anchors, tf.float32)
+    all_strides = tf.concat(all_strides, axis=0)
+    all_strides = tf.cast(all_strides, tf.float32)
+
+    all_anchors = all_anchors[:, :2] / all_strides[:, None]
+
+    all_anchors = tf.concat(
+        [all_anchors[:, 1, tf.newaxis], all_anchors[:, 0, tf.newaxis]], axis=-1
+    )
+    return all_anchors, all_strides
 
 
 def path_aggregation_fpn(features, depth=3, name=None):
@@ -203,26 +214,11 @@ def decode_regression_to_boxes(preds, regression_max=16):
     return tf.reduce_sum(preds_bbox, axis=-1)
 
 
-def decode_boxes(preds, anchors):
-    # Boxes expected to be in encoded format
-    preds_top_left, preds_bottom_right = tf.split(preds, [2, 2], axis=-1)
-
-    # Converts rel_yxyx anchors to rel_center_yxhw
-    anchors_hw = anchors[:, 2:] - anchors[:, :2]
-    anchors_center = (anchors[:, :2] + anchors[:, 2:]) * 0.5
-
-    pred_sum = preds_bottom_right + preds_top_left
-    pred_hw_half = (preds_bottom_right - preds_top_left) / 2
-
-    bboxes_center = pred_hw_half * anchors_hw + anchors_center
-    bboxes_hw = pred_sum * anchors_hw
-
-    # Preds in rel_yxyx
-    preds_top_left = bboxes_center - 0.5 * bboxes_hw
-    pred_bottom_right = preds_top_left + bboxes_hw
-
-    # Returns results in rel_yxyx
-    return tf.concat([preds_top_left, pred_bottom_right], axis=-1)
+def dist2bbox(distance, anchor_points):
+    lt, rb = tf.split(distance, 2, axis=-1)
+    x1y1 = anchor_points - lt
+    x2y2 = anchor_points + rb
+    return tf.concat((x1y1, x2y2), axis=-1)  # xyxy bbox
 
 
 @keras.utils.register_keras_serializable(package="keras_cv")
@@ -300,6 +296,10 @@ class YOLOV8Detector(Task):
         )(outputs)
         boxes, scores = outputs[:, :, :64], outputs[:, :, 64:]
 
+        # To make loss metrics pretty, we use a no-op layer with a good name.
+        boxes = keras.layers.Concatenate(axis=1, name="box")([boxes])
+        scores = keras.layers.Concatenate(axis=1, name="class")([scores])
+
         outputs = {"boxes": boxes, "classes": scores}
         super().__init__(inputs=images, outputs=outputs, **kwargs)
 
@@ -316,6 +316,10 @@ class YOLOV8Detector(Task):
         self.backbone = backbone
         self.fpn_depth = fpn_depth
         self.num_classes = num_classes
+        self.label_encoder = YOLOV8LabelEncoder()
+
+        self.box_loss_weight = 6.5
+        self.class_loss_weight = 1.0
 
     def decode_predictions(
         self,
@@ -327,18 +331,18 @@ class YOLOV8Detector(Task):
 
         boxes = decode_regression_to_boxes(boxes, 64 // 4)
 
-        anchors = get_anchors(image_shape=images.shape[1:])
-        anchors = tf.concat(tf.nest.flatten(anchors), axis=0)
+        anchor_points, stride_tensor = get_anchors(image_shape=images.shape[1:])
+        stride_tensor = tf.expand_dims(stride_tensor, axis=-1)
 
-        decoded_boxes = decode_boxes(boxes, anchors)
-        decoded_boxes = bounding_box.convert_format(
-            decoded_boxes,
-            source="rel_yxyx",
+        box_preds = dist2bbox(boxes, anchor_points) * stride_tensor
+        box_preds = bounding_box.convert_format(
+            box_preds,
+            source="xyxy",
             target=self.bounding_box_format,
             images=images,
         )
 
-        return self.prediction_decoder(decoded_boxes, scores)
+        return self.prediction_decoder(box_preds, scores)
 
     def make_predict_function(self, force=False):
         return predict_utils.make_predict_function(self, force=force)
@@ -370,3 +374,104 @@ class YOLOV8Detector(Task):
         """Dictionary of preset names and configurations of compatible
         backbones."""
         return copy.deepcopy(backbone_presets)
+
+    def compile(
+        self,
+        box_loss=None,
+        classification_loss=None,
+        metrics=None,
+        **kwargs,
+    ):
+        if metrics is not None:
+            raise ValueError("User metrics not yet supported for YOLOV8")
+
+        self.box_loss = box_loss or YOLOV8IoULoss(reduction="sum")
+        self.classification_loss = (
+            classification_loss
+            or keras.losses.BinaryCrossentropy(reduction="sum")
+        )
+
+        losses = {
+            "box": self.box_loss,
+            "class": self.classification_loss,
+        }
+
+        super().compile(loss=losses, **kwargs)
+
+    def train_step(self, data):
+        x, y = unpack_input(data)
+
+        with tf.GradientTape() as tape:
+            outputs = self(x, training=True)
+            box_pred, cls_pred = outputs["boxes"], outputs["classes"]
+            total_loss = self.compute_loss(x, y, box_pred, cls_pred)
+
+        # Training specific code
+        trainable_vars = self.trainable_variables
+
+        gradients = tape.gradient(total_loss, trainable_vars)
+        self.optimizer.apply_gradients(zip(gradients, trainable_vars))
+
+        return super().compute_metrics(x, {}, {}, sample_weight={})
+
+    def test_step(self, data):
+        x, y = unpack_input(data)
+
+        outputs = self(x, training=False)
+        box_pred, cls_pred = outputs["boxes"], outputs["classes"]
+        _ = self.compute_loss(x, y, box_pred, cls_pred)
+
+        return super().compute_metrics(x, {}, {}, sample_weight={})
+
+    def compute_loss(self, x, y, box_pred, cls_pred, return_early=False):
+        pred_distri = decode_regression_to_boxes(box_pred)
+        pred_scores = cls_pred
+
+        image_shape = (640, 640, 3)
+        anchor_points, stride_tensor = get_anchors(image_shape)
+        stride_tensor = tf.expand_dims(stride_tensor, axis=-1)
+
+        # These need to be non-one-hot (sparse)
+        gt_labels = y["classes"]
+
+        mask_gt = tf.reduce_all(y["boxes"] > -1.0, axis=-1, keepdims=True)
+        gt_bboxes = bounding_box.convert_format(
+            y["boxes"],
+            source=self.bounding_box_format,
+            target="xyxy",
+            image_shape=image_shape,
+        )
+
+        pred_bboxes = dist2bbox(pred_distri, anchor_points)
+
+        target_bboxes, target_scores, fg_mask = self.label_encoder(
+            pred_scores,
+            tf.cast(pred_bboxes * stride_tensor, gt_bboxes.dtype),
+            anchor_points * stride_tensor,
+            gt_labels,
+            gt_bboxes,
+            mask_gt,
+        )
+
+        target_bboxes /= stride_tensor
+        target_scores_sum = tf.math.maximum(tf.reduce_sum(target_scores), 1)
+        box_weight = tf.expand_dims(
+            tf.boolean_mask(tf.reduce_sum(target_scores, axis=-1), fg_mask),
+            axis=-1,
+        )
+
+        y_true = {
+            "box": target_bboxes[fg_mask],
+            "class": target_scores,
+        }
+        y_pred = {
+            "box": pred_bboxes[fg_mask],
+            "class": pred_scores,
+        }
+        sample_weights = {
+            "box": self.box_loss_weight * box_weight / target_scores_sum,
+            "class": self.class_loss_weight / target_scores_sum,
+        }
+        return super().compute_loss(
+            x=x, y=y_true, y_pred=y_pred, sample_weight=sample_weights
+        )
