@@ -30,8 +30,6 @@ class GlobalRandomFlip(base_augmentation_layer_3d.BaseAugmentationLayer3D):
 
     This layer will flip the whole scene with respect to the specified axes.
     Note that this layer currently only supports flipping over the Y axis.
-    During inference time, the output will be identical to input. Call the layer
-    with `training=True` to flip the input.
 
     Input shape:
       point_clouds: 3D (multi frames) float32 Tensor with shape

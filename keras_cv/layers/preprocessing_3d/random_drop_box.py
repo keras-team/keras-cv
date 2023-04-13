@@ -34,9 +34,6 @@ class RandomDropBox(base_augmentation_layer_3d.BaseAugmentationLayer3D):
     class == label_index will be sampled and dropped; otherwise, all valid
     bounding boxes (box class > 0) will be sampled and dropped.
 
-    During inference time, the output will be identical to input. Call the layer
-    with `training=True` to drop object bounding boxes and points.
-
     Input shape:
       point_clouds: 3D (multi frames) float32 Tensor with shape
         [num of frames, num of points, num of point features].
