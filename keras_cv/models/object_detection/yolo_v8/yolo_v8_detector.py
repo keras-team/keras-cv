@@ -292,7 +292,7 @@ class YOLOV8Detector(Task):
         bounding_box_format,
         backbone,
         fpn_depth,
-        label_encoder,
+        label_encoder=None,
         prediction_decoder=None,
         **kwargs,
     ):
