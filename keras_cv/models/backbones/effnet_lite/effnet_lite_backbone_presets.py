@@ -1,4 +1,4 @@
-# Copyright 2024 The KerasCV Authors
+# Copyright 2023 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ backbone_presets_no_weights = {
             "include_rescaling": True,
             "width_coefficient": 1.0,
             "depth_coefficient": 1.0,
-            # "default_size": default_size,
+            "default_size": default_size,
             "dropout_rate": 0.2,
             "drop_connect_rate": 0.2,
             "depth_divisor": 8,
@@ -50,7 +50,7 @@ backbone_presets_no_weights = {
             "include_rescaling": True,
             "width_coefficient": 1.0,
             "depth_coefficient": 1.1,
-            # "default_size": default_size,
+            "default_size": default_size,
             "dropout_rate": 0.2,
             "drop_connect_rate": 0.2,
             "depth_divisor": 8,
@@ -73,7 +73,7 @@ backbone_presets_no_weights = {
             "include_rescaling": True,
             "width_coefficient": 1.1,
             "depth_coefficient": 1.2,
-            # "default_size": default_size,
+            "default_size": default_size,
             "dropout_rate": 0.2,
             "drop_connect_rate": 0.2,
             "depth_divisor": 8,
@@ -96,7 +96,7 @@ backbone_presets_no_weights = {
             "include_rescaling": True,
             "width_coefficient": 1.2,
             "depth_coefficient": 1.4,
-            # "default_size": default_size,
+            "default_size": default_size,
             "dropout_rate": 0.2,
             "drop_connect_rate": 0.2,
             "depth_divisor": 8,
@@ -119,7 +119,7 @@ backbone_presets_no_weights = {
             "include_rescaling": True,
             "width_coefficient": 1.4,
             "depth_coefficient": 1.8,
-            # "default_size": default_size,
+            "default_size": default_size,
             "dropout_rate": 0.2,
             "drop_connect_rate": 0.2,
             "depth_divisor": 8,
