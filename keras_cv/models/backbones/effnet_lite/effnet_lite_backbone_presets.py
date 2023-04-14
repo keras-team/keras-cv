@@ -17,9 +17,9 @@ backbone_presets_no_weights = {
     "efficientnetliteb0": {
         "metadata": {
             "description": (
-                "EfficientNetLite model with 1.0 depth coefficient and 1.0"
+                "EfficientNetLite model with 1.0 depth coefficient and 1.0 "
                 "width coefficient where the batch normalization and ReLU6 as "
-                "default activation are applied after the convolution layers."
+                "default activation are applied after the convolution layers. "
             ),
         },
         "class_name": "keras_cv.models>EfficientNetLiteBackbone",
@@ -40,9 +40,9 @@ backbone_presets_no_weights = {
     "efficientnetliteb1": {
         "metadata": {
             "description": (
-                "EfficientNetLite model with 1.0 depth coefficient and 1.1  "
+                "EfficientNetLite model with 1.0 depth coefficient and 1.1 "
                 "width coefficient where the batch normalization and ReLU6 as "
-                " default activation are applied after the convolution layers."
+                "default activation are applied after the convolution layers. "
             ),
         },
         "class_name": "keras_cv.models>EfficientNetLiteBackbone",
@@ -65,7 +65,7 @@ backbone_presets_no_weights = {
             "description": (
                 "EfficientNetLite model with 1.1 depth coefficient and 1.2 "
                 "width coefficient where the batch normalization and ReLU6 as "
-                " default activation are applied after the convolution layers."
+                "default activation are applied after the convolution layers. "
             ),
         },
         "class_name": "keras_cv.models>EfficientNetLiteBackbone",
@@ -88,7 +88,7 @@ backbone_presets_no_weights = {
             "description": (
                 "EfficientNetLite model with 1.2 depth coefficient and 1.4 "
                 "width coefficient where the batch normalization and ReLU6 as "
-                "default activation are applied after the convolution layers."
+                "default activation are applied after the convolution layers. "
             ),
         },
         "class_name": "keras_cv.models>EfficientNetLiteBackbone",
@@ -111,7 +111,7 @@ backbone_presets_no_weights = {
             "description": (
                 "EfficientNetLite model with 1.4 depth coefficient and 1.8 "
                 "width coefficient where the batch normalization and ReLU6 as "
-                " default activation are applied after the convolution layers."
+                "default activation are applied after the convolution layers. "
             ),
         },
         "class_name": "keras_cv.models>EfficientNetLiteBackbone",
