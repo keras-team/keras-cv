@@ -12,6 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
+from keras_cv.models.backbones.effnet_lite.effnet_lite_backbone import (
+    EfficientNetLiteB0Backbone,
+)
+from keras_cv.models.backbones.effnet_lite.effnet_lite_backbone import (
+    EfficientNetLiteB1Backbone,
+)
+from keras_cv.models.backbones.effnet_lite.effnet_lite_backbone import (
+    EfficientNetLiteB2Backbone,
+)
+from keras_cv.models.backbones.effnet_lite.effnet_lite_backbone import (
+    EfficientNetLiteB3Backbone,
+)
+from keras_cv.models.backbones.effnet_lite.effnet_lite_backbone import (
+    EfficientNetLiteB4Backbone,
+)
 from keras_cv.models.backbones.resnet_v1.resnet_v1_backbone import (
     ResNet18Backbone,
 )
@@ -69,11 +85,6 @@ from keras_cv.models.darknet import DarkNet53
 from keras_cv.models.densenet import DenseNet121
 from keras_cv.models.densenet import DenseNet169
 from keras_cv.models.densenet import DenseNet201
-from keras_cv.models.efficientnet_lite import EfficientNetLiteB0
-from keras_cv.models.efficientnet_lite import EfficientNetLiteB1
-from keras_cv.models.efficientnet_lite import EfficientNetLiteB2
-from keras_cv.models.efficientnet_lite import EfficientNetLiteB3
-from keras_cv.models.efficientnet_lite import EfficientNetLiteB4
 from keras_cv.models.efficientnet_v1 import EfficientNetB0
 from keras_cv.models.efficientnet_v1 import EfficientNetB1
 from keras_cv.models.efficientnet_v1 import EfficientNetB2
