@@ -24,20 +24,20 @@ backbone_presets_no_weights = {
         },
         "class_name": "keras_cv.models>EfficientNetLiteBackbone",
         "config": {
-              "include_rescaling": True,
-                "width_coefficient": 1.0,
-                "depth_coefficient": 1.0,
-                #"default_size": default_size,
-                "dropout_rate": 0.2,
-                "drop_connect_rate": 0.2,
-                "depth_divisor": 8,
-                "activation": relu6,
-                "blocks_args": None
-                "input_shape": (None, None, 3),
-                "input_tensor": None,
+            "include_rescaling": True,
+            "width_coefficient": 1.0,
+            "depth_coefficient": 1.0,
+            # "default_size": default_size,
+            "dropout_rate": 0.2,
+            "drop_connect_rate": 0.2,
+            "depth_divisor": 8,
+            "activation": relu6,
+            "blocks_args": None,
+            "input_shape": (None, None, 3),
+            "input_tensor": None,
         },
     },
-        "efficientnetliteb1": {
+    "efficientnetliteb1": {
         "metadata": {
             "description": (
                 "EfficientNetLite model with 1.0 depth coefficient and 1.1 width "
@@ -47,21 +47,20 @@ backbone_presets_no_weights = {
         },
         "class_name": "keras_cv.models>EfficientNetLiteBackbone",
         "config": {
-              "include_rescaling": True,
-                "width_coefficient": 1.0,
-                "depth_coefficient": 1.1,
-                #"default_size": default_size,
-                "dropout_rate": 0.2,
-                "drop_connect_rate": 0.2,
-                "depth_divisor": 8,
-                "activation": relu6,
-                "blocks_args": None
-                "input_shape": (None, None, 3),
-                "input_tensor": None,
+            "include_rescaling": True,
+            "width_coefficient": 1.0,
+            "depth_coefficient": 1.1,
+            # "default_size": default_size,
+            "dropout_rate": 0.2,
+            "drop_connect_rate": 0.2,
+            "depth_divisor": 8,
+            "activation": relu6,
+            "blocks_args": None,
+            "input_shape": (None, None, 3),
+            "input_tensor": None,
         },
     },
-   
-       "efficientnetliteb2": {
+    "efficientnetliteb2": {
         "metadata": {
             "description": (
                 "EfficientNetLite model with 1.1 depth coefficient and 1.2 width "
@@ -71,21 +70,20 @@ backbone_presets_no_weights = {
         },
         "class_name": "keras_cv.models>EfficientNetLiteBackbone",
         "config": {
-              "include_rescaling": True,
-                "width_coefficient": 1.1,
-                "depth_coefficient": 1.2,
-                #"default_size": default_size,
-                "dropout_rate": 0.2,
-                "drop_connect_rate": 0.2,
-                "depth_divisor": 8,
-                "activation": relu6,
-                "blocks_args": None
-                "input_shape": (None, None, 3),
-                "input_tensor": None,
+            "include_rescaling": True,
+            "width_coefficient": 1.1,
+            "depth_coefficient": 1.2,
+            # "default_size": default_size,
+            "dropout_rate": 0.2,
+            "drop_connect_rate": 0.2,
+            "depth_divisor": 8,
+            "activation": relu6,
+            "blocks_args": None,
+            "input_shape": (None, None, 3),
+            "input_tensor": None,
         },
     },
-   
-       "efficientnetliteb3": {
+    "efficientnetliteb3": {
         "metadata": {
             "description": (
                 "EfficientNetLite model with 1.2 depth coefficient and 1.4 width "
@@ -95,21 +93,20 @@ backbone_presets_no_weights = {
         },
         "class_name": "keras_cv.models>EfficientNetLiteBackbone",
         "config": {
-              "include_rescaling": True,
-                "width_coefficient": 1.2,
-                "depth_coefficient": 1.4,
-                #"default_size": default_size,
-                "dropout_rate": 0.2,
-                "drop_connect_rate": 0.2,
-                "depth_divisor": 8,
-                "activation": relu6,
-                "blocks_args": None
-                "input_shape": (None, None, 3),
-                "input_tensor": None,
+            "include_rescaling": True,
+            "width_coefficient": 1.2,
+            "depth_coefficient": 1.4,
+            # "default_size": default_size,
+            "dropout_rate": 0.2,
+            "drop_connect_rate": 0.2,
+            "depth_divisor": 8,
+            "activation": relu6,
+            "blocks_args": None,
+            "input_shape": (None, None, 3),
+            "input_tensor": None,
         },
     },
-   
-       "efficientnetliteb4": {
+    "efficientnetliteb4": {
         "metadata": {
             "description": (
                 "EfficientNetLite model with 1.4 depth coefficient and 1.8 width "
@@ -119,19 +116,19 @@ backbone_presets_no_weights = {
         },
         "class_name": "keras_cv.models>EfficientNetLiteBackbone",
         "config": {
-              "include_rescaling": True,
-                "width_coefficient": 1.4,
-                "depth_coefficient": 1.8,
-                #"default_size": default_size,
-                "dropout_rate": 0.2,
-                "drop_connect_rate": 0.2,
-                "depth_divisor": 8,
-                "activation": relu6,
-                "blocks_args": None
-                "input_shape": (None, None, 3),
-                "input_tensor": None,
+            "include_rescaling": True,
+            "width_coefficient": 1.4,
+            "depth_coefficient": 1.8,
+            # "default_size": default_size,
+            "dropout_rate": 0.2,
+            "drop_connect_rate": 0.2,
+            "depth_divisor": 8,
+            "activation": relu6,
+            "blocks_args": None,
+            "input_shape": (None, None, 3),
+            "input_tensor": None,
         },
-    }, 
+    },
 }
 
 
