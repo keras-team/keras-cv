@@ -80,13 +80,7 @@ def select_candidates_in_gts(xy_centers, gt_bboxes, epsilon=1e-9):
 @keras.utils.register_keras_serializable(package="keras_cv")
 class YOLOV8LabelEncoder(layers.Layer):
     def __init__(
-        self,
-        topk=10,
-        num_classes=20,
-        alpha=0.5,
-        beta=6.0,
-        epsilon=1e-9,
-        **kwargs
+        self, num_classes, topk=10, alpha=0.5, beta=6.0, epsilon=1e-9, **kwargs
     ):
         super().__init__(**kwargs)
         self.topk = topk

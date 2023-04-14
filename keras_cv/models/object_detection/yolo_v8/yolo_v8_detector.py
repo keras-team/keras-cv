@@ -226,15 +226,40 @@ class YOLOV8Detector(Task):
     """
     Implements the YOLOV8 architecture for object detection.
 
-    Note: this implementation **does not yet support training**, and is
-    for presets only.
-
     Examples:
     ```python
+    ```python
     images = tf.ones(shape=(1, 512, 512, 3))
-    model = keras_cv.models.YOLOV8Detector.from_preset("yolov8_n_coco", bounding_box_format="xywh")
+    labels = {
+        "boxes": [
+            [
+                [0, 0, 100, 100],
+                [100, 100, 200, 200],
+                [300, 300, 100, 100],
+            ]
+        ],
+        "classes": [[1, 1, 1]],
+    }
+    model = keras_cv.models.YOLOV8Detector(
+        num_classes=20,
+        bounding_box_format="xywh",
+        backbone=keras_cv.models.YOLOV8Backbone.from_preset(
+            "yolov8_m_coco"
+        ),
+        fpn_depth=2.
+    )
 
-    predictions = model.predict(images)
+    # Evaluate model
+    model(images)
+
+    # Train model
+    model.compile(
+        classification_loss='binary_crossentropy',
+        box_loss='iou',
+        optimizer=tf.optimizers.SGD(global_clipnorm=10.0),
+        jit_compile=False,
+    )
+    model.fit(images, labels)
     ```
 
     Args:
@@ -252,9 +277,12 @@ class YOLOV8Detector(Task):
         fpn_depth: integer, a specification of the depth for the Feature
             Pyramid Network. This is usually 1, 2, or 3, depending on the
             size of your YOLOV8Detector model.
+        label_encoder: (Optional)  A `YOLOV8LabelEncoder` that is
+            responsible for transforming input boxes into trainable labels for
+            YOLOV8. If not provided, a default is provided.
         prediction_decoder: (Optional)  A `keras.layers.Layer` that is
-            responsible for transforming RetinaNet predictions into usable
-            bounding box Tensors. If not provided, a default is provided. The
+            responsible for transforming YOLOV8 predictions into usable
+            bounding boxes. If not provided, a default is provided. The
             default `prediction_decoder` layer is a
             `keras_cv.layers.MultiClassNonMaxSuppression` layer, which uses
             a Non-Max Suppression for box pruning.
@@ -262,16 +290,15 @@ class YOLOV8Detector(Task):
 
     def __init__(
         self,
+        num_classes,
         bounding_box_format,
         backbone,
         fpn_depth,
-        num_classes,
+        label_encoder,
         prediction_decoder=None,
         **kwargs,
     ):
         extractor_levels = [2, 3, 4]
-        if 5 in backbone.pyramid_level_inputs.keys():
-            extractor_levels.append(5)
         extractor_layer_names = [
             backbone.pyramid_level_inputs[i] for i in extractor_levels
         ]
@@ -309,17 +336,133 @@ class YOLOV8Detector(Task):
             or keras_cv.layers.MultiClassNonMaxSuppression(
                 bounding_box_format=bounding_box_format,
                 from_logits=False,
-                confidence_threshold=0.3,
+                confidence_threshold=0.2,
                 iou_threshold=0.5,
             )
         )
         self.backbone = backbone
         self.fpn_depth = fpn_depth
         self.num_classes = num_classes
-        self.label_encoder = YOLOV8LabelEncoder()
+        self.label_encoder = label_encoder or YOLOV8LabelEncoder(
+            num_classes=num_classes
+        )
 
-        self.box_loss_weight = 6.5
-        self.class_loss_weight = 1.0
+        self.box_loss_weight = 7.5
+        self.class_loss_weight = 0.5
+
+    def compile(
+        self,
+        box_loss=None,
+        classification_loss=None,
+        metrics=None,
+        **kwargs,
+    ):
+        """Compiles the YOLOV8Detector.
+
+        `compile()` mirrors the standard Keras `compile()` method, but has one
+        key distinction -- two losses must be provided: `box_loss` and
+        `classification_loss`.
+
+        Args:
+            box_loss: a Keras loss to use for box offset regression. A
+                preconfigured loss is provided when the string "iou" is passed.
+            classification_loss: a Keras loss to use for box classification. A
+                preconfigured loss is provided when the string
+                "binary_crossentropy" is passed.
+            kwargs: most other `keras.Model.compile()` arguments are supported
+                and propagated to the `keras.Model` class.
+        """
+        if metrics is not None:
+            raise ValueError("User metrics not yet supported for YOLOV8")
+
+        self.box_loss = _parse_box_loss(box_loss)
+        self.classification_loss = _parse_classification_loss(
+            classification_loss
+        )
+
+        losses = {
+            "box": self.box_loss,
+            "class": self.classification_loss,
+        }
+
+        super().compile(loss=losses, **kwargs)
+
+    def train_step(self, data):
+        x, y = unpack_input(data)
+
+        with tf.GradientTape() as tape:
+            outputs = self(x, training=True)
+            box_pred, cls_pred = outputs["boxes"], outputs["classes"]
+            total_loss = self.compute_loss(x, y, box_pred, cls_pred)
+
+        trainable_vars = self.trainable_variables
+
+        gradients = tape.gradient(total_loss, trainable_vars)
+        self.optimizer.apply_gradients(zip(gradients, trainable_vars))
+
+        return super().compute_metrics(x, {}, {}, sample_weight={})
+
+    def test_step(self, data):
+        x, y = unpack_input(data)
+
+        outputs = self(x, training=False)
+        box_pred, cls_pred = outputs["boxes"], outputs["classes"]
+        _ = self.compute_loss(x, y, box_pred, cls_pred)
+
+        return super().compute_metrics(x, {}, {}, sample_weight={})
+
+    def compute_loss(self, x, y, box_pred, cls_pred, return_early=False):
+        pred_boxes = decode_regression_to_boxes(box_pred)
+        pred_scores = cls_pred
+
+        image_shape = (640, 640, 3)
+        anchor_points, stride_tensor = get_anchors(image_shape)
+        stride_tensor = tf.expand_dims(stride_tensor, axis=-1)
+
+        gt_labels = y["classes"]
+
+        mask_gt = tf.reduce_all(y["boxes"] > -1.0, axis=-1, keepdims=True)
+        gt_bboxes = bounding_box.convert_format(
+            y["boxes"],
+            source=self.bounding_box_format,
+            target="xyxy",
+            image_shape=image_shape,
+        )
+
+        pred_bboxes = dist2bbox(pred_boxes, anchor_points)
+
+        target_bboxes, target_scores, fg_mask = self.label_encoder(
+            pred_scores,
+            tf.cast(pred_bboxes * stride_tensor, gt_bboxes.dtype),
+            anchor_points * stride_tensor,
+            gt_labels,
+            gt_bboxes,
+            mask_gt,
+        )
+
+        target_bboxes /= stride_tensor
+        target_scores_sum = tf.math.maximum(tf.reduce_sum(target_scores), 1)
+        box_weight = tf.expand_dims(
+            tf.boolean_mask(tf.reduce_sum(target_scores, axis=-1), fg_mask),
+            axis=-1,
+        )
+
+        y_true = {
+            "box": target_bboxes[fg_mask],
+            "class": target_scores,
+        }
+        y_pred = {
+            "box": pred_bboxes[fg_mask],
+            "class": pred_scores,
+        }
+        sample_weights = {
+            "box": self.box_loss_weight * box_weight / target_scores_sum,
+            "class": self.class_loss_weight / target_scores_sum,
+        }
+
+        return super().compute_loss(
+            x=x, y=y_true, y_pred=y_pred, sample_weight=sample_weights
+        )
 
     def decode_predictions(
         self,
@@ -353,6 +496,7 @@ class YOLOV8Detector(Task):
             "bounding_box_format": self.bounding_box_format,
             "fpn_depth": self.fpn_depth,
             "backbone": keras.utils.serialize_keras_object(self.backbone),
+            "label_encoder": self.label_encoder,
             "prediction_decoder": self.prediction_decoder,
         }
 
@@ -375,103 +519,28 @@ class YOLOV8Detector(Task):
         backbones."""
         return copy.deepcopy(backbone_presets)
 
-    def compile(
-        self,
-        box_loss=None,
-        classification_loss=None,
-        metrics=None,
-        **kwargs,
-    ):
-        if metrics is not None:
-            raise ValueError("User metrics not yet supported for YOLOV8")
 
-        self.box_loss = box_loss or YOLOV8IoULoss(reduction="sum")
-        self.classification_loss = (
-            classification_loss
-            or keras.losses.BinaryCrossentropy(reduction="sum")
-        )
+def _parse_box_loss(loss):
+    if not isinstance(loss, str):
+        return loss
 
-        losses = {
-            "box": self.box_loss,
-            "class": self.classification_loss,
-        }
+    if loss.lower() == "iou":
+        return YOLOV8IoULoss(reduction="sum")
 
-        super().compile(loss=losses, **kwargs)
+    raise ValueError(
+        "Expected `box_loss` to be either a Keras Loss, "
+        f"callable, or the string 'iou'. Got loss={loss}."
+    )
 
-    def train_step(self, data):
-        x, y = unpack_input(data)
 
-        with tf.GradientTape() as tape:
-            outputs = self(x, training=True)
-            box_pred, cls_pred = outputs["boxes"], outputs["classes"]
-            total_loss = self.compute_loss(x, y, box_pred, cls_pred)
+def _parse_classification_loss(loss):
+    if not isinstance(loss, str):
+        return loss
 
-        # Training specific code
-        trainable_vars = self.trainable_variables
+    if loss.lower() == "binary_crossentropy":
+        return keras.losses.BinaryCrossentropy(reduction="sum")
 
-        gradients = tape.gradient(total_loss, trainable_vars)
-        self.optimizer.apply_gradients(zip(gradients, trainable_vars))
-
-        return super().compute_metrics(x, {}, {}, sample_weight={})
-
-    def test_step(self, data):
-        x, y = unpack_input(data)
-
-        outputs = self(x, training=False)
-        box_pred, cls_pred = outputs["boxes"], outputs["classes"]
-        _ = self.compute_loss(x, y, box_pred, cls_pred)
-
-        return super().compute_metrics(x, {}, {}, sample_weight={})
-
-    def compute_loss(self, x, y, box_pred, cls_pred, return_early=False):
-        pred_distri = decode_regression_to_boxes(box_pred)
-        pred_scores = cls_pred
-
-        image_shape = (640, 640, 3)
-        anchor_points, stride_tensor = get_anchors(image_shape)
-        stride_tensor = tf.expand_dims(stride_tensor, axis=-1)
-
-        # These need to be non-one-hot (sparse)
-        gt_labels = y["classes"]
-
-        mask_gt = tf.reduce_all(y["boxes"] > -1.0, axis=-1, keepdims=True)
-        gt_bboxes = bounding_box.convert_format(
-            y["boxes"],
-            source=self.bounding_box_format,
-            target="xyxy",
-            image_shape=image_shape,
-        )
-
-        pred_bboxes = dist2bbox(pred_distri, anchor_points)
-
-        target_bboxes, target_scores, fg_mask = self.label_encoder(
-            pred_scores,
-            tf.cast(pred_bboxes * stride_tensor, gt_bboxes.dtype),
-            anchor_points * stride_tensor,
-            gt_labels,
-            gt_bboxes,
-            mask_gt,
-        )
-
-        target_bboxes /= stride_tensor
-        target_scores_sum = tf.math.maximum(tf.reduce_sum(target_scores), 1)
-        box_weight = tf.expand_dims(
-            tf.boolean_mask(tf.reduce_sum(target_scores, axis=-1), fg_mask),
-            axis=-1,
-        )
-
-        y_true = {
-            "box": target_bboxes[fg_mask],
-            "class": target_scores,
-        }
-        y_pred = {
-            "box": pred_bboxes[fg_mask],
-            "class": pred_scores,
-        }
-        sample_weights = {
-            "box": self.box_loss_weight * box_weight / target_scores_sum,
-            "class": self.class_loss_weight / target_scores_sum,
-        }
-        return super().compute_loss(
-            x=x, y=y_true, y_pred=y_pred, sample_weight=sample_weights
-        )
+    raise ValueError(
+        "Expected `classification_loss` to be either a Keras Loss, "
+        f"callable, or the string 'binary_crossentropy'. Got loss={loss}."
+    )
