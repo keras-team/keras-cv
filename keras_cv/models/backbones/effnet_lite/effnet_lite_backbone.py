@@ -16,9 +16,10 @@
 """EfficientNet Lite models for Keras.
 
 Reference:
-    - [EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks](
+- [EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks](
         https://arxiv.org/abs/1905.11946) (ICML 2019)
-    - [Based on the original EfficientNet Lite's](https://github.com/tensorflow/tpu/tree/master/models/official/efficientnet/lite)
+- [Based on the original EfficientNet Lite's]
+(https://github.com/tensorflow/tpu/tree/master/models/official/efficientnet/lite)
 """
 
 import copy
@@ -36,6 +37,90 @@ from keras_cv.models.backbones.effnet_lite.effnet_lite_backbone_presets import (
 from keras_cv.utils.python_utils import classproperty
 
 BN_AXIS = 3
+
+DEFAULT_BLOCKS_ARGS = [
+    {
+        "kernel_size": 3,
+        "repeats": 1,
+        "filters_in": 32,
+        "filters_out": 16,
+        "expand_ratio": 1,
+        "id_skip": True,
+        "strides": 1,
+    },
+    {
+        "kernel_size": 3,
+        "repeats": 2,
+        "filters_in": 16,
+        "filters_out": 24,
+        "expand_ratio": 6,
+        "id_skip": True,
+        "strides": 2,
+    },
+    {
+        "kernel_size": 5,
+        "repeats": 2,
+        "filters_in": 24,
+        "filters_out": 40,
+        "expand_ratio": 6,
+        "id_skip": True,
+        "strides": 2,
+    },
+    {
+        "kernel_size": 3,
+        "repeats": 3,
+        "filters_in": 40,
+        "filters_out": 80,
+        "expand_ratio": 6,
+        "id_skip": True,
+        "strides": 2,
+    },
+    {
+        "kernel_size": 5,
+        "repeats": 3,
+        "filters_in": 80,
+        "filters_out": 112,
+        "expand_ratio": 6,
+        "id_skip": True,
+        "strides": 1,
+    },
+    {
+        "kernel_size": 5,
+        "repeats": 4,
+        "filters_in": 112,
+        "filters_out": 192,
+        "expand_ratio": 6,
+        "id_skip": True,
+        "strides": 2,
+    },
+    {
+        "kernel_size": 3,
+        "repeats": 1,
+        "filters_in": 192,
+        "filters_out": 320,
+        "expand_ratio": 6,
+        "id_skip": True,
+        "strides": 1,
+    },
+]
+
+CONV_KERNEL_INITIALIZER = {
+    "class_name": "VarianceScaling",
+    "config": {
+        "scale": 2.0,
+        "mode": "fan_out",
+        "distribution": "truncated_normal",
+    },
+}
+
+DENSE_KERNEL_INITIALIZER = {
+    "class_name": "VarianceScaling",
+    "config": {
+        "scale": 1.0 / 3.0,
+        "mode": "fan_out",
+        "distribution": "uniform",
+    },
+}
 
 
 def correct_pad(inputs, kernel_size):
@@ -342,12 +427,13 @@ class EfficientNetLiteBackbone(Backbone):
         return copy.deepcopy(backbone_presets)
 
 
-ALIAS_DOCSTRING = """EfficientNetLiteBackbone model with {width_coefficient} width coefficient
+ALIAS_DOCSTRING = """EfficientNetLiteBackbone model with {width_coefficient}
+                     width coefficient
     and {depth_coefficient} depth coefficient.
 
     Reference:
-        - [EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks](
-        https://arxiv.org/abs/1905.11946) (ICML 2019)
+    - [EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks]
+    (https://arxiv.org/abs/1905.11946) (ICML 2019)
 
 
     For image classification use cases, see
@@ -361,8 +447,9 @@ ALIAS_DOCSTRING = """EfficientNetLiteBackbone model with {width_coefficient} wid
         include_rescaling: bool, whether or not to Rescale the inputs. If set
             to `True`, inputs will be passed through a `Rescaling(1/255.0)`
             layer.
-        num_classes: optional int, number of classes to classify images into (only
-            to be specified if `include_top` is `True`).
+        num_classes: optional int, number of
+        classes to classify images into (only
+        to be specified if `include_top` is `True`).
         input_shape: optional shape tuple, defaults to (None, None, 3).
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
             to use as image input for the model.
