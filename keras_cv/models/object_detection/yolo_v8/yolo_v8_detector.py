@@ -228,7 +228,6 @@ class YOLOV8Detector(Task):
 
     Examples:
     ```python
-    ```python
     images = tf.ones(shape=(1, 512, 512, 3))
     labels = {
         "boxes": [
@@ -271,15 +270,14 @@ class YOLOV8Detector(Task):
             [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
             for more details on supported bounding box formats.
         backbone: `keras.Model`. Must implement the `pyramid_level_inputs`
-            property with keys 3, 4, and 5 and layer names as values. A
-            sensible backbone to use in many cases is the
-            `keras_cv.models.YOLOV8Backbone`
+            property with keys 2, 3, and 4 and layer names as values. A
+            sensible backbone to use is the `keras_cv.models.YOLOV8Backbone`.
         fpn_depth: integer, a specification of the depth for the Feature
             Pyramid Network. This is usually 1, 2, or 3, depending on the
             size of your YOLOV8Detector model.
         label_encoder: (Optional)  A `YOLOV8LabelEncoder` that is
             responsible for transforming input boxes into trainable labels for
-            YOLOV8. If not provided, a default is provided.
+            YOLOV8Detector. If not provided, a default is provided.
         prediction_decoder: (Optional)  A `keras.layers.Layer` that is
             responsible for transforming YOLOV8 predictions into usable
             bounding boxes. If not provided, a default is provided. The
