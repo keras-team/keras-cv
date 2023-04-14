@@ -15,11 +15,10 @@
 import tensorflow as tf
 from absl.testing import parameterized
 
-from keras_cv.models import effnet_lite
-
 from keras_cv.models.backbones.effnet_lite import (
     effnet_lite_backbone as effnet_lite,
 )
+
 from .models_test import ModelsTest
 
 MODEL_LIST = [
