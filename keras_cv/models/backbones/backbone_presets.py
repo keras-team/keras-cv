@@ -13,8 +13,7 @@
 # limitations under the License.
 """All Backbone presets"""
 
-from keras_cv.models.backbones.effnet_lite import
-    effnet_lite_backbone_presets
+from keras_cv.models.backbones.effnet_lite import effnet_lite_backbone_presets
 from keras_cv.models.backbones.resnet_v1 import resnet_v1_backbone_presets
 from keras_cv.models.backbones.resnet_v2 import resnet_v2_backbone_presets
 
