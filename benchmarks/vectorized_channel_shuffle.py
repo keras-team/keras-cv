@@ -38,15 +38,17 @@ class OldChannelShuffle(BaseImageAugmentationLayer):
         `(..., height, width, channels)`, in `"channels_last"` format
 
     Args:
-        groups: Number of groups to divide the input channels. Default 3.
+        groups: Number of groups to divide the input channels, defaults to 3.
         seed: Integer. Used to create a random seed.
 
     Call arguments:
         inputs: Tensor representing images of shape
-            `(batch_size, width, height, channels)`, with dtype tf.float32 / tf.uint8,
-            ` or (width, height, channels)`, with dtype tf.float32 / tf.uint8
-        training: A boolean argument that determines whether the call should be run
-            in inference mode or training mode. Default: True.
+            `(batch_size, width, height, channels)`, with dtype
+                tf.float32 / tf.uint8,
+            ` or (width, height, channels)`, with dtype
+                tf.float32 / tf.uint8
+        training: A boolean argument that determines whether the call should be
+            run in inference mode or training mode, defaults to True.
 
     Usage:
     ```python

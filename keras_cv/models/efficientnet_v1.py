@@ -16,10 +16,10 @@
 """EfficientNet models for Keras.
 
 Reference:
-    - [EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks](
-        https://arxiv.org/abs/1905.11946) (ICML 2019)
+    - [EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks](https://arxiv.org/abs/1905.11946)
+        (ICML 2019)
     - [Based on the original keras.applications EfficientNet](https://github.com/keras-team/keras/blob/master/keras/applications/efficientnet.py)
-"""
+"""  # noqa: E501
 
 import copy
 import math
@@ -126,54 +126,48 @@ DENSE_KERNEL_INITIALIZER = {
 BASE_DOCSTRING = """Instantiates the {name} architecture.
 
     Reference:
-    - [EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks](
-        https://arxiv.org/abs/1905.11946) (ICML 2019)
+    - [EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks](https://arxiv.org/abs/1905.11946)
+        (ICML 2019)
 
     This class represents a Keras image classification model.
 
     For image classification use cases, see
-    [this page for detailed examples](
-    https://keras.io/api/applications/#usage-examples-for-image-classification-models).
+    [this page for detailed examples](https://keras.io/api/applications/#usage-examples-for-image-classification-models).
 
     For transfer learning use cases, make sure to read the
-    [guide to transfer learning & fine-tuning](
-    https://keras.io/guides/transfer_learning/).
+    [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
 
     Args:
-        include_rescaling: bool, whether or not to Rescale the inputs.If set to True,
-                    inputs will be passed through a `Rescaling(1/255.0)` layer.
-        include_top: bool, Whether to include the fully-connected
-            layer at the top of the network.
-        weights: One of `None` (random initialization),
-                or the path to the weights file to be loaded.
-        input_shape: tuple, Optional shape tuple.
-            It should have exactly 3 inputs channels.
-        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
-            to use as image input for the model.
-        pooling: Optional pooling mode for feature extraction
-            when `include_top` is `False`. Defaults to None.
-            - `None` means that the output of the model will be
-                the 4D tensor output of the
-                last convolutional layer.
-            - `avg` means that global average pooling
-                will be applied to the output of the
-                last convolutional layer, and thus
-                the output of the model will be a 2D tensor.
-            - `max` means that global max pooling will
-                be applied.
-        num_classes: int, Optional number of classes to classify images
-            into, only to be specified if `include_top` is True, and
-            if no `weights` argument is specified. Defaults to None.
-        classifier_activation: A `str` or callable. The activation function to use
-            on the "top" layer. Ignored unless `include_top=True`. Set
-            `classifier_activation=None` to return the logits of the "top" layer.
-            Defaults to 'softmax'.
-            When loading pretrained weights, `classifier_activation` can only
-            be `None` or `"softmax"`.
+        include_rescaling: bool, whether to rescale the inputs. If set to
+            True, inputs will be passed through a `Rescaling(1/255.0)` layer.
+        include_top: bool, Whether to include the fully-connected layer at the
+            top of the network.
+        weights: One of `None` (random initialization), or the path to the
+            weights file to be loaded.
+        input_shape: tuple, Optional shape tuple. It should have exactly 3
+            inputs channels.
+        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`) to
+            use as image input for the model.
+        pooling: Optional pooling mode for feature extraction when `include_top`
+            is `False`, defaults to None.
+            - `None` means that the output of the model will be the 4D tensor
+                output of the last convolutional layer.
+            - `avg` means that global average pooling will be applied to the
+                output of the last convolutional layer, and thus the output of
+                the model will be a 2D tensor.
+            - `max` means that global max pooling will be applied.
+        num_classes: int, Optional number of classes to classify images into,
+            only to be specified if `include_top` is True, and if no `weights`
+            argument is specified, defaults to None.
+        classifier_activation: A `str` or callable. The activation function to
+            use on the "top" layer. Ignored unless `include_top=True`. Set
+            `classifier_activation=None` to return the logits of the "top"
+            layer. Defaults to 'softmax'. When loading pretrained weights,
+            `classifier_activation` can only be `None` or `"softmax"`.
 
     Returns:
         A `keras.Model` instance.
-"""
+"""  # noqa: E501
 
 BN_AXIS = 3
 
@@ -215,23 +209,26 @@ def apply_conv_bn(
     name="",
 ):
     """
-    Represents Convolutional Block with optional Batch Normalization layer and activation layer
+    Represents Convolutional Block with optional Batch Normalization layer and
+    activation layer
 
     Args:
         x: Tensor
         conv_type: str, Type of Conv layer to be used in block.
             - 'normal': The Conv2D layer will be used.
             - 'depth': The DepthWiseConv2D layer will be used.
-        filters: int, The filter size of the Conv layer.
-                It should be `None` when `conv_type` is set as `depth`
+        filters: int, The filter size of the Conv layer. It should be `None`
+            when `conv_type` is set as `depth`
         kernel_size: int (or) tuple, The kernel size of the Conv layer.
         strides: int (or) tuple, The stride value of Conv layer.
         padding: str (or) callable, The type of padding for Conv layer.
         use_bias: bool, Boolean to use bias for Conv layer.
-        kernel_initializer: dict (or) str (or) callable, The kernel initializer for Conv layer.
+        kernel_initializer: dict (or) str (or) callable, The kernel initializer
+            for Conv layer.
         bn_norm: bool, Boolean to add BatchNormalization layer after Conv layer.
-        activation: str (or) callable, Activation to be applied on the output at end.
-        name: name of the block
+        activation: str (or) callable, Activation to be applied on the output at
+            the end.
+        name: str, name of the block
 
     Returns:
         tf.Tensor
@@ -239,7 +236,8 @@ def apply_conv_bn(
     if conv_type == "normal":
         if filters is None or kernel_size is None:
             raise ValueError(
-                "The filter size and kernel size should be set for Conv2D layer."
+                "The filter size and kernel size should be set for Conv2D "
+                "layer."
             )
         x = layers.Conv2D(
             filters,
@@ -257,7 +255,8 @@ def apply_conv_bn(
             )
         if kernel_size is None or strides is None:
             raise ValueError(
-                "The kernel size and strides should be set for DepthWiseConv2D layer."
+                "The kernel size and strides should be set for DepthWiseConv2D "
+                "layer."
             )
         x = layers.DepthwiseConv2D(
             kernel_size,
@@ -269,7 +268,8 @@ def apply_conv_bn(
         )(x)
     else:
         raise ValueError(
-            "The 'conv_type' parameter should be set either to 'normal' or 'depth'"
+            "The 'conv_type' parameter should be set either to 'normal' or "
+            "'depth'"
         )
 
     if bn_norm:
@@ -409,10 +409,10 @@ def apply_efficientnet_block(
 class EfficientNet(keras.Model):
     """This class represents a Keras EfficientNet architecture.
     Args:
-        include_rescaling: bool, whether or not to Rescale the inputs.If set to True,
-                inputs will be passed through a `Rescaling(1/255.0)` layer.
-        include_top: bool, whether to include the fully-connected
-            layer at the top of the network.
+        include_rescaling: bool, whether to rescale the inputs. If set to
+            True, inputs will be passed through a `Rescaling(1/255.0)` layer.
+        include_top: bool, whether to include the fully-connected layer at the
+            top of the network.
         width_coefficient: float, scaling coefficient for network width.
         depth_coefficient: float, scaling coefficient for network depth.
         default_size: integer, default input image size.
@@ -422,34 +422,32 @@ class EfficientNet(keras.Model):
         activation: activation function.
         blocks_args: list of dicts, parameters to construct block modules.
         model_name: string, model name.
-        weights: one of `None` (random initialization),
-            or the path to the weights file to be loaded.
-        input_shape: optional shape tuple,
-            It should have exactly 3 inputs channels.
-        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
-            to use as image input for the model.
-        pooling: optional pooling mode for feature extraction
-            when `include_top` is `False`.
-            - `None` means that the output of the model will be
-                the 4D tensor output of the
-                last convolutional layer.
-            - `avg` means that global average pooling
-                will be applied to the output of the
-                last convolutional layer, and thus
-                the output of the model will be a 2D tensor.
-            - `max` means that global max pooling will
-                be applied.
-        num_classes: optional number of classes to classify images
-            into, only to be specified if `include_top` is True, and
-            if no `weights` argument is specified.
-        classifier_activation: A `str` or callable. The activation function to use
-            on the "top" layer. Ignored unless `include_top=True`. Set
-            `classifier_activation=None` to return the logits of the "top" layer.
+        weights: one of `None` (random initialization), or the path to the
+            weights file to be loaded.
+        input_shape: optional shape tuple, it should have exactly 3 input
+            channels.
+        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`) to
+            use as image input for the model.
+        pooling: optional pooling mode for feature extraction when `include_top`
+            is `False`.
+            - `None` means that the output of the model will be the 4D tensor
+                output of the last convolutional layer.
+            - `avg` means that global average pooling will be applied to the
+                output of the last convolutional layer, and thus the output of
+                the model will be a 2D tensor.
+            - `max` means that global max pooling will be applied.
+        num_classes: optional number of classes to classify images into,
+            only to be specified if `include_top` is True, and if no `weights`
+            argument is specified.
+        classifier_activation: A `str` or callable. The activation function to
+            use on the "top" layer. Ignored unless `include_top=True`. Set
+            `classifier_activation=None` to return the logits of the "top"
+            layer.
     Returns:
       A `keras.Model` instance.
     Raises:
-      ValueError: in case of invalid argument for `weights`,
-        or invalid input shape.
+      ValueError: in case of invalid argument for `weights`, or invalid input
+        shape.
       ValueError: if `classifier_activation` is not `softmax` or `None` when
         using a pretrained top layer.
     """
@@ -482,8 +480,9 @@ class EfficientNet(keras.Model):
 
         if weights and not tf.io.gfile.exists(weights):
             raise ValueError(
-                "The `weights` argument should be either `None` or the path to the "
-                "weights file to be loaded. Weights file not found at location: {weights}"
+                "The `weights` argument should be either `None` or the path to "
+                "the weights file to be loaded. Weights file not found at "
+                f"location: {weights}"
             )
 
         if include_top and not num_classes:
@@ -625,7 +624,8 @@ class EfficientNet(keras.Model):
         """Round number of filters based on depth multiplier.
         Args:
             filters: int, number of filters for Conv layer
-            width_coefficient: float, denotes the scaling coefficient of network width
+            width_coefficient: float, denotes the scaling coefficient of network
+                width
             divisor: int, a unit of network width
 
         Returns:
@@ -644,8 +644,9 @@ class EfficientNet(keras.Model):
     def round_repeats(repeats, depth_coefficient):
         """Round number of repeats based on depth multiplier.
         Args:
-            repeats: int, number of repeats of efficentnet block
-            depth_coefficient: float, denotes the scaling coefficient of  network depth
+            repeats: int, number of repeats of efficientnet block
+            depth_coefficient: float, denotes the scaling coefficient of network
+                depth
 
         Returns:
             int, rounded repeats

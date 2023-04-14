@@ -92,6 +92,7 @@ TEST_CONFIGURATIONS = [
         layers.RandomContrast,
         {"value_range": (0, 255), "factor": 0.5},
     ),
+    ("RandomFlip", layers.RandomFlip, {"mode": "horizontal"}),
     (
         "RandomGaussianBlur",
         layers.RandomGaussianBlur,

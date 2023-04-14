@@ -80,7 +80,7 @@ class FasterRCNNTest(tf.test.TestCase, parameterized.TestCase):
     @pytest.mark.skipif(
         "INTEGRATION" not in os.environ or os.environ["INTEGRATION"] != "true",
         reason="Takes a long time to run, only runs when INTEGRATION "
-        "environment variable is set.  To run the test please run: \n"
+        "environment variable is set. To run the test please run: \n"
         "`INTEGRATION=true pytest keras_cv/",
     )
     def test_faster_rcnn_with_dictionary_input_format(self):

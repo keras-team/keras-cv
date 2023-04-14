@@ -29,18 +29,19 @@ def _target_gather(
 
     Args:
      targets: [N, ...] or [batch_size, N, ...] Tensor representing targets such
-       as boxes, keypoints, etc.
+        as boxes, keypoints, etc.
      indices: [M] or [batch_size, M] int32 Tensor representing indices within
-       `targets` to gather.
-     mask: optional [M, ...] or [batch_size, M, ...] boolean
-       Tensor representing the masking for each target. `True` means the corresponding
-       entity should be masked to `mask_val`, `False` means the corresponding entity
-       should be the target value.
-     mask_val: optional float representing the masking value if `mask` is True on
-       the entity.
+        `targets` to gather.
+     mask: optional [M, ...] or [batch_size, M, ...] boolean Tensor representing
+        the masking for each target. `True` means the corresponding entity
+        should be masked to `mask_val`, `False` means the corresponding
+        entity should be the target value.
+     mask_val: optional float representing the masking value if `mask` is True
+        on the entity.
 
-     Returns:
-       targets: [M, ...] or [batch_size, M, ...] Tensor representing selected targets.
+    Returns:
+     targets: [M, ...] or [batch_size, M, ...] Tensor representing
+       selected targets.
 
      Raise:
        ValueError: If `targets` is higher than rank 3.

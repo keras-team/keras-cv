@@ -123,8 +123,8 @@ backbone_presets_with_weights = {
         },
         "class_name": "keras_cv.models>ResNetBackbone",
         "config": backbone_presets_no_weights["resnet50"]["config"],
-        "weights_url": "https://storage.googleapis.com/keras-cv/models/resnet50/imagenet/classification-v0-notop.h5",
-        "weights_hash": "dc5f6d8f929c78d0fc192afecc67b11ac2166e9d8b9ef945742368ae254c07af",
+        "weights_url": "https://storage.googleapis.com/keras-cv/models/resnet50/imagenet/classification-v0-notop.h5",  # noqa: E501
+        "weights_hash": "dc5f6d8f929c78d0fc192afecc67b11ac2166e9d8b9ef945742368ae254c07af",  # noqa: E501
     },
 }
 

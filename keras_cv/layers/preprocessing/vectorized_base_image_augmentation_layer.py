@@ -37,11 +37,11 @@ USE_TARGETS = "use_targets"
 class VectorizedBaseImageAugmentationLayer(
     keras.__internal__.layers.BaseRandomLayer
 ):
-    """Abstract base layer for vectorized image augmentaion.
+    """Abstract base layer for vectorized image augmentation.
 
     This layer contains base functionalities for preprocessing layers which
-    augment image related data, eg. image and in future, label and bounding
-    boxes.  The subclasses could avoid making certain mistakes and reduce code
+    augment image related data, e.g. image and in the future, label and bounding
+    boxes. The subclasses could avoid making certain mistakes and reduce code
     duplications.
 
     This layer requires you to implement one method: `augment_images()`, which
@@ -55,10 +55,10 @@ class VectorizedBaseImageAugmentationLayer(
     the layer supports that.
 
     `get_random_transformations()`, which should produce a batch of random
-    transformation settings. The tranformation object, which must be a batched Tensor or
-    a dictionary where each input is a batched Tensor, will be
-    passed to `augment_images`, `augment_labels` and `augment_bounding_boxes`, to
-    coodinate the randomness behavior, eg, in the RandomFlip layer, the image
+    transformation settings. The transformation object, which must be a batched
+    Tensor or a dictionary where each input is a batched Tensor, will be passed
+    to `augment_images`, `augment_labels` and `augment_bounding_boxes`, to
+    coordinate the randomness behavior, eg, in the RandomFlip layer, the image
     and bounding_boxes should be changed in the same way.
 
     The `call()` method support two formats of inputs:
@@ -70,13 +70,12 @@ class VectorizedBaseImageAugmentationLayer(
     The output of the `call()` will be in two formats, which will be the same
     structure as the inputs.
 
-    The `call()` will handle the logic detecting the training/inference mode,
-    unpack the inputs, forward to the correct function, and pack the output back
-    to the same structure as the inputs.
+    The `call()` will unpack the inputs, forward to the correct function, and
+    pack the output back to the same structure as the inputs.
 
     Note that since the randomness is also a common functionality, this layer
     also includes a keras.backend.RandomGenerator, which can be used to
-    produce the random numbers.  The random number generator is stored in the
+    produce the random numbers. The random number generator is stored in the
     `self._random_generator` attribute.
     """
 
@@ -86,34 +85,37 @@ class VectorizedBaseImageAugmentationLayer(
     def augment_ragged_image(self, image, transformation, **kwargs):
         """Augment an image from a ragged image batch during training.
 
-        This method accepts a single Dense image Tensor, and returns a Dense image.
-        The resulting images are then stacked back into a ragged image batch.  The
-        behavior of this method should be identical to that of `augment_images()` but
-        is to operate on a batch-wise basis.
+        This method accepts a single Dense image Tensor, and returns a Dense
+        image. The resulting images are then stacked back into a ragged image
+        batch. The behavior of this method should be identical to that of
+        `augment_images()` but is to operate on a batch-wise basis.
 
         Args:
             image: a single image from the batch
             transformation: a single transformation sampled from
                 `get_random_transformations()`.
-            kwargs: all of the other call arguments (i.e. bounding_boxes, labels, etc.).
+            kwargs: all the other call arguments (i.e. bounding_boxes, labels,
+                etc.).
         Returns:
             Augmented image.
         """
         raise NotImplementedError(
             "A ragged image batch was passed to layer of type "
             f"`{type(self).__name__}`. This layer does not implement "
-            "`augment_ragged_image()`. If this is a `keras_cv`, open a GitHub issue "
-            "requesting Ragged functionality on the layer titled: "
-            f"'`{type(self).__name__}`: ragged image support'. "
-            "If this is a custom layer, implement the `augment_ragged_image()` method."
+            "`augment_ragged_image()`. If this is a `keras_cv`, open a GitHub "
+            "issue requesting Ragged functionality on the layer titled: "
+            f"'`{type(self).__name__}`: ragged image support'. If this is a "
+            "custom layer, implement the `augment_ragged_image()` method."
         )
 
     def compute_ragged_image_signature(self, images):
-        """Computes the output image signature for the `augment_image()` function.
+        """Computes the output image signature for the `augment_image()`
+        function.
 
-        Must be overridden to return tensors with different shapes than the input
-        images.  By default returns either a `tf.RaggedTensorSpec` matching the input
-        image spec, or a `tf.TensorSpec` matching the input image spec.
+        Must be overridden to return tensors with different shapes than the
+        input images. By default, returns either a `tf.RaggedTensorSpec`
+        matching the input image spec, or a `tf.TensorSpec` matching the input
+        image spec.
         """
         ragged_spec = tf.RaggedTensorSpec(
             shape=images.shape[1:],
@@ -126,12 +128,13 @@ class VectorizedBaseImageAugmentationLayer(
         """Augment a batch of images during training.
 
         Args:
-          image: 4D image input tensor to the layer. Forwarded from
-            `layer.call()`.  This should generally have the shape [B, H, W, C].
+          images: 4D image input tensor to the layer. Forwarded from
+            `layer.call()`. This should generally have the shape [B, H, W, C].
             Forwarded from `layer.call()`.
           transformations: The transformations object produced by
             `get_random_transformations`. Used to coordinate the randomness
-            between image, label, bounding box, keypoints, and segmentation mask.
+            between image, label, bounding box, keypoints, and segmentation
+            mask.
 
         Returns:
           output 4D tensor, which will be forward to `layer.call()`.
@@ -142,10 +145,11 @@ class VectorizedBaseImageAugmentationLayer(
         """Augment a batch of  labels during training.
 
         Args:
-          label: 2D label to the layer. Forwarded from `layer.call()`.
+          labels: 2D label to the layer. Forwarded from `layer.call()`.
           transformations: The transformations object produced by
             `get_random_transformations`. Used to coordinate the randomness
-            between image, label, bounding box, keypoints, and segmentation mask.
+            between image, label, bounding box, keypoints, and segmentation
+            mask.
 
         Returns:
           output 2D tensor, which will be forward to `layer.call()`.
@@ -156,10 +160,11 @@ class VectorizedBaseImageAugmentationLayer(
         """Augment a batch of targets during training.
 
         Args:
-          target: 2D label to the layer. Forwarded from `layer.call()`.
+          targets: 2D label to the layer. Forwarded from `layer.call()`.
           transformations: The transformations object produced by
             `get_random_transformations`. Used to coordinate the randomness
-            between image, label, bounding box, keypoints, and segmentation mask.
+            between image, label, bounding box, keypoints, and segmentation
+            mask.
 
         Returns:
           output 2D tensor, which will be forward to `layer.call()`.
@@ -174,7 +179,8 @@ class VectorizedBaseImageAugmentationLayer(
             `call()`.
           transformations: The transformations object produced by
             `get_random_transformations`. Used to coordinate the randomness
-            between image, label, bounding box, keypoints, and segmentation mask.
+            between image, label, bounding box, keypoints, and segmentation
+            mask.
 
         Returns:
           output 3D tensor, which will be forward to `layer.call()`.
@@ -186,11 +192,12 @@ class VectorizedBaseImageAugmentationLayer(
 
         Args:
           keypoints: 3D keypoints input tensor to the layer. Forwarded from
-            `layer.call()`.  Shape should be [batch, num_keypoints, 2] in the specified
-            keypoint format.
+            `layer.call()`. Shape should be [batch, num_keypoints, 2] in the
+            specified keypoint format.
           transformations: The transformations object produced by
             `get_random_transformations`. Used to coordinate the randomness
-            between image, label, bounding box, keypoints, and segmentation mask.
+            between image, label, bounding box, keypoints, and segmentation
+            mask.
 
         Returns:
           output 3D tensor, which will be forward to `layer.call()`.
@@ -203,15 +210,17 @@ class VectorizedBaseImageAugmentationLayer(
         """Augment a batch of images' segmentation masks during training.
 
         Args:
-          segmentation_mask: 4D segmentation mask input tensor to the layer.
+          segmentation_masks: 4D segmentation mask input tensor to the layer.
             This should generally have the shape [B, H, W, 1], or in some cases
             [B, H, W, C] for multilabeled data. Forwarded from `layer.call()`.
           transformations: The transformations object produced by
             `get_random_transformations`. Used to coordinate the randomness
-            between image, label, bounding box, keypoints, and segmentation mask.
+            between image, label, bounding box, keypoints, and segmentation
+            mask.
 
         Returns:
-          output 4D tensor containing the augmented segmentation mask, which will be forward to `layer.call()`.
+          output 4D tensor containing the augmented segmentation mask, which
+          will be forward to `layer.call()`.
         """
         raise NotImplementedError()
 
@@ -231,10 +240,10 @@ class VectorizedBaseImageAugmentationLayer(
 
         Args:
           batch_size: the batch size of transformations configuration to sample.
-          image: 3D image tensor from inputs.
-          label: optional 1D label tensor from inputs.
-          bounding_box: optional 2D bounding boxes tensor from inputs.
-          segmentation_mask: optional 3D segmentation mask tensor from inputs.
+          images: 3D image tensor from inputs.
+          labels: optional 1D label tensor from inputs.
+          bounding_boxes: optional 2D bounding boxes tensor from inputs.
+          segmentation_masks: optional 3D segmentation mask tensor from inputs.
 
         Returns:
           Any type of object, which will be forwarded to `augment_images`,
@@ -348,24 +357,18 @@ class VectorizedBaseImageAugmentationLayer(
             result[key] = inputs[key]
         return result
 
-    def call(self, inputs, training=True):
-        # TODO(lukewood): remove training=False behavior.
+    def call(self, inputs):
         inputs = self._ensure_inputs_are_compute_dtype(inputs)
-        if training:
-            inputs, metadata = self._format_inputs(inputs)
-            images = inputs[IMAGES]
-            if images.shape.rank == 3 or images.shape.rank == 4:
-                return self._format_output(
-                    self._batch_augment(inputs), metadata
-                )
-            else:
-                raise ValueError(
-                    "Image augmentation layers are expecting inputs to be "
-                    "rank 3 (HWC) or 4D (NHWC) tensors. Got shape: "
-                    f"{images.shape}"
-                )
+        inputs, metadata = self._format_inputs(inputs)
+        images = inputs[IMAGES]
+        if images.shape.rank == 3 or images.shape.rank == 4:
+            return self._format_output(self._batch_augment(inputs), metadata)
         else:
-            return inputs
+            raise ValueError(
+                "Image augmentation layers are expecting inputs to be "
+                "rank 3 (HWC) or 4D (NHWC) tensors. Got shape: "
+                f"{images.shape}"
+            )
 
     def _format_inputs(self, inputs):
         metadata = {IS_DICT: True, USE_TARGETS: False}
@@ -389,7 +392,8 @@ class VectorizedBaseImageAugmentationLayer(
 
         if not isinstance(inputs, dict):
             raise ValueError(
-                f"Expect the inputs to be image tensor or dict. Got inputs={inputs}"
+                "Expect the inputs to be image tensor or dict. Got "
+                f"inputs={inputs}"
             )
 
         if BOUNDING_BOXES in inputs:
@@ -448,12 +452,13 @@ class VectorizedBaseImageAugmentationLayer(
         return inputs
 
     def _format_bounding_boxes(self, bounding_boxes):
-        # We can't catch the case where this is None, sometimes RaggedTensor drops this
-        # dimension
+        # We can't catch the case where this is None, sometimes RaggedTensor
+        # drops this dimension.
         if "classes" not in bounding_boxes:
             raise ValueError(
-                "Bounding boxes are missing class_id. If you would like to pad the "
-                "bounding boxes with class_id, use: "
-                "`bounding_boxes['classes'] = tf.ones_like(bounding_boxes['boxes'])`."
+                "Bounding boxes are missing class_id. If you would like to pad "
+                "the bounding boxes with class_id, use: "
+                "`bounding_boxes['classes'] = "
+                "tf.ones_like(bounding_boxes['boxes'])`."
             )
         return bounding_boxes

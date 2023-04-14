@@ -25,12 +25,12 @@ class FourierMix(BaseImageAugmentationLayer):
     """FourierMix implements the FMix data augmentation technique.
 
     Args:
-        alpha: Float value for beta distribution.  Inverse scale parameter for the gamma
-            distribution.  This controls the shape of the distribution from which the
-            smoothing values are sampled.  Defaults to 0.5, which is a recommended value
-            in the paper.
-        decay_power: A float value representing the decay power.  Defaults to 3, as
-            recommended in the paper.
+        alpha: Float value for beta distribution. Inverse scale parameter for
+            the gamma distribution. This controls the shape of the distribution
+            from which the smoothing values are sampled. Defaults to 0.5, which
+            is a recommended value in the paper.
+        decay_power: A float value representing the decay power, defaults to 3,
+            as recommended in the paper.
         seed: Integer. Used to create a random seed.
     References:
         - [FMix paper](https://arxiv.org/abs/2002.12047).
@@ -39,7 +39,9 @@ class FourierMix(BaseImageAugmentationLayer):
     ```python
     (images, labels), _ = keras.datasets.cifar10.load_data()
     fourier_mix = keras_cv.layers.preprocessing.FourierMix(0.5)
-    augmented_images, updated_labels = fourier_mix({'images': images, 'labels': labels})
+    augmented_images, updated_labels = fourier_mix(
+        {'images': images, 'labels': labels}
+    )
     # output == {'images': updated_images, 'labels': updated_labels}
     ```
     """
@@ -61,9 +63,9 @@ class FourierMix(BaseImageAugmentationLayer):
 
     @staticmethod
     def _fftfreq(signal_size, sample_spacing=1):
-        """This function returns the sample frequencies of a discrete fourier transform.
-        The result array contains the frequency bin centers starting at 0 using the
-        sample spacing.
+        """This function returns the sample frequencies of a discrete fourier
+        transform. The result array contains the frequency bin centers starting
+        at 0 using the sample spacing.
         """
 
         results = tf.concat(
@@ -85,7 +87,8 @@ class FourierMix(BaseImageAugmentationLayer):
         return tf.math.sqrt(fx * fx + fy * fy)
 
     def _get_spectrum(self, freqs, decay_power, channel, h, w):
-        # Function to apply a low pass filter by decaying its high frequency components.
+        # Function to apply a low pass filter by decaying its high frequency
+        # components.
         scale = tf.ones(1) / tf.cast(
             tf.math.maximum(
                 freqs, tf.convert_to_tensor([1 / tf.reduce_max([w, h])])
@@ -159,9 +162,9 @@ class FourierMix(BaseImageAugmentationLayer):
 
     def _augment(self, inputs):
         raise ValueError(
-            "FourierMix received a single image to `call`.  The layer relies on "
+            "FourierMix received a single image to `call`. The layer relies on "
             "combining multiple examples, and as such will not behave as "
-            "expected.  Please call the layer with 2 or more samples."
+            "expected. Please call the layer with 2 or more samples."
         )
 
     def _fourier_mix(self, images):
