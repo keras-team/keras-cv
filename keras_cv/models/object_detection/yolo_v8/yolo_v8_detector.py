@@ -47,7 +47,8 @@ from keras_cv.utils.train import get_feature_extractor
 
 def get_anchors(
     image_shape,
-    base_anchors=[0.5, 0.5, 0.5, 0.5],
+    strides=[8, 16, 32],
+    base_anchors=[0.5, 0.5],
 ):
     """Gets anchor boxes for YOLOV8.
 
@@ -56,16 +57,6 @@ def get_anchors(
     format. The width and height of each anchor box is represented by its
     corresponding stride.
     """
-    # TODO(ianstenbit): Support non-square images
-    if image_shape[0] != image_shape[1]:
-        raise ValueError(
-            f"YOLOV8 expects square images. Got image shape: {image_shape}."
-        )
-    strides = [
-        image_shape[0] / 80.0,
-        image_shape[0] / 40.0,
-        image_shape[0] / 20.0,
-    ]
     base_anchors = tf.constant(base_anchors, dtype=tf.float32)
 
     all_anchors = []
