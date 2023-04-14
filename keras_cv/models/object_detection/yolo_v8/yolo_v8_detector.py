@@ -413,8 +413,7 @@ class YOLOV8Detector(Task):
         pred_boxes = decode_regression_to_boxes(box_pred)
         pred_scores = cls_pred
 
-        image_shape = (640, 640, 3)
-        anchor_points, stride_tensor = get_anchors(image_shape)
+        anchor_points, stride_tensor = get_anchors(image_shape=x.shape[1:])
         stride_tensor = tf.expand_dims(stride_tensor, axis=-1)
 
         gt_labels = y["classes"]
@@ -424,7 +423,7 @@ class YOLOV8Detector(Task):
             y["boxes"],
             source=self.bounding_box_format,
             target="xyxy",
-            image_shape=image_shape,
+            images=x,
         )
 
         pred_bboxes = dist2bbox(pred_boxes, anchor_points)
