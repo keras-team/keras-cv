@@ -44,6 +44,7 @@ class YOLOV8DetectorTest(tf.test.TestCase):
 
 @pytest.mark.large
 class YOLOV8DetectorSmokeTest(tf.test.TestCase):
+    # TODO(ianstenbit): Update this test to use a KerasCV-trained preset.
     def test_preset_with_forward_pass(self):
         model = keras_cv.models.YOLOV8Detector.from_preset(
             "yolov8_n_coco",
