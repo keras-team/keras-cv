@@ -409,7 +409,7 @@ class YOLOV8Detector(Task):
 
         return super().compute_metrics(x, {}, {}, sample_weight={})
 
-    def compute_loss(self, x, y, box_pred, cls_pred, return_early=False):
+    def compute_loss(self, x, y, box_pred, cls_pred):
         pred_boxes = decode_regression_to_boxes(box_pred)
         pred_scores = cls_pred
 
