@@ -38,72 +38,6 @@ from keras_cv.utils.python_utils import classproperty
 
 BN_AXIS = 3
 
-DEFAULT_BLOCKS_ARGS = [
-    {
-        "kernel_size": 3,
-        "repeats": 1,
-        "filters_in": 32,
-        "filters_out": 16,
-        "expand_ratio": 1,
-        "id_skip": True,
-        "strides": 1,
-    },
-    {
-        "kernel_size": 3,
-        "repeats": 2,
-        "filters_in": 16,
-        "filters_out": 24,
-        "expand_ratio": 6,
-        "id_skip": True,
-        "strides": 2,
-    },
-    {
-        "kernel_size": 5,
-        "repeats": 2,
-        "filters_in": 24,
-        "filters_out": 40,
-        "expand_ratio": 6,
-        "id_skip": True,
-        "strides": 2,
-    },
-    {
-        "kernel_size": 3,
-        "repeats": 3,
-        "filters_in": 40,
-        "filters_out": 80,
-        "expand_ratio": 6,
-        "id_skip": True,
-        "strides": 2,
-    },
-    {
-        "kernel_size": 5,
-        "repeats": 3,
-        "filters_in": 80,
-        "filters_out": 112,
-        "expand_ratio": 6,
-        "id_skip": True,
-        "strides": 1,
-    },
-    {
-        "kernel_size": 5,
-        "repeats": 4,
-        "filters_in": 112,
-        "filters_out": 192,
-        "expand_ratio": 6,
-        "id_skip": True,
-        "strides": 2,
-    },
-    {
-        "kernel_size": 3,
-        "repeats": 1,
-        "filters_in": 192,
-        "filters_out": 320,
-        "expand_ratio": 6,
-        "id_skip": True,
-        "strides": 1,
-    },
-]
-
 CONV_KERNEL_INITIALIZER = {
     "class_name": "VarianceScaling",
     "config": {
@@ -290,22 +224,10 @@ class EfficientNetLiteBackbone(Backbone):
         drop_connect_rate=0.2,
         depth_divisor=8,
         activation="relu6",
-        blocks_args=None,
         input_shape=(None, None, 3),
         input_tensor=None,
         **kwargs,
     ):
-        if blocks_args is None:
-            blocks_args = DEFAULT_BLOCKS_ARGS
-        if not isinstance(blocks_args, list):
-            raise ValueError(
-                "The `blocks_args` argument should be either `None` or valid"
-                "list of dicts for building blocks. "
-                f"Received: blocks_args={blocks_args}"
-            )
-        intact_blocks_args = copy.deepcopy(blocks_args)  # for configs
-        blocks_args = copy.deepcopy(blocks_args)
-
         img_input = utils.parse_model_inputs(input_shape, input_tensor)
 
         # Build stem
@@ -330,60 +252,6 @@ class EfficientNetLiteBackbone(Backbone):
         x = layers.BatchNormalization(axis=BN_AXIS, name="stem_bn")(x)
         x = layers.Activation(activation, name="stem_activation")(x)
 
-        # Build blocks
-        b = 0
-        blocks = float(sum(args["repeats"] for args in blocks_args))
-
-        for i, args in enumerate(blocks_args):
-            assert args["repeats"] > 0
-            # Update block input and output filters based on depth multiplier.
-            args["filters_in"] = round_filters(
-                filters=args["filters_in"],
-                width_coefficient=width_coefficient,
-                depth_divisor=depth_divisor,
-            )
-            args["filters_out"] = round_filters(
-                filters=args["filters_out"],
-                width_coefficient=width_coefficient,
-                depth_divisor=depth_divisor,
-            )
-
-            if i == 0 or i == (len(blocks_args) - 1):
-                repeats = args.pop("repeats")
-            else:
-                repeats = round_repeats(
-                    repeats=args.pop("repeats"),
-                    depth_coefficient=depth_coefficient,
-                )
-
-            for j in range(repeats):
-                # The first block needs to take care of stride and filter size
-                # increase.
-                if j > 0:
-                    args["strides"] = 1
-                    args["filters_in"] = args["filters_out"]
-                x = apply_efficient_net_lite_block(
-                    x,
-                    activation=activation,
-                    drop_rate=drop_connect_rate * b / blocks,
-                    name="block{}{}_".format(i + 1, chr(j + 97)),
-                    **args,
-                )
-
-                b += 1
-
-        # Build top
-        x = layers.Conv2D(
-            1280,
-            1,
-            padding="same",
-            use_bias=False,
-            kernel_initializer=CONV_KERNEL_INITIALIZER,
-            name="top_conv",
-        )(x)
-        x = layers.BatchNormalization(axis=BN_AXIS, name="top_bn")(x)
-        x = layers.Activation(activation, name="top_activation")(x)
-
         inputs = img_input
 
         # Create model.
@@ -398,7 +266,6 @@ class EfficientNetLiteBackbone(Backbone):
         self.drop_connect_rate = drop_connect_rate
         self.depth_divisor = depth_divisor
         self.activation = activation
-        self.blocks_args = intact_blocks_args
         self.input_tensor = input_tensor
 
     def get_config(self):
