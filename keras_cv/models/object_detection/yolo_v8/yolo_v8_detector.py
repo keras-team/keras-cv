@@ -46,10 +46,26 @@ from keras_cv.utils.train import get_feature_extractor
 
 
 def get_anchors(
-    image_shape=(512, 512, 3),
-    strides=[8, 16, 32],
+    image_shape,
     base_anchors=[0.5, 0.5, 0.5, 0.5],
 ):
+    """Gets anchor boxes for YOLOV8.
+
+    Returns a tuple of anchor centerpoints and anchor strides.
+    Multiplying the two together will yield the centerpoints in absolute x,y
+    format. The width and height of each anchor box is represented by its
+    corresponding stride.
+    """
+    # TODO(ianstenbit): Support non-square images
+    if image_shape[0] != image_shape[1]:
+        raise ValueError(
+            f"YOLOV8 expects square images. Got image shape: {image_shape}."
+        )
+    strides = [
+        image_shape[0] / 80.0,
+        image_shape[0] / 40.0,
+        image_shape[0] / 20.0,
+    ]
     base_anchors = tf.constant(base_anchors, dtype=tf.float32)
 
     all_anchors = []
@@ -59,27 +75,20 @@ def get_anchors(
         ww_centers = tf.range(start=0, limit=image_shape[1], delta=stride)
         ww_grid, hh_grid = tf.meshgrid(ww_centers, hh_centers)
         grid = tf.cast(
-            tf.reshape(
-                tf.stack([hh_grid, ww_grid, hh_grid, ww_grid], 2), [-1, 1, 4]
-            ),
+            tf.reshape(tf.stack([hh_grid, ww_grid], 2), [-1, 1, 2]),
             tf.float32,
         )
-        anchors = (
-            tf.expand_dims(base_anchors * [stride, stride, stride, stride], 0)
-            + grid
-        )
-        anchors = tf.reshape(anchors, [-1, 4])
+        anchors = tf.expand_dims(base_anchors * [stride, stride], 0) + grid
+        anchors = tf.reshape(anchors, [-1, 2])
         all_anchors.append(anchors)
         all_strides.append(tf.repeat(stride, anchors.shape[0]))
 
-    all_anchors = tf.concat(all_anchors, axis=0)
-    all_anchors = tf.cast(all_anchors, tf.float32)
+    all_anchors = tf.cast(tf.concat(all_anchors, axis=0), tf.float32)
+    all_strides = tf.cast(tf.concat(all_strides, axis=0), tf.float32)
 
-    all_strides = tf.concat(all_strides, axis=0)
-    all_strides = tf.cast(all_strides, tf.float32)
+    all_anchors = all_anchors / all_strides[:, None]
 
-    all_anchors = all_anchors[:, :2] / all_strides[:, None]
-
+    # Swap the x and y coordinates of the anchors.
     all_anchors = tf.concat(
         [all_anchors[:, 1, tf.newaxis], all_anchors[:, 0, tf.newaxis]], axis=-1
     )
@@ -143,7 +152,7 @@ def path_aggregation_fpn(features, depth=3, name=None):
 
 def yolov8_head(
     inputs,
-    num_classes=80,
+    num_classes,
     bbox_len=64,
     name="yolov8_head",
 ):
@@ -226,6 +235,30 @@ class YOLOV8Detector(Task):
     """
     Implements the YOLOV8 architecture for object detection.
 
+    Args:
+        num_classes: integer, the number of classes in your dataset excluding the
+            background class. Classes should be represented by integers in the
+            range [0, num_classes).
+        bounding_box_format: string, the format of bounding boxes of input dataset.
+            Refer
+            [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
+            for more details on supported bounding box formats.
+        backbone: `keras.Model`, must implement the `pyramid_level_inputs`
+            property with keys 2, 3, and 4 and layer names as values. A
+            sensible backbone to use is the `keras_cv.models.YOLOV8Backbone`.
+        fpn_depth: integer, a specification of the depth for the Feature
+            Pyramid Network. This is usually 1, 2, or 3, depending on the
+            size of your YOLOV8Detector model.
+        label_encoder: (Optional)  A `YOLOV8LabelEncoder` that is
+            responsible for transforming input boxes into trainable labels for
+            YOLOV8Detector. If not provided, a default is provided.
+        prediction_decoder: (Optional)  A `keras.layers.Layer` that is
+            responsible for transforming YOLOV8 predictions into usable
+            bounding boxes. If not provided, a default is provided. The
+            default `prediction_decoder` layer is a
+            `keras_cv.layers.MultiClassNonMaxSuppression` layer, which uses
+            a Non-Max Suppression for box pruning.
+
     Examples:
     ```python
     images = tf.ones(shape=(1, 512, 512, 3))
@@ -251,6 +284,9 @@ class YOLOV8Detector(Task):
     # Evaluate model
     model(images)
 
+    # Get predictions using the model
+    model.predict(images)
+
     # Train model
     model.compile(
         classification_loss='binary_crossentropy',
@@ -260,30 +296,6 @@ class YOLOV8Detector(Task):
     )
     model.fit(images, labels)
     ```
-
-    Args:
-        num_classes: the number of classes in your dataset excluding the
-            background class. Classes should be represented by integers in the
-            range [0, num_classes).
-        bounding_box_format: The format of bounding boxes of input dataset.
-            Refer
-            [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
-            for more details on supported bounding box formats.
-        backbone: `keras.Model`. Must implement the `pyramid_level_inputs`
-            property with keys 2, 3, and 4 and layer names as values. A
-            sensible backbone to use is the `keras_cv.models.YOLOV8Backbone`.
-        fpn_depth: integer, a specification of the depth for the Feature
-            Pyramid Network. This is usually 1, 2, or 3, depending on the
-            size of your YOLOV8Detector model.
-        label_encoder: (Optional)  A `YOLOV8LabelEncoder` that is
-            responsible for transforming input boxes into trainable labels for
-            YOLOV8Detector. If not provided, a default is provided.
-        prediction_decoder: (Optional)  A `keras.layers.Layer` that is
-            responsible for transforming YOLOV8 predictions into usable
-            bounding boxes. If not provided, a default is provided. The
-            default `prediction_decoder` layer is a
-            `keras_cv.layers.MultiClassNonMaxSuppression` layer, which uses
-            a Non-Max Suppression for box pruning.
     """  # noqa: E501
 
     def __init__(
@@ -350,8 +362,8 @@ class YOLOV8Detector(Task):
 
     def compile(
         self,
-        box_loss=None,
-        classification_loss=None,
+        box_loss,
+        classification_loss,
         metrics=None,
         **kwargs,
     ):
@@ -373,10 +385,28 @@ class YOLOV8Detector(Task):
         if metrics is not None:
             raise ValueError("User metrics not yet supported for YOLOV8")
 
-        self.box_loss = _parse_box_loss(box_loss)
-        self.classification_loss = _parse_classification_loss(
-            classification_loss
-        )
+        if isinstance(box_loss, str):
+            if box_loss == "iou":
+                box_loss = YOLOV8IoULoss(reduction="sum")
+            else:
+                raise ValueError(
+                    f"Invalid box loss for YOLOV8Detector: {box_loss}. Box "
+                    "loss should be a keras.Loss or the string 'iou'."
+                )
+        if isinstance(classification_loss, str):
+            if classification_loss == "binary_crossentropy":
+                classification_loss = keras.losses.BinaryCrossentropy(
+                    reduction="sum"
+                )
+            else:
+                raise ValueError(
+                    "Invalid classification loss for YOLOV8Detector: "
+                    f"{classification_loss}. Classification loss should be a "
+                    "keras.Loss or the string 'binary_crossentropy'."
+                )
+
+        self.box_loss = box_loss
+        self.classification_loss = classification_loss
 
         losses = {
             "box": self.box_loss,
@@ -515,29 +545,3 @@ class YOLOV8Detector(Task):
         """Dictionary of preset names and configurations of compatible
         backbones."""
         return copy.deepcopy(backbone_presets)
-
-
-def _parse_box_loss(loss):
-    if not isinstance(loss, str):
-        return loss
-
-    if loss.lower() == "iou":
-        return YOLOV8IoULoss(reduction="sum")
-
-    raise ValueError(
-        "Expected `box_loss` to be either a Keras Loss, "
-        f"callable, or the string 'iou'. Got loss={loss}."
-    )
-
-
-def _parse_classification_loss(loss):
-    if not isinstance(loss, str):
-        return loss
-
-    if loss.lower() == "binary_crossentropy":
-        return keras.losses.BinaryCrossentropy(reduction="sum")
-
-    raise ValueError(
-        "Expected `classification_loss` to be either a Keras Loss, "
-        f"callable, or the string 'binary_crossentropy'. Got loss={loss}."
-    )
