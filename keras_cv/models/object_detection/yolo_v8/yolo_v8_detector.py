@@ -335,7 +335,7 @@ class YOLOV8Detector(Task):
                 bounding_box_format=bounding_box_format,
                 from_logits=False,
                 confidence_threshold=0.2,
-                iou_threshold=0.5,
+                iou_threshold=0.7,
             )
         )
         self.backbone = backbone
