@@ -14,7 +14,7 @@
 
 """VGG19 model preset configurations."""
 
-backbone_presets_no_weights = {
+VGG19backbone_presets_no_weights = {
     "vgg19": {
         "metadata": {
             "description": (
@@ -32,5 +32,5 @@ backbone_presets_no_weights = {
 }
 
 backbone_presets = {
-    **backbone_presets_no_weights,
+    **VGG19backbone_presets_no_weights,
 }
