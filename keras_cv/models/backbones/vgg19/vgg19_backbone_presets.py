@@ -18,7 +18,7 @@ backbone_presets_no_weights = {
     "vgg19": {
         "metadata": {
             "description": (
-                "VGG19 model with 19 layers where the ReLU activation is "
+                "VGG19 model with 16 layers where the ReLU activation is "
                 "applied after the convolution layers."
             ),
         },
