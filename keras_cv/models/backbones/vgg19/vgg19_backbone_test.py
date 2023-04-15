@@ -50,6 +50,6 @@ class VGG19BackboneTest(tf.test.TestCase, parameterized.TestCase):
 
         restored_output = restored_model(self.input_batch)
         self.assertAllClose(model_output, restored_output)
-######
+        
 if __name__ == "__main__":
     tf.test.main()
