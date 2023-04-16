@@ -26,16 +26,17 @@ class RandomGaussianBlur(BaseImageAugmentationLayer):
     """Applies a Gaussian Blur with random strength to an image.
 
     Args:
-        kernel_size: int, 2 element tuple or 2 element list. x and y dimensions for
-            the kernel used. If tuple or list, first element is used for the x dimension
-            and second element is used for y dimension. If int, kernel will be squared.
+        kernel_size: int, 2 element tuple or 2 element list. x and y dimensions
+            for the kernel used. If tuple or list, first element is used for the
+            x dimension and second element is used for y dimension. If int,
+            kernel will be squared.
         factor: A tuple of two floats, a single float or a
             `keras_cv.FactorSampler`. `factor` controls the extent to which the
-            image is blurred.  Mathematically, `factor` represents the `sigma` value in
-            a gaussian blur. `factor=0.0` makes this layer perform a no-op
-            operation, and high values make the blur stronger. In order to
-            ensure the value is always the same, please pass a tuple with two identical
-            floats: `(0.5, 0.5)`.
+            image is blurred. Mathematically, `factor` represents the `sigma`
+            value in a gaussian blur. `factor=0.0` makes this layer perform a
+            no-op operation, and high values make the blur stronger. In order to
+            ensure the value is always the same, please pass a tuple with two
+            identical floats: `(0.5, 0.5)`.
     """
 
     def __init__(self, kernel_size, factor, **kwargs):
@@ -100,8 +101,9 @@ class RandomGaussianBlur(BaseImageAugmentationLayer):
 
     @staticmethod
     def get_kernel(factor, filter_size):
-        # We are running this in float32, regardless of layer's self.compute_dtype.
-        # Calculating blur_filter in lower precision will corrupt the final results.
+        # We are running this in float32, regardless of layer's
+        # self.compute_dtype. Calculating blur_filter in lower precision will
+        # corrupt the final results.
         x = tf.cast(
             tf.range(-filter_size // 2 + 1, filter_size // 2 + 1),
             dtype=tf.float32,

@@ -19,8 +19,10 @@ import tensorflow as tf
 from keras_cv.datasets.waymo import build_tensors_for_augmentation
 from keras_cv.datasets.waymo import load
 
-TRAINING_RECORD_PATH = "./wod_records"  # "gs://waymo_open_dataset_v_1_0_0_individual_files/training"
-TRANSFORMED_RECORD_PATH = "./wod_transformed"  # "gs://waymo_open_dataset_v_1_0_0_individual_files/training"
+# "gs://waymo_open_dataset_v_1_0_0_individual_files/training"
+TRAINING_RECORD_PATH = "./wod_records"
+# "gs://waymo_open_dataset_v_1_0_0_individual_files/training"
+TRANSFORMED_RECORD_PATH = "./wod_transformed"
 
 
 def _float_feature(value):
@@ -32,8 +34,8 @@ def serialize_example(feature0, feature1):
     """
     Creates a tf.train.Example message ready to be written to a file.
     """
-    # Create a dictionary mapping the feature name to the tf.train.Example-compatible
-    # data type.
+    # Create a dictionary mapping the feature name to the
+    # tf.train.Example-compatible data type.
     feature = {
         "point_clouds": _float_feature(tf.reshape(feature0, [-1]).numpy()),
         "bounding_boxes": _float_feature(tf.reshape(feature1, [-1]).numpy()),

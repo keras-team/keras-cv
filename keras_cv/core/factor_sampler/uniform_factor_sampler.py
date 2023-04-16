@@ -22,14 +22,15 @@ from keras_cv.core.factor_sampler.factor_sampler import FactorSampler
 class UniformFactorSampler(FactorSampler):
     """UniformFactorSampler samples factors uniformly from a range.
 
-    This is useful in cases where a user wants to always ensure that an augmentation
-    layer performs augmentations of the same strength.
+    This is useful in cases where a user wants to always ensure that an
+    augmentation layer performs augmentations of the same strength.
 
     Args:
         lower: the lower bound of values returned from `__call__()`.
         upper: the upper bound of values returned from `__call__()`.
-        seed: A shape int or Tensor, the seed to the random number generator. Must have
-            dtype int32 or int64. (When using XLA, only int32 is allowed.)
+        seed: A shape int or Tensor, the seed to the random number generator.
+            Must have dtype int32 or int64. (When using XLA, only int32 is
+            allowed.)
     Usage:
     ```python
     uniform_factor = keras_cv.UniformFactorSampler(0, 0.5)

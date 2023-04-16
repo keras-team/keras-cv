@@ -34,10 +34,10 @@ def corners_to_mask(bounding_boxes, mask_shape):
     """Converts bounding boxes in corners format to boolean masks
 
     Args:
-        bounding_boxes: tensor of rectangle coordinates with shape (batch_size, 4) in
-            corners format (x0, y0, x1, y1).
-        mask_shape: a tuple or list of shape (width, height) indicating the output
-            width and height of masks.
+        bounding_boxes: tensor of rectangle coordinates with shape
+            (batch_size, 4) in corners format (x0, y0, x1, y1).
+        mask_shape: a tuple or list of shape (width, height) indicating the
+            output width and height of masks.
 
     Returns:
         boolean masks with shape (batch_size, width, height) where True values
@@ -59,12 +59,12 @@ def fill_rectangle(images, centers_x, centers_y, widths, heights, fill_values):
     """Fill rectangles with fill value into images.
 
     Args:
-        images: Tensor of images to fill rectangles into.
-        centers_x: Tensor of positions of the rectangle centers on the x-axis.
-        centers_y: Tensor of positions of the rectangle centers on the y-axis.
+        images: Tensor of images to fill rectangles into
+        centers_x: Tensor of positions of the rectangle centers on the x-axis
+        centers_y: Tensor of positions of the rectangle centers on the y-axis
         widths: Tensor of widths of the rectangles
         heights: Tensor of heights of the rectangles
-        fill_values: Tensor with same shape as images to get rectangle fill from.
+        fill_values: Tensor with same shape as images to get rectangle fill from
     Returns:
         images with filled rectangles.
     """

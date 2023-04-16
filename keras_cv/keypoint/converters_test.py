@@ -125,7 +125,8 @@ class ConvertersTestCase(tf.test.TestCase, parameterized.TestCase):
             "keypoint_rank",
             tf.ones([2, 3, 4, 2, 1]),
             None,
-            "Expected keypoints rank to be in [2, 4], got len(keypoints.shape)=5.",
+            "Expected keypoints rank to be in [2, 4], got "
+            "len(keypoints.shape)=5.",
         ),
         (
             "images_rank",
@@ -137,10 +138,11 @@ class ConvertersTestCase(tf.test.TestCase, parameterized.TestCase):
             "batch_mismatch",
             tf.ones([2, 4, 2]),
             tf.ones([35, 35, 3]),
-            "convert_format() expects both `keypoints` and `images` to be batched or "
-            "both unbatched. Received len(keypoints.shape)=3, len(images.shape)=3. "
-            "Expected either len(keypoints.shape)=2 and len(images.shape)=3, or "
-            "len(keypoints.shape)>=3 and len(images.shape)=4.",
+            "convert_format() expects both `keypoints` and `images` to be "
+            "batched or both unbatched. Received len(keypoints.shape)=3, "
+            "len(images.shape)=3. Expected either len(keypoints.shape)=2 and "
+            "len(images.shape)=3, or len(keypoints.shape)>=3 and "
+            "len(images.shape)=4.",
         ),
     )
     def test_input_format_exception(self, keypoints, images, expected):

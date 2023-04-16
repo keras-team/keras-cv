@@ -24,18 +24,19 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 class RepeatedAugmentation(BaseImageAugmentationLayer):
     """RepeatedAugmentation augments each image in a batch multiple times.
 
-    This technique exists to emulate the behavior of stochastic gradient descent within
-    the context of mini-batch gradient descent.  When training large vision models,
-    choosing a large batch size can introduce too much noise into aggregated gradients
-    causing the overall batch's gradients to be less effective than gradients produced
-    using smaller gradients.  RepeatedAugmentation handles this by re-using the same
-    image multiple times within a batch creating correlated samples.
+    This technique exists to emulate the behavior of stochastic gradient descent
+    within the context of mini-batch gradient descent. When training large
+    vision models, choosing a large batch size can introduce too much noise into
+    aggregated gradients causing the overall batch's gradients to be less
+    effective than gradients produced using smaller gradients.
+    RepeatedAugmentation handles this by re-using the same image multiple times
+    within a batch creating correlated samples.
 
     This layer increases your batch size by a factor of `len(augmenters)`.
 
     Args:
         augmenters: the augmenters to use to augment the image
-        shuffle: whether or not to shuffle the result.  Essential when using an
+        shuffle: whether to shuffle the result. Essential when using an
             asynchronous distribution strategy such as ParameterServerStrategy.
 
     Usage:
@@ -69,10 +70,10 @@ class RepeatedAugmentation(BaseImageAugmentationLayer):
     ```
 
     References:
-    - [DEIT implementaton](https://github.com/facebookresearch/deit/blob/ee8893c8063f6937fec7096e47ba324c206e22b9/samplers.py#L8)
+    - [DEIT implementation](https://github.com/facebookresearch/deit/blob/ee8893c8063f6937fec7096e47ba324c206e22b9/samplers.py#L8)
     - [Original publication](https://openaccess.thecvf.com/content_CVPR_2020/papers/Hoffer_Augment_Your_Batch_Improving_Generalization_Through_Instance_Repetition_CVPR_2020_paper.pdf)
 
-    """
+    """  # noqa: E501
 
     def __init__(self, augmenters, shuffle=True, **kwargs):
         super().__init__(**kwargs)
@@ -82,7 +83,8 @@ class RepeatedAugmentation(BaseImageAugmentationLayer):
     def _batch_augment(self, inputs):
         if "bounding_boxes" in inputs:
             raise ValueError(
-                "RepeatedAugmentation() does not yet support bounding box labels."
+                "RepeatedAugmentation() does not yet support bounding box "
+                "labels."
             )
 
         augmenter_outputs = [augmenter(inputs) for augmenter in self.augmenters]
@@ -108,7 +110,7 @@ class RepeatedAugmentation(BaseImageAugmentationLayer):
 
     def _augment(self, inputs):
         raise ValueError(
-            "RepeatedAugmentation() only works in batched mode.  If "
+            "RepeatedAugmentation() only works in batched mode. If "
             "you would like to create batches from a single image, use "
             "`x = tf.expand_dims(x, axis=0)` on your input images and labels."
         )

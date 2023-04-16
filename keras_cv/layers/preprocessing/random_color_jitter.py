@@ -15,7 +15,7 @@
 from tensorflow import keras
 
 from keras_cv.layers import preprocessing
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     VectorizedBaseImageAugmentationLayer,
 )
 from keras_cv.utils import preprocessing as preprocessing_utils
@@ -36,10 +36,10 @@ class RandomColorJitter(VectorizedBaseImageAugmentationLayer):
         `(..., height, width, channels)`, in `channels_last` format
 
     Args:
-        value_range:  the range of values the incoming images will have.
+        value_range: the range of values the incoming images will have.
             Represented as a two number tuple written [low, high].
             This is typically either `[0, 1]` or `[0, 255]` depending
-            on how your preprocessing pipeline is setup.
+            on how your preprocessing pipeline is set up.
         brightness_factor: Float or a list/tuple of 2 floats between -1.0
             and 1.0. The factor is used to determine the lower bound and
             upper bound of the brightness adjustment. A float value will be
@@ -61,11 +61,11 @@ class RandomColorJitter(VectorizedBaseImageAugmentationLayer):
             `keras_cv.FactorSampler`. `factor` controls the extent to which the
             image sharpness is impacted. `factor=0.0` makes this layer perform
             a no-op operation, while a value of 1.0 performs the most aggressive
-            contrast adjustment available.  If a tuple is used, a `factor` is sampled
-            between the two values for every image augmented.  If a single float
-            is used, a value between `0.0` and the passed float is sampled.
-            In order to ensure the value is always the same, please pass a tuple
-            with two identical floats: `(0.5, 0.5)`.
+            contrast adjustment available. If a tuple is used, a `factor` is
+            sampled between the two values for every image augmented. If a
+            single float is used, a value between `0.0` and the passed float is
+            sampled. In order to ensure the value is always the same, please
+            pass a tuple with two identical floats: `(0.5, 0.5)`.
         seed: Integer. Used to create a random seed.
 
     Usage:

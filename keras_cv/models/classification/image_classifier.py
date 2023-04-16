@@ -39,7 +39,7 @@ class ImageClassifier(Task):
             dimension of the backbone output.
         num_classes: int, number of classes to predict.
         pooling: str, type of pooling layer. Must be one of "avg", "max".
-        activation: Optional `str` or callable. Defaults to "softmax". The
+        activation: Optional `str` or callable, defaults to "softmax". The
             activation function to use on the Dense layer. Set `activation=None`
             to return the output logits.
 
@@ -129,12 +129,14 @@ class ImageClassifier(Task):
 
     @classproperty
     def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include weights."""
+        """Dictionary of preset names and configurations that include
+        weights."""
         return copy.deepcopy(
             {**backbone_presets_with_weights, **classifier_presets}
         )
 
     @classproperty
     def backbone_presets(cls):
-        """Dictionary of preset names and configurations of compatible backbones."""
+        """Dictionary of preset names and configurations of compatible
+        backbones."""
         return copy.deepcopy(backbone_presets)

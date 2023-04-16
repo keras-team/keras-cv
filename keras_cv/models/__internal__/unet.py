@@ -179,8 +179,8 @@ def UNet(
 
     Args:
         input_shape: the rank 3 shape of the input to the UNet
-        down_block_configs: a list of (filter_count, num_blocks) tuples indicating the
-            number of filters and sub-blocks in each down block
+        down_block_configs: a list of (filter_count, num_blocks) tuples
+            indicating the number of filters and sub-blocks in each down block
         up_block_configs: a list of filter counts, one for each up block
         down_block: a downsampling block
         up_block: an upsampling block
