@@ -26,6 +26,7 @@ backbone_presets_no_weights = {
 backbone_presets_with_weights = {
     **resnet_v1_backbone_presets.backbone_presets_with_weights,
     **resnet_v2_backbone_presets.backbone_presets_with_weights,
+    **mlp_mixer_backbone_presets.backbone_presets_with_weights,
 }
 
 backbone_presets = {

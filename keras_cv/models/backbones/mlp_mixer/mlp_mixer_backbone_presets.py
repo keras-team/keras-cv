@@ -77,6 +77,9 @@ backbone_presets_no_weights = {
     },
 }
 
+backbone_presets_with_weights = {}
+
 backbone_presets = {
     **backbone_presets_no_weights,
+    **backbone_presets_with_weights,
 }

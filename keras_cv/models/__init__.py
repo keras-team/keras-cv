@@ -19,6 +19,9 @@ from keras_cv.models.backbones.mlp_mixer.mlp_mixer_backbone import (
     MLPMixerB32Backbone,
 )
 from keras_cv.models.backbones.mlp_mixer.mlp_mixer_backbone import (
+    MLPMixerBackbone,
+)
+from keras_cv.models.backbones.mlp_mixer.mlp_mixer_backbone import (
     MLPMixerL16Backbone,
 )
 from keras_cv.models.backbones.resnet_v1.resnet_v1_backbone import (
