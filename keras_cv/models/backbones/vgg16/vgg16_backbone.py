@@ -14,9 +14,9 @@
 
 """VGG16 model for KerasCV.
 Reference:
-  - [Very Deep Convolutional Networks for Large-Scale Image Recognition]
-  (https://arxiv.org/abs/1409.1556) (ICLR 2015)
-"""
+  - [Very Deep Convolutional Networks for Large-Scale Image Recognition](https://arxiv.org/abs/1409.1556)
+    (ICLR 2015)
+"""  # noqa: E501
 import copy
 
 from tensorflow import keras
@@ -50,7 +50,7 @@ def apply_vgg_block(
         activation: str (or) callable, activation function for each CNN layer in
             block
         padding: str (or) callable, padding function for each CNN layer in block
-        max_pool: bool, whether to add MaxPooling2D layer at end of block.
+        max_pool: bool, whether to add MaxPooling2D layer at end of block
         name: str, name of the block
 
     Returns:
@@ -74,8 +74,8 @@ class VGG16Backbone(Backbone):
     """Instantiates the VGG16 architecture.
 
     Reference:
-    - [Very Deep Convolutional Networks for Large-Scale Image Recognition]
-    (https://arxiv.org/abs/1409.1556) (ICLR 2015)
+    - [Very Deep Convolutional Networks for Large-Scale Image Recognition](https://arxiv.org/abs/1409.1556)
+        (ICLR 2015)
 
     Args:
         include_rescaling: bool, whether to rescale the inputs. If set to True,
@@ -94,7 +94,7 @@ class VGG16Backbone(Backbone):
     )
     output = model(input_data)
     ```
-    """
+    """  # noqa: E501
 
     def __init__(
         self,
