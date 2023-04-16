@@ -359,7 +359,7 @@ ALIAS_DOCSTRING = """MobileNetV3Backbone model with {num_layers} layers.
     [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
 
     Args:
-        include_rescaling: bool, whether or not to rescale the inputs. If set to
+        include_rescaling: bool, whether to rescale the inputs. If set to
             True, inputs will be passed through a `Rescaling(scale=1 / 255)`
             layer. Defaults to True.
         input_shape: optional shape tuple, defaults to (None, None, 3).
