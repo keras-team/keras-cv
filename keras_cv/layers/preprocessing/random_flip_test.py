@@ -1,4 +1,4 @@
-# Copyright 2022 The KerasCV Authors
+# Copyright 2023 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,22 +18,23 @@ import tensorflow as tf
 from absl.testing import parameterized
 
 from keras_cv import bounding_box
+from keras_cv.layers.preprocessing.random_flip import HORIZONTAL_AND_VERTICAL
 from keras_cv.layers.preprocessing.random_flip import RandomFlip
 
 
 class RandomFlipTest(tf.test.TestCase, parameterized.TestCase):
     def test_horizontal_flip(self):
         np.random.seed(1337)
-        mock_random = [0.6, 0.6]
+        mock_random = tf.convert_to_tensor([[0.6], [0.6]])
         inp = np.random.random((2, 5, 8, 3))
         expected_output = np.flip(inp, axis=2)
         layer = RandomFlip("horizontal")
         with unittest.mock.patch.object(
             layer._random_generator,
             "random_uniform",
-            side_effect=mock_random,
+            return_value=mock_random,
         ):
-            actual_output = layer(inp, training=True)
+            actual_output = layer(inp)
             self.assertAllClose(expected_output, actual_output)
 
     def test_flip_ragged(self):
@@ -50,21 +51,21 @@ class RandomFlipTest(tf.test.TestCase, parameterized.TestCase):
 
     def test_vertical_flip(self):
         np.random.seed(1337)
-        mock_random = [0.6, 0.6]
+        mock_random = tf.convert_to_tensor([[0.6], [0.6]])
         inp = np.random.random((2, 5, 8, 3))
         expected_output = np.flip(inp, axis=1)
         layer = RandomFlip("vertical")
         with unittest.mock.patch.object(
             layer._random_generator,
             "random_uniform",
-            side_effect=mock_random,
+            return_value=mock_random,
         ):
-            actual_output = layer(inp, training=True)
+            actual_output = layer(inp)
             self.assertAllClose(expected_output, actual_output)
 
     def test_flip_both(self):
         np.random.seed(1337)
-        mock_random = [0.6, 0.6, 0.6, 0.6]
+        mock_random = tf.convert_to_tensor([[0.6], [0.6]])
         inp = np.random.random((2, 5, 8, 3))
         expected_output = np.flip(inp, axis=2)
         expected_output = np.flip(expected_output, axis=1)
@@ -72,23 +73,51 @@ class RandomFlipTest(tf.test.TestCase, parameterized.TestCase):
         with unittest.mock.patch.object(
             layer._random_generator,
             "random_uniform",
-            side_effect=mock_random,
+            return_value=mock_random,
         ):
-            actual_output = layer(inp, training=True)
-            self.assertAllClose(expected_output, actual_output)
+            actual_output = layer(inp)
+        self.assertAllClose(expected_output, actual_output)
 
     def test_random_flip_default(self):
         input_images = np.random.random((2, 5, 8, 3)).astype(np.float32)
         expected_output = np.flip(input_images, axis=2)
-        mock_random = [0.6, 0.6, 0.6, 0.6]
+        mock_random = tf.convert_to_tensor([[0.6], [0.6]])
         layer = RandomFlip()
         with unittest.mock.patch.object(
             layer._random_generator,
             "random_uniform",
-            side_effect=mock_random,
+            return_value=mock_random,
         ):
-            actual_output = layer(input_images, training=True)
+            actual_output = layer(input_images)
             self.assertAllClose(expected_output, actual_output)
+
+    def test_random_flip_low_rate(self):
+        input_images = np.random.random((2, 5, 8, 3)).astype(np.float32)
+        expected_output = input_images
+        # mock_random > 0.5 but no flipping occurs due to low rate
+        mock_random = tf.convert_to_tensor([[0.6], [0.6]])
+        layer = RandomFlip(rate=0.1)
+        with unittest.mock.patch.object(
+            layer._random_generator,
+            "random_uniform",
+            return_value=mock_random,
+        ):
+            actual_output = layer(input_images)
+        self.assertAllClose(expected_output, actual_output)
+
+    def test_random_flip_high_rate(self):
+        input_images = np.random.random((2, 5, 8, 3)).astype(np.float32)
+        expected_output = np.flip(input_images, axis=2)
+        # mock_random is small (0.2) but flipping still occurs due to high rate
+        mock_random = tf.convert_to_tensor([[0.2], [0.2]])
+        layer = RandomFlip(rate=0.9)
+        with unittest.mock.patch.object(
+            layer._random_generator,
+            "random_uniform",
+            return_value=mock_random,
+        ):
+            actual_output = layer(input_images)
+        self.assertAllClose(expected_output, actual_output)
 
     def test_config_with_custom_name(self):
         layer = RandomFlip(name="image_preproc")
@@ -99,14 +128,14 @@ class RandomFlipTest(tf.test.TestCase, parameterized.TestCase):
     def test_random_flip_unbatched_image(self):
         input_image = np.random.random((4, 4, 1)).astype(np.float32)
         expected_output = np.flip(input_image, axis=0)
-        mock_random = [0.6, 0.6, 0.6, 0.6]
+        mock_random = tf.convert_to_tensor([[0.6]])
         layer = RandomFlip("vertical")
         with unittest.mock.patch.object(
             layer._random_generator,
             "random_uniform",
-            side_effect=mock_random,
+            return_value=mock_random,
         ):
-            actual_output = layer(input_image, training=True)
+            actual_output = layer(input_image)
             self.assertAllClose(expected_output, actual_output)
 
     def test_output_dtypes(self):
@@ -128,26 +157,23 @@ class RandomFlipTest(tf.test.TestCase, parameterized.TestCase):
             ),
             "classes": tf.convert_to_tensor(
                 [
-                    [
-                        0,
-                        0,
-                    ],
+                    [0, 0],
                     [0, 0],
                 ]
             ),
         }
 
         input = {"images": [image, image], "bounding_boxes": bounding_boxes}
-        mock_random = [0.6, 0.6, 0.6, 0.6]
+        mock_random = tf.convert_to_tensor([[0.6], [0.6]])
         layer = RandomFlip(
             "horizontal_and_vertical", bounding_box_format="xyxy"
         )
         with unittest.mock.patch.object(
             layer._random_generator,
             "random_uniform",
-            side_effect=mock_random,
+            return_value=mock_random,
         ):
-            output = layer(input, training=True)
+            output = layer(input)
 
         expected_output = {
             "boxes": tf.convert_to_tensor(
@@ -158,10 +184,7 @@ class RandomFlipTest(tf.test.TestCase, parameterized.TestCase):
             ),
             "classes": tf.convert_to_tensor(
                 [
-                    [
-                        0,
-                        0,
-                    ],
+                    [0, 0],
                     [0, 0],
                 ]
             ),
@@ -187,16 +210,16 @@ class RandomFlipTest(tf.test.TestCase, parameterized.TestCase):
         }
 
         input = {"images": image, "bounding_boxes": bounding_boxes}
-        mock_random = [0.6, 0.6, 0.6, 0.6]
+        mock_random = tf.convert_to_tensor([[0.6], [0.6]])
         layer = RandomFlip(
             "horizontal_and_vertical", bounding_box_format="xyxy"
         )
         with unittest.mock.patch.object(
             layer._random_generator,
             "random_uniform",
-            side_effect=mock_random,
+            return_value=mock_random,
         ):
-            output = layer(input, training=True)
+            output = layer(input)
 
         expected_output = {
             "boxes": tf.ragged.constant(
@@ -225,15 +248,15 @@ class RandomFlipTest(tf.test.TestCase, parameterized.TestCase):
         input = {"images": image, "segmentation_masks": mask}
 
         # Flip both vertically and horizontally
-        mock_random = [0.6, 0.6]
+        mock_random = tf.convert_to_tensor([[0.6]])
         layer = RandomFlip("horizontal_and_vertical")
 
         with unittest.mock.patch.object(
             layer._random_generator,
             "random_uniform",
-            side_effect=mock_random,
+            return_value=mock_random,
         ):
-            output = layer(input, training=True)
+            output = layer(input)
 
         expected_mask = np.flip(np.flip(mask, axis=1), axis=2)
 
@@ -255,3 +278,21 @@ class RandomFlipTest(tf.test.TestCase, parameterized.TestCase):
         input = {"images": input_image, "bounding_boxes": bounding_boxes}
         layer = RandomFlip(bounding_box_format="xyxy")
         _ = layer(input)
+
+    def test_independence_of_random_flip_on_batched_images(self):
+        image = tf.random.uniform((100, 100, 3))
+        batched_images = tf.stack((image, image), axis=0)
+        seed = 2023
+        layer = RandomFlip(mode=HORIZONTAL_AND_VERTICAL, seed=seed)
+
+        results = layer(batched_images)
+
+        self.assertNotAllClose(results[0], results[1])
+
+    def test_config(self):
+        layer = RandomFlip(
+            mode=HORIZONTAL_AND_VERTICAL, bounding_box_format="xyxy"
+        )
+        config = layer.get_config()
+        self.assertEqual(config["mode"], HORIZONTAL_AND_VERTICAL)
+        self.assertEqual(config["bounding_box_format"], "xyxy")

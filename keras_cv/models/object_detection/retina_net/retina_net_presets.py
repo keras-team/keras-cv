@@ -28,9 +28,9 @@ retina_net_presets = {
             "backbone": resnet_v1_backbone_presets.backbone_presets["resnet50"],
             # 21 used as an implicit background class marginally improves
             # performance.
-            "num_classes": 21,
+            "num_classes": 20,
         },
-        "weights_url": "https://storage.googleapis.com/keras-cv/models/retinanet/pascal_voc/resnet50.weights.h5",  # noqa: E501
-        "weights_hash": "c9b11357b289512adf1e6077ab7da73f",
+        "weights_url": "https://storage.googleapis.com/keras-cv/models/retinanet/pascal_voc/resnet50-v3.weights.h5",  # noqa: E501
+        "weights_hash": "84f51edc5d669109187b9c60edee1e55",
     },
 }
