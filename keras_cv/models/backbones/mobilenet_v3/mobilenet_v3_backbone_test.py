@@ -30,7 +30,21 @@ class MobileNetV3BackboneTest(tf.test.TestCase, parameterized.TestCase):
 
     def test_valid_call(self):
         model = MobileNetV3Backbone(
-            stack_fn=None,
+            stackwise_expansion=[
+                1,
+                72.0 / 16,
+                88.0 / 24,
+                4,
+                6,
+                6,
+                3,
+                3,
+                6,
+                6,
+                6,
+            ],
+            stackwise_filters=[16, 24, 24, 40, 40, 40, 48, 48, 96, 96, 96],
+            stackwise_stride=[2, 2, 1, 2, 1, 1, 1, 1, 2, 1, 1],
             filters=1024,
             include_rescaling=False,
         )
@@ -38,7 +52,21 @@ class MobileNetV3BackboneTest(tf.test.TestCase, parameterized.TestCase):
 
     def test_valid_call_with_rescaling(self):
         model = MobileNetV3Backbone(
-            stack_fn=None,
+            stackwise_expansion=[
+                1,
+                72.0 / 16,
+                88.0 / 24,
+                4,
+                6,
+                6,
+                3,
+                3,
+                6,
+                6,
+                6,
+            ],
+            stackwise_filters=[16, 24, 24, 40, 40, 40, 48, 48, 96, 96, 96],
+            stackwise_stride=[2, 2, 1, 2, 1, 1, 1, 1, 2, 1, 1],
             filters=1024,
             include_rescaling=True,
         )
@@ -50,7 +78,21 @@ class MobileNetV3BackboneTest(tf.test.TestCase, parameterized.TestCase):
     )
     def test_saved_model(self, save_format, filename):
         model = MobileNetV3Backbone(
-            stack_fn=None,
+            stackwise_expansion=[
+                1,
+                72.0 / 16,
+                88.0 / 24,
+                4,
+                6,
+                6,
+                3,
+                3,
+                6,
+                6,
+                6,
+            ],
+            stackwise_filters=[16, 24, 24, 40, 40, 40, 48, 48, 96, 96, 96],
+            stackwise_stride=[2, 2, 1, 2, 1, 1, 1, 1, 2, 1, 1],
             filters=1024,
             include_rescaling=True,
         )
@@ -72,12 +114,40 @@ class MobileNetV3BackboneTest(tf.test.TestCase, parameterized.TestCase):
     )
     def test_model_backbone_layer_names_stability(self):
         model = MobileNetV3Backbone(
-            stack_fn=None,
+            stackwise_expansion=[
+                1,
+                72.0 / 16,
+                88.0 / 24,
+                4,
+                6,
+                6,
+                3,
+                3,
+                6,
+                6,
+                6,
+            ],
+            stackwise_filters=[16, 24, 24, 40, 40, 40, 48, 48, 96, 96, 96],
+            stackwise_stride=[2, 2, 1, 2, 1, 1, 1, 1, 2, 1, 1],
             filters=1024,
             include_rescaling=False,
         )
         model_2 = MobileNetV3Backbone(
-            stack_fn=None,
+            stackwise_expansion=[
+                1,
+                72.0 / 16,
+                88.0 / 24,
+                4,
+                6,
+                6,
+                3,
+                3,
+                6,
+                6,
+                6,
+            ],
+            stackwise_filters=[16, 24, 24, 40, 40, 40, 48, 48, 96, 96, 96],
+            stackwise_stride=[2, 2, 1, 2, 1, 1, 1, 1, 2, 1, 1],
             filters=1024,
             include_rescaling=False,
         )
@@ -90,7 +160,21 @@ class MobileNetV3BackboneTest(tf.test.TestCase, parameterized.TestCase):
 
     def test_create_backbone_model_with_level_config(self):
         model = MobileNetV3Backbone(
-            stack_fn=None,
+            stackwise_expansion=[
+                1,
+                72.0 / 16,
+                88.0 / 24,
+                4,
+                6,
+                6,
+                3,
+                3,
+                6,
+                6,
+                6,
+            ],
+            stackwise_filters=[16, 24, 24, 40, 40, 40, 48, 48, 96, 96, 96],
+            stackwise_stride=[2, 2, 1, 2, 1, 1, 1, 1, 2, 1, 1],
             filters=1024,
             include_rescaling=False,
             input_shape=[256, 256, 3],
@@ -111,7 +195,21 @@ class MobileNetV3BackboneTest(tf.test.TestCase, parameterized.TestCase):
     )
     def test_application_variable_input_channels(self, num_channels):
         model = MobileNetV3Backbone(
-            stack_fn=None,
+            stackwise_expansion=[
+                1,
+                72.0 / 16,
+                88.0 / 24,
+                4,
+                6,
+                6,
+                3,
+                3,
+                6,
+                6,
+                6,
+            ],
+            stackwise_filters=[16, 24, 24, 40, 40, 40, 48, 48, 96, 96, 96],
+            stackwise_stride=[2, 2, 1, 2, 1, 1, 1, 1, 2, 1, 1],
             filters=1024,
             input_shape=(None, None, num_channels),
             include_rescaling=False,

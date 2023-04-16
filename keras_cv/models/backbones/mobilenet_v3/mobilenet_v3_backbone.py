@@ -229,7 +229,9 @@ class MobileNetV3Backbone(Backbone):
 
     # Randomly initialized backbone with a custom config
     model = MobileNetV3Backbone(
-        stack_fn=None,
+        stackwise_expansion=[1, 72.0 / 16, 88.0 / 24, 4, 6, 6, 3, 3, 6, 6, 6],
+        stackwise_filters=[16, 24, 24, 40, 40, 40, 48, 48, 96, 96, 96],
+        stackwise_stride=[2, 2, 1, 2, 1, 1, 1, 1, 2, 1, 1],
         filters=1024,
         include_rescaling=False,
     )
