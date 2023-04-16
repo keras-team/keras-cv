@@ -15,9 +15,8 @@
 """MLP Mixer models for KerasCV.
 
 Reference:
-  - [MLP-Mixer: An all-MLP Architecture for Vision]
-  (https://arxiv.org/abs/2105.01601)
-"""
+  - [MLP-Mixer: An all-MLP Architecture for Vision](https://arxiv.org/abs/2105.01601)
+"""  # noqa: E501
 
 import copy
 
@@ -88,11 +87,10 @@ class MLPMixerBackbone(Backbone):
     """Instantiates the MLP Mixer architecture.
 
     Reference:
-        - [MLP-Mixer: An all-MLP Architecture for Vision]
-        (https://arxiv.org/abs/2105.01601)
+        - [MLP-Mixer: An all-MLP Architecture for Vision](https://arxiv.org/abs/2105.01601)
 
-    For transfer learning use cases, make sure to read the [guide to transfer
-        learning & fine-tuning](https://keras.io/guides/transfer_learning/).
+    For transfer learning use cases, make sure to read the
+    [guide to transferlearning & fine-tuning](https://keras.io/guides/transfer_learning/).
 
     Args:
         input_shape: tuple denoting the input shape, (224, 224, 3) for example.
@@ -125,7 +123,7 @@ class MLPMixerBackbone(Backbone):
     )
     output = model(input_data)
     ```
-    """
+    """  # noqa: E501
 
     def __init__(
         self,
@@ -215,16 +213,15 @@ ALIAS_DOCSTRING = """MLPMixerBackbone model with {patch_size} patches of
     resolution and {num_layers} layers.
 
     Reference:
-        - [MLP-Mixer: An all-MLP Architecture for Vision]
-        (https://arxiv.org/abs/2105.01601)
+        - [MLP-Mixer: An all-MLP Architecture for Vision](https://arxiv.org/abs/2105.01601)
 
     This class represents a Keras {name} model.
 
-    For transfer learning use cases, make sure to read the [guide to transfer
-        learning & fine-tuning](https://keras.io/guides/transfer_learning/).
+    For transfer learning use cases, make sure to read the
+    [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
 
     Args:
-        include_rescaling: bool, whether or not to rescale the inputs. If set to
+        include_rescaling: bool, whether to rescale the inputs. If set to
             True, inputs will be passed through a `Rescaling(1/255.0)` layer.
         input_shape: optional shape tuple, defaults to (None, None, 3).
         input_tensor: optional Keras tensor (i.e., output of `layers.Input()`)
@@ -238,7 +235,7 @@ ALIAS_DOCSTRING = """MLPMixerBackbone model with {patch_size} patches of
     model = {name}Backbone()
     output = model(input_data)
     ```
-"""
+"""  # noqa: E501
 
 
 class MLPMixerB16Backbone(MLPMixerBackbone):
