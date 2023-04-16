@@ -92,7 +92,7 @@ class ConvMixerBackbone(Backbone):
         kernel_size: integer, kernel size for Conv2D layers.
         include_rescaling: bool, whether to rescale the inputs. If set to True,
             inputs will be passed through a `Rescaling(1/255.0)` layer.
-        input_shape: optional shape tuple. Defaults to (None, None, 3).
+        input_shape: optional shape tuple, defaults to (None, None, 3).
         input_tensor: optional Keras tensor (i.e., output of `layers.Input()`)
             to use as image input for the model.
 
@@ -101,7 +101,9 @@ class ConvMixerBackbone(Backbone):
     input_data = tf.ones(shape=(8, 224, 224, 3))
 
     # Pretrained backbone
-    model = keras_cv.models.ConvMixerBackbone.from_preset("convmixer_512_16_imagenet")
+    model = keras_cv.models.ConvMixerBackbone.from_preset(
+        "convmixer_512_16_imagenet"
+    )
     output = model(input_data)
 
     # Randomly initialized backbone with a custom config
@@ -180,11 +182,11 @@ ALIAS_DOCSTRING = """ConvMixerBackbone model with {num_layers} layers with
     Reference:
         - [Patches Are All You Need?](https://arxiv.org/abs/2201.09792)
 
-    For transfer learning use cases, make sure to read the [guide to transfer
-        learning & fine-tuning](https://keras.io/guides/transfer_learning/).
+    For transfer learning use cases, make sure to read the
+    [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
 
     Args:
-        include_rescaling: bool, whether or not to rescale the inputs. If set to
+        include_rescaling: bool, whether to rescale the inputs. If set to
             True, inputs will be passed through a `Rescaling(1/255.0)` layer.
         input_shape: optional shape tuple, defaults to (None, None, 3).
         input_tensor: optional Keras tensor (i.e., output of `layers.Input()`)
@@ -197,7 +199,7 @@ ALIAS_DOCSTRING = """ConvMixerBackbone model with {num_layers} layers with
     model = ConvMixer_{channels}_{num_layers}Backbone()
     output = model(input_data)
     ```
-"""
+"""  # noqa: E501
 
 
 class ConvMixer_1536_20Backbone(ConvMixerBackbone):
@@ -317,13 +319,17 @@ class ConvMixer_512_16Backbone(ConvMixerBackbone):
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
-        return {}
+        return {
+            "convmixer_512_16_imagenet": copy.deepcopy(
+                backbone_presets["convmixer_512_16_imagenet"]
+            )
+        }
 
     @classproperty
     def presets_with_weights(cls):
         """Dictionary of preset names and configurations that include
         weights."""
-        return {}
+        return cls.presets
 
 
 setattr(

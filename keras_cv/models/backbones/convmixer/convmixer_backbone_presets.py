@@ -124,8 +124,8 @@ backbone_presets_with_weights = {
         },
         "class_name": "keras_cv.models>ConvMixerBackbone",
         "config": backbone_presets_no_weights["convmixer_512_16"]["config"],
-        "weights_url": "https://storage.googleapis.com/keras-cv/models/convmixer_512_16/imagenet/classification-v0-notop.h5",
-        "weights_hash": "aa08c7fa9ca6ec045c4783e1248198dbe1bc141e2ae788e712de471c0370822c",
+        "weights_url": "https://storage.googleapis.com/keras-cv/models/convmixer_512_16/imagenet/classification-v0-notop.h5",  # noqa: E501
+        "weights_hash": "aa08c7fa9ca6ec045c4783e1248198dbe1bc141e2ae788e712de471c0370822c",  # noqa: E501
     },
 }
 
