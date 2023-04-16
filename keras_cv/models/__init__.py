@@ -27,6 +27,9 @@ from keras_cv.models.backbones.convmixer.convmixer_backbone import (
 from keras_cv.models.backbones.convmixer.convmixer_backbone import (
     ConvMixer_1536_24Backbone,
 )
+from keras_cv.models.backbones.convmixer.convmixer_backbone import (
+    ConvMixerBackbone,
+)
 from keras_cv.models.backbones.resnet_v1.resnet_v1_backbone import (
     ResNet18Backbone,
 )

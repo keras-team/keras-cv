@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""ConvMixer models for Keras.
+"""ConvMixer backbone model for Keras.
 
 References:
 - [Patches Are All You Need?](https://arxiv.org/abs/2201.09792)
@@ -137,11 +137,14 @@ class ConvMixerBackbone(Backbone):
             x = layers.Rescaling(1 / 255.0)(x)
         x = apply_patch_embed(x, dim, patch_size)
 
-        for _ in range(depth):
+        pyramid_level_inputs = {}
+        for block_index in range(depth):
             x = apply_conv_mixer_layer(x, dim, kernel_size)
+            pyramid_level_inputs[block_index] = x
 
         super().__init__(inputs=inputs, outputs=x, **kwargs)
 
+        self.pyramid_level_inputs = pyramid_level_inputs
         self.dim = dim
         self.depth = depth
         self.patch_size = patch_size
