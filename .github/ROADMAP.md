@@ -1,6 +1,6 @@
 # Roadmap
 The team will release 2 quarters of roadmap in advance so contributors will know
-what we are working on and be better aligned when creating PRs.  
+what we are working on and be better aligned when creating PRs. 
 As an exception, widely used backbones are always welcome. Contributors can search for `contribution-welcome` label on github.
 The team will release one minor version upgrade each quarter, or whenever a new task is officially supported.
 

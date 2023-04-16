@@ -35,8 +35,8 @@ class TextEncoder(keras.Model):
 
         if download_weights:
             text_encoder_weights_fpath = keras.utils.get_file(
-                origin="https://huggingface.co/fchollet/stable-diffusion/resolve/main/kcv_encoder.h5",
-                file_hash="4789e63e07c0e54d6a34a29b45ce81ece27060c499a709d556c7755b42bb0dc4",
+                origin="https://huggingface.co/fchollet/stable-diffusion/resolve/main/kcv_encoder.h5",  # noqa: E501
+                file_hash="4789e63e07c0e54d6a34a29b45ce81ece27060c499a709d556c7755b42bb0dc4",  # noqa: E501
             )
             self.load_weights(text_encoder_weights_fpath)
 
@@ -59,8 +59,8 @@ class TextEncoderV2(keras.Model):
 
         if download_weights:
             text_encoder_weights_fpath = keras.utils.get_file(
-                origin="https://huggingface.co/ianstenbit/keras-sd2.1/resolve/main/text_encoder_v2_1.h5",
-                file_hash="985002e68704e1c5c3549de332218e99c5b9b745db7171d5f31fcd9a6089f25b",
+                origin="https://huggingface.co/ianstenbit/keras-sd2.1/resolve/main/text_encoder_v2_1.h5",  # noqa: E501
+                file_hash="985002e68704e1c5c3549de332218e99c5b9b745db7171d5f31fcd9a6089f25b",  # noqa: E501
             )
             self.load_weights(text_encoder_weights_fpath)
 

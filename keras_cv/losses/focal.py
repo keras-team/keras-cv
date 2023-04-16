@@ -30,14 +30,14 @@ class FocalLoss(keras.losses.Loss):
             classes have alpha and (1 - alpha) as their weighting factors
             respectively. Defaults to 0.25.
         gamma: a positive float value representing the tunable focusing
-            parameter. Defaults to 2.
+            parameter, defaults to 2.
         from_logits: Whether `y_pred` is expected to be a logits tensor. By
             default, `y_pred` is assumed to encode a probability distribution.
             Default to `False`.
         label_smoothing: Float in `[0, 1]`. If higher than 0 then smooth the
-            labels by squeezing them towards `0.5`, i.e., using `1. - 0.5 * label_smoothing`
-            for the target class and `0.5 * label_smoothing` for the non-target
-            class.
+            labels by squeezing them towards `0.5`, i.e., using
+            `1. - 0.5 * label_smoothing` for the target class and
+            `0.5 * label_smoothing` for the non-target class.
 
     References:
         - [Focal Loss paper](https://arxiv.org/abs/1708.02002)
@@ -91,7 +91,7 @@ class FocalLoss(keras.losses.Loss):
         loss = alpha * tf.pow(1.0 - pt, self.gamma) * cross_entropy
         # In most losses you mean over the final axis to achieve a scalar
         # Focal loss however is a special case in that it is meant to focus on
-        # a small number of hard examples in a batch.  Most of the time this
+        # a small number of hard examples in a batch. Most of the time this
         # comes in the form of thousands of background class boxes and a few
         # positive boxes.
         # If you mean over the final axis you will get a number close to 0,

@@ -17,27 +17,32 @@ from tensorflow import keras
 
 
 # TODO(tanzhenyu): consider inherit from LossFunctionWrapper to
-# get the dimension squeeze.
+#  get the dimension squeeze.
 @keras.utils.register_keras_serializable(package="keras_cv")
 class BinaryPenaltyReducedFocalCrossEntropy(keras.losses.Loss):
     """Implements CenterNet modified Focal loss.
 
-    Compared with `keras.losses.BinaryFocalCrossentropy`, this loss discounts for negative
-    labels that have value less than `positive_threshold`, the larger value the negative label
-    is, the more discount to the final loss.
+    Compared with `keras.losses.BinaryFocalCrossentropy`, this loss discounts
+    for negative labels that have value less than `positive_threshold`, the
+    larger value the negative label is, the more discount to the final loss.
 
-    User can choose to divide the number of keypoints outside the loss computation, or by
-    passing in `sample_weight` as 1.0/num_key_points.
+    User can choose to divide the number of keypoints outside the loss
+    computation, or by passing in `sample_weight` as 1.0/num_key_points.
 
     Args:
       alpha: a focusing parameter used to compute the focal factor.
-        Defaults to 2.0. Note, this is equivalent to the `gamma` parameter in `keras.losses.BinaryFocalCrossentropy`.
-      beta: a float parameter, penalty exponent for negative labels. Defaults to 4.0.
-      from_logits: Whether `y_pred` is expected to be a logits tensor. Defaults
+        Defaults to 2.0. Note, this is equivalent to the `gamma` parameter in
+        `keras.losses.BinaryFocalCrossentropy`.
+      beta: a float parameter, penalty exponent for negative labels, defaults to
+        4.0.
+      from_logits: Whether `y_pred` is expected to be a logits tensor, defaults
         to `False`.
-      positive_threshold: Anything bigger than this is treated as positive label. Defaults to 0.99.
-      positive_weight: single scalar weight on positive examples. Defaults to 1.0.
-      negative_weight: single scalar weight on negative examples. Defaults to 1.0.
+      positive_threshold: Anything bigger than this is treated as positive
+        label, defaults to 0.99.
+      positive_weight: single scalar weight on positive examples, defaults to
+        1.0.
+      negative_weight: single scalar weight on negative examples, defaults to
+        1.0.
 
     Inputs:
       y_true: [batch_size, ...] float tensor
@@ -45,8 +50,9 @@ class BinaryPenaltyReducedFocalCrossEntropy(keras.losses.Loss):
 
     References:
         - [Objects as Points](https://arxiv.org/pdf/1904.07850.pdf) Eq 1.
-        - [Cornernet: Detecting objects as paired keypoints](https://arxiv.org/abs/1808.01244) for `alpha` and `beta`.
-    """
+        - [Cornernet: Detecting objects as paired keypoints](https://arxiv.org/abs/1808.01244) for `alpha` and
+            `beta`.
+    """  # noqa: E501
 
     def __init__(
         self,
@@ -74,8 +80,8 @@ class BinaryPenaltyReducedFocalCrossEntropy(keras.losses.Loss):
         if self.from_logits:
             y_pred = tf.nn.sigmoid(y_pred)
 
-        # TODO(tanzhenyu): Evaluate whether we need clipping after
-        # model is trained.
+        # TODO(tanzhenyu): Evaluate whether we need clipping after model is
+        #  trained.
         y_pred = tf.clip_by_value(y_pred, 1e-4, 0.9999)
         y_true = tf.clip_by_value(y_true, 0.0, 1.0)
 

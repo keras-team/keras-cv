@@ -84,9 +84,11 @@ class BalancedSamplingTest(tf.test.TestCase):
         res = balanced_sample(
             positive_matches, negative_matches, num_samples, positive_fraction
         )
-        # the 1st element from the 1st batch must be selected, given it's the only one
+        # the 1st element from the 1st batch must be selected, given it's the
+        # only one
         self.assertAllClose(res[0][0], 1)
-        # the 7th element from the 2nd batch must be selected, given it's the only one
+        # the 7th element from the 2nd batch must be selected, given it's the
+        # only one
         self.assertAllClose(res[1][6], 1)
 
     def test_balanced_sampling_over_positive_fraction(self):
@@ -186,7 +188,7 @@ class BalancedSamplingTest(tf.test.TestCase):
                 False,
             ]
         )
-        # the rest are neither positive nor negative, but ignord matches
+        # the rest are neither positive nor negative, but ignored matches
         negative_matches = tf.constant(
             [False, False, True, False, False, True, False, False, True, False]
         )

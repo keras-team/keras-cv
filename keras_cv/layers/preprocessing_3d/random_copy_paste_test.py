@@ -92,10 +92,10 @@ class RandomCopyPasteTest(tf.test.TestCase):
             OBJECT_BOUNDING_BOXES: object_bounding_boxes,
         }
         outputs = add_layer(inputs)
-        # The first object bounding box [0, 0, 1, 4, 4, 4, 0, 1] overlaps with existing bounding
-        # box [0, 0, 0, 4, 4, 4, 0, 1], thus not used.
-        # The second object bounding box [100, 100, 2, 5, 5, 5, 0, 1] and object point clouds
-        # [100, 101, 2, 3, 4] are pasted.
+        # The first object bounding box [0, 0, 1, 4, 4, 4, 0, 1] overlaps with
+        # existing bounding box [0, 0, 0, 4, 4, 4, 0, 1], thus not used.
+        # The second object bounding box [100, 100, 2, 5, 5, 5, 0, 1] and object
+        # point clouds [100, 101, 2, 3, 4] are pasted.
         augmented_point_clouds = np.array(
             [
                 [
@@ -199,10 +199,10 @@ class RandomCopyPasteTest(tf.test.TestCase):
             OBJECT_BOUNDING_BOXES: object_bounding_boxes,
         }
         outputs = add_layer(inputs)
-        # The first object bounding box [0, 0, 1, 4, 4, 4, 0, 1] overlaps with existing bounding
-        # box [0, 0, 0, 4, 4, 4, 0, 1], thus not used.
-        # The second object bounding box [100, 100, 2, 5, 5, 5, 0, 1] and object point clouds
-        # [100, 101, 2, 3, 4] are pasted.
+        # The first object bounding box [0, 0, 1, 4, 4, 4, 0, 1] overlaps with
+        # existing bounding box [0, 0, 0, 4, 4, 4, 0, 1], thus not used.
+        # The second object bounding box [100, 100, 2, 5, 5, 5, 0, 1] and object
+        # point clouds [100, 101, 2, 3, 4] are pasted.
         augmented_point_clouds = np.array(
             [
                 [

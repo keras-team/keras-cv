@@ -225,7 +225,7 @@ class RCNNHead(keras.layers.Layer):
 class FasterRCNN(keras.Model):
     """A Keras model implementing the FasterRCNN architecture.
 
-    Implements the FasterRCNN architecture for object detection.  The constructor
+    Implements the FasterRCNN architecture for object detection. The constructor
     requires `num_classes`, `bounding_box_format` and a `backbone`.
 
     References:
@@ -241,34 +241,37 @@ class FasterRCNN(keras.Model):
     ```
 
     Args:
-        num_classes: the number of classes in your dataset excluding the background
-            class.  classes should be represented by integers in the range
-            [0, num_classes).
+        num_classes: the number of classes in your dataset excluding the
+            background class. classes should be represented by integers in the
+            range [0, num_classes).
         bounding_box_format: The format of bounding boxes of model output. Refer
             [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
             for more details on supported bounding box formats.
-        backbone: Optional `keras.Model`. Must implement the `pyramid_level_inputs`
-            property with keys 2, 3, 4, and 5 and layer names as values. If
-            `None`, defaults to `keras_cv.models.ResNet50Backbone()`.
-        anchor_generator: (Optional) a `keras_cv.layers.AnchorGeneratot`. It is used
-            in the model to match ground truth boxes and labels with anchors, or with
-            region proposals. By default it uses the sizes and ratios from the paper,
-            that is optimized for image size between [640, 800]. The users should pass
-            their own anchor generator if the input image size differs from paper.
-            For now, only anchor generator with per level dict output is supported,
-        label_encoder: (Optional) a keras.Layer that accepts an anchors Tensor, a
-            bounding box Tensor and a bounding box class Tensor to its `call()` method,
-            and returns RetinaNet training targets. It returns box and class targets as
-            well as sample weights.
-        rcnn_head: (Optional) a `keras.layers.Layer` that takes input feature map and
-            returns a box delta prediction (in reference to rois) and multi-class prediction
-            (all foreground classes + one background class). By default it uses the rcnn head
-            from paper, which is 2 FC layer with 1024 dimension, 1 box regressor and 1
-            softmax classifier.
-        prediction_decoder: (Optional) a `keras.layers.Layer` that takes input box prediction and
-            softmaxed score prediction, and returns NMSed box prediction, NMSed softmaxed
-            score prediction, NMSed class prediction, and NMSed valid detection.
-    """
+        backbone: Optional `keras.Model`. Must implement the
+            `pyramid_level_inputs` property with keys 2, 3, 4, and 5 and layer
+            names as values. If `None`, defaults to
+            `keras_cv.models.ResNet50Backbone()`.
+        anchor_generator: (Optional) a `keras_cv.layers.AnchorGeneratot`. It is
+            used in the model to match ground truth boxes and labels with
+            anchors, or with region proposals. By default it uses the sizes and
+            ratios from the paper, that is optimized for image size between
+            [640, 800]. The users should pass their own anchor generator if the
+            input image size differs from paper. For now, only anchor generator
+            with per level dict output is supported,
+        label_encoder: (Optional) a keras.Layer that accepts an anchors Tensor,
+            a bounding box Tensor and a bounding box class Tensor to its
+            `call()` method, and returns RetinaNet training targets. It returns
+            box and class targets as well as sample weights.
+        rcnn_head: (Optional) a `keras.layers.Layer` that takes input feature
+            map and returns a box delta prediction (in reference to rois) and
+            multi-class prediction (all foreground classes + one background
+            class). By default it uses the rcnn head from paper, which is 2 FC
+            layer with 1024 dimension, 1 box regressor and 1 softmax classifier.
+        prediction_decoder: (Optional) a `keras.layers.Layer` that takes input
+            box prediction and softmaxed score prediction, and returns NMSed box
+            prediction, NMSed softmaxed score prediction, NMSed class
+            prediction, and NMSed valid detection.
+    """  # noqa: E501
 
     def __init__(
         self,
@@ -598,11 +601,13 @@ def _validate_and_get_loss(loss, loss_name):
         loss = keras.losses.get(loss)
     if loss is None or not isinstance(loss, keras.losses.Loss):
         raise ValueError(
-            f"FasterRCNN only accepts `keras.losses.Loss` for {loss_name}, got {loss}"
+            f"FasterRCNN only accepts `keras.losses.Loss` for {loss_name}, "
+            f"got {loss}"
         )
     if loss.reduction != keras.losses.Reduction.SUM:
         logging.info(
-            f"FasterRCNN only accepts `SUM` reduction, got {loss.reduction}, automatically converted."
+            f"FasterRCNN only accepts `SUM` reduction, got {loss.reduction}, "
+            "automatically converted."
         )
         loss.reduction = keras.losses.Reduction.SUM
     return loss

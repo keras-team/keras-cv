@@ -123,3 +123,43 @@ class WaymoOpenDatasetTransformerTest(tf.test.TestCase):
         self.assertAllGreater(
             tf.math.reduce_max(example["label_point_class"]), 0
         )
+
+    @pytest.mark.skipif(
+        "TEST_WAYMO_DEPS" not in os.environ
+        or os.environ["TEST_WAYMO_DEPS"] != "true",
+        reason="Requires Waymo Open Dataset package",
+    )
+    def test_convert_to_center_pillar_inputs(self):
+        dataset = load(self.test_data_path)
+        dataset = dataset.map(
+            lambda x: (
+                transformer.convert_to_center_pillar_inputs(
+                    transformer.pad_or_trim_tensors(
+                        transformer.transform_to_vehicle_frame(x)
+                    )
+                )
+            )
+        )
+        example = next(iter(dataset))
+
+        # Laser points.
+        point_clouds = example["point_clouds"]
+        self.assertEqual(point_clouds["point_xyz"].shape, [199600, 3])
+        self.assertEqual(point_clouds["point_feature"].shape, [199600, 4])
+        self.assertEqual(point_clouds["point_mask"].shape, [199600])
+        point_feature_mean = tf.reduce_mean(
+            point_clouds["point_feature"], axis=0
+        )
+        self.assertAllGreater(point_feature_mean[0], 0)
+        self.assertAllGreater(tf.abs(point_feature_mean[1]), 1e-6)
+        self.assertAllGreater(point_feature_mean[2:4], 0)
+        self.assertTrue(tf.math.reduce_any(point_clouds["point_mask"]))
+
+        # Laser labels.
+        boxes = example["3d_boxes"]
+        self.assertEqual(boxes["boxes"].shape[0], 1000)
+        self.assertEqual(boxes["classes"].shape[0], 1000)
+        self.assertEqual(boxes["difficulty"].shape[0], 1000)
+        self.assertEqual(boxes["mask"].shape, [1000])
+        self.assertTrue(tf.math.reduce_any(boxes["mask"]))
+        self.assertAllGreater(tf.math.reduce_max(boxes["classes"]), 0)

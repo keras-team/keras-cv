@@ -136,8 +136,8 @@ def point_to_voxel_coord(
             voxel_size, dtype=point_xyz.dtype
         )
         assert dtype.is_integer or dtype.is_floating, f"{dtype}"
-        # Note: tf.round casts float to the nearest integer. If the float is 0.5, it
-        # casts it to the nearest even integer.
+        # Note: tf.round casts float to the nearest integer. If the float is
+        # 0.5, it casts it to the nearest even integer.
         point_voxelized_round = tf.math.round(point_voxelized)
         if dtype.is_floating:
             assert dtype == point_xyz.dtype, f"{dtype}"
@@ -265,7 +265,8 @@ def _has_rank(tensor, expected_rank):
 def _pad_or_trim_to(x, shape, pad_val=0, pad_after_contents=True):
     """Pad and slice x to the given shape.
 
-    This is branched from Lingvo https://github.com/tensorflow/lingvo/blob/master/lingvo/core/py_utils.py.
+    This is branched from Lingvo
+    https://github.com/tensorflow/lingvo/blob/master/lingvo/core/py_utils.py.
 
     Internal usages for keras_cv libraries only.
 
