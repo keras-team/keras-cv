@@ -27,12 +27,12 @@ from keras_cv.models.backbones.mlp_mixer.mlp_mixer_backbone import (
 class MLPMixerPresetFullTest(tf.test.TestCase, parameterized.TestCase):
     """
     Test the full enumeration of our preset.
-    This tests every preset for MobileNetV3 and is only run manually.
+    This tests every preset for MLPMixer and is only run manually.
     Run with:
     `pytest keras_cv/models/backbones/mlp_mixer/mlp_mixer_backbone_presets_test.py --run_extra_large`
     """  # noqa: E501
 
-    def test_load_resnet(self):
+    def test_load_mlp_mixer(self):
         input_data = tf.ones(shape=(2, 224, 224, 3))
         for preset in MLPMixerBackbone.presets:
             model = MLPMixerBackbone.from_preset(preset)
