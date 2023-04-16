@@ -11,7 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""This code is taken nearly verbatim from https://github.com/divamgupta/stable-diffusion-tensorflow."""
+"""This code is taken nearly verbatim from
+https://github.com/divamgupta/stable-diffusion-tensorflow."""
 
 import gzip
 import html
@@ -26,10 +27,11 @@ def bytes_to_unicode():
     """Return a list of utf-8 bytes and a corresponding list of unicode strings.
 
     The reversible bpe codes work on unicode strings.
-    This means you need a large # of unicode characters in your vocab if you want to avoid UNKs.
-    When you're at something like a 10B token dataset you end up needing around 5K for decent coverage.
-    This is a signficant percentage of your normal, say, 32K bpe vocab.
-    To avoid that, we want lookup tables between utf-8 bytes and unicode strings.
+    This means you need a large # of unicode characters in your vocab if you
+    want to avoid UNKs. When you're at something like a 10B token dataset you
+    end up needing around 5K for decent coverage. This is a significant
+    percentage of your normal, say, 32K bpe vocab. To avoid that, we want
+    lookup tables between utf-8 bytes and unicode strings.
     And avoids mapping to whitespace/control characters the bpe code barfs on.
     """
     bs = (
@@ -51,7 +53,8 @@ def bytes_to_unicode():
 def get_pairs(word):
     """Return set of symbol pairs in a word.
 
-    A word is represented as tuple of symbols (symbols being variable-length strings).
+    A word is represented as tuple of symbols(symbols being variable-length
+    strings).
     """
     pairs = set()
     prev_char = word[0]
@@ -76,8 +79,8 @@ class SimpleTokenizer:
     def __init__(self, bpe_path=None):
         bpe_path = bpe_path or keras.utils.get_file(
             "bpe_simple_vocab_16e6.txt.gz",
-            "https://github.com/openai/CLIP/blob/main/clip/bpe_simple_vocab_16e6.txt.gz?raw=true",
-            file_hash="924691ac288e54409236115652ad4aa250f48203de50a9e4722a6ecd48d6804a",
+            "https://github.com/openai/CLIP/blob/main/clip/bpe_simple_vocab_16e6.txt.gz?raw=true",  # noqa: E501
+            file_hash="924691ac288e54409236115652ad4aa250f48203de50a9e4722a6ecd48d6804a",  # noqa: E501
         )
         self.byte_encoder = bytes_to_unicode()
         self.byte_decoder = {v: k for k, v in self.byte_encoder.items()}

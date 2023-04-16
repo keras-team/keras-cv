@@ -18,7 +18,8 @@ if not FLAGS.weights_path.endswith(".h5"):
     raise ValueError("Weights path must end in .h5")
 
 model = eval(
-    f"keras_cv.models.{FLAGS.model_name}(include_rescaling=True, include_top=True, num_classes=1000, weights=FLAGS.weights_path)"
+    f"keras_cv.models.{FLAGS.model_name}(include_rescaling=True, "
+    f"include_top=True, num_classes=1000, weights=FLAGS.weights_path)"
 )
 
 without_top = keras.models.Model(model.input, model.layers[-3].output)

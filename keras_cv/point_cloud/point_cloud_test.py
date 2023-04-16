@@ -251,9 +251,9 @@ class Boxes3DTestCase(tf.test.TestCase, parameterized.TestCase):
 
         result = point_cloud.coordinate_transform(replicated_points, pose)
 
-        # We expect the point to be translated close to the car, and then rotated
-        # mostly around the x-axis.
-        # the result is device dependent, skip or ignore this test locally if it fails.
+        # We expect the point to be translated close to the car, and then
+        # rotated mostly around the x-axis. The result is device dependent, skip
+        # or ignore this test locally if it fails.
         expected = np.tile([[[-8.184512, -0.13086952, -0.04200769]]], [2, 4, 1])
 
         self.assertAllClose(expected, result)

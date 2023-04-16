@@ -19,7 +19,7 @@ Include citation counts if possible.
 
 **Existing Implementations**
 <!---
-Link to existing implementations.  TensorFlow implementations are preferred.
+Link to existing implementations. TensorFlow implementations are preferred.
 -->
 
 **Other Information**

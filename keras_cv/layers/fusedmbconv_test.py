@@ -25,7 +25,8 @@ class FusedMBConvBlockTest(tf.test.TestCase):
         # Code before yield runs before the test
         tf.config.set_soft_device_placement(False)
         yield
-        # Reset soft device placement to not interfere with other unit test files
+        # Reset soft device placement to not interfere with other unit test
+        # files
         tf.config.set_soft_device_placement(True)
         keras.backend.clear_session()
 

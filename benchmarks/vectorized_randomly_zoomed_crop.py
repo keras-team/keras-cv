@@ -48,12 +48,12 @@ class OldRandomlyZoomedCrop(BaseImageAugmentationLayer):
             aspect ratio sampled represents a value to distort the aspect ratio
             by.
             Represents the lower and upper bound for the aspect ratio of the
-            cropped image before resizing it to `(height, width)`.  For most
-            tasks, this should be `(3/4, 4/3)`.  To perform a no-op provide the
+            cropped image before resizing it to `(height, width)`. For most
+            tasks, this should be `(3/4, 4/3)`. To perform a no-op provide the
             value `(1.0, 1.0)`.
         interpolation: (Optional) A string specifying the sampling method for
-            resizing. Defaults to "bilinear".
-        seed: (Optional) Used to create a random seed. Defaults to None.
+            resizing, defaults to "bilinear".
+        seed: (Optional) Used to create a random seed, defaults to None.
     """
 
     def __init__(

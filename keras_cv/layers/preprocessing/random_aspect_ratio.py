@@ -24,14 +24,15 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 
 @keras.utils.register_keras_serializable(package="keras_cv")
 class RandomAspectRatio(BaseImageAugmentationLayer):
-    """RandomAspectRatio randomly distorts the aspect ratio of the provided image.
+    """RandomAspectRatio randomly distorts the aspect ratio of the provided
+    image.
 
-    This is done on an element-wise basis, and as a consequence this layer always
-    returns a tf.RaggedTensor.
+    This is done on an element-wise basis, and as a consequence this layer
+    always returns a tf.RaggedTensor.
 
     Args:
-        factor: a range of values in the range `(0, infinity)` that determines the
-            percentage to distort the aspect ratio of each image by.
+        factor: a range of values in the range `(0, infinity)` that determines
+            the percentage to distort the aspect ratio of each image by.
         interpolation: interpolation method used in the `Resize` op.
              Supported values are `"nearest"` and `"bilinear"`.
              Defaults to `"bilinear"`.

@@ -36,6 +36,9 @@ from keras_cv.models.backbones.resnet_v1.resnet_v1_backbone import (
 from keras_cv.models.backbones.resnet_v1.resnet_v1_backbone import (
     ResNet152Backbone,
 )
+from keras_cv.models.backbones.resnet_v1.resnet_v1_backbone import (
+    ResNetBackbone,
+)
 from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
     ResNet18V2Backbone,
 )
@@ -97,7 +100,7 @@ from keras_cv.models.efficientnet_v2 import EfficientNetV2M
 from keras_cv.models.efficientnet_v2 import EfficientNetV2S
 from keras_cv.models.mobilenet_v3 import MobileNetV3Large
 from keras_cv.models.mobilenet_v3 import MobileNetV3Small
-from keras_cv.models.object_detection.faster_rcnn import FasterRCNN
+from keras_cv.models.object_detection.faster_rcnn.faster_rcnn import FasterRCNN
 from keras_cv.models.object_detection.retina_net.retina_net import RetinaNet
 from keras_cv.models.object_detection_3d.center_pillar import (
     MultiHeadCenterPillar,

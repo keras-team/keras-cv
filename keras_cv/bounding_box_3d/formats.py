@@ -17,7 +17,8 @@ formats.py contains axis information for each supported format.
 
 
 class CENTER_XYZ_DXDYDZ_PHI:
-    """CENTER_XYZ_DXDYDZ_PHI contains axis indices for the CENTER_XYZ_DXDYDZ_PHI format.
+    """CENTER_XYZ_DXDYDZ_PHI contains axis indices for the CENTER_XYZ_DXDYDZ_PHI
+    format.
 
     CENTER_XYZ_DXDYDZ_PHI is a 3D box format that supports vertical boxes with a
     heading rotated around the Z axis.
