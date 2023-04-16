@@ -46,7 +46,8 @@ def adjust_channels(x, divisor=8, min_value=None):
         x: integer, input value.
         divisor: integer, the value by which a channel number should be
             divisible, defaults to 8.
-        min_value: float, minimum value for the new tensor.
+        min_value: float, optional minimum value for the new tensor. If None,
+            defaults to value of divisor.
 
     Returns:
         the updated input scalar.
@@ -63,36 +64,30 @@ def adjust_channels(x, divisor=8, min_value=None):
     return new_x
 
 
-def apply_hard_sigmoid(x, name=None):
+def apply_hard_sigmoid(x):
     """The Hard Sigmoid function.
 
     Args:
         x: input tensor
-        name: string, layer label.
 
     Returns:
         the updated input tensor.
     """
-    if name is None:
-        name = f"hard_sigmoid_{backend.get_uid('hard_sigmoid')}"
 
     activation = layers.ReLU(6.0)
 
     return activation(x + 3.0) * (1.0 / 6.0)
 
 
-def apply_hard_swish(x, name=None):
+def apply_hard_swish(x):
     """The Hard Swish function.
 
     Args:
         x: input tensor
-        name: string, layer label.
 
     Returns:
         the updated input tensor.
     """
-    if name is None:
-        name = f"hard_swish_{backend.get_uid('hard_swish')}"
 
     multiply_layer = layers.Multiply()
 
@@ -108,7 +103,6 @@ def apply_inverted_res_block(
     se_ratio,
     activation,
     expansion_index,
-    name=None,
 ):
     """An Inverted Residual Block.
 
@@ -124,13 +118,10 @@ def apply_inverted_res_block(
         activation: the activation layer to use.
         expansion_index: integer, a unique identification if you want to use
             expanded convolutions.
-        name: string, layer label.
 
     Returns:
         the updated input tensor.
     """
-    if name is None:
-        name = f"inverted_res_block_{backend.get_uid('inverted_res_block')}"
 
     shortcut = x
     prefix = "expanded_conv/"
@@ -198,74 +189,6 @@ def apply_inverted_res_block(
     return x
 
 
-v3Small = {
-    "stackwise_expansion": [1, 72.0 / 16, 88.0 / 24, 4, 6, 6, 3, 3, 6, 6, 6],
-    "stackwise_filters": [16, 24, 24, 40, 40, 40, 48, 48, 96, 96, 96],
-    "stackwise_stride": [2, 2, 1, 2, 1, 1, 1, 1, 2, 1, 1],
-}
-v3Large = {
-    "stackwise_expansion": [1, 4, 3, 3, 3, 3, 6, 2.5, 2.3, 2.3, 6, 6, 6, 6, 6],
-    "stackwise_filters": [
-        16,
-        24,
-        24,
-        40,
-        40,
-        40,
-        80,
-        80,
-        80,
-        80,
-        112,
-        112,
-        160,
-        160,
-        160,
-    ],
-    "stackwise_kernel_size": [1, 2, 1, 2, 1, 1, 2, 1, 1, 1, 1, 1, 2, 1, 1],
-}
-
-
-def stack_fn_v3small(x, kernel, activation, se_ratio, alpha=1.0):
-    for stack_index in range(11):
-        x = apply_inverted_res_block(
-            x,
-            expansion=v3Small["stackwise_expansion"][stack_index],
-            filters=adjust_channels(
-                (v3Small["stackwise_filters"][stack_index]) * alpha
-            ),
-            kernel_size=3 if stack_index < 3 else kernel,
-            stride=v3Small["stackwise_stride"][stack_index],
-            se_ratio=se_ratio if stack_index == 0 or stack_index > 2 else None,
-            activation=layers.ReLU() if stack_index < 3 else activation,
-            expansion_index=stack_index,
-            name=f"stack_{stack_index}",
-        )
-    return x
-
-
-def stack_fn_v3large(x, kernel, activation, se_ratio, alpha=1.0):
-    for stack_index in range(15):
-        x = apply_inverted_res_block(
-            x,
-            expansion=v3Large["stackwise_expansion"][stack_index],
-            filters=adjust_channels(
-                (v3Large["stackwise_filters"][stack_index]) * alpha
-            ),
-            kernel_size=3
-            if stack_index < 3 or (5 < stack_index < 12)
-            else kernel,
-            stride=v3Large["stackwise_stride"][stack_index],
-            se_ratio=se_ratio
-            if stack_index > 9 or (2 < stack_index < 6)
-            else None,
-            activation=layers.ReLU() if stack_index < 6 else activation,
-            expansion_index=stack_index,
-            name=f"stack_{stack_index}",
-        )
-    return x
-
-
 @keras.utils.register_keras_serializable(package="keras_cv.models")
 class MobileNetV3Backbone(Backbone):
     """Instantiates the MobileNetV3 architecture.
@@ -297,12 +220,6 @@ class MobileNetV3Backbone(Backbone):
                 of filters in each layer.
             - If `alpha` = 1, default number of filters from the paper
                 are used at each layer.
-        minimalistic: in addition to large and small models, this module also
-            contains so-called minimalistic models; these models have the same
-            per-layer dimensions characteristic as MobilenetV3 however, they
-            don't utilize any of the advanced blocks (squeeze-and-excite units,
-            hard-swish, and 5x5 convolutions). While these models are less
-            efficient on CPU, they are much more performant on GPU/DSP.
         dropout_rate: a float between 0 and 1 denoting the fraction of input
             units to drop, defaults to 0.2.
 
@@ -323,35 +240,18 @@ class MobileNetV3Backbone(Backbone):
     def __init__(
         self,
         *,
-        stack_fn_type="MobileNetV3Small",
+        stackwise_expansion,
+        stackwise_filters,
+        stackwise_stride,
         filters,
         include_rescaling,
         input_shape=(None, None, 3),
         input_tensor=None,
         alpha=1.0,
-        minimalistic=True,
         dropout_rate=0.2,
         **kwargs,
     ):
-        if stack_fn_type == "MobileNetV3Small":
-            stack_fn = stack_fn_v3small
-        elif stack_fn_type == "MobileNetV3Large":
-            stack_fn = stack_fn_v3large
-        else:
-            raise ValueError(
-                """`stack_fn_type` must be either "MobileNetV3Small" or
-                "MobileNetV3Large". """
-                f"Received stack_fn_type={stack_fn_type}."
-            )
-
-        if minimalistic:
-            kernel = 3
-            activation = layers.ReLU()
-            se_ratio = None
-        else:
-            kernel = 5
-            activation = apply_hard_swish
-            se_ratio = 0.25
+        activation = layers.ReLU()
 
         inputs = utils.parse_model_inputs(input_shape, input_tensor)
         x = inputs
@@ -375,7 +275,21 @@ class MobileNetV3Backbone(Backbone):
         )(x)
         x = activation(x)
 
-        x = stack_fn(x, kernel, activation, se_ratio)
+        pyramid_level_inputs = {}
+        for stack_index in range(len(stackwise_filters)):
+            x = apply_inverted_res_block(
+                x,
+                expansion=stackwise_expansion[stack_index],
+                filters=adjust_channels(
+                    (stackwise_filters[stack_index]) * alpha
+                ),
+                kernel_size=3,
+                stride=stackwise_stride[stack_index],
+                se_ratio=None,
+                activation=activation,
+                expansion_index=stack_index,
+            )
+            pyramid_level_inputs[stack_index] = x
 
         last_conv_ch = adjust_channels(backend.int_shape(x)[channel_axis] * 6)
 
@@ -400,25 +314,28 @@ class MobileNetV3Backbone(Backbone):
 
         super().__init__(inputs=inputs, outputs=x, **kwargs)
 
-        self.stack_fn_type = stack_fn_type
+        self.pyramid_level_inputs = pyramid_level_inputs
+        self.stackwise_expansion = stackwise_expansion
+        self.stackwise_filters = stackwise_filters
+        self.stackwise_stride = stackwise_stride
         self.filters = filters
         self.include_rescaling = include_rescaling
         self.input_tensor = input_tensor
         self.alpha = alpha
-        self.minimalistic = minimalistic
         self.dropout_rate = dropout_rate
 
     def get_config(self):
         config = super().get_config()
         config.update(
             {
-                "stack_fn_type": self.stack_fn_type,
+                "stackwise_expansion": self.stackwise_expansion,
+                "stackwise_filters": self.stackwise_filters,
+                "stackwise_stride": self.stackwise_stride,
                 "filters": self.filters,
                 "include_rescaling": self.include_rescaling,
                 "input_shape": self.input_shape[1:],
                 "input_tensor": self.input_tensor,
                 "alpha": self.alpha,
-                "minimalistic": self.minimalistic,
                 "dropout_rate": self.dropout_rate,
             }
         )
