@@ -140,7 +140,7 @@ class ConvMixerBackbone(Backbone):
         pyramid_level_inputs = {}
         for block_index in range(depth):
             x = apply_conv_mixer_layer(x, dim, kernel_size)
-            pyramid_level_inputs[block_index] = x
+            pyramid_level_inputs[block_index] = x.node.layer.name
 
         super().__init__(inputs=inputs, outputs=x, **kwargs)
 
