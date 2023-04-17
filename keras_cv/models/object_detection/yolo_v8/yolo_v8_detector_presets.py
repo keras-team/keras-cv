@@ -12,5 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """YOLOv8 Task presets."""
+from keras_cv.models.object_detection.yolo_v8 import yolo_v8_backbone_presets
 
-yolo_v8_detector_presets = {}
+yolo_v8_detector_presets = {
+    "yolov8_m_pascalvoc": {
+        "metadata": {
+            "description": (
+                "YOLOV8-M pretrained on PascalVOC 2012 object detection task, "
+                "which consists of 20 classes. This model achieves a final MaP "
+                "of 0.45 on the evaluation set."
+            ),
+        },
+        "config": {
+            "backbone": yolo_v8_backbone_presets.backbone_presets["yolov8_m_backbone"],  # noqa: E501
+            "num_classes": 20,
+            "fpn_depth": 2,
+        },
+        "weights_url": "https://storage.googleapis.com/keras-cv/models/yolov8/pascal_voc/yolov8_m.h5",  # noqa: E501
+        "weights_hash": "e641690aec205a3ca1ea730ea362ddc36c8b4a5abcebb6a23b18cbc9c091316d",  # noqa: E501
+    },
+}

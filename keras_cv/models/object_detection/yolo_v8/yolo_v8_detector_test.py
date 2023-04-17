@@ -47,7 +47,7 @@ class YOLOV8DetectorSmokeTest(tf.test.TestCase):
     # TODO(ianstenbit): Update this test to use a KerasCV-trained preset.
     def test_preset_with_forward_pass(self):
         model = keras_cv.models.YOLOV8Detector.from_preset(
-            "yolov8_n_coco",
+            "yolov8_m_pascalvoc",
             bounding_box_format="xywh",
         )
 
@@ -56,16 +56,16 @@ class YOLOV8DetectorSmokeTest(tf.test.TestCase):
 
         self.assertAllClose(
             encoded_predictions["boxes"][0, 0:5, 0],
-            [7.677088, 9.361263, 9.6241255, 9.454895, 8.99809],
+            [-0.8303556, 0.75213313, 1.809204, 1.6576759, 1.4134747],
         )
         self.assertAllClose(
             encoded_predictions["classes"][0, 0:5, 0],
             [
-                1.6198268e-05,
-                2.1332640e-05,
-                1.5359996e-05,
-                1.4784595e-05,
-                1.2798749e-05,
+                7.6146556e-08,
+                8.0103280e-07,
+                9.7873999e-07,
+                2.2314548e-06,
+                2.5051115e-06,
             ],
         )
 
