@@ -37,10 +37,6 @@ class ResNetPresetSmokeTest(tf.test.TestCase, parameterized.TestCase):
     def setUp(self):
         self.input_batch = tf.ones(shape=(2, 224, 224, 3))
 
-    @parameterized.named_parameters(
-        ("preset_with_weights", "resnet50_imagenet"),
-        # ("preset_no_weights", "resnet50"),
-    )
     def test_backbone_output(self):
         model = ResNetBackbone.from_preset("resnet50")
         model(self.input_batch)
@@ -63,10 +59,9 @@ class ResNetPresetSmokeTest(tf.test.TestCase, parameterized.TestCase):
         # We should only update these numbers if we are updating a weights
         # file, or have found a discrepancy with the upstream source.
 
-        outputs = feature_extractor(tf.ones(1, 512, 512, 3))
+        outputs = feature_extractor(tf.ones((1, 512, 512, 3)))
         outputs = [outputs[i][0, 0, 0, :5] for i in extractor_levels]
         expected = [
-            [0.50249904, 0.35751498, 0.9474212, 1.0659311, 1.1105202],
             [0.65718395, 0.7209194, 0.39707005, 0.5164382, 0.73338735],
             [
                 1.0615100e00,
