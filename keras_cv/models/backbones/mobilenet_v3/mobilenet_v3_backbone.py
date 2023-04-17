@@ -202,8 +202,12 @@ class MobileNetV3Backbone(Backbone):
     [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
 
     Args:
-        stack_fn: a function that returns tensors passed through Inverted
-            Residual Blocks.
+        stackwise_expansion: list of ints or floats, the expansion ratio for
+            each inverted residual block in the model.
+        stackwise_filters: list of ints, number of filters for each inverted
+            residual block in the model.
+        stackwise_stride: list of ints, stride length for each inverted
+            residual block in the model.
         filters: integer, the number of filters for the convolution layer.
         include_rescaling: bool, whether to rescale the inputs. If set to True,
             inputs will be passed through a `Rescaling(scale=1 / 255)`
@@ -291,7 +295,7 @@ class MobileNetV3Backbone(Backbone):
                 activation=activation,
                 expansion_index=stack_index,
             )
-            pyramid_level_inputs[stack_index] = x
+            pyramid_level_inputs[stack_index] = x.node.layer.name
 
         last_conv_ch = adjust_channels(backend.int_shape(x)[channel_axis] * 6)
 
