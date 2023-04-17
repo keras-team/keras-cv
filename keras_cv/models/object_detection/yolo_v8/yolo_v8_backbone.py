@@ -107,7 +107,7 @@ class YOLOV8Backbone(Backbone):
         )
 
         """ blocks """
-        pyramid_level_inputs = {0: x.node.layer.name}
+        pyramid_level_inputs = {1: x.node.layer.name}
         for stack_id, (channel, depth) in enumerate(zip(channels, depths)):
             stack_name = f"stack{stack_id + 1}"
             if stack_id >= 1:
@@ -134,7 +134,7 @@ class YOLOV8Backbone(Backbone):
                     activation=activation,
                     name=f"{stack_name}_spp_fast",
                 )
-            pyramid_level_inputs[stack_id + 1] = x.node.layer.name
+            pyramid_level_inputs[stack_id + 2] = x.node.layer.name
 
         super().__init__(inputs=inputs, outputs=x, **kwargs)
         self.pyramid_level_inputs = pyramid_level_inputs

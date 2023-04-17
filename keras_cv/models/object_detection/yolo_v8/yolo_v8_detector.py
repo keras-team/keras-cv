@@ -299,7 +299,7 @@ class YOLOV8Detector(Task):
         prediction_decoder=None,
         **kwargs,
     ):
-        extractor_levels = [2, 3, 4]
+        extractor_levels = [3, 4, 5]
         extractor_layer_names = [
             backbone.pyramid_level_inputs[i] for i in extractor_levels
         ]
