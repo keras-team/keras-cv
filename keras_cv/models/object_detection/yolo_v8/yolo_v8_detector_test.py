@@ -19,12 +19,70 @@ import tensorflow as tf
 from tensorflow import keras
 
 import keras_cv
+from keras_cv.models.object_detection.__test_utils__ import (
+    _create_bounding_box_dataset,
+)
 from keras_cv.models.object_detection.yolo_v8.yolo_v8_detector_presets import (
     yolo_v8_detector_presets,
 )
 
 
 class YOLOV8DetectorTest(tf.test.TestCase):
+    def test_fit(self):
+        bounding_box_format = "xywh"
+        yolo = keras_cv.models.YOLOV8Detector(
+            num_classes=2,
+            fpn_depth=1,
+            bounding_box_format=bounding_box_format,
+            backbone=keras_cv.models.YOLOV8Backbone.from_preset(
+                "yolov8_n_backbone"
+            ),
+        )
+
+        yolo.compile(
+            optimizer="adam",
+            classification_loss="binary_crossentropy",
+            box_loss="iou",
+        )
+        xs, ys = _create_bounding_box_dataset(bounding_box_format)
+        yolo.fit(x=xs, y=ys, epochs=1)
+
+    def test_trainable_weight_count(self):
+        yolo = keras_cv.models.YOLOV8Detector(
+            num_classes=2,
+            fpn_depth=1,
+            bounding_box_format="xywh",
+            backbone=keras_cv.models.YOLOV8Backbone.from_preset(
+                "yolov8_n_backbone"
+            ),
+        )
+
+        self.assertEqual(len(yolo.trainable_weights), 183)
+
+    def test_bad_loss(self):
+        yolo = keras_cv.models.YOLOV8Detector(
+            num_classes=2,
+            fpn_depth=1,
+            bounding_box_format="xywh",
+            backbone=keras_cv.models.YOLOV8Backbone.from_preset(
+                "yolov8_n_backbone"
+            ),
+        )
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "Invalid box loss",
+        ):
+            yolo.compile(
+                box_loss="bad_loss", classification_loss="binary_crossentropy"
+            )
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "Invalid classification loss",
+        ):
+            yolo.compile(box_loss="iou", classification_loss="bad_loss")
+
     def test_serialization(self):
         model = keras_cv.models.YOLOV8Detector(
             num_classes=20,

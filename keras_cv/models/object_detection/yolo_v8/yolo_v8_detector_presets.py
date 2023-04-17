@@ -24,7 +24,9 @@ yolo_v8_detector_presets = {
             ),
         },
         "config": {
-            "backbone": yolo_v8_backbone_presets.backbone_presets["yolov8_m_backbone"],  # noqa: E501
+            "backbone": yolo_v8_backbone_presets.backbone_presets[
+                "yolov8_m_backbone"
+            ],
             "num_classes": 20,
             "fpn_depth": 2,
         },
