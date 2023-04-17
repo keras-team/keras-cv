@@ -175,7 +175,7 @@ class MLPMixerBackbone(Backbone):
             x = apply_mixer_block(
                 x, tokens_mlp_dim, channels_mlp_dim, name=f"mixer_block_{i}"
             )
-            pyramid_level_inputs[num_blocks] = x
+            pyramid_level_inputs[num_blocks] = x.node.layer.name
 
         x = layers.LayerNormalization()(x)
 
