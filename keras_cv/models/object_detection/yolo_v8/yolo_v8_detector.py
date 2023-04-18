@@ -50,7 +50,8 @@ def get_anchors(
     strides=[8, 16, 32],
     base_anchors=[0.5, 0.5],
 ):
-    """Gets anchor boxes for YOLOV8.
+    """Gets anchor boxes for YOLOV8. YOLOV8 uses anchor points representing the
+    center of proposed boxes
 
     Args:
         image_shape: tuple or list of two integers representing the heigh and
@@ -65,9 +66,7 @@ def get_anchors(
 
     Returns:
         A tuple of anchor centerpoints and anchor strides. Multiplying the
-        two together will yield the centerpoints in absolute x,y format. The
-        width and height of each anchor box is represented by its corresponding
-        stride.
+        two together will yield the centerpoints in absolute x,y format.
 
     """
     base_anchors = tf.constant(base_anchors, dtype=tf.float32)
@@ -99,59 +98,87 @@ def get_anchors(
     return all_anchors, all_strides
 
 
-def path_aggregation_fpn(features, depth=3, name="fpn"):
-    # yolov8
-    # 9: p5 1024 ---+----------------------+-> 21: out2 1024
-    #               v [up 1024 -> concat]  ^ [down 512 -> concat]
-    # 6: p4 512 --> 12: p4p5 512 --------> 18: out1 512
-    #               v [up 512 -> concat]   ^ [down 256 -> concat]
-    # 4: p3 256 --> 15: p3p4p5 256 --------+--> 15: out0 128
-    # features: [p3, p4, p5]
-    channel_axis = -1
-    upsamples = [features[-1]]
-    # upsamples: [p5], features[:-1][::-1]: [p4, p3] -> [p5, p4p5, p3p4p5]
-    for id, feature in enumerate(features[:-1][::-1]):
-        size = tf.shape(feature)[1:-1]
-        x = tf.image.resize(upsamples[-1], size, method="nearest")
-        x = tf.concat([x, feature], axis=channel_axis)
+def apply_path_aggregation_fpn(features, depth=3, name="fpn"):
+    """
+    Applies the Feature Pyramid Network (FPN) to the outputs of a backbone.
 
-        out_channel = feature.shape[channel_axis]
-        x = apply_csp_block(
-            x,
-            channels=out_channel,
-            depth=depth,
-            shortcut=False,
-            activation="swish",
-            name=f"{name}_p{len(features) + 1 - id}",
-        )
-        upsamples.append(x)
+    Args:
+        features: list of tensors representing the P3, P4, and P5 outputs of the
+            backbone.
+        depth: integer, the depth of the CSP blocks used in the FPN.
+        name: string, a prefix for names of layers used by the FPN.
 
-    downsamples = [upsamples[-1]]
-    # downsamples: [p3p4p5], upsamples[:-1][::-1]:
-    # [p4p5, p5] -> [p3p4p5, p3p4p5 + p4p5, p3p4p5 + p4p5 + p5]
-    for id, ii in enumerate(upsamples[:-1][::-1]):
-        cur_name = f"{name}_c3n{id + 3}"
-        x = apply_conv_bn(
-            downsamples[-1],
-            downsamples[-1].shape[channel_axis],
-            kernel_size=3,
-            strides=2,
-            activation="swish",
-            name=f"{cur_name}_down",
-        )
-        x = tf.concat([x, ii], axis=channel_axis)
+    Returns:
+        A list of three tensors whose shapes are the same as the three inputs,
+        but which are dependent on each of the three inputs to combine the high
+        resolution of the P3 inputs with the strong feature representations of
+        the P5 inputs.
 
-        out_channel = ii.shape[channel_axis]
-        x = apply_csp_block(
-            x,
-            channels=out_channel,
-            depth=depth,
-            shortcut=False,
-            activation="swish",
-            name=cur_name,
-        )
-        downsamples.append(x)
-    return downsamples
+    """
+    p3, p4, p5 = features
+
+    # Upsample P5 and concatenate with P4, then apply a CSPBlock.
+    p5_upsampled = tf.image.resize(p5, tf.shape(p4)[1:-1], method="nearest")
+    p4p5 = tf.concat([p5_upsampled, p4], axis=-1)
+    p4p5 = apply_csp_block(
+        p4p5,
+        channels=p4.shape[-1],
+        depth=depth,
+        shortcut=False,
+        activation="swish",
+        name=f"{name}_p4p5",
+    )
+
+    # Upsample P4P5 and concatenate with P3, then apply a CSPBlock.
+    p4p5_upsampled = tf.image.resize(p4p5, tf.shape(p3)[1:-1], method="nearest")
+    p3p4p5 = tf.concat([p4p5_upsampled, p3], axis=-1)
+    p3p4p5 = apply_csp_block(
+        p3p4p5,
+        channels=p3.shape[-1],
+        depth=depth,
+        shortcut=False,
+        activation="swish",
+        name=f"{name}_p3p4p5",
+    )
+
+    # Downsample P3P4P5, concatenate with P4P5, and apply a CSP Block.
+    p3p4p5_d1 = apply_conv_bn(
+        p3p4p5,
+        p3p4p5.shape[-1],
+        kernel_size=3,
+        strides=2,
+        activation="swish",
+        name=f"{name}_p3p4p5_downsample1",
+    )
+    p3p4p5_d1 = tf.concat([p3p4p5_d1, p4p5], axis=-1)
+    p3p4p5_d1 = apply_csp_block(
+        p3p4p5_d1,
+        channels=p4p5.shape[-1],
+        shortcut=False,
+        activation="swish",
+        name=f"{name}_p3p4p5_downsample1_block",
+    )
+
+    # Downsample the resulting P3P4P5 again, concatenate with P5, and apply
+    # another CSP Block.
+    p3p4p5_d2 = apply_conv_bn(
+        p3p4p5_d1,
+        p3p4p5_d1.shape[-1],
+        kernel_size=3,
+        strides=2,
+        activation="swish",
+        name=f"{name}_p3p4p5_downsample2",
+    )
+    p3p4p5_d2 = tf.concat([p3p4p5_d2, p5], axis=-1)
+    p3p4p5_d2 = apply_csp_block(
+        p3p4p5_d2,
+        channels=p5.shape[-1],
+        shortcut=False,
+        activation="swish",
+        name=f"{name}_p3p4p5_downsample2_block",
+    )
+
+    return [p3p4p5, p3p4p5_d1, p3p4p5_d2]
 
 
 def yolov8_head(
@@ -324,7 +351,7 @@ class YOLOV8Detector(Task):
         features = list(feature_extractor(images).values())
 
         # Apply the FPN
-        fpn_features = path_aggregation_fpn(
+        fpn_features = apply_path_aggregation_fpn(
             features, depth=fpn_depth, name="pa_fpn"
         )
 
