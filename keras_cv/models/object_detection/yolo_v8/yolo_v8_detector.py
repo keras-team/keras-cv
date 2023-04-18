@@ -469,7 +469,7 @@ class YOLOV8Detector(Task):
 
         if isinstance(box_loss, str):
             if box_loss == "iou":
-                box_loss = YOLOV8IoULoss(reduction="sum")
+                box_loss = YOLOV8IoULoss(reduction="sum_over_batch_size")
             else:
                 raise ValueError(
                     f"Invalid box loss for YOLOV8Detector: {box_loss}. Box "
@@ -478,7 +478,7 @@ class YOLOV8Detector(Task):
         if isinstance(classification_loss, str):
             if classification_loss == "binary_crossentropy":
                 classification_loss = keras.losses.BinaryCrossentropy(
-                    reduction="sum"
+                    reduction="sum_over_batch_size"
                 )
             else:
                 raise ValueError(
