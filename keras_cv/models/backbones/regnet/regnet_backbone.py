@@ -20,7 +20,6 @@ References:
 
 import copy
 
-import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import backend
 from tensorflow.keras import layers
@@ -34,7 +33,6 @@ from keras_cv.models.backbones.regnet.regnetx_backbone_presets import (
 from keras_cv.models.backbones.regnet.regnety_backbone_presets import (
     backbone_presets_y,
 )
-from keras_cv.models.weights import parse_weights
 from keras_cv.utils.python_utils import classproperty
 
 # BatchNorm momentum and epsilon values taken from original implementation.
@@ -58,33 +56,10 @@ BASE_DOCSTRING = """This class represents the {name} architecture.
   Args:
     include_rescaling: whether or not to Rescale the inputs.If set to True,
         inputs will be passed through a `Rescaling(1/255.0)` layer.
-    include_top: Whether to include the fully-connected
-        layer at the top of the network.
-    num_classes: Optional number of classes to classify images
-        into, only to be specified if `include_top` is True.
-    weights: One of `None` (random initialization), or the path to the weights
-          file to be loaded. Defaults to `None`.
     input_tensor: Optional Keras tensor (i.e. output of `layers.Input()`)
         to use as image input for the model.
     input_shape: Optional shape tuple, defaults to (None, None, 3).
         It should have exactly 3 inputs channels.
-    pooling: Optional pooling mode for feature extraction
-        when `include_top` is `False`. Defaults to None.
-        - `None` means that the output of the model will be
-            the 4D tensor output of the
-            last convolutional layer.
-        - `avg` means that global average pooling
-            will be applied to the output of the
-            last convolutional layer, and thus
-            the output of the model will be a 2D tensor.
-        - `max` means that global max pooling will
-            be applied.
-    classifier_activation: A `str` or callable. The activation function to use
-        on the "top" layer. Ignored unless `include_top=True`. Set
-        `classifier_activation=None` to return the logits of the "top" layer.
-        Defaults to `"softmax"`.
-        When loading pretrained weights, `classifier_activation` can only
-        be `None` or `"softmax"`.
 """
 
 
@@ -476,27 +451,6 @@ def apply_stage(
     return x
 
 
-def apply_head(x, num_classes=None, name=None, activation=None):
-    """Implementation of classification head of RegNet.
-
-    Args:
-      x: Tensor, input to the head block
-      num_classes: int, number of classes for Dense layer
-      name: str, name prefix
-
-    Returns:
-      Output logits tensor.
-    """
-    if name is None:
-        name = str(backend.get_uid("head"))
-
-    x = layers.GlobalAveragePooling2D(name=name + "_head_gap")(x)
-    x = layers.Dense(
-        num_classes, name=name + "head_dense", activation=activation
-    )(x)
-    return x
-
-
 @keras.utils.register_keras_serializable(package="keras_cv.models")
 class RegNetBackBone(Backbone):
     """
@@ -514,32 +468,10 @@ class RegNetBackBone(Backbone):
         model_name: str, An optional name for the model.
         include_rescaling: bool, whether or not to Rescale the inputs.If set to True,
             inputs will be passed through a `Rescaling(1/255.0)` layer.
-        include_top: bool, Whether to include the fully-connected
-            layer at the top of the network.
-        num_classes: int, Optional number of classes to classify images
-            into, only to be specified if `include_top` is True, and
-            if no `weights` argument is specified.
-        weights: str, One of `None` (random initialization), or the path to the
-            weights file to be loaded. Defaults to `None`.
         input_tensor: Tensor, Optional Keras tensor (i.e. output of `layers.Input()`)
             to use as image input for the model.
         input_shape: Optional shape tuple, defaults to (None, None, 3).
             It should have exactly 3 inputs channels.
-        pooling: Optional pooling mode for feature extraction
-            when `include_top` is `False`. Defaults to None.
-            - `None` means that the output of the model will be
-                the 4D tensor output of the
-                last convolutional layer.
-            - `avg` means that global average pooling
-                will be applied to the output of the
-                last convolutional layer, and thus
-                the output of the model will be a 2D tensor.
-            - `max` means that global max pooling will
-                be applied.
-        classifier_activation: A `str` or callable. The activation function to
-            use on the "top" layer. Ignored unless `include_top=True`. Set
-            `classifier_activation=None` to return the logits of the "top"
-            layer. Defaults to `"softmax"`.
     """
 
     def __init__(
@@ -550,35 +482,11 @@ class RegNetBackBone(Backbone):
         group_width,
         block_type,
         include_rescaling,
-        include_top,
-        num_classes=None,
         model_name="regnet",
-        weights=None,
         input_tensor=None,
         input_shape=(None, None, 3),
-        pooling=None,
-        classifier_activation="softmax",
         **kwargs,
     ):
-        if not (weights is None or tf.io.gfile.exists(weights)):
-            raise ValueError(
-                "The `weights` argument should be either "
-                "`None` (random initialization) "
-                "or the path to the weights file to be loaded."
-            )
-
-        if include_top and not num_classes:
-            raise ValueError(
-                "If `include_top` is True, you should specify `num_classes`. "
-                f"Received: num_classes={num_classes}"
-            )
-
-        if include_top and pooling:
-            raise ValueError(
-                f"`pooling` must be `None` when `include_top=True`."
-                f"Received pooling={pooling} and include_top={include_top}. "
-            )
-
         img_input = utils.parse_model_inputs(input_shape, input_tensor)
         x = img_input
 
@@ -605,33 +513,15 @@ class RegNetBackBone(Backbone):
             )
             in_channels = out_channels
 
-        if include_top:
-            x = apply_head(
-                x, num_classes=num_classes, activation=classifier_activation
-            )
-        else:
-            if pooling == "avg":
-                x = layers.GlobalAveragePooling2D()(x)
-            elif pooling == "max":
-                x = layers.GlobalMaxPooling2D()(x)
-
         super().__init__(inputs=img_input, outputs=x, name=model_name, **kwargs)
-
-        # Load weights.
-        if weights is not None:
-            self.load_weights(weights)
 
         self.depths = depths
         self.widths = widths
         self.group_width = group_width
         self.block_type = block_type
         self.include_rescaling = include_rescaling
-        self.include_top = include_top
-        self.num_classes = num_classes
         self.model_name = model_name
         self.input_tensor = input_tensor
-        self.pooling = pooling
-        self.classifier_activation = classifier_activation
 
     def get_config(self):
         config = super().get_config()
@@ -642,14 +532,9 @@ class RegNetBackBone(Backbone):
                 "group_width": self.group_width,
                 "block_type": self.block_type,
                 "include_rescaling": self.include_rescaling,
-                "include_top": self.include_top,
-                "num_classes": self.num_classes,
                 "model_name": self.model_name,
                 "input_tensor": self.input_tensor,
                 "input_shape": self.input_shape[1:],
-                "pooling": self.pooling,
-                "classifier_activation": self.classifier_activation,
-                "trainable": self.trainable,
             }
         )
 
@@ -669,26 +554,16 @@ class RegNetX002Backbone(RegNetBackBone):
     def __new__(
         cls,
         include_rescaling=True,
-        include_top=False,
-        num_classes=None,
-        weights=None,
         input_tensor=None,
         input_shape=(None, None, 3),
-        pooling=None,
-        classifier_activation="softmax",
         **kwargs,
     ):
         # Pack args in kwargs
         kwargs.update(
             {
                 "include_rescaling": include_rescaling,
-                "include_top": include_top,
-                "num_classes": num_classes,
-                "weights": parse_weights(weights, include_top, "regnetx002"),
                 "input_tensor": input_tensor,
                 "input_shape": input_shape,
-                "pooling": pooling,
-                "classifier_activation": classifier_activation,
             }
         )
         return RegNetBackBone.from_preset("regnetx002", **kwargs)
@@ -703,26 +578,16 @@ class RegNetX004Backbone(RegNetBackBone):
     def __new__(
         cls,
         include_rescaling=True,
-        include_top=False,
-        num_classes=None,
-        weights=None,
         input_tensor=None,
         input_shape=(None, None, 3),
-        pooling=None,
-        classifier_activation="softmax",
         **kwargs,
     ):
         # Pack args in kwargs
         kwargs.update(
             {
                 "include_rescaling": include_rescaling,
-                "include_top": include_top,
-                "num_classes": num_classes,
-                "weights": parse_weights(weights, include_top, "regnetx004"),
                 "input_tensor": input_tensor,
                 "input_shape": input_shape,
-                "pooling": pooling,
-                "classifier_activation": classifier_activation,
             }
         )
         return RegNetBackBone.from_preset("regnetx004", **kwargs)
@@ -737,26 +602,16 @@ class RegNetX006Backbone(RegNetBackBone):
     def __new__(
         cls,
         include_rescaling=True,
-        include_top=False,
-        num_classes=None,
-        weights=None,
         input_tensor=None,
         input_shape=(None, None, 3),
-        pooling=None,
-        classifier_activation="softmax",
         **kwargs,
     ):
         # Pack args in kwargs
         kwargs.update(
             {
                 "include_rescaling": include_rescaling,
-                "include_top": include_top,
-                "num_classes": num_classes,
-                "weights": parse_weights(weights, include_top, "regnetx006"),
                 "input_tensor": input_tensor,
                 "input_shape": input_shape,
-                "pooling": pooling,
-                "classifier_activation": classifier_activation,
             }
         )
         return RegNetBackBone.from_preset("regnetx006", **kwargs)
@@ -771,26 +626,16 @@ class RegNetX008Backbone(RegNetBackBone):
     def __new__(
         cls,
         include_rescaling=True,
-        include_top=False,
-        num_classes=None,
-        weights=None,
         input_tensor=None,
         input_shape=(None, None, 3),
-        pooling=None,
-        classifier_activation="softmax",
         **kwargs,
     ):
         # Pack args in kwargs
         kwargs.update(
             {
                 "include_rescaling": include_rescaling,
-                "include_top": include_top,
-                "num_classes": num_classes,
-                "weights": parse_weights(weights, include_top, "regnetx008"),
                 "input_tensor": input_tensor,
                 "input_shape": input_shape,
-                "pooling": pooling,
-                "classifier_activation": classifier_activation,
             }
         )
         return RegNetBackBone.from_preset("regnetx008", **kwargs)
@@ -805,26 +650,16 @@ class RegNetX016Backbone(RegNetBackBone):
     def __new__(
         cls,
         include_rescaling=True,
-        include_top=False,
-        num_classes=None,
-        weights=None,
         input_tensor=None,
         input_shape=(None, None, 3),
-        pooling=None,
-        classifier_activation="softmax",
         **kwargs,
     ):
         # Pack args in kwargs
         kwargs.update(
             {
                 "include_rescaling": include_rescaling,
-                "include_top": include_top,
-                "num_classes": num_classes,
-                "weights": parse_weights(weights, include_top, "regnetx016"),
                 "input_tensor": input_tensor,
                 "input_shape": input_shape,
-                "pooling": pooling,
-                "classifier_activation": classifier_activation,
             }
         )
         return RegNetBackBone.from_preset("regnetx016", **kwargs)
@@ -839,26 +674,16 @@ class RegNetX032Backbone(RegNetBackBone):
     def __new__(
         cls,
         include_rescaling=True,
-        include_top=False,
-        num_classes=None,
-        weights=None,
         input_tensor=None,
         input_shape=(None, None, 3),
-        pooling=None,
-        classifier_activation="softmax",
         **kwargs,
     ):
         # Pack args in kwargs
         kwargs.update(
             {
                 "include_rescaling": include_rescaling,
-                "include_top": include_top,
-                "num_classes": num_classes,
-                "weights": parse_weights(weights, include_top, "regnetx032"),
                 "input_tensor": input_tensor,
                 "input_shape": input_shape,
-                "pooling": pooling,
-                "classifier_activation": classifier_activation,
             }
         )
         return RegNetBackBone.from_preset("regnetx032", **kwargs)
@@ -873,26 +698,16 @@ class RegNetX040Backbone(RegNetBackBone):
     def __new__(
         cls,
         include_rescaling=True,
-        include_top=False,
-        num_classes=None,
-        weights=None,
         input_tensor=None,
         input_shape=(None, None, 3),
-        pooling=None,
-        classifier_activation="softmax",
         **kwargs,
     ):
         # Pack args in kwargs
         kwargs.update(
             {
                 "include_rescaling": include_rescaling,
-                "include_top": include_top,
-                "num_classes": num_classes,
-                "weights": parse_weights(weights, include_top, "regnetx040"),
                 "input_tensor": input_tensor,
                 "input_shape": input_shape,
-                "pooling": pooling,
-                "classifier_activation": classifier_activation,
             }
         )
         return RegNetBackBone.from_preset("regnetx040", **kwargs)
@@ -907,26 +722,16 @@ class RegNetX064Backbone(RegNetBackBone):
     def __new__(
         cls,
         include_rescaling=True,
-        include_top=False,
-        num_classes=None,
-        weights=None,
         input_tensor=None,
         input_shape=(None, None, 3),
-        pooling=None,
-        classifier_activation="softmax",
         **kwargs,
     ):
         # Pack args in kwargs
         kwargs.update(
             {
                 "include_rescaling": include_rescaling,
-                "include_top": include_top,
-                "num_classes": num_classes,
-                "weights": parse_weights(weights, include_top, "regnetx064"),
                 "input_tensor": input_tensor,
                 "input_shape": input_shape,
-                "pooling": pooling,
-                "classifier_activation": classifier_activation,
             }
         )
         return RegNetBackBone.from_preset("regnetx064", **kwargs)
@@ -941,26 +746,16 @@ class RegNetX080Backbone(RegNetBackBone):
     def __new__(
         cls,
         include_rescaling=True,
-        include_top=False,
-        num_classes=None,
-        weights=None,
         input_tensor=None,
         input_shape=(None, None, 3),
-        pooling=None,
-        classifier_activation="softmax",
         **kwargs,
     ):
         # Pack args in kwargs
         kwargs.update(
             {
                 "include_rescaling": include_rescaling,
-                "include_top": include_top,
-                "num_classes": num_classes,
-                "weights": parse_weights(weights, include_top, "regnetx080"),
                 "input_tensor": input_tensor,
                 "input_shape": input_shape,
-                "pooling": pooling,
-                "classifier_activation": classifier_activation,
             }
         )
         return RegNetBackBone.from_preset("regnetx080", **kwargs)
@@ -975,26 +770,16 @@ class RegNetX120Backbone(RegNetBackBone):
     def __new__(
         cls,
         include_rescaling=True,
-        include_top=False,
-        num_classes=None,
-        weights=None,
         input_tensor=None,
         input_shape=(None, None, 3),
-        pooling=None,
-        classifier_activation="softmax",
         **kwargs,
     ):
         # Pack args in kwargs
         kwargs.update(
             {
                 "include_rescaling": include_rescaling,
-                "include_top": include_top,
-                "num_classes": num_classes,
-                "weights": parse_weights(weights, include_top, "regnetx120"),
                 "input_tensor": input_tensor,
                 "input_shape": input_shape,
-                "pooling": pooling,
-                "classifier_activation": classifier_activation,
             }
         )
         return RegNetBackBone.from_preset("regnetx120", **kwargs)
@@ -1009,26 +794,16 @@ class RegNetX160Backbone(RegNetBackBone):
     def __new__(
         cls,
         include_rescaling=True,
-        include_top=False,
-        num_classes=None,
-        weights=None,
         input_tensor=None,
         input_shape=(None, None, 3),
-        pooling=None,
-        classifier_activation="softmax",
         **kwargs,
     ):
         # Pack args in kwargs
         kwargs.update(
             {
                 "include_rescaling": include_rescaling,
-                "include_top": include_top,
-                "num_classes": num_classes,
-                "weights": parse_weights(weights, include_top, "regnetx160"),
                 "input_tensor": input_tensor,
                 "input_shape": input_shape,
-                "pooling": pooling,
-                "classifier_activation": classifier_activation,
             }
         )
         return RegNetBackBone.from_preset("regnetx160", **kwargs)
@@ -1043,26 +818,16 @@ class RegNetX320Backbone(RegNetBackBone):
     def __new__(
         cls,
         include_rescaling=True,
-        include_top=False,
-        num_classes=None,
-        weights=None,
         input_tensor=None,
         input_shape=(None, None, 3),
-        pooling=None,
-        classifier_activation="softmax",
         **kwargs,
     ):
         # Pack args in kwargs
         kwargs.update(
             {
                 "include_rescaling": include_rescaling,
-                "include_top": include_top,
-                "num_classes": num_classes,
-                "weights": parse_weights(weights, include_top, "regnetx320"),
                 "input_tensor": input_tensor,
                 "input_shape": input_shape,
-                "pooling": pooling,
-                "classifier_activation": classifier_activation,
             }
         )
         return RegNetBackBone.from_preset("regnetx320", **kwargs)
@@ -1077,26 +842,16 @@ class RegNetY002Backbone(RegNetBackBone):
     def __new__(
         cls,
         include_rescaling=True,
-        include_top=False,
-        num_classes=None,
-        weights=None,
         input_tensor=None,
         input_shape=(None, None, 3),
-        pooling=None,
-        classifier_activation="softmax",
         **kwargs,
     ):
         # Pack args in kwargs
         kwargs.update(
             {
                 "include_rescaling": include_rescaling,
-                "include_top": include_top,
-                "num_classes": num_classes,
-                "weights": parse_weights(weights, include_top, "regnety002"),
                 "input_tensor": input_tensor,
                 "input_shape": input_shape,
-                "pooling": pooling,
-                "classifier_activation": classifier_activation,
             }
         )
         return RegNetBackBone.from_preset("regnety002", **kwargs)
@@ -1111,26 +866,16 @@ class RegNetY004Backbone(RegNetBackBone):
     def __new__(
         cls,
         include_rescaling=True,
-        include_top=False,
-        num_classes=None,
-        weights=None,
         input_tensor=None,
         input_shape=(None, None, 3),
-        pooling=None,
-        classifier_activation="softmax",
         **kwargs,
     ):
         # Pack args in kwargs
         kwargs.update(
             {
                 "include_rescaling": include_rescaling,
-                "include_top": include_top,
-                "num_classes": num_classes,
-                "weights": parse_weights(weights, include_top, "regnety004"),
                 "input_tensor": input_tensor,
                 "input_shape": input_shape,
-                "pooling": pooling,
-                "classifier_activation": classifier_activation,
             }
         )
         return RegNetBackBone.from_preset("regnety004", **kwargs)
@@ -1145,26 +890,16 @@ class RegNetY006Backbone(RegNetBackBone):
     def __new__(
         cls,
         include_rescaling=True,
-        include_top=False,
-        num_classes=None,
-        weights=None,
         input_tensor=None,
         input_shape=(None, None, 3),
-        pooling=None,
-        classifier_activation="softmax",
         **kwargs,
     ):
         # Pack args in kwargs
         kwargs.update(
             {
                 "include_rescaling": include_rescaling,
-                "include_top": include_top,
-                "num_classes": num_classes,
-                "weights": parse_weights(weights, include_top, "regnety006"),
                 "input_tensor": input_tensor,
                 "input_shape": input_shape,
-                "pooling": pooling,
-                "classifier_activation": classifier_activation,
             }
         )
         return RegNetBackBone.from_preset("regnety006", **kwargs)
@@ -1179,26 +914,16 @@ class RegNetY008Backbone(RegNetBackBone):
     def __new__(
         cls,
         include_rescaling=True,
-        include_top=False,
-        num_classes=None,
-        weights=None,
         input_tensor=None,
         input_shape=(None, None, 3),
-        pooling=None,
-        classifier_activation="softmax",
         **kwargs,
     ):
         # Pack args in kwargs
         kwargs.update(
             {
                 "include_rescaling": include_rescaling,
-                "include_top": include_top,
-                "num_classes": num_classes,
-                "weights": parse_weights(weights, include_top, "regnety008"),
                 "input_tensor": input_tensor,
                 "input_shape": input_shape,
-                "pooling": pooling,
-                "classifier_activation": classifier_activation,
             }
         )
         return RegNetBackBone.from_preset("regnety008", **kwargs)
@@ -1213,26 +938,16 @@ class RegNetY016Backbone(RegNetBackBone):
     def __new__(
         cls,
         include_rescaling=True,
-        include_top=False,
-        num_classes=None,
-        weights=None,
         input_tensor=None,
         input_shape=(None, None, 3),
-        pooling=None,
-        classifier_activation="softmax",
         **kwargs,
     ):
         # Pack args in kwargs
         kwargs.update(
             {
                 "include_rescaling": include_rescaling,
-                "include_top": include_top,
-                "num_classes": num_classes,
-                "weights": parse_weights(weights, include_top, "regnety016"),
                 "input_tensor": input_tensor,
                 "input_shape": input_shape,
-                "pooling": pooling,
-                "classifier_activation": classifier_activation,
             }
         )
         return RegNetBackBone.from_preset("regnety016", **kwargs)
@@ -1247,26 +962,16 @@ class RegNetY032Backbone(RegNetBackBone):
     def __new__(
         cls,
         include_rescaling=True,
-        include_top=False,
-        num_classes=None,
-        weights=None,
         input_tensor=None,
         input_shape=(None, None, 3),
-        pooling=None,
-        classifier_activation="softmax",
         **kwargs,
     ):
         # Pack args in kwargs
         kwargs.update(
             {
                 "include_rescaling": include_rescaling,
-                "include_top": include_top,
-                "num_classes": num_classes,
-                "weights": parse_weights(weights, include_top, "regnety032"),
                 "input_tensor": input_tensor,
                 "input_shape": input_shape,
-                "pooling": pooling,
-                "classifier_activation": classifier_activation,
             }
         )
         return RegNetBackBone.from_preset("regnety032", **kwargs)
@@ -1281,26 +986,16 @@ class RegNetY040Backbone(RegNetBackBone):
     def __new__(
         cls,
         include_rescaling=True,
-        include_top=False,
-        num_classes=None,
-        weights=None,
         input_tensor=None,
         input_shape=(None, None, 3),
-        pooling=None,
-        classifier_activation="softmax",
         **kwargs,
     ):
         # Pack args in kwargs
         kwargs.update(
             {
                 "include_rescaling": include_rescaling,
-                "include_top": include_top,
-                "num_classes": num_classes,
-                "weights": parse_weights(weights, include_top, "regnety040"),
                 "input_tensor": input_tensor,
                 "input_shape": input_shape,
-                "pooling": pooling,
-                "classifier_activation": classifier_activation,
             }
         )
         return RegNetBackBone.from_preset("regnety040", **kwargs)
@@ -1315,26 +1010,16 @@ class RegNetY064Backbone(RegNetBackBone):
     def __new__(
         cls,
         include_rescaling=True,
-        include_top=False,
-        num_classes=None,
-        weights=None,
         input_tensor=None,
         input_shape=(None, None, 3),
-        pooling=None,
-        classifier_activation="softmax",
         **kwargs,
     ):
         # Pack args in kwargs
         kwargs.update(
             {
                 "include_rescaling": include_rescaling,
-                "include_top": include_top,
-                "num_classes": num_classes,
-                "weights": parse_weights(weights, include_top, "regnety064"),
                 "input_tensor": input_tensor,
                 "input_shape": input_shape,
-                "pooling": pooling,
-                "classifier_activation": classifier_activation,
             }
         )
         return RegNetBackBone.from_preset("regnety064", **kwargs)
@@ -1349,26 +1034,16 @@ class RegNetY080Backbone(RegNetBackBone):
     def __new__(
         cls,
         include_rescaling=True,
-        include_top=False,
-        num_classes=None,
-        weights=None,
         input_tensor=None,
         input_shape=(None, None, 3),
-        pooling=None,
-        classifier_activation="softmax",
         **kwargs,
     ):
         # Pack args in kwargs
         kwargs.update(
             {
                 "include_rescaling": include_rescaling,
-                "include_top": include_top,
-                "num_classes": num_classes,
-                "weights": parse_weights(weights, include_top, "regnety080"),
                 "input_tensor": input_tensor,
                 "input_shape": input_shape,
-                "pooling": pooling,
-                "classifier_activation": classifier_activation,
             }
         )
         return RegNetBackBone.from_preset("regnety080", **kwargs)
@@ -1383,26 +1058,16 @@ class RegNetY120Backbone(RegNetBackBone):
     def __new__(
         cls,
         include_rescaling=True,
-        include_top=False,
-        num_classes=None,
-        weights=None,
         input_tensor=None,
         input_shape=(None, None, 3),
-        pooling=None,
-        classifier_activation="softmax",
         **kwargs,
     ):
         # Pack args in kwargs
         kwargs.update(
             {
                 "include_rescaling": include_rescaling,
-                "include_top": include_top,
-                "num_classes": num_classes,
-                "weights": parse_weights(weights, include_top, "regnety120"),
                 "input_tensor": input_tensor,
                 "input_shape": input_shape,
-                "pooling": pooling,
-                "classifier_activation": classifier_activation,
             }
         )
         return RegNetBackBone.from_preset("regnety120", **kwargs)
@@ -1417,26 +1082,16 @@ class RegNetY160Backbone(RegNetBackBone):
     def __new__(
         cls,
         include_rescaling=True,
-        include_top=False,
-        num_classes=None,
-        weights=None,
         input_tensor=None,
         input_shape=(None, None, 3),
-        pooling=None,
-        classifier_activation="softmax",
         **kwargs,
     ):
         # Pack args in kwargs
         kwargs.update(
             {
                 "include_rescaling": include_rescaling,
-                "include_top": include_top,
-                "num_classes": num_classes,
-                "weights": parse_weights(weights, include_top, "regnety160"),
                 "input_tensor": input_tensor,
                 "input_shape": input_shape,
-                "pooling": pooling,
-                "classifier_activation": classifier_activation,
             }
         )
         return RegNetBackBone.from_preset("regnety160", **kwargs)
@@ -1451,26 +1106,16 @@ class RegNetY320Backbone(RegNetBackBone):
     def __new__(
         cls,
         include_rescaling=True,
-        include_top=False,
-        num_classes=None,
-        weights=None,
         input_tensor=None,
         input_shape=(None, None, 3),
-        pooling=None,
-        classifier_activation="softmax",
         **kwargs,
     ):
         # Pack args in kwargs
         kwargs.update(
             {
                 "include_rescaling": include_rescaling,
-                "include_top": include_top,
-                "num_classes": num_classes,
-                "weights": parse_weights(weights, include_top, "regnety320"),
                 "input_tensor": input_tensor,
                 "input_shape": input_shape,
-                "pooling": pooling,
-                "classifier_activation": classifier_activation,
             }
         )
         return RegNetBackBone.from_preset("regnety320", **kwargs)
