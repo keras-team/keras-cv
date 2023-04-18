@@ -11,3 +11,30 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+
+import pytest
+import tensorflow as tf
+from absl.testing import parameterized
+
+from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone import (
+    EfficientNetV2Backbone,
+)
+
+
+@pytest.mark.extra_large
+class EfficientNetV2PresetFullTest(tf.test.TestCase, parameterized.TestCase):
+    """
+    Test the full enumeration of our preset.
+    This every presets for RegNet and is only run manually.
+    Run with:
+    `pytest keras_cv/models/backbones/efficientnet_v2/
+    efficientnet_v2_backbone_presets_test.py
+    --run_extra_large`
+    """
+
+    def test_load_regnet(self):
+        input_data = tf.ones(shape=(2, 224, 224, 3))
+        for preset in EfficientNetV2Backbone.presetsx:
+            model = EfficientNetV2Backbone.from_preset(preset)
+            model(input_data)
