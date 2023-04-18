@@ -558,7 +558,7 @@ class YOLOV8Detector(Task):
             axis=-1,
         )
 
-        batch_size = tf.shape(x)[0]
+        batch_size = tf.cast(tf.shape(x)[0], tf.float32)
         box_loss_weight = self.box_loss_weight / batch_size
         classification_loss_weight = (
             self.classification_loss_weight / batch_size
