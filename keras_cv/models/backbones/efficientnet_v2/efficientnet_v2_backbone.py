@@ -22,14 +22,12 @@ Reference:
 import copy
 import math
 
-import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 
 from keras_cv.layers import FusedMBConvBlock
 from keras_cv.layers import MBConvBlock
 from keras_cv.models import utils
-from keras_cv.models.weights import parse_weights
 
 CONV_KERNEL_INITIALIZER = {
     "class_name": "VarianceScaling",
@@ -69,29 +67,9 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
         include_rescaling: bool, whether to rescale the inputs. If set
             to `True`, inputs will be passed through a `Rescaling(1/255.0)`
             layer.
-        include_top: bool, whether to include the fully-connected layer at the
-            top of the network. If provided, `num_classes` must be provided.
-        num_classes: optional int, number of classes to classify images into
-            (only to be specified if `include_top` is `True`).
-        weights: one of `None` (random initialization), a pretrained weight file
-            path, or a reference to pre-trained weights (e.g.
-            'imagenet/classification') (see available pre-trained weights in
-            weights.py)
         input_shape: optional shape tuple, defaults to (None, None, 3).
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
             to use as image input for the model.
-        pooling: optional pooling mode for feature extraction when `include_top`
-            is `False`.
-            - `None` means that the output of the model will be the 4D tensor
-                output of the last convolutional block.
-            - `avg` means that global average pooling will be applied to the
-                output of the last convolutional block, and thus the output of
-                the model will be a 2D tensor.
-            - `max` means that global max pooling will be applied.
-        classifier_activation: A `str` or callable. The activation function to
-            use on the "top" layer. Ignored unless `include_top=True`. Set
-            `classifier_activation=None` to return the logits of the "top"
-            layer.
     Returns:
       A `keras.Model` instance.
 """  # noqa: E501
@@ -121,8 +99,6 @@ class EfficientNetV2(keras.Model):
         include_rescaling: bool, whether to rescale the inputs. If set
             to `True`, inputs will be passed through a `Rescaling(1/255.0)`
             layer.
-        include_top: bool, whether to include the fully-connected
-            layer at the top of the network.
         width_coefficient: float, scaling coefficient for network width.
         depth_coefficient: float, scaling coefficient for network depth.
         default_size: integer, default input image size.
@@ -134,42 +110,14 @@ class EfficientNetV2(keras.Model):
         activation: activation function.
         blocks_args: list of dicts, parameters to construct block modules.
         model_name: string, model name.
-        weights: one of `None` (random initialization),
-            or the path to the weights file to be loaded.
         input_shape: optional shape tuple, defaults to (None, None, 3).
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
             to use as image input for the model.
-        pooling: optional pooling mode for feature extraction
-            when `include_top` is `False`.
-            - `None` means that the output of the model will be
-                the 4D tensor output of the
-                last convolutional layer.
-            - `avg` means that global average pooling
-                will be applied to the output of the
-                last convolutional layer, and thus
-                the output of the model will be a 2D tensor.
-            - `max` means that global max pooling will
-                be applied.
-        num_classes: optional number of classes to classify images
-            into, only to be specified if `include_top` is True.
-        classifier_activation: A `str` or callable. The activation function to
-            use on the "top" layer. Ignored unless `include_top=True`. Set
-            `classifier_activation=None` to return the logits of the "top"
-            layer.
-
-    Returns:
-      A `keras.Model` instance.
-    Raises:
-      ValueError: in case of invalid argument for `weights`,
-        or invalid input shape.
-      ValueError: if `classifier_activation` is not `"softmax"` or `None` when
-        using a pretrained top layer.
     """
 
     def __init__(
         self,
-        include_rescaling,
-        include_top,
+        *include_rescaling,
         width_coefficient,
         depth_coefficient,
         default_size,
@@ -181,37 +129,14 @@ class EfficientNetV2(keras.Model):
         activation="swish",
         blocks_args="default",
         model_name="efficientnet",
-        weights=None,
         input_shape=(None, None, 3),
         input_tensor=None,
-        pooling=None,
-        num_classes=None,
-        classifier_activation="softmax",
         **kwargs,
     ):
         if blocks_args == "default":
             blocks_args = DEFAULT_BLOCKS_ARGS[model_name]
 
         input_blocks_args = copy.deepcopy(blocks_args)
-
-        if weights and not tf.io.gfile.exists(weights):
-            raise ValueError(
-                "The `weights` argument should be either `None` or the path to "
-                "the weights file to be loaded. Weights file not found at "
-                f"location: {weights}"
-            )
-
-        if include_top and not num_classes:
-            raise ValueError(
-                "If `include_top` is True, you should specify `num_classes`. "
-                f"Received: num_classes={num_classes}"
-            )
-
-        if include_top and pooling:
-            raise ValueError(
-                f"`pooling` must be `None` when `include_top=True`."
-                f"Received pooling={pooling} and include_top={include_top}. "
-            )
 
         # Determine proper input shape
         img_input = utils.parse_model_inputs(input_shape, input_tensor)
@@ -333,34 +258,12 @@ class EfficientNetV2(keras.Model):
         )(x)
         x = layers.Activation(activation=activation, name="top_activation")(x)
 
-        if include_top:
-            x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-            if dropout_rate > 0:
-                x = layers.Dropout(dropout_rate, name="top_dropout")(x)
-            x = layers.Dense(
-                num_classes,
-                activation=classifier_activation,
-                kernel_initializer=DENSE_KERNEL_INITIALIZER,
-                bias_initializer=tf.constant_initializer(0),
-                name="predictions",
-            )(x)
-        else:
-            if pooling == "avg":
-                x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-            elif pooling == "max":
-                x = layers.GlobalMaxPooling2D(name="max_pool")(x)
-
         inputs = img_input
 
         # Create model.
         super().__init__(inputs=inputs, outputs=x, **kwargs)
 
-        # All references to `self` below this line
-        if weights is not None:
-            self.load_weights(weights)
-
         self.include_rescaling = include_rescaling
-        self.include_top = include_top
         self.width_coefficient = width_coefficient
         self.depth_coefficient = depth_coefficient
         self.default_size = default_size
@@ -373,14 +276,10 @@ class EfficientNetV2(keras.Model):
         self.blocks_args = input_blocks_args
         self.model_name = model_name
         self.input_tensor = input_tensor
-        self.pooling = pooling
-        self.num_classes = num_classes
-        self.classifier_activation = classifier_activation
 
     def get_config(self):
         return {
             "include_rescaling": self.include_rescaling,
-            "include_top": self.include_top,
             "width_coefficient": self.width_coefficient,
             "depth_coefficient": self.depth_coefficient,
             "default_size": self.default_size,
@@ -395,9 +294,6 @@ class EfficientNetV2(keras.Model):
             # Remove batch dimension from `input_shape`
             "input_shape": self.input_shape[1:],
             "input_tensor": self.input_tensor,
-            "pooling": self.pooling,
-            "num_classes": self.num_classes,
-            "classifier_activation": self.classifier_activation,
             "trainable": self.trainable,
         }
 
@@ -409,28 +305,18 @@ class EfficientNetV2(keras.Model):
 def EfficientNetV2B0(
     *,
     include_rescaling,
-    include_top,
-    weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
-    pooling=None,
-    num_classes=None,
-    classifier_activation="softmax",
     **kwargs,
 ):
     return EfficientNetV2(
         include_rescaling=include_rescaling,
-        include_top=include_top,
         width_coefficient=1.0,
         depth_coefficient=1.0,
         default_size=224,
         model_name="efficientnetv2-b0",
-        weights=parse_weights(weights, include_top, "efficientnetv2b0"),
         input_shape=input_shape,
         input_tensor=input_tensor,
-        pooling=pooling,
-        num_classes=num_classes,
-        classifier_activation=classifier_activation,
         **kwargs,
     )
 
@@ -438,28 +324,18 @@ def EfficientNetV2B0(
 def EfficientNetV2B1(
     *,
     include_rescaling,
-    include_top,
-    weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
-    pooling=None,
-    num_classes=None,
-    classifier_activation="softmax",
     **kwargs,
 ):
     return EfficientNetV2(
         include_rescaling=include_rescaling,
-        include_top=include_top,
         width_coefficient=1.0,
         depth_coefficient=1.1,
         default_size=240,
         model_name="efficientnetv2-b1",
-        weights=parse_weights(weights, include_top, "efficientnetv2b1"),
         input_shape=input_shape,
         input_tensor=input_tensor,
-        pooling=pooling,
-        num_classes=num_classes,
-        classifier_activation=classifier_activation,
         **kwargs,
     )
 
@@ -467,28 +343,18 @@ def EfficientNetV2B1(
 def EfficientNetV2B2(
     *,
     include_rescaling,
-    include_top,
-    weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
-    pooling=None,
-    num_classes=None,
-    classifier_activation="softmax",
     **kwargs,
 ):
     return EfficientNetV2(
         include_rescaling=include_rescaling,
-        include_top=include_top,
         width_coefficient=1.1,
         depth_coefficient=1.2,
         default_size=260,
         model_name="efficientnetv2-b2",
-        weights=parse_weights(weights, include_top, "efficientnetv2b2"),
         input_shape=input_shape,
         input_tensor=input_tensor,
-        pooling=pooling,
-        num_classes=num_classes,
-        classifier_activation=classifier_activation,
         **kwargs,
     )
 
@@ -496,28 +362,18 @@ def EfficientNetV2B2(
 def EfficientNetV2B3(
     *,
     include_rescaling,
-    include_top,
-    weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
-    pooling=None,
-    num_classes=None,
-    classifier_activation="softmax",
     **kwargs,
 ):
     return EfficientNetV2(
         include_rescaling=include_rescaling,
-        include_top=include_top,
         width_coefficient=1.2,
         depth_coefficient=1.4,
         default_size=300,
         model_name="efficientnetv2-b3",
-        weights=parse_weights(weights, include_top, "efficientnetv2b3"),
         input_shape=input_shape,
         input_tensor=input_tensor,
-        pooling=pooling,
-        num_classes=num_classes,
-        classifier_activation=classifier_activation,
         **kwargs,
     )
 
@@ -525,28 +381,18 @@ def EfficientNetV2B3(
 def EfficientNetV2S(
     *,
     include_rescaling,
-    include_top,
-    weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
-    pooling=None,
-    num_classes=None,
-    classifier_activation="softmax",
     **kwargs,
 ):
     return EfficientNetV2(
         include_rescaling=include_rescaling,
-        include_top=include_top,
         width_coefficient=1.0,
         depth_coefficient=1.0,
         default_size=384,
         model_name="efficientnetv2-s",
-        weights=parse_weights(weights, include_top, "efficientnetv2s"),
         input_shape=input_shape,
         input_tensor=input_tensor,
-        pooling=pooling,
-        num_classes=num_classes,
-        classifier_activation=classifier_activation,
         **kwargs,
     )
 
@@ -554,28 +400,18 @@ def EfficientNetV2S(
 def EfficientNetV2M(
     *,
     include_rescaling,
-    include_top,
-    weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
-    pooling=None,
-    num_classes=None,
-    classifier_activation="softmax",
     **kwargs,
 ):
     return EfficientNetV2(
         include_rescaling=include_rescaling,
-        include_top=include_top,
         width_coefficient=1.0,
         depth_coefficient=1.0,
         default_size=480,
         model_name="efficientnetv2-m",
-        weights=parse_weights(weights, include_top, "efficientnetv2m"),
         input_shape=input_shape,
         input_tensor=input_tensor,
-        pooling=pooling,
-        num_classes=num_classes,
-        classifier_activation=classifier_activation,
         **kwargs,
     )
 
@@ -583,28 +419,18 @@ def EfficientNetV2M(
 def EfficientNetV2L(
     *,
     include_rescaling,
-    include_top,
-    weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
-    pooling=None,
-    num_classes=None,
-    classifier_activation="softmax",
     **kwargs,
 ):
     return EfficientNetV2(
         include_rescaling=include_rescaling,
-        include_top=include_top,
         width_coefficient=1.0,
         depth_coefficient=1.0,
         default_size=480,
         model_name="efficientnetv2-l",
-        weights=parse_weights(weights, include_top, "efficientnetv2l"),
         input_shape=input_shape,
         input_tensor=input_tensor,
-        pooling=pooling,
-        num_classes=num_classes,
-        classifier_activation=classifier_activation,
         **kwargs,
     )
 
