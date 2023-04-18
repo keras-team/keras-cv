@@ -1,4 +1,4 @@
-# Copyright 2022 The KerasCV Authors
+# Copyright 2023 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,176 +12,100 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""DarkNet models for KerasCV.
-Reference:
-    - [YoloV4 Paper](https://arxiv.org/abs/1804.02767)
-    - [CSPNet Paper](https://arxiv.org/pdf/1911.11929)
-    - [YoloX Paper](https://arxiv.org/abs/2107.08430)
-    - [YoloX implementation](https://github.com/ultralytics/yolov3)
-"""
-import types
+"""CSPDarkNet models for KerasCV. """
+import copy
 
-import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 
 from keras_cv.models import utils
-from keras_cv.models.__internal__.darknet_utils import CrossStagePartial
-from keras_cv.models.__internal__.darknet_utils import DarknetConvBlock
-from keras_cv.models.__internal__.darknet_utils import DarknetConvBlockDepthwise
-from keras_cv.models.__internal__.darknet_utils import Focus
-from keras_cv.models.__internal__.darknet_utils import (
+from keras_cv.models.backbones.backbone import Backbone
+from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone_presets import (
+    backbone_presets,
+)
+from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone_presets import (
+    backbone_presets_with_weights,
+)
+from keras_cv.models.backbones.csp_darknet.csp_darknet_utils import (
+    CrossStagePartial,
+)
+from keras_cv.models.backbones.csp_darknet.csp_darknet_utils import (
+    DarknetConvBlock,
+)
+from keras_cv.models.backbones.csp_darknet.csp_darknet_utils import (
+    DarknetConvBlockDepthwise,
+)
+from keras_cv.models.backbones.csp_darknet.csp_darknet_utils import Focus
+from keras_cv.models.backbones.csp_darknet.csp_darknet_utils import (
     SpatialPyramidPoolingBottleneck,
 )
-from keras_cv.models.weights import parse_weights
-
-DEPTH_MULTIPLIERS = {
-    "tiny": 0.33,
-    "s": 0.33,
-    "m": 0.67,
-    "l": 1.00,
-    "x": 1.33,
-}
-
-WIDTH_MULTIPLIERS = {
-    "tiny": 0.375,
-    "s": 0.50,
-    "m": 0.75,
-    "l": 1.00,
-    "x": 1.25,
-}
-BASE_DOCSTRING = """Represents the {name} architecture.
-    The CSPDarkNet architectures are commonly used for detection tasks. It is
-    possible to extract the intermediate dark2 to dark5 layers from the model
-    for creating a feature pyramid Network.
-    Reference:
-        - [YoloV4 Paper](https://arxiv.org/abs/1804.02767)
-        - [CSPNet Paper](https://arxiv.org/pdf/1911.11929)
-        - [YoloX Paper](https://arxiv.org/abs/2107.08430)
-        - [YoloX implementation](https://github.com/ultralytics/yolov3)
-    For transfer learning use cases, make sure to read the
-    [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
-    Args:
-        include_rescaling: bool, whether to rescale the inputs. If set to
-            True, inputs will be passed through a `Rescaling(1/255.0)` layer.
-        include_top: bool, whether to include the fully-connected layer at the
-            top of the network. If provided, `num_classes` must be provided.
-        use_depthwise: a boolean value used to decide whether a depthwise conv
-            block should be used over a regular darknet block, defaults to
-            False.
-        num_classes: integer, optional number of classes to classify images
-            into. Only to be specified if `include_top` is True.
-        weights: one of `None` (random initialization), a pretrained weight file
-            path, or a reference to pre-trained weights (e.g.
-            'imagenet/classification')(see available pre-trained weights in
-            weights.py)
-        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
-            to use as image input for the model.
-        input_shape: optional shape tuple, defaults to (None, None, 3).
-        pooling: optional pooling mode for feature extraction when `include_top`
-            is `False`.
-            - `None` means that the output of the model will be the 4D tensor
-                output of the last convolutional block.
-            - `avg` means that global average pooling will be applied to the
-                output of the last convolutional block, and thus the output of
-                the model will be a 2D tensor.
-            - `max` means that global max pooling will be applied.
-        classifier_activation: A `str` or callable. The activation function to
-            use on the "top" layer. Ignored unless `include_top=True`. Set
-            `classifier_activation=None` to return the logits of the "top"
-            layer.
-        name: string, optional name to pass to the model, defaults to "{name}".
-    Returns:
-        A `keras.Model` instance.
-"""  # noqa: E501
+from keras_cv.utils.python_utils import classproperty
 
 
 @keras.utils.register_keras_serializable(package="keras_cv.models")
-class CSPDarkNet(keras.Model):
+class CSPDarkNetBackbone(Backbone):
     """This class represents the CSPDarkNet architecture.
-    Although the DarkNet architecture is commonly used for detection tasks, it
-    is possible to extract the intermediate dark2 to dark5 layers from the model
-    for creating a feature pyramid Network.
+
     Reference:
         - [YoloV4 Paper](https://arxiv.org/abs/1804.02767)
-        - [CSPNet Paper](https://arxiv.org/pdf/1911.11929)
+        - [CSPNet Paper](https://arxiv.org/abs/1911.11929)
         - [YoloX Paper](https://arxiv.org/abs/2107.08430)
-        - [YoloX implementation](https://github.com/ultralytics/yolov3)
+
     For transfer learning use cases, make sure to read the
     [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
+
     Args:
-        depth_multiplier: A float value used to calculate the base depth of the
-            model this changes based the detection model being used.
-        width_multiplier: A float value used to calculate the base width of the
-            model this changes based the detection model being used.
+        stackwise_channels: A list of ints, the number of channels for each dark
+            level in the model.
+        stackwise_depth: A list of ints, the depth for each dark level in the
+            model.
         include_rescaling: bool, whether to rescale the inputs. If set to
             True, inputs will be passed through a `Rescaling(1/255.0)` layer.
-        include_top: bool, whether to include the fully-connected layer at the
-            top of the network. If provided, `num_classes` must be provided.
-        use_depthwise: a boolean value used to decide whether a depthwise conv
-            block should be used over a regular darknet block, defaults to
-            False.
-        num_classes: optional int,optional number of classes to classify images
-            into, only to be specified if `include_top` is True.
-        weights: one of `None` (random initialization), a pretrained weight file
-            path, or a reference to pre-trained weights (e.g.
-            'imagenet/classification')(see available pre-trained weights in
-            weights.py)
+        use_depthwise: bool, whether a `DarknetConvBlockDepthwise` should be
+            used over a `DarknetConvBlock`, defaults to False.
+        input_shape: optional shape tuple, defaults to (None, None, 3).
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
             to use as image input for the model.
-        input_shape: optional shape tuple, defaults to (None, None, 3).
-        pooling: optional pooling mode for feature extraction when `include_top`
-            is `False`.
-            - `None` means that the output of the model will be the 4D tensor
-                output of the last convolutional block.
-            - `avg` means that global average pooling will be applied to the
-                output of the last convolutional block, and thus the output of
-                the model will be a 2D tensor.
-            - `max` means that global max pooling will be applied.
-        classifier_activation: A `str` or callable. The activation function to
-            use on the "top" layer. Ignored unless `include_top=True`. Set
-            `classifier_activation=None` to return the logits of the "top"
-            layer.
-        name: (Optional) name to pass to the model, defaults to "CSPDarkNet".
+
     Returns:
         A `keras.Model` instance.
+
+    Examples:
+    ```python
+    input_data = tf.ones(shape=(8, 224, 224, 3))
+
+    # Pretrained backbone
+    model = keras_cv.models.CSPDarkNetBackbone.from_preset(
+        "csp_dark_net_tiny_imagenet"
+    )
+    output = model(input_data)
+
+    # Randomly initialized backbone with a custom config
+    model = CSPDarkNetBackbone(
+        stackwise_channels=[128, 256, 512, 1024],
+        stackwise_depth=[3, 9, 9, 3],
+        include_rescaling=False,
+    )
+    output = model(input_data)
+    ```
     """  # noqa: E501
 
     def __init__(
         self,
-        depth_multiplier,
-        width_multiplier,
+        *,
+        stackwise_channels,
+        stackwise_depth,
         include_rescaling,
-        include_top,
         use_depthwise=False,
-        num_classes=None,
-        weights=None,
         input_shape=(None, None, 3),
         input_tensor=None,
-        pooling=None,
-        classifier_activation="softmax",
-        name="CSPDarkNet",
         **kwargs,
     ):
-        if weights and not tf.io.gfile.exists(weights):
-            raise ValueError(
-                "The `weights` argument should be either `None` or the path to "
-                "the weights file to be loaded. Weights file not found at "
-                f"location{weights}"
-            )
-
-        if include_top and not num_classes:
-            raise ValueError(
-                "If `include_top` is True, you should specify `num_classes`. "
-                f"Received: num_classes={num_classes}"
-            )
-
         ConvBlock = (
             DarknetConvBlockDepthwise if use_depthwise else DarknetConvBlock
         )
 
-        base_channels = int(width_multiplier * 64)
-        base_depth = max(round(depth_multiplier * 3), 1)
+        base_channels = stackwise_channels[0] // 2
 
         inputs = utils.parse_model_inputs(input_shape, input_tensor)
 
@@ -195,269 +119,279 @@ class CSPDarkNet(keras.Model):
             base_channels, kernel_size=3, strides=1, name="stem_conv"
         )(x)
 
-        _backbone_level_outputs = {}
-        # dark2
-        x = ConvBlock(
-            base_channels * 2, kernel_size=3, strides=2, name="dark2_conv"
-        )(x)
-        x = CrossStagePartial(
-            base_channels * 2,
-            num_bottlenecks=base_depth,
-            use_depthwise=use_depthwise,
-            name="dark2_csp",
-        )(x)
-        _backbone_level_outputs[2] = x
-
-        # dark3
-        x = ConvBlock(
-            base_channels * 4, kernel_size=3, strides=2, name="dark3_conv"
-        )(x)
-        x = CrossStagePartial(
-            base_channels * 4,
-            num_bottlenecks=base_depth * 3,
-            use_depthwise=use_depthwise,
-            name="dark3_csp",
-        )(x)
-        _backbone_level_outputs[3] = x
-
-        # dark4
-        x = ConvBlock(
-            base_channels * 8, kernel_size=3, strides=2, name="dark4_conv"
-        )(x)
-        x = CrossStagePartial(
-            base_channels * 8,
-            num_bottlenecks=base_depth * 3,
-            use_depthwise=use_depthwise,
-            name="dark4_csp",
-        )(x)
-        _backbone_level_outputs[4] = x
-
-        # dark5
-        x = ConvBlock(
-            base_channels * 16, kernel_size=3, strides=2, name="dark5_conv"
-        )(x)
-        x = SpatialPyramidPoolingBottleneck(
-            base_channels * 16,
-            hidden_filters=base_channels * 8,
-            name="dark5_spp",
-        )(x)
-        x = CrossStagePartial(
-            base_channels * 16,
-            num_bottlenecks=base_depth,
-            residual=False,
-            use_depthwise=use_depthwise,
-            name="dark5_csp",
-        )(x)
-        _backbone_level_outputs[5] = x
-
-        if include_top:
-            x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-            x = layers.Dense(
-                num_classes,
-                activation=classifier_activation,
-                name="predictions",
+        pyramid_level_inputs = {}
+        for index, (channels, depth) in enumerate(
+            zip(stackwise_channels, stackwise_depth)
+        ):
+            x = ConvBlock(
+                channels,
+                kernel_size=3,
+                strides=2,
+                name=f"dark{index + 2}_conv",
             )(x)
-        elif pooling == "avg":
-            x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-        elif pooling == "max":
-            x = layers.GlobalMaxPooling2D(name="max_pool")(x)
 
-        super().__init__(inputs=inputs, outputs=x, name=name, **kwargs)
-        self._backbone_level_outputs = _backbone_level_outputs
-        # Bind the `to_backbone_model` method to the application model.
-        self.as_backbone = types.MethodType(utils.as_backbone, self)
+            if index == len(stackwise_depth) - 1:
+                x = SpatialPyramidPoolingBottleneck(
+                    channels,
+                    hidden_filters=channels // 2,
+                    name=f"dark{index + 2}_spp",
+                )(x)
 
-        if weights is not None:
-            self.load_weights(weights)
+            x = CrossStagePartial(
+                channels,
+                num_bottlenecks=depth,
+                use_depthwise=use_depthwise,
+                residual=(index != len(stackwise_depth) - 1),
+                name=f"dark{index + 2}_csp",
+            )(x)
+            pyramid_level_inputs[index + 2] = x.node.layer.name
 
-        self.depth_multiplier = depth_multiplier
-        self.width_multiplier = width_multiplier
+        super().__init__(inputs=inputs, outputs=x, **kwargs)
+        self.pyramid_level_inputs = pyramid_level_inputs
+
+        self.stackwise_channels = stackwise_channels
+        self.stackwise_depth = stackwise_depth
         self.include_rescaling = include_rescaling
-        self.include_top = include_top
         self.use_depthwise = use_depthwise
-        self.num_classes = num_classes
         self.input_tensor = input_tensor
-        self.pooling = pooling
-        self.classifier_activation = classifier_activation
 
     def get_config(self):
+        config = super().get_config()
+        config.update(
+            {
+                "stackwise_channels": self.stackwise_channels,
+                "stackwise_depth": self.stackwise_depth,
+                "include_rescaling": self.include_rescaling,
+                "use_depthwise": self.use_depthwise,
+                "input_shape": self.input_shape[1:],
+                "input_tensor": self.input_tensor,
+            }
+        )
+        return config
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return copy.deepcopy(backbone_presets)
+
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include
+        weights."""
+        return copy.deepcopy(backbone_presets_with_weights)
+
+
+ALIAS_DOCSTRING = """CSPDarkNetBackbone model with {stackwise_channels} channels
+    and {stackwise_depth} depths.
+
+    Reference:
+        - [YoloV4 Paper](https://arxiv.org/abs/1804.02767)
+        - [CSPNet Paper](https://arxiv.org/pdf/1911.11929)
+        - [YoloX Paper](https://arxiv.org/abs/2107.08430)
+
+    For transfer learning use cases, make sure to read the
+    [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
+
+    Args:
+        include_rescaling: bool, whether or not to rescale the inputs. If set to
+            True, inputs will be passed through a `Rescaling(1/255.0)` layer.
+        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
+            to use as image input for the model.
+        input_shape: optional shape tuple, defaults to (None, None, 3).
+
+    Examples:
+    ```python
+    input_data = tf.ones(shape=(8, 224, 224, 3))
+
+    # Randomly initialized backbone
+    model = CSPDarkNet{name}Backbone()
+    output = model(input_data)
+    ```
+"""  # noqa: E501
+
+
+class CSPDarkNetTinyBackbone(CSPDarkNetBackbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
+        **kwargs,
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return CSPDarkNetBackbone.from_preset("csp_dark_net_tiny", **kwargs)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
         return {
-            "depth_multiplier": self.depth_multiplier,
-            "width_multiplier": self.width_multiplier,
-            "include_rescaling": self.include_rescaling,
-            "include_top": self.include_top,
-            "use_depthwise": self.use_depthwise,
-            "num_classes": self.num_classes,
-            "input_shape": self.input_shape[1:],
-            "input_tensor": self.input_tensor,
-            "pooling": self.pooling,
-            "classifier_activation": self.classifier_activation,
-            "name": self.name,
-            "trainable": self.trainable,
+            "csp_dark_net_tiny_imagenet": copy.deepcopy(
+                backbone_presets["csp_dark_net_tiny_imagenet"]
+            )
         }
 
-    @classmethod
-    def from_config(cls, config):
-        return cls(**config)
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include
+        weights."""
+        return cls.presets
 
 
-def CSPDarkNetTiny(
-    *,
-    include_rescaling,
-    include_top,
-    use_depthwise=False,
-    num_classes=None,
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    classifier_activation="softmax",
-    name="CSPDarkNetTiny",
-    **kwargs,
-):
-    return CSPDarkNet(
-        depth_multiplier=DEPTH_MULTIPLIERS["tiny"],
-        width_multiplier=WIDTH_MULTIPLIERS["tiny"],
-        include_rescaling=include_rescaling,
-        include_top=include_top,
-        use_depthwise=use_depthwise,
-        num_classes=num_classes,
-        weights=parse_weights(weights, include_top, "cspdarknettiny"),
-        input_shape=input_shape,
-        input_tensor=input_tensor,
-        pooling=pooling,
-        classifier_activation=classifier_activation,
-        name=name,
+class CSPDarkNetSBackbone(CSPDarkNetBackbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return CSPDarkNetBackbone.from_preset("csp_dark_net_s", **kwargs)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
 
 
-def CSPDarkNetS(
-    *,
-    include_rescaling,
-    include_top,
-    use_depthwise=False,
-    num_classes=None,
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    classifier_activation="softmax",
-    name="CSPDarkNetS",
-    **kwargs,
-):
-    return CSPDarkNet(
-        depth_multiplier=DEPTH_MULTIPLIERS["s"],
-        width_multiplier=WIDTH_MULTIPLIERS["s"],
-        include_rescaling=include_rescaling,
-        include_top=include_top,
-        use_depthwise=use_depthwise,
-        num_classes=num_classes,
-        weights=weights,
-        input_shape=input_shape,
-        input_tensor=input_tensor,
-        pooling=pooling,
-        classifier_activation=classifier_activation,
-        name=name,
+class CSPDarkNetMBackbone(CSPDarkNetBackbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return CSPDarkNetBackbone.from_preset("csp_dark_net_m", **kwargs)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
 
 
-def CSPDarkNetM(
-    *,
-    include_rescaling,
-    include_top,
-    use_depthwise=False,
-    num_classes=None,
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    classifier_activation="softmax",
-    name="CSPDarkNetM",
-    **kwargs,
-):
-    return CSPDarkNet(
-        depth_multiplier=DEPTH_MULTIPLIERS["m"],
-        width_multiplier=WIDTH_MULTIPLIERS["m"],
-        include_rescaling=include_rescaling,
-        include_top=include_top,
-        use_depthwise=use_depthwise,
-        num_classes=num_classes,
-        weights=weights,
-        input_shape=input_shape,
-        input_tensor=input_tensor,
-        pooling=pooling,
-        classifier_activation=classifier_activation,
-        name=name,
+class CSPDarkNetLBackbone(CSPDarkNetBackbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return CSPDarkNetBackbone.from_preset("csp_dark_net_l", **kwargs)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {
+            "cspdarknetl_imagenet": copy.deepcopy(
+                backbone_presets["csp_dark_net_l_imagenet"]
+            )
+        }
+
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include
+        weights."""
+        return cls.presets
 
 
-def CSPDarkNetL(
-    *,
-    include_rescaling,
-    include_top,
-    use_depthwise=False,
-    num_classes=None,
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    classifier_activation="softmax",
-    name="CSPDarkNetL",
-    **kwargs,
-):
-    return CSPDarkNet(
-        depth_multiplier=DEPTH_MULTIPLIERS["l"],
-        width_multiplier=WIDTH_MULTIPLIERS["l"],
-        include_rescaling=include_rescaling,
-        include_top=include_top,
-        use_depthwise=use_depthwise,
-        num_classes=num_classes,
-        weights=parse_weights(weights, include_top, "cspdarknetl"),
-        input_shape=input_shape,
-        input_tensor=input_tensor,
-        pooling=pooling,
-        classifier_activation=classifier_activation,
-        name=name,
+class CSPDarkNetXBackbone(CSPDarkNetBackbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return CSPDarkNetBackbone.from_preset("csp_dark_net_l", **kwargs)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
 
 
-def CSPDarkNetX(
-    *,
-    include_rescaling,
-    include_top,
-    use_depthwise=False,
-    num_classes=None,
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    classifier_activation="softmax",
-    name="CSPDarkNetX",
-    **kwargs,
-):
-    return CSPDarkNet(
-        depth_multiplier=DEPTH_MULTIPLIERS["x"],
-        width_multiplier=WIDTH_MULTIPLIERS["x"],
-        include_rescaling=include_rescaling,
-        include_top=include_top,
-        use_depthwise=use_depthwise,
-        num_classes=num_classes,
-        weights=weights,
-        input_shape=input_shape,
-        input_tensor=input_tensor,
-        pooling=pooling,
-        classifier_activation=classifier_activation,
-        name=name,
-        **kwargs,
-    )
-
-
-setattr(CSPDarkNetTiny, "__doc__", BASE_DOCSTRING.format(name="CSPDarkNetTiny"))
-setattr(CSPDarkNetS, "__doc__", BASE_DOCSTRING.format(name="CSPDarkNetS"))
-setattr(CSPDarkNetM, "__doc__", BASE_DOCSTRING.format(name="CSPDarkNetM"))
-setattr(CSPDarkNetL, "__doc__", BASE_DOCSTRING.format(name="CSPDarkNetL"))
-setattr(CSPDarkNetX, "__doc__", BASE_DOCSTRING.format(name="CSPDarkNetX"))
+setattr(
+    CSPDarkNetTinyBackbone,
+    "__doc__",
+    ALIAS_DOCSTRING.format(
+        name="Tiny",
+        stackwise_channels="[48, 96, 192, 384]",
+        stackwise_depth="[1, 3, 3, 1]",
+    ),
+)
+setattr(
+    CSPDarkNetSBackbone,
+    "__doc__",
+    ALIAS_DOCSTRING.format(
+        name="S",
+        stackwise_channels="[64, 128, 256, 512]",
+        stackwise_depth="[1, 3, 3, 1]",
+    ),
+)
+setattr(
+    CSPDarkNetMBackbone,
+    "__doc__",
+    ALIAS_DOCSTRING.format(
+        name="M",
+        stackwise_channels="[96, 192, 384, 768]",
+        stackwise_depth="[2, 6, 6, 2]",
+    ),
+)
+setattr(
+    CSPDarkNetLBackbone,
+    "__doc__",
+    ALIAS_DOCSTRING.format(
+        name="L",
+        stackwise_channels="[128, 256, 512, 1024]",
+        stackwise_depth="[3, 9, 9, 3]",
+    ),
+)
+setattr(
+    CSPDarkNetXBackbone,
+    "__doc__",
+    ALIAS_DOCSTRING.format(
+        name="X",
+        stackwise_channels="[170, 340, 680, 1360]",
+        stackwise_depth="[4, 12, 12, 4]",
+    ),
+)
