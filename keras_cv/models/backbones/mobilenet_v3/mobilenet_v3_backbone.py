@@ -35,7 +35,7 @@ from keras_cv.utils.python_utils import classproperty
 
 CHANNEL_AXIS = -1
 BN_EPSILON = 1e-3
-BN_Momentum = 0.999
+BN_MOMENTUM = 0.999
 
 
 def adjust_channels(x, divisor=8, min_value=None):
@@ -72,10 +72,7 @@ def apply_hard_swish(x):
         the updated input tensor.
     """
 
-    activation = layers.ReLU(6.0)
-    multiply_layer = layers.Multiply()
-
-    return multiply_layer([x, activation(x + 3.0) * (1.0 / 6.0)])
+    return layers.Multiply()([x, layers.ReLU(6.0)(x + 3.0) * (1.0 / 6.0)])
 
 
 def apply_inverted_res_block(
@@ -105,7 +102,7 @@ def apply_inverted_res_block(
     infilters = backend.int_shape(x)[CHANNEL_AXIS]
 
     if expansion_index:
-        prefix = f"expanded_conv_{expansion_index}"
+        prefix = f"expanded_conv_{expansion_index}/"
 
         x = layers.Conv2D(
             adjust_channels(infilters * expansion),
@@ -117,7 +114,7 @@ def apply_inverted_res_block(
         x = layers.BatchNormalization(
             axis=CHANNEL_AXIS,
             epsilon=BN_EPSILON,
-            momentum=BN_Momentum,
+            momentum=BN_MOMENTUM,
             name=prefix + "expand/BatchNorm",
         )(x)
         x = layers.ReLU()(x)
@@ -132,7 +129,7 @@ def apply_inverted_res_block(
     x = layers.BatchNormalization(
         axis=CHANNEL_AXIS,
         epsilon=BN_EPSILON,
-        momentum=BN_Momentum,
+        momentum=BN_MOMENTUM,
         name=prefix + "depthwise/BatchNorm",
     )(x)
     x = layers.ReLU()(x)
@@ -147,7 +144,7 @@ def apply_inverted_res_block(
     x = layers.BatchNormalization(
         axis=CHANNEL_AXIS,
         epsilon=BN_EPSILON,
-        momentum=BN_Momentum,
+        momentum=BN_MOMENTUM,
         name=prefix + "project/BatchNorm",
     )(x)
 
@@ -242,7 +239,7 @@ class MobileNetV3Backbone(Backbone):
         x = layers.BatchNormalization(
             axis=CHANNEL_AXIS,
             epsilon=BN_EPSILON,
-            momentum=BN_Momentum,
+            momentum=BN_MOMENTUM,
             name="Conv/BatchNorm",
         )(x)
         x = layers.ReLU()(x)
@@ -276,7 +273,7 @@ class MobileNetV3Backbone(Backbone):
         x = layers.BatchNormalization(
             axis=CHANNEL_AXIS,
             epsilon=BN_EPSILON,
-            momentum=BN_Momentum,
+            momentum=BN_MOMENTUM,
             name="Conv_1/BatchNorm",
         )(x)
         x = layers.ReLU()(x)
