@@ -64,12 +64,16 @@ def select_candidates_in_gts(xy_centers, gt_bboxes, epsilon=1e-9):
     n_anchors = xy_centers.shape[0]
     bs, n_boxes, _ = gt_bboxes.shape
 
-    lt, rb = tf.split(
+    left_top, right_bottom = tf.split(
         tf.reshape(gt_bboxes, (-1, 1, 4)), 2, axis=-1
-    )  # left-top, right-bottom
+    )
     bbox_deltas = tf.reshape(
         tf.concat(
-            [xy_centers[tf.newaxis] - lt, rb - xy_centers[tf.newaxis]], axis=2
+            [
+                xy_centers[tf.newaxis] - left_top,
+                right_bottom - xy_centers[tf.newaxis],
+            ],
+            axis=2,
         ),
         (-1, n_boxes, n_anchors, 4),
     )
@@ -79,6 +83,28 @@ def select_candidates_in_gts(xy_centers, gt_bboxes, epsilon=1e-9):
 
 @keras.utils.register_keras_serializable(package="keras_cv")
 class YOLOV8LabelEncoder(layers.Layer):
+    """
+    Encodes ground truth boxes to target boxes and class labels for training a
+    YOLOV8 model. This is an implementation of the Task-aligned sample
+    assignment scheme proposed in https://arxiv.org/abs/2108.07755.
+
+    Args:
+        num_classes: integer, the number of classes in the training dataset
+        topk: optional integer, the number of anchors to match with any given
+            ground truth box. For example, when the default 10 is used, the 10
+            anchor points with the highest alignment score are matched with a
+            ground truth box.
+        alpha: float, a parameter to control the influence of class predictions
+            on the alignment score of an anchor box. This is the alpha parameter
+            in equation 9 of https://arxiv.org/pdf/2108.07755.pdf.
+        beta: float, a parameter to control the influence of box IOUs on the
+            alignment score of an anchor box. This is the beta parameter in
+            equation 9 of https://arxiv.org/pdf/2108.07755.pdf.
+        epsilon: float, a small number used for numerical stability in division
+            (to avoid diving by zero), and used as a threshold to eliminate very
+            small matches based on alignment scores of approximately zero.
+    """
+
     def __init__(
         self, num_classes, topk=10, alpha=0.5, beta=6.0, epsilon=1e-9, **kwargs
     ):
@@ -108,12 +134,10 @@ class YOLOV8LabelEncoder(layers.Layer):
             mask_pos, overlaps, max_num_boxes
         )
 
-        # assigned target
         target_labels, target_bboxes, target_scores = self.get_targets(
             gt_labels, gt_bboxes, target_gt_idx, fg_mask, max_num_boxes
         )
 
-        # normalize
         align_metric *= mask_pos
         pos_align_metrics = tf.reduce_max(
             align_metric, axis=-1, keepdims=True
@@ -165,7 +189,7 @@ class YOLOV8LabelEncoder(layers.Layer):
             align_metric,
             topk_mask=tf.cast(tf.repeat(mask_gt, self.topk, axis=2), tf.bool),
         )
-        # merge all mask to a final mask, (b, max_num_boxes, num_anchors)
+        # merge all masks to a final mask, (b, max_num_boxes, num_anchors)
         mask_pos = (
             mask_topk
             * tf.cast(mask_in_gts, tf.float32)
