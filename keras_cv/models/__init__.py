@@ -12,6 +12,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone import (
+    EfficientNetV2B0Backbone,
+)
+from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone import (
+    EfficientNetV2B1Backbone,
+)
+from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone import (
+    EfficientNetV2B2Backbone,
+)
+from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone import (
+    EfficientNetV2B3Backbone,
+)
+from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone import (
+    EfficientNetV2LBackbone,
+)
+from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone import (
+    EfficientNetV2MBackbone,
+)
+from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone import (
+    EfficientNetV2SBackbone,
+)
 from keras_cv.models.backbones.resnet_v1.resnet_v1_backbone import (
     ResNet18Backbone,
 )
@@ -82,13 +103,6 @@ from keras_cv.models.efficientnet_v1 import EfficientNetB4
 from keras_cv.models.efficientnet_v1 import EfficientNetB5
 from keras_cv.models.efficientnet_v1 import EfficientNetB6
 from keras_cv.models.efficientnet_v1 import EfficientNetB7
-from keras_cv.models.efficientnet_v2 import EfficientNetV2B0
-from keras_cv.models.efficientnet_v2 import EfficientNetV2B1
-from keras_cv.models.efficientnet_v2 import EfficientNetV2B2
-from keras_cv.models.efficientnet_v2 import EfficientNetV2B3
-from keras_cv.models.efficientnet_v2 import EfficientNetV2L
-from keras_cv.models.efficientnet_v2 import EfficientNetV2M
-from keras_cv.models.efficientnet_v2 import EfficientNetV2S
 from keras_cv.models.mlp_mixer import MLPMixerB16
 from keras_cv.models.mlp_mixer import MLPMixerB32
 from keras_cv.models.mlp_mixer import MLPMixerL16
