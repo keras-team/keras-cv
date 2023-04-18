@@ -16,7 +16,7 @@
 backbone_presets_no_weights = {
     "yolov8_n_backbone": {
         "metadata": {
-            "description": ("An extra small YOLOV8 backbone"),
+            "description": "An extra small YOLOV8 backbone",
         },
         "class_name": "keras_cv.models>YOLOV8Backbone",
         "config": {
@@ -24,11 +24,12 @@ backbone_presets_no_weights = {
             "input_shape": (None, None, 3),
             "channels": [32, 64, 128, 256],
             "depths": [1, 2, 2, 1],
+            "activation": "swish",
         },
     },
     "yolov8_s_backbone": {
         "metadata": {
-            "description": ("A small YOLOV8 backbone"),
+            "description": "A small YOLOV8 backbone",
         },
         "class_name": "keras_cv.models>YOLOV8Backbone",
         "config": {
@@ -36,11 +37,12 @@ backbone_presets_no_weights = {
             "input_shape": (None, None, 3),
             "channels": [64, 128, 256, 512],
             "depths": [1, 2, 2, 1],
+            "activation": "swish",
         },
     },
     "yolov8_m_backbone": {
         "metadata": {
-            "description": ("A medium YOLOV8 backbone"),
+            "description": "A medium YOLOV8 backbone",
         },
         "class_name": "keras_cv.models>YOLOV8Backbone",
         "config": {
@@ -48,11 +50,12 @@ backbone_presets_no_weights = {
             "input_shape": (None, None, 3),
             "channels": [96, 192, 384, 576],
             "depths": [2, 4, 4, 2],
+            "activation": "swish",
         },
     },
     "yolov8_l_backbone": {
         "metadata": {
-            "description": ("A large YOLOV8 backbone"),
+            "description": "A large YOLOV8 backbone",
         },
         "class_name": "keras_cv.models>YOLOV8Backbone",
         "config": {
@@ -60,11 +63,12 @@ backbone_presets_no_weights = {
             "input_shape": (None, None, 3),
             "channels": [128, 256, 512, 512],
             "depths": [3, 6, 6, 3],
+            "activation": "swish",
         },
     },
     "yolov8_x_backbone": {
         "metadata": {
-            "description": ("An extra large YOLOV8 backbone"),
+            "description": "An extra large YOLOV8 backbone",
         },
         "class_name": "keras_cv.models>YOLOV8Backbone",
         "config": {
@@ -72,6 +76,7 @@ backbone_presets_no_weights = {
             "input_shape": (None, None, 3),
             "channels": [160, 320, 640, 640],
             "depths": [3, 6, 6, 3],
+            "activation": "swish",
         },
     },
 }

@@ -34,13 +34,13 @@ from keras_cv.utils.python_utils import classproperty
 
 
 def apply_spatial_pyramid_pooling_fast(
-    inputs, pool_size=5, activation="swish", name=None
+    inputs, pool_size=5, activation="swish", name="spp_fast"
 ):
     channel_axis = -1
     input_channels = inputs.shape[channel_axis]
     hidden_channels = int(input_channels // 2)
 
-    nn = apply_conv_bn(
+    x = apply_conv_bn(
         inputs,
         hidden_channels,
         kernel_size=1,
@@ -49,7 +49,7 @@ def apply_spatial_pyramid_pooling_fast(
     )
     pool_1 = layers.MaxPool2D(
         pool_size=pool_size, strides=1, padding="same", name=f"{name}_pool1"
-    )(nn)
+    )(x)
     pool_2 = layers.MaxPool2D(
         pool_size=pool_size, strides=1, padding="same", name=f"{name}_pool2"
     )(pool_1)
@@ -57,7 +57,7 @@ def apply_spatial_pyramid_pooling_fast(
         pool_size=pool_size, strides=1, padding="same", name=f"{name}_pool3"
     )(pool_2)
 
-    out = tf.concat([nn, pool_1, pool_2, pool_3], axis=channel_axis)
+    out = tf.concat([x, pool_1, pool_2, pool_3], axis=channel_axis)
     out = apply_conv_bn(
         out,
         input_channels,
@@ -87,7 +87,6 @@ class YOLOV8Backbone(Backbone):
             x = layers.Rescaling(1 / 255.0)(x)
 
         """ Stem """
-        # stem_width = stem_width if stem_width > 0 else channels[0]
         stem_width = channels[0]
         x = apply_conv_bn(
             x,
@@ -141,6 +140,7 @@ class YOLOV8Backbone(Backbone):
         self.channels = channels
         self.depths = depths
         self.include_rescaling = include_rescaling
+        self.activation = activation
 
     def get_config(self):
         config = super().get_config()
@@ -151,6 +151,7 @@ class YOLOV8Backbone(Backbone):
                 "input_shape": self.input_shape[1:],
                 "channels": self.channels,
                 "depths": self.depths,
+                "activation": self.activation,
             }
         )
         return config

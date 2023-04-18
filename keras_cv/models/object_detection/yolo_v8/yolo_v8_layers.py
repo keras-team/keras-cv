@@ -18,13 +18,15 @@ BATCH_NORM_EPSILON = 1e-3
 BATCH_NORM_MOMENTUM = 0.97
 
 
+# TODO(ianstenbit): Remove this method once we're using CSPDarkNet backbone
+# (Calls to it should be inlined in the detector head)
 def apply_conv_bn(
     inputs,
     output_channel,
     kernel_size=1,
     strides=1,
     activation="swish",
-    name=None,
+    name="conv_bn",
 ):
     if kernel_size > 1:
         inputs = layers.ZeroPadding2D(
@@ -48,6 +50,8 @@ def apply_conv_bn(
     return x
 
 
+# TODO(ianstenbit): Remove this method once we're using CSPDarkNet backbone
+# Calls to it should instead call the CSP block from the DarkNet implementation.
 def apply_csp_block(
     inputs,
     channels=-1,
@@ -55,7 +59,7 @@ def apply_csp_block(
     shortcut=True,
     expansion=0.5,
     activation="swish",
-    name=None,
+    name="csp_block",
 ):
     channel_axis = -1
     channels = channels if channels > 0 else inputs.shape[channel_axis]

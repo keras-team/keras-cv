@@ -86,7 +86,7 @@ def get_anchors(
     return all_anchors, all_strides
 
 
-def path_aggregation_fpn(features, depth=3, name=None):
+def path_aggregation_fpn(features, depth=3, name="fpn"):
     # yolov8
     # 9: p5 1024 ---+----------------------+-> 21: out2 1024
     #               v [up 1024 -> concat]  ^ [down 512 -> concat]
