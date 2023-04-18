@@ -52,10 +52,23 @@ def get_anchors(
 ):
     """Gets anchor boxes for YOLOV8.
 
-    Returns a tuple of anchor centerpoints and anchor strides.
-    Multiplying the two together will yield the centerpoints in absolute x,y
-    format. The width and height of each anchor box is represented by its
-    corresponding stride.
+    Args:
+        image_shape: tuple or list of two integers representing the heigh and
+            width of input images, respectively.
+        strides: tuple of list of integers, the size of the strides across the
+            image size that should be used to create anchors.
+        base_anchors: tuple or list of two integers representing the offset from
+            (0,0) to start creating the center of anchor boxes, releative to the
+            stride. For example, using the default (0.5, 0.5) creates the first
+            anchor box for each stride such that its center is half of a stride
+            from the edge of the image.
+
+    Returns:
+        A tuple of anchor centerpoints and anchor strides. Multiplying the
+        two together will yield the centerpoints in absolute x,y format. The
+        width and height of each anchor box is represented by its corresponding
+        stride.
+
     """
     base_anchors = tf.constant(base_anchors, dtype=tf.float32)
 
