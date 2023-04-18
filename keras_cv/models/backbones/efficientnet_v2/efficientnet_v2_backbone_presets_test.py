@@ -26,7 +26,7 @@ from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone import (
 class EfficientNetV2PresetFullTest(tf.test.TestCase, parameterized.TestCase):
     """
     Test the full enumeration of our preset.
-    This every presets for RegNet and is only run manually.
+    This every presets for EfficientNetV2 and is only run manually.
     Run with:
     `pytest keras_cv/models/backbones/efficientnet_v2/
     efficientnet_v2_backbone_presets_test.py

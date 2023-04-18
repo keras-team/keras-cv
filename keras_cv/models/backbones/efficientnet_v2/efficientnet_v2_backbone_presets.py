@@ -12,18 +12,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""ResNetV1 model preset configurations."""
+"""EfficientNetV2 model preset configurations."""
 
 backbone_presets_no_weights = {
     "efficientnetv2-s": {
         "metadata": {
             "description": ("EfficientNetv2 model"),
         },
-        "class_name": "keras_cv.models>ResNetBackbone",
+        "class_name": "keras_cv.models>EfficientNetV2Backbone",
         "config": {
             "width_coefficient": 1.0,
             "depth_coefficient": 1.0,
             "default_size": 384,
+            "dropout_rate": 0.2,
+            "drop_connect_rate": 0.2,
+            "depth_divisor": 8,
+            "min_depth": 8,
+            "bn_momentum": 0.9,
+            "activation": "swish",
+            "blocks_args": "default",
             "include_rescaling": True,
             "input_shape": (None, None, 3),
             "input_tensor": None,
@@ -33,11 +40,18 @@ backbone_presets_no_weights = {
         "metadata": {
             "description": ("EfficientNetv2 model"),
         },
-        "class_name": "keras_cv.models>ResNetBackbone",
+        "class_name": "keras_cv.models>EfficientNetV2Backbone",
         "config": {
             "width_coefficient": 1.0,
             "depth_coefficient": 1.0,
             "default_size": 480,
+            "dropout_rate": 0.2,
+            "drop_connect_rate": 0.2,
+            "depth_divisor": 8,
+            "min_depth": 8,
+            "bn_momentum": 0.9,
+            "activation": "swish",
+            "blocks_args": "default",
             "include_rescaling": True,
             "input_shape": (None, None, 3),
             "input_tensor": None,
@@ -47,11 +61,18 @@ backbone_presets_no_weights = {
         "metadata": {
             "description": ("EfficientNetv2 model"),
         },
-        "class_name": "keras_cv.models>ResNetBackbone",
+        "class_name": "keras_cv.models>EfficientNetV2Backbone",
         "config": {
             "width_coefficient": 1.0,
             "depth_coefficient": 1.0,
             "default_size": 480,
+            "dropout_rate": 0.2,
+            "drop_connect_rate": 0.2,
+            "depth_divisor": 8,
+            "min_depth": 8,
+            "bn_momentum": 0.9,
+            "activation": "swish",
+            "blocks_args": "default",
             "include_rescaling": True,
             "input_shape": (None, None, 3),
             "input_tensor": None,
@@ -61,11 +82,18 @@ backbone_presets_no_weights = {
         "metadata": {
             "description": ("EfficientNetv2 model "),
         },
-        "class_name": "keras_cv.models>ResNetBackbone",
+        "class_name": "keras_cv.models>EfficientNetV2Backbone",
         "config": {
             "width_coefficient": 1.0,
             "depth_coefficient": 1.0,
             "default_size": 224,
+            "dropout_rate": 0.2,
+            "drop_connect_rate": 0.2,
+            "depth_divisor": 8,
+            "min_depth": 8,
+            "bn_momentum": 0.9,
+            "activation": "swish",
+            "blocks_args": "default",
             "include_rescaling": True,
             "input_shape": (None, None, 3),
             "input_tensor": None,
@@ -75,11 +103,18 @@ backbone_presets_no_weights = {
         "metadata": {
             "description": ("EfficientNetv2 model "),
         },
-        "class_name": "keras_cv.models>ResNetBackbone",
+        "class_name": "keras_cv.models>EfficientNetV2Backbone",
         "config": {
             "width_coefficient": 1.0,
             "depth_coefficient": 1.1,
             "default_size": 240,
+            "dropout_rate": 0.2,
+            "drop_connect_rate": 0.2,
+            "depth_divisor": 8,
+            "min_depth": 8,
+            "bn_momentum": 0.9,
+            "activation": "swish",
+            "blocks_args": "default",
             "include_rescaling": True,
             "input_shape": (None, None, 3),
             "input_tensor": None,
@@ -89,11 +124,18 @@ backbone_presets_no_weights = {
         "metadata": {
             "description": ("EfficientNetv2 model "),
         },
-        "class_name": "keras_cv.models>ResNetBackbone",
+        "class_name": "keras_cv.models>EfficientNetV2Backbone",
         "config": {
             "width_coefficient": 1.1,
             "depth_coefficient": 1.2,
             "default_size": 260,
+            "dropout_rate": 0.2,
+            "drop_connect_rate": 0.2,
+            "depth_divisor": 8,
+            "min_depth": 8,
+            "bn_momentum": 0.9,
+            "activation": "swish",
+            "blocks_args": "default",
             "include_rescaling": True,
             "input_shape": (None, None, 3),
             "input_tensor": None,
@@ -103,11 +145,18 @@ backbone_presets_no_weights = {
         "metadata": {
             "description": ("EfficientNetv2 model "),
         },
-        "class_name": "keras_cv.models>ResNetBackbone",
+        "class_name": "keras_cv.models>EfficientNetV2Backbone",
         "config": {
             "width_coefficient": 1.2,
             "depth_coefficient": 1.4,
             "default_size": 300,
+            "dropout_rate": 0.2,
+            "drop_connect_rate": 0.2,
+            "depth_divisor": 8,
+            "min_depth": 8,
+            "bn_momentum": 0.9,
+            "activation": "swish",
+            "blocks_args": "default",
             "include_rescaling": True,
             "input_shape": (None, None, 3),
             "input_tensor": None,
