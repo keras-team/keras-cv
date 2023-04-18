@@ -469,7 +469,7 @@ class YOLOV8Detector(Task):
 
         if isinstance(box_loss, str):
             if box_loss == "iou":
-                box_loss = YOLOV8IoULoss(reduction="sum_over_batch_size")
+                box_loss = YOLOV8IoULoss(reduction="sum")
             else:
                 raise ValueError(
                     f"Invalid box loss for YOLOV8Detector: {box_loss}. Box "
@@ -478,7 +478,7 @@ class YOLOV8Detector(Task):
         if isinstance(classification_loss, str):
             if classification_loss == "binary_crossentropy":
                 classification_loss = keras.losses.BinaryCrossentropy(
-                    reduction="sum_over_batch_size"
+                    reduction="sum"
                 )
             else:
                 raise ValueError(
@@ -558,6 +558,12 @@ class YOLOV8Detector(Task):
             axis=-1,
         )
 
+        batch_size = tf.shape(x)[0]
+        box_loss_weight = self.box_loss_weight / batch_size
+        classification_loss_weight = (
+            self.classification_loss_weight / batch_size
+        )
+
         y_true = {
             "box": target_bboxes[fg_mask],
             "class": target_scores,
@@ -567,8 +573,8 @@ class YOLOV8Detector(Task):
             "class": pred_scores,
         }
         sample_weights = {
-            "box": self.box_loss_weight * box_weight / target_scores_sum,
-            "class": self.classification_loss_weight / target_scores_sum,
+            "box": box_loss_weight * box_weight / target_scores_sum,
+            "class": classification_loss_weight / target_scores_sum,
         }
 
         return super().compute_loss(
