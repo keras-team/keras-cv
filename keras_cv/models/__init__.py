@@ -13,25 +13,25 @@
 # limitations under the License.
 
 from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone import (
-    EfficientNetV2B0,
+    EfficientNetV2B0Backbone,
 )
 from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone import (
-    EfficientNetV2B1,
+    EfficientNetV2B1Backbone,
 )
 from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone import (
-    EfficientNetV2B2,
+    EfficientNetV2B2Backbone,
 )
 from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone import (
-    EfficientNetV2B3,
+    EfficientNetV2B3Backbone,
 )
 from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone import (
-    EfficientNetV2L,
+    EfficientNetV2LBackbone,
 )
 from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone import (
-    EfficientNetV2M,
+    EfficientNetV2MBackbone,
 )
 from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone import (
-    EfficientNetV2S,
+    EfficientNetV2SBackbone,
 )
 from keras_cv.models.backbones.resnet_v1.resnet_v1_backbone import (
     ResNet18Backbone,
