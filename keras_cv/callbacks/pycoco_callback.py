@@ -16,6 +16,7 @@ from keras.callbacks import Callback
 
 from keras_cv import bounding_box
 from keras_cv.metrics.coco import compute_pycoco_metrics
+from keras_cv.models.object_detection.__internal__ import unpack_input
 
 
 class PyCOCOCallback(Callback):
@@ -51,10 +52,12 @@ class PyCOCOCallback(Callback):
     def on_epoch_end(self, epoch, logs=None):
         logs = logs or {}
 
-        def images_only(images, boxes):
+        def images_only(data):
+            images, boxes = unpack_input(data)
             return images
 
-        def boxes_only(images, boxes):
+        def boxes_only(data):
+            images, boxes = unpack_input(data)
             return boxes
 
         images_only_ds = self.val_data.map(images_only)
