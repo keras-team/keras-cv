@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""MobileNet v3 backbone model for KerasCV.
+"""MobileNet v3 backbone model.
 
 References:
     - [Searching for MobileNetV3](https://arxiv.org/pdf/1905.02244.pdf)
@@ -25,9 +25,7 @@ import copy
 from tensorflow import keras
 from tensorflow.keras import backend
 from tensorflow.keras import layers
-from tensorflow.keras.utils import custom_object_scope
 
-from keras_cv import layers as cv_layers
 from keras_cv.models import utils
 from keras_cv.models.backbones.backbone import Backbone
 from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_backbone_presets import (  # noqa: E501
@@ -35,12 +33,13 @@ from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_backbone_presets import
 )
 from keras_cv.utils.python_utils import classproperty
 
-channel_axis = -1
+CHANNEL_AXIS = -1
+BN_EPSILON = 1e-3
+BN_Momentum = 0.999
 
 
 def adjust_channels(x, divisor=8, min_value=None):
-    """Ensure that all layers have a channel number that is divisible by the
-    `divisor`.
+    """Ensure that all layers have a channel number divisible by the `divisor`.
 
     Args:
         x: integer, input value.
@@ -64,9 +63,8 @@ def adjust_channels(x, divisor=8, min_value=None):
     return new_x
 
 
-def apply_hard_sigmoid(x):
-    """The Hard Sigmoid function.
-
+def apply_hard_swish(x):
+    """
     Args:
         x: input tensor
 
@@ -75,33 +73,16 @@ def apply_hard_sigmoid(x):
     """
 
     activation = layers.ReLU(6.0)
-
-    return activation(x + 3.0) * (1.0 / 6.0)
-
-
-def apply_hard_swish(x):
-    """The Hard Swish function.
-
-    Args:
-        x: input tensor
-
-    Returns:
-        the updated input tensor.
-    """
-
     multiply_layer = layers.Multiply()
 
-    return multiply_layer([x, apply_hard_sigmoid(x)])
+    return multiply_layer([x, activation(x + 3.0) * (1.0 / 6.0)])
 
 
 def apply_inverted_res_block(
     x,
     expansion,
     filters,
-    kernel_size,
     stride,
-    se_ratio,
-    activation,
     expansion_index,
 ):
     """An Inverted Residual Block.
@@ -111,11 +92,7 @@ def apply_inverted_res_block(
         expansion: integer, the expansion ratio, multiplied with infilters to
             get the minimum value passed to adjust_channels.
         filters: integer, number of filters for convolution layer.
-        kernel_size: integer, the kernel size for DepthWise Convolutions.
         stride: integer, the stride length for DepthWise Convolutions.
-        se_ratio: float, ratio for bottleneck filters. Number of bottleneck
-            filters = filters * se_ratio.
-        activation: the activation layer to use.
         expansion_index: integer, a unique identification if you want to use
             expanded convolutions.
 
@@ -125,7 +102,7 @@ def apply_inverted_res_block(
 
     shortcut = x
     prefix = "expanded_conv/"
-    infilters = backend.int_shape(x)[channel_axis]
+    infilters = backend.int_shape(x)[CHANNEL_AXIS]
 
     if expansion_index:
         prefix = f"expanded_conv_{expansion_index}"
@@ -138,36 +115,27 @@ def apply_inverted_res_block(
             name=prefix + "expand",
         )(x)
         x = layers.BatchNormalization(
-            axis=channel_axis,
-            epsilon=1e-3,
-            momentum=0.999,
+            axis=CHANNEL_AXIS,
+            epsilon=BN_EPSILON,
+            momentum=BN_Momentum,
             name=prefix + "expand/BatchNorm",
         )(x)
-        x = activation(x)
+        x = layers.ReLU()(x)
 
     x = layers.DepthwiseConv2D(
-        kernel_size,
+        kernel_size=3,
         strides=stride,
         padding="same" if stride == 1 else "valid",
         use_bias=False,
         name=prefix + "depthwise",
     )(x)
     x = layers.BatchNormalization(
-        axis=channel_axis,
-        epsilon=1e-3,
-        momentum=0.999,
+        axis=CHANNEL_AXIS,
+        epsilon=BN_EPSILON,
+        momentum=BN_Momentum,
         name=prefix + "depthwise/BatchNorm",
     )(x)
-    x = activation(x)
-
-    if se_ratio:
-        with custom_object_scope({"hard_sigmoid": apply_hard_sigmoid}):
-            x = cv_layers.SqueezeAndExcite2D(
-                filters=adjust_channels(infilters * expansion),
-                ratio=se_ratio,
-                squeeze_activation="relu",
-                excite_activation="hard_sigmoid",
-            )(x)
+    x = layers.ReLU()(x)
 
     x = layers.Conv2D(
         filters,
@@ -177,9 +145,9 @@ def apply_inverted_res_block(
         name=prefix + "project",
     )(x)
     x = layers.BatchNormalization(
-        axis=channel_axis,
-        epsilon=1e-3,
-        momentum=0.999,
+        axis=CHANNEL_AXIS,
+        epsilon=BN_EPSILON,
+        momentum=BN_Momentum,
         name=prefix + "project/BatchNorm",
     )(x)
 
@@ -257,8 +225,6 @@ class MobileNetV3Backbone(Backbone):
         dropout_rate=0.2,
         **kwargs,
     ):
-        activation = layers.ReLU()
-
         inputs = utils.parse_model_inputs(input_shape, input_tensor)
         x = inputs
 
@@ -274,12 +240,12 @@ class MobileNetV3Backbone(Backbone):
             name="Conv",
         )(x)
         x = layers.BatchNormalization(
-            axis=channel_axis,
-            epsilon=1e-3,
-            momentum=0.999,
+            axis=CHANNEL_AXIS,
+            epsilon=BN_EPSILON,
+            momentum=BN_Momentum,
             name="Conv/BatchNorm",
         )(x)
-        x = activation(x)
+        x = layers.ReLU()(x)
 
         pyramid_level_inputs = {}
         for stack_index in range(len(stackwise_filters)):
@@ -289,15 +255,12 @@ class MobileNetV3Backbone(Backbone):
                 filters=adjust_channels(
                     (stackwise_filters[stack_index]) * alpha
                 ),
-                kernel_size=3,
                 stride=stackwise_stride[stack_index],
-                se_ratio=None,
-                activation=activation,
                 expansion_index=stack_index,
             )
             pyramid_level_inputs[stack_index] = x.node.layer.name
 
-        last_conv_ch = adjust_channels(backend.int_shape(x)[channel_axis] * 6)
+        last_conv_ch = adjust_channels(backend.int_shape(x)[CHANNEL_AXIS] * 6)
 
         # if the width multiplier is greater than 1 we
         # increase the number of output channels
@@ -311,12 +274,12 @@ class MobileNetV3Backbone(Backbone):
             name="Conv_1",
         )(x)
         x = layers.BatchNormalization(
-            axis=channel_axis,
-            epsilon=1e-3,
-            momentum=0.999,
+            axis=CHANNEL_AXIS,
+            epsilon=BN_EPSILON,
+            momentum=BN_Momentum,
             name="Conv_1/BatchNorm",
         )(x)
-        x = activation(x)
+        x = layers.ReLU()(x)
 
         super().__init__(inputs=inputs, outputs=x, **kwargs)
 
