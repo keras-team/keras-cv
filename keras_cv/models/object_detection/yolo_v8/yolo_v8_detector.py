@@ -44,6 +44,8 @@ from keras_cv.models.task import Task
 from keras_cv.utils.python_utils import classproperty
 from keras_cv.utils.train import get_feature_extractor
 
+BOX_REGRESSION_CHANNELS = 64
+
 
 def get_anchors(
     image_shape,
@@ -181,83 +183,132 @@ def apply_path_aggregation_fpn(features, depth=3, name="fpn"):
     return [p3p4p5, p3p4p5_d1, p3p4p5_d2]
 
 
-def yolov8_head(
+def apply_yolov8_head(
     inputs,
     num_classes,
-    bbox_len=64,
     name="yolov8_head",
 ):
+    """
+    Applies a YOLOV8 head to make box and class predictions, given the output
+    of a feature pyramid network.
+
+    Args:
+        inputs: list of tensors output by the Feature Pyramid Network, should
+            have the same shape as the P3, P4, and P5 outputs of the backbone.
+        num_classes: integer, the number of classes that a bounding box could
+            possibly be assigned to.
+        name: string, a prefix for names of layers used by the head.
+
+    Returns: A dictionary with two entries. The "boxes" entry contains box
+        regression predictions, while the "classes" entry contains class
+        predictions.
+    """
+    # 64 is the default number of channels, as 16 components are used to predict
+    # each of the 4 offsets for corner points of a bounding box with respect
+    # to the center point. In cases where the input has much higher resolution
+    # (e.g. the P3 input has >256 channels), we use additional channels for
+    # the intermediate conv layers. This is only true for very large backbones.
+    box_channels = max(BOX_REGRESSION_CHANNELS, inputs[0].shape[-1] // 4)
+
+    # We use at least num_classes channels for intermediate conv layer for class
+    # predictions. In most cases, the P3 input has many more channels than the
+    # number of classes, so we preserve those channels until the final layer.
+    class_channels = max(num_classes, inputs[0].shape[-1])
+
+    # We compute box and class predictions for each of the feature maps from
+    # the FPN and then combine them.
     outputs = []
-    reg_channels = max(16, bbox_len, inputs[0].shape[-1] // 4)
-    cls_channels = max(num_classes, inputs[0].shape[-1])
     for id, feature in enumerate(inputs):
         cur_name = f"{name}_{id+1}"
 
-        reg_x = apply_conv_bn(
+        box_predictions = apply_conv_bn(
             feature,
-            reg_channels,
-            3,
+            box_channels,
+            kernel_size=3,
             activation="swish",
-            name=f"{cur_name}_reg_1",
+            name=f"{cur_name}_box_1",
         )
-        reg_x = apply_conv_bn(
-            reg_x,
-            reg_channels,
-            3,
+        box_predictions = apply_conv_bn(
+            box_predictions,
+            box_channels,
+            kernel_size=3,
             activation="swish",
-            name=f"{cur_name}_reg_2",
+            name=f"{cur_name}_box_2",
         )
-        reg_out = layers.Conv2D(
-            filters=bbox_len,
+        box_predictions = layers.Conv2D(
+            filters=BOX_REGRESSION_CHANNELS,
             kernel_size=1,
-            name=f"{cur_name}_reg_3_conv",
-        )(reg_x)
+            name=f"{cur_name}_box_3_conv",
+        )(box_predictions)
 
-        cls_x = apply_conv_bn(
+        class_predictions = apply_conv_bn(
             feature,
-            cls_channels,
-            3,
+            class_channels,
+            kernel_size=3,
             activation="swish",
-            name=f"{cur_name}_cls_1",
+            name=f"{cur_name}_class_1",
         )
-        cls_x = apply_conv_bn(
-            cls_x,
-            cls_channels,
-            3,
+        class_predictions = apply_conv_bn(
+            class_predictions,
+            class_channels,
+            kernel_size=3,
             activation="swish",
-            name=f"{cur_name}_cls_2",
+            name=f"{cur_name}_class_2",
         )
-        cls_out = layers.Conv2D(
+        class_predictions = layers.Conv2D(
             filters=num_classes,
             kernel_size=1,
-            name=f"{cur_name}_cls_3_conv",
-        )(cls_x)
-        cls_out = layers.Activation("sigmoid", name=f"{cur_name}_classifier")(
-            cls_out
-        )
+            name=f"{cur_name}_class_3_conv",
+        )(class_predictions)
+        class_predictions = layers.Activation(
+            "sigmoid", name=f"{cur_name}_classifier"
+        )(class_predictions)
 
-        out = tf.concat([reg_out, cls_out], axis=-1)
+        out = tf.concat([box_predictions, class_predictions], axis=-1)
         out = layers.Reshape(
             [-1, out.shape[-1]], name=f"{cur_name}_output_reshape"
         )(out)
         outputs.append(out)
 
     outputs = tf.concat(outputs, axis=1)
-    return outputs
+    outputs = layers.Activation("linear", dtype="float32", name="box_outputs")(
+        outputs
+    )
+
+    return {
+        "boxes": outputs[:, :, :BOX_REGRESSION_CHANNELS],
+        "classes": outputs[:, :, BOX_REGRESSION_CHANNELS:],
+    }
 
 
-def decode_regression_to_boxes(preds, regression_max=16):
-    preds_bbox = tf.reshape(preds, (-1, preds.shape[1], 4, regression_max))
+def decode_regression_to_boxes(preds):
+    """
+    Decodes the results of the YOLOV8Detector forward-pass into left / top /
+    right / bottom predictions with respect to anchor boxes.
+
+    Each coordinate is encoded with 16 predicted values. Those predictions are
+    softmaxed and multiplied by [0..15] to make predictions. The resulting
+    predictions are relative to the stride of an anchor box (and correspondingly
+    relative to the scale of the feature map from which the predictions came).
+    """
+    preds_bbox = tf.reshape(
+        preds, (-1, preds.shape[1], 4, BOX_REGRESSION_CHANNELS // 4)
+    )
     preds_bbox = tf.nn.softmax(preds_bbox, axis=-1) * tf.range(
-        regression_max, dtype="float32"
+        BOX_REGRESSION_CHANNELS // 4, dtype="float32"
     )
     return tf.reduce_sum(preds_bbox, axis=-1)
 
 
 def dist2bbox(distance, anchor_points):
-    lt, rb = tf.split(distance, 2, axis=-1)
-    x1y1 = anchor_points - lt
-    x2y2 = anchor_points + rb
+    """
+    Decodes left / top / right / bottom predictions into xyxy box predictions.
+    The resulting xyxy predictions must be scaled by the stride of their
+    corresponding anchor points to yield an absolute xyxy box.
+    """
+    left_top, right_bottom = tf.split(distance, 2, axis=-1)
+    x1y1 = anchor_points - left_top
+    x2y2 = anchor_points + right_bottom
     return tf.concat((x1y1, x2y2), axis=-1)  # xyxy bbox
 
 
@@ -350,23 +401,20 @@ class YOLOV8Detector(Task):
         images = layers.Input(feature_extractor.input_shape[1:])
         features = list(feature_extractor(images).values())
 
-        # Apply the FPN
         fpn_features = apply_path_aggregation_fpn(
             features, depth=fpn_depth, name="pa_fpn"
         )
 
-        outputs = yolov8_head(
+        outputs = apply_yolov8_head(
             fpn_features,
             num_classes,
         )
-        outputs = layers.Activation(
-            "linear", dtype="float32", name="outputs_fp32"
-        )(outputs)
-        boxes, scores = outputs[:, :, :64], outputs[:, :, 64:]
 
         # To make loss metrics pretty, we use a no-op layer with a good name.
-        boxes = keras.layers.Concatenate(axis=1, name="box")([boxes])
-        scores = keras.layers.Concatenate(axis=1, name="class")([scores])
+        boxes = keras.layers.Concatenate(axis=1, name="box")([outputs["boxes"]])
+        scores = keras.layers.Concatenate(axis=1, name="class")(
+            [outputs["classes"]]
+        )
 
         outputs = {"boxes": boxes, "classes": scores}
         super().__init__(inputs=images, outputs=outputs, **kwargs)
@@ -388,13 +436,12 @@ class YOLOV8Detector(Task):
             num_classes=num_classes
         )
 
-        self.box_loss_weight = 7.5
-        self.class_loss_weight = 0.5
-
     def compile(
         self,
         box_loss,
         classification_loss,
+        box_loss_weight=7.5,
+        classification_loss_weight=0.5,
         metrics=None,
         **kwargs,
     ):
@@ -410,6 +457,10 @@ class YOLOV8Detector(Task):
             classification_loss: a Keras loss to use for box classification. A
                 preconfigured loss is provided when the string
                 "binary_crossentropy" is passed.
+            box_loss_weight: (optional) float, a scaling factor for the box
+                loss. Defaults to 7.5.
+            classification_loss_weight: (optional) float, a scaling factor for
+                the classification loss. Defaults to 0.5.
             kwargs: most other `keras.Model.compile()` arguments are supported
                 and propagated to the `keras.Model` class.
         """
@@ -438,6 +489,8 @@ class YOLOV8Detector(Task):
 
         self.box_loss = box_loss
         self.classification_loss = classification_loss
+        self.box_loss_weight = box_loss_weight
+        self.classification_loss_weight = classification_loss_weight
 
         losses = {
             "box": self.box_loss,
@@ -515,7 +568,7 @@ class YOLOV8Detector(Task):
         }
         sample_weights = {
             "box": self.box_loss_weight * box_weight / target_scores_sum,
-            "class": self.class_loss_weight / target_scores_sum,
+            "class": self.classification_loss_weight / target_scores_sum,
         }
 
         return super().compute_loss(
@@ -530,7 +583,7 @@ class YOLOV8Detector(Task):
         boxes = pred["boxes"]
         scores = pred["classes"]
 
-        boxes = decode_regression_to_boxes(boxes, 64 // 4)
+        boxes = decode_regression_to_boxes(boxes)
 
         anchor_points, stride_tensor = get_anchors(image_shape=images.shape[1:])
         stride_tensor = tf.expand_dims(stride_tensor, axis=-1)
