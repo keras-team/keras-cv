@@ -271,6 +271,9 @@ backbone_presets_no_weights = {
     },
 }
 
+backbone_presets_with_weights = {}
+
 backbone_presets_x = {
     **backbone_presets_no_weights,
+    **backbone_presets_with_weights,
 }
