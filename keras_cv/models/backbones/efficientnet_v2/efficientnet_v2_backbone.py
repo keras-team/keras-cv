@@ -28,6 +28,468 @@ from tensorflow.keras import layers
 from keras_cv.layers import FusedMBConvBlock
 from keras_cv.layers import MBConvBlock
 from keras_cv.models import utils
+from keras_cv.models.backbones.backbone import Backbone
+from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone_presets import (  # noqa: E501
+    backbone_presets,
+)
+from keras_cv.utils.python_utils import classproperty
+
+DEFAULT_BLOCKS_ARGS = {
+    "efficientnetv2-s": [
+        {
+            "kernel_size": 3,
+            "num_repeat": 2,
+            "input_filters": 24,
+            "output_filters": 24,
+            "expand_ratio": 1,
+            "se_ratio": 0.0,
+            "strides": 1,
+            "conv_type": 1,
+        },
+        {
+            "kernel_size": 3,
+            "num_repeat": 4,
+            "input_filters": 24,
+            "output_filters": 48,
+            "expand_ratio": 4,
+            "se_ratio": 0.0,
+            "strides": 2,
+            "conv_type": 1,
+        },
+        {
+            "conv_type": 1,
+            "expand_ratio": 4,
+            "input_filters": 48,
+            "kernel_size": 3,
+            "num_repeat": 4,
+            "output_filters": 64,
+            "se_ratio": 0,
+            "strides": 2,
+        },
+        {
+            "conv_type": 0,
+            "expand_ratio": 4,
+            "input_filters": 64,
+            "kernel_size": 3,
+            "num_repeat": 6,
+            "output_filters": 128,
+            "se_ratio": 0.25,
+            "strides": 2,
+        },
+        {
+            "conv_type": 0,
+            "expand_ratio": 6,
+            "input_filters": 128,
+            "kernel_size": 3,
+            "num_repeat": 9,
+            "output_filters": 160,
+            "se_ratio": 0.25,
+            "strides": 1,
+        },
+        {
+            "conv_type": 0,
+            "expand_ratio": 6,
+            "input_filters": 160,
+            "kernel_size": 3,
+            "num_repeat": 15,
+            "output_filters": 256,
+            "se_ratio": 0.25,
+            "strides": 2,
+        },
+    ],
+    "efficientnetv2-m": [
+        {
+            "kernel_size": 3,
+            "num_repeat": 3,
+            "input_filters": 24,
+            "output_filters": 24,
+            "expand_ratio": 1,
+            "se_ratio": 0,
+            "strides": 1,
+            "conv_type": 1,
+        },
+        {
+            "kernel_size": 3,
+            "num_repeat": 5,
+            "input_filters": 24,
+            "output_filters": 48,
+            "expand_ratio": 4,
+            "se_ratio": 0,
+            "strides": 2,
+            "conv_type": 1,
+        },
+        {
+            "kernel_size": 3,
+            "num_repeat": 5,
+            "input_filters": 48,
+            "output_filters": 80,
+            "expand_ratio": 4,
+            "se_ratio": 0,
+            "strides": 2,
+            "conv_type": 1,
+        },
+        {
+            "kernel_size": 3,
+            "num_repeat": 7,
+            "input_filters": 80,
+            "output_filters": 160,
+            "expand_ratio": 4,
+            "se_ratio": 0.25,
+            "strides": 2,
+            "conv_type": 0,
+        },
+        {
+            "kernel_size": 3,
+            "num_repeat": 14,
+            "input_filters": 160,
+            "output_filters": 176,
+            "expand_ratio": 6,
+            "se_ratio": 0.25,
+            "strides": 1,
+            "conv_type": 0,
+        },
+        {
+            "kernel_size": 3,
+            "num_repeat": 18,
+            "input_filters": 176,
+            "output_filters": 304,
+            "expand_ratio": 6,
+            "se_ratio": 0.25,
+            "strides": 2,
+            "conv_type": 0,
+        },
+        {
+            "kernel_size": 3,
+            "num_repeat": 5,
+            "input_filters": 304,
+            "output_filters": 512,
+            "expand_ratio": 6,
+            "se_ratio": 0.25,
+            "strides": 1,
+            "conv_type": 0,
+        },
+    ],
+    "efficientnetv2-l": [
+        {
+            "kernel_size": 3,
+            "num_repeat": 4,
+            "input_filters": 32,
+            "output_filters": 32,
+            "expand_ratio": 1,
+            "se_ratio": 0,
+            "strides": 1,
+            "conv_type": 1,
+        },
+        {
+            "kernel_size": 3,
+            "num_repeat": 7,
+            "input_filters": 32,
+            "output_filters": 64,
+            "expand_ratio": 4,
+            "se_ratio": 0,
+            "strides": 2,
+            "conv_type": 1,
+        },
+        {
+            "kernel_size": 3,
+            "num_repeat": 7,
+            "input_filters": 64,
+            "output_filters": 96,
+            "expand_ratio": 4,
+            "se_ratio": 0,
+            "strides": 2,
+            "conv_type": 1,
+        },
+        {
+            "kernel_size": 3,
+            "num_repeat": 10,
+            "input_filters": 96,
+            "output_filters": 192,
+            "expand_ratio": 4,
+            "se_ratio": 0.25,
+            "strides": 2,
+            "conv_type": 0,
+        },
+        {
+            "kernel_size": 3,
+            "num_repeat": 19,
+            "input_filters": 192,
+            "output_filters": 224,
+            "expand_ratio": 6,
+            "se_ratio": 0.25,
+            "strides": 1,
+            "conv_type": 0,
+        },
+        {
+            "kernel_size": 3,
+            "num_repeat": 25,
+            "input_filters": 224,
+            "output_filters": 384,
+            "expand_ratio": 6,
+            "se_ratio": 0.25,
+            "strides": 2,
+            "conv_type": 0,
+        },
+        {
+            "kernel_size": 3,
+            "num_repeat": 7,
+            "input_filters": 384,
+            "output_filters": 640,
+            "expand_ratio": 6,
+            "se_ratio": 0.25,
+            "strides": 1,
+            "conv_type": 0,
+        },
+    ],
+    "efficientnetv2-b0": [
+        {
+            "kernel_size": 3,
+            "num_repeat": 1,
+            "input_filters": 32,
+            "output_filters": 16,
+            "expand_ratio": 1,
+            "se_ratio": 0,
+            "strides": 1,
+            "conv_type": 1,
+        },
+        {
+            "kernel_size": 3,
+            "num_repeat": 2,
+            "input_filters": 16,
+            "output_filters": 32,
+            "expand_ratio": 4,
+            "se_ratio": 0,
+            "strides": 2,
+            "conv_type": 1,
+        },
+        {
+            "kernel_size": 3,
+            "num_repeat": 2,
+            "input_filters": 32,
+            "output_filters": 48,
+            "expand_ratio": 4,
+            "se_ratio": 0,
+            "strides": 2,
+            "conv_type": 1,
+        },
+        {
+            "kernel_size": 3,
+            "num_repeat": 3,
+            "input_filters": 48,
+            "output_filters": 96,
+            "expand_ratio": 4,
+            "se_ratio": 0.25,
+            "strides": 2,
+            "conv_type": 0,
+        },
+        {
+            "kernel_size": 3,
+            "num_repeat": 5,
+            "input_filters": 96,
+            "output_filters": 112,
+            "expand_ratio": 6,
+            "se_ratio": 0.25,
+            "strides": 1,
+            "conv_type": 0,
+        },
+        {
+            "kernel_size": 3,
+            "num_repeat": 8,
+            "input_filters": 112,
+            "output_filters": 192,
+            "expand_ratio": 6,
+            "se_ratio": 0.25,
+            "strides": 2,
+            "conv_type": 0,
+        },
+    ],
+    "efficientnetv2-b1": [
+        {
+            "kernel_size": 3,
+            "num_repeat": 1,
+            "input_filters": 32,
+            "output_filters": 16,
+            "expand_ratio": 1,
+            "se_ratio": 0,
+            "strides": 1,
+            "conv_type": 1,
+        },
+        {
+            "kernel_size": 3,
+            "num_repeat": 2,
+            "input_filters": 16,
+            "output_filters": 32,
+            "expand_ratio": 4,
+            "se_ratio": 0,
+            "strides": 2,
+            "conv_type": 1,
+        },
+        {
+            "kernel_size": 3,
+            "num_repeat": 2,
+            "input_filters": 32,
+            "output_filters": 48,
+            "expand_ratio": 4,
+            "se_ratio": 0,
+            "strides": 2,
+            "conv_type": 1,
+        },
+        {
+            "kernel_size": 3,
+            "num_repeat": 3,
+            "input_filters": 48,
+            "output_filters": 96,
+            "expand_ratio": 4,
+            "se_ratio": 0.25,
+            "strides": 2,
+            "conv_type": 0,
+        },
+        {
+            "kernel_size": 3,
+            "num_repeat": 5,
+            "input_filters": 96,
+            "output_filters": 112,
+            "expand_ratio": 6,
+            "se_ratio": 0.25,
+            "strides": 1,
+            "conv_type": 0,
+        },
+        {
+            "kernel_size": 3,
+            "num_repeat": 8,
+            "input_filters": 112,
+            "output_filters": 192,
+            "expand_ratio": 6,
+            "se_ratio": 0.25,
+            "strides": 2,
+            "conv_type": 0,
+        },
+    ],
+    "efficientnetv2-b2": [
+        {
+            "kernel_size": 3,
+            "num_repeat": 1,
+            "input_filters": 32,
+            "output_filters": 16,
+            "expand_ratio": 1,
+            "se_ratio": 0,
+            "strides": 1,
+            "conv_type": 1,
+        },
+        {
+            "kernel_size": 3,
+            "num_repeat": 2,
+            "input_filters": 16,
+            "output_filters": 32,
+            "expand_ratio": 4,
+            "se_ratio": 0,
+            "strides": 2,
+            "conv_type": 1,
+        },
+        {
+            "kernel_size": 3,
+            "num_repeat": 2,
+            "input_filters": 32,
+            "output_filters": 48,
+            "expand_ratio": 4,
+            "se_ratio": 0,
+            "strides": 2,
+            "conv_type": 1,
+        },
+        {
+            "kernel_size": 3,
+            "num_repeat": 3,
+            "input_filters": 48,
+            "output_filters": 96,
+            "expand_ratio": 4,
+            "se_ratio": 0.25,
+            "strides": 2,
+            "conv_type": 0,
+        },
+        {
+            "kernel_size": 3,
+            "num_repeat": 5,
+            "input_filters": 96,
+            "output_filters": 112,
+            "expand_ratio": 6,
+            "se_ratio": 0.25,
+            "strides": 1,
+            "conv_type": 0,
+        },
+        {
+            "kernel_size": 3,
+            "num_repeat": 8,
+            "input_filters": 112,
+            "output_filters": 192,
+            "expand_ratio": 6,
+            "se_ratio": 0.25,
+            "strides": 2,
+            "conv_type": 0,
+        },
+    ],
+    "efficientnetv2-b3": [
+        {
+            "kernel_size": 3,
+            "num_repeat": 1,
+            "input_filters": 32,
+            "output_filters": 16,
+            "expand_ratio": 1,
+            "se_ratio": 0,
+            "strides": 1,
+            "conv_type": 1,
+        },
+        {
+            "kernel_size": 3,
+            "num_repeat": 2,
+            "input_filters": 16,
+            "output_filters": 32,
+            "expand_ratio": 4,
+            "se_ratio": 0,
+            "strides": 2,
+            "conv_type": 1,
+        },
+        {
+            "kernel_size": 3,
+            "num_repeat": 2,
+            "input_filters": 32,
+            "output_filters": 48,
+            "expand_ratio": 4,
+            "se_ratio": 0,
+            "strides": 2,
+            "conv_type": 1,
+        },
+        {
+            "kernel_size": 3,
+            "num_repeat": 3,
+            "input_filters": 48,
+            "output_filters": 96,
+            "expand_ratio": 4,
+            "se_ratio": 0.25,
+            "strides": 2,
+            "conv_type": 0,
+        },
+        {
+            "kernel_size": 3,
+            "num_repeat": 5,
+            "input_filters": 96,
+            "output_filters": 112,
+            "expand_ratio": 6,
+            "se_ratio": 0.25,
+            "strides": 1,
+            "conv_type": 0,
+        },
+        {
+            "kernel_size": 3,
+            "num_repeat": 8,
+            "input_filters": 112,
+            "output_filters": 192,
+            "expand_ratio": 6,
+            "se_ratio": 0.25,
+            "strides": 2,
+            "conv_type": 0,
+        },
+    ],
+}
 
 CONV_KERNEL_INITIALIZER = {
     "class_name": "VarianceScaling",
@@ -92,7 +554,7 @@ def round_repeats(repeats, depth_coefficient):
 
 
 @keras.utils.register_keras_serializable(package="keras_cv.models")
-class EfficientNetV2(keras.Model):
+class EfficientNetV2Backbone(Backbone):
     """Instantiates the EfficientNetV2 architecture using given scaling
     coefficients.
     Args:
@@ -117,7 +579,8 @@ class EfficientNetV2(keras.Model):
 
     def __init__(
         self,
-        *include_rescaling,
+        *,
+        include_rescaling,
         width_coefficient,
         depth_coefficient,
         default_size,
@@ -278,167 +741,256 @@ class EfficientNetV2(keras.Model):
         self.input_tensor = input_tensor
 
     def get_config(self):
-        return {
-            "include_rescaling": self.include_rescaling,
-            "width_coefficient": self.width_coefficient,
-            "depth_coefficient": self.depth_coefficient,
-            "default_size": self.default_size,
-            "dropout_rate": self.dropout_rate,
-            "drop_connect_rate": self.drop_connect_rate,
-            "depth_divisor": self.depth_divisor,
-            "min_depth": self.min_depth,
-            "bn_momentum": self.bn_momentum,
-            "activation": self.activation,
-            "blocks_args": self.blocks_args,
-            "model_name": self.model_name,
-            # Remove batch dimension from `input_shape`
-            "input_shape": self.input_shape[1:],
-            "input_tensor": self.input_tensor,
-            "trainable": self.trainable,
-        }
+        config = super().get_config()
+        config.update(
+            {
+                "include_rescaling": self.include_rescaling,
+                "width_coefficient": self.width_coefficient,
+                "depth_coefficient": self.depth_coefficient,
+                "default_size": self.default_size,
+                "dropout_rate": self.dropout_rate,
+                "drop_connect_rate": self.drop_connect_rate,
+                "depth_divisor": self.depth_divisor,
+                "min_depth": self.min_depth,
+                "bn_momentum": self.bn_momentum,
+                "activation": self.activation,
+                "blocks_args": self.blocks_args,
+                "model_name": self.model_name,
+                # Remove batch dimension from `input_shape`
+                "input_shape": self.input_shape[1:],
+                "input_tensor": self.input_tensor,
+            }
+        )
+        return config
 
-    @classmethod
-    def from_config(cls, config):
-        return cls(**config)
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return copy.deepcopy(backbone_presets)
 
 
-def EfficientNetV2B0(
-    *,
-    include_rescaling,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    **kwargs,
-):
-    return EfficientNetV2(
-        include_rescaling=include_rescaling,
-        width_coefficient=1.0,
-        depth_coefficient=1.0,
-        default_size=224,
-        model_name="efficientnetv2-b0",
-        input_shape=input_shape,
-        input_tensor=input_tensor,
+class EfficientNetV2SBackbone(EfficientNetV2Backbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return EfficientNetV2Backbone.from_preset("resnet18", **kwargs)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
+
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include
+        weights."""
+        return {}
 
 
-def EfficientNetV2B1(
-    *,
-    include_rescaling,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    **kwargs,
-):
-    return EfficientNetV2(
-        include_rescaling=include_rescaling,
-        width_coefficient=1.0,
-        depth_coefficient=1.1,
-        default_size=240,
-        model_name="efficientnetv2-b1",
-        input_shape=input_shape,
-        input_tensor=input_tensor,
+class EfficientNetV2MBackbone(EfficientNetV2Backbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return EfficientNetV2Backbone.from_preset("resnet18", **kwargs)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
+
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include
+        weights."""
+        return {}
 
 
-def EfficientNetV2B2(
-    *,
-    include_rescaling,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    **kwargs,
-):
-    return EfficientNetV2(
-        include_rescaling=include_rescaling,
-        width_coefficient=1.1,
-        depth_coefficient=1.2,
-        default_size=260,
-        model_name="efficientnetv2-b2",
-        input_shape=input_shape,
-        input_tensor=input_tensor,
+class EfficientNetV2LBackbone(EfficientNetV2Backbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return EfficientNetV2Backbone.from_preset("resnet18", **kwargs)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
+
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include
+        weights."""
+        return {}
 
 
-def EfficientNetV2B3(
-    *,
-    include_rescaling,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    **kwargs,
-):
-    return EfficientNetV2(
-        include_rescaling=include_rescaling,
-        width_coefficient=1.2,
-        depth_coefficient=1.4,
-        default_size=300,
-        model_name="efficientnetv2-b3",
-        input_shape=input_shape,
-        input_tensor=input_tensor,
+class EfficientNetV2B0Backbone(EfficientNetV2Backbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return EfficientNetV2Backbone.from_preset("resnet18", **kwargs)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
+
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include
+        weights."""
+        return {}
 
 
-def EfficientNetV2S(
-    *,
-    include_rescaling,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    **kwargs,
-):
-    return EfficientNetV2(
-        include_rescaling=include_rescaling,
-        width_coefficient=1.0,
-        depth_coefficient=1.0,
-        default_size=384,
-        model_name="efficientnetv2-s",
-        input_shape=input_shape,
-        input_tensor=input_tensor,
+class EfficientNetV2B1Backbone(EfficientNetV2Backbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return EfficientNetV2Backbone.from_preset("resnet18", **kwargs)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
+
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include
+        weights."""
+        return {}
 
 
-def EfficientNetV2M(
-    *,
-    include_rescaling,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    **kwargs,
-):
-    return EfficientNetV2(
-        include_rescaling=include_rescaling,
-        width_coefficient=1.0,
-        depth_coefficient=1.0,
-        default_size=480,
-        model_name="efficientnetv2-m",
-        input_shape=input_shape,
-        input_tensor=input_tensor,
+class EfficientNetV2B2Backbone(EfficientNetV2Backbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return EfficientNetV2Backbone.from_preset("resnet18", **kwargs)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
+
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include
+        weights."""
+        return {}
 
 
-def EfficientNetV2L(
-    *,
-    include_rescaling,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    **kwargs,
-):
-    return EfficientNetV2(
-        include_rescaling=include_rescaling,
-        width_coefficient=1.0,
-        depth_coefficient=1.0,
-        default_size=480,
-        model_name="efficientnetv2-l",
-        input_shape=input_shape,
-        input_tensor=input_tensor,
+class EfficientNetV2B3Backbone(EfficientNetV2Backbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return EfficientNetV2Backbone.from_preset("resnet18", **kwargs)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
+
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include
+        weights."""
+        return {}
 
 
-EfficientNetV2B0.__doc__ = BASE_DOCSTRING.format(name="EfficientNetV2B0")
-EfficientNetV2B1.__doc__ = BASE_DOCSTRING.format(name="EfficientNetV2B1")
-EfficientNetV2B2.__doc__ = BASE_DOCSTRING.format(name="EfficientNetV2B2")
-EfficientNetV2B3.__doc__ = BASE_DOCSTRING.format(name="EfficientNetV2B3")
-EfficientNetV2S.__doc__ = BASE_DOCSTRING.format(name="EfficientNetV2S")
-EfficientNetV2M.__doc__ = BASE_DOCSTRING.format(name="EfficientNetV2M")
-EfficientNetV2L.__doc__ = BASE_DOCSTRING.format(name="EfficientNetV2L")
+EfficientNetV2B0Backbone.__doc__ = BASE_DOCSTRING.format(
+    name="EfficientNetV2B0"
+)
+EfficientNetV2B1Backbone.__doc__ = BASE_DOCSTRING.format(
+    name="EfficientNetV2B1"
+)
+EfficientNetV2B2Backbone.__doc__ = BASE_DOCSTRING.format(
+    name="EfficientNetV2B2"
+)
+EfficientNetV2B3Backbone.__doc__ = BASE_DOCSTRING.format(
+    name="EfficientNetV2B3"
+)
+EfficientNetV2SBackbone.__doc__ = BASE_DOCSTRING.format(name="EfficientNetV2S")
+EfficientNetV2MBackbone.__doc__ = BASE_DOCSTRING.format(name="EfficientNetV2M")
+EfficientNetV2LBackbone.__doc__ = BASE_DOCSTRING.format(name="EfficientNetV2L")
