@@ -51,10 +51,9 @@ def within_box3d_index(points, boxes):
         return tf.concat(results, axis=0)
     else:
         raise ValueError(
-            "is_within_box3d_v2 are expecting inputs point clouds and bounding boxes to "
-            "be rank 2D (Point, Feature) or 3D (Frame, Point, Feature) tensors. Got shape: {} and {}".format(
-                points.shape, boxes.shape
-            )
+            "is_within_box3d_v2 are expecting inputs point clouds and bounding "
+            "boxes to be rank 2D (Point, Feature) or 3D (Frame, Point, Feature)"
+            " tensors. Got shape: {} and {}".format(points.shape, boxes.shape)
         )
 
 
@@ -69,8 +68,8 @@ def group_points_by_boxes(points, boxes):
         dy, dz, phi].
 
     Returns:
-      boolean Ragged Tensor of shape [..., num_boxes, ragged_points] for each box, all
-      the point indices that belong to the box.
+      boolean Ragged Tensor of shape [..., num_boxes, ragged_points] for each
+      box, all the point indices that belong to the box.
 
     """
     num_boxes = boxes.get_shape().as_list()[-2] or tf.shape(boxes)[-2]
@@ -120,6 +119,27 @@ def is_within_any_box3d_v2(points, boxes, keepdims=False):
 
     """
     res = tf.greater_equal(within_box3d_index(points, boxes), 0)
+    if keepdims:
+        res = res[..., tf.newaxis]
+    return res
+
+
+def is_within_any_box3d_v3(points, boxes, keepdims=False):
+    """Checks if 3d points are within 3d bounding boxes.
+    Currently only xyz format is supported.
+
+    Args:
+      points: [..., num_points, 3] float32 Tensor for 3d points in xyz format.
+      boxes: [..., num_boxes, 7] float32 Tensor for 3d boxes in [x, y, z, dx,
+        dy, dz, phi].
+      keepdims: boolean. If true, retains reduced dimensions with length 1.
+
+    Returns:
+      boolean Tensor of shape [..., num_points] indicating whether
+      the point belongs to the box.
+
+    """
+    res = custom_ops.ops.kcv_within_any_box(points, boxes)
     if keepdims:
         res = res[..., tf.newaxis]
     return res
@@ -207,7 +227,8 @@ def _center_xyzWHD_to_corner_xyz(boxes):
       boxes: [..., num_boxes, 7] float32 Tensor for 3d boxes in [x, y, z, dx,
         dy, dz, phi].
     Returns:
-      corners: [..., num_boxes, 8, 3] float32 Tensor for 3d corners in [x, y, z].
+      corners: [..., num_boxes, 8, 3] float32 Tensor for 3d corners in
+        [x, y, z].
     """
     # relative corners w.r.t to origin point
     # this will return all corners in top-down counter clockwise instead of
@@ -418,8 +439,8 @@ def coordinate_transform(points, pose):
     Args:
       points: Float shape [..., 3]: Points to transform to new coordinates.
       pose: Float shape [6]: [translate_x, translate_y, translate_z, yaw, roll,
-        pitch]. The pose in the frame that 'points' comes from, and the definition
-        of the rotation and translation angles to apply to points.
+        pitch]. The pose in the frame that 'points' comes from, and the
+        definition of the rotation and translation angles to apply to points.
     Returns:
     'points' transformed to the coordinates defined by 'pose'.
     """
@@ -449,13 +470,13 @@ def spherical_coordinate_transform(points):
     https://en.wikipedia.org/wiki/Spherical_coordinate_system#Coordinate_system_conversions
     for definitions of the transformations.
     Args:
-      points_xyz: A floating point tensor with shape [..., 3], where the inner 3
+      points: A floating point tensor with shape [..., 3], where the inner 3
         dimensions correspond to xyz coordinates.
     Returns:
       A floating point tensor with the same shape [..., 3], where the inner
       dimensions correspond to (dist, theta, phi), where phi corresponds to
-      azimuth/yaw (rotation around z), and theta corresponds to pitch/inclination
-      (rotation around y).
+      azimuth/yaw (rotation around z), and theta corresponds to
+      pitch/inclination (rotation around y).
     """
     dist = tf.sqrt(tf.reduce_sum(tf.square(points), axis=-1))
     theta = tf.acos(points[..., 2] / tf.maximum(dist, 1e-7))
@@ -466,10 +487,11 @@ def spherical_coordinate_transform(points):
 
 def within_a_frustum(points, center, r_distance, theta_width, phi_width):
     """Check if 3d points are within a 3d frustum.
-    https://en.wikipedia.org/wiki/Spherical_coordinate_system for definitions of r, theta, and phi.
-    https://en.wikipedia.org/wiki/Viewing_frustum for defination of a viewing frustum. Here, we
-    use a conical shaped frustum (https://mathworld.wolfram.com/ConicalFrustum.html).
-    Currently only xyz format is supported.
+    https://en.wikipedia.org/wiki/Spherical_coordinate_system for definitions of
+    r, theta, and phi. https://en.wikipedia.org/wiki/Viewing_frustum for
+    definition of a viewing frustum. Here, we use a conical shaped frustum
+    (https://mathworld.wolfram.com/ConicalFrustum.html). Currently, only xyz
+    format is supported.
 
     Args:
       points: [num_points, 3] float32 Tensor for 3d points in xyz format.
@@ -494,7 +516,8 @@ def within_a_frustum(points, center, r_distance, theta_width, phi_width):
     theta_half_width = theta_width / 2.0
     phi_half_width = phi_width / 2.0
 
-    # Points within theta and phi width and further than r distance are selected.
+    # Points within theta and phi width and
+    # further than r distance are selected.
     in_theta_width = (theta < (center_theta + theta_half_width)) & (
         theta > (center_theta - theta_half_width)
     )

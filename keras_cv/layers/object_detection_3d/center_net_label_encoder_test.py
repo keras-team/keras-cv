@@ -37,15 +37,22 @@ class CenterNetLabelEncoderTest(tf.test.TestCase):
             shape=[2, 100], minval=0, maxval=2, dtype=tf.int32
         )
         box_mask = tf.constant(True, shape=[2, 100])
-        output = layer(box_3d, box_classes, box_mask)
+        inputs = {
+            "3d_boxes": {
+                "boxes": box_3d,
+                "classes": box_classes,
+                "mask": box_mask,
+            }
+        }
+        output = layer(inputs)
         # # (20 - (-20)) / 0.1 = 400
-        self.assertEqual(output[0]["class_1"].shape, [2, 400, 400])
-        self.assertEqual(output[0]["class_2"].shape, [2, 400, 400])
-        self.assertEqual(output[1]["class_1"].shape, [2, 400, 400, 7])
-        self.assertEqual(output[1]["class_2"].shape, [2, 400, 400, 7])
+        self.assertEqual(output["class_1"]["heatmap"].shape, [2, 400, 400])
+        self.assertEqual(output["class_2"]["heatmap"].shape, [2, 400, 400])
+        self.assertEqual(output["class_1"]["boxes"].shape, [2, 400, 400, 7])
+        self.assertEqual(output["class_2"]["boxes"].shape, [2, 400, 400, 7])
         # last dimension only has x, y
-        self.assertEqual(output[2]["class_1"].shape, [2, 10, 2])
-        self.assertEqual(output[2]["class_2"].shape, [2, 20, 2])
+        self.assertEqual(output["class_1"]["top_k_index"].shape, [2, 10, 2])
+        self.assertEqual(output["class_2"]["top_k_index"].shape, [2, 20, 2])
 
     def test_voxelization_output_shape_with_z(self):
         layer = CenterNetLabelEncoder(
@@ -63,15 +70,22 @@ class CenterNetLabelEncoderTest(tf.test.TestCase):
             shape=[2, 100], minval=0, maxval=2, dtype=tf.int32
         )
         box_mask = tf.constant(True, shape=[2, 100])
-        output = layer(box_3d, box_classes, box_mask)
+        inputs = {
+            "3d_boxes": {
+                "boxes": box_3d,
+                "classes": box_classes,
+                "mask": box_mask,
+            }
+        }
+        output = layer(inputs)
         # # (20 - (-20)) / 0.1 = 400
-        self.assertEqual(output[0]["class_1"].shape, [2, 400, 400, 4])
-        self.assertEqual(output[0]["class_2"].shape, [2, 400, 400, 4])
-        self.assertEqual(output[1]["class_1"].shape, [2, 400, 400, 4, 7])
-        self.assertEqual(output[1]["class_2"].shape, [2, 400, 400, 4, 7])
+        self.assertEqual(output["class_1"]["heatmap"].shape, [2, 400, 400, 4])
+        self.assertEqual(output["class_2"]["heatmap"].shape, [2, 400, 400, 4])
+        self.assertEqual(output["class_1"]["boxes"].shape, [2, 400, 400, 4, 7])
+        self.assertEqual(output["class_2"]["boxes"].shape, [2, 400, 400, 4, 7])
         # last dimension has x, y, z
-        self.assertEqual(output[2]["class_1"].shape, [2, 10, 3])
-        self.assertEqual(output[2]["class_2"].shape, [2, 20, 3])
+        self.assertEqual(output["class_1"]["top_k_index"].shape, [2, 10, 3])
+        self.assertEqual(output["class_2"]["top_k_index"].shape, [2, 20, 3])
 
     def test_voxelization_output_shape_missing_topk(self):
         layer = CenterNetLabelEncoder(
@@ -89,12 +103,19 @@ class CenterNetLabelEncoderTest(tf.test.TestCase):
             shape=[2, 100], minval=0, maxval=2, dtype=tf.int32
         )
         box_mask = tf.constant(True, shape=[2, 100])
-        output = layer(box_3d, box_classes, box_mask)
+        inputs = {
+            "3d_boxes": {
+                "boxes": box_3d,
+                "classes": box_classes,
+                "mask": box_mask,
+            }
+        }
+        output = layer(inputs)
         # # (20 - (-20)) / 0.1 = 400
-        self.assertEqual(output[0]["class_1"].shape, [2, 400, 400])
-        self.assertEqual(output[0]["class_2"].shape, [2, 400, 400])
-        self.assertEqual(output[1]["class_1"].shape, [2, 400, 400, 7])
-        self.assertEqual(output[1]["class_2"].shape, [2, 400, 400, 7])
+        self.assertEqual(output["class_1"]["heatmap"].shape, [2, 400, 400])
+        self.assertEqual(output["class_2"]["heatmap"].shape, [2, 400, 400])
+        self.assertEqual(output["class_1"]["boxes"].shape, [2, 400, 400, 7])
+        self.assertEqual(output["class_2"]["boxes"].shape, [2, 400, 400, 7])
         # last dimension only has x, y
-        self.assertEqual(output[2]["class_1"].shape, [2, 10, 2])
-        self.assertEqual(output[2]["class_2"], None)
+        self.assertEqual(output["class_1"]["top_k_index"].shape, [2, 10, 2])
+        self.assertEqual(output["class_2"]["top_k_index"], None)

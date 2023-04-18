@@ -59,6 +59,7 @@ TEST_CONFIGURATIONS = [
         layers.RandomCutout,
         {"height_factor": 0.2, "width_factor": 0.2},
     ),
+    ("RandomFlip", layers.RandomFlip, {"mode": "horizontal"}),
     (
         "RandomHue",
         layers.RandomHue,
@@ -97,6 +98,7 @@ TEST_CONFIGURATIONS = [
         {"kernel_size": 3, "factor": (0.0, 3.0)},
     ),
     ("RandomJpegQuality", layers.RandomJpegQuality, {"factor": (75, 100)}),
+    ("RandomRotation", layers.RandomRotation, {"factor": 0.5}),
     ("RandomSaturation", layers.RandomSaturation, {"factor": 0.5}),
     (
         "RandomSharpness",
@@ -159,9 +161,9 @@ class WithMixedPrecisionTest(tf.test.TestCase, parameterized.TestCase):
         if not tf.config.list_physical_devices("GPU"):
             if layer_cls in NO_CPU_FP16_KERNEL_LAYERS:
                 self.skipTest(
-                    "There is currently no float16 CPU kernel registered for operations"
-                    " `tf.image.adjust_saturation`, and `tf.image.adjust_hue`. "
-                    "Skipping."
+                    "There is currently no float16 CPU kernel registered for "
+                    "operations `tf.image.adjust_saturation`, and "
+                    "`tf.image.adjust_hue`. Skipping."
                 )
 
         keras.mixed_precision.set_global_policy("mixed_float16")

@@ -12,15 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Also export the image KPLs from core keras, so that user can import all the image
-# KPLs from one place.
+# Also export the image KPLs from core keras, so that user can import all the
+# image KPLs from one place.
 
 from tensorflow.keras.layers import CenterCrop
 from tensorflow.keras.layers import RandomHeight
 from tensorflow.keras.layers import RandomWidth
 
 from keras_cv.layers.preprocessing.aug_mix import AugMix
-from keras_cv.layers.preprocessing.augmenter import Augmenter
 from keras_cv.layers.preprocessing.auto_contrast import AutoContrast
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
@@ -77,6 +76,6 @@ from keras_cv.layers.preprocessing.repeated_augmentation import (
 from keras_cv.layers.preprocessing.rescaling import Rescaling
 from keras_cv.layers.preprocessing.resizing import Resizing
 from keras_cv.layers.preprocessing.solarization import Solarization
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     VectorizedBaseImageAugmentationLayer,
 )

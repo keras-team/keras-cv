@@ -20,6 +20,7 @@ import tensorflow_datasets as tfds
 from tensorflow import keras
 
 from keras_cv import models
+from keras_cv.models.classification import image_classifier
 
 # isort: off
 from tensorflow.python.platform.benchmark import (
@@ -37,17 +38,22 @@ class ClassificationTrainingBenchmark(
         ("ResNet50", models.ResNet50),
         ("DenseNet121", models.DenseNet121),
         ("DarkNet21", models.DarkNet21),
+
     ]
 
     def __init__(self):
         super().__init__()
         self.num_classes = 10
         self.batch_size = 64
+        # x shape is (batch_size, 56, 56, 3)
+        # y shape is (batch_size, 10)
         self.dataset = (
             tfds.load("mnist", split="test")
             .map(
                 lambda x: (
-                    tf.image.resize(x["image"], (56, 56)),
+                    tf.image.grayscale_to_rgb(
+                        tf.image.resize(x["image"], (56, 56))
+                    ),
                     tf.one_hot(x["label"], self.num_classes),
                 ),
                 num_parallel_calls=tf.data.AUTOTUNE,
@@ -66,11 +72,9 @@ class ClassificationTrainingBenchmark(
         with strategy.scope():
             t0 = time.time()
 
-            model = app(
-                include_top=True,
+            model = image_classifier.ImageClassifier(
+                backbone=app(),
                 num_classes=self.num_classes,
-                input_shape=(56, 56, 1),
-                include_rescaling=True,
             )
             model.compile(
                 optimizer=keras.optimizers.SGD(learning_rate=0.1, momentum=0.9),

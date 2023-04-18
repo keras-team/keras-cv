@@ -17,3 +17,6 @@
 from keras_cv.datasets.waymo.load import load
 from keras_cv.datasets.waymo.transformer import build_tensors_for_augmentation
 from keras_cv.datasets.waymo.transformer import build_tensors_from_wod_frame
+from keras_cv.datasets.waymo.transformer import convert_to_center_pillar_inputs
+from keras_cv.datasets.waymo.transformer import pad_or_trim_tensors
+from keras_cv.datasets.waymo.transformer import transform_to_vehicle_frame

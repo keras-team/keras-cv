@@ -43,7 +43,7 @@ class REL_XY:
 
 
     REL_XY is like XY, but each value is relative to the width and height of the
-    origin image.  Values are percentages of the origin images' width and height
+    origin image. Values are percentages of the origin images' width and height
     respectively.
 
     The REL_XY format consists of the following required indices:

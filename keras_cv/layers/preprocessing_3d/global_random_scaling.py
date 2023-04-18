@@ -24,18 +24,18 @@ BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
 
 @keras.utils.register_keras_serializable(package="keras_cv")
 class GlobalRandomScaling(base_augmentation_layer_3d.BaseAugmentationLayer3D):
-    """A preprocessing layer which randomly scales point clouds and bounding boxes along
-    X, Y, and Z axes during training.
+    """A preprocessing layer which randomly scales point clouds and bounding
+    boxes along X, Y, and Z axes during training.
 
-    This layer will randomly scale the whole scene along the  X, Y, and Z axes based on a randomly sampled
-    scaling factor between [min_scaling_factor, max_scaling_factor] following a uniform distribution.
-    During inference time, the output will be identical to input. Call the layer with `training=True` to scale the input.
+    This layer will randomly scale the whole scene along the  X, Y, and Z axes
+    based on a randomly sampled scaling factor between [min_scaling_factor,
+    max_scaling_factor] following a uniform distribution.
 
     Input shape:
       point_clouds: 3D (multi frames) float32 Tensor with shape
         [num of frames, num of points, num of point features].
         The first 5 features are [x, y, z, class, range].
-      bounding_boxes:  3D (multi frames) float32 Tensor with shape
+      bounding_boxes: 3D (multi frames) float32 Tensor with shape
         [num of frames, num of boxes, num of box features]. Boxes are expected
         to follow the CENTER_XYZ_DXDYDZ_PHI format. Refer to
         https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box_3d/formats.py
@@ -45,9 +45,12 @@ class GlobalRandomScaling(base_augmentation_layer_3d.BaseAugmentationLayer3D):
       A dictionary of Tensors with the same shape as input Tensors.
 
     Arguments:
-      x_factor: A tuple of float scalars or a float scalar sets the minimum and maximum scaling factors for the X axis.
-      y_factor: A tuple of float scalars or a float scalar sets the minimum and maximum scaling factors for the Y axis.
-      z_factor: A tuple of float scalars or a float scalar sets the minimum and maximum scaling factors for the Z axis.
+      x_factor: A tuple of float scalars or a float scalar sets the minimum and
+        maximum scaling factors for the X axis.
+      y_factor: A tuple of float scalars or a float scalar sets the minimum and
+        maximum scaling factors for the Y axis.
+      z_factor: A tuple of float scalars or a float scalar sets the minimum and
+        maximum scaling factors for the Z axis.
     """
 
     def __init__(
@@ -105,11 +108,13 @@ class GlobalRandomScaling(base_augmentation_layer_3d.BaseAugmentationLayer3D):
         if preserve_aspect_ratio:
             if min_x_factor != min_y_factor or min_y_factor != min_z_factor:
                 raise ValueError(
-                    "min_factor must be the same when preserve_aspect_ratio is true."
+                    "min_factor must be the same when preserve_aspect_ratio is "
+                    "true."
                 )
             if max_x_factor != max_y_factor or max_y_factor != max_z_factor:
                 raise ValueError(
-                    "max_factor must be the same when preserve_aspect_ratio is true."
+                    "max_factor must be the same when preserve_aspect_ratio is "
+                    "true."
                 )
 
         self._min_x_factor = min_x_factor

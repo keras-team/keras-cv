@@ -32,7 +32,8 @@ class RetinaNetTest(tf.test.TestCase):
         # Code before yield runs before the test
         tf.config.set_soft_device_placement(False)
         yield
-        # Reset soft device placement to not interfere with other unit test files
+        # Reset soft device placement to not interfere with other unit test
+        # files
         tf.config.set_soft_device_placement(True)
         keras.backend.clear_session()
 
@@ -40,6 +41,7 @@ class RetinaNetTest(tf.test.TestCase):
         retina_net = keras_cv.models.RetinaNet(
             num_classes=20,
             bounding_box_format="xywh",
+            backbone=keras_cv.models.ResNet50V2Backbone(),
         )
         retina_net.compile(
             classification_loss="focal",
@@ -54,13 +56,14 @@ class RetinaNetTest(tf.test.TestCase):
     @pytest.mark.skipif(
         "INTEGRATION" not in os.environ or os.environ["INTEGRATION"] != "true",
         reason="Takes a long time to run, only runs when INTEGRATION "
-        "environment variable is set.  To run the test please run: \n"
+        "environment variable is set. To run the test please run: \n"
         "`INTEGRATION=true pytest keras_cv/",
     )
     def test_retina_net_call(self):
         retina_net = keras_cv.models.RetinaNet(
             num_classes=20,
             bounding_box_format="xywh",
+            backbone=keras_cv.models.ResNet50V2Backbone(),
         )
         images = tf.random.uniform((2, 512, 512, 3))
         _ = retina_net(images)
@@ -70,6 +73,7 @@ class RetinaNetTest(tf.test.TestCase):
         retina_net = keras_cv.models.RetinaNet(
             num_classes=2,
             bounding_box_format="xywh",
+            backbone=keras_cv.models.ResNet50V2Backbone(),
         )
 
         with self.assertRaisesRegex(
@@ -90,6 +94,7 @@ class RetinaNetTest(tf.test.TestCase):
         retina_net = keras_cv.models.RetinaNet(
             num_classes=2,
             bounding_box_format="xywh",
+            backbone=keras_cv.models.ResNet50V2Backbone(),
         )
 
         retina_net.compile(
@@ -107,6 +112,7 @@ class RetinaNetTest(tf.test.TestCase):
         retina_net = keras_cv.models.RetinaNet(
             num_classes=2,
             bounding_box_format=bounding_box_format,
+            backbone=keras_cv.models.ResNet50V2Backbone(),
         )
         retina_net.backbone.trainable = False
         retina_net.compile(
@@ -124,19 +130,16 @@ class RetinaNetTest(tf.test.TestCase):
         _ = retina_net(xs)
         variable_names = [x.name for x in retina_net.trainable_variables]
         # classification_head
-        self.assertIn(
-            "RetinaNet/prediction_head/conv2d_8/kernel:0", variable_names
-        )
+        self.assertIn("prediction_head/conv2d_8/kernel:0", variable_names)
         # box_head
-        self.assertIn(
-            "RetinaNet/prediction_head_1/conv2d_12/kernel:0", variable_names
-        )
+        self.assertIn("prediction_head_1/conv2d_12/kernel:0", variable_names)
 
     def test_weights_change(self):
         bounding_box_format = "xywh"
         retina_net = keras_cv.models.RetinaNet(
             num_classes=2,
             bounding_box_format=bounding_box_format,
+            backbone=keras_cv.models.ResNet50V2Backbone(),
         )
 
         retina_net.compile(
@@ -179,40 +182,13 @@ class RetinaNetTest(tf.test.TestCase):
         for w1, w2 in zip(original_fpn_weights, fpn_after_fit):
             self.assertNotAllClose(w1, w2)
 
-    @pytest.mark.skipif(
-        "INTEGRATION" not in os.environ or os.environ["INTEGRATION"] != "true",
-        reason="Takes a long time to run, only runs when INTEGRATION "
-        "environment variable is set.  To run the test please run: \n"
-        "`INTEGRATION=true pytest keras_cv/",
-    )
-    def test_retina_net_with_dictionary_input_format(self):
-        retina_net = keras_cv.models.RetinaNet(
-            num_classes=20,
-            bounding_box_format="xywh",
-        )
-
-        images, boxes = _create_bounding_box_dataset("xywh")
-        dataset = tf.data.Dataset.from_tensor_slices(
-            {"images": images, "bounding_boxes": boxes}
-        ).batch(5, drop_remainder=True)
-
-        retina_net.compile(
-            optimizer=optimizers.Adam(),
-            classification_loss=keras_cv.losses.FocalLoss(
-                from_logits=True, reduction="none"
-            ),
-            box_loss=keras_cv.losses.SmoothL1Loss(
-                l1_cutoff=1.0, reduction="none"
-            ),
-        )
-
-        retina_net.fit(dataset, epochs=1)
-        retina_net.evaluate(dataset)
-
     def test_serialization(self):
+        # TODO(haifengj): Reuse test code from
+        # ModelTest._test_model_serialization.
         model = keras_cv.models.RetinaNet(
             num_classes=20,
             bounding_box_format="xywh",
+            backbone=keras_cv.models.ResNet50V2Backbone(),
         )
         serialized_1 = keras.utils.serialize_keras_object(model)
         restored = keras.utils.deserialize_keras_object(
@@ -220,3 +196,25 @@ class RetinaNetTest(tf.test.TestCase):
         )
         serialized_2 = keras.utils.serialize_keras_object(restored)
         self.assertEqual(serialized_1, serialized_2)
+
+
+@pytest.mark.large
+class RetinaNetSmokeTest(tf.test.TestCase):
+    def test_backbone_preset_weight_loading(self):
+        # Check that backbone preset weights loaded correctly
+        # TODO(lukewood): need to forward pass test once proper weights are
+        # implemented
+        keras_cv.models.RetinaNet.from_preset(
+            "resnet50_v2_imagenet",
+            num_classes=20,
+            bounding_box_format="xywh",
+        )
+
+    def test_full_preset_weight_loading(self):
+        # Check that backbone preset weights loaded correctly
+        # TODO(lukewood): need to forward pass test once proper weights are
+        # implemented
+        keras_cv.models.RetinaNet.from_preset(
+            "retinanet_resnet50_pascalvoc",
+            bounding_box_format="xywh",
+        )

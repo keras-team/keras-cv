@@ -22,8 +22,8 @@ keras_cv_custom_ops = LazySO("custom_ops/_keras_cv_custom_ops.so")
 def iou_3d(y_true, y_pred):
     """Implements IoU computation for 3D upright rotated bounding boxes.
 
-    Note that this is implemented using a custom TensorFlow op. If you don't have
-    KerasCV installed with custom ops, calling this will fail.
+    Note that this is implemented using a custom TensorFlow op. If you don't
+    have KerasCV installed with custom ops, calling this will fail.
 
     Boxes should have the format CENTER_XYZ_DXDYDZ_PHI. Refer to
     https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box_3d/formats.py

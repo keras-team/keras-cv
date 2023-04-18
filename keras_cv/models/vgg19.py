@@ -15,8 +15,9 @@
 
 """VGG19 model for KerasCV.
 Reference:
-  - [Very Deep Convolutional Networks for Large-Scale Image Recognition](https://arxiv.org/abs/1409.1556) (ICLR 2015)
-"""
+  - [Very Deep Convolutional Networks for Large-Scale Image Recognition](https://arxiv.org/abs/1409.1556)
+    (ICLR 2015)
+"""  # noqa: E501
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
@@ -29,19 +30,22 @@ from keras_cv.models.vgg16 import apply_vgg_block
 class VGG19(keras.Model):
     """
     Reference:
-    - [Very Deep Convolutional Networks for Large-Scale Image Recognition](https://arxiv.org/abs/1409.1556) (ICLR 2015)
+    - [Very Deep Convolutional Networks for Large-Scale Image Recognition](https://arxiv.org/abs/1409.1556)
+        (ICLR 2015)
     This class represents a Keras VGG19 model.
     Args:
-      include_rescaling: bool, whether or not to Rescale the inputs.If set to True,
-        inputs will be passed through a `Rescaling(1/255.0)` layer.
+      include_rescaling: bool, whether to rescale the inputs. If set to
+        True, inputs will be passed through a `Rescaling(1/255.0)` layer.
       include_top: bool, whether to include the 3 fully-connected
-        layers at the top of the network. If provided, num_classes must be provided.
-      num_classes: int, optional number of classes to classify images into, only to be
-        specified if `include_top` is True.
-      weights: os.PathLike or None, one of `None` (random initialization), or a pretrained weight file path.
+        layers at the top of the network. If provided, num_classes must be
+        provided.
+      num_classes: int, optional number of classes to classify images into, only
+        to be specified if `include_top` is True.
+      weights: os.PathLike or None, one of `None` (random initialization), or a
+        pretrained weight file path.
       input_shape: tuple, optional shape tuple, defaults to (224, 224, 3).
-      input_tensor: Tensor, optional Keras tensor (i.e. output of `layers.Input()`)
-        to use as image input for the model.
+      input_tensor: Tensor, optional Keras tensor (i.e. output of
+        `layers.Input()`) to use as image input for the model.
       pooling: bool, Optional pooling mode for feature extraction
         when `include_top` is `False`.
         - `None` means that the output of the model will be
@@ -58,10 +62,10 @@ class VGG19(keras.Model):
         `classifier_activation=None` to return the logits of the "top" layer.
         When loading pretrained weights, `classifier_activation` can only
         be `None` or `"softmax"`.
-      name: (Optional) name to pass to the model.  Defaults to "VGG19".
+      name: (Optional) name to pass to the model, defaults to "VGG19".
     Returns:
       A `keras.Model` instance.
-    """
+    """  # noqa: E501
 
     def __init__(
         self,
@@ -78,8 +82,9 @@ class VGG19(keras.Model):
     ):
         if weights and not tf.io.gfile.exists(weights):
             raise ValueError(
-                "The `weights` argument should be either `None` or the path to the "
-                "weights file to be loaded. Weights file not found at location: {weights}"
+                "The `weights` argument should be either `None` or the path "
+                "to the weights file to be loaded. Weights file not found at "
+                "location: {weights}"
             )
 
         if include_top and not num_classes:
