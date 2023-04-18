@@ -29,6 +29,26 @@ from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
 )
 from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
     CSPDarkNetXLBackbone,
+from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone import (
+    EfficientNetV2B0,
+)
+from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone import (
+    EfficientNetV2B1,
+)
+from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone import (
+    EfficientNetV2B2,
+)
+from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone import (
+    EfficientNetV2B3,
+)
+from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone import (
+    EfficientNetV2L,
+)
+from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone import (
+    EfficientNetV2M,
+)
+from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone import (
+    EfficientNetV2S,
 )
 from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_backbone import (
     MobileNetV3Backbone,
@@ -104,13 +124,6 @@ from keras_cv.models.efficientnet_v1 import EfficientNetB4
 from keras_cv.models.efficientnet_v1 import EfficientNetB5
 from keras_cv.models.efficientnet_v1 import EfficientNetB6
 from keras_cv.models.efficientnet_v1 import EfficientNetB7
-from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone import EfficientNetV2B0
-from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone import EfficientNetV2B1
-from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone import EfficientNetV2B2
-from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone import EfficientNetV2B3
-from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone import EfficientNetV2L
-from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone import EfficientNetV2M
-from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone import EfficientNetV2S
 from keras_cv.models.mlp_mixer import MLPMixerB16
 from keras_cv.models.mlp_mixer import MLPMixerB32
 from keras_cv.models.mlp_mixer import MLPMixerL16
