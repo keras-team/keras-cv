@@ -23,9 +23,13 @@ from tensorflow import keras
 from tensorflow.keras import layers
 
 from keras_cv.models import utils
-from keras_cv.models.__internal__.darknet_utils import DarknetConvBlock
-from keras_cv.models.__internal__.darknet_utils import ResidualBlocks
-from keras_cv.models.__internal__.darknet_utils import (
+from keras_cv.models.backbones.csp_darknet.csp_darknet_utils import (
+    DarknetConvBlock,
+)
+from keras_cv.models.backbones.csp_darknet.csp_darknet_utils import (
+    ResidualBlocks,
+)
+from keras_cv.models.backbones.csp_darknet.csp_darknet_utils import (
     SpatialPyramidPoolingBottleneck,
 )
 from keras_cv.models.weights import parse_weights
