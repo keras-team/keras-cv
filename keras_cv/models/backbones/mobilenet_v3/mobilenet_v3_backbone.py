@@ -25,7 +25,9 @@ import copy
 from tensorflow import keras
 from tensorflow.keras import backend
 from tensorflow.keras import layers
+from tensorflow.keras.utils import custom_object_scope
 
+from keras_cv import layers as cv_layers
 from keras_cv.models import utils
 from keras_cv.models.backbones.backbone import Backbone
 from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_backbone_presets import (  # noqa: E501
@@ -63,6 +65,19 @@ def adjust_channels(x, divisor=8, min_value=None):
     return new_x
 
 
+def apply_hard_sigmoid(x):
+    """
+    Args:
+        x: input tensor
+    Returns:
+        the updated input tensor.
+    """
+
+    activation = layers.ReLU(6.0)
+
+    return activation(x + 3.0) * (1.0 / 6.0)
+
+
 def apply_hard_swish(x):
     """
     Args:
@@ -72,7 +87,9 @@ def apply_hard_swish(x):
         the updated input tensor.
     """
 
-    return layers.Multiply()([x, layers.ReLU(6.0)(x + 3.0) * (1.0 / 6.0)])
+    multiply_layer = layers.Multiply()
+
+    return multiply_layer([x, apply_hard_sigmoid(x)])
 
 
 def apply_inverted_res_block(
@@ -117,10 +134,10 @@ def apply_inverted_res_block(
             momentum=BN_MOMENTUM,
             name=prefix + "expand/BatchNorm",
         )(x)
-        x = layers.ReLU()(x)
+        x = apply_hard_swish(x)
 
     x = layers.DepthwiseConv2D(
-        kernel_size=3,
+        kernel_size=5,
         strides=stride,
         padding="same" if stride == 1 else "valid",
         use_bias=False,
@@ -132,7 +149,15 @@ def apply_inverted_res_block(
         momentum=BN_MOMENTUM,
         name=prefix + "depthwise/BatchNorm",
     )(x)
-    x = layers.ReLU()(x)
+    x = apply_hard_swish(x)
+
+    with custom_object_scope({"hard_sigmoid": apply_hard_sigmoid}):
+        x = cv_layers.SqueezeAndExcite2D(
+            filters=adjust_channels(infilters * expansion),
+            ratio=0.25,
+            squeeze_activation="relu",
+            excite_activation="hard_sigmoid",
+        )(x)
 
     x = layers.Conv2D(
         filters,
@@ -242,7 +267,7 @@ class MobileNetV3Backbone(Backbone):
             momentum=BN_MOMENTUM,
             name="Conv/BatchNorm",
         )(x)
-        x = layers.ReLU()(x)
+        x = apply_hard_swish(x)
 
         pyramid_level_inputs = {}
         for stack_index in range(len(stackwise_filters)):
@@ -276,7 +301,7 @@ class MobileNetV3Backbone(Backbone):
             momentum=BN_MOMENTUM,
             name="Conv_1/BatchNorm",
         )(x)
-        x = layers.ReLU()(x)
+        x = apply_hard_swish(x)
 
         super().__init__(inputs=inputs, outputs=x, **kwargs)
 
