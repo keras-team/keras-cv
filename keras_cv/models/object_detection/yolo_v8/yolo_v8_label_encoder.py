@@ -65,9 +65,9 @@ def select_candidates_in_gts(xy_centers, gt_bboxes, epsilon=1e-9):
     """Selects candidate anchors for GT boxes.
 
     Returns:
-        a boolean mask Tensor of shape [batch_size, num_gt_boxes, num_anchors]
+        a boolean mask Tensor of shape (batch_size, num_gt_boxes, num_anchors)
         where the value is `True` if the anchor point falls inside the gt box,
-        and`False` otherwise.
+        and `False` otherwise.
     """
     n_anchors = xy_centers.shape[0]
     bs, n_boxes, _ = gt_bboxes.shape
@@ -136,28 +136,28 @@ class YOLOV8LabelEncoder(layers.Layer):
         """Computes target boxes and classes for anchors.
 
         Args:
-            pd_scores: a Float Tensor of shape [batch_size, num_anchors,
-                num_classes] representing predicted class scores for each
+            pd_scores: a Float Tensor of shape (batch_size, num_anchors,
+                num_classes) representing predicted class scores for each
                 anchor.
-            pd_bboxes: a Float Tensor of shape [batch_size, num_anchors, 4]
+            pd_bboxes: a Float Tensor of shape (batch_size, num_anchors, 4)
                 representing predicted boxes for each anchor.
-            anc_points: a Float Tensor of shape [batch_size, num_anchors, 2]
+            anc_points: a Float Tensor of shape (batch_size, num_anchors, 2)
                 representing the xy coordinates of the center of each anchor.
-            gt_labels: a Float Tensor of shape [batch_size, num_gt_boxes]
+            gt_labels: a Float Tensor of shape (batch_size, num_gt_boxes)
                 representing the classes of ground truth boxes.
-            gt_bboxes: a Float Tensor of shape [batch_size, num_gt_boxes, 4]
+            gt_bboxes: a Float Tensor of shape (batch_size, num_gt_boxes, 4)
                 representing the ground truth bounding boxes in xyxy format.
-            mask_gt: A Boolean Tensor of shape [batch_size, num_gt_boxes]
+            mask_gt: A Boolean Tensor of shape (batch_size, num_gt_boxes)
                 representing whether a box in `gt_bboxes` is a real box or a
                 non-box that exists due to padding.
 
         Returns:
             A tuple of the following:
-                - A Float Tensor of shape [batch_size, num_anchors, 4]
+                - A Float Tensor of shape (batch_size, num_anchors, 4)
                     representing box targets for the model.
-                - A Float Tensor of shape [batch_size, num_anchors, num_classes]
+                - A Float Tensor of shape (batch_size, num_anchors, num_classes)
                     representing class targets for the model.
-                - A Boolean Tensor of shape [batch_size, num_anchors]
+                - A Boolean Tensor of shape (batch_size, num_anchors)
                     representing whether each anchor was a match with a ground
                     truth box. Anchors that didn't match with a ground truth
                     box should be excluded from both class and box losses.
@@ -250,7 +250,7 @@ class YOLOV8LabelEncoder(layers.Layer):
         """Computes alignment metrics for each gt box, anchor pair.
 
         Returns:
-            a tuple of float Tensors, where the first Tensor is the alignment
+            A tuple of float Tensors, where the first Tensor is the alignment
             metrics for each ground truth box, anchor pair, and the second
             Tensor is the IoUs between each ground truth box and the predicted
             box at each anchor.
@@ -290,7 +290,8 @@ class YOLOV8LabelEncoder(layers.Layer):
             metrics: Float Tensor of shape (b, max_num_boxes, num_anchors)
                 representing the alignment metric between every gt box, anchor
                 pair.
-            topk_mask: Boolean Tensor of shape (b, max_num_boxes, topk)
+            topk_mask: Boolean Tensor of shape (b, max_num_boxes,
+                max_anchor_matches)
         """
 
         num_anchors = metrics.shape[-1]  # num_anchors
