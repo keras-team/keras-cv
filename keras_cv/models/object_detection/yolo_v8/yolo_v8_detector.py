@@ -189,9 +189,10 @@ def apply_yolov8_head(
     num_classes,
     name="yolov8_head",
 ):
-    """
-    Applies a YOLOV8 head to make box and class predictions, given the output
-    of a feature pyramid network.
+    """Applies a YOLOV8 head.
+
+    Makes box and class predictions based on the output of a feature pyramid
+    network.
 
     Args:
         inputs: list of tensors output by the Feature Pyramid Network, should
@@ -283,9 +284,10 @@ def apply_yolov8_head(
 
 
 def decode_regression_to_boxes(preds):
-    """
-    Decodes the results of the YOLOV8Detector forward-pass into left / top /
-    right / bottom predictions with respect to anchor boxes.
+    """Decodes the results of the YOLOV8Detector forward-pass into boxes.
+
+    Returns left / top / right / bottom predictions with respect to anchor
+    points.
 
     Each coordinate is encoded with 16 predicted values. Those predictions are
     softmaxed and multiplied by [0..15] to make predictions. The resulting
@@ -302,8 +304,11 @@ def decode_regression_to_boxes(preds):
 
 
 def dist2bbox(distance, anchor_points):
-    """
-    Decodes left / top / right / bottom predictions into xyxy box predictions.
+    """Decodes distance predictions into xyxy boxes.
+
+    Input left / top / right / bottom predictions are transformed into xyxy box
+    predictions based on anchor points.
+
     The resulting xyxy predictions must be scaled by the stride of their
     corresponding anchor points to yield an absolute xyxy box.
     """
@@ -315,8 +320,7 @@ def dist2bbox(distance, anchor_points):
 
 @keras.utils.register_keras_serializable(package="keras_cv")
 class YOLOV8Detector(Task):
-    """
-    Implements the YOLOV8 architecture for object detection.
+    """Implements the YOLOV8 architecture for object detection.
 
     Args:
         num_classes: integer, the number of classes in your dataset excluding the

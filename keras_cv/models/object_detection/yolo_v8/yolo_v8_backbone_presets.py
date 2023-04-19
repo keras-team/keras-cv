@@ -66,7 +66,7 @@ backbone_presets_no_weights = {
             "activation": "swish",
         },
     },
-    "yolov8_x_backbone": {
+    "yolov8_xl_backbone": {
         "metadata": {
             "description": "An extra large YOLOV8 backbone",
         },
@@ -118,7 +118,7 @@ backbone_presets_with_weights = {
         "weights_url": "https://storage.googleapis.com/keras-cv/models/yolov8/coco/yolov8_l_backbone.h5",  # noqa: E501
         "weights_hash": "2c94ffe75492491974c6d7347d5c1d1aa209d8f6d78c63ab62df0f5dd51680b9",  # noqa: E501
     },
-    "yolov8_x_backbone_coco": {
+    "yolov8_xl_backbone_coco": {
         "metadata": {
             "description": ("An extra large YOLOV8 backbone pretrained on COCO")
         },
