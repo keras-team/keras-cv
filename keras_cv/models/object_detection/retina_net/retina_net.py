@@ -229,15 +229,6 @@ class RetinaNet(Task):
 
         self.bounding_box_format = bounding_box_format
         self.num_classes = num_classes
-        if num_classes == 1:
-            raise ValueError(
-                "RetinaNet must always have at least 2 classes. "
-                "This is because logits are passed through a `tf.softmax()` "
-                "call before `MultiClassNonMaxSuppression()` is applied. If "
-                "only a single class is present, the model will always give a "
-                "score of `1` for the single present class."
-            )
-
         self.backbone = backbone
 
         self.feature_extractor = feature_extractor
