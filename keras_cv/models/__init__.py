@@ -42,6 +42,9 @@ from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone import (
     EfficientNetV2B3Backbone,
 )
 from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone import (
+    EfficientNetV2Backbone,
+)
+from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone import (
     EfficientNetV2LBackbone,
 )
 from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone import (

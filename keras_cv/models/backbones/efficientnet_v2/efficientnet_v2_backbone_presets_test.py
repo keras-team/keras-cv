@@ -28,13 +28,13 @@ class EfficientNetV2PresetFullTest(tf.test.TestCase, parameterized.TestCase):
     Test the full enumeration of our preset.
     This every presets for EfficientNetV2 and is only run manually.
     Run with:
-    `pytest keras_cv/models/backbones/efficientnet_v2/
-    efficientnet_v2_backbone_presets_test.py
-    --run_extra_large`
+    `pytest keras_cv/models/backbones/efficientnet_v2/efficientnet_v2_backbone_presets_test.py --run_extra_large`
     """
 
-    def test_load_regnet(self):
+    @parameterized.named_parameters(
+        *[(preset, preset) for preset in EfficientNetV2Backbone.presets]
+    )
+    def test_load_efficientnet(self, preset):
         input_data = tf.ones(shape=(2, 224, 224, 3))
-        for preset in EfficientNetV2Backbone.presetsx:
-            model = EfficientNetV2Backbone.from_preset(preset)
-            model(input_data)
+        model = EfficientNetV2Backbone.from_preset(preset)
+        model(input_data)
