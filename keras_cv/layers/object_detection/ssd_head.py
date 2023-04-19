@@ -97,7 +97,7 @@ class SSDHead(tf.keras.layers.Layer):
         x = tf.reshape(x, shape=(N, -1, num_columns))
         return x
 
-    def check_tensor(self, x: Union[tf.Tensor, list[tf.Tensor]]):
+    def check_tensor(self, x):
         """
         Function to test the input Tensor or List of features
 
