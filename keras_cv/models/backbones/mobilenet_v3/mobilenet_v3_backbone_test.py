@@ -19,7 +19,7 @@ from absl.testing import parameterized
 from tensorflow import keras
 
 from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_backbone import (
-    MobileNetV3Backbone,
+    MobileNetV3SmallBackbone,
 )
 from keras_cv.utils.train import get_feature_extractor
 
@@ -29,45 +29,13 @@ class MobileNetV3BackboneTest(tf.test.TestCase, parameterized.TestCase):
         self.input_batch = tf.ones(shape=(2, 224, 224, 3))
 
     def test_valid_call(self):
-        model = MobileNetV3Backbone(
-            stackwise_expansion=[
-                1,
-                72.0 / 16,
-                88.0 / 24,
-                4,
-                6,
-                6,
-                3,
-                3,
-                6,
-                6,
-                6,
-            ],
-            stackwise_filters=[16, 24, 24, 40, 40, 40, 48, 48, 96, 96, 96],
-            stackwise_stride=[2, 2, 1, 2, 1, 1, 1, 1, 2, 1, 1],
-            filters=1024,
+        model = MobileNetV3SmallBackbone(
             include_rescaling=False,
         )
         model(self.input_batch)
 
     def test_valid_call_with_rescaling(self):
-        model = MobileNetV3Backbone(
-            stackwise_expansion=[
-                1,
-                72.0 / 16,
-                88.0 / 24,
-                4,
-                6,
-                6,
-                3,
-                3,
-                6,
-                6,
-                6,
-            ],
-            stackwise_filters=[16, 24, 24, 40, 40, 40, 48, 48, 96, 96, 96],
-            stackwise_stride=[2, 2, 1, 2, 1, 1, 1, 1, 2, 1, 1],
-            filters=1024,
+        model = MobileNetV3SmallBackbone(
             include_rescaling=True,
         )
         model(self.input_batch)
@@ -77,32 +45,14 @@ class MobileNetV3BackboneTest(tf.test.TestCase, parameterized.TestCase):
         ("keras_format", "keras_v3", "model.keras"),
     )
     def test_saved_model(self, save_format, filename):
-        model = MobileNetV3Backbone(
-            stackwise_expansion=[
-                1,
-                72.0 / 16,
-                88.0 / 24,
-                4,
-                6,
-                6,
-                3,
-                3,
-                6,
-                6,
-                6,
-            ],
-            stackwise_filters=[16, 24, 24, 40, 40, 40, 48, 48, 96, 96, 96],
-            stackwise_stride=[2, 2, 1, 2, 1, 1, 1, 1, 2, 1, 1],
-            filters=1024,
-            include_rescaling=True,
-        )
+        model = MobileNetV3SmallBackbone()
         model_output = model(self.input_batch)
         save_path = os.path.join(self.get_temp_dir(), filename)
         model.save(save_path, save_format=save_format)
         restored_model = keras.models.load_model(save_path)
 
         # Check we got the real object back.
-        self.assertIsInstance(restored_model, MobileNetV3Backbone)
+        self.assertIsInstance(restored_model, MobileNetV3SmallBackbone)
 
         # Check that output matches.
         restored_output = restored_model(self.input_batch)
@@ -113,42 +63,10 @@ class MobileNetV3BackboneTest(tf.test.TestCase, parameterized.TestCase):
         ("keras_format", "keras_v3", "model.keras"),
     )
     def test_model_backbone_layer_names_stability(self):
-        model = MobileNetV3Backbone(
-            stackwise_expansion=[
-                1,
-                72.0 / 16,
-                88.0 / 24,
-                4,
-                6,
-                6,
-                3,
-                3,
-                6,
-                6,
-                6,
-            ],
-            stackwise_filters=[16, 24, 24, 40, 40, 40, 48, 48, 96, 96, 96],
-            stackwise_stride=[2, 2, 1, 2, 1, 1, 1, 1, 2, 1, 1],
-            filters=1024,
+        model = MobileNetV3SmallBackbone(
             include_rescaling=False,
         )
-        model_2 = MobileNetV3Backbone(
-            stackwise_expansion=[
-                1,
-                72.0 / 16,
-                88.0 / 24,
-                4,
-                6,
-                6,
-                3,
-                3,
-                6,
-                6,
-                6,
-            ],
-            stackwise_filters=[16, 24, 24, 40, 40, 40, 48, 48, 96, 96, 96],
-            stackwise_stride=[2, 2, 1, 2, 1, 1, 1, 1, 2, 1, 1],
-            filters=1024,
+        model_2 = MobileNetV3SmallBackbone(
             include_rescaling=False,
         )
         layers_1 = model.layers
@@ -159,23 +77,7 @@ class MobileNetV3BackboneTest(tf.test.TestCase, parameterized.TestCase):
             self.assertEquals(layers_1[i].name, layers_2[i].name)
 
     def test_create_backbone_model_with_level_config(self):
-        model = MobileNetV3Backbone(
-            stackwise_expansion=[
-                1,
-                72.0 / 16,
-                88.0 / 24,
-                4,
-                6,
-                6,
-                3,
-                3,
-                6,
-                6,
-                6,
-            ],
-            stackwise_filters=[16, 24, 24, 40, 40, 40, 48, 48, 96, 96, 96],
-            stackwise_stride=[2, 2, 1, 2, 1, 1, 1, 1, 2, 1, 1],
-            filters=1024,
+        model = MobileNetV3SmallBackbone(
             include_rescaling=False,
             input_shape=[256, 256, 3],
         )
@@ -194,23 +96,7 @@ class MobileNetV3BackboneTest(tf.test.TestCase, parameterized.TestCase):
         ("four_channels", 4),
     )
     def test_application_variable_input_channels(self, num_channels):
-        model = MobileNetV3Backbone(
-            stackwise_expansion=[
-                1,
-                72.0 / 16,
-                88.0 / 24,
-                4,
-                6,
-                6,
-                3,
-                3,
-                6,
-                6,
-                6,
-            ],
-            stackwise_filters=[16, 24, 24, 40, 40, 40, 48, 48, 96, 96, 96],
-            stackwise_stride=[2, 2, 1, 2, 1, 1, 1, 1, 2, 1, 1],
-            filters=1024,
+        model = MobileNetV3SmallBackbone(
             input_shape=(None, None, num_channels),
             include_rescaling=False,
         )
