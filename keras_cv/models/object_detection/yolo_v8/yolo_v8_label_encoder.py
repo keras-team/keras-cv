@@ -23,8 +23,10 @@ from keras_cv.models.object_detection.yolo_v8.yolo_v8_iou_loss import bbox_iou
 
 
 def select_highest_overlaps(mask_pos, overlaps, max_num_boxes):
-    """Picks the anchor with the highest IoU with a GT box to break ties
-    when two GT boxes match to the same anchor"""
+    """Break ties when two GT boxes match to the same anchor.
+
+    Picks the GT box with the highest IoU.
+    """
     # (b, max_num_boxes, num_anchors) -> (b, num_anchors)
     fg_mask = tf.reduce_sum(mask_pos, axis=-2)
 
@@ -60,7 +62,13 @@ def select_highest_overlaps(mask_pos, overlaps, max_num_boxes):
 
 
 def select_candidates_in_gts(xy_centers, gt_bboxes, epsilon=1e-9):
-    """Selects candidate anchors for GT boxes"""
+    """Selects candidate anchors for GT boxes.
+
+    Returns:
+        a boolean mask Tensor of shape [batch_size, num_gt_boxes, num_anchors]
+        where the value is `True` if the anchor point falls inside the gt box,
+        and`False` otherwise.
+    """
     n_anchors = xy_centers.shape[0]
     bs, n_boxes, _ = gt_bboxes.shape
 
@@ -90,10 +98,11 @@ class YOLOV8LabelEncoder(layers.Layer):
 
     Args:
         num_classes: integer, the number of classes in the training dataset
-        topk: optional integer, the number of anchors to match with any given
-            ground truth box. For example, when the default 10 is used, the 10
-            anchor points with the highest alignment score are matched with a
-            ground truth box.
+        max_anchor_matches: optional integer, the maximum number of anchors to
+            match with any given ground truth box. For example, when the default
+            10 is used, the 10 candidate anchor points with the highest
+            alignment score are matched with a ground truth box. If less than 10
+            candidate anchors exist, all candidates will be matched to the box.
         alpha: float, a parameter to control the influence of class predictions
             on the alignment score of an anchor box. This is the alpha parameter
             in equation 9 of https://arxiv.org/pdf/2108.07755.pdf.
@@ -106,10 +115,16 @@ class YOLOV8LabelEncoder(layers.Layer):
     """
 
     def __init__(
-        self, num_classes, topk=10, alpha=0.5, beta=6.0, epsilon=1e-9, **kwargs
+        self,
+        num_classes,
+        max_anchor_matches=10,
+        alpha=0.5,
+        beta=6.0,
+        epsilon=1e-9,
+        **kwargs
     ):
         super().__init__(**kwargs)
-        self.topk = topk
+        self.max_anchor_matches = max_anchor_matches
         self.num_classes = num_classes
         self.alpha = alpha
         self.beta = beta
@@ -118,6 +133,35 @@ class YOLOV8LabelEncoder(layers.Layer):
     def call(
         self, pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt
     ):
+        """Computes target boxes and classes for anchors.
+
+        Args:
+            pd_scores: a Float Tensor of shape [batch_size, num_anchors,
+                num_classes] representing predicted class scores for each
+                anchor.
+            pd_bboxes: a Float Tensor of shape [batch_size, num_anchors, 4]
+                representing predicted boxes for each anchor.
+            anc_points: a Float Tensor of shape [batch_size, num_anchors, 2]
+                representing the xy coordinates of the center of each anchor.
+            gt_labels: a Float Tensor of shape [batch_size, num_gt_boxes]
+                representing the classes of ground truth boxes.
+            gt_bboxes: a Float Tensor of shape [batch_size, num_gt_boxes, 4]
+                representing the ground truth bounding boxes in xyxy format.
+            mask_gt: A Boolean Tensor of shape [batch_size, num_gt_boxes]
+                representing whether a box in `gt_bboxes` is a real box or a
+                non-box that exists due to padding.
+
+        Returns:
+            A tuple of the following:
+                - A Float Tensor of shape [batch_size, num_anchors, 4]
+                    representing box targets for the model.
+                - A Float Tensor of shape [batch_size, num_anchors, num_classes]
+                    representing class targets for the model.
+                - A Boolean Tensor of shape [batch_size, num_anchors]
+                    representing whether each anchor was a match with a ground
+                    truth box. Anchors that didn't match with a ground truth
+                    box should be excluded from both class and box losses.
+        """
         max_num_boxes = gt_bboxes.shape[1]
 
         mask_pos, align_metric, overlaps = self.get_pos_mask(
@@ -187,7 +231,9 @@ class YOLOV8LabelEncoder(layers.Layer):
         # get topk_metric mask, (b, max_num_boxes, num_anchors)
         mask_topk = self.select_topk_candidates(
             align_metric,
-            topk_mask=tf.cast(tf.repeat(mask_gt, self.topk, axis=2), tf.bool),
+            topk_mask=tf.cast(
+                tf.repeat(mask_gt, self.max_anchor_matches, axis=2), tf.bool
+            ),
         )
         # merge all masks to a final mask, (b, max_num_boxes, num_anchors)
         mask_pos = (
@@ -201,6 +247,14 @@ class YOLOV8LabelEncoder(layers.Layer):
     def get_box_metrics(
         self, pd_scores, pd_bboxes, gt_labels, gt_bboxes, mask_gt, max_num_boxes
     ):
+        """Computes alignment metrics for each gt box, anchor pair.
+
+        Returns:
+            a tuple of float Tensors, where the first Tensor is the alignment
+            metrics for each ground truth box, anchor pair, and the second
+            Tensor is the IoUs between each ground truth box and the predicted
+            box at each anchor.
+        """
         na = pd_bboxes.shape[-2]
         mask_gt = tf.cast(mask_gt, tf.bool)  # b, max_num_boxes, num_anchors
 
@@ -233,23 +287,27 @@ class YOLOV8LabelEncoder(layers.Layer):
     def select_topk_candidates(self, metrics, topk_mask):
         """
         Args:
-            metrics: (b, max_num_boxes, num_anchors).
-            topk_mask: (b, max_num_boxes, topk) or None
+            metrics: Float Tensor of shape (b, max_num_boxes, num_anchors)
+                representing the alignment metric between every gt box, anchor
+                pair.
+            topk_mask: Boolean Tensor of shape (b, max_num_boxes, topk)
         """
 
         num_anchors = metrics.shape[-1]  # num_anchors
         # (b, max_num_boxes, topk)
-        topk_metrics, topk_idxs = tf.math.top_k(metrics, self.topk)
+        topk_metrics, topk_idxs = tf.math.top_k(
+            metrics, self.max_anchor_matches
+        )
         topk_mask = tf.tile(
             tf.reduce_max(topk_metrics, axis=-1, keepdims=True) > self.epsilon,
-            [1, 1, self.topk],
+            [1, 1, self.max_anchor_matches],
         )
 
         # (b, max_num_boxes, topk)
         topk_idxs = tf.where(topk_mask, topk_idxs, 0)
         is_in_topk = tf.zeros_like(metrics, dtype=tf.int64)
 
-        for it in range(self.topk):
+        for it in range(self.max_anchor_matches):
             is_in_topk += tf.one_hot(
                 topk_idxs[:, :, it], num_anchors, dtype=tf.int64
             )
@@ -301,7 +359,7 @@ class YOLOV8LabelEncoder(layers.Layer):
 
     def get_config(self):
         config = {
-            "topk": self.topk,
+            "max_anchor_matches": self.max_anchor_matches,
             "num_classes": self.num_classes,
             "alpha": self.alpha,
             "beta": self.beta,
