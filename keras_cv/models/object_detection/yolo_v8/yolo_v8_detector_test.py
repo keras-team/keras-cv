@@ -35,7 +35,7 @@ class YOLOV8DetectorTest(tf.test.TestCase):
             fpn_depth=1,
             bounding_box_format=bounding_box_format,
             backbone=keras_cv.models.YOLOV8Backbone.from_preset(
-                "yolov8_n_backbone"
+                "yolov8_xs_backbone"
             ),
         )
 
@@ -53,11 +53,11 @@ class YOLOV8DetectorTest(tf.test.TestCase):
             fpn_depth=1,
             bounding_box_format="xywh",
             backbone=keras_cv.models.YOLOV8Backbone.from_preset(
-                "yolov8_n_backbone"
+                "yolov8_s_backbone"
             ),
         )
 
-        self.assertEqual(len(yolo.trainable_weights), 183)
+        self.assertEqual(len(yolo.trainable_weights), 195)
 
     def test_bad_loss(self):
         yolo = keras_cv.models.YOLOV8Detector(
@@ -65,7 +65,7 @@ class YOLOV8DetectorTest(tf.test.TestCase):
             fpn_depth=1,
             bounding_box_format="xywh",
             backbone=keras_cv.models.YOLOV8Backbone.from_preset(
-                "yolov8_n_backbone"
+                "yolov8_xs_backbone"
             ),
         )
 
@@ -89,7 +89,7 @@ class YOLOV8DetectorTest(tf.test.TestCase):
             bounding_box_format="xywh",
             fpn_depth=1,
             backbone=keras_cv.models.YOLOV8Backbone.from_preset(
-                "yolov8_n_backbone"
+                "yolov8_xs_backbone"
             ),
         )
         serialized_1 = keras.utils.serialize_keras_object(model)

@@ -14,7 +14,7 @@
 """YOLOv8 Backbone presets."""
 
 backbone_presets_no_weights = {
-    "yolov8_n_backbone": {
+    "yolov8_xs_backbone": {
         "metadata": {
             "description": "An extra small YOLOV8 backbone",
         },
@@ -82,12 +82,12 @@ backbone_presets_no_weights = {
 }
 
 backbone_presets_with_weights = {
-    "yolov8_n_backbone_coco": {
+    "yolov8_xs_backbone_coco": {
         "metadata": {
             "description": ("An extra small YOLOV8 backbone pretrained on COCO")
         },
         "class_name": "keras_cv.models>YOLOV8Backbone",
-        "config": backbone_presets_no_weights["yolov8_n_backbone"]["config"],
+        "config": backbone_presets_no_weights["yolov8_xs_backbone"]["config"],
         "weights_url": "https://storage.googleapis.com/keras-cv/models/yolov8/coco/yolov8_n_backbone.h5",  # noqa: E501
         "weights_hash": "636ba3cba064c7c457e30a0e4759716006c305c30876df1c1caf2e56b99eab6c",  # noqa: E501
     },
@@ -96,7 +96,7 @@ backbone_presets_with_weights = {
             "description": ("A small YOLOV8 backbone pretrained on COCO")
         },
         "class_name": "keras_cv.models>YOLOV8Backbone",
-        "config": backbone_presets_no_weights["yolov8_n_backbone"]["config"],
+        "config": backbone_presets_no_weights["yolov8_s_backbone"]["config"],
         "weights_url": "https://storage.googleapis.com/keras-cv/models/yolov8/coco/yolov8_s_backbone.h5",  # noqa: E501
         "weights_hash": "49ab5da87d6b36a1943e7f111a1960355171332c25312b6cc01526baaecf1b69",  # noqa: E501
     },

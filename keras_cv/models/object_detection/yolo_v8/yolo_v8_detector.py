@@ -103,8 +103,7 @@ def get_anchors(
 
 
 def apply_path_aggregation_fpn(features, depth=3, name="fpn"):
-    """
-    Applies the Feature Pyramid Network (FPN) to the outputs of a backbone.
+    """Applies the Feature Pyramid Network (FPN) to the outputs of a backbone.
 
     Args:
         features: list of tensors representing the P3, P4, and P5 outputs of the
@@ -330,9 +329,9 @@ class YOLOV8Detector(Task):
         backbone: `keras.Model`, must implement the `pyramid_level_inputs`
             property with keys 2, 3, and 4 and layer names as values. A
             sensible backbone to use is the `keras_cv.models.YOLOV8Backbone`.
-        fpn_depth: integer, a specification of the depth for the Feature
-            Pyramid Network. This is usually 1, 2, or 3, depending on the
-            size of your YOLOV8Detector model.
+        fpn_depth: integer, a specification of the depth of the CSP blocks in
+            the Feature Pyramid Network. This is usually 1, 2, or 3, depending
+            on the size of your YOLOV8Detector model.
         label_encoder: (Optional)  A `YOLOV8LabelEncoder` that is
             responsible for transforming input boxes into trainable labels for
             YOLOV8Detector. If not provided, a default is provided.
