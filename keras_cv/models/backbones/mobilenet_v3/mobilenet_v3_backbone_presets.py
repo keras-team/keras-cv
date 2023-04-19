@@ -13,11 +13,6 @@
 # limitations under the License.
 
 """MobileNetV3 model preset configurations."""
-from tensorflow.keras import layers
-
-from keras_cv.models.backbones.mobilenet_v3 import (
-    mobilenet_v3_backbone as backbone,
-)
 
 backbone_presets_no_weights = {
     "mobilenetv3small": {
@@ -60,17 +55,17 @@ backbone_presets_no_weights = {
                 0.25,
             ],
             "stackwise_activation": [
-                layers.ReLU(),
-                layers.ReLU(),
-                layers.ReLU(),
-                backbone.apply_hard_swish,
-                backbone.apply_hard_swish,
-                backbone.apply_hard_swish,
-                backbone.apply_hard_swish,
-                backbone.apply_hard_swish,
-                backbone.apply_hard_swish,
-                backbone.apply_hard_swish,
-                backbone.apply_hard_swish,
+                "relu",
+                "relu",
+                "relu",
+                "hard_swish",
+                "hard_swish",
+                "hard_swish",
+                "hard_swish",
+                "hard_swish",
+                "hard_swish",
+                "hard_swish",
+                "hard_swish",
             ],
             "filters": 1024,
             "include_rescaling": True,
@@ -160,21 +155,21 @@ backbone_presets_no_weights = {
                 0.25,
             ],
             "stackwise_activation": [
-                layers.ReLU(),
-                layers.ReLU(),
-                layers.ReLU(),
-                layers.ReLU(),
-                layers.ReLU(),
-                layers.ReLU(),
-                backbone.apply_hard_swish,
-                backbone.apply_hard_swish,
-                backbone.apply_hard_swish,
-                backbone.apply_hard_swish,
-                backbone.apply_hard_swish,
-                backbone.apply_hard_swish,
-                backbone.apply_hard_swish,
-                backbone.apply_hard_swish,
-                backbone.apply_hard_swish,
+                "relu",
+                "relu",
+                "relu",
+                "relu",
+                "relu",
+                "relu",
+                "hard_swish",
+                "hard_swish",
+                "hard_swish",
+                "hard_swish",
+                "hard_swish",
+                "hard_swish",
+                "hard_swish",
+                "hard_swish",
+                "hard_swish",
             ],
             "filters": 1280,
             "include_rescaling": True,
