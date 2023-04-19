@@ -66,7 +66,8 @@ def adjust_channels(x, divisor=8, min_value=None):
 
 
 def apply_hard_sigmoid(x):
-    """
+    """Applies the hard sigmoid activation to x and returns the result.
+
     Args:
         x: input tensor
     Returns:
@@ -79,7 +80,8 @@ def apply_hard_sigmoid(x):
 
 
 def apply_hard_swish(x):
-    """
+    """Applies the hard swish activation to x and returns the result.
+
     Args:
         x: input tensor
 
@@ -115,7 +117,8 @@ def apply_inverted_res_block(
             filters = filters * se_ratio.
         activation: the activation layer to use.
         expansion_index: integer, a unique identification if you want to use
-            expanded convolutions.
+            expanded convolutions. If greater than 0, an additional Conv+BN
+            layer is added after the expanded convolutional layer.
 
     Returns:
         the updated input tensor.
@@ -125,7 +128,7 @@ def apply_inverted_res_block(
     prefix = "expanded_conv/"
     infilters = backend.int_shape(x)[CHANNEL_AXIS]
 
-    if expansion_index:
+    if expansion_index > 0:
         prefix = f"expanded_conv_{expansion_index}/"
 
         x = layers.Conv2D(
@@ -223,7 +226,7 @@ class MobileNetV3Backbone(Backbone):
             - If `alpha` = 1, default number of filters from the paper
                 are used at each layer.
         dropout_rate: a float between 0 and 1 denoting the fraction of input
-            units to drop, defaults to 0.2.
+            units to drop during training, defaults to 0.2.
 
     Examples:
     ```python
@@ -299,7 +302,7 @@ class MobileNetV3Backbone(Backbone):
                 activation=stackwise_activation[stack_index],
                 expansion_index=stack_index,
             )
-            pyramid_level_inputs[stack_index] = x.node.layer.name
+            pyramid_level_inputs[stack_index + 2] = x.node.layer.name
 
         last_conv_ch = adjust_channels(backend.int_shape(x)[CHANNEL_AXIS] * 6)
 
