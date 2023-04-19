@@ -29,7 +29,7 @@ from keras_cv.layers import FusedMBConvBlock
 from keras_cv.layers import MBConvBlock
 from keras_cv.models import utils
 from keras_cv.models.backbones.backbone import Backbone
-from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone_presets import (
+from keras_cv.models.backbones.efficientnetv2.efficientnetv2_backbone_presets import (  # noqa: E501
     backbone_presets,
 )
 from keras_cv.utils.python_utils import classproperty
@@ -773,6 +773,8 @@ class EfficientNetV2SBackbone(EfficientNetV2Backbone):
         cls,
         include_rescaling=True,
         input_shape=(None, None, 3),
+        width_coefficient=1.0,
+        depth_coefficient=1.1,
         input_tensor=None,
         **kwargs,
     ):
@@ -803,6 +805,8 @@ class EfficientNetV2MBackbone(EfficientNetV2Backbone):
         cls,
         include_rescaling=True,
         input_shape=(None, None, 3),
+        width_coefficient=1.0,
+        depth_coefficient=1.1,
         input_tensor=None,
         **kwargs,
     ):
@@ -833,6 +837,8 @@ class EfficientNetV2LBackbone(EfficientNetV2Backbone):
         cls,
         include_rescaling=True,
         input_shape=(None, None, 3),
+        width_coefficient=1.0,
+        depth_coefficient=1.1,
         input_tensor=None,
         **kwargs,
     ):
@@ -864,6 +870,8 @@ class EfficientNetV2B0Backbone(EfficientNetV2Backbone):
         include_rescaling=True,
         input_shape=(None, None, 3),
         input_tensor=None,
+        width_coefficient=1.0,
+        depth_coefficient=1.1,
         **kwargs,
     ):
         # Pack args in kwargs
@@ -893,6 +901,8 @@ class EfficientNetV2B1Backbone(EfficientNetV2Backbone):
         cls,
         include_rescaling=True,
         input_shape=(None, None, 3),
+        width_coefficient=1.0,
+        depth_coefficient=1.1,
         input_tensor=None,
         **kwargs,
     ):
@@ -923,6 +933,8 @@ class EfficientNetV2B2Backbone(EfficientNetV2Backbone):
         cls,
         include_rescaling=True,
         input_shape=(None, None, 3),
+        width_coefficient=1.0,
+        depth_coefficient=1.1,
         input_tensor=None,
         **kwargs,
     ):
@@ -953,6 +965,8 @@ class EfficientNetV2B3Backbone(EfficientNetV2Backbone):
         cls,
         include_rescaling=True,
         input_shape=(None, None, 3),
+        width_coefficient=1.0,
+        depth_coefficient=1.1,
         input_tensor=None,
         **kwargs,
     ):

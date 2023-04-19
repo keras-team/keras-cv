@@ -17,10 +17,10 @@ import pytest
 import tensorflow as tf
 from absl.testing import parameterized
 
-from keras_cv.models.backbones.efficientnetv2_v1.efficientnetv2_v1_backbone import (
+from keras_cv.models.backbones.efficientnetv2.efficientnetv2_backbone import (
     EfficientNetV2Backbone,
 )
-from keras_cv.models.backbones.efficientnetv2_v1.efficientnetv2_v1_backbone import (
+from keras_cv.models.backbones.efficientnetv2.efficientnetv2_backbone import (
     EfficientNetV250Backbone,
 )
 from keras_cv.utils.train import get_feature_extractor
@@ -31,7 +31,7 @@ class EfficientNetV2PresetSmokeTest(tf.test.TestCase, parameterized.TestCase):
     """
     A smoke test for EfficientNetV2 presets we run continuously.
     This only tests the smallest weights we have available. Run with:
-    `pytest keras_cv/models/backbones/efficientnetv2_v1/efficientnetv2_v1_backbone_presets_test.py --run_large`
+    `pytest keras_cv/models/backbones/efficientnetv2/efficientnetv2_backbone_presets_test.py --run_large` # noqa: E501
     """
 
     def setUp(self):
@@ -114,7 +114,7 @@ class EfficientNetV2PresetFullTest(tf.test.TestCase, parameterized.TestCase):
     Test the full enumeration of our preset.
     This every presets for EfficientNetV2 and is only run manually.
     Run with:
-    `pytest keras_cv/models/backbones/efficientnetv2_v1/efficientnetv2_v1_backbone_presets_test.py --run_extra_large`
+    `pytest keras_cv/models/backbones/efficientnetv2_v1/efficientnetv2_backbone_presets_test.py --run_extra_large` # noqa: E501
     """
 
     def test_load_efficientnetv2(self):
