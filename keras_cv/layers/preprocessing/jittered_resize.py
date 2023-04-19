@@ -94,7 +94,7 @@ class JitteredResize(VectorizedBaseImageAugmentationLayer):
     )
     # images now are (640, 640, 3), but they were resized from a 250x250 crop.
     ```
-    """
+    """  # noqa: E501
 
     def __init__(
         self,
