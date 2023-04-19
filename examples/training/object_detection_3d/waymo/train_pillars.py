@@ -19,7 +19,8 @@ import tensorflow as tf
 from keras_cv.layers import preprocessing3d
 
 # use serialize_records to convert WOD frame to Tensors
-TRAINING_RECORD_PATH = "./wod_transformed"  # "gs://waymo_open_dataset_v_1_0_0_individual_files/training"
+# "gs://waymo_open_dataset_v_1_0_0_individual_files/training"
+TRAINING_RECORD_PATH = "./wod_transformed"
 
 global_batch = 1
 
@@ -104,7 +105,7 @@ print(f"Time elapsed: {time.time()-start} seconds")
 # in KerasCV
 
 # ### Load the evaluation dataset
-# EVALUATION_RECORD_PATH = "./wod-records"#"gs://waymo_open_dataset_v_1_0_0_individual_files/validation"
+# EVALUATION_RECORD_PATH = "./wod-records"#"gs://waymo_open_dataset_v_1_0_0_individual_files/validation"  # noqa: E501
 # eval_ds = load(EVALUATION_RECORD_PATH, simple_transformer, output_signature)
 #
 #
@@ -113,14 +114,15 @@ print(f"Time elapsed: {time.time()-start} seconds")
 # with strategy.scope():
 #     model = None  # TODO Need to import model and instantiate it here
 #
-# model.compile(optimizer="adam", loss=None)  # TODO need to specify appropriate loss here
+# model.compile(optimizer="adam", loss=None)
+# TODO need to specify appropriate loss here
 #
 #
 # ### Fit the model with a callback to log scores on our evaluation dataset
 # model.fit(
 #     train_ds,
 #     callbacks=[
-#         # TODO Uncomment when ready from keras_cv.callbacks import WaymoDetectionMetrics
+# TODO Uncomment when ready from keras_cv.callbacks import WaymoDetectionMetrics
 #         WaymoDetectionMetrics(eval_ds),
 #         keras.callbacks.TensorBoard(TENSORBOARD_LOGS_PATH),
 #     ],

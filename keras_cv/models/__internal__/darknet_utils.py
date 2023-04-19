@@ -27,20 +27,21 @@ from tensorflow.keras import layers
 def DarknetConvBlock(
     filters, kernel_size, strides, use_bias=False, activation="silu", name=None
 ):
-    """The basic conv block used in Darknet. Applies Conv2D followed by a BatchNorm.
+    """The basic conv block used in Darknet. Applies Conv2D followed by a
+    BatchNorm.
 
     Args:
-        filters: Integer, the dimensionality of the output space (i.e. the number of
-            output filters in the convolution).
-        kernel_size: An integer or tuple/list of 2 integers, specifying the height
-            and width of the 2D convolution window. Can be a single integer to specify
-            the same value both dimensions.
-        strides: An integer or tuple/list of 2 integers, specifying the strides of
-            the convolution along the height and width. Can be a single integer to
-            the same value both dimensions.
+        filters: Integer, the dimensionality of the output space (i.e. the
+            number of output filters in the convolution).
+        kernel_size: An integer or tuple/list of 2 integers, specifying the
+            height and width of the 2D convolution window. Can be a single
+            integer to specify the same value both dimensions.
+        strides: An integer or tuple/list of 2 integers, specifying the strides
+            of the convolution along the height and width. Can be a single
+            integer to the same value both dimensions.
         use_bias: Boolean, whether the layer uses a bias vector.
-        activation: the activation applied after the BatchNorm layer. One of "silu",
-            "relu" or "leaky_relu". Defaults to "silu".
+        activation: the activation applied after the BatchNorm layer. One of
+            "silu", "relu" or "leaky_relu", defaults to "silu".
         name: the prefix for the layer names used in the block.
     """
 
@@ -73,8 +74,8 @@ def ResidualBlocks(filters, num_blocks, name=None):
     """A residual block used in DarkNet models, repeated `num_blocks` times.
 
     Args:
-        filters: Integer, the dimensionality of the output spaces (i.e. the number of
-            output filters in used the blocks).
+        filters: Integer, the dimensionality of the output spaces (i.e. the
+            number of output filters in used the blocks).
         num_blocks: number of times the residual connections are repeated
         name: the prefix for the layer names used in the block.
 
@@ -132,18 +133,20 @@ def SpatialPyramidPoolingBottleneck(
     """Spatial pyramid pooling layer used in YOLOv3-SPP
 
     Args:
-        filters: Integer, the dimensionality of the output spaces (i.e. the number of
-            output filters in used the blocks).
-        hidden_filters: Integer, the dimensionality of the intermediate bottleneck space
-            (i.e. the number of output filters in the bottleneck convolution). If None,
-            it will be equal to filters. Defaults to None.
-        kernel_sizes: A list or tuple representing all the pool sizes used for the
-            pooling layers. Defaults to (5, 9, 13).
-        activation: Activation for the conv layers. Defaults to "silu".
+        filters: Integer, the dimensionality of the output spaces (i.e. the
+            number of output filters in used the blocks).
+        hidden_filters: Integer, the dimensionality of the intermediate
+            bottleneck space (i.e. the number of output filters in the
+            bottleneck convolution). If None, it will be equal to filters.
+            Defaults to None.
+        kernel_sizes: A list or tuple representing all the pool sizes used for
+            the pooling layers, defaults to (5, 9, 13).
+        activation: Activation for the conv layers, defaults to "silu".
         name: the prefix for the layer names used in the block.
 
     Returns:
-        a function that takes an input Tensor representing an SpatialPyramidPoolingBottleneck.
+        a function that takes an input Tensor representing an
+        SpatialPyramidPoolingBottleneck.
     """
     if name is None:
         name = f"spp{backend.get_uid('spp')}"
@@ -191,16 +194,16 @@ def DarknetConvBlockDepthwise(
     """The depthwise conv block used in CSPDarknet.
 
     Args:
-        filters: Integer, the dimensionality of the output space (i.e. the number of
-            output filters in the final convolution).
-        kernel_size: An integer or tuple/list of 2 integers, specifying the height
-            and width of the 2D convolution window. Can be a single integer to specify
-            the same value both dimensions.
-        strides: An integer or tuple/list of 2 integers, specifying the strides of
-            the convolution along the height and width. Can be a single integer to
-            the same value both dimensions.
+        filters: Integer, the dimensionality of the output space (i.e. the
+            number of output filters in the final convolution).
+        kernel_size: An integer or tuple/list of 2 integers, specifying the
+            height and width of the 2D convolution window. Can be a single
+            integer to specify the same value both dimensions.
+        strides: An integer or tuple/list of 2 integers, specifying the strides
+            of the convolution along the height and width. Can be a single
+            integer to the same value both dimensions.
         activation: the activation applied after the final layer. One of "silu",
-            "relu" or "leaky_relu". Defaults to "silu".
+            "relu" or "leaky_relu", defaults to "silu".
         name: the prefix for the layer names used in the block.
 
     """
@@ -236,17 +239,18 @@ class CrossStagePartial(layers.Layer):
     """A block used in Cross Stage Partial Darknet.
 
     Args:
-        filters: Integer, the dimensionality of the output space (i.e. the number of
-            output filters in the final convolution).
-        num_bottlenecks: an integer representing the number of blocks added in the
-            layer bottleneck.
+        filters: Integer, the dimensionality of the output space (i.e. the
+            number of output filters in the final convolution).
+        num_bottlenecks: an integer representing the number of blocks added in
+            the layer bottleneck.
         residual: a boolean representing whether the value tensor before the
-            bottleneck should be added to the output of the bottleneck as a residual.
-            Defaults to True.
-        use_depthwise: a boolean value used to decide whether a depthwise conv block
-            should be used over a regular darknet block. Defaults to False
+            bottleneck should be added to the output of the bottleneck as a
+            residual, defaults to True.
+        use_depthwise: a boolean value used to decide whether a depthwise conv
+            block should be used over a regular darknet block, defaults to
+            False.
         activation: the activation applied after the final layer. One of "silu",
-            "relu" or "leaky_relu". Defaults to "silu".
+            "relu" or "leaky_relu", defaults to "silu".
     """
 
     def __init__(
@@ -341,18 +345,19 @@ class CrossStagePartial(layers.Layer):
 
 
 def Focus(name=None):
-    """A block used in CSPDarknet to focus information into channels of the image.
+    """A block used in CSPDarknet to focus information into channels of the
+    image.
 
-    If the dimensions of a batch input is (batch_size, width, height, channels), this
-    layer converts the image into size (batch_size, width/2, height/2, 4*channels).
-    See [the original discussion on YoloV5 Focus Layer](https://github.com/ultralytics/yolov5/discussions/3181).
+    If the dimensions of a batch input is (batch_size, width, height, channels),
+    this layer converts the image into size (batch_size, width/2, height/2,
+    4*channels). See [the original discussion on YoloV5 Focus Layer](https://github.com/ultralytics/yolov5/discussions/3181).
 
     Args:
         name: the name for the lambda layer used in the block.
 
     Returns:
         a function that takes an input Tensor representing a Focus layer.
-    """
+    """  # noqa: E501
 
     def apply(x):
         return layers.Lambda(

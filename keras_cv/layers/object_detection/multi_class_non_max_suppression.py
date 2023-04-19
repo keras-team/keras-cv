@@ -25,26 +25,27 @@ class MultiClassNonMaxSuppression(keras.layers.Layer):
 
     Arguments:
       bounding_box_format: The format of bounding boxes of input dataset. Refer
-        [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
-        for more details on supported bounding box formats.
-      from_logits: boolean, True means input score is logits, False means confidence.
+        [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/) for more details on supported bounding box
+        formats.
+      from_logits: boolean, True means input score is logits, False means
+        confidence.
       iou_threshold: a float value in the range [0, 1] representing the minimum
-        IoU threshold for two boxes to be considered same for suppression. Defaults
-        to 0.5.
+        IoU threshold for two boxes to be considered same for suppression.
+        Defaults to 0.5.
       confidence_threshold: a float value in the range [0, 1]. All boxes with
-        confidence below this value will be discarded. Defaults to 0.9.
-      max_detections: the maximum detections to consider after nms is applied. A large
-        number may trigger significant memory overhead. Defaults to 100.
-      max_detections_per_class: the maximum detections to consider per class after
-        nms is applied. Defaults to 100.
-    """
+        confidence below this value will be discarded, defaults to 0.5.
+      max_detections: the maximum detections to consider after nms is applied. A
+        large number may trigger significant memory overhead, defaults to 100.
+      max_detections_per_class: the maximum detections to consider per class
+        after nms is applied, defaults to 100.
+    """  # noqa: E501
 
     def __init__(
         self,
         bounding_box_format,
         from_logits,
         iou_threshold=0.5,
-        confidence_threshold=0.9,
+        confidence_threshold=0.5,
         max_detections=100,
         max_detections_per_class=100,
         **kwargs,
@@ -59,7 +60,8 @@ class MultiClassNonMaxSuppression(keras.layers.Layer):
         self.built = True
 
     def call(self, box_prediction, class_prediction):
-        """Accepts images and raw predictions, and returns bounding box predictions.
+        """Accepts images and raw predictions, and returns bounding box
+        predictions.
 
         Args:
             box_prediction: Dense Tensor of shape [batch, boxes, 4] in the
@@ -76,7 +78,7 @@ class MultiClassNonMaxSuppression(keras.layers.Layer):
             target=target_format,
         )
         if self.from_logits:
-            class_prediction = tf.nn.softmax(class_prediction)
+            class_prediction = tf.math.sigmoid(class_prediction)
 
         box_prediction = tf.expand_dims(box_prediction, axis=-2)
         (

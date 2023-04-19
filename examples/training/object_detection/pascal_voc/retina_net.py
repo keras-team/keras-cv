@@ -17,29 +17,31 @@ Author: [lukewood](https://github.com/LukeWood), [tanzhenyu](https://github.com/
 Date created: 2022/09/27
 Last modified: 2023/03/29
 Description: Use KerasCV to train a RetinaNet on Pascal VOC 2007.
-"""
+"""  # noqa: E501
 import resource
 import sys
 
 import tensorflow as tf
 import tensorflow_datasets as tfds
+import tqdm
 from absl import flags
 from tensorflow import keras
 
 import keras_cv
+from keras_cv.callbacks import PyCOCOCallback
 
 low, high = resource.getrlimit(resource.RLIMIT_NOFILE)
 resource.setrlimit(resource.RLIMIT_NOFILE, (high, high))
 
 flags.DEFINE_integer(
     "epochs",
-    35,
+    100,
     "Number of epochs to run for.",
 )
 
 flags.DEFINE_string(
     "weights_name",
-    "weights_{epoch:02d}.h5",
+    "weights_{epoch:02d}.weights.h5",
     "Directory which will be used to store weight checkpoints.",
 )
 flags.DEFINE_string(
@@ -52,7 +54,8 @@ FLAGS(sys.argv)
 
 # parameters from RetinaNet [paper](https://arxiv.org/abs/1708.02002)
 
-# Try to detect an available TPU. If none is present, default to MirroredStrategy
+# Try to detect an available TPU. If none is present, defaults to
+# MirroredStrategy
 try:
     tpu = tf.distribute.cluster_resolver.TPUClusterResolver.connect()
     strategy = tf.distribute.TPUStrategy(tpu)
@@ -62,7 +65,7 @@ except ValueError:
 
 BATCH_SIZE = 4
 GLOBAL_BATCH_SIZE = BATCH_SIZE * strategy.num_replicas_in_sync
-BASE_LR = 0.01 * GLOBAL_BATCH_SIZE / 16
+BASE_LR = 0.005 * GLOBAL_BATCH_SIZE / 16
 print("Number of accelerators: ", strategy.num_replicas_in_sync)
 print("Global Batch Size: ", GLOBAL_BATCH_SIZE)
 
@@ -121,7 +124,27 @@ augmenter = keras.Sequential(
         ),
     ]
 )
-train_ds = train_ds.ragged_batch(GLOBAL_BATCH_SIZE)
+
+
+rand_augment = keras_cv.layers.RandAugment(
+    value_range=(0, 255),
+    augmentations_per_image=2,
+    magnitude=0.2,
+    rate=0.5,
+    magnitude_stddev=0.1,
+    geometric=False,
+)
+
+
+def apply_rand_augment(inputs):
+    inputs["images"] = rand_augment(inputs["images"])
+    return inputs
+
+
+train_ds = train_ds.map(apply_rand_augment)
+train_ds = train_ds.apply(
+    tf.data.experimental.dense_to_ragged_batch(BATCH_SIZE)
+)
 train_ds = train_ds.map(augmenter, num_parallel_calls=tf.data.AUTOTUNE)
 
 
@@ -142,28 +165,29 @@ eval_ds = eval_ds.map(
     eval_resizing,
     num_parallel_calls=tf.data.AUTOTUNE,
 )
-eval_ds = eval_ds.ragged_batch(GLOBAL_BATCH_SIZE, drop_remainder=True)
+eval_ds = eval_ds.apply(tf.data.experimental.dense_to_ragged_batch(BATCH_SIZE))
 eval_ds = eval_ds.map(pad_fn, num_parallel_calls=tf.data.AUTOTUNE)
 eval_ds = eval_ds.prefetch(tf.data.AUTOTUNE)
 
 """
 ## Model creation
 
-We'll use the KerasCV API to construct a RetinaNet model.  In this tutorial we use
-a pretrained ResNet50 backbone using weights.  In order to perform fine-tuning, we
-freeze the backbone before training.  When `include_rescaling=True` is set, inputs to
-the model are expected to be in the range `[0, 255]`.
+We'll use the KerasCV API to construct a RetinaNet model. In this tutorial we
+use a pretrained ResNet50 backbone using weights. In order to perform
+fine-tuning, we freeze the backbone before training. When
+`include_rescaling=True` is set, inputs to the model are expected to be in the
+range `[0, 255]`.
 """
 
 with strategy.scope():
     model = keras_cv.models.RetinaNet(
         # number of classes to be used in box classification
-        num_classes=21,
+        num_classes=20,
         # For more info on supported bounding box formats, visit
         # https://keras.io/api/keras_cv/bounding_box/
         bounding_box_format="xywh",
-        backbone=keras_cv.models.ResNet50V2Backbone.from_preset(
-            "resnet50_v2_imagenet"
+        backbone=keras_cv.models.ResNet50Backbone.from_preset(
+            "resnet50_imagenet"
         ),
     )
     lr_decay = tf.keras.optimizers.schedules.PiecewiseConstantDecay(
@@ -178,26 +202,44 @@ model.prediction_decoder = keras_cv.layers.MultiClassNonMaxSuppression(
     bounding_box_format="xywh", confidence_threshold=0.5, from_logits=True
 )
 
-for layer in model.backbone.layers:
-    if isinstance(layer, (keras.layers.BatchNormalization)):
-        layer.trainable = False
-
 model.compile(
     classification_loss="focal",
     box_loss="smoothl1",
     optimizer=optimizer,
-    metrics=[
-        keras_cv.metrics.BoxCOCOMetrics(
-            bounding_box_format="xywh", evaluate_freq=128
-        )
-    ],
+    metrics=[],
 )
 
+
+class EvaluateCOCOMetricsCallback(keras.callbacks.Callback):
+    def __init__(self, data):
+        super().__init__()
+        self.data = data
+        self.metrics = keras_cv.metrics.BoxCOCOMetrics(
+            bounding_box_format="xywh", evaluate_freq=1e9
+        )
+
+    def on_epoch_end(self, epoch, logs):
+        self.metrics.reset_state()
+        for batch in tqdm.tqdm(self.data):
+            images, y_true = batch[0], batch[1]
+            y_pred = self.model.predict(images, verbose=0)
+            self.metrics.update_state(y_true, y_pred)
+
+        metrics = self.metrics.result(force=True)
+        logs.update(metrics)
+        return logs
+
+
 callbacks = [
-    keras.callbacks.TensorBoard(log_dir=FLAGS.tensorboard_path),
     keras.callbacks.ReduceLROnPlateau(patience=5),
     keras.callbacks.EarlyStopping(patience=10),
     keras.callbacks.ModelCheckpoint(FLAGS.weights_name, save_weights_only=True),
+    # Temporarily need PyCOCOCallback to verify
+    # a 1:1 comparison with the PyMetrics version.
+    # Currently, results do not match. I have a feeling this is due
+    # to how we are creating the boxes in `BoxCOCOMetrics`
+    PyCOCOCallback(eval_ds, bounding_box_format="xywh"),
+    keras.callbacks.TensorBoard(log_dir=FLAGS.tensorboard_path),
 ]
 
 history = model.fit(
@@ -206,6 +248,3 @@ history = model.fit(
     epochs=FLAGS.epochs,
     callbacks=callbacks,
 )
-
-final_scores = model.evaluate(eval_ds, return_dict=True)
-print("FINAL SCORES", final_scores)

@@ -58,25 +58,25 @@ def load(
     ```
 
     Args:
-        split: the split string passed to the `tensorflow_datasets.load()` call.  Should
-            be one of "train", "test", or "validation."
-        bounding_box_format: the keras_cv bounding box format to load the boxes into.
-            For a list of supported formats, please  Refer
+        split: the split string passed to the `tensorflow_datasets.load()` call.
+            Should be one of "train", "test", or "validation."
+        bounding_box_format: the keras_cv bounding box format to load the boxes
+            into. For a list of supported formats, please refer
             [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
             for more details on supported bounding box formats.
         batch_size: how many instances to include in batches after loading
-        shuffle: whether or not to shuffle the dataset.  Defaults to True.
         shuffle_buffer: the size of the buffer to use in shuffling.
-        shuffle_files: (Optional) whether or not to shuffle files, defaults to True.
-        dataset: (Optional) the PascalVOC dataset to load from.  Should be either
-            'voc/2007' or 'voc/2012'. Defaults to 'voc/2007'.
+        shuffle_files: (Optional) whether to shuffle files, defaults to
+            True.
+        dataset: (Optional) the PascalVOC dataset to load from. Should be either
+            'voc/2007' or 'voc/2012', defaults to 'voc/2007'.
 
     Returns:
-        tf.data.Dataset containing PascalVOC.  Each entry is a dictionary containing
-        keys {"images": images, "bounding_boxes": bounding_boxes} where images is a
-        Tensor of shape [batch, H, W, 3] and bounding_boxes is a `tf.RaggedTensor` of
-        shape [batch, None, 5].
-    """
+        tf.data.Dataset containing PascalVOC. Each entry is a dictionary
+        containing keys {"images": images, "bounding_boxes": bounding_boxes}
+        where images is a Tensor of shape [batch, H, W, 3] and bounding_boxes is
+        a `tf.RaggedTensor` of shape [batch, None, 5].
+    """  # noqa: E501
     if dataset not in ["voc/2007", "voc/2012"]:
         raise ValueError(
             "keras_cv.datasets.pascal_voc.load() expects the `dataset` "

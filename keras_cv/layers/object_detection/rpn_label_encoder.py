@@ -26,13 +26,16 @@ from keras_cv.utils import target_gather
 
 @keras.utils.register_keras_serializable(package="keras_cv")
 class _RpnLabelEncoder(keras.layers.Layer):
-    """Transforms the raw labels into training targets for region proposal network (RPN).
+    """Transforms the raw labels into training targets for region proposal
+    network (RPN).
 
     # TODO(tanzhenyu): consider unifying with _ROISampler.
     This is different from _ROISampler for a couple of reasons:
-    1) This deals with unbatched input, dict of anchors and potentially ragged labels
-    2) This deals with ground truth boxes, while _ROISampler deals with padded ground truth
-       boxes with value -1 and padded ground truth classes with value -1
+    1) This deals with unbatched input, dict of anchors and potentially ragged
+       labels.
+    2) This deals with ground truth boxes, while _ROISampler deals with padded
+       ground truth boxes with value -1 and padded ground truth classes with
+       value -1.
     3) this returns positive class target as 1, while _ROISampler returns
        positive class target as-is. (All negative class target are 0)
        The final classification loss will use one hot and #num_fg_classes + 1
@@ -44,18 +47,19 @@ class _RpnLabelEncoder(keras.layers.Layer):
 
     Args:
       anchor_format: The format of bounding boxes for anchors to generate. Refer
-        [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
-        for more details on supported bounding box formats.
-      ground_truth_box_format: The format of bounding boxes for ground truth boxes to generate.
-      positive_threshold: the float threshold to set an anchor to positive match to gt box.
-        values above it are positive matches.
-      negative_threshold: the float threshold to set an anchor to negative match to gt box.
-        values below it are negative matches.
-      samples_per_image: for each image, the number of positive and negative samples
-        to generate.
+        [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/) for more details on supported bounding box
+        formats.
+      ground_truth_box_format: The format of bounding boxes for ground truth
+        boxes to generate.
+      positive_threshold: the float threshold to set an anchor to positive match
+        to gt box. Values above it are positive matches.
+      negative_threshold: the float threshold to set an anchor to negative match
+        to gt box. Values below it are negative matches.
+      samples_per_image: for each image, the number of positive and negative
+        samples to generate.
       positive_fraction: the fraction of positive samples to the total samples.
 
-    """
+    """  # noqa: E501
 
     def __init__(
         self,
@@ -92,7 +96,7 @@ class _RpnLabelEncoder(keras.layers.Layer):
     ):
         """
         Args:
-          anchors: dict of [num_anchors, 4] or [batch_size, num_anchors, 4]
+          anchors_dict: dict of [num_anchors, 4] or [batch_size, num_anchors, 4]
             float Tensor for each level.
           gt_boxes: [num_gt, 4] or [batch_size, num_anchors] float Tensor.
           gt_classes: [num_gt, 1] float or integer Tensor.
@@ -121,17 +125,19 @@ class _RpnLabelEncoder(keras.layers.Layer):
         matched_gt_indices, matched_vals = self.box_matcher(similarity_mat)
         # [num_anchors] or [batch_size, num_anchors]
         positive_matches = tf.math.equal(matched_vals, 1)
-        # currently SyncOnReadVariable does not support `assign_add` in cross-replica.
-        #        self._positives.update_state(
-        #            tf.reduce_sum(tf.cast(positive_matches, tf.float32), axis=-1)
-        #        )
+        # currently SyncOnReadVariable does not support `assign_add` in
+        # cross-replica.
+        #    self._positives.update_state(
+        #        tf.reduce_sum(tf.cast(positive_matches, tf.float32), axis=-1)
+        #    )
 
         negative_matches = tf.math.equal(matched_vals, -1)
         # [num_anchors, 4] or [batch_size, num_anchors, 4]
         matched_gt_boxes = target_gather._target_gather(
             gt_boxes, matched_gt_indices
         )
-        # [num_anchors, 4] or [batch_size, num_anchors, 4], used as `y_true` for regression loss
+        # [num_anchors, 4] or [batch_size, num_anchors, 4], used as `y_true` for
+        # regression loss
         encoded_box_targets = bounding_box._encode_box_to_deltas(
             anchors,
             matched_gt_boxes,
@@ -146,8 +152,8 @@ class _RpnLabelEncoder(keras.layers.Layer):
 
         # [num_anchors, 1] or [batch_size, num_anchors, 1]
         positive_mask = tf.expand_dims(positive_matches, axis=-1)
-        # set all negative and ignored matches to 0, and all positive matches to 1
-        # [num_anchors, 1] or [batch_size, num_anchors, 1]
+        # set all negative and ignored matches to 0, and all positive matches to
+        # 1 [num_anchors, 1] or [batch_size, num_anchors, 1]
         positive_classes = tf.ones_like(positive_mask, dtype=gt_classes.dtype)
         negative_classes = tf.zeros_like(positive_mask, dtype=gt_classes.dtype)
         # [num_anchors, 1] or [batch_size, num_anchors, 1]
@@ -187,7 +193,8 @@ class _RpnLabelEncoder(keras.layers.Layer):
         target_shape = len(targets.get_shape().as_list())
         if target_shape != 2 and target_shape != 3:
             raise ValueError(
-                f"unpacking targets must be rank 2 or rank 3, got {target_shape}"
+                "unpacking targets must be rank 2 or rank 3, got "
+                f"{target_shape}"
             )
         unpacked_targets = {}
         count = 0

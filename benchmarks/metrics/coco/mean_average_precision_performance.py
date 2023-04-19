@@ -18,9 +18,9 @@ def produce_random_data(
     """Generates a fake list of bounding boxes for use in this test.
 
     Returns:
-      a tensor list of size [128, 25, 5/6].  This represents 128 images, 25 bboxes
-        and 5/6 dimensions to represent each bbox depending on if confidence is
-        set.
+      a tensor list of size [128, 25, 5/6]. This represents 128 images, 25
+        bboxes and 5/6 dimensions to represent each bbox depending on if
+        confidence is set.
     """
     images = []
     for _ in range(num_images):

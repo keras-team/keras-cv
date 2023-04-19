@@ -143,13 +143,13 @@ class MultiHeadCenterPillar(keras.Model):
       backbone: the backbone to apply to voxelized features.
       voxel_net: the voxel_net that takes point cloud feature and convert
         to voxelized features.
-      multiclass_head: a multi class head which returns a dict of heatmap prediction
-        and regression prediction per class.
+      multiclass_head: a multi class head which returns a dict of heatmap
+        prediction and regression prediction per class.
       label_encoder: a LabelEncoder that takes point cloud xyz and point cloud
         features and returns a multi class labels which is a dict of heatmap,
         box location and top_k heatmap index per class.
-      prediction_decoder: a multi class heatmap prediction decoder that returns a dict
-        of decoded boxes, box class, and box confidence score per class.
+      prediction_decoder: a multi class heatmap prediction decoder that returns
+        a dict of decoded boxes, box class, and box confidence score per class.
 
 
     """
@@ -195,14 +195,22 @@ class MultiHeadCenterPillar(keras.Model):
 
         Args:
             heatmap_loss: a Keras loss to use for heatmap regression.
-            box_loss: a Keras loss to use for box regression.
+            box_loss: a Keras loss to use for box regression, or a list of Keras
+                losses for box regression, one for each class. If only one loss
+                is specified, it will be used for all classes, otherwise exactly
+                one loss should be specified per class.
             kwargs: other `keras.Model.compile()` arguments are supported and
                 propagated to the `keras.Model` class.
         """
         losses = {}
+
+        if box_loss is not None and not isinstance(box_loss, list):
+            box_loss = [
+                box_loss for _ in range(self._multiclass_head._num_classes)
+            ]
         for i in range(self._multiclass_head._num_classes):
             losses[f"heatmap_class_{i+1}"] = heatmap_loss
-            losses[f"box_class_{i+1}"] = box_loss
+            losses[f"box_class_{i+1}"] = box_loss[i]
 
         super().compile(loss=losses, **kwargs)
 
@@ -214,20 +222,27 @@ class MultiHeadCenterPillar(keras.Model):
             prediction = predictions[head_name]
             heatmap_pred = tf.nn.softmax(prediction[..., :2])[..., 1]
             box_pred = prediction[..., 2:]
+
             box = targets[head_name]["boxes"]
             heatmap = targets[head_name]["heatmap"]
             index = targets[head_name]["top_k_index"]
+
             # the prediction returns 2 outputs for background vs object
             y_pred["heatmap_" + head_name] = heatmap_pred
             y_true["heatmap_" + head_name] = heatmap
             sample_weight["heatmap_" + head_name] = tf.ones_like(heatmap)
-            # heatmap_groundtruth_gather = tf.gather_nd(heatmap, index, batch_dims=1)
-            # TODO(tanzhenyu): loss heatmap threshold be configurable.
-            # box_regression_mask = heatmap_groundtruth_gather >= 0.95
+
+            # TODO(ianstenbit): loss heatmap threshold should be configurable.
+            box_regression_mask = (
+                tf.gather_nd(heatmap, index, batch_dims=1) >= 0.95
+            )
+            sample_weight["box_" + head_name] = tf.cast(
+                box_regression_mask, tf.float32
+            )
             box = tf.gather_nd(box, index, batch_dims=1)
             box_pred = tf.gather_nd(box_pred, index, batch_dims=1)
-            y_pred["bin_" + head_name] = tf.squeeze(box_pred)
-            y_true["bin_" + head_name] = tf.squeeze(box)
+            y_pred["box_" + head_name] = tf.squeeze(box_pred)
+            y_true["box_" + head_name] = tf.squeeze(box)
 
         return super().compute_loss(
             x={}, y=y_true, y_pred=y_pred, sample_weight=sample_weight

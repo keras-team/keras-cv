@@ -47,11 +47,11 @@ def get_points_boxes():
     boxes_dx = tf.random.uniform(
         shape=[num_boxes, 1], minval=0, maxval=5.0, dtype=tf.float32
     )
-    boxes_dx = tf.math.minimum(10 - boxes_x, boxes_dx)
+    boxes_dx = tf.math.minimum(box_dimension - boxes_x, boxes_dx)
     boxes_dy = tf.random.uniform(
         shape=[num_boxes, 1], minval=0, maxval=5.0, dtype=tf.float32
     )
-    boxes_dy = tf.math.minimum(10 - boxes_y, boxes_dy)
+    boxes_dy = tf.math.minimum(box_dimension - boxes_y, boxes_dy)
     boxes_z = 5.0 * tf.ones([num_boxes, 1], dtype=tf.float32)
     boxes_dz = 3.0 * tf.ones([num_boxes, 1], dtype=tf.float32)
     boxes_angle = tf.zeros([num_boxes, 1], dtype=tf.float32)
@@ -217,4 +217,8 @@ class WithinBox3DTest(tf.test.TestCase):
                 res_v2 = keras_cv.point_cloud.is_within_any_box3d_v2(
                     points, boxes
                 )
+                res_v3 = keras_cv.point_cloud.is_within_any_box3d_v3(
+                    points, boxes
+                )
                 self.assertAllEqual(res, res_v2)
+                self.assertAllEqual(res, res_v3)

@@ -70,25 +70,26 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
         learning & fine-tuning](https://keras.io/guides/transfer_learning/).
 
     Args:
-        include_rescaling: bool, whether or not to rescale the inputs. If set to True,
-            inputs will be passed through a `Rescaling(1/255.0)` layer.
-        include_top: bool, whether to include the fully-connected layer at the top of the
-            network. If provided, num_classes must be provided.
-        num_classes: integer, optional number of classes to classify images into. Only to be
-            specified if `include_top` is True.
+        include_rescaling: bool, whether to rescale the inputs. If set to
+            True, inputs will be passed through a `Rescaling(1/255.0)` layer.
+        include_top: bool, whether to include the fully-connected layer at the
+            top of the network. If provided, num_classes must be provided.
+        num_classes: integer, optional number of classes to classify images
+            into. Only to be specified if `include_top` is True.
         weights: one of `None` (random initialization), a pretrained weight file
-            path, or a reference to pre-trained weights (e.g. 'imagenet/classification')
-            (see available pre-trained weights in weights.py)
+            path, or a reference to pre-trained weights (e.g.
+            'imagenet/classification')(see available pre-trained weights in
+            weights.py)
         input_shape: optional shape tuple, defaults to (None, None, 3).
         input_tensor: optional Keras tensor (i.e., output of `layers.Input()`)
             to use as image input for the model.
         pooling: optional pooling mode for feature extraction
             when `include_top` is `False`.
-            - `None` means that the output of the model will be the 4D tensor output
-                of the last convolutional block.
-            - `avg` means that global average pooling will be applied to the output
-                of the last convolutional block, and thus the output of the model will
-                be a 2D tensor.
+            - `None` means that the output of the model will be the 4D tensor
+                output of the last convolutional block.
+            - `avg` means that global average pooling will be applied to the
+                output of the last convolutional block, and thus the output of
+                the model will be a 2D tensor.
             - `max` means that global max pooling will be applied.
         name: string, optional name to pass to the model, defaults to "{name}".
 
@@ -146,32 +147,31 @@ class ConvMixer(keras.Model):
         depth: integer, number of ConvMixer Layer.
         patch_size: integer, size of the patches.
         kernel_size: integer, kernel size for Conv2D layers.
-        include_top: bool, whether to include the fully-connected
-            layer at the top of the network.
+        include_top: bool, whether to include the fully-connected layer at the
+            top of the network.
         include_rescaling: bool, whether to rescale the inputs. If set to True,
             inputs will be passed through a `Rescaling(1/255.0)` layer.
-        name: string, optional name to pass to the model, defaults to "ConvMixer".
-        weights: one of `None` (random initialization)
-            or the path to the weights file to be loaded.
+        name: string, optional name to pass to the model, defaults to
+            "ConvMixer".
+        weights: one of `None` (random initialization) or the path to the
+            weights file to be loaded.
         input_shape: optional shape tuple, defaults to (None, None, 3).
         input_tensor: optional Keras tensor (i.e., output of `layers.Input()`)
             to use as image input for the model.
-        pooling: optional pooling mode for feature extraction
-            when `include_top` is `False`.
-            - `None` means that the output of the model will be
-                the 4D tensor output of the
-                last convolutional layer.
-            - `avg` means that global average pooling
-                will be applied to the output of the
-                last convolutional layer, and thus
-                the output of the model will be a 2D tensor.
-            - `max` means that global max pooling will
-                be applied.
+        pooling: optional pooling mode for feature extraction when `include_top`
+            is `False`.
+            - `None` means that the output of the model will be the 4D tensor
+                output of the last convolutional layer.
+            - `avg` means that global average pooling will be applied to the
+                output of the last convolutional layer, and thus the output of
+                the model will be a 2D tensor.
+            - `max` means that global max pooling will be applied.
         num_classes: integer, optional number of classes to classify images
             into. Only to be specified if `include_top` is True.
-        classifier_activation: A `str` or callable. The activation function to use
-            on the "top" layer. Ignored unless `include_top=True`. Set
-            `classifier_activation=None` to return the logits of the "top" layer.
+        classifier_activation: A `str` or callable. The activation function to
+            use on the "top" layer. Ignored unless `include_top=True`. Set
+            `classifier_activation=None` to return the logits of the "top"
+            layer.
         **kwargs: Pass-through keyword arguments to `keras.Model`.
 
     Returns:
@@ -197,8 +197,9 @@ class ConvMixer(keras.Model):
     ):
         if weights and not tf.io.gfile.exists(weights):
             raise ValueError(
-                "The `weights` argument should be either `None` or the path to the "
-                f"weights file to be loaded. Weights file not found at location: {weights}"
+                "The `weights` argument should be either `None` or the path to "
+                "the weights file to be loaded. Weights file not found at "
+                f"location: {weights}"
             )
 
         if include_top and not num_classes:

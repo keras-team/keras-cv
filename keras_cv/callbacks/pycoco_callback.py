@@ -16,27 +16,30 @@ from keras.callbacks import Callback
 
 from keras_cv import bounding_box
 from keras_cv.metrics.coco import compute_pycoco_metrics
+from keras_cv.models.object_detection.__internal__ import unpack_input
 
 
 class PyCOCOCallback(Callback):
     def __init__(
         self, validation_data, bounding_box_format, cache=True, **kwargs
     ):
-        """Creates a callback to evaluate PyCOCO metrics on a validation dataset.
+        """Creates a callback to evaluate PyCOCO metrics on a validation
+        dataset.
 
         Args:
-            validation_data: a tf.data.Dataset containing validation data. Entries
-                should have the form ```(images, {"boxes": boxes,
+            validation_data: a tf.data.Dataset containing validation data.
+                Entries should have the form ```(images, {"boxes": boxes,
                 "classes": classes})```.
             bounding_box_format: the KerasCV bounding box format used in the
                 validation dataset (e.g. "xywh")
-            cache: whether the callback should cache the dataset between iterations.
-                Note that if the validation dataset has shuffling of any kind
-                (e.g from `shuffle_files=True` in a call to TFDS.load or a call
-                to tf.data.Dataset.shuffle() with `reshuffle_each_iteration=True`),
-                you **must** cache the dataset to preserve iteration order. This
-                will store your entire dataset in main memory, so for large datasets
-                consider avoiding shuffle operations and passing `cache=False`.
+            cache: whether the callback should cache the dataset between
+                iterations. Note that if the validation dataset has shuffling of
+                any kind (e.g. from `shuffle_files=True` in a call to TFDS).
+                Load or a call to tf.data.Dataset.shuffle() with
+                `reshuffle_each_iteration=True`), you **must** cache the dataset
+                to preserve iteration order. This will store your entire dataset
+                in main memory, so for large datasets consider avoiding shuffle
+                operations and passing `cache=False`.
         """
         self.model = None
         self.val_data = validation_data
@@ -49,10 +52,12 @@ class PyCOCOCallback(Callback):
     def on_epoch_end(self, epoch, logs=None):
         logs = logs or {}
 
-        def images_only(images, boxes):
+        def images_only(data):
+            images, boxes = unpack_input(data)
             return images
 
-        def boxes_only(images, boxes):
+        def boxes_only(data):
+            images, boxes = unpack_input(data)
             return boxes
 
         images_only_ds = self.val_data.map(images_only)
@@ -85,27 +90,26 @@ class PyCOCOCallback(Callback):
             tf.linspace(1, total_images, total_images), precision=0
         )
 
-        ground_truth = {}
-        ground_truth["source_id"] = [source_ids]
-        ground_truth["height"] = [
-            tf.tile(tf.constant([height]), [total_images])
-        ]
-        ground_truth["width"] = [tf.tile(tf.constant([width]), [total_images])]
+        ground_truth = {
+            "source_id": [source_ids],
+            "height": [tf.tile(tf.constant([height]), [total_images])],
+            "width": [tf.tile(tf.constant([width]), [total_images])],
+            "num_detections": [gt_boxes.row_lengths(axis=1)],
+            "boxes": [gt_boxes.to_tensor(-1)],
+            "classes": [gt_classes.to_tensor(-1)],
+        }
 
-        ground_truth["num_detections"] = [gt_boxes.row_lengths(axis=1)]
-        ground_truth["boxes"] = [gt_boxes.to_tensor(-1)]
-        ground_truth["classes"] = [gt_classes.to_tensor(-1)]
         box_pred = bounding_box.convert_format(
             box_pred, source=self.bounding_box_format, target="yxyx"
         )
 
-        predictions = {}
-
-        predictions["source_id"] = [source_ids]
-        predictions["detection_boxes"] = [box_pred]
-        predictions["detection_classes"] = [cls_pred]
-        predictions["detection_scores"] = [confidence_pred]
-        predictions["num_detections"] = [valid_det]
+        predictions = {
+            "source_id": [source_ids],
+            "detection_boxes": [box_pred],
+            "detection_classes": [cls_pred],
+            "detection_scores": [confidence_pred],
+            "num_detections": [valid_det],
+        }
 
         metrics = compute_pycoco_metrics(ground_truth, predictions)
         # Mark these as validation metrics by prepending a val_ prefix

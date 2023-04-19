@@ -16,19 +16,19 @@ import tensorflow as tf
 from tensorflow import keras
 
 from keras_cv import bounding_box
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     BATCHED,
 )
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     BOUNDING_BOXES,
 )
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     IMAGES,
 )
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     LABELS,
 )
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     VectorizedBaseImageAugmentationLayer,
 )
 from keras_cv.utils import preprocessing as preprocessing_utils
@@ -40,9 +40,9 @@ class Mosaic(VectorizedBaseImageAugmentationLayer):
 
     Mosaic data augmentation first takes 4 images from the batch and makes a
     grid. After that based on the offset, a crop is taken to form the mosaic
-    image. Labels are in the same ratio as the the area of their images in the
-    output image. Bounding boxes are translated according to the position of
-    the 4 images.
+    image. Labels are in the same ratio as the area of their images in the
+    output image. Bounding boxes are translated according to the position of the
+    4 images.
 
     Args:
         offset: A tuple of two floats, a single float or
@@ -55,14 +55,14 @@ class Mosaic(VectorizedBaseImageAugmentationLayer):
             pass a tuple with two identical floats: `(0.5, 0.5)`. Defaults to
             (0.25, 0.75).
         bounding_box_format: a case-insensitive string (for example, "xyxy") to
-            be passed if bounding boxes are being augmented by this layer.
-            Each bounding box is defined by at least these 4 values. The inputs
-            may contain additional information such as classes and confidence
-            after these 4 values but these values will be ignored and returned
-            as is. For detailed information on the supported formats, see the
+            be passed if bounding boxes are being augmented by this layer. Each
+            bounding box is defined by at least these 4 values. The inputs may
+            contain additional information such as classes and confidence after
+            these 4 values but these values will be ignored and returned as is.
+            For detailed information on the supported formats, see the
             [KerasCV bounding box documentation](https://keras.io/api/keras_cv/bounding_box/formats/).
-            Defualts to None.
-        seed: Integer. Used to create a random seed.
+            Defaults to None.
+        seed: integer, used to create a random seed.
 
     References:
         - [Yolov4 paper](https://arxiv.org/pdf/2004.10934).
@@ -78,7 +78,7 @@ class Mosaic(VectorizedBaseImageAugmentationLayer):
     output = mosaic({'images': images, 'labels': labels})
     # output == {'images': updated_images, 'labels': updated_labels}
     ```
-    """
+    """  # noqa: E501
 
     def __init__(
         self, offset=(0.25, 0.75), bounding_box_format=None, seed=None, **kwargs
@@ -231,7 +231,6 @@ class Mosaic(VectorizedBaseImageAugmentationLayer):
             ],
             axis=-1,
         )
-
         # updates bounding_boxes for one output mosaic
         permutation_order = transformations["permutation_order"]
         classes_for_mosaic = tf.gather(classes, permutation_order)
@@ -269,17 +268,16 @@ class Mosaic(VectorizedBaseImageAugmentationLayer):
         self._validate_inputs(inputs)
         return super()._batch_augment(inputs)
 
-    def call(self, inputs, training=True):
-        if training is True:
-            _, metadata = self._format_inputs(inputs)
-            if metadata[BATCHED] is not True:
-                raise ValueError(
-                    "Mosaic received a single image to `call`. The "
-                    "layer relies on combining multiple examples, and as such "
-                    "will not behave as expected. Please call the layer with 4 "
-                    "or more samples."
-                )
-        return super().call(inputs=inputs, training=training)
+    def call(self, inputs):
+        _, metadata = self._format_inputs(inputs)
+        if metadata[BATCHED] is not True:
+            raise ValueError(
+                "Mosaic received a single image to `call`. The "
+                "layer relies on combining multiple examples, and as such "
+                "will not behave as expected. Please call the layer with 4 "
+                "or more samples."
+            )
+        return super().call(inputs=inputs)
 
     def _validate_inputs(self, inputs):
         images = inputs.get(IMAGES, None)
