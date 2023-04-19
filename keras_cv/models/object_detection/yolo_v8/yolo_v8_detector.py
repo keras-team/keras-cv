@@ -52,8 +52,10 @@ def get_anchors(
     strides=[8, 16, 32],
     base_anchors=[0.5, 0.5],
 ):
-    """Gets anchor boxes for YOLOV8. YOLOV8 uses anchor points representing the
-    center of proposed boxes
+    """Gets anchor points for YOLOV8.
+
+    YOLOV8 uses anchor points representing the center of proposed boxes, and
+    matches ground truth boxes to anchors based on center points.
 
     Args:
         image_shape: tuple or list of two integers representing the heigh and
