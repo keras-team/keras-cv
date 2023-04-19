@@ -21,7 +21,7 @@ from keras_cv.models.backbones.efficientnetv2.efficientnetv2_backbone import (
     EfficientNetV2Backbone,
 )
 from keras_cv.models.backbones.efficientnetv2.efficientnetv2_backbone import (
-    EfficientNetV250Backbone,
+    EfficientNetV2MBackbone,
 )
 from keras_cv.utils.train import get_feature_extractor
 
@@ -81,13 +81,11 @@ class EfficientNetV2PresetSmokeTest(tf.test.TestCase, parameterized.TestCase):
         self.assertAllClose(outputs, expected, atol=0.01, rtol=0.01)
 
     def test_applications_model_output(self):
-        model = EfficientNetV250Backbone()
+        model = EfficientNetV2MBackbone()
         model(self.input_batch)
 
     def test_applications_model_output_with_preset(self):
-        model = EfficientNetV250Backbone.from_preset(
-            "efficientnetv250_imagenet"
-        )
+        model = EfficientNetV2MBackbone.from_preset("efficientnetv250_imagenet")
         model(self.input_batch)
 
     def test_preset_docstring(self):
@@ -114,7 +112,7 @@ class EfficientNetV2PresetFullTest(tf.test.TestCase, parameterized.TestCase):
     Test the full enumeration of our preset.
     This every presets for EfficientNetV2 and is only run manually.
     Run with:
-    `pytest keras_cv/models/backbones/efficientnetv2_v1/efficientnetv2_backbone_presets_test.py --run_extra_large` # noqa: E501
+    `pytest keras_cv/models/backbones/efficientnetv2_v1/efficientnetv2_backbone_presets_test.py --run_extra_large`  # noqa: E501
     """
 
     def test_load_efficientnetv2(self):
