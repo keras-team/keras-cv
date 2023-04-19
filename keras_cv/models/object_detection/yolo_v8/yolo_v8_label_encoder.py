@@ -178,7 +178,7 @@ class YOLOV8LabelEncoder(layers.Layer):
             mask_pos, overlaps, max_num_boxes
         )
 
-        target_labels, target_bboxes, target_scores = self.get_targets(
+        target_bboxes, target_scores = self.get_targets(
             gt_labels, gt_bboxes, target_gt_idx, fg_mask, max_num_boxes
         )
 
@@ -217,6 +217,20 @@ class YOLOV8LabelEncoder(layers.Layer):
         mask_gt,
         max_num_boxes,
     ):
+        """Identifies matches between gt boxes and anchors.
+
+        Returns:
+            A tuple of the following:
+                - A Boolean Tensor of shape (batch_size, num_gt_boxes,
+                    num_anchors) representing whether each gt box has matched
+                    with each anchor.
+                - A Float Tensor of shape (batch_size, num_gt_boxes,
+                    num_anchors) representing the alignment score of each gt box
+                    with each anchor.
+                - A Float Tensor or shape (batch_size, num_gt_boxes,
+                    num_anchors representing the IoU of each GT box with the
+                    predicted box at each anchor.
+        """
         # get in_gts mask, (b, max_num_boxes, num_anchors)
         mask_in_gts = select_candidates_in_gts(anc_points, gt_bboxes)
 
@@ -250,10 +264,13 @@ class YOLOV8LabelEncoder(layers.Layer):
         """Computes alignment metrics for each gt box, anchor pair.
 
         Returns:
-            A tuple of float Tensors, where the first Tensor is the alignment
-            metrics for each ground truth box, anchor pair, and the second
-            Tensor is the IoUs between each ground truth box and the predicted
-            box at each anchor.
+            A tuple of the following:
+                - A Float Tensor of shape (batch_size, num_gt_boxes,
+                    num_anchors) representing the alignment metrics for each
+                    ground truth box, anchor pair.
+                - A Float Tensor of shape (batch_size, num_gt_boxes,
+                    num_anchors) representing the IoUs between each ground truth
+                    box and the predicted box at each anchor.
         """
         na = pd_bboxes.shape[-2]
         mask_gt = tf.cast(mask_gt, tf.bool)  # b, max_num_boxes, num_anchors
@@ -285,13 +302,12 @@ class YOLOV8LabelEncoder(layers.Layer):
         return align_metric, overlaps
 
     def select_topk_candidates(self, metrics, topk_mask):
-        """
-        Args:
-            metrics: Float Tensor of shape (b, max_num_boxes, num_anchors)
-                representing the alignment metric between every gt box, anchor
-                pair.
-            topk_mask: Boolean Tensor of shape (b, max_num_boxes,
-                max_anchor_matches)
+        """Selects the anchors with the top-k alignment metrics for each gt box.
+
+        Returns:
+            A Boolean Tensor of shape (batch_size, num_gt_boxes, num_anchors)
+            representing whether each anchor is among the top-k anchors for a
+            given gt box based on the alignment metric.
         """
 
         num_anchors = metrics.shape[-1]  # num_anchors
@@ -322,12 +338,14 @@ class YOLOV8LabelEncoder(layers.Layer):
     def get_targets(
         self, gt_labels, gt_bboxes, target_gt_idx, fg_mask, max_num_boxes
     ):
-        """
-        Args:
-            gt_labels: (b, max_num_boxes, 1)
-            gt_bboxes: (b, max_num_boxes, 4)
-            target_gt_idx: (b, num_anchors)
-            fg_mask: (b, num_anchors)
+        """Computes target boxes and labels.
+
+        Returns:
+            A tuple of the following:
+                - A Float Tensor of shape (batch_size, num_anchors, 4)
+                    representing target boxes each anchor..
+                - A Float Tensor of shape (batch_size, num_anchors, num_classes)
+                    representing target classes for each anchor.
         """
 
         batch_ind = tf.range(tf.shape(gt_labels)[0], dtype=tf.int64)[
@@ -356,7 +374,7 @@ class YOLOV8LabelEncoder(layers.Layer):
         )  # (b, num_anchors, num_classes)
         target_scores = tf.where(fg_scores_mask > 0, target_scores, 0)
 
-        return target_labels, target_bboxes, target_scores
+        return target_bboxes, target_scores
 
     def get_config(self):
         config = {
