@@ -17,23 +17,35 @@ import tensorflow as tf
 from typing import Union
 
 
+"""
+Implementation of head module of SSD: Single Shot MultiBox Detector
+
+Reference:
+[SSD: Single Shot MultiBox Detector]
+(https://arxiv.org/abs/1512.02325)
+[SSD: Torchvision](
+https://github.com/pytorch/vision/blob/main/torchvision/models/detection/ssd.py)
+"""
+
+
 class SSDHead(tf.keras.layers.Layer):
+
     """
     Implementation of head module of SSD: Single Shot MultiBox Detector
 
-    Reference:
-    [SSD: Single Shot MultiBox Detector](https://arxiv.org/abs/1512.02325)
-    [SSD: Torchvision](https://github.com/pytorch/vision/blob/main/torchvision/models/detection/ssd.py)
-
     Arguments:
-        num_anchors: tf.Tensor - Tensor contains number of anchors at different scales
-        num_classes: int - Integer represents total number of classes considered for classification
+        num_anchors: tf.Tensor - Tensor contains number of anchors at different
+                                 scales
+        num_classes: int - Integer represents total number of classes considered
+                           for classification
 
     Returns:
         A Python dictionary with the following format,
         {
-            "classification_results": tf.Tensor with shape(num_anchors, params, num_classes)
-            "bbox_regression_results": tf.Tensor with shape (num_anchors, params, 4)
+            "classification_results": tf.Tensor
+                                      of shape(num_anchors, params, num_classes)
+            "bbox_regression_results": tf.Tensor
+                                       of shape (num_anchors, params, 4)
         }
     """
     def __init__(self,
@@ -55,7 +67,8 @@ class SSDHead(tf.keras.layers.Layer):
                       num_classes: int,
                       name: str):
         """
-        Creates a list of Conv2D layers to construct classification or regression block of head
+        Creates a list of Conv2D layers to construct classification or
+        regression block of SSD head.
 
         Returns:
             A Python List of tf.keras.layers.Conv2D objects
@@ -98,13 +111,16 @@ class SSDHead(tf.keras.layers.Layer):
         if type(x) == list:
             for feature in x:
                 assert len(feature.shape) == 4, \
-                    f"The input list should contain Tensor with total dimensions of 4 but got {len(feature.shape)}"
+                    f"The input list should contain Tensor with total " \
+                    f"dimensions of 4 but got {len(feature.shape)}"
 
         else:
             assert len(x.shape) == 5, \
-                "The input tensor should have 5 dimensions, (num_scales, N, H, W, C)"
+                "The input tensor should have 5 dimensions, " \
+                "(num_scales, N, H, W, C)"
             assert x.shape[0] == len(self.num_anchors), \
-                "The first dimension of input should be equal to number of anchors"
+                "The first dimension of input should be equal " \
+                "to number of anchors"
 
     def call(self,
              x: Union[tf.Tensor, list[tf.Tensor]]):

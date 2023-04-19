@@ -25,8 +25,7 @@ class SSDHeadTest(tf.test.TestCase):
         input3 = tf.keras.Input((20, 20, 1024))
 
         output = SSDHead(num_anchors=[15, 20, 25],
-                         num_classes=10) \
-            ([input1, input2, input3])
+                         num_classes=10)([input1, input2, input3])
 
         model = tf.keras.models.Model(
             inputs=[input1, input2, input3], outputs=output
@@ -57,6 +56,3 @@ class SSDHeadTest(tf.test.TestCase):
                          [3, 138000, 10])
         self.assertEqual(output.get("bbox_regression_results").shape,
                          [3, 138000, 4])
-
-
-
