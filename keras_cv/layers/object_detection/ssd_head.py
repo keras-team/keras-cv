@@ -49,7 +49,7 @@ class SSDHead(tf.keras.layers.Layer):
         }
     """
 
-    def __init__(self, num_anchors: tf.Tensor, num_classes: int, **kwargs):
+    def __init__(self, num_anchors, num_classes, **kwargs):
         super().__init__(**kwargs)
         self.num_anchors = num_anchors
         self.num_classes = num_classes
@@ -61,7 +61,7 @@ class SSDHead(tf.keras.layers.Layer):
         )
 
     def conv_ssd_head(
-        self, num_anchors: tf.Tensor, num_classes: int, name: str
+        self, num_anchors, num_classes, name
     ):
         """
         Creates a list of Conv2D layers to construct classification or
@@ -82,7 +82,7 @@ class SSDHead(tf.keras.layers.Layer):
             )
         return block
 
-    def reshape_features(self, x: tf.Tensor, num_columns: int):
+    def reshape_features(self, x, num_columns):
         """
         Reduce the output from Conv2D layer into 2D tensor
 
@@ -121,7 +121,7 @@ class SSDHead(tf.keras.layers.Layer):
                 "to number of anchors"
             )
 
-    def call(self, x: Union[tf.Tensor, list[tf.Tensor]]):
+    def call(self, x):
         self.check_tensor(x)
 
         classification_results = list()
