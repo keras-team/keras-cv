@@ -49,7 +49,7 @@ class SSDHeadTest(tf.test.TestCase):
 
         output = SSDHead(num_anchors=[15, 20, 25], num_classes=10)(inputs)
 
-        self.assertEqual(type(output), dict)
+        self.assertEqual(isinstance(output, dict), True)
 
         # Taken from original implementation
         self.assertEqual(
