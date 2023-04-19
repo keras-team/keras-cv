@@ -1,3 +1,6 @@
+import tensorflow as tf
+
+
 class SSDHead(tf.keras.layers.Layer):
     """
     Implementation of head module of SSD: Single Shot MultiBox Detector
