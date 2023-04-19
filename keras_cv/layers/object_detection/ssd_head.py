@@ -13,8 +13,6 @@
 # limitations under the License.
 
 
-from typing import Union
-
 import tensorflow as tf
 
 """
@@ -97,7 +95,7 @@ class SSDHead(tf.keras.layers.Layer):
         x = tf.reshape(x, shape=(N, -1, num_columns))
         return x
 
-    def _check_tensor(self, x: Union[tf.Tensor, list[tf.Tensor]]):
+    def _check_tensor(self, x: list[tf.Tensor]):
         """
         Function to test the input Tensor or List of features
 
