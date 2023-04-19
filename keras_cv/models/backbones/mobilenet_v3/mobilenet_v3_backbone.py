@@ -282,6 +282,11 @@ class MobileNetV3Backbone(Backbone):
 
         pyramid_level_inputs = {}
         for stack_index in range(len(stackwise_filters)):
+            if stackwise_activation[stack_index] == "hard_swish":
+                stackwise_activation[stack_index] = apply_hard_swish
+            else:
+                stackwise_activation[stack_index] = layers.ReLU()
+
             x = apply_inverted_res_block(
                 x,
                 expansion=stackwise_expansion[stack_index],
