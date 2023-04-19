@@ -96,7 +96,10 @@ def apply_inverted_res_block(
     x,
     expansion,
     filters,
+    kernel_size,
     stride,
+    se_ratio,
+    activation,
     expansion_index,
 ):
     """An Inverted Residual Block.
@@ -106,7 +109,11 @@ def apply_inverted_res_block(
         expansion: integer, the expansion ratio, multiplied with infilters to
             get the minimum value passed to adjust_channels.
         filters: integer, number of filters for convolution layer.
+        kernel_size: integer, the kernel size for DepthWise Convolutions.
         stride: integer, the stride length for DepthWise Convolutions.
+        se_ratio: float, ratio for bottleneck filters. Number of bottleneck
+            filters = filters * se_ratio.
+        activation: the activation layer to use.
         expansion_index: integer, a unique identification if you want to use
             expanded convolutions.
 
@@ -134,10 +141,10 @@ def apply_inverted_res_block(
             momentum=BN_MOMENTUM,
             name=prefix + "expand/BatchNorm",
         )(x)
-        x = apply_hard_swish(x)
+        x = activation(x)
 
     x = layers.DepthwiseConv2D(
-        kernel_size=5,
+        kernel_size,
         strides=stride,
         padding="same" if stride == 1 else "valid",
         use_bias=False,
@@ -149,15 +156,16 @@ def apply_inverted_res_block(
         momentum=BN_MOMENTUM,
         name=prefix + "depthwise/BatchNorm",
     )(x)
-    x = apply_hard_swish(x)
+    x = activation(x)
 
-    with custom_object_scope({"hard_sigmoid": apply_hard_sigmoid}):
-        x = cv_layers.SqueezeAndExcite2D(
-            filters=adjust_channels(infilters * expansion),
-            ratio=0.25,
-            squeeze_activation="relu",
-            excite_activation="hard_sigmoid",
-        )(x)
+    if se_ratio:
+        with custom_object_scope({"hard_sigmoid": apply_hard_sigmoid}):
+            x = cv_layers.SqueezeAndExcite2D(
+                filters=adjust_channels(infilters * expansion),
+                ratio=se_ratio,
+                squeeze_activation="relu",
+                excite_activation="hard_sigmoid",
+            )(x)
 
     x = layers.Conv2D(
         filters,
@@ -238,7 +246,10 @@ class MobileNetV3Backbone(Backbone):
         *,
         stackwise_expansion,
         stackwise_filters,
+        stackwise_kernel_size,
         stackwise_stride,
+        stackwise_se_ratio,
+        stackwise_activation,
         filters,
         include_rescaling,
         input_shape=(None, None, 3),
@@ -277,7 +288,10 @@ class MobileNetV3Backbone(Backbone):
                 filters=adjust_channels(
                     (stackwise_filters[stack_index]) * alpha
                 ),
+                kernel_size=stackwise_kernel_size[stack_index],
                 stride=stackwise_stride[stack_index],
+                se_ratio=stackwise_se_ratio[stack_index],
+                activation=stackwise_activation[stack_index],
                 expansion_index=stack_index,
             )
             pyramid_level_inputs[stack_index] = x.node.layer.name
@@ -308,7 +322,10 @@ class MobileNetV3Backbone(Backbone):
         self.pyramid_level_inputs = pyramid_level_inputs
         self.stackwise_expansion = stackwise_expansion
         self.stackwise_filters = stackwise_filters
+        self.stackwise_kernel_size = stackwise_kernel_size
         self.stackwise_stride = stackwise_stride
+        self.stackwise_se_ratio = stackwise_se_ratio
+        self.stackwise_activation = stackwise_activation
         self.filters = filters
         self.include_rescaling = include_rescaling
         self.input_tensor = input_tensor
@@ -321,7 +338,10 @@ class MobileNetV3Backbone(Backbone):
             {
                 "stackwise_expansion": self.stackwise_expansion,
                 "stackwise_filters": self.stackwise_filters,
+                "stackwise_kernel_size": self.stackwise_kernel_size,
                 "stackwise_stride": self.stackwise_stride,
+                "stackwise_se_ratio": self.stackwise_se_ratio,
+                "stackwise_activation": self.stackwise_activation,
                 "filters": self.filters,
                 "include_rescaling": self.include_rescaling,
                 "input_shape": self.input_shape[1:],
