@@ -58,9 +58,7 @@ class SSDHead(tf.keras.layers.Layer):
             self.num_anchors, 4, name="reg"
         )
 
-    def conv_ssd_head(
-        self, num_anchors, num_classes, name
-    ):
+    def conv_ssd_head(self, num_anchors, num_classes, name):
         """
         Creates a list of Conv2D layers to construct classification or
         regression block of SSD head.
