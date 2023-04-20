@@ -123,7 +123,7 @@ backbone_presets_with_weights = {
             "description": ("An extra large YOLOV8 backbone pretrained on COCO")
         },
         "class_name": "keras_cv.models>YOLOV8Backbone",
-        "config": backbone_presets_no_weights["yolov8_x_backbone"]["config"],
+        "config": backbone_presets_no_weights["yolov8_xl_backbone"]["config"],
         "weights_url": "https://storage.googleapis.com/keras-cv/models/yolov8/coco/yolov8_x_backbone.h5",  # noqa: E501
         "weights_hash": "ce0cc3235eacaffc4a9824e28b2366e674b6d42befc4c7b77f3be7d1d39960bd",  # noqa: E501
     },
