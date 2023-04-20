@@ -21,6 +21,9 @@ backbone_presets_no_weights = {
                 "and ReLU activation are applied after the convolution layers "
                 "(v1 style)."
             ),
+            "params": 0,
+            "official_name": "RESNET_V1",
+            "path": "resnet_v1",
         },
         "class_name": "keras_cv.models>ResNetBackbone",
         "config": {
@@ -40,6 +43,9 @@ backbone_presets_no_weights = {
                 "and ReLU activation are applied after the convolution layers "
                 "(v1 style)."
             ),
+            "params": 0,
+            "official_name": "RESNET_V1",
+            "path": "resnet_v1",
         },
         "class_name": "keras_cv.models>ResNetBackbone",
         "config": {
@@ -59,6 +65,9 @@ backbone_presets_no_weights = {
                 "and ReLU activation are applied after the convolution layers "
                 "(v1 style)."
             ),
+            "params": 0,
+            "official_name": "RESNET_V1",
+            "path": "resnet_v1",
         },
         "class_name": "keras_cv.models>ResNetBackbone",
         "config": {
@@ -78,6 +87,9 @@ backbone_presets_no_weights = {
                 "and ReLU activation are applied after the convolution layers "
                 "(v1 style)."
             ),
+            "params": 0,
+            "official_name": "RESNET_V1",
+            "path": "resnet_v1",
         },
         "class_name": "keras_cv.models>ResNetBackbone",
         "config": {
@@ -97,6 +109,9 @@ backbone_presets_no_weights = {
                 "and ReLU activation are applied after the convolution layers "
                 "(v1 style)."
             ),
+            "params": 0,
+            "official_name": "RESNET_V1",
+            "path": "resnet_v1",
         },
         "class_name": "keras_cv.models>ResNetBackbone",
         "config": {
@@ -120,6 +135,9 @@ backbone_presets_with_weights = {
                 "(v1 style). "
                 "Trained on Imagenet 2012 classification task."
             ),
+            "params": 0,
+            "official_name": "RESNET_V1",
+            "path": "resnet_v1",
         },
         "class_name": "keras_cv.models>ResNetBackbone",
         "config": backbone_presets_no_weights["resnet50"]["config"],
