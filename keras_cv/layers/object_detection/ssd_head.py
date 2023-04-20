@@ -140,3 +140,16 @@ class SSDHead(tf.keras.layers.Layer):
             "classification_results": classification_results,
             "bbox_regression_results": bbox_results,
         }
+
+    def get_config(self):
+        base_config = super().get_config()
+        layer_config = {
+            "num_anchors": self.num_anchors,
+            "num_classes": self.num_classes
+        }
+        base_config.update(layer_config)
+        return base_config
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)
