@@ -1,14 +1,11 @@
 import hashlib
 import json
-import os
 
 import keras
 import numpy as np
 import tensorflow as tf
-import tensorflow_datasets as tfds
 
 import keras_cv
-from keras_cv.models.classification.imagenet_labels import imagenet_labels
 
 filepath = tf.keras.utils.get_file(origin="https://i.imgur.com/9i63gLN.jpg")
 image = keras.utils.load_img(filepath)
@@ -68,11 +65,11 @@ for original_model_cls, preset_name in zip(
     weights_hash = hashlib.md5(open(weights_path, "rb").read()).hexdigest()
 
     preset_updates[preset_name] = {
-        "weights_url": f"https://storage.googleapis.com/keras-cv/models/{weights_path}",
+        "weights_url": f"https://storage.googleapis.com/keras-cv/models/{weights_path}",  # noqa: E501
         "weights_hash": weights_hash,
     }
 
-with open(f"efficientnet_v2/preset_updates.json", "w") as f:
+with open("efficientnet_v2/preset_updates.json", "w") as f:
     json.dump(preset_updates, f, indent=4)
 
 print("Please run:")

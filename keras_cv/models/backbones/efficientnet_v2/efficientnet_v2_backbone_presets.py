@@ -15,7 +15,7 @@
 """EfficientNetV2 model preset configurations."""
 
 DESCRIPTION = "One of the many EfficientNetV2 variants.  Each variant is built "
-"based on one of the parameterizations described in the original EfficientNetV2 "
+"based on one of the parameterizations described in the original EfficientNetV2"
 "publication.  To learn more about the parameterizations and their tradeoffs, "
 "please check keras.io.  As a starting point, we recommend starting with the "
 '"efficientnetv2-s" architecture, and increasing in size to "efficientnetv2-m" '
@@ -201,8 +201,8 @@ backbone_presets_with_weights = {
             "input_shape": (None, None, 3),
             "input_tensor": None,
         },
-        "weights_url": "https://storage.googleapis.com/keras-cv/models/efficientnetv2s/imagenet/classification-v0-notop.h5",
-        "weights_hash": "80555436ea49100893552614b4dce98de461fa3b6c14f8132673817d28c83654",
+        "weights_url": "https://storage.googleapis.com/keras-cv/models/efficientnetv2s/imagenet/classification-v0-notop.h5",  # noqa: E501
+        "weights_hash": "80555436ea49100893552614b4dce98de461fa3b6c14f8132673817d28c83654",  # noqa: E501
     },
     "efficientnetv2-b0_imagenet": {
         "metadata": {
@@ -225,8 +225,8 @@ backbone_presets_with_weights = {
             "input_shape": (None, None, 3),
             "input_tensor": None,
         },
-        "weights_url": "https://storage.googleapis.com/keras-cv/models/efficientnetv2b0/imagenet/classification-v0-notop.h5",
-        "weights_hash": "ac95f13a8ad1cee41184fc16fd0eb769f7c5b3131151c6abf7fcee5cc3d09bc8",
+        "weights_url": "https://storage.googleapis.com/keras-cv/models/efficientnetv2b0/imagenet/classification-v0-notop.h5",  # noqa: E501
+        "weights_hash": "ac95f13a8ad1cee41184fc16fd0eb769f7c5b3131151c6abf7fcee5cc3d09bc8",  # noqa: E501
     },
     "efficientnetv2-b1_imagenet": {
         "metadata": {
@@ -249,8 +249,8 @@ backbone_presets_with_weights = {
             "input_shape": (None, None, 3),
             "input_tensor": None,
         },
-        "weights_url": "https://storage.googleapis.com/keras-cv/models/efficientnetv2b1/imagenet/classification-v0-notop.h5",
-        "weights_hash": "82da111f8411f47e3f5eef090da76340f38e222f90a08bead53662f2ebafb01c",
+        "weights_url": "https://storage.googleapis.com/keras-cv/models/efficientnetv2b1/imagenet/classification-v0-notop.h5",  # noqa: E501
+        "weights_hash": "82da111f8411f47e3f5eef090da76340f38e222f90a08bead53662f2ebafb01c",  # noqa: E501
     },
     "efficientnetv2-b2_imagenet": {
         "metadata": {
@@ -273,8 +273,8 @@ backbone_presets_with_weights = {
             "input_shape": (None, None, 3),
             "input_tensor": None,
         },
-        "weights_url": "https://storage.googleapis.com/keras-cv/models/efficientnetv2b2/imagenet/classification-v0-notop.h5",
-        "weights_hash": "02d12c9d1589b540b4e84ffdb54ff30c96099bd59e311a85ddc7180efc65e955",
+        "weights_url": "https://storage.googleapis.com/keras-cv/models/efficientnetv2b2/imagenet/classification-v0-notop.h5",  # noqa: E501
+        "weights_hash": "02d12c9d1589b540b4e84ffdb54ff30c96099bd59e311a85ddc7180efc65e955",  # noqa: E501
     },
 }
 

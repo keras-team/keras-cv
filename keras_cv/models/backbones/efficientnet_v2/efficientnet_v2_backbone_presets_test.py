@@ -29,7 +29,7 @@ class EfficientNetV2PresetFullTest(tf.test.TestCase, parameterized.TestCase):
     This every presets for EfficientNetV2 and is only run manually.
     Run with:
     `pytest keras_cv/models/backbones/efficientnet_v2/efficientnet_v2_backbone_presets_test.py --run_extra_large`
-    """
+    """  # noqa: E501
 
     @parameterized.named_parameters(
         *[(preset, preset) for preset in EfficientNetV2Backbone.presets]

@@ -35,7 +35,7 @@ from keras_cv.models.backbones.efficientnet_v2.block_args import (
 from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone_presets import (  # noqa: E501
     backbone_presets,
 )
-from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone_presets import (
+from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone_presets import (  # noqa: E501
     backbone_presets_with_weights,
 )
 from keras_cv.utils.python_utils import classproperty
