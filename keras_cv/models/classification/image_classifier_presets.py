@@ -13,8 +13,10 @@
 # limitations under the License.
 """ImageClassifier Task presets."""
 
+from keras_cv.models.backbones.efficientnet_v2 import (
+    efficientnet_v2_backbone_presets,
+)
 from keras_cv.models.backbones.resnet_v2 import resnet_v2_backbone_presets
-from keras_cv.models.backbones.efficientnet_v2 import efficientnet_v2_backbone_presets
 
 EFFICIENTNET_DESCRIPTION = "TODO"
 
@@ -48,14 +50,14 @@ classifier_presets = {
         },
         "config": {
             "backbone": efficientnet_v2_backbone_presets.backbone_presets[
-                "efficientnetv2-s_imagenet"
+                "efficientnetv2-s"
             ],
             "num_classes": 1000,
             "pooling": "avg",
             "activation": "softmax",
         },
-        "weights_url": "https://storage.googleapis.com/keras-cv/models/efficientnetv2s/imagenet/classification-v0.h5",
-        "weights_hash": "2259db3483a577b5473dd406d1278439bd1a704ee477ff01a118299b134bd4db",
+        "weights_url": "https://storage.googleapis.com/keras-cv/models/efficientnet_v2/efficientnetv2-s_imagenet_classifier.h5",
+        "weights_hash": "4da57ade035e11aff7e1c5cb04c4235e",
     },
     "efficientnetv2-b0_imagenet_classifier": {
         "metadata": {
@@ -63,14 +65,14 @@ classifier_presets = {
         },
         "config": {
             "backbone": efficientnet_v2_backbone_presets.backbone_presets[
-                "efficientnetv2-b0_imagenet"
+                "efficientnetv2-b0"
             ],
             "num_classes": 1000,
             "pooling": "avg",
             "activation": "softmax",
         },
-        "weights_url": "https://storage.googleapis.com/keras-cv/models/efficientnetv2b0/imagenet/classification-v0.h5",
-        "weights_hash": "dbde38e7c56af5bdafe61fd798cf5d490f3c5e3b699da7e25522bc828d208984",
+        "weights_url": "https://storage.googleapis.com/keras-cv/models/efficientnet_v2/efficientnetv2-b0_imagenet_classifier.h5",
+        "weights_hash": "4b739de648c346b7e4156e11a223c338",
     },
     "efficientnetv2-b1_imagenet_classifier": {
         "metadata": {
@@ -78,14 +80,14 @@ classifier_presets = {
         },
         "config": {
             "backbone": efficientnet_v2_backbone_presets.backbone_presets[
-                "efficientnetv2-b1_imagenet"
+                "efficientnetv2-b1"
             ],
             "num_classes": 1000,
             "pooling": "avg",
             "activation": "softmax",
         },
-        "weights_url": "https://storage.googleapis.com/keras-cv/models/efficientnetv2b1/imagenet/classification-v0.h5",
-        "weights_hash": "9dd8f3c8de3bbcc269a1b9aed742bb89d56be445b6aa271aa6037644f4210e9a",
+        "weights_url": "https://storage.googleapis.com/keras-cv/models/efficientnet_v2/efficientnetv2-b1_imagenet_classifier.h5",
+        "weights_hash": "78c1c879143dbd8f74e6ffc4d3180197",
     },
     "efficientnetv2-b2_imagenet_classifier": {
         "metadata": {
@@ -93,13 +95,13 @@ classifier_presets = {
         },
         "config": {
             "backbone": efficientnet_v2_backbone_presets.backbone_presets[
-                "efficientnetv2-b2_imagenet"
+                "efficientnetv2-b2"
             ],
             "num_classes": 1000,
             "pooling": "avg",
             "activation": "softmax",
         },
-        "weights_url": "https://storage.googleapis.com/keras-cv/models/efficientnetv2b2/imagenet/classification-v0.h5",
-        "weights_hash": "05eb5674e0ecbf34d5471f611bcfa5da0bb178332dc4460c7a911d68f9a2fe87",
+        "weights_url": "https://storage.googleapis.com/keras-cv/models/efficientnet_v2/efficientnetv2-b2_imagenet_classifier.h5",
+        "weights_hash": "07eda1c48aee27e12a3fe2545e6c65ed",
     },
 }

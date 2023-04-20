@@ -30,10 +30,10 @@ presets_with_weights = [
 
 preset_updates = {}
 
-for original_model_cls, preset in zip(
+for original_model_cls, preset_name in zip(
     original_models_with_weights, presets_with_weights
 ):
-    original_model = keras_cv.models.efficientnet_v2.EfficientNetV2B0(
+    original_model = original_model_cls(
         include_rescaling=True,
         include_top=True,
         num_classes=1000,
@@ -41,7 +41,7 @@ for original_model_cls, preset in zip(
     )
 
     model = keras_cv.models.ImageClassifier.from_preset(
-        "efficientnetv2-b0_imagenet_classifier", load_weights=False
+        preset_name, load_weights=False
     )
 
     original_layers = list(original_model._flatten_layers())
@@ -63,11 +63,11 @@ for original_model_cls, preset in zip(
     delta = 0.00001
     assert all(((output_one - output_two) < delta).flatten().tolist())
 
-    weights_path = f"efficientnet_v2/{preset}.h5"
-    model.save_weights(f"efficientnet_v2/{preset}.h5")
+    weights_path = f"efficientnet_v2/{preset_name}.h5"
+    model.save_weights(weights_path)
     weights_hash = hashlib.md5(open(weights_path, "rb").read()).hexdigest()
 
-    preset_updates[preset] = {
+    preset_updates[preset_name] = {
         "weights_url": f"https://storage.googleapis.com/keras-cv/models/{weights_path}",
         "weights_hash": weights_hash,
     }
@@ -77,3 +77,4 @@ with open(f"efficientnet_v2/preset_updates.json", "w") as f:
 
 print("Please run:")
 print("`gsutil cp -r efficientnet_v2/ gs://keras-cv/models/`")
+print('`gsutil acl ch -u AllUsers:R "gs://keras-cv/models/efficientnet_v2/*"`')
