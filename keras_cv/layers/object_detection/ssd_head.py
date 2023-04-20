@@ -145,7 +145,7 @@ class SSDHead(tf.keras.layers.Layer):
         base_config = super().get_config()
         layer_config = {
             "num_anchors": self.num_anchors,
-            "num_classes": self.num_classes
+            "num_classes": self.num_classes,
         }
         base_config.update(layer_config)
         return base_config
