@@ -89,9 +89,7 @@ def apply_hard_swish(x):
         the updated input tensor.
     """
 
-    multiply_layer = layers.Multiply()
-
-    return multiply_layer([x, apply_hard_sigmoid(x)])
+    return layers.Multiply()([x, apply_hard_sigmoid(x)])
 
 
 def apply_inverted_res_block(
@@ -123,6 +121,10 @@ def apply_inverted_res_block(
     Returns:
         the updated input tensor.
     """
+    if activation == "hard_swish":
+        activation = apply_hard_swish
+    if activation == "relu":
+        activation = layers.ReLU()
 
     shortcut = x
     prefix = "expanded_conv/"
@@ -285,11 +287,6 @@ class MobileNetV3Backbone(Backbone):
 
         pyramid_level_inputs = {}
         for stack_index in range(len(stackwise_filters)):
-            if stackwise_activation[stack_index] == "hard_swish":
-                stackwise_activation[stack_index] = apply_hard_swish
-            else:
-                stackwise_activation[stack_index] = layers.ReLU()
-
             x = apply_inverted_res_block(
                 x,
                 expansion=stackwise_expansion[stack_index],
