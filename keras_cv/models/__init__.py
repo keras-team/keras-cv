@@ -127,7 +127,6 @@ from keras_cv.models.efficientnet_v1 import EfficientNetB4
 from keras_cv.models.efficientnet_v1 import EfficientNetB5
 from keras_cv.models.efficientnet_v1 import EfficientNetB6
 from keras_cv.models.efficientnet_v1 import EfficientNetB7
-from keras_cv.models.efficientnet_v2 import *
 from keras_cv.models.mlp_mixer import MLPMixerB16
 from keras_cv.models.mlp_mixer import MLPMixerB32
 from keras_cv.models.mlp_mixer import MLPMixerL16
