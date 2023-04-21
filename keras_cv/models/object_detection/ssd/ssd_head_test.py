@@ -15,7 +15,7 @@
 
 import tensorflow as tf
 
-from keras_cv.layers.object_detection.ssd_head import SSDHead
+from keras_cv.models.object_detection.ssd.ssd_head import SSDHead
 
 
 class SSDHeadTest(tf.test.TestCase):
