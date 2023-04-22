@@ -66,9 +66,9 @@ from keras_cv.models.csp_darknet import CSPDarkNetTiny
 from keras_cv.models.csp_darknet import CSPDarkNetX
 from keras_cv.models.darknet import DarkNet21
 from keras_cv.models.darknet import DarkNet53
-from keras_cv.models.densenet import DenseNet121
-from keras_cv.models.densenet import DenseNet169
-from keras_cv.models.densenet import DenseNet201
+from keras_cv.models.backbones.densenet.densenet_backbone import DenseNet121
+from keras_cv.models.backbones.densenet.densenet_backbone import DenseNet169
+from keras_cv.models.backbones.densenet.densenet_backbone import DenseNet201
 from keras_cv.models.efficientnet_lite import EfficientNetLiteB0
 from keras_cv.models.efficientnet_lite import EfficientNetLiteB1
 from keras_cv.models.efficientnet_lite import EfficientNetLiteB2
