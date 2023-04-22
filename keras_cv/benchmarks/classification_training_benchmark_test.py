@@ -34,7 +34,11 @@ class ClassificationTrainingBenchmark(
     """Benchmarks for classification models using `tf.test.Benchmark`."""
 
     _benchmark_parameters = [
-        ("ResNet18V2Backbone", models.ResNet18V2Backbone),
+        # TODO(jbischof): revert to ResNetV2 once classification head ready
+        ("ResNet50", models.ResNet50),
+        ("DenseNet121", models.DenseNet121),
+        ("DarkNet21", models.DarkNet21),
+
     ]
 
     def __init__(self):
