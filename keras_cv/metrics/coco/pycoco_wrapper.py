@@ -274,7 +274,7 @@ def compute_dataset_pycoco_metrics(model, dataset, bounding_box_format):
             ground_truth["width"].append(imges[index_0].shape[-2])
             ground_truth["num_detections"].append(len(gt_boxes["boxes"][index_0]))
             ground_truth["boxes"].append(gt_boxes["boxes"][index_0])
-            ground_truth["classes"].append(gt_classes["classes"][index_0])
+            ground_truth["classes"].append(gt_boxes["classes"][index_0])
 
             predictions["source_id"].append(index_source)
             predictions["detection_boxes"].append(boxes_pred["boxes"][index_0])
