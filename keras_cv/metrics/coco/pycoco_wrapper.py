@@ -237,6 +237,8 @@ def compute_pycoco_metrics(groundtruths, predictions):
 
 def compute_dataset_pycoco_metrics(model, dataset, bounding_box_format):
     from tqdm import tqdm
+    from keras_cv import bounding_box
+    
     index_source = 0
     
     ground_truth = {}
@@ -281,4 +283,3 @@ def compute_dataset_pycoco_metrics(model, dataset, bounding_box_format):
             predictions["num_detections"].append(boxes_pred["num_detections"][index_0])
             
     return compute_pycoco_metrics(ground_truth, predictions)
-    
