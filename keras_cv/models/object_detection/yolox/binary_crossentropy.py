@@ -80,6 +80,7 @@ class BinaryCrossentropy(tf.keras.losses.Loss):
                 ),
                 axis=self.axis,
             )
+
         return tf.keras.backend.binary_crossentropy(
             y_true, y_pred, from_logits=self.from_logits
         )

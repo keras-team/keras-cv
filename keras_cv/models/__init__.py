@@ -134,11 +134,6 @@ from keras_cv.models.regnet import RegNetY080
 from keras_cv.models.regnet import RegNetY120
 from keras_cv.models.regnet import RegNetY160
 from keras_cv.models.regnet import RegNetY320
-from keras_cv.models.resnet_v1 import ResNet18
-from keras_cv.models.resnet_v1 import ResNet34
-from keras_cv.models.resnet_v1 import ResNet50
-from keras_cv.models.resnet_v1 import ResNet101
-from keras_cv.models.resnet_v1 import ResNet152
 from keras_cv.models.segmentation.deeplab import DeepLabV3
 from keras_cv.models.stable_diffusion import StableDiffusion
 from keras_cv.models.stable_diffusion import StableDiffusionV2
