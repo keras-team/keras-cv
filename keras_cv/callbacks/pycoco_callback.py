@@ -17,6 +17,7 @@ from keras.callbacks import Callback
 from keras_cv import bounding_box
 from keras_cv.metrics.coco import compute_pycoco_metrics
 from keras_cv.models.object_detection.__internal__ import unpack_input
+from keras_cv.utils.conditional_imports import assert_pycocotools_installed
 
 
 class PyCOCOCallback(Callback):
@@ -41,6 +42,7 @@ class PyCOCOCallback(Callback):
                 in main memory, so for large datasets consider avoiding shuffle
                 operations and passing `cache=False`.
         """
+        assert_pycocotools_installed("PyCOCOCallback")
         self.model = None
         self.val_data = validation_data
         if cache:
