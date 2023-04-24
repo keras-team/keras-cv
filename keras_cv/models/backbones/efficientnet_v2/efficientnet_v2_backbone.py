@@ -219,7 +219,7 @@ class EfficientNetV2Backbone(Backbone):
 
                 if args["strides"] != 1:
                     pyramid_level_inputs[
-                        pyramid_level_tracker
+                        i+1
                     ] = x.node.layer.name
                     pyramid_level_tracker += 1
 
