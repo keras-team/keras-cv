@@ -131,7 +131,7 @@ class CSPDarkNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
         ("S", csp_darknet_backbone.CSPDarkNetSBackbone),
         ("M", csp_darknet_backbone.CSPDarkNetMBackbone),
         ("L", csp_darknet_backbone.CSPDarkNetLBackbone),
-        ("X", csp_darknet_backbone.CSPDarkNetXBackbone),
+        ("XL", csp_darknet_backbone.CSPDarkNetXLBackbone),
     )
     def test_specific_arch_forward_pass(self, arch_class):
         backbone = arch_class()

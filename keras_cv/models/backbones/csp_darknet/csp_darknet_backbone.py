@@ -326,7 +326,7 @@ class CSPDarkNetLBackbone(CSPDarkNetBackbone):
         return cls.presets
 
 
-class CSPDarkNetXBackbone(CSPDarkNetBackbone):
+class CSPDarkNetXLBackbone(CSPDarkNetBackbone):
     def __new__(
         cls,
         include_rescaling=True,
@@ -342,7 +342,7 @@ class CSPDarkNetXBackbone(CSPDarkNetBackbone):
                 "input_tensor": input_tensor,
             }
         )
-        return CSPDarkNetBackbone.from_preset("csp_dark_net_l", **kwargs)
+        return CSPDarkNetBackbone.from_preset("csp_dark_net_xl", **kwargs)
 
     @classproperty
     def presets(cls):
@@ -387,10 +387,10 @@ setattr(
     ),
 )
 setattr(
-    CSPDarkNetXBackbone,
+    CSPDarkNetXLBackbone,
     "__doc__",
     ALIAS_DOCSTRING.format(
-        name="X",
+        name="XL",
         stackwise_channels="[170, 340, 680, 1360]",
         stackwise_depth="[4, 12, 12, 4]",
     ),
