@@ -112,7 +112,7 @@ class MultiClassNonMaxSuppression(keras.layers.Layer):
         }
         # this is required to comply with KerasCV bounding box format.
         return bounding_box.mask_invalid_detections(
-            bounding_boxes, output_ragged=output_ragged
+            bounding_boxes, output_ragged=self.output_ragged
         )
 
     def get_config(self):
