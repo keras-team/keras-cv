@@ -89,12 +89,7 @@ class MaskInvalidDetectionsTest(tf.test.TestCase):
             "boxes": tf.stack(
                 [tf.random.uniform((10, 4)), tf.random.uniform((10, 4))]
             ),
-            "confidence": tf.random.uniform(
-                (
-                    2,
-                    10,
-                )
-            ),
+            "confidence": tf.random.uniform((2, 10)),
             "num_detections": tf.constant([2, 3]),
             "classes": tf.stack(
                 [tf.random.uniform((10,)), tf.random.uniform((10,))]
