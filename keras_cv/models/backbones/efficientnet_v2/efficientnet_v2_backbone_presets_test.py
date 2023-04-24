@@ -56,5 +56,5 @@ class EfficientNetV2PresetFullTest(tf.test.TestCase, parameterized.TestCase):
         outputs = backbone_model(inputs)
         self.assertLen(outputs, 2)
         self.assertEquals(list(outputs.keys()), [3, 4])
-        self.assertEquals(outputs[3].shape, [None, 32, 32, 512])
-        self.assertEquals(outputs[4].shape, [None, 16, 16, 1024])
+        self.assertEquals(outputs[3].shape[:3], [None, 32, 32])
+        self.assertEquals(outputs[4].shape[:3], [None, 16, 16])

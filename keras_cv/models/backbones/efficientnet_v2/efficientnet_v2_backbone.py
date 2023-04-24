@@ -189,7 +189,7 @@ class EfficientNetV2Backbone(Backbone):
         b = 0
         blocks = float(sum(args["num_repeat"] for args in blocks_args))
 
-        pyramid_level_tracker = 2
+        pyramid_level_tracker = 1
         for i, args in enumerate(blocks_args):
             assert args["num_repeat"] > 0
 
@@ -217,6 +217,12 @@ class EfficientNetV2Backbone(Backbone):
                 if j > 0:
                     args["strides"] = 1
                     args["input_filters"] = args["output_filters"]
+
+                if args["strides"] != 1:
+                    pyramid_level_inputs[
+                        pyramid_level_tracker
+                    ] = x.node.layer.name
+                    pyramid_level_tracker += 1
 
                 # Determine which conv type to use:
                 block = None
@@ -255,9 +261,6 @@ class EfficientNetV2Backbone(Backbone):
                 x = block(x)
                 b += 1
 
-                pyramid_level_inputs[pyramid_level_tracker] = x.node.layer.name
-                pyramid_level_tracker += 1
-
         # Build top
         top_filters = round_filters(
             filters=1280,
@@ -282,6 +285,8 @@ class EfficientNetV2Backbone(Backbone):
             name="top_bn",
         )(x)
         x = layers.Activation(activation=activation, name="top_activation")(x)
+
+        pyramid_level_inputs[pyramid_level_tracker] = x.node.layer.name
 
         inputs = img_input
 
