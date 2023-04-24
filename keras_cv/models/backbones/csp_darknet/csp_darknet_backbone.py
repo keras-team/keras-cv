@@ -390,7 +390,7 @@ setattr(
     CSPDarkNetXLBackbone,
     "__doc__",
     ALIAS_DOCSTRING.format(
-        name="X",
+        name="XL",
         stackwise_channels="[170, 340, 680, 1360]",
         stackwise_depth="[4, 12, 12, 4]",
     ),
