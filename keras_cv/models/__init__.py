@@ -98,6 +98,30 @@ from keras_cv.models.efficientnet_lite import EfficientNetLiteB1
 from keras_cv.models.efficientnet_lite import EfficientNetLiteB2
 from keras_cv.models.efficientnet_lite import EfficientNetLiteB3
 from keras_cv.models.efficientnet_lite import EfficientNetLiteB4
+from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_backbone import (
+    EfficientNetV1B0Backbone,
+)
+from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_backbone import (
+    EfficientNetV1B1Backbone,
+)
+from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_backbone import (
+    EfficientNetV1B2Backbone,
+)
+from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_backbone import (
+    EfficientNetV1B3Backbone,
+)
+from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_backbone import (
+    EfficientNetV1B4Backbone,
+)
+from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_backbone import (
+    EfficientNetV1B5Backbone,
+)
+from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_backbone import (
+    EfficientNetV1B6Backbone,
+)
+from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_backbone import (
+    EfficientNetV1B7Backbone,
+)
 from keras_cv.models.efficientnet_v2 import EfficientNetV2B0
 from keras_cv.models.efficientnet_v2 import EfficientNetV2B1
 from keras_cv.models.efficientnet_v2 import EfficientNetV2B2
