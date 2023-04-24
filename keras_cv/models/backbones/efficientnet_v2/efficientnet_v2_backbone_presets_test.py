@@ -49,7 +49,6 @@ class EfficientNetV2PresetFullTest(tf.test.TestCase, parameterized.TestCase):
             input_shape=[256, 256, 3],
         )
         levels = [3, 4]
-        print(model.pyramid_level_inputs)
         layer_names = [model.pyramid_level_inputs[level] for level in [3, 4]]
         backbone_model = get_feature_extractor(model, layer_names, levels)
         inputs = tf.keras.Input(shape=[256, 256, 3])
