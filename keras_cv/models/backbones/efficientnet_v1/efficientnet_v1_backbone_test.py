@@ -16,7 +16,6 @@ import tensorflow as tf
 from absl.testing import parameterized
 
 from keras_cv.models import efficientnet_v1
-
 from keras_cv.models.models_test import ModelsTest
 
 MODEL_LIST = [

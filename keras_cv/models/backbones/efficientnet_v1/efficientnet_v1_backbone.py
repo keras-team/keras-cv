@@ -1,4 +1,4 @@
-# Copyright 2022 The KerasCV Authors
+# Copyright 2023 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""EfficientNet models for Keras.
+"""EfficientNet V1 models for Keras.
 
 Reference:
     - [EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks](https://arxiv.org/abs/1905.11946)
@@ -23,86 +23,19 @@ Reference:
 import copy
 import math
 
-import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import backend
 from tensorflow.keras import layers
 
 from keras_cv.models import utils
-from keras_cv.models.weights import parse_weights
-
-DEFAULT_BLOCKS_ARGS = [
-    {
-        "kernel_size": 3,
-        "repeats": 1,
-        "filters_in": 32,
-        "filters_out": 16,
-        "expand_ratio": 1,
-        "id_skip": True,
-        "strides": 1,
-        "se_ratio": 0.25,
-    },
-    {
-        "kernel_size": 3,
-        "repeats": 2,
-        "filters_in": 16,
-        "filters_out": 24,
-        "expand_ratio": 6,
-        "id_skip": True,
-        "strides": 2,
-        "se_ratio": 0.25,
-    },
-    {
-        "kernel_size": 5,
-        "repeats": 2,
-        "filters_in": 24,
-        "filters_out": 40,
-        "expand_ratio": 6,
-        "id_skip": True,
-        "strides": 2,
-        "se_ratio": 0.25,
-    },
-    {
-        "kernel_size": 3,
-        "repeats": 3,
-        "filters_in": 40,
-        "filters_out": 80,
-        "expand_ratio": 6,
-        "id_skip": True,
-        "strides": 2,
-        "se_ratio": 0.25,
-    },
-    {
-        "kernel_size": 5,
-        "repeats": 3,
-        "filters_in": 80,
-        "filters_out": 112,
-        "expand_ratio": 6,
-        "id_skip": True,
-        "strides": 1,
-        "se_ratio": 0.25,
-    },
-    {
-        "kernel_size": 5,
-        "repeats": 4,
-        "filters_in": 112,
-        "filters_out": 192,
-        "expand_ratio": 6,
-        "id_skip": True,
-        "strides": 2,
-        "se_ratio": 0.25,
-    },
-    {
-        "kernel_size": 3,
-        "repeats": 1,
-        "filters_in": 192,
-        "filters_out": 320,
-        "expand_ratio": 6,
-        "id_skip": True,
-        "strides": 1,
-        "se_ratio": 0.25,
-    },
-]
+from keras_cv.models.backbones.backbone import Backbone
+from keras_cv.models.backbones.efficientnet_v1.block_args import (
+    DEFAULT_BLOCKS_ARGS,
+)
+from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_backbone_presets import (  # noqa: E501
+    backbone_presets,
+)
+from keras_cv.utils.python_utils import classproperty
 
 CONV_KERNEL_INITIALIZER = {
     "class_name": "VarianceScaling",
@@ -126,47 +59,24 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
 
     Reference:
     - [EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks](https://arxiv.org/abs/1905.11946)
-        (ICML 2019)
+    (ICML 2019) # noqa: E501
 
     This class represents a Keras image classification model.
 
     For image classification use cases, see
-    [this page for detailed examples](https://keras.io/api/applications/#usage-examples-for-image-classification-models).
+    [this page for detailed examples](https://keras.io/api/applications/#usage-examples-for-image-classification-models). # noqa: E501
 
     For transfer learning use cases, make sure to read the
-    [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
+    [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/). # noqa: E501
 
     Args:
         include_rescaling: bool, whether to rescale the inputs. If set to
             True, inputs will be passed through a `Rescaling(1/255.0)` layer.
-        include_top: bool, Whether to include the fully-connected layer at the
-            top of the network.
-        weights: One of `None` (random initialization), or the path to the
-            weights file to be loaded.
         input_shape: tuple, Optional shape tuple. It should have exactly 3
             inputs channels.
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`) to
             use as image input for the model.
-        pooling: Optional pooling mode for feature extraction when `include_top`
-            is `False`, defaults to None.
-            - `None` means that the output of the model will be the 4D tensor
-                output of the last convolutional layer.
-            - `avg` means that global average pooling will be applied to the
-                output of the last convolutional layer, and thus the output of
-                the model will be a 2D tensor.
-            - `max` means that global max pooling will be applied.
-        num_classes: int, Optional number of classes to classify images into,
-            only to be specified if `include_top` is True, and if no `weights`
-            argument is specified, defaults to None.
-        classifier_activation: A `str` or callable. The activation function to
-            use on the "top" layer. Ignored unless `include_top=True`. Set
-            `classifier_activation=None` to return the logits of the "top"
-            layer. Defaults to 'softmax'. When loading pretrained weights,
-            `classifier_activation` can only be `None` or `"softmax"`.
-
-    Returns:
-        A `keras.Model` instance.
-"""  # noqa: E501
+"""
 
 BN_AXIS = 3
 
@@ -405,13 +315,11 @@ def apply_efficientnet_block(
 
 
 @keras.utils.register_keras_serializable(package="keras_cv.models")
-class EfficientNet(keras.Model):
+class EfficientNetV1Backbone(Backbone):
     """This class represents a Keras EfficientNet architecture.
     Args:
         include_rescaling: bool, whether to rescale the inputs. If set to
             True, inputs will be passed through a `Rescaling(1/255.0)` layer.
-        include_top: bool, whether to include the fully-connected layer at the
-            top of the network.
         width_coefficient: float, scaling coefficient for network width.
         depth_coefficient: float, scaling coefficient for network depth.
         default_size: integer, default input image size.
@@ -421,40 +329,16 @@ class EfficientNet(keras.Model):
         activation: activation function.
         blocks_args: list of dicts, parameters to construct block modules.
         model_name: string, model name.
-        weights: one of `None` (random initialization), or the path to the
-            weights file to be loaded.
         input_shape: optional shape tuple, it should have exactly 3 input
             channels.
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`) to
             use as image input for the model.
-        pooling: optional pooling mode for feature extraction when `include_top`
-            is `False`.
-            - `None` means that the output of the model will be the 4D tensor
-                output of the last convolutional layer.
-            - `avg` means that global average pooling will be applied to the
-                output of the last convolutional layer, and thus the output of
-                the model will be a 2D tensor.
-            - `max` means that global max pooling will be applied.
-        num_classes: optional number of classes to classify images into,
-            only to be specified if `include_top` is True, and if no `weights`
-            argument is specified.
-        classifier_activation: A `str` or callable. The activation function to
-            use on the "top" layer. Ignored unless `include_top=True`. Set
-            `classifier_activation=None` to return the logits of the "top"
-            layer.
-    Returns:
-      A `keras.Model` instance.
-    Raises:
-      ValueError: in case of invalid argument for `weights`, or invalid input
-        shape.
-      ValueError: if `classifier_activation` is not `softmax` or `None` when
-        using a pretrained top layer.
     """
 
     def __init__(
         self,
+        *,
         include_rescaling,
-        include_top,
         width_coefficient,
         depth_coefficient,
         default_size,
@@ -464,37 +348,14 @@ class EfficientNet(keras.Model):
         activation="swish",
         blocks_args="default",
         model_name="efficientnet",
-        weights=None,
         input_shape=(None, None, 3),
         input_tensor=None,
-        pooling=None,
-        num_classes=None,
-        classifier_activation="softmax",
         **kwargs,
     ):
         blocks_args_type = blocks_args
 
         if blocks_args == "default":
             blocks_args = DEFAULT_BLOCKS_ARGS
-
-        if weights and not tf.io.gfile.exists(weights):
-            raise ValueError(
-                "The `weights` argument should be either `None` or the path to "
-                "the weights file to be loaded. Weights file not found at "
-                f"location: {weights}"
-            )
-
-        if include_top and not num_classes:
-            raise ValueError(
-                "If `include_top` is True, you should specify `num_classes`. "
-                f"Received: num_classes={num_classes}"
-            )
-
-        if include_top and pooling:
-            raise ValueError(
-                f"`pooling` must be `None` when `include_top=True`."
-                f"Received pooling={pooling} and include_top={include_top}. "
-            )
 
         img_input = utils.parse_model_inputs(input_shape, input_tensor)
 
@@ -512,7 +373,7 @@ class EfficientNet(keras.Model):
         x = apply_conv_bn(
             x=x,
             conv_type="normal",
-            filters=EfficientNet.round_filters(
+            filters=EfficientNetV1Backbone.round_filters(
                 32, width_coefficient, depth_divisor
             ),
             kernel_size=3,
@@ -531,22 +392,24 @@ class EfficientNet(keras.Model):
         b = 0
         blocks = float(
             sum(
-                EfficientNet.round_repeats(args["repeats"], depth_coefficient)
+                EfficientNetV1Backbone.round_repeats(
+                    args["repeats"], depth_coefficient
+                )
                 for args in blocks_args
             )
         )
         for i, args in enumerate(blocks_args):
             assert args["repeats"] > 0
             # Update block input and output filters based on depth multiplier.
-            args["filters_in"] = EfficientNet.round_filters(
+            args["filters_in"] = EfficientNetV1Backbone.round_filters(
                 args["filters_in"], width_coefficient, depth_divisor
             )
-            args["filters_out"] = EfficientNet.round_filters(
+            args["filters_out"] = EfficientNetV1Backbone.round_filters(
                 args["filters_out"], width_coefficient, depth_divisor
             )
 
             for j in range(
-                EfficientNet.round_repeats(
+                EfficientNetV1Backbone.round_repeats(
                     args.pop("repeats"), depth_coefficient
                 )
             ):
@@ -578,33 +441,12 @@ class EfficientNet(keras.Model):
             name="top",
         )
 
-        if include_top:
-            x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-            if dropout_rate > 0:
-                x = layers.Dropout(dropout_rate, name="top_dropout")(x)
-            x = layers.Dense(
-                num_classes,
-                activation=classifier_activation,
-                kernel_initializer=DENSE_KERNEL_INITIALIZER,
-                name="predictions",
-            )(x)
-        else:
-            if pooling == "avg":
-                x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-            elif pooling == "max":
-                x = layers.GlobalMaxPooling2D(name="max_pool")(x)
-
         inputs = img_input
 
         # Create model.
         super().__init__(inputs=inputs, outputs=x, name=model_name, **kwargs)
 
-        # Load weights.
-        if weights is not None:
-            self.load_weights(weights)
-
         self.include_rescaling = include_rescaling
-        self.include_top = include_top
         self.width_coefficient = width_coefficient
         self.depth_coefficient = depth_coefficient
         self.default_size = default_size
@@ -614,9 +456,6 @@ class EfficientNet(keras.Model):
         self.activation = activation
         self.blocks_args = blocks_args_type
         self.input_tensor = input_tensor
-        self.pooling = pooling
-        self.num_classes = num_classes
-        self.classifier_activation = classifier_activation
 
     @staticmethod
     def round_filters(filters, width_coefficient, divisor):
@@ -653,284 +492,245 @@ class EfficientNet(keras.Model):
         return int(math.ceil(depth_coefficient * repeats))
 
     def get_config(self):
-        return {
-            "include_rescaling": self.include_rescaling,
-            "include_top": self.include_top,
-            "width_coefficient": self.width_coefficient,
-            "depth_coefficient": self.depth_coefficient,
-            "default_size": self.default_size,
-            "dropout_rate": self.dropout_rate,
-            "drop_connect_rate": self.drop_connect_rate,
-            "depth_divisor": self.depth_divisor,
-            "activation": self.activation,
-            "blocks_args": self.blocks_args,
-            "input_tensor": self.input_tensor,
-            "input_shape": self.input_shape[1:],
-            "model_name": self.name,
-            "pooling": self.pooling,
-            "num_classes": self.num_classes,
-            "classifier_activation": self.classifier_activation,
-            "trainable": self.trainable,
-        }
+        config = super().get_config()
+        config.update(
+            {
+                "include_rescaling": self.include_rescaling,
+                "width_coefficient": self.width_coefficient,
+                "depth_coefficient": self.depth_coefficient,
+                "default_size": self.default_size,
+                "dropout_rate": self.dropout_rate,
+                "drop_connect_rate": self.drop_connect_rate,
+                "depth_divisor": self.depth_divisor,
+                "activation": self.activation,
+                "blocks_args": self.blocks_args,
+                "input_tensor": self.input_tensor,
+                "input_shape": self.input_shape[1:],
+                "model_name": self.name,
+                "trainable": self.trainable,
+            }
+        )
+        return config
 
-    @classmethod
-    def from_config(cls, config):
-        return cls(**config)
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return copy.deepcopy(backbone_presets)
 
 
-def EfficientNetB0(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    classifier_activation="softmax",
-    name="efficientnetb0",
-    **kwargs,
-):
-    return EfficientNet(
-        include_rescaling,
-        include_top,
-        width_coefficient=1.0,
-        depth_coefficient=1.0,
-        default_size=224,
-        dropout_rate=0.2,
-        model_name=name,
-        weights=parse_weights(weights, include_top, "efficientnetb0"),
-        input_shape=input_shape,
-        input_tensor=input_tensor,
-        pooling=pooling,
-        num_classes=num_classes,
-        classifier_activation=classifier_activation,
+class EfficientNetV1B0Backbone(EfficientNetV1Backbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return EfficientNetV1Backbone.from_preset("efficientnetv1-b0", **kwargs)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
 
 
-def EfficientNetB1(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    classifier_activation="softmax",
-    name="efficientnetb1",
-    **kwargs,
-):
-    return EfficientNet(
-        include_rescaling,
-        include_top,
-        width_coefficient=1.0,
-        depth_coefficient=1.1,
-        default_size=240,
-        dropout_rate=0.2,
-        model_name=name,
-        weights=parse_weights(weights, include_top, "efficientnetb1"),
-        input_shape=input_shape,
-        input_tensor=input_tensor,
-        pooling=pooling,
-        num_classes=num_classes,
-        classifier_activation=classifier_activation,
+class EfficientNetV1B1Backbone(EfficientNetV1Backbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return EfficientNetV1Backbone.from_preset("efficientnetv1-b1", **kwargs)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
 
 
-def EfficientNetB2(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    classifier_activation="softmax",
-    name="efficientnetb2",
-    **kwargs,
-):
-    return EfficientNet(
-        include_rescaling,
-        include_top,
-        width_coefficient=1.1,
-        depth_coefficient=1.2,
-        default_size=260,
-        dropout_rate=0.3,
-        model_name=name,
-        weights=parse_weights(weights, include_top, "efficientnetb2"),
-        input_shape=input_shape,
-        input_tensor=input_tensor,
-        pooling=pooling,
-        num_classes=num_classes,
-        classifier_activation=classifier_activation,
+class EfficientNetV1B2Backbone(EfficientNetV1Backbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return EfficientNetV1Backbone.from_preset("efficientnetv1-b2", **kwargs)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
 
 
-def EfficientNetB3(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    classifier_activation="softmax",
-    name="efficientnetb3",
-    **kwargs,
-):
-    return EfficientNet(
-        include_rescaling,
-        include_top,
-        width_coefficient=1.2,
-        depth_coefficient=1.4,
-        default_size=300,
-        dropout_rate=0.3,
-        model_name=name,
-        weights=parse_weights(weights, include_top, "efficientnetb3"),
-        input_shape=input_shape,
-        input_tensor=input_tensor,
-        pooling=pooling,
-        num_classes=num_classes,
-        classifier_activation=classifier_activation,
+class EfficientNetV1B3Backbone(EfficientNetV1Backbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return EfficientNetV1Backbone.from_preset("efficientnetv1-b3", **kwargs)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
 
 
-def EfficientNetB4(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    classifier_activation="softmax",
-    name="efficientnetb4",
-    **kwargs,
-):
-    return EfficientNet(
-        include_rescaling,
-        include_top,
-        width_coefficient=1.4,
-        depth_coefficient=1.8,
-        default_size=380,
-        dropout_rate=0.4,
-        model_name=name,
-        weights=parse_weights(weights, include_top, "efficientnetb4"),
-        input_shape=input_shape,
-        input_tensor=input_tensor,
-        pooling=pooling,
-        num_classes=num_classes,
-        classifier_activation=classifier_activation,
+class EfficientNetV1B4Backbone(EfficientNetV1Backbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return EfficientNetV1Backbone.from_preset("efficientnetv1-b4", **kwargs)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
 
 
-def EfficientNetB5(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    classifier_activation="softmax",
-    name="efficientnetb5",
-    **kwargs,
-):
-    return EfficientNet(
-        include_rescaling,
-        include_top,
-        width_coefficient=1.6,
-        depth_coefficient=2.2,
-        default_size=456,
-        dropout_rate=0.4,
-        model_name=name,
-        weights=parse_weights(weights, include_top, "efficientnetb5"),
-        input_shape=input_shape,
-        input_tensor=input_tensor,
-        pooling=pooling,
-        num_classes=num_classes,
-        classifier_activation=classifier_activation,
+class EfficientNetV1B5Backbone(EfficientNetV1Backbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return EfficientNetV1Backbone.from_preset("efficientnetv1-b5", **kwargs)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
 
 
-def EfficientNetB6(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    classifier_activation="softmax",
-    name="efficientnetb6",
-    **kwargs,
-):
-    return EfficientNet(
-        include_rescaling,
-        include_top,
-        width_coefficient=1.8,
-        depth_coefficient=2.6,
-        default_size=528,
-        dropout_rate=0.5,
-        model_name=name,
-        weights=parse_weights(weights, include_top, "efficientnetb6"),
-        input_shape=input_shape,
-        input_tensor=input_tensor,
-        pooling=pooling,
-        num_classes=num_classes,
-        classifier_activation=classifier_activation,
+class EfficientNetV1B6Backbone(EfficientNetV1Backbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return EfficientNetV1Backbone.from_preset("efficientnetv1-b6", **kwargs)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
 
 
-def EfficientNetB7(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    classifier_activation="softmax",
-    name="efficientnetb7",
-    **kwargs,
-):
-    return EfficientNet(
-        include_rescaling,
-        include_top,
-        width_coefficient=2.0,
-        depth_coefficient=3.1,
-        default_size=600,
-        dropout_rate=0.5,
-        model_name=name,
-        weights=parse_weights(weights, include_top, "efficientnetb7"),
-        input_shape=input_shape,
-        input_tensor=input_tensor,
-        pooling=pooling,
-        num_classes=num_classes,
-        classifier_activation=classifier_activation,
+class EfficientNetV1B7Backbone(EfficientNetV1Backbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return EfficientNetV1Backbone.from_preset("efficientnetv1-b7", **kwargs)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
 
 
-EfficientNetB0.__doc__ = BASE_DOCSTRING.format(name="EfficientNetB0")
-EfficientNetB1.__doc__ = BASE_DOCSTRING.format(name="EfficientNetB1")
-EfficientNetB2.__doc__ = BASE_DOCSTRING.format(name="EfficientNetB2")
-EfficientNetB3.__doc__ = BASE_DOCSTRING.format(name="EfficientNetB3")
-EfficientNetB4.__doc__ = BASE_DOCSTRING.format(name="EfficientNetB4")
-EfficientNetB5.__doc__ = BASE_DOCSTRING.format(name="EfficientNetB5")
-EfficientNetB6.__doc__ = BASE_DOCSTRING.format(name="EfficientNetB6")
-EfficientNetB7.__doc__ = BASE_DOCSTRING.format(name="EfficientNetB7")
+EfficientNetV1B0Backbone.__doc__ = BASE_DOCSTRING.format(
+    name="EfficientNetV1B0"
+)
+EfficientNetV1B1Backbone.__doc__ = BASE_DOCSTRING.format(
+    name="EfficientNetV1B1"
+)
+EfficientNetV1B2Backbone.__doc__ = BASE_DOCSTRING.format(
+    name="EfficientNetV1B2"
+)
+EfficientNetV1B3Backbone.__doc__ = BASE_DOCSTRING.format(
+    name="EfficientNetV1B3"
+)
+EfficientNetV1B4Backbone.__doc__ = BASE_DOCSTRING.format(
+    name="EfficientNetV1B4"
+)
+EfficientNetV1B5Backbone.__doc__ = BASE_DOCSTRING.format(
+    name="EfficientNetV1B5"
+)
+EfficientNetV1B6Backbone.__doc__ = BASE_DOCSTRING.format(
+    name="EfficientNetV1B6"
+)
+EfficientNetV1B7Backbone.__doc__ = BASE_DOCSTRING.format(
+    name="EfficientNetV1B7"
+)

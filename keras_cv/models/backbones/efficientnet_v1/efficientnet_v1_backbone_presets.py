@@ -11,3 +11,183 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+"""EfficientNetV1 model preset configurations."""
+
+DESCRIPTION = "One of the many EfficientNetV1 variants.  Each variant is built"
+"based on one of the parameterizations described in the original EfficientNetV1"
+"publication.  To learn more about the parameterizations and their tradeoffs,"
+"please check keras.io.  As a starting point, we recommend starting with the"
+'"efficientnetv1-b0" architecture, and increasing in size to'
+'"efficientnetv1-b4" or "efficientnetv1-b7" if resources permit.'
+
+backbone_presets_no_weights = {
+    "efficientnetv1-b0": {
+        "model_name": "efficientnetv1-b0",
+        "metadata": {
+            "description": DESCRIPTION,
+        },
+        "class_name": "keras_cv.models>EfficientNetV1Backbone",
+        "config": {
+            "model_name": "efficientnetv1-b0",
+            "width_coefficient": 1.0,
+            "depth_coefficient": 1.0,
+            "default_size": 224,
+            "dropout_rate": 0.2,
+            "drop_connect_rate": 0.2,
+            "depth_divisor": 8,
+            "activation": "swish",
+            "blocks_args": "default",
+            "include_rescaling": True,
+            "input_shape": (None, None, 3),
+            "input_tensor": None,
+        },
+    },
+    "efficientnetv1-b1": {
+        "metadata": {
+            "description": DESCRIPTION,
+        },
+        "class_name": "keras_cv.models>EfficientNetV1Backbone",
+        "config": {
+            "model_name": "efficientnetv1-b1",
+            "width_coefficient": 1.0,
+            "depth_coefficient": 1.1,
+            "default_size": 240,
+            "dropout_rate": 0.2,
+            "drop_connect_rate": 0.2,
+            "depth_divisor": 8,
+            "activation": "swish",
+            "blocks_args": "default",
+            "include_rescaling": True,
+            "input_shape": (None, None, 3),
+            "input_tensor": None,
+        },
+    },
+    "efficientnetv1-b2": {
+        "metadata": {
+            "description": DESCRIPTION,
+        },
+        "class_name": "keras_cv.models>EfficientNetV1Backbone",
+        "config": {
+            "model_name": "efficientnetv1-b2",
+            "width_coefficient": 1.1,
+            "depth_coefficient": 1.2,
+            "default_size": 260,
+            "dropout_rate": 0.3,
+            "drop_connect_rate": 0.2,
+            "depth_divisor": 8,
+            "activation": "swish",
+            "blocks_args": "default",
+            "include_rescaling": True,
+            "input_shape": (None, None, 3),
+            "input_tensor": None,
+        },
+    },
+    "efficientnetv1-b3": {
+        "metadata": {
+            "description": DESCRIPTION,
+        },
+        "class_name": "keras_cv.models>EfficientNetV1Backbone",
+        "config": {
+            "model_name": "efficientnetv1-b3",
+            "width_coefficient": 1.2,
+            "depth_coefficient": 1.4,
+            "default_size": 300,
+            "dropout_rate": 0.3,
+            "drop_connect_rate": 0.2,
+            "depth_divisor": 8,
+            "activation": "swish",
+            "blocks_args": "default",
+            "include_rescaling": True,
+            "input_shape": (None, None, 3),
+            "input_tensor": None,
+        },
+    },
+    "efficientnetv1-b4": {
+        "metadata": {
+            "description": DESCRIPTION,
+        },
+        "class_name": "keras_cv.models>EfficientNetV1Backbone",
+        "config": {
+            "model_name": "efficientnetv1-b4",
+            "width_coefficient": 1.4,
+            "depth_coefficient": 1.8,
+            "default_size": 380,
+            "dropout_rate": 0.4,
+            "drop_connect_rate": 0.2,
+            "depth_divisor": 8,
+            "activation": "swish",
+            "blocks_args": "default",
+            "include_rescaling": True,
+            "input_shape": (None, None, 3),
+            "input_tensor": None,
+        },
+    },
+    "efficientnetv1-b5": {
+        "metadata": {
+            "description": DESCRIPTION,
+        },
+        "class_name": "keras_cv.models>EfficientNetV1Backbone",
+        "config": {
+            "model_name": "efficientnetv1-b5",
+            "width_coefficient": 1.6,
+            "depth_coefficient": 2.2,
+            "default_size": 456,
+            "dropout_rate": 0.4,
+            "drop_connect_rate": 0.2,
+            "depth_divisor": 8,
+            "activation": "swish",
+            "blocks_args": "default",
+            "include_rescaling": True,
+            "input_shape": (None, None, 3),
+            "input_tensor": None,
+        },
+    },
+    "efficientnetv1-b6": {
+        "metadata": {
+            "description": DESCRIPTION,
+        },
+        "class_name": "keras_cv.models>EfficientNetV1Backbone",
+        "config": {
+            "model_name": "efficientnetv1-b6",
+            "width_coefficient": 1.8,
+            "depth_coefficient": 2.6,
+            "default_size": 528,
+            "dropout_rate": 0.5,
+            "drop_connect_rate": 0.2,
+            "depth_divisor": 8,
+            "activation": "swish",
+            "blocks_args": "default",
+            "include_rescaling": True,
+            "input_shape": (None, None, 3),
+            "input_tensor": None,
+        },
+    },
+    "efficientnetv1-b7": {
+        "metadata": {
+            "description": DESCRIPTION,
+        },
+        "class_name": "keras_cv.models>EfficientNetV1Backbone",
+        "config": {
+            "model_name": "efficientnetv1-b7",
+            "width_coefficient": 2.0,
+            "depth_coefficient": 3.1,
+            "default_size": 600,
+            "dropout_rate": 0.5,
+            "drop_connect_rate": 0.2,
+            "depth_divisor": 8,
+            "activation": "swish",
+            "blocks_args": "default",
+            "include_rescaling": True,
+            "input_shape": (None, None, 3),
+            "input_tensor": None,
+        },
+    },
+}
+
+backbone_presets_with_weights = {}
+
+backbone_presets = {
+    **backbone_presets_no_weights,
+    **backbone_presets_with_weights,
+}
