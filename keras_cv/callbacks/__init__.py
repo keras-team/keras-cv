@@ -20,3 +20,15 @@ except ImportError:
     )
 
 from keras_cv.callbacks.waymo_evaluation_callback import WaymoEvaluationCallback
+
+class EvaluateCOCOMetricsCallback(keras.callbacks.Callback):
+    def __init__(self, data, bounding_box_format):
+        super().__init__()
+        self.data = data
+        self.bounding_box_format = bounding_box_format
+
+    def on_epoch_end(self, epoch, logs):
+        from keras_cv.metrics.coco.pycoco_wrapper import compute_dataset_pycoco_metrics
+        metrics = compute_dataset_pycoco_metrics(self.model, self.data, self.bounding_box_format)
+        logs.update(metrics)
+        return logs
