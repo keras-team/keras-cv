@@ -182,7 +182,6 @@ class EfficientNetV2Backbone(Backbone):
             name="stem_bn",
         )(x)
         x = layers.Activation(activation, name="stem_activation")(x)
-        pyramid_level_inputs[1] = x.node.layer.name
 
         # Build blocks
         blocks_args = copy.deepcopy(blocks_args)
