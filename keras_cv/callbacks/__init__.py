@@ -22,14 +22,17 @@ except ImportError:
 from keras_cv.callbacks.waymo_evaluation_callback import WaymoEvaluationCallback
 
 from keras.callbacks import Callback
-class EvaluateCOCOMetricsCallback(Callback):
-    def __init__(self, data, bounding_box_format):
+class EvaluateMAPmetricsCallback(Callback):
+    def __init__(self, data, num_classes=None, bounding_box_format=None, iou_th=0.5):
         super().__init__()
         self.data = data
+        self.num_classes = num_classes
         self.bounding_box_format = bounding_box_format
+        self.iou_th = iou_th
 
     def on_epoch_end(self, epoch, logs):
-        from keras_cv.metrics.coco.pycoco_wrapper import compute_dataset_pycoco_metrics
-        metrics = compute_dataset_pycoco_metrics(self.model, self.data, self.bounding_box_format)
+        from keras_cv.metrics.object_detection.compute_map_metrics import compute_mAP_metrics
+        metrics = compute_mAP_metrics(self.model, self.data, num_classes=self.num_classes,
+                                      bounding_box_format=self.bounding_box_format, iou_th=self.iou_th)
         logs.update(metrics)
         return logs
