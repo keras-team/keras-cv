@@ -235,9 +235,10 @@ def compute_pycoco_metrics(groundtruths, predictions):
     return metrics_dict
 
 
-def compute_dataset_pycoco_metrics(model, dataset, bounding_box_format):
+def compute_dataset_pycoco_metrics(model, dataset, bounding_box_format, sentinel=-1):
     from tqdm import tqdm
     from keras_cv import bounding_box
+    from tensorflow import convert_to_tensor
     
     index_source = 0
     
@@ -257,8 +258,8 @@ def compute_dataset_pycoco_metrics(model, dataset, bounding_box_format):
     predictions["num_detections"] = list()
         
     for imges, gt_boxes in tqdm(dataset):
-        boxes_pred = model.predict(imges)
-        boxes_pred = {k: tf.convert_to_tensor(boxes_pred[k]) for k in boxes_pred}
+        boxes_pred = model.predict(imges, verbose=False)
+        boxes_pred = {k: convert_to_tensor(boxes_pred[k]) for k in boxes_pred}
         
         gt_boxes = bounding_box.convert_format(
             gt_boxes, source=bounding_box_format, target="yxyx"
@@ -269,17 +270,19 @@ def compute_dataset_pycoco_metrics(model, dataset, bounding_box_format):
         
         for index_0 in range(len(imges)):
             index_source = index_source+1
-            ground_truth["source_id"].append(index_source)
-            ground_truth["height"].append(imges[index_0].shape[-3])
-            ground_truth["width"].append(imges[index_0].shape[-2])
-            ground_truth["num_detections"].append(len(gt_boxes["boxes"][index_0]))
-            ground_truth["boxes"].append(gt_boxes["boxes"][index_0])
-            ground_truth["classes"].append(gt_boxes["classes"][index_0])
+            ground_truth["source_id"].append(convert_to_tensor(index_source)[None, ...])
+            ground_truth["height"].append(convert_to_tensor(imges[index_0].shape[-3])[None, ...])
+            ground_truth["width"].append(convert_to_tensor(imges[index_0].shape[-2])[None, ...])
+            gt_valid = gt_boxes["classes"][index_0]!=sentinel
+            ground_truth["num_detections"].append(convert_to_tensor(len(gt_boxes["classes"][index_0][gt_valid]))[None, ...])
+            ground_truth["boxes"].append(gt_boxes["boxes"][index_0][gt_valid][None, ...])
+            ground_truth["classes"].append(gt_boxes["classes"][index_0][gt_valid][None, ...])
 
-            predictions["source_id"].append(index_source)
-            predictions["detection_boxes"].append(boxes_pred["boxes"][index_0])
-            predictions["detection_classes"].append(boxes_pred["classes"][index_0])
-            predictions["detection_scores"].append(boxes_pred["confidence"][index_0])
-            predictions["num_detections"].append(boxes_pred["num_detections"][index_0])
+            boxes_valid = boxes_pred["num_detections"][index_0]
+            predictions["source_id"].append(convert_to_tensor(index_source)[None, ...])
+            predictions["detection_boxes"].append(boxes_pred["boxes"][index_0][:boxes_valid][None, ...])
+            predictions["detection_classes"].append(boxes_pred["classes"][index_0][:boxes_valid][None, ...])
+            predictions["detection_scores"].append(boxes_pred["confidence"][index_0][:boxes_valid][None, ...])
+            predictions["num_detections"].append(boxes_pred["num_detections"][index_0][None, ...])
             
     return compute_pycoco_metrics(ground_truth, predictions)
