@@ -49,7 +49,9 @@ def nms_elim(scores_box, box1, box2, iou_0, i):
 
 class nms:
     def __init__(self, scores_box, iou_0):
-        self.scores_box = scores_box  # tensor of shape [num_bboxes,5] , 5 : (xyxy bounding box format points,conf_score)
+        self.scores_box = scores_box
+        # tensor of shape [num_bboxes,5] ,
+        # 5 : (center_xywh bounding box format points,conf_score)
         self.iou_0 = iou_0  # iou threshold
 
     def compute_nms(self):
