@@ -20,6 +20,10 @@ from absl.testing import parameterized
 from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone import (
     EfficientNetV2Backbone,
 )
+from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone import (
+    EfficientNetV2SBackbone,
+)
+from keras_cv.utils.train import get_feature_extractor
 
 
 @pytest.mark.extra_large
@@ -38,3 +42,19 @@ class EfficientNetV2PresetFullTest(tf.test.TestCase, parameterized.TestCase):
         input_data = tf.ones(shape=(2, 224, 224, 3))
         model = EfficientNetV2Backbone.from_preset(preset)
         model(input_data)
+
+    def test_efficientnet_feature_extractor(self):
+        model = EfficientNetV2SBackbone(
+            include_rescaling=False,
+            input_shape=[256, 256, 3],
+        )
+        levels = [3, 4]
+        print(model.pyramid_level_inputs)
+        layer_names = [model.pyramid_level_inputs[level] for level in [3, 4]]
+        backbone_model = get_feature_extractor(model, layer_names, levels)
+        inputs = tf.keras.Input(shape=[256, 256, 3])
+        outputs = backbone_model(inputs)
+        self.assertLen(outputs, 2)
+        self.assertEquals(list(outputs.keys()), [3, 4])
+        self.assertEquals(outputs[3].shape, [None, 32, 32, 512])
+        self.assertEquals(outputs[4].shape, [None, 16, 16, 1024])

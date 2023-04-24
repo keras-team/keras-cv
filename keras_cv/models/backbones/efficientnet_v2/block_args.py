@@ -26,7 +26,7 @@ DEFAULT_BLOCKS_ARGS = {
             "expand_ratio": 1,
             "se_ratio": 0.0,
             "strides": 1,
-            "conv_type": 1,
+            "conv_type": "fused_mb_conv",
         },
         {
             "kernel_size": 3,
@@ -36,10 +36,10 @@ DEFAULT_BLOCKS_ARGS = {
             "expand_ratio": 4,
             "se_ratio": 0.0,
             "strides": 2,
-            "conv_type": 1,
+            "conv_type": "fused_mb_conv",
         },
         {
-            "conv_type": 1,
+            "conv_type": "fused_mb_conv",
             "expand_ratio": 4,
             "input_filters": 48,
             "kernel_size": 3,
@@ -49,7 +49,7 @@ DEFAULT_BLOCKS_ARGS = {
             "strides": 2,
         },
         {
-            "conv_type": 0,
+            "conv_type": "mb_conv",
             "expand_ratio": 4,
             "input_filters": 64,
             "kernel_size": 3,
@@ -59,7 +59,7 @@ DEFAULT_BLOCKS_ARGS = {
             "strides": 2,
         },
         {
-            "conv_type": 0,
+            "conv_type": "mb_conv",
             "expand_ratio": 6,
             "input_filters": 128,
             "kernel_size": 3,
@@ -69,7 +69,7 @@ DEFAULT_BLOCKS_ARGS = {
             "strides": 1,
         },
         {
-            "conv_type": 0,
+            "conv_type": "mb_conv",
             "expand_ratio": 6,
             "input_filters": 160,
             "kernel_size": 3,
@@ -88,7 +88,7 @@ DEFAULT_BLOCKS_ARGS = {
             "expand_ratio": 1,
             "se_ratio": 0,
             "strides": 1,
-            "conv_type": 1,
+            "conv_type": "fused_mb_conv",
         },
         {
             "kernel_size": 3,
@@ -98,7 +98,7 @@ DEFAULT_BLOCKS_ARGS = {
             "expand_ratio": 4,
             "se_ratio": 0,
             "strides": 2,
-            "conv_type": 1,
+            "conv_type": "fused_mb_conv",
         },
         {
             "kernel_size": 3,
@@ -108,7 +108,7 @@ DEFAULT_BLOCKS_ARGS = {
             "expand_ratio": 4,
             "se_ratio": 0,
             "strides": 2,
-            "conv_type": 1,
+            "conv_type": "fused_mb_conv",
         },
         {
             "kernel_size": 3,
@@ -118,7 +118,7 @@ DEFAULT_BLOCKS_ARGS = {
             "expand_ratio": 4,
             "se_ratio": 0.25,
             "strides": 2,
-            "conv_type": 0,
+            "conv_type": "mb_conv",
         },
         {
             "kernel_size": 3,
@@ -128,7 +128,7 @@ DEFAULT_BLOCKS_ARGS = {
             "expand_ratio": 6,
             "se_ratio": 0.25,
             "strides": 1,
-            "conv_type": 0,
+            "conv_type": "mb_conv",
         },
         {
             "kernel_size": 3,
@@ -138,7 +138,7 @@ DEFAULT_BLOCKS_ARGS = {
             "expand_ratio": 6,
             "se_ratio": 0.25,
             "strides": 2,
-            "conv_type": 0,
+            "conv_type": "mb_conv",
         },
         {
             "kernel_size": 3,
@@ -148,7 +148,7 @@ DEFAULT_BLOCKS_ARGS = {
             "expand_ratio": 6,
             "se_ratio": 0.25,
             "strides": 1,
-            "conv_type": 0,
+            "conv_type": "mb_conv",
         },
     ],
     "efficientnetv2-l": [
@@ -160,7 +160,7 @@ DEFAULT_BLOCKS_ARGS = {
             "expand_ratio": 1,
             "se_ratio": 0,
             "strides": 1,
-            "conv_type": 1,
+            "conv_type": "fused_mb_conv",
         },
         {
             "kernel_size": 3,
@@ -170,7 +170,7 @@ DEFAULT_BLOCKS_ARGS = {
             "expand_ratio": 4,
             "se_ratio": 0,
             "strides": 2,
-            "conv_type": 1,
+            "conv_type": "fused_mb_conv",
         },
         {
             "kernel_size": 3,
@@ -180,7 +180,7 @@ DEFAULT_BLOCKS_ARGS = {
             "expand_ratio": 4,
             "se_ratio": 0,
             "strides": 2,
-            "conv_type": 1,
+            "conv_type": "fused_mb_conv",
         },
         {
             "kernel_size": 3,
@@ -190,7 +190,7 @@ DEFAULT_BLOCKS_ARGS = {
             "expand_ratio": 4,
             "se_ratio": 0.25,
             "strides": 2,
-            "conv_type": 0,
+            "conv_type": "mb_conv",
         },
         {
             "kernel_size": 3,
@@ -200,7 +200,7 @@ DEFAULT_BLOCKS_ARGS = {
             "expand_ratio": 6,
             "se_ratio": 0.25,
             "strides": 1,
-            "conv_type": 0,
+            "conv_type": "mb_conv",
         },
         {
             "kernel_size": 3,
@@ -210,7 +210,7 @@ DEFAULT_BLOCKS_ARGS = {
             "expand_ratio": 6,
             "se_ratio": 0.25,
             "strides": 2,
-            "conv_type": 0,
+            "conv_type": "mb_conv",
         },
         {
             "kernel_size": 3,
@@ -220,7 +220,7 @@ DEFAULT_BLOCKS_ARGS = {
             "expand_ratio": 6,
             "se_ratio": 0.25,
             "strides": 1,
-            "conv_type": 0,
+            "conv_type": "mb_conv",
         },
     ],
     "efficientnetv2-b0": [
@@ -232,7 +232,7 @@ DEFAULT_BLOCKS_ARGS = {
             "expand_ratio": 1,
             "se_ratio": 0,
             "strides": 1,
-            "conv_type": 1,
+            "conv_type": "fused_mb_conv",
         },
         {
             "kernel_size": 3,
@@ -242,7 +242,7 @@ DEFAULT_BLOCKS_ARGS = {
             "expand_ratio": 4,
             "se_ratio": 0,
             "strides": 2,
-            "conv_type": 1,
+            "conv_type": "fused_mb_conv",
         },
         {
             "kernel_size": 3,
@@ -252,7 +252,7 @@ DEFAULT_BLOCKS_ARGS = {
             "expand_ratio": 4,
             "se_ratio": 0,
             "strides": 2,
-            "conv_type": 1,
+            "conv_type": "fused_mb_conv",
         },
         {
             "kernel_size": 3,
@@ -262,7 +262,7 @@ DEFAULT_BLOCKS_ARGS = {
             "expand_ratio": 4,
             "se_ratio": 0.25,
             "strides": 2,
-            "conv_type": 0,
+            "conv_type": "mb_conv",
         },
         {
             "kernel_size": 3,
@@ -272,7 +272,7 @@ DEFAULT_BLOCKS_ARGS = {
             "expand_ratio": 6,
             "se_ratio": 0.25,
             "strides": 1,
-            "conv_type": 0,
+            "conv_type": "mb_conv",
         },
         {
             "kernel_size": 3,
@@ -282,7 +282,7 @@ DEFAULT_BLOCKS_ARGS = {
             "expand_ratio": 6,
             "se_ratio": 0.25,
             "strides": 2,
-            "conv_type": 0,
+            "conv_type": "mb_conv",
         },
     ],
     "efficientnetv2-b1": [
@@ -294,7 +294,7 @@ DEFAULT_BLOCKS_ARGS = {
             "expand_ratio": 1,
             "se_ratio": 0,
             "strides": 1,
-            "conv_type": 1,
+            "conv_type": "fused_mb_conv",
         },
         {
             "kernel_size": 3,
@@ -304,7 +304,7 @@ DEFAULT_BLOCKS_ARGS = {
             "expand_ratio": 4,
             "se_ratio": 0,
             "strides": 2,
-            "conv_type": 1,
+            "conv_type": "fused_mb_conv",
         },
         {
             "kernel_size": 3,
@@ -314,7 +314,7 @@ DEFAULT_BLOCKS_ARGS = {
             "expand_ratio": 4,
             "se_ratio": 0,
             "strides": 2,
-            "conv_type": 1,
+            "conv_type": "fused_mb_conv",
         },
         {
             "kernel_size": 3,
@@ -324,7 +324,7 @@ DEFAULT_BLOCKS_ARGS = {
             "expand_ratio": 4,
             "se_ratio": 0.25,
             "strides": 2,
-            "conv_type": 0,
+            "conv_type": "mb_conv",
         },
         {
             "kernel_size": 3,
@@ -334,7 +334,7 @@ DEFAULT_BLOCKS_ARGS = {
             "expand_ratio": 6,
             "se_ratio": 0.25,
             "strides": 1,
-            "conv_type": 0,
+            "conv_type": "mb_conv",
         },
         {
             "kernel_size": 3,
@@ -344,7 +344,7 @@ DEFAULT_BLOCKS_ARGS = {
             "expand_ratio": 6,
             "se_ratio": 0.25,
             "strides": 2,
-            "conv_type": 0,
+            "conv_type": "mb_conv",
         },
     ],
     "efficientnetv2-b2": [
@@ -356,7 +356,7 @@ DEFAULT_BLOCKS_ARGS = {
             "expand_ratio": 1,
             "se_ratio": 0,
             "strides": 1,
-            "conv_type": 1,
+            "conv_type": "fused_mb_conv",
         },
         {
             "kernel_size": 3,
@@ -366,7 +366,7 @@ DEFAULT_BLOCKS_ARGS = {
             "expand_ratio": 4,
             "se_ratio": 0,
             "strides": 2,
-            "conv_type": 1,
+            "conv_type": "fused_mb_conv",
         },
         {
             "kernel_size": 3,
@@ -376,7 +376,7 @@ DEFAULT_BLOCKS_ARGS = {
             "expand_ratio": 4,
             "se_ratio": 0,
             "strides": 2,
-            "conv_type": 1,
+            "conv_type": "fused_mb_conv",
         },
         {
             "kernel_size": 3,
@@ -386,7 +386,7 @@ DEFAULT_BLOCKS_ARGS = {
             "expand_ratio": 4,
             "se_ratio": 0.25,
             "strides": 2,
-            "conv_type": 0,
+            "conv_type": "mb_conv",
         },
         {
             "kernel_size": 3,
@@ -396,7 +396,7 @@ DEFAULT_BLOCKS_ARGS = {
             "expand_ratio": 6,
             "se_ratio": 0.25,
             "strides": 1,
-            "conv_type": 0,
+            "conv_type": "mb_conv",
         },
         {
             "kernel_size": 3,
@@ -406,7 +406,7 @@ DEFAULT_BLOCKS_ARGS = {
             "expand_ratio": 6,
             "se_ratio": 0.25,
             "strides": 2,
-            "conv_type": 0,
+            "conv_type": "mb_conv",
         },
     ],
     "efficientnetv2-b3": [
@@ -418,7 +418,7 @@ DEFAULT_BLOCKS_ARGS = {
             "expand_ratio": 1,
             "se_ratio": 0,
             "strides": 1,
-            "conv_type": 1,
+            "conv_type": "fused_mb_conv",
         },
         {
             "kernel_size": 3,
@@ -428,7 +428,7 @@ DEFAULT_BLOCKS_ARGS = {
             "expand_ratio": 4,
             "se_ratio": 0,
             "strides": 2,
-            "conv_type": 1,
+            "conv_type": "fused_mb_conv",
         },
         {
             "kernel_size": 3,
@@ -438,7 +438,7 @@ DEFAULT_BLOCKS_ARGS = {
             "expand_ratio": 4,
             "se_ratio": 0,
             "strides": 2,
-            "conv_type": 1,
+            "conv_type": "fused_mb_conv",
         },
         {
             "kernel_size": 3,
@@ -448,7 +448,7 @@ DEFAULT_BLOCKS_ARGS = {
             "expand_ratio": 4,
             "se_ratio": 0.25,
             "strides": 2,
-            "conv_type": 0,
+            "conv_type": "mb_conv",
         },
         {
             "kernel_size": 3,
@@ -458,7 +458,7 @@ DEFAULT_BLOCKS_ARGS = {
             "expand_ratio": 6,
             "se_ratio": 0.25,
             "strides": 1,
-            "conv_type": 0,
+            "conv_type": "mb_conv",
         },
         {
             "kernel_size": 3,
@@ -468,7 +468,7 @@ DEFAULT_BLOCKS_ARGS = {
             "expand_ratio": 6,
             "se_ratio": 0.25,
             "strides": 2,
-            "conv_type": 0,
+            "conv_type": "mb_conv",
         },
     ],
 }

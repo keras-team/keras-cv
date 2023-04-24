@@ -158,6 +158,8 @@ class EfficientNetV2Backbone(Backbone):
         if include_rescaling:
             x = layers.Rescaling(scale=1 / 255.0)(x)
 
+        pyramid_level_inputs = {}
+
         # Build stem
         stem_filters = round_filters(
             filters=blocks_args[0]["input_filters"],
@@ -180,12 +182,14 @@ class EfficientNetV2Backbone(Backbone):
             name="stem_bn",
         )(x)
         x = layers.Activation(activation, name="stem_activation")(x)
+        pyramid_level_inputs[1] = x.node.layer.name
 
         # Build blocks
         blocks_args = copy.deepcopy(blocks_args)
         b = 0
         blocks = float(sum(args["num_repeat"] for args in blocks_args))
 
+        pyramid_level_tracker = 2
         for i, args in enumerate(blocks_args):
             assert args["num_repeat"] > 0
 
@@ -215,8 +219,9 @@ class EfficientNetV2Backbone(Backbone):
                     args["input_filters"] = args["output_filters"]
 
                 # Determine which conv type to use:
-                block = {
-                    0: MBConvBlock(
+                block = None
+                if args["conv_type"] == "mb_conv":
+                    block = MBConvBlock(
                         input_filters=args["input_filters"],
                         output_filters=args["output_filters"],
                         expand_ratio=args["expand_ratio"],
@@ -227,8 +232,9 @@ class EfficientNetV2Backbone(Backbone):
                         bn_momentum=bn_momentum,
                         survival_probability=drop_connect_rate * b / blocks,
                         name="block{}{}_".format(i + 1, chr(j + 97)),
-                    ),
-                    1: FusedMBConvBlock(
+                    )
+                elif args["conv_type"] == "fused_mb_conv":
+                    block = FusedMBConvBlock(
                         input_filters=args["input_filters"],
                         output_filters=args["output_filters"],
                         expand_ratio=args["expand_ratio"],
@@ -239,11 +245,18 @@ class EfficientNetV2Backbone(Backbone):
                         bn_momentum=bn_momentum,
                         survival_probability=drop_connect_rate * b / blocks,
                         name="block{}{}_".format(i + 1, chr(j + 97)),
-                    ),
-                }[args["conv_type"]]
-
+                    )
+                else:
+                    raise ValueError(
+                        "Expected `block_args['conv_type']` to be "
+                        "one of 'mb_conv', 'fused_mb_conv', but got "
+                        f"`block_args['conv_type']={args['conv_type']}`"
+                    )
                 x = block(x)
                 b += 1
+
+                pyramid_level_inputs[pyramid_level_tracker] = x.node.layer.name
+                pyramid_level_tracker += 1
 
         # Build top
         top_filters = round_filters(
@@ -288,6 +301,7 @@ class EfficientNetV2Backbone(Backbone):
         self.blocks_args = input_blocks_args
         self.model_name = model_name
         self.input_tensor = input_tensor
+        self.pyramid_level_inputs = pyramid_level_inputs
 
     def get_config(self):
         config = super().get_config()
@@ -340,7 +354,7 @@ class EfficientNetV2SBackbone(EfficientNetV2Backbone):
                 "input_tensor": input_tensor,
             }
         )
-        return EfficientNetV2Backbone.from_preset("resnet18", **kwargs)
+        return EfficientNetV2Backbone.from_preset("efficientnetv2-s", **kwargs)
 
     @classproperty
     def presets(cls):
@@ -370,7 +384,7 @@ class EfficientNetV2MBackbone(EfficientNetV2Backbone):
                 "input_tensor": input_tensor,
             }
         )
-        return EfficientNetV2Backbone.from_preset("resnet18", **kwargs)
+        return EfficientNetV2Backbone.from_preset("efficientnetv2-m", **kwargs)
 
     @classproperty
     def presets(cls):
@@ -400,7 +414,7 @@ class EfficientNetV2LBackbone(EfficientNetV2Backbone):
                 "input_tensor": input_tensor,
             }
         )
-        return EfficientNetV2Backbone.from_preset("resnet18", **kwargs)
+        return EfficientNetV2Backbone.from_preset("efficientnetv2-l", **kwargs)
 
     @classproperty
     def presets(cls):
@@ -430,7 +444,7 @@ class EfficientNetV2B0Backbone(EfficientNetV2Backbone):
                 "input_tensor": input_tensor,
             }
         )
-        return EfficientNetV2Backbone.from_preset("resnet18", **kwargs)
+        return EfficientNetV2Backbone.from_preset("efficientnetv2-b0", **kwargs)
 
     @classproperty
     def presets(cls):
@@ -460,7 +474,7 @@ class EfficientNetV2B1Backbone(EfficientNetV2Backbone):
                 "input_tensor": input_tensor,
             }
         )
-        return EfficientNetV2Backbone.from_preset("resnet18", **kwargs)
+        return EfficientNetV2Backbone.from_preset("efficientnetv2-b1", **kwargs)
 
     @classproperty
     def presets(cls):
@@ -490,7 +504,7 @@ class EfficientNetV2B2Backbone(EfficientNetV2Backbone):
                 "input_tensor": input_tensor,
             }
         )
-        return EfficientNetV2Backbone.from_preset("resnet18", **kwargs)
+        return EfficientNetV2Backbone.from_preset("efficientnetv2-b2", **kwargs)
 
     @classproperty
     def presets(cls):
@@ -520,7 +534,7 @@ class EfficientNetV2B3Backbone(EfficientNetV2Backbone):
                 "input_tensor": input_tensor,
             }
         )
-        return EfficientNetV2Backbone.from_preset("resnet18", **kwargs)
+        return EfficientNetV2Backbone.from_preset("efficientnetv2-b3", **kwargs)
 
     @classproperty
     def presets(cls):
