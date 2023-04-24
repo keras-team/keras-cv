@@ -21,7 +21,8 @@ except ImportError:
 
 from keras_cv.callbacks.waymo_evaluation_callback import WaymoEvaluationCallback
 
-class EvaluateCOCOMetricsCallback(keras.callbacks.Callback):
+from keras.callbacks import Callback
+class EvaluateCOCOMetricsCallback(Callback):
     def __init__(self, data, bounding_box_format):
         super().__init__()
         self.data = data
