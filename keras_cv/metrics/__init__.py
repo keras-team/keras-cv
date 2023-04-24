@@ -13,3 +13,4 @@
 # limitations under the License.
 
 from keras_cv.metrics.object_detection.box_coco_metrics import BoxCOCOMetrics
+from keras_cv.metrics.coco.pycoco_wrapper import compute_dataset_pycoco_metrics
