@@ -15,8 +15,15 @@ import copy
 
 import numpy as np
 import tensorflow as tf
-from pycocotools.coco import COCO
-from pycocotools.cocoeval import COCOeval
+
+try:
+    from pycocotools.coco import COCO
+    from pycocotools.cocoeval import COCOeval
+except ImportError:
+    COCO = object
+    COCOeval = None
+
+from keras_cv.utils.conditional_imports import assert_pycocotools_installed
 
 METRIC_NAMES = [
     "AP",
@@ -53,7 +60,7 @@ class PyCOCOWrapper(COCO):
             dataset. This is required if `gt_dataset` is not provided.
           gt_dataset: the groundtruth eval datatset in COCO API format.
         """
-
+        assert_pycocotools_installed("PyCOCOWrapper")
         COCO.__init__(self, annotation_file=None)
         self._eval_type = "box"
         if gt_dataset:
@@ -211,6 +218,8 @@ def _convert_to_numpy(groundtruths, predictions):
 
 
 def compute_pycoco_metrics(groundtruths, predictions):
+    assert_pycocotools_installed("compute_pycoco_metrics")
+
     groundtruths, predictions = _convert_to_numpy(groundtruths, predictions)
 
     gt_dataset = _convert_groundtruths_to_coco_dataset(groundtruths)
