@@ -22,6 +22,9 @@ backbone_presets_no_weights = {
                 "[1, 3, 3, 1] depths where the batch normalization "
                 "and SiLU activation are applied after the convolution layers."
             ),
+            "params": 2380416,
+            "official_name": "CSP_DARK_NET",
+            "path": "csp_dark_net",
         },
         "class_name": "keras_cv.models>CSPDarkNetBackbone",
         "config": {
@@ -40,6 +43,9 @@ backbone_presets_no_weights = {
                 "[1, 3, 3, 1] depths where the batch normalization "
                 "and SiLU activation are applied after the convolution layers."
             ),
+            "params": 4223488,
+            "official_name": "CSP_DARK_NET",
+            "path": "csp_dark_net",
         },
         "class_name": "keras_cv.models>CSPDarkNetBackbone",
         "config": {
@@ -58,6 +64,9 @@ backbone_presets_no_weights = {
                 "[2, 6, 6, 2] depths where the batch normalization "
                 "and SiLU activation are applied after the convolution layers."
             ),
+            "params": 12374400,
+            "official_name": "CSP_DARK_NET",
+            "path": "csp_dark_net",
         },
         "class_name": "keras_cv.models>CSPDarkNetBackbone",
         "config": {
@@ -76,6 +85,9 @@ backbone_presets_no_weights = {
                 "[3, 9, 9, 3] depths where the batch normalization "
                 "and SiLU activation are applied after the convolution layers."
             ),
+            "params": 27111424,
+            "official_name": "CSP_DARK_NET",
+            "path": "csp_dark_net",
         },
         "class_name": "keras_cv.models>CSPDarkNetBackbone",
         "config": {
@@ -94,6 +106,9 @@ backbone_presets_no_weights = {
                 "[4, 12, 12, 4] depths where the batch normalization "
                 "and SiLU activation are applied after the convolution layers."
             ),
+            "params": 56837970,
+            "official_name": "CSP_DARK_NET",
+            "path": "csp_dark_net",
         },
         "class_name": "keras_cv.models>CSPDarkNetBackbone",
         "config": {
@@ -116,6 +131,9 @@ backbone_presets_with_weights = {
                 "and SiLU activation are applied after the convolution layers. "
                 "Trained on Imagenet 2012 classification task."
             ),
+            "params": 2380416,
+            "official_name": "CSP_DARK_NET",
+            "path": "csp_dark_net",
         },
         "class_name": "keras_cv.models>CSPDarkNetBackbone",
         "config": backbone_presets_no_weights["csp_dark_net_tiny"]["config"],
@@ -130,6 +148,9 @@ backbone_presets_with_weights = {
                 "and SiLU activation are applied after the convolution layers. "
                 "Trained on Imagenet 2012 classification task."
             ),
+            "params": 27111424,
+            "official_name": "CSP_DARK_NET",
+            "path": "csp_dark_net",
         },
         "class_name": "keras_cv.models>CSPDarkNetBackbone",
         "config": backbone_presets_no_weights["csp_dark_net_l"]["config"],

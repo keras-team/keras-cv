@@ -314,7 +314,7 @@ class CSPDarkNetLBackbone(CSPDarkNetBackbone):
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return {
-            "cspdarknetl_imagenet": copy.deepcopy(
+            "csp_dark_net_l_imagenet": copy.deepcopy(
                 backbone_presets["csp_dark_net_l_imagenet"]
             )
         }
