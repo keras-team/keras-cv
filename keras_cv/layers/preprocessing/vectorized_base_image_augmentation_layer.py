@@ -73,6 +73,21 @@ class VectorizedBaseImageAugmentationLayer(
     The `call()` will unpack the inputs, forward to the correct function, and
     pack the output back to the same structure as the inputs.
 
+    By default, the dense or ragged status of the output will be preserved.
+    However, you can override this behavior by setting
+    `self.force_output_dense_images = True`,
+    `self.force_output_dense_segmentation_masks = True` in your `__init__()`
+    method. When enabled, images and segmentation masks will be converted to
+    dense tensor by `to_tensor()` if ragged.
+
+    ```python
+    class SubclassLayer(VectorizedBaseImageAugmentationLayer):
+      def __init__(self):
+        super().__init__()
+        self.force_output_dense_images = True
+        self.force_output_dense_segmentation_masks = True
+    ```
+
     Note that since the randomness is also a common functionality, this layer
     also includes a keras.backend.RandomGenerator, which can be used to
     produce the random numbers. The random number generator is stored in the
@@ -81,6 +96,28 @@ class VectorizedBaseImageAugmentationLayer(
 
     def __init__(self, seed=None, **kwargs):
         super().__init__(seed=seed, **kwargs)
+
+    @property
+    def force_output_dense_images(self):
+        """Control whether to force outputting of dense images."""
+        return getattr(self, "_force_output_dense_images", False)
+
+    @force_output_dense_images.setter
+    def force_output_dense_images(self, force_output_dense_images):
+        self._force_output_dense_images = force_output_dense_images
+
+    @property
+    def force_output_dense_segmentation_masks(self):
+        """Control whether to force outputting of dense segmentation masks."""
+        return getattr(self, "_force_output_dense_segmentation_masks", False)
+
+    @force_output_dense_segmentation_masks.setter
+    def force_output_dense_segmentation_masks(
+        self, force_output_dense_segmentation_masks
+    ):
+        self._force_output_dense_segmentation_masks = (
+            force_output_dense_segmentation_masks
+        )
 
     def augment_ragged_image(self, image, transformation, **kwargs):
         """Augment an image from a ragged image batch during training.
@@ -292,10 +329,6 @@ class VectorizedBaseImageAugmentationLayer(
 
         if isinstance(images, tf.RaggedTensor):
             inputs_for_raggeds = {"transformations": transformations, **inputs}
-            print("inputs_for_raggeds", inputs_for_raggeds)
-            print(
-                "self._unwrap_ragged_image_call", self._unwrap_ragged_image_call
-            )
             images = tf.map_fn(
                 self._unwrap_ragged_image_call,
                 inputs_for_raggeds,
@@ -308,8 +341,13 @@ class VectorizedBaseImageAugmentationLayer(
                 bounding_boxes=bounding_boxes,
                 labels=labels,
             )
-
+        if (
+            isinstance(images, tf.RaggedTensor)
+            and self.force_output_dense_images
+        ):
+            images = images.to_tensor()
         result = {IMAGES: images}
+
         if labels is not None:
             labels = self.augment_targets(
                 labels,
@@ -341,6 +379,7 @@ class VectorizedBaseImageAugmentationLayer(
                 raw_images=raw_images,
             )
             result[KEYPOINTS] = keypoints
+
         if segmentation_masks is not None:
             segmentation_masks = self.augment_segmentation_masks(
                 segmentation_masks,
@@ -350,6 +389,11 @@ class VectorizedBaseImageAugmentationLayer(
                 images=images,
                 raw_images=raw_images,
             )
+            if (
+                isinstance(segmentation_masks, tf.RaggedTensor)
+                and self.force_output_dense_segmentation_masks
+            ):
+                segmentation_masks = segmentation_masks.to_tensor()
             result[SEGMENTATION_MASKS] = segmentation_masks
 
         # preserve any additional inputs unmodified by this layer.
