@@ -35,6 +35,7 @@ def decode_predictions_output_shapes():
         bounding_box_format="xyxy",
         from_logits=True,
         max_detections=100,
+        output_ragged=False,
     )
 
     result = layer(box_prediction=box_pred, class_prediction=class_prediction)
