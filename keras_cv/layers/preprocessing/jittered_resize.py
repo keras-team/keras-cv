@@ -129,6 +129,8 @@ class JitteredResize(VectorizedBaseImageAugmentationLayer):
         self.bounding_box_format = bounding_box_format
         self.seed = seed
 
+        self.force_output_dense_images = True
+
     def compute_ragged_image_signature(self, images):
         ragged_spec = tf.RaggedTensorSpec(
             shape=list(self.target_size) + [images.shape[-1]],
