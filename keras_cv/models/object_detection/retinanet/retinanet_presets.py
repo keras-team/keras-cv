@@ -14,7 +14,7 @@
 """RetinaNet Task presets."""
 from keras_cv.models.backbones.resnet_v1 import resnet_v1_backbone_presets
 
-retina_net_presets = {
+retinanet_presets = {
     "retinanet_resnet50_pascalvoc": {
         "metadata": {
             "description": (
@@ -25,7 +25,7 @@ retina_net_presets = {
             ),
             "params": 35596952,
             "official_name": "RetinaNet",
-            "path": "retina_net",
+            "path": "retinanet",
         },
         "config": {
             "backbone": resnet_v1_backbone_presets.backbone_presets["resnet50"],
