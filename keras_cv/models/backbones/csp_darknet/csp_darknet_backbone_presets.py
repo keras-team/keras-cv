@@ -23,7 +23,7 @@ backbone_presets_no_weights = {
                 "and SiLU activation are applied after the convolution layers."
             ),
             "params": 2380416,
-            "official_name": "CSP_DARK_NET",
+            "official_name": "CSPDarkNet",
             "path": "csp_dark_net",
         },
         "class_name": "keras_cv.models>CSPDarkNetBackbone",
@@ -44,7 +44,7 @@ backbone_presets_no_weights = {
                 "and SiLU activation are applied after the convolution layers."
             ),
             "params": 4223488,
-            "official_name": "CSP_DARK_NET",
+            "official_name": "CSPDarkNet",
             "path": "csp_dark_net",
         },
         "class_name": "keras_cv.models>CSPDarkNetBackbone",
@@ -65,7 +65,7 @@ backbone_presets_no_weights = {
                 "and SiLU activation are applied after the convolution layers."
             ),
             "params": 12374400,
-            "official_name": "CSP_DARK_NET",
+            "official_name": "CSPDarkNet",
             "path": "csp_dark_net",
         },
         "class_name": "keras_cv.models>CSPDarkNetBackbone",
@@ -86,7 +86,7 @@ backbone_presets_no_weights = {
                 "and SiLU activation are applied after the convolution layers."
             ),
             "params": 27111424,
-            "official_name": "CSP_DARK_NET",
+            "official_name": "CSPDarkNet",
             "path": "csp_dark_net",
         },
         "class_name": "keras_cv.models>CSPDarkNetBackbone",
@@ -107,7 +107,7 @@ backbone_presets_no_weights = {
                 "and SiLU activation are applied after the convolution layers."
             ),
             "params": 56837970,
-            "official_name": "CSP_DARK_NET",
+            "official_name": "CSPDarkNet",
             "path": "csp_dark_net",
         },
         "class_name": "keras_cv.models>CSPDarkNetBackbone",
@@ -132,7 +132,7 @@ backbone_presets_with_weights = {
                 "Trained on Imagenet 2012 classification task."
             ),
             "params": 2380416,
-            "official_name": "CSP_DARK_NET",
+            "official_name": "CSPDarkNet",
             "path": "csp_dark_net",
         },
         "class_name": "keras_cv.models>CSPDarkNetBackbone",
@@ -149,7 +149,7 @@ backbone_presets_with_weights = {
                 "Trained on Imagenet 2012 classification task."
             ),
             "params": 27111424,
-            "official_name": "CSP_DARK_NET",
+            "official_name": "CSPDarkNet",
             "path": "csp_dark_net",
         },
         "class_name": "keras_cv.models>CSPDarkNetBackbone",

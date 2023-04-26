@@ -22,7 +22,7 @@ backbone_presets_no_weights = {
                 "(v1 style)."
             ),
             "params": 11186112,
-            "official_name": "RESNET_V1",
+            "official_name": "ResNetV1",
             "path": "resnet_v1",
         },
         "class_name": "keras_cv.models>ResNetBackbone",
@@ -44,7 +44,7 @@ backbone_presets_no_weights = {
                 "(v1 style)."
             ),
             "params": 21301696,
-            "official_name": "RESNET_V1",
+            "official_name": "ResNetV1",
             "path": "resnet_v1",
         },
         "class_name": "keras_cv.models>ResNetBackbone",
@@ -66,7 +66,7 @@ backbone_presets_no_weights = {
                 "(v1 style)."
             ),
             "params": 23561152,
-            "official_name": "RESNET_V1",
+            "official_name": "ResNetV1",
             "path": "resnet_v1",
         },
         "class_name": "keras_cv.models>ResNetBackbone",
@@ -88,7 +88,7 @@ backbone_presets_no_weights = {
                 "(v1 style)."
             ),
             "params": 42605504,
-            "official_name": "RESNET_V1",
+            "official_name": "ResNetV1",
             "path": "resnet_v1",
         },
         "class_name": "keras_cv.models>ResNetBackbone",
@@ -110,7 +110,7 @@ backbone_presets_no_weights = {
                 "(v1 style)."
             ),
             "params": 58295232,
-            "official_name": "RESNET_V1",
+            "official_name": "ResNetV1",
             "path": "resnet_v1",
         },
         "class_name": "keras_cv.models>ResNetBackbone",
@@ -136,7 +136,7 @@ backbone_presets_with_weights = {
                 "Trained on Imagenet 2012 classification task."
             ),
             "params": 23561152,
-            "official_name": "RESNET_V1",
+            "official_name": "ResNetV1",
             "path": "resnet_v1",
         },
         "class_name": "keras_cv.models>ResNetBackbone",
