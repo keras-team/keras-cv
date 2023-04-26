@@ -23,6 +23,9 @@ retina_net_presets = {
                 "consists of 20 classes. This model achieves a final MaP of "
                 "0.33 on the evaluation set."
             ),
+            "params": 35596952,
+            "official_name": "RetinaNet",
+            "path": "retina_net",
         },
         "config": {
             "backbone": resnet_v1_backbone_presets.backbone_presets["resnet50"],
