@@ -38,8 +38,6 @@ class MultiClassNonMaxSuppression(keras.layers.Layer):
         large number may trigger significant memory overhead, defaults to 100.
       max_detections_per_class: the maximum detections to consider per class
         after nms is applied, defaults to 100.
-      output_ragged: (Optional) Whether or not to output bounding boxes in
-        `RaggedTensor` format.  Defaults to True.
     """  # noqa: E501
 
     def __init__(
@@ -50,7 +48,6 @@ class MultiClassNonMaxSuppression(keras.layers.Layer):
         confidence_threshold=0.5,
         max_detections=100,
         max_detections_per_class=100,
-        output_ragged=True,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -60,7 +57,6 @@ class MultiClassNonMaxSuppression(keras.layers.Layer):
         self.confidence_threshold = confidence_threshold
         self.max_detections = max_detections
         self.max_detections_per_class = max_detections_per_class
-        self.output_ragged = output_ragged
         self.built = True
 
     def call(self, box_prediction, class_prediction):
@@ -112,7 +108,7 @@ class MultiClassNonMaxSuppression(keras.layers.Layer):
         }
         # this is required to comply with KerasCV bounding box format.
         return bounding_box.mask_invalid_detections(
-            bounding_boxes, output_ragged=self.output_ragged
+            bounding_boxes, output_ragged=True
         )
 
     def get_config(self):
