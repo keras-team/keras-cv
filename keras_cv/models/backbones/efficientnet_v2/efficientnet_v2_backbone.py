@@ -101,8 +101,8 @@ def round_repeats(repeats, depth_coefficient):
 
 @keras.utils.register_keras_serializable(package="keras_cv.models")
 class EfficientNetV2Backbone(Backbone):
-    """Instantiates the EfficientNetV2 architecture using given scaling
-    coefficients.
+    """Instantiates the EfficientNetV2 architecture.
+
     Args:
         include_rescaling: bool, whether to rescale the inputs. If set
             to `True`, inputs will be passed through a `Rescaling(1/255.0)`
@@ -114,7 +114,6 @@ class EfficientNetV2Backbone(Backbone):
         drop_connect_rate: float, dropout rate at skip connections.
         depth_divisor: integer, a unit of network width.
         min_depth: integer, minimum number of filters.
-        bn_momentum: float. Momentum parameter for Batch Normalization layers.
         activation: activation function.
         blocks_args: list of dicts, parameters to construct block modules.
         model_name: string, model name.
@@ -134,7 +133,6 @@ class EfficientNetV2Backbone(Backbone):
         drop_connect_rate=0.2,
         depth_divisor=8,
         min_depth=8,
-        bn_momentum=0.9,
         activation="swish",
         blocks_args="default",
         model_name="efficientnet",
@@ -154,8 +152,6 @@ class EfficientNetV2Backbone(Backbone):
 
         pyramid_level_inputs = {}
 
-        print(blocks_args[0])
-        print(blocks_args[0]["input_filters"])
         # Build stem
         stem_filters = round_filters(
             filters=blocks_args[0]["input_filters"],
@@ -174,7 +170,7 @@ class EfficientNetV2Backbone(Backbone):
         )(x)
         x = layers.BatchNormalization(
             axis=BN_AXIS,
-            momentum=bn_momentum,
+            momentum=0.9,
             name="stem_bn",
         )(x)
         x = layers.Activation(activation, name="stem_activation")(x)
@@ -228,7 +224,7 @@ class EfficientNetV2Backbone(Backbone):
                         strides=args["strides"],
                         se_ratio=args["se_ratio"],
                         activation=activation,
-                        bn_momentum=bn_momentum,
+                        0.9=0.9,
                         survival_probability=drop_connect_rate * b / blocks,
                         name="block{}{}_".format(i + 1, chr(j + 97)),
                     )
@@ -241,7 +237,7 @@ class EfficientNetV2Backbone(Backbone):
                         strides=args["strides"],
                         se_ratio=args["se_ratio"],
                         activation=activation,
-                        bn_momentum=bn_momentum,
+                        0.9=0.9,
                         survival_probability=drop_connect_rate * b / blocks,
                         name="block{}{}_".format(i + 1, chr(j + 97)),
                     )
@@ -274,7 +270,7 @@ class EfficientNetV2Backbone(Backbone):
         )(x)
         x = layers.BatchNormalization(
             axis=BN_AXIS,
-            momentum=bn_momentum,
+            momentum=0.9,
             name="top_bn",
         )(x)
         x = layers.Activation(activation=activation, name="top_activation")(x)
@@ -294,7 +290,7 @@ class EfficientNetV2Backbone(Backbone):
         self.drop_connect_rate = drop_connect_rate
         self.depth_divisor = depth_divisor
         self.min_depth = min_depth
-        self.bn_momentum = bn_momentum
+        self.0.9 = 0.9
         self.activation = activation
         self.blocks_args = input_blocks_args
         self.model_name = model_name
@@ -313,7 +309,7 @@ class EfficientNetV2Backbone(Backbone):
                 "drop_connect_rate": self.drop_connect_rate,
                 "depth_divisor": self.depth_divisor,
                 "min_depth": self.min_depth,
-                "bn_momentum": self.bn_momentum,
+                "0.9": self.0.9,
                 "activation": self.activation,
                 "blocks_args": self.blocks_args,
                 "model_name": self.model_name,
