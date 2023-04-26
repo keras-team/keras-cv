@@ -29,9 +29,6 @@ from keras_cv.layers import FusedMBConvBlock
 from keras_cv.layers import MBConvBlock
 from keras_cv.models import utils
 from keras_cv.models.backbones.backbone import Backbone
-from keras_cv.models.backbones.efficientnet_v2.block_args import (
-    DEFAULT_BLOCKS_ARGS,
-)
 from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone_presets import (  # noqa: E501
     backbone_presets,
 )
@@ -145,9 +142,6 @@ class EfficientNetV2Backbone(Backbone):
         input_tensor=None,
         **kwargs,
     ):
-        if blocks_args == "default":
-            blocks_args = DEFAULT_BLOCKS_ARGS[model_name]
-
         input_blocks_args = copy.deepcopy(blocks_args)
 
         # Determine proper input shape
@@ -160,6 +154,8 @@ class EfficientNetV2Backbone(Backbone):
 
         pyramid_level_inputs = {}
 
+        print(blocks_args[0])
+        print(blocks_args[0]["input_filters"])
         # Build stem
         stem_filters = round_filters(
             filters=blocks_args[0]["input_filters"],
@@ -218,9 +214,7 @@ class EfficientNetV2Backbone(Backbone):
                     args["input_filters"] = args["output_filters"]
 
                 if args["strides"] != 1:
-                    pyramid_level_inputs[
-                        i+1
-                    ] = x.node.layer.name
+                    pyramid_level_inputs[i + 1] = x.node.layer.name
                     pyramid_level_tracker += 1
 
                 # Determine which conv type to use:
