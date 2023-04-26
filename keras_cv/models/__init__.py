@@ -29,7 +29,8 @@ from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
 )
 from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
     CSPDarkNetXLBackbone,
-from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone import (
+)
+from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
     EfficientNetV2B0Backbone,
 )
 from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone import (
