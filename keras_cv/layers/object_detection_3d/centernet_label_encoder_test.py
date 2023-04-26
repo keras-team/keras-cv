@@ -15,7 +15,7 @@
 
 import tensorflow as tf
 
-from keras_cv.layers.object_detection_3d.center_net_label_encoder import (
+from keras_cv.layers.object_detection_3d.centernet_label_encoder import (
     CenterNetLabelEncoder,
 )
 
