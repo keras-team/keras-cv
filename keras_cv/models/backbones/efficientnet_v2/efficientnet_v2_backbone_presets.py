@@ -663,7 +663,12 @@ backbone_presets_no_weights = {
 backbone_presets_with_weights = {
     "efficientnetv2-s_imagenet": {
         "metadata": {
-            "description": DESCRIPTION,
+            "description": {
+                "description": "The EfficientNet small architecture.  In this "
+                "variant of the EfficientNet architecture, there are "
+                f"{len(SMALL_BLOCK_ARGS)} convolutional blocks. Weights are "
+                "initialized to pretrained imagenet classification weights."
+            },
         },
         "class_name": "keras_cv.models>EfficientNetV2Backbone",
         "config": {
@@ -686,7 +691,15 @@ backbone_presets_with_weights = {
     },
     "efficientnetv2-b0_imagenet": {
         "metadata": {
-            "description": "EfficientNetv2 model",
+            "description": "The EfficientNet B0 architecture.  In this "
+            "variant of the EfficientNet architecture, there are "
+            f"{len(B0_BLOCK_ARGS)} convolutional blocks. As with all of the B "
+            "style EfficientNet variants, the number of filters in each "
+            "convolutional block is scaled by a `width_coefficient` and a "
+            "`depth_coefficient`.  Please see the GitHub source to find the "
+            "specific values for both the `width_coefficient` and "
+            "`depth_coefficient`. Weights are "
+            "initialized to pretrained imagenet classification weights."
         },
         "class_name": "keras_cv.models>EfficientNetV2Backbone",
         "config": {
@@ -709,7 +722,15 @@ backbone_presets_with_weights = {
     },
     "efficientnetv2-b1_imagenet": {
         "metadata": {
-            "description": DESCRIPTION,
+            "description": "The EfficientNet B1 architecture.  In this "
+            "variant of the EfficientNet architecture, there are "
+            f"{len(B1_BLOCK_ARGS)} convolutional blocks. As with all of the B "
+            "style EfficientNet variants, the number of filters in each "
+            "convolutional block is scaled by a `width_coefficient` and a "
+            "`depth_coefficient`.  Please see the GitHub source to find the "
+            "specific values for both the `width_coefficient` and "
+            "`depth_coefficient`. Weights are "
+            "initialized to pretrained imagenet classification weights."
         },
         "class_name": "keras_cv.models>EfficientNetV2Backbone",
         "config": {
@@ -732,7 +753,15 @@ backbone_presets_with_weights = {
     },
     "efficientnetv2-b2_imagenet": {
         "metadata": {
-            "description": DESCRIPTION,
+            "description": "The EfficientNet B2 architecture.  In this "
+            "variant of the EfficientNet architecture, there are "
+            f"{len(B2_BLOCK_ARGS)} convolutional blocks. As with all of the B "
+            "style EfficientNet variants, the number of filters in each "
+            "convolutional block is scaled by a `width_coefficient` and a "
+            "`depth_coefficient`.  Please see the GitHub source to find the "
+            "specific values for both the `width_coefficient` and "
+            "`depth_coefficient`. Weights are "
+            "initialized to pretrained imagenet classification weights.",
         },
         "class_name": "keras_cv.models>EfficientNetV2Backbone",
         "config": {

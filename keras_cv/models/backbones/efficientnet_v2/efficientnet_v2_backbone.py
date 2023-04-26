@@ -37,50 +37,14 @@ from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone_presets 
 )
 from keras_cv.utils.python_utils import classproperty
 
-CONV_KERNEL_INITIALIZER = {
-    "class_name": "VarianceScaling",
-    "config": {
-        "scale": 2.0,
-        "mode": "fan_out",
-        "distribution": "truncated_normal",
-    },
-}
 
-DENSE_KERNEL_INITIALIZER = {
-    "class_name": "VarianceScaling",
-    "config": {
-        "scale": 1.0 / 3.0,
-        "mode": "fan_out",
-        "distribution": "uniform",
-    },
-}
+def conv_kernel_initializer(scale=2.0):
+    return keras.initializers.VarianceScaling(
+        scale=scale, mode="fan_out", distribution="truncated_normal"
+    )
+
 
 BN_AXIS = 3
-
-BASE_DOCSTRING = """Instantiates the {name} architecture.
-
-    Reference:
-    - [EfficientNetV2: Smaller Models and Faster Training](https://arxiv.org/abs/2104.00298)
-      (ICML 2021)
-
-    This function returns a Keras image classification model.
-
-    For image classification use cases, see
-    [this page for detailed examples](https://keras.io/api/applications/#usage-examples-for-image-classification-models).
-
-    For transfer learning use cases, make sure to read the
-    [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
-
-    Args:
-        include_rescaling: bool, whether to rescale the inputs. If set
-            to `True`, inputs will be passed through a `Rescaling(1/255.0)`
-            layer.
-        input_shape: optional shape tuple, defaults to (None, None, 3).
-        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
-            to use as image input for the model.
-    Returns:
-      A `keras.Model` instance.
-"""  # noqa: E501
 
 
 def round_filters(filters, width_coefficient, min_depth, depth_divisor):
@@ -97,6 +61,41 @@ def round_filters(filters, width_coefficient, min_depth, depth_divisor):
 def round_repeats(repeats, depth_coefficient):
     """Round number of repeats based on depth multiplier."""
     return int(math.ceil(depth_coefficient * repeats))
+
+
+def get_block_conv(args, activation, survival_probability, name):
+    # Determine which conv type to use:
+    if args["conv_type"] == "mb_conv":
+        return MBConvBlock(
+            input_filters=args["input_filters"],
+            output_filters=args["output_filters"],
+            expand_ratio=args["expand_ratio"],
+            kernel_size=args["kernel_size"],
+            strides=args["strides"],
+            se_ratio=args["se_ratio"],
+            activation=activation,
+            bn_momentum=0.9,
+            survival_probability=survival_probability,
+            name=name,
+        )
+    elif args["conv_type"] == "fused_mb_conv":
+        return FusedMBConvBlock(
+            input_filters=args["input_filters"],
+            output_filters=args["output_filters"],
+            expand_ratio=args["expand_ratio"],
+            kernel_size=args["kernel_size"],
+            strides=args["strides"],
+            se_ratio=args["se_ratio"],
+            activation=activation,
+            bn_momentum=0.9,
+            survival_probability=survival_probability,
+            name=name,
+        )
+    raise ValueError(
+        "Expected `block_args['conv_type']` to be "
+        "one of 'mb_conv', 'fused_mb_conv', but got "
+        f"`block_args['conv_type']={args['conv_type']}`"
+    )
 
 
 @keras.utils.register_keras_serializable(package="keras_cv.models")
@@ -163,7 +162,7 @@ class EfficientNetV2Backbone(Backbone):
             filters=stem_filters,
             kernel_size=3,
             strides=2,
-            kernel_initializer=CONV_KERNEL_INITIALIZER,
+            kernel_initializer=conv_kernel_initializer(),
             padding="same",
             use_bias=False,
             name="stem_conv",
@@ -210,43 +209,17 @@ class EfficientNetV2Backbone(Backbone):
                     args["input_filters"] = args["output_filters"]
 
                 if args["strides"] != 1:
-                    pyramid_level_inputs[i + 1] = x.node.layer.name
+                    pyramid_level_inputs[
+                        pyramid_level_tracker
+                    ] = x.node.layer.name
                     pyramid_level_tracker += 1
 
-                # Determine which conv type to use:
-                block = None
-                if args["conv_type"] == "mb_conv":
-                    block = MBConvBlock(
-                        input_filters=args["input_filters"],
-                        output_filters=args["output_filters"],
-                        expand_ratio=args["expand_ratio"],
-                        kernel_size=args["kernel_size"],
-                        strides=args["strides"],
-                        se_ratio=args["se_ratio"],
-                        activation=activation,
-                        0.9=0.9,
-                        survival_probability=drop_connect_rate * b / blocks,
-                        name="block{}{}_".format(i + 1, chr(j + 97)),
-                    )
-                elif args["conv_type"] == "fused_mb_conv":
-                    block = FusedMBConvBlock(
-                        input_filters=args["input_filters"],
-                        output_filters=args["output_filters"],
-                        expand_ratio=args["expand_ratio"],
-                        kernel_size=args["kernel_size"],
-                        strides=args["strides"],
-                        se_ratio=args["se_ratio"],
-                        activation=activation,
-                        0.9=0.9,
-                        survival_probability=drop_connect_rate * b / blocks,
-                        name="block{}{}_".format(i + 1, chr(j + 97)),
-                    )
-                else:
-                    raise ValueError(
-                        "Expected `block_args['conv_type']` to be "
-                        "one of 'mb_conv', 'fused_mb_conv', but got "
-                        f"`block_args['conv_type']={args['conv_type']}`"
-                    )
+                block = get_block_conv(
+                    args,
+                    activation=activation,
+                    survival_probability=drop_connect_rate * b / blocks,
+                    name="block{}{}_".format(i + 1, chr(j + 97)),
+                )
                 x = block(x)
                 b += 1
 
@@ -262,7 +235,7 @@ class EfficientNetV2Backbone(Backbone):
             filters=top_filters,
             kernel_size=1,
             strides=1,
-            kernel_initializer=CONV_KERNEL_INITIALIZER,
+            kernel_initializer=conv_kernel_initializer(),
             padding="same",
             data_format="channels_last",
             use_bias=False,
@@ -290,7 +263,6 @@ class EfficientNetV2Backbone(Backbone):
         self.drop_connect_rate = drop_connect_rate
         self.depth_divisor = depth_divisor
         self.min_depth = min_depth
-        self.0.9 = 0.9
         self.activation = activation
         self.blocks_args = input_blocks_args
         self.model_name = model_name
@@ -309,7 +281,6 @@ class EfficientNetV2Backbone(Backbone):
                 "drop_connect_rate": self.drop_connect_rate,
                 "depth_divisor": self.depth_divisor,
                 "min_depth": self.min_depth,
-                "0.9": self.0.9,
                 "activation": self.activation,
                 "blocks_args": self.blocks_args,
                 "model_name": self.model_name,
@@ -330,6 +301,32 @@ class EfficientNetV2Backbone(Backbone):
         """Dictionary of preset names and configurations that include
         weights."""
         return copy.deepcopy(backbone_presets_with_weights)
+
+
+BASE_DOCSTRING = """Instantiates the {name} architecture.
+
+    Reference:
+    - [EfficientNetV2: Smaller Models and Faster Training](https://arxiv.org/abs/2104.00298)
+      (ICML 2021)
+
+    This function returns a Keras image classification model.
+
+    For image classification use cases, see
+    [this page for detailed examples](https://keras.io/api/applications/#usage-examples-for-image-classification-models).
+
+    For transfer learning use cases, make sure to read the
+    [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
+
+    Args:
+        include_rescaling: bool, whether to rescale the inputs. If set
+            to `True`, inputs will be passed through a `Rescaling(1/255.0)`
+            layer.
+        input_shape: optional shape tuple, defaults to (None, None, 3).
+        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
+            to use as image input for the model.
+    Returns:
+      A `keras.Model` instance.
+"""  # noqa: E501
 
 
 class EfficientNetV2SBackbone(EfficientNetV2Backbone):
