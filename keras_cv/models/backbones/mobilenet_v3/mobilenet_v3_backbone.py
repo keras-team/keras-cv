@@ -66,29 +66,11 @@ def adjust_channels(x, divisor=8, min_value=None):
 
 
 def apply_hard_sigmoid(x):
-    """Applies the hard sigmoid activation to x and returns the result.
-
-    Args:
-        x: input tensor
-    Returns:
-        the updated input tensor.
-    """
-
     activation = layers.ReLU(6.0)
-
     return activation(x + 3.0) * (1.0 / 6.0)
 
 
 def apply_hard_swish(x):
-    """Applies the hard swish activation to x and returns the result.
-
-    Args:
-        x: input tensor
-
-    Returns:
-        the updated input tensor.
-    """
-
     return layers.Multiply()([x, apply_hard_sigmoid(x)])
 
 
