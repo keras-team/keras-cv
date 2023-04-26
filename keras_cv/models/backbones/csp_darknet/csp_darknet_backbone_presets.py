@@ -15,7 +15,7 @@
 """CSPDarkNet model preset configurations."""
 
 backbone_presets_no_weights = {
-    "csp_dark_net_tiny": {
+    "csp_darknet_tiny": {
         "metadata": {
             "description": (
                 "CSPDarkNet model with [48, 96, 192, 384] channels and "
@@ -24,7 +24,7 @@ backbone_presets_no_weights = {
             ),
             "params": 2380416,
             "official_name": "CSPDarkNet",
-            "path": "csp_dark_net",
+            "path": "csp_darknet",
         },
         "class_name": "keras_cv.models>CSPDarkNetBackbone",
         "config": {
@@ -36,7 +36,7 @@ backbone_presets_no_weights = {
             "input_tensor": None,
         },
     },
-    "csp_dark_net_s": {
+    "csp_darknet_s": {
         "metadata": {
             "description": (
                 "CSPDarkNet model with [64, 128, 256, 512] channels and "
@@ -45,7 +45,7 @@ backbone_presets_no_weights = {
             ),
             "params": 4223488,
             "official_name": "CSPDarkNet",
-            "path": "csp_dark_net",
+            "path": "csp_darknet",
         },
         "class_name": "keras_cv.models>CSPDarkNetBackbone",
         "config": {
@@ -57,7 +57,7 @@ backbone_presets_no_weights = {
             "input_tensor": None,
         },
     },
-    "csp_dark_net_m": {
+    "csp_darknet_m": {
         "metadata": {
             "description": (
                 "CSPDarkNet model with [96, 192, 384, 768] channels and "
@@ -66,7 +66,7 @@ backbone_presets_no_weights = {
             ),
             "params": 12374400,
             "official_name": "CSPDarkNet",
-            "path": "csp_dark_net",
+            "path": "csp_darknet",
         },
         "class_name": "keras_cv.models>CSPDarkNetBackbone",
         "config": {
@@ -78,7 +78,7 @@ backbone_presets_no_weights = {
             "input_tensor": None,
         },
     },
-    "csp_dark_net_l": {
+    "csp_darknet_l": {
         "metadata": {
             "description": (
                 "CSPDarkNet model with [128, 256, 512, 1024] channels and "
@@ -87,7 +87,7 @@ backbone_presets_no_weights = {
             ),
             "params": 27111424,
             "official_name": "CSPDarkNet",
-            "path": "csp_dark_net",
+            "path": "csp_darknet",
         },
         "class_name": "keras_cv.models>CSPDarkNetBackbone",
         "config": {
@@ -99,7 +99,7 @@ backbone_presets_no_weights = {
             "input_tensor": None,
         },
     },
-    "csp_dark_net_xl": {
+    "csp_darknet_xl": {
         "metadata": {
             "description": (
                 "CSPDarkNet model with [170, 340, 680, 1360] channels and "
@@ -108,7 +108,7 @@ backbone_presets_no_weights = {
             ),
             "params": 56837970,
             "official_name": "CSPDarkNet",
-            "path": "csp_dark_net",
+            "path": "csp_darknet",
         },
         "class_name": "keras_cv.models>CSPDarkNetBackbone",
         "config": {
@@ -123,7 +123,7 @@ backbone_presets_no_weights = {
 }
 
 backbone_presets_with_weights = {
-    "csp_dark_net_tiny_imagenet": {
+    "csp_darknet_tiny_imagenet": {
         "metadata": {
             "description": (
                 "CSPDarkNet model with [48, 96, 192, 384] channels and "
@@ -133,14 +133,14 @@ backbone_presets_with_weights = {
             ),
             "params": 2380416,
             "official_name": "CSPDarkNet",
-            "path": "csp_dark_net",
+            "path": "csp_darknet",
         },
         "class_name": "keras_cv.models>CSPDarkNetBackbone",
-        "config": backbone_presets_no_weights["csp_dark_net_tiny"]["config"],
+        "config": backbone_presets_no_weights["csp_darknet_tiny"]["config"],
         "weights_url": "https://storage.googleapis.com/keras-cv/models/cspdarknettiny/imagenet/classification-v0-notop.h5",  # noqa: E501
         "weights_hash": "0007ae82c95be4d4aef06368a7c38e006381324d77e5df029b04890e18a8ad19",  # noqa: E501
     },
-    "csp_dark_net_l_imagenet": {
+    "csp_darknet_l_imagenet": {
         "metadata": {
             "description": (
                 "CSPDarkNet model with [128, 256, 512, 1024] channels and "
@@ -150,10 +150,10 @@ backbone_presets_with_weights = {
             ),
             "params": 27111424,
             "official_name": "CSPDarkNet",
-            "path": "csp_dark_net",
+            "path": "csp_darknet",
         },
         "class_name": "keras_cv.models>CSPDarkNetBackbone",
-        "config": backbone_presets_no_weights["csp_dark_net_l"]["config"],
+        "config": backbone_presets_no_weights["csp_darknet_l"]["config"],
         "weights_url": "https://storage.googleapis.com/keras-cv/models/cspdarknetl/imagenet/classification-v0-notop.h5",  # noqa: E501
         "weights_hash": "9303aabfadffbff8447171fce1e941f96d230d8f3cef30d3f05a9c85097f8f1e",  # noqa: E501
     },
