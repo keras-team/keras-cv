@@ -44,9 +44,6 @@ def conv_kernel_initializer(scale=2.0):
     )
 
 
-BN_AXIS = 3
-
-
 def round_filters(filters, width_coefficient, min_depth, depth_divisor):
     """Round number of filters based on depth multiplier."""
     filters *= width_coefficient
@@ -174,7 +171,6 @@ class EfficientNetV2Backbone(Backbone):
             name="stem_conv",
         )(x)
         x = layers.BatchNormalization(
-            axis=BN_AXIS,
             momentum=0.9,
             name="stem_bn",
         )(x)
@@ -245,7 +241,6 @@ class EfficientNetV2Backbone(Backbone):
             name="top_conv",
         )(x)
         x = layers.BatchNormalization(
-            axis=BN_AXIS,
             momentum=0.9,
             name="top_bn",
         )(x)
