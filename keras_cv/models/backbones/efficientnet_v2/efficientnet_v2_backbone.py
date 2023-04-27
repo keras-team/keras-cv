@@ -122,7 +122,9 @@ class EfficientNetV2Backbone(Backbone):
 
     Usage:
     ```python
-    efficientnet = keras_cv.models.EfficientNetV2Backbone.from_preset("efficientnetv2-s")
+    efficientnet = keras_cv.models.EfficientNetV2Backbone.from_preset(
+        "efficientnetv2-s"
+    )
     images = tf.ones((1, 256, 256, 3))
     outputs = efficientnet.predict(images)
     ```
