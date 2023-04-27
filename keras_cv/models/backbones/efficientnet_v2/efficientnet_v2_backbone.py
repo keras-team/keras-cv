@@ -114,11 +114,18 @@ class EfficientNetV2Backbone(Backbone):
         depth_divisor: integer, a unit of network width.
         min_depth: integer, minimum number of filters.
         activation: activation function.
-        blocks_args: list of dicts, parameters to construct block modules.
+        block_args: list of dicts, parameters to construct block modules.
         model_name: string, model name.
         input_shape: optional shape tuple, defaults to (None, None, 3).
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
             to use as image input for the model.
+
+    Usage:
+    ```python
+    efficientnet = keras_cv.models.EfficientNetV2Backbone.from_preset("efficientnetv2-s")
+    images = tf.ones((1, 256, 256, 3))
+    outputs = efficientnet.predict(images)
+    ```
     """
 
     def __init__(
@@ -128,18 +135,17 @@ class EfficientNetV2Backbone(Backbone):
         width_coefficient,
         depth_coefficient,
         default_size,
+        block_args,
         dropout_rate=0.2,
         drop_connect_rate=0.2,
         depth_divisor=8,
         min_depth=8,
         activation="swish",
-        blocks_args="default",
-        model_name="efficientnet",
         input_shape=(None, None, 3),
         input_tensor=None,
         **kwargs,
     ):
-        input_blocks_args = copy.deepcopy(blocks_args)
+        input_block_args = copy.deepcopy(block_args)
 
         # Determine proper input shape
         img_input = utils.parse_model_inputs(input_shape, input_tensor)
@@ -153,7 +159,7 @@ class EfficientNetV2Backbone(Backbone):
 
         # Build stem
         stem_filters = round_filters(
-            filters=blocks_args[0]["input_filters"],
+            filters=block_args[0]["input_filters"],
             width_coefficient=width_coefficient,
             min_depth=min_depth,
             depth_divisor=depth_divisor,
@@ -175,12 +181,12 @@ class EfficientNetV2Backbone(Backbone):
         x = layers.Activation(activation, name="stem_activation")(x)
 
         # Build blocks
-        blocks_args = copy.deepcopy(blocks_args)
+        block_args = copy.deepcopy(block_args)
         b = 0
-        blocks = float(sum(args["num_repeat"] for args in blocks_args))
+        blocks = float(sum(args["num_repeat"] for args in block_args))
 
         pyramid_level_tracker = 1
-        for i, args in enumerate(blocks_args):
+        for i, args in enumerate(block_args):
             assert args["num_repeat"] > 0
 
             # Update block input and output filters based on depth multiplier.
@@ -264,8 +270,7 @@ class EfficientNetV2Backbone(Backbone):
         self.depth_divisor = depth_divisor
         self.min_depth = min_depth
         self.activation = activation
-        self.blocks_args = input_blocks_args
-        self.model_name = model_name
+        self.block_args = input_block_args
         self.input_tensor = input_tensor
         self.pyramid_level_inputs = pyramid_level_inputs
 
@@ -282,8 +287,7 @@ class EfficientNetV2Backbone(Backbone):
                 "depth_divisor": self.depth_divisor,
                 "min_depth": self.min_depth,
                 "activation": self.activation,
-                "blocks_args": self.blocks_args,
-                "model_name": self.model_name,
+                "block_args": self.block_args,
                 # Remove batch dimension from `input_shape`
                 "input_shape": self.input_shape[1:],
                 "input_tensor": self.input_tensor,

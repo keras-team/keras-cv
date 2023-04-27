@@ -477,7 +477,6 @@ B3_BLOCK_ARGS = [
 
 backbone_presets_no_weights = {
     "efficientnetv2-s": {
-        "model_name": "efficientnetv2-s",
         "metadata": {
             "description": "The EfficientNet small architecture.  In this "
             "variant of the EfficientNet architecture, there are "
@@ -485,7 +484,6 @@ backbone_presets_no_weights = {
         },
         "class_name": "keras_cv.models>EfficientNetV2Backbone",
         "config": {
-            "model_name": "efficientnetv2-s",
             "width_coefficient": 1.0,
             "depth_coefficient": 1.0,
             "default_size": 384,
@@ -497,7 +495,7 @@ backbone_presets_no_weights = {
             "include_rescaling": True,
             "input_shape": (None, None, 3),
             "input_tensor": None,
-            "blocks_args": SMALL_BLOCK_ARGS,
+            "block_args": SMALL_BLOCK_ARGS,
         },
     },
     "efficientnetv2-m": {
@@ -508,7 +506,6 @@ backbone_presets_no_weights = {
         },
         "class_name": "keras_cv.models>EfficientNetV2Backbone",
         "config": {
-            "model_name": "efficientnetv2-m",
             "width_coefficient": 1.0,
             "depth_coefficient": 1.0,
             "default_size": 480,
@@ -520,7 +517,7 @@ backbone_presets_no_weights = {
             "include_rescaling": True,
             "input_shape": (None, None, 3),
             "input_tensor": None,
-            "blocks_args": MEDIUM_BLOCK_ARGS,
+            "block_args": MEDIUM_BLOCK_ARGS,
         },
     },
     "efficientnetv2-l": {
@@ -531,7 +528,6 @@ backbone_presets_no_weights = {
         },
         "class_name": "keras_cv.models>EfficientNetV2Backbone",
         "config": {
-            "model_name": "efficientnetv2-l",
             "width_coefficient": 1.0,
             "depth_coefficient": 1.0,
             "default_size": 480,
@@ -543,7 +539,7 @@ backbone_presets_no_weights = {
             "include_rescaling": True,
             "input_shape": (None, None, 3),
             "input_tensor": None,
-            "blocks_args": LARGE_BLOCK_ARGS,
+            "block_args": LARGE_BLOCK_ARGS,
         },
     },
     "efficientnetv2-b0": {
@@ -559,7 +555,6 @@ backbone_presets_no_weights = {
         },
         "class_name": "keras_cv.models>EfficientNetV2Backbone",
         "config": {
-            "model_name": "efficientnetv2-b0",
             "width_coefficient": 1.0,
             "depth_coefficient": 1.0,
             "default_size": 224,
@@ -571,7 +566,7 @@ backbone_presets_no_weights = {
             "include_rescaling": True,
             "input_shape": (None, None, 3),
             "input_tensor": None,
-            "blocks_args": B0_BLOCK_ARGS,
+            "block_args": B0_BLOCK_ARGS,
         },
     },
     "efficientnetv2-b1": {
@@ -587,7 +582,6 @@ backbone_presets_no_weights = {
         },
         "class_name": "keras_cv.models>EfficientNetV2Backbone",
         "config": {
-            "model_name": "efficientnetv2-b1",
             "width_coefficient": 1.0,
             "depth_coefficient": 1.1,
             "default_size": 240,
@@ -599,7 +593,7 @@ backbone_presets_no_weights = {
             "include_rescaling": True,
             "input_shape": (None, None, 3),
             "input_tensor": None,
-            "blocks_args": B1_BLOCK_ARGS,
+            "block_args": B1_BLOCK_ARGS,
         },
     },
     "efficientnetv2-b2": {
@@ -615,7 +609,6 @@ backbone_presets_no_weights = {
         },
         "class_name": "keras_cv.models>EfficientNetV2Backbone",
         "config": {
-            "model_name": "efficientnetv2-b2",
             "width_coefficient": 1.1,
             "depth_coefficient": 1.2,
             "default_size": 260,
@@ -627,7 +620,7 @@ backbone_presets_no_weights = {
             "include_rescaling": True,
             "input_shape": (None, None, 3),
             "input_tensor": None,
-            "blocks_args": B2_BLOCK_ARGS,
+            "block_args": B2_BLOCK_ARGS,
         },
     },
     "efficientnetv2-b3": {
@@ -643,7 +636,6 @@ backbone_presets_no_weights = {
         },
         "class_name": "keras_cv.models>EfficientNetV2Backbone",
         "config": {
-            "model_name": "efficientnetv2-b3",
             "width_coefficient": 1.2,
             "depth_coefficient": 1.4,
             "default_size": 300,
@@ -655,7 +647,7 @@ backbone_presets_no_weights = {
             "include_rescaling": True,
             "input_shape": (None, None, 3),
             "input_tensor": None,
-            "blocks_args": B3_BLOCK_ARGS,
+            "block_args": B3_BLOCK_ARGS,
         },
     },
 }
@@ -672,7 +664,6 @@ backbone_presets_with_weights = {
         },
         "class_name": "keras_cv.models>EfficientNetV2Backbone",
         "config": {
-            "model_name": "efficientnetv2-s",
             "width_coefficient": 1.0,
             "depth_coefficient": 1.0,
             "default_size": 384,
@@ -684,7 +675,7 @@ backbone_presets_with_weights = {
             "include_rescaling": True,
             "input_shape": (None, None, 3),
             "input_tensor": None,
-            "blocks_args": SMALL_BLOCK_ARGS,
+            "block_args": SMALL_BLOCK_ARGS,
         },
         "weights_url": "https://storage.googleapis.com/keras-cv/models/efficientnetv2s/imagenet/classification-v0-notop.h5",  # noqa: E501
         "weights_hash": "80555436ea49100893552614b4dce98de461fa3b6c14f8132673817d28c83654",  # noqa: E501
@@ -703,7 +694,6 @@ backbone_presets_with_weights = {
         },
         "class_name": "keras_cv.models>EfficientNetV2Backbone",
         "config": {
-            "model_name": "efficientnetv2-b0",
             "width_coefficient": 1.0,
             "depth_coefficient": 1.0,
             "default_size": 224,
@@ -715,7 +705,7 @@ backbone_presets_with_weights = {
             "include_rescaling": True,
             "input_shape": (None, None, 3),
             "input_tensor": None,
-            "blocks_args": B0_BLOCK_ARGS,
+            "block_args": B0_BLOCK_ARGS,
         },
         "weights_url": "https://storage.googleapis.com/keras-cv/models/efficientnetv2b0/imagenet/classification-v0-notop.h5",  # noqa: E501
         "weights_hash": "ac95f13a8ad1cee41184fc16fd0eb769f7c5b3131151c6abf7fcee5cc3d09bc8",  # noqa: E501
@@ -734,7 +724,6 @@ backbone_presets_with_weights = {
         },
         "class_name": "keras_cv.models>EfficientNetV2Backbone",
         "config": {
-            "model_name": "efficientnetv2-b1",
             "width_coefficient": 1.0,
             "depth_coefficient": 1.1,
             "default_size": 240,
@@ -746,7 +735,7 @@ backbone_presets_with_weights = {
             "include_rescaling": True,
             "input_shape": (None, None, 3),
             "input_tensor": None,
-            "blocks_args": B1_BLOCK_ARGS,
+            "block_args": B1_BLOCK_ARGS,
         },
         "weights_url": "https://storage.googleapis.com/keras-cv/models/efficientnetv2b1/imagenet/classification-v0-notop.h5",  # noqa: E501
         "weights_hash": "82da111f8411f47e3f5eef090da76340f38e222f90a08bead53662f2ebafb01c",  # noqa: E501
@@ -765,7 +754,6 @@ backbone_presets_with_weights = {
         },
         "class_name": "keras_cv.models>EfficientNetV2Backbone",
         "config": {
-            "model_name": "efficientnetv2-b2",
             "width_coefficient": 1.1,
             "depth_coefficient": 1.2,
             "default_size": 260,
@@ -777,7 +765,7 @@ backbone_presets_with_weights = {
             "include_rescaling": True,
             "input_shape": (None, None, 3),
             "input_tensor": None,
-            "blocks_args": B2_BLOCK_ARGS,
+            "block_args": B2_BLOCK_ARGS,
         },
         "weights_url": "https://storage.googleapis.com/keras-cv/models/efficientnetv2b2/imagenet/classification-v0-notop.h5",  # noqa: E501
         "weights_hash": "02d12c9d1589b540b4e84ffdb54ff30c96099bd59e311a85ddc7180efc65e955",  # noqa: E501
