@@ -247,8 +247,8 @@ class MultiHeadCenterPillar(keras.Model):
                 tf.ones_like(heatmap) / num_boxes
             )
 
-            y_pred["box_" + head_name] = tf.squeeze(box_pred)
-            y_true["box_" + head_name] = tf.squeeze(box)
+            y_pred["box_" + head_name] = box_pred
+            y_true["box_" + head_name] = box
 
         return super().compute_loss(
             x={}, y=y_true, y_pred=y_pred, sample_weight=sample_weight
