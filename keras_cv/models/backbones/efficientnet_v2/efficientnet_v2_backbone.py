@@ -157,8 +157,6 @@ class EfficientNetV2Backbone(Backbone):
         if include_rescaling:
             x = layers.Rescaling(scale=1 / 255.0)(x)
 
-        pyramid_level_inputs = {}
-
         # Build stem
         stem_filters = round_filters(
             filters=block_args[0]["input_filters"],
@@ -187,7 +185,7 @@ class EfficientNetV2Backbone(Backbone):
         b = 0
         blocks = float(sum(args["num_repeat"] for args in block_args))
 
-        pyramid_level_tracker = 1
+        pyramid_level_inputs = []
         for i, args in enumerate(block_args):
             assert args["num_repeat"] > 0
 
@@ -217,10 +215,7 @@ class EfficientNetV2Backbone(Backbone):
                     args["input_filters"] = args["output_filters"]
 
                 if args["strides"] != 1:
-                    pyramid_level_inputs[
-                        pyramid_level_tracker
-                    ] = x.node.layer.name
-                    pyramid_level_tracker += 1
+                    pyramid_level_inputs.append(x.node.layer.name)
 
                 block = get_block_conv(
                     args,
@@ -256,8 +251,7 @@ class EfficientNetV2Backbone(Backbone):
         )(x)
         x = layers.Activation(activation=activation, name="top_activation")(x)
 
-        pyramid_level_inputs[pyramid_level_tracker] = x.node.layer.name
-
+        pyramid_level_inputs.append(x.node.layer.name)
         inputs = img_input
 
         # Create model.
@@ -274,7 +268,9 @@ class EfficientNetV2Backbone(Backbone):
         self.activation = activation
         self.block_args = input_block_args
         self.input_tensor = input_tensor
-        self.pyramid_level_inputs = pyramid_level_inputs
+        self.pyramid_level_inputs = {
+            i + 1: name for i, name in enumerate(pyramid_level_inputs)
+        }
 
     def get_config(self):
         config = super().get_config()
