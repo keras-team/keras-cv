@@ -88,7 +88,6 @@ class CenterPillarTest(tf.test.TestCase):
             backbone=unet,
             voxel_net=voxel_net,
             multiclass_head=multiclass_head,
-            label_encoder=None,
             prediction_decoder=decoder,
         )
         point_xyz = tf.random.normal([2, 1000, 3])
@@ -131,7 +130,6 @@ class CenterPillarTest(tf.test.TestCase):
             backbone=unet,
             voxel_net=voxel_net,
             multiclass_head=multiclass_head,
-            label_encoder=None,
             prediction_decoder=decoder,
         )
         point_xyz = tf.random.normal([2, 1000, 3])
