@@ -22,6 +22,9 @@ yolo_v8_detector_presets = {
                 "which consists of 20 classes. This model achieves a final MaP "
                 "of 0.45 on the evaluation set."
             ),
+            "params": 25901004,
+            "official_name": "YOLOV8Detector",
+            "path": "yolo_v8_detector",
         },
         "config": {
             "backbone": yolo_v8_backbone_presets.backbone_presets[

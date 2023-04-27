@@ -15,7 +15,7 @@
 import tensorflow as tf
 
 from keras_cv import layers as cv_layers
-from keras_cv.models.object_detection.retina_net import RetinaNetLabelEncoder
+from keras_cv.models.object_detection.retinanet import RetinaNetLabelEncoder
 
 
 class RetinaNetLabelEncoderTest(tf.test.TestCase):

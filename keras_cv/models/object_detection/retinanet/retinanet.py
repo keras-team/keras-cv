@@ -28,11 +28,11 @@ from keras_cv.models.backbones.backbone_presets import (
 )
 from keras_cv.models.object_detection import predict_utils
 from keras_cv.models.object_detection.__internal__ import unpack_input
-from keras_cv.models.object_detection.retina_net import FeaturePyramid
-from keras_cv.models.object_detection.retina_net import PredictionHead
-from keras_cv.models.object_detection.retina_net import RetinaNetLabelEncoder
-from keras_cv.models.object_detection.retina_net.retina_net_presets import (
-    retina_net_presets,
+from keras_cv.models.object_detection.retinanet import FeaturePyramid
+from keras_cv.models.object_detection.retinanet import PredictionHead
+from keras_cv.models.object_detection.retinanet import RetinaNetLabelEncoder
+from keras_cv.models.object_detection.retinanet.retinanet_presets import (
+    retinanet_presets,
 )
 from keras_cv.models.task import Task
 from keras_cv.utils.python_utils import classproperty
@@ -534,14 +534,14 @@ class RetinaNet(Task):
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
-        return copy.deepcopy({**backbone_presets, **retina_net_presets})
+        return copy.deepcopy({**backbone_presets, **retinanet_presets})
 
     @classproperty
     def presets_with_weights(cls):
         """Dictionary of preset names and configurations that include
         weights."""
         return copy.deepcopy(
-            {**backbone_presets_with_weights, **retina_net_presets}
+            {**backbone_presets_with_weights, **retinanet_presets}
         )
 
     @classproperty
