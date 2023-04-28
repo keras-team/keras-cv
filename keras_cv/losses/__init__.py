@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from keras_cv.losses.center_net_box_loss import CenterNetBoxLoss
+from keras_cv.losses.centernet_box_loss import CenterNetBoxLoss
 from keras_cv.losses.focal import FocalLoss
 from keras_cv.losses.giou_loss import GIoULoss
 from keras_cv.losses.iou_loss import IoULoss

@@ -15,7 +15,7 @@
 from tensorflow import keras
 
 
-# TODO(scottzhu): Register it later due to the conflict in the retina_net
+# TODO(scottzhu): Register it later due to the conflict in the retinanet
 # @keras.utils.register_keras_serializable(package="keras_cv")
 class FeaturePyramid(keras.layers.Layer):
     """Implements a Feature Pyramid Network.

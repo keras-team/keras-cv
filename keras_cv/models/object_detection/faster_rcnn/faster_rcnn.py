@@ -233,7 +233,7 @@ class FasterRCNN(keras.Model):
 
     Usage:
     ```python
-    retina_net = keras_cv.models.FasterRCNN(
+    retinanet = keras_cv.models.FasterRCNN(
         num_classes=20,
         bounding_box_format="xywh",
         backbone=None,

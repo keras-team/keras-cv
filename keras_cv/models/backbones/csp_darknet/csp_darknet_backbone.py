@@ -76,7 +76,7 @@ class CSPDarkNetBackbone(Backbone):
 
     # Pretrained backbone
     model = keras_cv.models.CSPDarkNetBackbone.from_preset(
-        "csp_dark_net_tiny_imagenet"
+        "csp_darknet_tiny_imagenet"
     )
     output = model(input_data)
 
@@ -226,14 +226,14 @@ class CSPDarkNetTinyBackbone(CSPDarkNetBackbone):
                 "input_tensor": input_tensor,
             }
         )
-        return CSPDarkNetBackbone.from_preset("csp_dark_net_tiny", **kwargs)
+        return CSPDarkNetBackbone.from_preset("csp_darknet_tiny", **kwargs)
 
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return {
-            "csp_dark_net_tiny_imagenet": copy.deepcopy(
-                backbone_presets["csp_dark_net_tiny_imagenet"]
+            "csp_darknet_tiny_imagenet": copy.deepcopy(
+                backbone_presets["csp_darknet_tiny_imagenet"]
             )
         }
 
@@ -260,7 +260,7 @@ class CSPDarkNetSBackbone(CSPDarkNetBackbone):
                 "input_tensor": input_tensor,
             }
         )
-        return CSPDarkNetBackbone.from_preset("csp_dark_net_s", **kwargs)
+        return CSPDarkNetBackbone.from_preset("csp_darknet_s", **kwargs)
 
     @classproperty
     def presets(cls):
@@ -284,7 +284,7 @@ class CSPDarkNetMBackbone(CSPDarkNetBackbone):
                 "input_tensor": input_tensor,
             }
         )
-        return CSPDarkNetBackbone.from_preset("csp_dark_net_m", **kwargs)
+        return CSPDarkNetBackbone.from_preset("csp_darknet_m", **kwargs)
 
     @classproperty
     def presets(cls):
@@ -308,14 +308,14 @@ class CSPDarkNetLBackbone(CSPDarkNetBackbone):
                 "input_tensor": input_tensor,
             }
         )
-        return CSPDarkNetBackbone.from_preset("csp_dark_net_l", **kwargs)
+        return CSPDarkNetBackbone.from_preset("csp_darknet_l", **kwargs)
 
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return {
-            "cspdarknetl_imagenet": copy.deepcopy(
-                backbone_presets["csp_dark_net_l_imagenet"]
+            "csp_darknet_l_imagenet": copy.deepcopy(
+                backbone_presets["csp_darknet_l_imagenet"]
             )
         }
 
@@ -342,7 +342,7 @@ class CSPDarkNetXLBackbone(CSPDarkNetBackbone):
                 "input_tensor": input_tensor,
             }
         )
-        return CSPDarkNetBackbone.from_preset("csp_dark_net_xl", **kwargs)
+        return CSPDarkNetBackbone.from_preset("csp_darknet_xl", **kwargs)
 
     @classproperty
     def presets(cls):

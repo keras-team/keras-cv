@@ -44,6 +44,6 @@ def decode_predictions_output_shapes():
 class NmsPredictionDecoderTest(tf.test.TestCase):
     def test_decode_predictions_output_shapes(self):
         result = decode_predictions_output_shapes()
-        self.assertEqual(result["boxes"].shape, [8, 100, 4])
-        self.assertEqual(result["classes"].shape, [8, 100])
-        self.assertEqual(result["confidence"].shape, [8, 100])
+        self.assertEqual(result["boxes"].shape, [8, None, 4])
+        self.assertEqual(result["classes"].shape, [8, None])
+        self.assertEqual(result["confidence"].shape, [8, None])
