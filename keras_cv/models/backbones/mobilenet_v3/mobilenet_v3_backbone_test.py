@@ -61,101 +61,11 @@ class MobileNetV3BackboneTest(tf.test.TestCase, parameterized.TestCase):
         restored_output = restored_model(self.input_batch)
         self.assertAllClose(model_output, restored_output)
 
-    @parameterized.named_parameters(
-        ("tf_format", "tf", "model"),
-        ("keras_format", "keras_v3", "model.keras"),
-    )
     def test_model_backbone_layer_names_stability(self):
-        model = MobileNetV3Backbone(
-            stackwise_expansion=[
-                1,
-                72.0 / 16,
-                88.0 / 24,
-                4,
-                6,
-                6,
-                3,
-                3,
-                6,
-                6,
-                6,
-            ],
-            stackwise_filters=[16, 24, 24, 40, 40, 40, 48, 48, 96, 96, 96],
-            stackwise_kernel_size=[3, 3, 3, 5, 5, 5, 5, 5, 5, 5, 5],
-            stackwise_stride=[2, 2, 1, 2, 1, 1, 1, 1, 2, 1, 1],
-            stackwise_se_ratio=[
-                0.25,
-                None,
-                None,
-                0.25,
-                0.25,
-                0.25,
-                0.25,
-                0.25,
-                0.25,
-                0.25,
-                0.25,
-            ],
-            stackwise_activation=[
-                "relu",
-                "relu",
-                "relu",
-                "hard_swish",
-                "hard_swish",
-                "hard_swish",
-                "hard_swish",
-                "hard_swish",
-                "hard_swish",
-                "hard_swish",
-                "hard_swish",
-            ],
-            filters=1024,
+        model = MobileNetV3SmallBackbone(
             include_rescaling=False,
         )
-        model_2 = MobileNetV3Backbone(
-            stackwise_expansion=[
-                1,
-                72.0 / 16,
-                88.0 / 24,
-                4,
-                6,
-                6,
-                3,
-                3,
-                6,
-                6,
-                6,
-            ],
-            stackwise_filters=[16, 24, 24, 40, 40, 40, 48, 48, 96, 96, 96],
-            stackwise_kernel_size=[3, 3, 3, 5, 5, 5, 5, 5, 5, 5, 5],
-            stackwise_stride=[2, 2, 1, 2, 1, 1, 1, 1, 2, 1, 1],
-            stackwise_se_ratio=[
-                0.25,
-                None,
-                None,
-                0.25,
-                0.25,
-                0.25,
-                0.25,
-                0.25,
-                0.25,
-                0.25,
-                0.25,
-            ],
-            stackwise_activation=[
-                "relu",
-                "relu",
-                "relu",
-                "hard_swish",
-                "hard_swish",
-                "hard_swish",
-                "hard_swish",
-                "hard_swish",
-                "hard_swish",
-                "hard_swish",
-                "hard_swish",
-            ],
-            filters=1024,
+        model_2 = MobileNetV3SmallBackbone(
             include_rescaling=False,
         )
         layers_1 = model.layers
