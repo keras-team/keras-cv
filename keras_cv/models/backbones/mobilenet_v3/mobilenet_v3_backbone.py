@@ -103,10 +103,11 @@ def apply_inverted_res_block(
     Returns:
         the updated input tensor.
     """
-    if activation == "hard_swish":
-        activation = apply_hard_swish
-    if activation == "relu":
-        activation = layers.ReLU()
+    if isinstance(activation, str):
+        if activation == "hard_swish":
+            activation = apply_hard_swish
+        else:
+            activation = keras.activations.get(activation)
 
     shortcut = x
     prefix = "expanded_conv/"
