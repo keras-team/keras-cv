@@ -19,6 +19,9 @@ from absl.testing import parameterized
 from tensorflow import keras
 
 from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_backbone import (
+    MobileNetV3Backbone,
+)
+from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_backbone import (
     MobileNetV3SmallBackbone,
 )
 from keras_cv.utils.train import get_feature_extractor
@@ -52,7 +55,7 @@ class MobileNetV3BackboneTest(tf.test.TestCase, parameterized.TestCase):
         restored_model = keras.models.load_model(save_path)
 
         # Check we got the real object back.
-        self.assertIsInstance(restored_model, MobileNetV3SmallBackbone)
+        self.assertIsInstance(restored_model, MobileNetV3Backbone)
 
         # Check that output matches.
         restored_output = restored_model(self.input_batch)
@@ -63,10 +66,96 @@ class MobileNetV3BackboneTest(tf.test.TestCase, parameterized.TestCase):
         ("keras_format", "keras_v3", "model.keras"),
     )
     def test_model_backbone_layer_names_stability(self):
-        model = MobileNetV3SmallBackbone(
+        model = MobileNetV3Backbone(
+            stackwise_expansion=[
+                1,
+                72.0 / 16,
+                88.0 / 24,
+                4,
+                6,
+                6,
+                3,
+                3,
+                6,
+                6,
+                6,
+            ],
+            stackwise_filters=[16, 24, 24, 40, 40, 40, 48, 48, 96, 96, 96],
+            stackwise_kernel_size=[3, 3, 3, 5, 5, 5, 5, 5, 5, 5, 5],
+            stackwise_stride=[2, 2, 1, 2, 1, 1, 1, 1, 2, 1, 1],
+            stackwise_se_ratio=[
+                0.25,
+                None,
+                None,
+                0.25,
+                0.25,
+                0.25,
+                0.25,
+                0.25,
+                0.25,
+                0.25,
+                0.25,
+            ],
+            stackwise_activation=[
+                "relu",
+                "relu",
+                "relu",
+                "hard_swish",
+                "hard_swish",
+                "hard_swish",
+                "hard_swish",
+                "hard_swish",
+                "hard_swish",
+                "hard_swish",
+                "hard_swish",
+            ],
+            filters=1024,
             include_rescaling=False,
         )
-        model_2 = MobileNetV3SmallBackbone(
+        model_2 = MobileNetV3Backbone(
+            stackwise_expansion=[
+                1,
+                72.0 / 16,
+                88.0 / 24,
+                4,
+                6,
+                6,
+                3,
+                3,
+                6,
+                6,
+                6,
+            ],
+            stackwise_filters=[16, 24, 24, 40, 40, 40, 48, 48, 96, 96, 96],
+            stackwise_kernel_size=[3, 3, 3, 5, 5, 5, 5, 5, 5, 5, 5],
+            stackwise_stride=[2, 2, 1, 2, 1, 1, 1, 1, 2, 1, 1],
+            stackwise_se_ratio=[
+                0.25,
+                None,
+                None,
+                0.25,
+                0.25,
+                0.25,
+                0.25,
+                0.25,
+                0.25,
+                0.25,
+                0.25,
+            ],
+            stackwise_activation=[
+                "relu",
+                "relu",
+                "relu",
+                "hard_swish",
+                "hard_swish",
+                "hard_swish",
+                "hard_swish",
+                "hard_swish",
+                "hard_swish",
+                "hard_swish",
+                "hard_swish",
+            ],
+            filters=1024,
             include_rescaling=False,
         )
         layers_1 = model.layers
@@ -88,7 +177,7 @@ class MobileNetV3BackboneTest(tf.test.TestCase, parameterized.TestCase):
         outputs = backbone_model(inputs)
         self.assertLen(outputs, 2)
         self.assertEquals(list(outputs.keys()), [3, 4])
-        self.assertEquals(outputs[3].shape, [None, 32, 32, 512])
+        self.assertEquals(outputs[3].shape, [None, 31, 31, 24])
         self.assertEquals(outputs[4].shape, [None, 16, 16, 1024])
 
     @parameterized.named_parameters(
@@ -100,7 +189,7 @@ class MobileNetV3BackboneTest(tf.test.TestCase, parameterized.TestCase):
             input_shape=(None, None, num_channels),
             include_rescaling=False,
         )
-        self.assertEqual(model.output_shape, (None, None, None, 2048))
+        self.assertEqual(model.output_shape, (None, None, None, 576))
 
 
 if __name__ == "__main__":
