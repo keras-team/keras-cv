@@ -171,14 +171,14 @@ class MobileNetV3BackboneTest(tf.test.TestCase, parameterized.TestCase):
             input_shape=[256, 256, 3],
         )
         levels = [4, 5]
-        layer_names = [model.pyramid_level_inputs[level] for level in [3, 4]]
+        layer_names = [model.pyramid_level_inputs[level] for level in [4, 5]]
         backbone_model = get_feature_extractor(model, layer_names, levels)
         inputs = tf.keras.Input(shape=[256, 256, 3])
         outputs = backbone_model(inputs)
         self.assertLen(outputs, 2)
-        self.assertEquals(list(outputs.keys()), [3, 4])
+        self.assertEquals(list(outputs.keys()), [4, 5])
         self.assertEquals(outputs[4].shape, [None, 31, 31, 24])
-        self.assertEquals(outputs[5].shape, [None, 16, 16, 1024])
+        self.assertEquals(outputs[5].shape, [None, 14, 14, 40])
 
     @parameterized.named_parameters(
         ("one_channel", 1),
