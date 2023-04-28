@@ -170,7 +170,7 @@ class MobileNetV3BackboneTest(tf.test.TestCase, parameterized.TestCase):
             include_rescaling=False,
             input_shape=[256, 256, 3],
         )
-        levels = [3, 4]
+        levels = [4, 5]
         layer_names = [model.pyramid_level_inputs[level] for level in [3, 4]]
         backbone_model = get_feature_extractor(model, layer_names, levels)
         inputs = tf.keras.Input(shape=[256, 256, 3])
