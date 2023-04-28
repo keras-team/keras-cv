@@ -193,7 +193,6 @@ class MobileNetV3Backbone(Backbone):
             residual block in the model.
         stackwise_stride: list of ints, stride length for each inverted
             residual block in the model.
-        filters: integer, the number of filters for the convolution layer.
         include_rescaling: bool, whether to rescale the inputs. If set to True,
             inputs will be passed through a `Rescaling(scale=1 / 255)`
             layer.
@@ -209,8 +208,6 @@ class MobileNetV3Backbone(Backbone):
                 of filters in each layer.
             - If `alpha` = 1, default number of filters from the paper
                 are used at each layer.
-        dropout_rate: a float between 0 and 1 denoting the fraction of input
-            units to drop during training, defaults to 0.2.
 
     Examples:
     ```python
@@ -220,8 +217,10 @@ class MobileNetV3Backbone(Backbone):
     model = MobileNetV3Backbone(
         stackwise_expansion=[1, 72.0 / 16, 88.0 / 24, 4, 6, 6, 3, 3, 6, 6, 6],
         stackwise_filters=[16, 24, 24, 40, 40, 40, 48, 48, 96, 96, 96],
+        stackwise_kernel_size=[3, 3, 3, 5, 5, 5, 5, 5, 5, 5, 5],
         stackwise_stride=[2, 2, 1, 2, 1, 1, 1, 1, 2, 1, 1],
-        filters=1024,
+        stackwise_se_ratio=[0.25, None, None, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25],
+        stackwise_activation=["relu", "relu", "relu", "hard_swish", "hard_swish", "hard_swish", "hard_swish", "hard_swish", "hard_swish", "hard_swish", "hard_swish"],
         include_rescaling=False,
     )
     output = model(input_data)
@@ -237,12 +236,10 @@ class MobileNetV3Backbone(Backbone):
         stackwise_stride,
         stackwise_se_ratio,
         stackwise_activation,
-        filters,
         include_rescaling,
         input_shape=(None, None, 3),
         input_tensor=None,
         alpha=1.0,
-        dropout_rate=0.2,
         **kwargs,
     ):
         inputs = utils.parse_model_inputs(input_shape, input_tensor)
@@ -285,10 +282,6 @@ class MobileNetV3Backbone(Backbone):
 
         last_conv_ch = adjust_channels(backend.int_shape(x)[CHANNEL_AXIS] * 6)
 
-        # if the width multiplier is greater than 1 we
-        # increase the number of output channels
-        if alpha > 1.0:
-            filters = adjust_channels(filters * alpha)
         x = layers.Conv2D(
             last_conv_ch,
             kernel_size=1,
@@ -313,11 +306,9 @@ class MobileNetV3Backbone(Backbone):
         self.stackwise_stride = stackwise_stride
         self.stackwise_se_ratio = stackwise_se_ratio
         self.stackwise_activation = stackwise_activation
-        self.filters = filters
         self.include_rescaling = include_rescaling
         self.input_tensor = input_tensor
         self.alpha = alpha
-        self.dropout_rate = dropout_rate
 
     def get_config(self):
         config = super().get_config()
@@ -329,12 +320,10 @@ class MobileNetV3Backbone(Backbone):
                 "stackwise_stride": self.stackwise_stride,
                 "stackwise_se_ratio": self.stackwise_se_ratio,
                 "stackwise_activation": self.stackwise_activation,
-                "filters": self.filters,
                 "include_rescaling": self.include_rescaling,
                 "input_shape": self.input_shape[1:],
                 "input_tensor": self.input_tensor,
                 "alpha": self.alpha,
-                "dropout_rate": self.dropout_rate,
             }
         )
         return config
