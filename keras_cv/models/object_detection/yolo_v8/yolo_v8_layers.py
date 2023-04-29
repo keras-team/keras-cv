@@ -42,7 +42,9 @@ def apply_conv_bn(
         name=f"{name}_conv",
     )(inputs)
     x = layers.BatchNormalization(
+        # The default momentum is 0.99, but we use 0.97 here.
         momentum=BATCH_NORM_MOMENTUM,
+        # The epsilon is the default epsilon (0.001). No need to specify.
         epsilon=BATCH_NORM_EPSILON,
         name=f"{name}_bn",
     )(x)

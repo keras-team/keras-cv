@@ -120,6 +120,26 @@ backbone_presets_no_weights = {
             "input_tensor": None,
         },
     },
+    "yolov8_xl_backbone": {
+        "metadata": {
+            "description": "An extra large YOLOV8 backbone",
+        },
+        "class_name": "keras_cv.models>CSPDarkNetBackbone",
+        "config": {
+            "stackwise_channels": [160, 320, 640, 640],
+            "stackwise_depth": [3, 6, 6, 3],
+            "include_rescaling": True,
+            "use_depthwise": False,
+            "input_shape": (None, None, 3),
+            "input_tensor": None,
+            "use_focus": False,
+            "batch_norm_momentum": 0.97,
+            "stem_stride": 2,
+            "yolo_style": True,
+            "use_zero_padding": True,
+            "padding": "valid",
+        },
+    },
 }
 
 backbone_presets_with_weights = {
@@ -156,6 +176,15 @@ backbone_presets_with_weights = {
         "config": backbone_presets_no_weights["csp_darknet_l"]["config"],
         "weights_url": "https://storage.googleapis.com/keras-cv/models/cspdarknetl/imagenet/classification-v0-notop.h5",  # noqa: E501
         "weights_hash": "9303aabfadffbff8447171fce1e941f96d230d8f3cef30d3f05a9c85097f8f1e",  # noqa: E501
+    },
+    "yolov8_xl_backbone_coco": {
+        "metadata": {
+            "description": ("An extra large YOLOV8 backbone pretrained on COCO")
+        },
+        "class_name": "keras_cv.models>CSPDarkNetBackbone",
+        "config": backbone_presets_no_weights["yolov8_xl_backbone"]["config"],
+        "weights_url": "https://storage.googleapis.com/keras-cv/models/yolov8/coco/yolov8_x_backbone.h5",  # noqa: E501
+        "weights_hash": "ce0cc3235eacaffc4a9824e28b2366e674b6d42befc4c7b77f3be7d1d39960bd",  # noqa: E501
     },
 }
 

@@ -17,6 +17,7 @@ import pytest
 import tensorflow as tf
 from absl.testing import parameterized
 
+from keras_cv.models import YOLOV8Backbone
 from keras_cv.models.backbones.csp_darknet import csp_darknet_backbone
 
 
@@ -86,6 +87,17 @@ class CSPDarkNetPresetSmokeTest(tf.test.TestCase, parameterized.TestCase):
             csp_darknet_backbone.CSPDarkNetBackbone.from_preset(
                 "csp_darknet_tiny", load_weights=True
             )
+
+    def test_yolo_v8_preset_same_output(self):
+        yolo_model = YOLOV8Backbone.from_preset("yolov8_xl_backbone_coco")
+        weights = yolo_model.get_weights()
+        csp_model = csp_darknet_backbone.CSPDarkNetBackbone.from_preset(
+            "yolov8_xl_backbone"
+        )
+        csp_model.set_weights(weights)
+        outputs = csp_model(tf.ones(shape=(1, 512, 512, 3)))
+        expected = yolo_model(tf.ones(shape=(1, 512, 512, 3)))
+        self.assertAllClose(outputs, expected)
 
 
 @pytest.mark.extra_large

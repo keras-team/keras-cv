@@ -25,7 +25,15 @@ from tensorflow.keras import layers
 
 
 def DarknetConvBlock(
-    filters, kernel_size, strides, use_bias=False, activation="silu", name=None
+    filters,
+    kernel_size,
+    strides,
+    use_bias=False,
+    activation="silu",
+    name=None,
+    batch_norm_momentum=0.99,
+    use_zero_padding=False,
+    padding="same",
 ):
     """The basic conv block used in Darknet. Applies Conv2D followed by a
     BatchNorm.
@@ -48,20 +56,30 @@ def DarknetConvBlock(
     if name is None:
         name = f"conv_block{backend.get_uid('conv_block')}"
 
-    model_layers = [
+    model_layers = []
+    if kernel_size > 1 and use_zero_padding:
+        model_layers.append(
+            layers.ZeroPadding2D(padding=kernel_size // 2, name=f"{name}_pad")
+        )
+
+    model_layers.append(
         layers.Conv2D(
             filters,
             kernel_size,
             strides,
-            padding="same",
+            padding=padding,
             use_bias=use_bias,
             name=name + "_conv",
+        )
+    )
+    model_layers.append(
+        layers.BatchNormalization(
+            momentum=batch_norm_momentum, name=name + "_bn"
         ),
-        layers.BatchNormalization(name=name + "_bn"),
-    ]
+    )
 
     if activation == "silu":
-        model_layers.append(layers.Lambda(lambda x: keras.activations.swish(x)))
+        model_layers.append(layers.Activation("swish"))
     elif activation == "relu":
         model_layers.append(layers.ReLU())
     elif activation == "leaky_relu":
