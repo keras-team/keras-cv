@@ -165,7 +165,7 @@ class MixUp(BaseImageAugmentationLayer):
                 "MixUp expects inputs in a dictionary with format "
                 '{"images": images, "labels": labels}. or'
                 '{"images": images, "bounding_boxes": bounding_boxes}. or'
-                '{"images": images, "segmentation_masks": segmentation_masks}. or'
+                '{"images": images, "segmentation_masks": segmentation_masks}. '
                 f"Got: inputs = {inputs}."
             )
 
