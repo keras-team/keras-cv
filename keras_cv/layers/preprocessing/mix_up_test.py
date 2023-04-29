@@ -33,7 +33,11 @@ class MixUpTest(tf.test.TestCase):
         }
 
         # randomly sample segmentation mask
-        ys_segmentation_masks = tf.ones((2, 512, 512))
+        ys_segmentation_masks = tf.random.uniform(
+            shape=(2, 512, 512), maxval=10
+        )
+        ys_segmentation_masks = tf.cast(ys_segmentation_masks, tf.uint8)
+        ys_segmentation_masks = tf.one_hot(ys_segmentation_masks, num_classes)
 
         layer = MixUp()
         # mixup on labels
@@ -56,7 +60,7 @@ class MixUpTest(tf.test.TestCase):
         self.assertEqual(ys_labels.shape, [2, 10])
         self.assertEqual(ys_bounding_boxes["boxes"].shape, [2, 6, 4])
         self.assertEqual(ys_bounding_boxes["classes"].shape, [2, 6])
-        self.assertEqual(ys_segmentation_masks.shape, [2, 512, 512])
+        self.assertEqual(ys_segmentation_masks.shape, [2, 512, 512, 10])
 
     def test_mix_up_call_results(self):
         xs = tf.cast(
