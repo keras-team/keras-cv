@@ -137,7 +137,7 @@ class MixUp(BaseImageAugmentationLayer):
     def _update_segmentation_masks(
         self, segmentation_masks, lambda_sample, permutation_order
     ):
-        lambda_sample = tf.reshape(lambda_sample, [-1, 1, 1])
+        lambda_sample = tf.reshape(lambda_sample, [-1, 1, 1, 1])
 
         segmentation_masks_for_mixup = tf.gather(
             segmentation_masks, permutation_order
@@ -177,6 +177,14 @@ class MixUp(BaseImageAugmentationLayer):
 
         if bounding_boxes is not None:
             _ = bounding_box.validate_format(bounding_boxes)
+
+        if segmentation_masks is not None:
+            if len(segmentation_masks.shape) != 4:
+                raise ValueError(
+                    "MixUp expects shape of segmentation_masks as "
+                    "[batch, h, w, num_classes]. "
+                    f"Got: shape = {segmentation_masks.shape}. "
+                )
 
     def get_config(self):
         config = {
