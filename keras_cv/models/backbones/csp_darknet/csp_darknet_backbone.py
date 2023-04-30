@@ -111,6 +111,8 @@ class CSPDarkNetBackbone(Backbone):
         yolo_style=False,
         use_zero_padding=False,
         padding="same",
+        spp_pool_sizes=(5, 9, 13),
+        sequential_pooling=False,
         **kwargs,
     ):
         ConvBlock = (
@@ -153,12 +155,20 @@ class CSPDarkNetBackbone(Backbone):
                 padding=padding,
             )(x)
 
-            if index == len(stackwise_depth) - 1 and not yolo_style:
-                x = SpatialPyramidPoolingBottleneck(
+            def get_spp():
+                return SpatialPyramidPoolingBottleneck(
                     channels,
                     hidden_filters=channels // 2,
+                    kernel_sizes=spp_pool_sizes,
                     name=f"dark{index + 2}_spp",
-                )(x)
+                    batch_norm_momentum=batch_norm_momentum,
+                    use_zero_padding=use_zero_padding,
+                    padding=padding,
+                    sequential_pooling=sequential_pooling,
+                )
+
+            if index == len(stackwise_depth) - 1 and not yolo_style:
+                x = get_spp()(x)
 
             if not yolo_style:
                 x = CrossStagePartial(
@@ -178,12 +188,7 @@ class CSPDarkNetBackbone(Backbone):
                 )
 
             if index == len(stackwise_depth) - 1 and yolo_style:
-                x = apply_spatial_pyramid_pooling_fast(
-                    x,
-                    pool_size=5,
-                    activation="swish",
-                    name=f"dark{index + 2}_spp_fast",
-                )
+                x = get_spp()(x)
 
             pyramid_level_inputs[index + 2] = x.node.layer.name
 

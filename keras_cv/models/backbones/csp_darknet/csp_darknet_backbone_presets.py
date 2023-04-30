@@ -138,6 +138,8 @@ backbone_presets_no_weights = {
             "yolo_style": True,
             "use_zero_padding": True,
             "padding": "valid",
+            "spp_pool_sizes": (5, 5, 5),
+            "sequential_pooling": True,
         },
     },
 }

@@ -13,7 +13,6 @@
 # limitations under the License.
 import copy
 
-import tensorflow as tf
 from keras import layers
 from tensorflow import keras
 
@@ -47,17 +46,17 @@ def apply_spatial_pyramid_pooling_fast(
         activation=activation,
         name=f"{name}_pre",
     )
-    pool_1 = layers.MaxPool2D(
+    pool_1 = layers.MaxPooling2D(
         pool_size=pool_size, strides=1, padding="same", name=f"{name}_pool1"
     )(x)
-    pool_2 = layers.MaxPool2D(
+    pool_2 = layers.MaxPooling2D(
         pool_size=pool_size, strides=1, padding="same", name=f"{name}_pool2"
     )(pool_1)
-    pool_3 = layers.MaxPool2D(
+    pool_3 = layers.MaxPooling2D(
         pool_size=pool_size, strides=1, padding="same", name=f"{name}_pool3"
     )(pool_2)
 
-    out = tf.concat([x, pool_1, pool_2, pool_3], axis=channel_axis)
+    out = layers.Concatenate()([x, pool_1, pool_2, pool_3])
     out = apply_conv_bn(
         out,
         input_channels,

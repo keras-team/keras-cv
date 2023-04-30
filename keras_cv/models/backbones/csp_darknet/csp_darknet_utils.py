@@ -23,6 +23,10 @@ from tensorflow import keras
 from tensorflow.keras import backend
 from tensorflow.keras import layers
 
+from keras_cv.models.object_detection.yolo_v8.yolo_v8_layers import (
+    apply_conv_bn,
+)
+
 
 def DarknetConvBlock(
     filters,
@@ -147,6 +151,10 @@ def SpatialPyramidPoolingBottleneck(
     kernel_sizes=(5, 9, 13),
     activation="silu",
     name=None,
+    batch_norm_momentum=0.99,
+    use_zero_padding=False,
+    padding="same",
+    sequential_pooling=False,
 ):
     """Spatial pyramid pooling layer used in YOLOv3-SPP
 
@@ -179,26 +187,36 @@ def SpatialPyramidPoolingBottleneck(
             strides=1,
             activation=activation,
             name=f"{name}_conv1",
+            batch_norm_momentum=batch_norm_momentum,
+            use_zero_padding=use_zero_padding,
+            padding=padding,
         )(x)
-        x = [x]
 
-        for kernel_size in kernel_sizes:
-            x.append(
-                layers.MaxPooling2D(
-                    kernel_size,
-                    strides=1,
-                    padding="same",
-                    name=f"{name}_maxpool_{kernel_size}",
-                )(x[0])
+        outputs = [x]
+
+        for index, kernel_size in enumerate(kernel_sizes):
+            layer = layers.MaxPooling2D(
+                pool_size=kernel_size,
+                strides=1,
+                padding="same",
+                name=f"{name}_maxpool_{index}_{kernel_size}",
             )
+            if sequential_pooling:
+                output = layer(outputs[-1])
+            else:
+                output = layer(x)
+            outputs.append(output)
 
-        x = layers.Concatenate(name=f"{name}_concat")(x)
+        x = layers.Concatenate(name=f"{name}_concat")(outputs)
         x = DarknetConvBlock(
             filters,
             kernel_size=1,
             strides=1,
             activation=activation,
             name=f"{name}_conv2",
+            batch_norm_momentum=batch_norm_momentum,
+            use_zero_padding=use_zero_padding,
+            padding=padding,
         )(x)
 
         return x
