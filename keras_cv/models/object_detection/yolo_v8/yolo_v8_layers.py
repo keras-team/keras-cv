@@ -48,7 +48,7 @@ def apply_conv_bn(
         epsilon=BATCH_NORM_EPSILON,
         name=f"{name}_bn",
     )(x)
-    x = layers.Activation(activation, name=name)(x)
+    x = layers.Activation(activation, name=f"{name}_activation")(x)
     return x
 
 
@@ -72,9 +72,11 @@ def apply_csp_block(
         hidden_channels * 2,
         kernel_size=1,
         activation=activation,
-        name=f"{name}_pre",
+        name=f"{name}_conv_1",
     )
     short, deep = tf.split(pre, 2, axis=channel_axis)
+    add = layers.Add(name=f"{name}_add")
+    concatenate = layers.Concatenate(name=f"{name}_concat")
 
     out = [short, deep]
     for id in range(depth):
@@ -83,23 +85,23 @@ def apply_csp_block(
             hidden_channels,
             kernel_size=3,
             activation=activation,
-            name=f"{name}_pre_{id}_1",
+            name=f"{name}_bottleneck_{id}_1",
         )
         deep = apply_conv_bn(
             deep,
             hidden_channels,
             kernel_size=3,
             activation=activation,
-            name=f"{name}_pre_{id}_2",
+            name=f"{name}_bottleneck_{id}_2",
         )
-        deep = (out[-1] + deep) if shortcut else deep
+        deep = add([out[-1], deep]) if shortcut else deep
         out.append(deep)
-    out = tf.concat(out, axis=channel_axis)
+    out = concatenate(out)
     out = apply_conv_bn(
         out,
         channels,
         kernel_size=1,
         activation=activation,
-        name=f"{name}_output",
+        name=f"{name}_conv_3",
     )
     return out

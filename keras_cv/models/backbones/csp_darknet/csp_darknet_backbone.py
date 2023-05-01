@@ -39,12 +39,6 @@ from keras_cv.models.backbones.csp_darknet.csp_darknet_utils import Focus
 from keras_cv.models.backbones.csp_darknet.csp_darknet_utils import (
     SpatialPyramidPoolingBottleneck,
 )
-from keras_cv.models.object_detection.yolo_v8.yolo_v8_backbone import (
-    apply_spatial_pyramid_pooling_fast,
-)
-from keras_cv.models.object_detection.yolo_v8.yolo_v8_layers import (
-    apply_csp_block,
-)
 from keras_cv.utils.python_utils import classproperty
 
 
@@ -108,11 +102,15 @@ class CSPDarkNetBackbone(Backbone):
         use_focus=True,
         batch_norm_momentum=0.99,
         stem_stride=1,
-        yolo_style=False,
+        spp_last=False,
         use_zero_padding=False,
         padding="same",
         spp_pool_sizes=(5, 9, 13),
         sequential_pooling=False,
+        wide_stem=False,
+        kernel_sizes=[1, 3],
+        concat_all=False,
+        always_residual=False,
         **kwargs,
     ):
         ConvBlock = (
@@ -123,7 +121,7 @@ class CSPDarkNetBackbone(Backbone):
 
         x = inputs
         if include_rescaling:
-            x = layers.Rescaling(1 / 255.0)(x)
+            x = layers.Rescaling(1 / 255.0, name="rescaling")(x)
 
         # stem
         if use_focus:
@@ -149,7 +147,7 @@ class CSPDarkNetBackbone(Backbone):
                 channels,
                 kernel_size=3,
                 strides=2,
-                name=f"dark{index + 2}_conv",
+                name=f"dark_{index + 2}_conv",
                 batch_norm_momentum=batch_norm_momentum,
                 use_zero_padding=use_zero_padding,
                 padding=padding,
@@ -160,34 +158,36 @@ class CSPDarkNetBackbone(Backbone):
                     channels,
                     hidden_filters=channels // 2,
                     kernel_sizes=spp_pool_sizes,
-                    name=f"dark{index + 2}_spp",
+                    name=f"dark_{index + 2}_spp",
                     batch_norm_momentum=batch_norm_momentum,
                     use_zero_padding=use_zero_padding,
                     padding=padding,
                     sequential_pooling=sequential_pooling,
                 )
 
-            if index == len(stackwise_depth) - 1 and not yolo_style:
+            if index == len(stackwise_depth) - 1 and not spp_last:
                 x = get_spp()(x)
 
-            if not yolo_style:
-                x = CrossStagePartial(
-                    channels,
-                    num_bottlenecks=depth,
-                    use_depthwise=use_depthwise,
-                    residual=(index != len(stackwise_depth) - 1),
-                    name=f"dark{index + 2}_csp",
-                )(x)
+            if always_residual:
+                residual = True
             else:
-                x = apply_csp_block(
-                    x,
-                    depth=depth,
-                    expansion=0.5,
-                    activation="swish",
-                    name=f"dark{index + 2}_csp",
-                )
+                residual = ((index != len(stackwise_depth) - 1),)
 
-            if index == len(stackwise_depth) - 1 and yolo_style:
+            x = CrossStagePartial(
+                channels,
+                num_bottlenecks=depth,
+                use_depthwise=use_depthwise,
+                residual=residual,
+                name=f"dark_{index + 2}_csp",
+                wide_stem=wide_stem,
+                kernel_sizes=kernel_sizes,
+                concat_all=concat_all,
+                batch_norm_momentum=batch_norm_momentum,
+                use_zero_padding=use_zero_padding,
+                padding=padding,
+            )(x)
+
+            if index == len(stackwise_depth) - 1 and spp_last:
                 x = get_spp()(x)
 
             pyramid_level_inputs[index + 2] = x.node.layer.name

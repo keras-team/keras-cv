@@ -44,25 +44,25 @@ def apply_spatial_pyramid_pooling_fast(
         hidden_channels,
         kernel_size=1,
         activation=activation,
-        name=f"{name}_pre",
+        name=f"{name}_conv_1",
     )
     pool_1 = layers.MaxPooling2D(
-        pool_size=pool_size, strides=1, padding="same", name=f"{name}_pool1"
+        pool_size=pool_size, strides=1, padding="same", name=f"{name}_maxpool_0"
     )(x)
     pool_2 = layers.MaxPooling2D(
-        pool_size=pool_size, strides=1, padding="same", name=f"{name}_pool2"
+        pool_size=pool_size, strides=1, padding="same", name=f"{name}_maxpool_1"
     )(pool_1)
     pool_3 = layers.MaxPooling2D(
-        pool_size=pool_size, strides=1, padding="same", name=f"{name}_pool3"
+        pool_size=pool_size, strides=1, padding="same", name=f"{name}_maxpool_2"
     )(pool_2)
 
-    out = layers.Concatenate()([x, pool_1, pool_2, pool_3])
+    out = layers.Concatenate(name=f"{name}_concat")([x, pool_1, pool_2, pool_3])
     out = apply_conv_bn(
         out,
         input_channels,
         kernel_size=1,
         activation=activation,
-        name=f"{name}_output",
+        name=f"{name}_conv_2",
     )
     return out
 
@@ -83,7 +83,7 @@ class YOLOV8Backbone(Backbone):
 
         x = inputs
         if include_rescaling:
-            x = layers.Rescaling(1 / 255.0)(x)
+            x = layers.Rescaling(1 / 255.0, name="rescaling")(x)
 
         """ Stem """
         stem_width = channels[0]
@@ -93,7 +93,7 @@ class YOLOV8Backbone(Backbone):
             kernel_size=3,
             strides=2,
             activation=activation,
-            name="stem_1",
+            name="stem_conv",
         )
         x = apply_conv_bn(
             x,
@@ -101,13 +101,13 @@ class YOLOV8Backbone(Backbone):
             kernel_size=3,
             strides=2,
             activation=activation,
-            name="stem_2",
+            name="dark_2_conv",
         )
 
         """ blocks """
         pyramid_level_inputs = {1: x.node.layer.name}
         for stack_id, (channel, depth) in enumerate(zip(channels, depths)):
-            stack_name = f"stack{stack_id + 1}"
+            stack_name = f"dark_{stack_id + 2}"
             if stack_id >= 1:
                 x = apply_conv_bn(
                     x,
@@ -115,14 +115,14 @@ class YOLOV8Backbone(Backbone):
                     kernel_size=3,
                     strides=2,
                     activation=activation,
-                    name=f"{stack_name}_downsample",
+                    name=f"{stack_name}_conv",
                 )
             x = apply_csp_block(
                 x,
                 depth=depth,
                 expansion=0.5,
                 activation=activation,
-                name=f"{stack_name}_c2f",
+                name=f"{stack_name}_csp",
             )
 
             if stack_id == len(depths) - 1:
@@ -130,7 +130,7 @@ class YOLOV8Backbone(Backbone):
                     x,
                     pool_size=5,
                     activation=activation,
-                    name=f"{stack_name}_spp_fast",
+                    name=f"{stack_name}_spp",
                 )
             pyramid_level_inputs[stack_id + 2] = x.node.layer.name
 

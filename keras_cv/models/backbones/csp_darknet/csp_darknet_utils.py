@@ -23,10 +23,6 @@ from tensorflow import keras
 from tensorflow.keras import backend
 from tensorflow.keras import layers
 
-from keras_cv.models.object_detection.yolo_v8.yolo_v8_layers import (
-    apply_conv_bn,
-)
-
 
 def DarknetConvBlock(
     filters,
@@ -34,10 +30,10 @@ def DarknetConvBlock(
     strides,
     use_bias=False,
     activation="silu",
-    name=None,
     batch_norm_momentum=0.99,
     use_zero_padding=False,
     padding="same",
+    name=None,
 ):
     """The basic conv block used in Darknet. Applies Conv2D followed by a
     BatchNorm.
@@ -83,7 +79,9 @@ def DarknetConvBlock(
     )
 
     if activation == "silu":
-        model_layers.append(layers.Activation("swish"))
+        model_layers.append(
+            layers.Activation("swish", name=name + "_activation")
+        )
     elif activation == "relu":
         model_layers.append(layers.ReLU())
     elif activation == "leaky_relu":
@@ -186,7 +184,7 @@ def SpatialPyramidPoolingBottleneck(
             kernel_size=1,
             strides=1,
             activation=activation,
-            name=f"{name}_conv1",
+            name=f"{name}_conv_1",
             batch_norm_momentum=batch_norm_momentum,
             use_zero_padding=use_zero_padding,
             padding=padding,
@@ -199,7 +197,7 @@ def SpatialPyramidPoolingBottleneck(
                 pool_size=kernel_size,
                 strides=1,
                 padding="same",
-                name=f"{name}_maxpool_{index}_{kernel_size}",
+                name=f"{name}_maxpool_{index}",
             )
             if sequential_pooling:
                 output = layer(outputs[-1])
@@ -213,7 +211,7 @@ def SpatialPyramidPoolingBottleneck(
             kernel_size=1,
             strides=1,
             activation=activation,
-            name=f"{name}_conv2",
+            name=f"{name}_conv_2",
             batch_norm_momentum=batch_norm_momentum,
             use_zero_padding=use_zero_padding,
             padding=padding,
@@ -271,7 +269,7 @@ def DarknetConvBlockDepthwise(
 
 
 @keras.utils.register_keras_serializable(package="keras_cv")
-class CrossStagePartial(layers.Layer):
+class CrossStagePartial(keras.Model):
     """A block used in Cross Stage Partial Darknet.
 
     Args:
@@ -296,76 +294,130 @@ class CrossStagePartial(layers.Layer):
         residual=True,
         use_depthwise=False,
         activation="silu",
+        wide_stem=False,
+        kernel_sizes=[1, 3],
+        concat_all=False,
+        batch_norm_momentum=0.99,
+        use_zero_padding=False,
+        padding="same",
+        name=None,
         **kwargs,
     ):
-        super().__init__(**kwargs)
+        super().__init__(name=name, **kwargs)
         self.filters = filters
         self.num_bottlenecks = num_bottlenecks
         self.residual = residual
         self.use_depthwise = use_depthwise
         self.activation = activation
+        self.wide_stem = wide_stem
+        self.kernel_sizes = kernel_sizes
+        self.concat_all = concat_all
 
         hidden_channels = filters // 2
         ConvBlock = (
             DarknetConvBlockDepthwise if use_depthwise else DarknetConvBlock
         )
 
-        self.darknet_conv1 = DarknetConvBlock(
-            hidden_channels,
-            kernel_size=1,
-            strides=1,
-            activation=activation,
-        )
+        if self.wide_stem:
+            self.darknet_conv1 = DarknetConvBlock(
+                hidden_channels * 2,
+                kernel_size=1,
+                strides=1,
+                activation=activation,
+                batch_norm_momentum=batch_norm_momentum,
+                use_zero_padding=use_zero_padding,
+                padding=padding,
+                name=f"{name}_conv_1",
+            )
+        else:
+            self.darknet_conv1 = DarknetConvBlock(
+                hidden_channels,
+                kernel_size=1,
+                strides=1,
+                activation=activation,
+                batch_norm_momentum=batch_norm_momentum,
+                use_zero_padding=use_zero_padding,
+                padding=padding,
+                name=f"{name}_conv_1",
+            )
 
-        self.darknet_conv2 = DarknetConvBlock(
-            hidden_channels,
-            kernel_size=1,
-            strides=1,
-            activation=activation,
-        )
+            self.darknet_conv2 = DarknetConvBlock(
+                hidden_channels,
+                kernel_size=1,
+                strides=1,
+                activation=activation,
+                batch_norm_momentum=batch_norm_momentum,
+                use_zero_padding=use_zero_padding,
+                padding=padding,
+                name=f"{name}_conv_2",
+            )
 
         # repeat bottlenecks num_bottleneck times
-        self.bottleneck_convs = []
-        for _ in range(num_bottlenecks):
-            self.bottleneck_convs.append(
+        self.bottleneck_convs_1 = []
+        self.bottleneck_convs_2 = []
+        for index in range(num_bottlenecks):
+            self.bottleneck_convs_1.append(
                 DarknetConvBlock(
                     hidden_channels,
-                    kernel_size=1,
+                    kernel_size=self.kernel_sizes[0],
                     strides=1,
                     activation=activation,
+                    batch_norm_momentum=batch_norm_momentum,
+                    use_zero_padding=use_zero_padding,
+                    padding=padding,
+                    name=f"{name}_bottleneck_{index}_1",
                 )
             )
 
-            self.bottleneck_convs.append(
+            self.bottleneck_convs_2.append(
                 ConvBlock(
                     hidden_channels,
-                    kernel_size=3,
+                    kernel_size=self.kernel_sizes[1],
                     strides=1,
                     activation=activation,
+                    batch_norm_momentum=batch_norm_momentum,
+                    use_zero_padding=use_zero_padding,
+                    padding=padding,
+                    name=f"{name}_bottleneck_{index}_2",
                 )
             )
 
-        self.add = layers.Add()
-        self.concatenate = layers.Concatenate()
+        self.add = layers.Add(name=f"{name}_add")
+        self.concatenate = layers.Concatenate(name=f"{name}_concat")
 
         self.darknet_conv3 = DarknetConvBlock(
-            filters, kernel_size=1, strides=1, activation=activation
+            filters,
+            kernel_size=1,
+            strides=1,
+            activation=activation,
+            batch_norm_momentum=batch_norm_momentum,
+            use_zero_padding=use_zero_padding,
+            padding=padding,
+            name=f"{name}_conv_3",
         )
 
     def call(self, x):
-        x1 = self.darknet_conv1(x)
-        x2 = self.darknet_conv2(x)
+        if self.wide_stem:
+            pre = self.darknet_conv1(x)
+            short, deep = tf.split(pre, 2, axis=-1)
+        else:
+            deep = self.darknet_conv1(x)
+            short = self.darknet_conv2(x)
 
+        out = [short, deep]
         for i in range(self.num_bottlenecks):
-            residual = x1
-            x1 = self.bottleneck_convs[2 * i](x1)
-            x1 = self.bottleneck_convs[2 * i + 1](x1)
+            deep = self.bottleneck_convs_1[i](deep)
+            deep = self.bottleneck_convs_2[i](deep)
 
             if self.residual:
-                x1 = self.add([residual, x1])
+                deep = self.add([out[-1], deep])
+            out.append(deep)
 
-        x1 = self.concatenate([x1, x2])
-        x = self.darknet_conv3(x1)
+        if self.concat_all:
+            x = self.concatenate(out)
+        else:
+            x = self.concatenate([deep, short])
+        x = self.darknet_conv3(x)
         return x
 
     def get_config(self):
