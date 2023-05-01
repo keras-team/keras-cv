@@ -24,7 +24,7 @@ from keras_cv.layers.object_detection.box_matcher import BoxMatcher
 from keras_cv.layers.object_detection.multi_class_non_max_suppression import (
     MultiClassNonMaxSuppression,
 )
-from keras_cv.layers.object_detection_3d.center_net_label_encoder import (
+from keras_cv.layers.object_detection_3d.centernet_label_encoder import (
     CenterNetLabelEncoder,
 )
 from keras_cv.layers.object_detection_3d.voxelization import DynamicVoxelization
