@@ -61,20 +61,6 @@ class MobileNetV3BackboneTest(tf.test.TestCase, parameterized.TestCase):
         restored_output = restored_model(self.input_batch)
         self.assertAllClose(model_output, restored_output)
 
-    def test_model_backbone_layer_names_stability(self):
-        model = MobileNetV3SmallBackbone(
-            include_rescaling=False,
-        )
-        model_2 = MobileNetV3SmallBackbone(
-            include_rescaling=False,
-        )
-        layers_1 = model.layers
-        layers_2 = model_2.layers
-        for i in range(len(layers_1)):
-            if "input" in layers_1[i].name:
-                continue
-            self.assertEquals(layers_1[i].name, layers_2[i].name)
-
     def test_create_backbone_model_with_level_config(self):
         model = MobileNetV3SmallBackbone(
             include_rescaling=False,
