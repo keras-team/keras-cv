@@ -19,7 +19,7 @@ backbone_presets_no_weights = {
         "metadata": {
             "description": "The EfficientNet small architecture.  In this "
             "variant of the EfficientNet architecture, there are "
-            f"6 convolutional blocks."
+            "6 convolutional blocks."
         },
         "class_name": "keras_cv.models>EfficientNetV2Backbone",
         "config": {
@@ -171,7 +171,7 @@ backbone_presets_no_weights = {
         "metadata": {
             "description": "The EfficientNet B1 architecture.  In this "
             "variant of the EfficientNet architecture, there are "
-            f"6 convolutional blocks. As with all of the B "
+            "6 convolutional blocks. As with all of the B "
             "style EfficientNet variants, the number of filters in each "
             "convolutional block is scaled by `width_coefficient=1.0` and a "
             "`depth_coefficient=1.1`."
@@ -249,7 +249,7 @@ backbone_presets_no_weights = {
         "metadata": {
             "description": "The EfficientNet B3 architecture.  In this "
             "variant of the EfficientNet architecture, there are "
-            f"6 convolutional blocks. As with all of the B "
+            "6 convolutional blocks. As with all of the B "
             "style EfficientNet variants, the number of filters in each "
             "convolutional block is scaled by `width_coefficient=1.2` and "
             "`depth_coefficient=1.4`."
@@ -292,10 +292,10 @@ backbone_presets_with_weights = {
             "description": {
                 "description": "The EfficientNet small architecture.  In this "
                 "variant of the EfficientNet architecture, there are "
-                f"6 convolutional blocks. Weights are "
+                "6 convolutional blocks. Weights are "
                 "initialized to pretrained imagenet classification weights."
-                "Published weights are capable of scoring 83.9%	top 1 accuracy and "
-                "96.7% top 5 accuracy on imagenet."
+                "Published weights are capable of scoring 83.9%	top 1 accuracy "
+                "and 96.7% top 5 accuracy on imagenet."
             },
         },
         "class_name": "keras_cv.models>EfficientNetV2Backbone",
@@ -334,7 +334,7 @@ backbone_presets_with_weights = {
         "metadata": {
             "description": "The EfficientNet B0 architecture.  In this "
             "variant of the EfficientNet architecture, there are "
-            f"6 convolutional blocks. As with all of the B "
+            "6 convolutional blocks. As with all of the B "
             "style EfficientNet variants, the number of filters in each "
             "convolutional block is scaled by `width_coefficient=1.0` and "
             "`depth_coefficient=1.0`. Weights are "
@@ -378,7 +378,7 @@ backbone_presets_with_weights = {
         "metadata": {
             "description": "The EfficientNet B1 architecture.  In this "
             "variant of the EfficientNet architecture, there are "
-            f"6 convolutional blocks. As with all of the B "
+            "6 convolutional blocks. As with all of the B "
             "style EfficientNet variants, the number of filters in each "
             "convolutional block is scaled by `width_coefficient=1.0` and "
             "`depth_coefficient=1.1`. Weights are "
@@ -422,7 +422,7 @@ backbone_presets_with_weights = {
         "metadata": {
             "description": "The EfficientNet B2 architecture.  In this "
             "variant of the EfficientNet architecture, there are "
-            f"6 convolutional blocks. As with all of the B "
+            "6 convolutional blocks. As with all of the B "
             "style EfficientNet variants, the number of filters in each "
             "convolutional block is scaled by `width_coefficient=1.1` and "
             "`depth_coefficient1.2`. Weights are initialized to pretrained "
