@@ -53,10 +53,7 @@ class WaymoEvaluationCallback(Callback):
         super().__init__(**kwargs)
 
     def _get_default_config(self):
-        """Returns the default Config proto for detection.
-        This is the python version of the GetConfig() function in
-        metrics/tools/compute_detection_metrics_main.cc
-        """
+        """Returns the default Config proto for detection."""
         config = metrics_pb2.Config()
 
         config.breakdown_generator_ids.append(
