@@ -252,7 +252,7 @@ backbone_presets_no_weights = {
             f"6 convolutional blocks. As with all of the B "
             "style EfficientNet variants, the number of filters in each "
             "convolutional block is scaled by `width_coefficient=1.2` and "
-            "`depth_coefficient=1.4`.
+            "`depth_coefficient=1.4`."
         },
         "class_name": "keras_cv.models>EfficientNetV2Backbone",
         "config": {
