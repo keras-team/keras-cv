@@ -14,404 +14,6 @@
 
 """EfficientNetV2 model preset configurations."""
 
-MEDIUM_BLOCK_ARGS = [
-    {
-        "kernel_size": 3,
-        "num_repeat": 3,
-        "input_filters": 24,
-        "output_filters": 24,
-        "expand_ratio": 1,
-        "se_ratio": 0,
-        "strides": 1,
-        "conv_type": "fused_mb_conv",
-    },
-    {
-        "kernel_size": 3,
-        "num_repeat": 5,
-        "input_filters": 24,
-        "output_filters": 48,
-        "expand_ratio": 4,
-        "se_ratio": 0,
-        "strides": 2,
-        "conv_type": "fused_mb_conv",
-    },
-    {
-        "kernel_size": 3,
-        "num_repeat": 5,
-        "input_filters": 48,
-        "output_filters": 80,
-        "expand_ratio": 4,
-        "se_ratio": 0,
-        "strides": 2,
-        "conv_type": "fused_mb_conv",
-    },
-    {
-        "kernel_size": 3,
-        "num_repeat": 7,
-        "input_filters": 80,
-        "output_filters": 160,
-        "expand_ratio": 4,
-        "se_ratio": 0.25,
-        "strides": 2,
-        "conv_type": "mb_conv",
-    },
-    {
-        "kernel_size": 3,
-        "num_repeat": 14,
-        "input_filters": 160,
-        "output_filters": 176,
-        "expand_ratio": 6,
-        "se_ratio": 0.25,
-        "strides": 1,
-        "conv_type": "mb_conv",
-    },
-    {
-        "kernel_size": 3,
-        "num_repeat": 18,
-        "input_filters": 176,
-        "output_filters": 304,
-        "expand_ratio": 6,
-        "se_ratio": 0.25,
-        "strides": 2,
-        "conv_type": "mb_conv",
-    },
-    {
-        "kernel_size": 3,
-        "num_repeat": 5,
-        "input_filters": 304,
-        "output_filters": 512,
-        "expand_ratio": 6,
-        "se_ratio": 0.25,
-        "strides": 1,
-        "conv_type": "mb_conv",
-    },
-]
-
-LARGE_BLOCK_ARGS = [
-    {
-        "kernel_size": 3,
-        "num_repeat": 4,
-        "input_filters": 32,
-        "output_filters": 32,
-        "expand_ratio": 1,
-        "se_ratio": 0,
-        "strides": 1,
-        "conv_type": "fused_mb_conv",
-    },
-    {
-        "kernel_size": 3,
-        "num_repeat": 7,
-        "input_filters": 32,
-        "output_filters": 64,
-        "expand_ratio": 4,
-        "se_ratio": 0,
-        "strides": 2,
-        "conv_type": "fused_mb_conv",
-    },
-    {
-        "kernel_size": 3,
-        "num_repeat": 7,
-        "input_filters": 64,
-        "output_filters": 96,
-        "expand_ratio": 4,
-        "se_ratio": 0,
-        "strides": 2,
-        "conv_type": "fused_mb_conv",
-    },
-    {
-        "kernel_size": 3,
-        "num_repeat": 10,
-        "input_filters": 96,
-        "output_filters": 192,
-        "expand_ratio": 4,
-        "se_ratio": 0.25,
-        "strides": 2,
-        "conv_type": "mb_conv",
-    },
-    {
-        "kernel_size": 3,
-        "num_repeat": 19,
-        "input_filters": 192,
-        "output_filters": 224,
-        "expand_ratio": 6,
-        "se_ratio": 0.25,
-        "strides": 1,
-        "conv_type": "mb_conv",
-    },
-    {
-        "kernel_size": 3,
-        "num_repeat": 25,
-        "input_filters": 224,
-        "output_filters": 384,
-        "expand_ratio": 6,
-        "se_ratio": 0.25,
-        "strides": 2,
-        "conv_type": "mb_conv",
-    },
-    {
-        "kernel_size": 3,
-        "num_repeat": 7,
-        "input_filters": 384,
-        "output_filters": 640,
-        "expand_ratio": 6,
-        "se_ratio": 0.25,
-        "strides": 1,
-        "conv_type": "mb_conv",
-    },
-]
-
-B0_BLOCK_ARGS = [
-    {
-        "kernel_size": 3,
-        "num_repeat": 1,
-        "input_filters": 32,
-        "output_filters": 16,
-        "expand_ratio": 1,
-        "se_ratio": 0,
-        "strides": 1,
-        "conv_type": "fused_mb_conv",
-    },
-    {
-        "kernel_size": 3,
-        "num_repeat": 2,
-        "input_filters": 16,
-        "output_filters": 32,
-        "expand_ratio": 4,
-        "se_ratio": 0,
-        "strides": 2,
-        "conv_type": "fused_mb_conv",
-    },
-    {
-        "kernel_size": 3,
-        "num_repeat": 2,
-        "input_filters": 32,
-        "output_filters": 48,
-        "expand_ratio": 4,
-        "se_ratio": 0,
-        "strides": 2,
-        "conv_type": "fused_mb_conv",
-    },
-    {
-        "kernel_size": 3,
-        "num_repeat": 3,
-        "input_filters": 48,
-        "output_filters": 96,
-        "expand_ratio": 4,
-        "se_ratio": 0.25,
-        "strides": 2,
-        "conv_type": "mb_conv",
-    },
-    {
-        "kernel_size": 3,
-        "num_repeat": 5,
-        "input_filters": 96,
-        "output_filters": 112,
-        "expand_ratio": 6,
-        "se_ratio": 0.25,
-        "strides": 1,
-        "conv_type": "mb_conv",
-    },
-    {
-        "kernel_size": 3,
-        "num_repeat": 8,
-        "input_filters": 112,
-        "output_filters": 192,
-        "expand_ratio": 6,
-        "se_ratio": 0.25,
-        "strides": 2,
-        "conv_type": "mb_conv",
-    },
-]
-
-B1_BLOCK_ARGS = [
-    {
-        "kernel_size": 3,
-        "num_repeat": 1,
-        "input_filters": 32,
-        "output_filters": 16,
-        "expand_ratio": 1,
-        "se_ratio": 0,
-        "strides": 1,
-        "conv_type": "fused_mb_conv",
-    },
-    {
-        "kernel_size": 3,
-        "num_repeat": 2,
-        "input_filters": 16,
-        "output_filters": 32,
-        "expand_ratio": 4,
-        "se_ratio": 0,
-        "strides": 2,
-        "conv_type": "fused_mb_conv",
-    },
-    {
-        "kernel_size": 3,
-        "num_repeat": 2,
-        "input_filters": 32,
-        "output_filters": 48,
-        "expand_ratio": 4,
-        "se_ratio": 0,
-        "strides": 2,
-        "conv_type": "fused_mb_conv",
-    },
-    {
-        "kernel_size": 3,
-        "num_repeat": 3,
-        "input_filters": 48,
-        "output_filters": 96,
-        "expand_ratio": 4,
-        "se_ratio": 0.25,
-        "strides": 2,
-        "conv_type": "mb_conv",
-    },
-    {
-        "kernel_size": 3,
-        "num_repeat": 5,
-        "input_filters": 96,
-        "output_filters": 112,
-        "expand_ratio": 6,
-        "se_ratio": 0.25,
-        "strides": 1,
-        "conv_type": "mb_conv",
-    },
-    {
-        "kernel_size": 3,
-        "num_repeat": 8,
-        "input_filters": 112,
-        "output_filters": 192,
-        "expand_ratio": 6,
-        "se_ratio": 0.25,
-        "strides": 2,
-        "conv_type": "mb_conv",
-    },
-]
-
-B2_BLOCK_ARGS = [
-    {
-        "kernel_size": 3,
-        "num_repeat": 1,
-        "input_filters": 32,
-        "output_filters": 16,
-        "expand_ratio": 1,
-        "se_ratio": 0,
-        "strides": 1,
-        "conv_type": "fused_mb_conv",
-    },
-    {
-        "kernel_size": 3,
-        "num_repeat": 2,
-        "input_filters": 16,
-        "output_filters": 32,
-        "expand_ratio": 4,
-        "se_ratio": 0,
-        "strides": 2,
-        "conv_type": "fused_mb_conv",
-    },
-    {
-        "kernel_size": 3,
-        "num_repeat": 2,
-        "input_filters": 32,
-        "output_filters": 48,
-        "expand_ratio": 4,
-        "se_ratio": 0,
-        "strides": 2,
-        "conv_type": "fused_mb_conv",
-    },
-    {
-        "kernel_size": 3,
-        "num_repeat": 3,
-        "input_filters": 48,
-        "output_filters": 96,
-        "expand_ratio": 4,
-        "se_ratio": 0.25,
-        "strides": 2,
-        "conv_type": "mb_conv",
-    },
-    {
-        "kernel_size": 3,
-        "num_repeat": 5,
-        "input_filters": 96,
-        "output_filters": 112,
-        "expand_ratio": 6,
-        "se_ratio": 0.25,
-        "strides": 1,
-        "conv_type": "mb_conv",
-    },
-    {
-        "kernel_size": 3,
-        "num_repeat": 8,
-        "input_filters": 112,
-        "output_filters": 192,
-        "expand_ratio": 6,
-        "se_ratio": 0.25,
-        "strides": 2,
-        "conv_type": "mb_conv",
-    },
-]
-
-B3_BLOCK_ARGS = [
-    {
-        "kernel_size": 3,
-        "num_repeat": 1,
-        "input_filters": 32,
-        "output_filters": 16,
-        "expand_ratio": 1,
-        "se_ratio": 0,
-        "strides": 1,
-        "conv_type": "fused_mb_conv",
-    },
-    {
-        "kernel_size": 3,
-        "num_repeat": 2,
-        "input_filters": 16,
-        "output_filters": 32,
-        "expand_ratio": 4,
-        "se_ratio": 0,
-        "strides": 2,
-        "conv_type": "fused_mb_conv",
-    },
-    {
-        "kernel_size": 3,
-        "num_repeat": 2,
-        "input_filters": 32,
-        "output_filters": 48,
-        "expand_ratio": 4,
-        "se_ratio": 0,
-        "strides": 2,
-        "conv_type": "fused_mb_conv",
-    },
-    {
-        "kernel_size": 3,
-        "num_repeat": 3,
-        "input_filters": 48,
-        "output_filters": 96,
-        "expand_ratio": 4,
-        "se_ratio": 0.25,
-        "strides": 2,
-        "conv_type": "mb_conv",
-    },
-    {
-        "kernel_size": 3,
-        "num_repeat": 5,
-        "input_filters": 96,
-        "output_filters": 112,
-        "expand_ratio": 6,
-        "se_ratio": 0.25,
-        "strides": 1,
-        "conv_type": "mb_conv",
-    },
-    {
-        "kernel_size": 3,
-        "num_repeat": 8,
-        "input_filters": 112,
-        "output_filters": 192,
-        "expand_ratio": 6,
-        "se_ratio": 0.25,
-        "strides": 2,
-        "conv_type": "mb_conv",
-    },
-]
-
 backbone_presets_no_weights = {
     "efficientnetv2-s": {
         "metadata": {
@@ -453,7 +55,7 @@ backbone_presets_no_weights = {
         "metadata": {
             "description": "The EfficientNet medium architecture.  In this "
             "variant of the EfficientNet architecture, there are "
-            f"{len(MEDIUM_BLOCK_ARGS)} convolutional blocks."
+            "7 convolutional blocks."
         },
         "class_name": "keras_cv.models>EfficientNetV2Backbone",
         "config": {
@@ -468,14 +70,32 @@ backbone_presets_no_weights = {
             "include_rescaling": True,
             "input_shape": (None, None, 3),
             "input_tensor": None,
-            "block_args": MEDIUM_BLOCK_ARGS,
+            "kernel_size": [3, 3, 3, 3, 3, 3, 3],
+            "num_repeat": [3, 5, 5, 7, 14, 18, 5],
+            "input_filters": [24, 24, 48, 80, 160, 176, 304],
+            "output_filters": [24, 48, 80, 160, 176, 304, 512],
+            "expand_ratio": [1, 4, 4, 4, 6, 6, 6],
+            "se_ratio": [0, 0, 0, 0.25, 0.25, 0.25, 0.25],
+            "strides": [1, 2, 2, 2, 1, 2, 1],
+            "conv_type": [
+                "fused_mb_conv",
+                "fused_mb_conv",
+                "fused_mb_conv",
+                "mb_conv",
+                "mb_conv",
+                "mb_conv",
+                "mb_conv",
+            ],
         },
     },
     "efficientnetv2-l": {
         "metadata": {
             "description": "The EfficientNet medium architecture.  In this "
             "variant of the EfficientNet architecture, there are "
-            f"{len(LARGE_BLOCK_ARGS)} convolutional blocks."
+            "7 convolutional blocks.  The primary distinction between the "
+            "EfficientNet large architecture and the EfficientNet medium lies "
+            "in the number of filters contained in each layer, and the number "
+            "of times each block is repeated."
         },
         "class_name": "keras_cv.models>EfficientNetV2Backbone",
         "config": {
@@ -490,14 +110,29 @@ backbone_presets_no_weights = {
             "include_rescaling": True,
             "input_shape": (None, None, 3),
             "input_tensor": None,
-            "block_args": LARGE_BLOCK_ARGS,
+            "kernel_size": [3, 3, 3, 3, 3, 3, 3],
+            "num_repeat": [4, 7, 7, 10, 19, 25, 7],
+            "input_filters": [32, 32, 64, 96, 192, 224, 384],
+            "output_filters": [32, 64, 96, 192, 224, 384, 640],
+            "expand_ratio": [1, 4, 4, 4, 6, 6, 6],
+            "se_ratio": [0, 0, 0, 0.25, 0.25, 0.25, 0.25],
+            "strides": [1, 2, 2, 2, 1, 2, 1],
+            "conv_type": [
+                "fused_mb_conv",
+                "fused_mb_conv",
+                "fused_mb_conv",
+                "mb_conv",
+                "mb_conv",
+                "mb_conv",
+                "mb_conv",
+            ],
         },
     },
     "efficientnetv2-b0": {
         "metadata": {
             "description": "The EfficientNet B0 architecture.  In this "
             "variant of the EfficientNet architecture, there are "
-            f"{len(B0_BLOCK_ARGS)} convolutional blocks. As with all of the B "
+            "6 convolutional blocks. As with all of the B "
             "style EfficientNet variants, the number of filters in each "
             "convolutional block is scaled by a `width_coefficient` and a "
             "`depth_coefficient`.  Please see the GitHub source to find the "
@@ -517,14 +152,28 @@ backbone_presets_no_weights = {
             "include_rescaling": True,
             "input_shape": (None, None, 3),
             "input_tensor": None,
-            "block_args": B0_BLOCK_ARGS,
+            "kernel_size": [3, 3, 3, 3, 3, 3],
+            "num_repeat": [1, 2, 2, 3, 5, 8],
+            "input_filters": [32, 16, 32, 48, 96, 112],
+            "output_filters": [16, 32, 48, 96, 112, 192],
+            "expand_ratio": [1, 4, 4, 4, 6, 6],
+            "se_ratio": [0, 0, 0, 0.25, 0.25, 0.25],
+            "strides": [1, 2, 2, 2, 1, 2],
+            "conv_type": [
+                "fused_mb_conv",
+                "fused_mb_conv",
+                "fused_mb_conv",
+                "mb_conv",
+                "mb_conv",
+                "mb_conv",
+            ],
         },
     },
     "efficientnetv2-b1": {
         "metadata": {
             "description": "The EfficientNet B1 architecture.  In this "
             "variant of the EfficientNet architecture, there are "
-            f"{len(B1_BLOCK_ARGS)} convolutional blocks. As with all of the B "
+            f"6 convolutional blocks. As with all of the B "
             "style EfficientNet variants, the number of filters in each "
             "convolutional block is scaled by a `width_coefficient` and a "
             "`depth_coefficient`.  Please see the GitHub source to find the "
@@ -544,14 +193,28 @@ backbone_presets_no_weights = {
             "include_rescaling": True,
             "input_shape": (None, None, 3),
             "input_tensor": None,
-            "block_args": B1_BLOCK_ARGS,
+            "kernel_size": [3, 3, 3, 3, 3, 3],
+            "num_repeat": [1, 2, 2, 3, 5, 8],
+            "input_filters": [32, 16, 32, 48, 96, 112],
+            "output_filters": [16, 32, 48, 96, 112, 192],
+            "expand_ratio": [1, 4, 4, 4, 6, 6],
+            "se_ratio": [0, 0, 0, 0.25, 0.25, 0.25],
+            "strides": [1, 2, 2, 2, 1, 2],
+            "conv_type": [
+                "fused_mb_conv",
+                "fused_mb_conv",
+                "fused_mb_conv",
+                "mb_conv",
+                "mb_conv",
+                "mb_conv",
+            ],
         },
     },
     "efficientnetv2-b2": {
         "metadata": {
             "description": "The EfficientNet B2 architecture.  In this "
             "variant of the EfficientNet architecture, there are "
-            f"{len(B2_BLOCK_ARGS)} convolutional blocks. As with all of the B "
+            "6 convolutional blocks. As with all of the B "
             "style EfficientNet variants, the number of filters in each "
             "convolutional block is scaled by a `width_coefficient` and a "
             "`depth_coefficient`.  Please see the GitHub source to find the "
@@ -571,14 +234,28 @@ backbone_presets_no_weights = {
             "include_rescaling": True,
             "input_shape": (None, None, 3),
             "input_tensor": None,
-            "block_args": B2_BLOCK_ARGS,
+            "kernel_size": [3, 3, 3, 3, 3, 3],
+            "num_repeat": [1, 2, 2, 3, 5, 8],
+            "input_filters": [32, 16, 32, 48, 96, 112],
+            "output_filters": [16, 32, 48, 96, 112, 192],
+            "expand_ratio": [1, 4, 4, 4, 6, 6],
+            "se_ratio": [0, 0, 0, 0.25, 0.25, 0.25],
+            "strides": [1, 2, 2, 2, 1, 2],
+            "conv_type": [
+                "fused_mb_conv",
+                "fused_mb_conv",
+                "fused_mb_conv",
+                "mb_conv",
+                "mb_conv",
+                "mb_conv",
+            ],
         },
     },
     "efficientnetv2-b3": {
         "metadata": {
             "description": "The EfficientNet B3 architecture.  In this "
             "variant of the EfficientNet architecture, there are "
-            f"{len(B3_BLOCK_ARGS)} convolutional blocks. As with all of the B "
+            f"6 convolutional blocks. As with all of the B "
             "style EfficientNet variants, the number of filters in each "
             "convolutional block is scaled by a `width_coefficient` and a "
             "`depth_coefficient`.  Please see the GitHub source to find the "
@@ -598,7 +275,21 @@ backbone_presets_no_weights = {
             "include_rescaling": True,
             "input_shape": (None, None, 3),
             "input_tensor": None,
-            "block_args": B3_BLOCK_ARGS,
+            "kernel_size": [3, 3, 3, 3, 3, 3],
+            "num_repeat": [1, 2, 2, 3, 5, 8],
+            "input_filters": [32, 16, 32, 48, 96, 112],
+            "output_filters": [16, 32, 48, 96, 112, 192],
+            "expand_ratio": [1, 4, 4, 4, 6, 6],
+            "se_ratio": [0, 0, 0, 0.25, 0.25, 0.25],
+            "strides": [1, 2, 2, 2, 1, 2],
+            "conv_type": [
+                "fused_mb_conv",
+                "fused_mb_conv",
+                "fused_mb_conv",
+                "mb_conv",
+                "mb_conv",
+                "mb_conv",
+            ],
         },
     },
 }
@@ -649,7 +340,7 @@ backbone_presets_with_weights = {
         "metadata": {
             "description": "The EfficientNet B0 architecture.  In this "
             "variant of the EfficientNet architecture, there are "
-            f"{len(B0_BLOCK_ARGS)} convolutional blocks. As with all of the B "
+            f"6 convolutional blocks. As with all of the B "
             "style EfficientNet variants, the number of filters in each "
             "convolutional block is scaled by a `width_coefficient` and a "
             "`depth_coefficient`.  Please see the GitHub source to find the "
@@ -670,7 +361,21 @@ backbone_presets_with_weights = {
             "include_rescaling": True,
             "input_shape": (None, None, 3),
             "input_tensor": None,
-            "block_args": B0_BLOCK_ARGS,
+            "kernel_size": [3, 3, 3, 3, 3, 3],
+            "num_repeat": [1, 2, 2, 3, 5, 8],
+            "input_filters": [32, 16, 32, 48, 96, 112],
+            "output_filters": [16, 32, 48, 96, 112, 192],
+            "expand_ratio": [1, 4, 4, 4, 6, 6],
+            "se_ratio": [0, 0, 0, 0.25, 0.25, 0.25],
+            "strides": [1, 2, 2, 2, 1, 2],
+            "conv_type": [
+                "fused_mb_conv",
+                "fused_mb_conv",
+                "fused_mb_conv",
+                "mb_conv",
+                "mb_conv",
+                "mb_conv",
+            ],
         },
         "weights_url": "https://storage.googleapis.com/keras-cv/models/efficientnetv2b0/imagenet/classification-v0-notop.h5",  # noqa: E501
         "weights_hash": "ac95f13a8ad1cee41184fc16fd0eb769f7c5b3131151c6abf7fcee5cc3d09bc8",  # noqa: E501
@@ -679,7 +384,7 @@ backbone_presets_with_weights = {
         "metadata": {
             "description": "The EfficientNet B1 architecture.  In this "
             "variant of the EfficientNet architecture, there are "
-            f"{len(B1_BLOCK_ARGS)} convolutional blocks. As with all of the B "
+            f"6 convolutional blocks. As with all of the B "
             "style EfficientNet variants, the number of filters in each "
             "convolutional block is scaled by a `width_coefficient` and a "
             "`depth_coefficient`.  Please see the GitHub source to find the "
@@ -700,7 +405,21 @@ backbone_presets_with_weights = {
             "include_rescaling": True,
             "input_shape": (None, None, 3),
             "input_tensor": None,
-            "block_args": B1_BLOCK_ARGS,
+            "kernel_size": [3, 3, 3, 3, 3, 3],
+            "num_repeat": [1, 2, 2, 3, 5, 8],
+            "input_filters": [32, 16, 32, 48, 96, 112],
+            "output_filters": [16, 32, 48, 96, 112, 192],
+            "expand_ratio": [1, 4, 4, 4, 6, 6],
+            "se_ratio": [0, 0, 0, 0.25, 0.25, 0.25],
+            "strides": [1, 2, 2, 2, 1, 2],
+            "conv_type": [
+                "fused_mb_conv",
+                "fused_mb_conv",
+                "fused_mb_conv",
+                "mb_conv",
+                "mb_conv",
+                "mb_conv",
+            ],
         },
         "weights_url": "https://storage.googleapis.com/keras-cv/models/efficientnetv2b1/imagenet/classification-v0-notop.h5",  # noqa: E501
         "weights_hash": "82da111f8411f47e3f5eef090da76340f38e222f90a08bead53662f2ebafb01c",  # noqa: E501
@@ -709,7 +428,7 @@ backbone_presets_with_weights = {
         "metadata": {
             "description": "The EfficientNet B2 architecture.  In this "
             "variant of the EfficientNet architecture, there are "
-            f"{len(B2_BLOCK_ARGS)} convolutional blocks. As with all of the B "
+            f"6 convolutional blocks. As with all of the B "
             "style EfficientNet variants, the number of filters in each "
             "convolutional block is scaled by a `width_coefficient` and a "
             "`depth_coefficient`.  Please see the GitHub source to find the "
@@ -730,7 +449,21 @@ backbone_presets_with_weights = {
             "include_rescaling": True,
             "input_shape": (None, None, 3),
             "input_tensor": None,
-            "block_args": B2_BLOCK_ARGS,
+            "kernel_size": [3, 3, 3, 3, 3, 3],
+            "num_repeat": [1, 2, 2, 3, 5, 8],
+            "input_filters": [32, 16, 32, 48, 96, 112],
+            "output_filters": [16, 32, 48, 96, 112, 192],
+            "expand_ratio": [1, 4, 4, 4, 6, 6],
+            "se_ratio": [0, 0, 0, 0.25, 0.25, 0.25],
+            "strides": [1, 2, 2, 2, 1, 2],
+            "conv_type": [
+                "fused_mb_conv",
+                "fused_mb_conv",
+                "fused_mb_conv",
+                "mb_conv",
+                "mb_conv",
+                "mb_conv",
+            ],
         },
         "weights_url": "https://storage.googleapis.com/keras-cv/models/efficientnetv2b2/imagenet/classification-v0-notop.h5",  # noqa: E501
         "weights_hash": "02d12c9d1589b540b4e84ffdb54ff30c96099bd59e311a85ddc7180efc65e955",  # noqa: E501
