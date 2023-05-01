@@ -14,69 +14,6 @@
 
 """EfficientNetV2 model preset configurations."""
 
-SMALL_BLOCK_ARGS = [
-    {
-        "kernel_size": 3,
-        "num_repeat": 2,
-        "input_filters": 24,
-        "output_filters": 24,
-        "expand_ratio": 1,
-        "se_ratio": 0.0,
-        "strides": 1,
-        "conv_type": "fused_mb_conv",
-    },
-    {
-        "kernel_size": 3,
-        "num_repeat": 4,
-        "input_filters": 24,
-        "output_filters": 48,
-        "expand_ratio": 4,
-        "se_ratio": 0.0,
-        "strides": 2,
-        "conv_type": "fused_mb_conv",
-    },
-    {
-        "conv_type": "fused_mb_conv",
-        "expand_ratio": 4,
-        "input_filters": 48,
-        "kernel_size": 3,
-        "num_repeat": 4,
-        "output_filters": 64,
-        "se_ratio": 0,
-        "strides": 2,
-    },
-    {
-        "conv_type": "mb_conv",
-        "expand_ratio": 4,
-        "input_filters": 64,
-        "kernel_size": 3,
-        "num_repeat": 6,
-        "output_filters": 128,
-        "se_ratio": 0.25,
-        "strides": 2,
-    },
-    {
-        "conv_type": "mb_conv",
-        "expand_ratio": 6,
-        "input_filters": 128,
-        "kernel_size": 3,
-        "num_repeat": 9,
-        "output_filters": 160,
-        "se_ratio": 0.25,
-        "strides": 1,
-    },
-    {
-        "conv_type": "mb_conv",
-        "expand_ratio": 6,
-        "input_filters": 160,
-        "kernel_size": 3,
-        "num_repeat": 15,
-        "output_filters": 256,
-        "se_ratio": 0.25,
-        "strides": 2,
-    },
-]
-
 MEDIUM_BLOCK_ARGS = [
     {
         "kernel_size": 3,
@@ -480,7 +417,7 @@ backbone_presets_no_weights = {
         "metadata": {
             "description": "The EfficientNet small architecture.  In this "
             "variant of the EfficientNet architecture, there are "
-            f"{len(SMALL_BLOCK_ARGS)} convolutional blocks."
+            f"6 convolutional blocks."
         },
         "class_name": "keras_cv.models>EfficientNetV2Backbone",
         "config": {
@@ -495,7 +432,21 @@ backbone_presets_no_weights = {
             "include_rescaling": True,
             "input_shape": (None, None, 3),
             "input_tensor": None,
-            "block_args": SMALL_BLOCK_ARGS,
+            "kernel_size": [3, 3, 3, 3, 3, 3],
+            "num_repeat": [2, 4, 4, 6, 9, 15],
+            "input_filters": [24, 24, 48, 64, 128, 160],
+            "output_filters": [24, 48, 64, 128, 160, 256],
+            "expand_ratio": [1, 4, 4, 4, 6, 6],
+            "se_ratio": [0.0, 0.0, 0, 0.25, 0.25, 0.25],
+            "strides": [1, 2, 2, 2, 1, 2],
+            "conv_type": [
+                "fused_mb_conv",
+                "fused_mb_conv",
+                "fused_mb_conv",
+                "mb_conv",
+                "mb_conv",
+                "mb_conv",
+            ],
         },
     },
     "efficientnetv2-m": {
@@ -658,7 +609,7 @@ backbone_presets_with_weights = {
             "description": {
                 "description": "The EfficientNet small architecture.  In this "
                 "variant of the EfficientNet architecture, there are "
-                f"{len(SMALL_BLOCK_ARGS)} convolutional blocks. Weights are "
+                f"6 convolutional blocks. Weights are "
                 "initialized to pretrained imagenet classification weights."
             },
         },
@@ -675,7 +626,21 @@ backbone_presets_with_weights = {
             "include_rescaling": True,
             "input_shape": (None, None, 3),
             "input_tensor": None,
-            "block_args": SMALL_BLOCK_ARGS,
+            "kernel_size": [3, 3, 3, 3, 3, 3],
+            "num_repeat": [2, 4, 4, 6, 9, 15],
+            "input_filters": [24, 24, 48, 64, 128, 160],
+            "output_filters": [24, 48, 64, 128, 160, 256],
+            "expand_ratio": [1, 4, 4, 4, 6, 6],
+            "se_ratio": [0.0, 0.0, 0, 0.25, 0.25, 0.25],
+            "strides": [1, 2, 2, 2, 1, 2],
+            "conv_type": [
+                "fused_mb_conv",
+                "fused_mb_conv",
+                "fused_mb_conv",
+                "mb_conv",
+                "mb_conv",
+                "mb_conv",
+            ],
         },
         "weights_url": "https://storage.googleapis.com/keras-cv/models/efficientnetv2s/imagenet/classification-v0-notop.h5",  # noqa: E501
         "weights_hash": "80555436ea49100893552614b4dce98de461fa3b6c14f8132673817d28c83654",  # noqa: E501

@@ -111,6 +111,9 @@ class EfficientNetV2Backbone(Backbone):
         depth_divisor: integer, a unit of network width.
         min_depth: integer, minimum number of filters.
         activation: activation function.
+        kernel_size: List of integers, sizes to use for convolutional kernels in
+            each block.
+        num_repeats
         block_args: list of dicts, parameters to construct block modules.
         model_name: string, model name.
         input_shape: optional shape tuple, defaults to (None, None, 3).
@@ -134,7 +137,14 @@ class EfficientNetV2Backbone(Backbone):
         width_coefficient,
         depth_coefficient,
         default_size,
-        block_args,
+        kernel_sizes,
+        num_repeats,
+        input_filters,
+        output_filters,
+        expand_ratios,
+        se_ratios,
+        strides,
+        conv_types,
         dropout_rate=0.2,
         drop_connect_rate=0.2,
         depth_divisor=8,
@@ -145,6 +155,36 @@ class EfficientNetV2Backbone(Backbone):
         **kwargs,
     ):
         input_block_args = copy.deepcopy(block_args)
+
+        block_args = [
+            kernel_sizes,
+            num_repeats,
+            input_filters,
+            output_filters,
+            expand_ratios,
+            se_ratios,
+            strides,
+            conv_types,
+        ]
+        block_arg_names = [
+            kernel_sizes,
+            num_repeats,
+            input_filters,
+            output_filters,
+            expand_ratios,
+            se_ratios,
+            strides,
+            conv_types,
+        ]
+        block_arg_lengths = [len(x) for x in block_args]
+        if len(set(block_arg_lengths)) != 1:
+            raise ValueError(
+                f"Expected all of {','.join(block_arg_names)} to have the same "
+                f"length.  Got lengths {block_arg_lengths}. "
+                "Double check your input lists for these arguments!"
+            )
+        # they're all the same length now, just take the first
+        block_arg_lengths = block_arg_lengths[0]
 
         # Determine proper input shape
         img_input = utils.parse_model_inputs(input_shape, input_tensor)
@@ -177,13 +217,23 @@ class EfficientNetV2Backbone(Backbone):
         x = layers.Activation(activation, name="stem_activation")(x)
 
         # Build blocks
-        block_args = copy.deepcopy(block_args)
         b = 0
-        blocks = float(sum(args["num_repeat"] for args in block_args))
+        blocks = float(sum(num_repeat for num_repeat in num_repeats))
 
         pyramid_level_inputs = []
-        for i, args in enumerate(block_args):
+        for i in range(block_arg_lengths):
             assert args["num_repeat"] > 0
+
+            args = {
+                "kernel_size": kernel_sizes[i],
+                "num_repeat": num_repeats[i],
+                "input_filters": input_filters[i],
+                "output_filters": output_filters[i],
+                "expand_ratio": expand_ratios[i],
+                "se_ratio": se_ratios[i],
+                "strides": strides[i],
+                "conv_type": conv_types[i],
+            }
 
             # Update block input and output filters based on depth multiplier.
             args["input_filters"] = round_filters(
