@@ -19,10 +19,10 @@ from absl.testing import parameterized
 from tensorflow import keras
 
 from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone import (
-    EfficientNetV2SBackbone,
+    EfficientNetV2Backbone,
 )
 from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone import (
-    EfficientNetV2Backbone,
+    EfficientNetV2SBackbone,
 )
 from keras_cv.utils.train import get_feature_extractor
 
@@ -56,11 +56,9 @@ class EfficientNetV2BackboneTest(tf.test.TestCase, parameterized.TestCase):
         )
         model(self.input_batch)
 
-
     def test_valid_call_alias_model_with_rescaling(self):
         model = EfficientNetV2SBackbone(include_rescaling=True)
         model(self.input_batch)
-
 
     def test_valid_call_with_rescaling(self):
         model = EfficientNetV2Backbone(
