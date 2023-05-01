@@ -181,6 +181,12 @@ class EfficientNetV2Backbone(Backbone):
                 f"length.  Got lengths {block_arg_lengths}. "
                 "Double check your input lists for these arguments!"
             )
+        if any([x <= 0 for x in num_repeats]):
+            raise ValueError(
+                "Expected all values in `num_repeats` to be "
+                "greater than `0`. "
+                f"Got `num_repeats={num_repeats}`."
+            )
         # they're all the same length now, just take the first
         block_arg_lengths = block_arg_lengths[0]
 
@@ -194,7 +200,7 @@ class EfficientNetV2Backbone(Backbone):
 
         # Build stem
         stem_filters = round_filters(
-            filters=block_args[0]["input_filters"],
+            filters=input_filters[0],
             width_coefficient=width_coefficient,
             min_depth=min_depth,
             depth_divisor=depth_divisor,
@@ -220,8 +226,6 @@ class EfficientNetV2Backbone(Backbone):
 
         pyramid_level_inputs = []
         for i in range(block_arg_lengths):
-            assert args["num_repeat"] > 0
-
             args = {
                 "kernel_size": kernel_sizes[i],
                 "num_repeat": num_repeats[i],
@@ -309,11 +313,18 @@ class EfficientNetV2Backbone(Backbone):
         self.depth_divisor = depth_divisor
         self.min_depth = min_depth
         self.activation = activation
-        self.block_args = input_block_args
         self.input_tensor = input_tensor
         self.pyramid_level_inputs = {
             i + 1: name for i, name in enumerate(pyramid_level_inputs)
         }
+        self.kernel_sizes = kernel_sizes
+        self.num_repeats = num_repeats
+        self.input_filters = input_filters
+        self.output_filters = output_filters
+        self.expand_ratios = expand_ratios
+        self.se_ratios = se_ratios
+        self.strides = strides
+        self.conv_types = conv_types
 
     def get_config(self):
         config = super().get_config()
@@ -328,10 +339,16 @@ class EfficientNetV2Backbone(Backbone):
                 "depth_divisor": self.depth_divisor,
                 "min_depth": self.min_depth,
                 "activation": self.activation,
-                "block_args": self.block_args,
-                # Remove batch dimension from `input_shape`
                 "input_shape": self.input_shape[1:],
                 "input_tensor": self.input_tensor,
+                "kernel_sizes": self.kernel_sizes,
+                "num_repeats": self.num_repeats,
+                "input_filters": self.input_filters,
+                "output_filters": self.output_filters,
+                "expand_ratios": self.expand_ratios,
+                "se_ratios": self.se_ratios,
+                "strides": self.strides,
+                "conv_types": self.conv_types,
             }
         )
         return config
