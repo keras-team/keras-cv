@@ -33,13 +33,13 @@ class CSPDarkNetPresetSmokeTest(tf.test.TestCase, parameterized.TestCase):
 
     def test_backbone_output(self):
         model = csp_darknet_backbone.CSPDarkNetBackbone.from_preset(
-            "csp_dark_net_tiny"
+            "csp_darknet_tiny"
         )
         model(self.input_batch)
 
     def test_backbone_output_with_weights_tiny(self):
         model = csp_darknet_backbone.CSPDarkNetBackbone.from_preset(
-            "csp_dark_net_tiny_imagenet"
+            "csp_darknet_tiny_imagenet"
         )
         outputs = model(tf.ones(shape=(1, 512, 512, 3)))
 
@@ -61,7 +61,7 @@ class CSPDarkNetPresetSmokeTest(tf.test.TestCase, parameterized.TestCase):
 
     def test_applications_model_output_with_preset(self):
         model = csp_darknet_backbone.CSPDarkNetBackbone.from_preset(
-            "csp_dark_net_tiny_imagenet"
+            "csp_darknet_tiny_imagenet"
         )
         model(self.input_batch)
 
@@ -84,7 +84,7 @@ class CSPDarkNetPresetSmokeTest(tf.test.TestCase, parameterized.TestCase):
         # Try to load weights when none available
         with self.assertRaises(ValueError):
             csp_darknet_backbone.CSPDarkNetBackbone.from_preset(
-                "csp_dark_net_tiny", load_weights=True
+                "csp_darknet_tiny", load_weights=True
             )
 
 

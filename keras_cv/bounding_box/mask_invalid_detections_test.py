@@ -83,3 +83,24 @@ class MaskInvalidDetectionsTest(tf.test.TestCase):
         self.assertTrue(isinstance(result["boxes"], tf.RaggedTensor))
         self.assertEqual(result["boxes"][0].shape[0], 2)
         self.assertEqual(result["boxes"][1].shape[0], 3)
+
+    def test_correctly_masks_confidence(self):
+        bounding_boxes = {
+            "boxes": tf.stack(
+                [tf.random.uniform((10, 4)), tf.random.uniform((10, 4))]
+            ),
+            "confidence": tf.random.uniform((2, 10)),
+            "num_detections": tf.constant([2, 3]),
+            "classes": tf.stack(
+                [tf.random.uniform((10,)), tf.random.uniform((10,))]
+            ),
+        }
+
+        result = bounding_box.mask_invalid_detections(
+            bounding_boxes, output_ragged=True
+        )
+        self.assertTrue(isinstance(result["boxes"], tf.RaggedTensor))
+        self.assertEqual(result["boxes"][0].shape[0], 2)
+        self.assertEqual(result["boxes"][1].shape[0], 3)
+        self.assertEqual(result["confidence"][0].shape[0], 2)
+        self.assertEqual(result["confidence"][1].shape[0], 3)

@@ -20,6 +20,9 @@ backbone_presets_no_weights = {
                 "ResNet model with 18 layers where the batch normalization "
                 "and ReLU activation precede the convolution layers (v2 style)."
             ),
+            "params": 11183488,
+            "official_name": "ResNetV2",
+            "path": "resnet_v2",
         },
         "class_name": "keras_cv.models>ResNetV2Backbone",
         "config": {
@@ -39,6 +42,9 @@ backbone_presets_no_weights = {
                 "ResNet model with 34 layers where the batch normalization "
                 "and ReLU activation precede the convolution layers (v2 style)."
             ),
+            "params": 21299072,
+            "official_name": "ResNetV2",
+            "path": "resnet_v2",
         },
         "class_name": "keras_cv.models>ResNetV2Backbone",
         "config": {
@@ -58,6 +64,9 @@ backbone_presets_no_weights = {
                 "ResNet model with 50 layers where the batch normalization "
                 "and ReLU activation precede the convolution layers (v2 style)."
             ),
+            "params": 23564800,
+            "official_name": "ResNetV2",
+            "path": "resnet_v2",
         },
         "class_name": "keras_cv.models>ResNetV2Backbone",
         "config": {
@@ -77,6 +86,9 @@ backbone_presets_no_weights = {
                 "ResNet model with 101 layers where the batch normalization "
                 "and ReLU activation precede the convolution layers (v2 style)."
             ),
+            "params": 42626560,
+            "official_name": "ResNetV2",
+            "path": "resnet_v2",
         },
         "class_name": "keras_cv.models>ResNetV2Backbone",
         "config": {
@@ -96,6 +108,9 @@ backbone_presets_no_weights = {
                 "ResNet model with 152 layers where the batch normalization "
                 "and ReLU activation precede the convolution layers (v2 style)."
             ),
+            "params": 58331648,
+            "official_name": "ResNetV2",
+            "path": "resnet_v2",
         },
         "class_name": "keras_cv.models>ResNetV2Backbone",
         "config": {
@@ -119,6 +134,9 @@ backbone_presets_with_weights = {
                 "ReLU activation precede the convolution layers (v2 style). "
                 "Trained on Imagenet 2012 classification task."
             ),
+            "params": 23564800,
+            "official_name": "ResNetV2",
+            "path": "resnet_v2",
         },
         "class_name": "keras_cv.models>ResNetV2Backbone",
         "config": backbone_presets_no_weights["resnet50_v2"]["config"],

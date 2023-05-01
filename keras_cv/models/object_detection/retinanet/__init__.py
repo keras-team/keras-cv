@@ -11,12 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from keras_cv.models.object_detection.retina_net.feature_pyramid import (
+from keras_cv.models.object_detection.retinanet.feature_pyramid import (
     FeaturePyramid,
 )
-from keras_cv.models.object_detection.retina_net.prediction_head import (
+from keras_cv.models.object_detection.retinanet.prediction_head import (
     PredictionHead,
 )
-from keras_cv.models.object_detection.retina_net.retina_net_label_encoder import (  # noqa: E501
+from keras_cv.models.object_detection.retinanet.retinanet_label_encoder import (  # noqa: E501
     RetinaNetLabelEncoder,
 )

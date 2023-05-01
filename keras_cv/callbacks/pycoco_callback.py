@@ -60,22 +60,22 @@ class PyCOCOCallback(Callback):
 
         def boxes_only(data):
             images, boxes = unpack_input(data)
-            return boxes
+            return bounding_box.to_ragged(boxes)
 
         images_only_ds = self.val_data.map(images_only)
         y_pred = self.model.predict(images_only_ds)
-        box_pred = tf.convert_to_tensor(y_pred["boxes"])
-        cls_pred = tf.convert_to_tensor(y_pred["classes"])
-        confidence_pred = tf.convert_to_tensor(y_pred["confidence"])
-        valid_det = tf.convert_to_tensor(y_pred["num_detections"])
+        box_pred = y_pred["boxes"]
+        cls_pred = y_pred["classes"]
+        confidence_pred = y_pred["confidence"]
+        valid_det = y_pred["num_detections"]
 
         gt = [boxes for boxes in self.val_data.map(boxes_only)]
         gt_boxes = tf.concat(
-            [tf.RaggedTensor.from_tensor(boxes["boxes"]) for boxes in gt],
+            [boxes["boxes"] for boxes in gt],
             axis=0,
         )
         gt_classes = tf.concat(
-            [tf.RaggedTensor.from_tensor(boxes["classes"]) for boxes in gt],
+            [boxes["classes"] for boxes in gt],
             axis=0,
         )
 

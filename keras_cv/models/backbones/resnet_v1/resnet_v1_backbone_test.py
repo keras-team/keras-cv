@@ -133,7 +133,7 @@ class ResNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
             model.pyramid_level_inputs.values(),
             model.pyramid_level_inputs.keys(),
         )
-        inputs = tf.keras.Input(shape=[256, 256, 3])
+        inputs = keras.Input(shape=[256, 256, 3])
         outputs = backbone_model(inputs)
         # Resnet50 backbone has 4 level of features (2 ~ 5)
         self.assertLen(outputs, 4)
@@ -154,7 +154,7 @@ class ResNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
         levels = [3, 4]
         layer_names = [model.pyramid_level_inputs[level] for level in [3, 4]]
         backbone_model = get_feature_extractor(model, layer_names, levels)
-        inputs = tf.keras.Input(shape=[256, 256, 3])
+        inputs = keras.Input(shape=[256, 256, 3])
         outputs = backbone_model(inputs)
         self.assertLen(outputs, 2)
         self.assertEquals(list(outputs.keys()), [3, 4])

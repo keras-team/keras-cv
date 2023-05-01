@@ -24,6 +24,9 @@ classifier_presets = {
                 "layers (v2 style). Trained on Imagenet 2012 classification "
                 "task."
             ),
+            "params": 25613800,
+            "official_name": "ImageClassifier",
+            "path": "image_classifier",
         },
         "config": {
             "backbone": resnet_v2_backbone_presets.backbone_presets[

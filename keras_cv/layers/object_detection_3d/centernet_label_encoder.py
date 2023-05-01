@@ -430,7 +430,7 @@ class CenterNetLabelEncoder(keras.layers.Layer):
             [dense_box_3d_center, dense_box_3d[..., 3:]], axis=-1
         )
 
-        center_net_targets = {}
+        centernet_targets = {}
         for i in range(self._num_classes):
             # Object class is 1-indexed (0 is background).
             dense_box_classes_i = tf.cast(
@@ -450,11 +450,11 @@ class CenterNetLabelEncoder(keras.layers.Layer):
                     dense_heatmap_i, self._top_k_heatmap[i]
                 )
 
-            center_net_targets[f"class_{i+1}"] = {
+            centernet_targets[f"class_{i+1}"] = {
                 "heatmap": dense_heatmap_i,
                 "boxes": dense_box_3d_i,
                 "top_k_index": top_k_heatmap_feature_idx_i,
             }
 
-        inputs.update(center_net_targets)
+        inputs.update(centernet_targets)
         return inputs
