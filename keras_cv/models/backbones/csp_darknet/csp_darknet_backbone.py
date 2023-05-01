@@ -61,8 +61,35 @@ class CSPDarkNetBackbone(Backbone):
             model.
         include_rescaling: bool, whether to rescale the inputs. If set to
             True, inputs will be passed through a `Rescaling(1/255.0)` layer.
+        include_focus: Boolean, whether to use `Focus` layer at the beginning of
+            the backbone. Defaults to `True`.
         use_depthwise: bool, whether a `DarknetConvBlockDepthwise` should be
             used over a `DarknetConvBlock`, defaults to False.
+        darknet_padding: String, the padding used in the `Conv2D` layers in the
+            `DarknetConvBlock`s. Defaults to `"same"`.
+        darknet_zero_padding: Boolean, whether to use `ZeroPadding2D` layer at
+            the beginning of each `DarknetConvBlock`. The zero padding will only
+            be applied when `kernel_size` > 1. Defaults to `False`.
+        darknet_bn_momentum: Float, momentum for the moving average for the
+            `BatchNormalization` layers in the `DarknetConvBlock`s. Defaults to
+            `0.99`.
+        stem_stride: The stride to use of the `Conv2D` layers in the stem part
+            of the backbone. Defaults to `1`.
+        csp_wide_stem: Boolean, in the CSP blocks, whether to combine the first
+            two `DarknetConvBlock`s into one with more filters and split the
+            outputs to two tensors.  Defaults to `False`.
+        csp_kernel_sizes: A list of integers of length 2. The kernel sizes of the
+            bottleneck layers in the CSP blocks. Defaults to `[1, 3]`.
+        csp_concat_bottleneck_outputs: Boolean, in the CSP blocks, whether to
+            concatenate the outputs of all the bottleneck blocks as the output
+            for the next layer. If `False`, only the output of the last
+            bottleneck block is used.  Defaults to `False`.
+        csp_always_residual: Boolean, whether to always use residual connections
+            for the CSP blocks. If `False`, residual connections will be applied
+            to all CSP blocks but the last one. Defautls to `False`.
+        spp_after_csp=False,
+        spp_pool_sizes=(5, 9, 13),
+        spp_sequential_pooling=False,
         input_shape: optional shape tuple, defaults to (None, None, 3).
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
             to use as image input for the model.
@@ -96,21 +123,21 @@ class CSPDarkNetBackbone(Backbone):
         stackwise_channels,
         stackwise_depth,
         include_rescaling,
+        include_focus=True,
         use_depthwise=False,
+        darknet_padding="same",
+        darknet_zero_padding=False,
+        darknet_bn_momentum=0.99,
+        stem_stride=1,
+        csp_wide_stem=False,
+        csp_kernel_sizes=[1, 3],
+        csp_concat_bottleneck_outputs=False,
+        csp_always_residual=False,
+        spp_after_csp=False,
+        spp_pool_sizes=(5, 9, 13),
+        spp_sequential_pooling=False,
         input_shape=(None, None, 3),
         input_tensor=None,
-        use_focus=True,
-        batch_norm_momentum=0.99,
-        stem_stride=1,
-        spp_last=False,
-        use_zero_padding=False,
-        padding="same",
-        spp_pool_sizes=(5, 9, 13),
-        sequential_pooling=False,
-        wide_stem=False,
-        kernel_sizes=[1, 3],
-        concat_all=False,
-        always_residual=False,
         **kwargs,
     ):
         ConvBlock = (
@@ -124,7 +151,7 @@ class CSPDarkNetBackbone(Backbone):
             x = layers.Rescaling(1 / 255.0, name="rescaling")(x)
 
         # stem
-        if use_focus:
+        if include_focus:
             x = Focus(name="stem_focus")(x)
 
         stem_width = stackwise_channels[0]
@@ -133,10 +160,10 @@ class CSPDarkNetBackbone(Backbone):
             stem_width // 2,
             kernel_size=3,
             strides=stem_stride,
+            padding=darknet_padding,
+            use_zero_padding=darknet_zero_padding,
+            batch_norm_momentum=darknet_bn_momentum,
             name="stem_conv",
-            batch_norm_momentum=batch_norm_momentum,
-            use_zero_padding=use_zero_padding,
-            padding=padding,
         )(x)
 
         pyramid_level_inputs = {}
@@ -147,48 +174,47 @@ class CSPDarkNetBackbone(Backbone):
                 channels,
                 kernel_size=3,
                 strides=2,
+                padding=darknet_padding,
+                use_zero_padding=darknet_zero_padding,
+                batch_norm_momentum=darknet_bn_momentum,
                 name=f"dark_{index + 2}_conv",
-                batch_norm_momentum=batch_norm_momentum,
-                use_zero_padding=use_zero_padding,
-                padding=padding,
             )(x)
 
-            def get_spp():
-                return SpatialPyramidPoolingBottleneck(
-                    channels,
-                    hidden_filters=channels // 2,
-                    kernel_sizes=spp_pool_sizes,
-                    name=f"dark_{index + 2}_spp",
-                    batch_norm_momentum=batch_norm_momentum,
-                    use_zero_padding=use_zero_padding,
-                    padding=padding,
-                    sequential_pooling=sequential_pooling,
-                )
+            spp_layer = SpatialPyramidPoolingBottleneck(
+                channels,
+                hidden_filters=channels // 2,
+                kernel_sizes=spp_pool_sizes,
+                padding=darknet_padding,
+                use_zero_padding=darknet_zero_padding,
+                batch_norm_momentum=darknet_bn_momentum,
+                sequential_pooling=spp_sequential_pooling,
+                name=f"dark_{index + 2}_spp",
+            )
 
-            if index == len(stackwise_depth) - 1 and not spp_last:
-                x = get_spp()(x)
-
-            if always_residual:
-                residual = True
-            else:
-                residual = ((index != len(stackwise_depth) - 1),)
-
-            x = CrossStagePartial(
+            csp_layer = CrossStagePartial(
                 channels,
                 num_bottlenecks=depth,
                 use_depthwise=use_depthwise,
-                residual=residual,
+                residual=(
+                    csp_always_residual or (index != len(stackwise_depth) - 1)
+                ),
+                wide_stem=csp_wide_stem,
+                kernel_sizes=csp_kernel_sizes,
+                concat_bottleneck_outputs=csp_concat_bottleneck_outputs,
+                padding=darknet_padding,
+                use_zero_padding=darknet_zero_padding,
+                batch_norm_momentum=darknet_bn_momentum,
                 name=f"dark_{index + 2}_csp",
-                wide_stem=wide_stem,
-                kernel_sizes=kernel_sizes,
-                concat_all=concat_all,
-                batch_norm_momentum=batch_norm_momentum,
-                use_zero_padding=use_zero_padding,
-                padding=padding,
-            )(x)
+            )
 
-            if index == len(stackwise_depth) - 1 and spp_last:
-                x = get_spp()(x)
+            if index != len(stackwise_depth) - 1:
+                x = csp_layer(x)
+            elif spp_after_csp:
+                x = csp_layer(x)
+                x = spp_layer(x)
+            else:
+                x = spp_layer(x)
+                x = csp_layer(x)
 
             pyramid_level_inputs[index + 2] = x.node.layer.name
 
@@ -199,6 +225,18 @@ class CSPDarkNetBackbone(Backbone):
         self.stackwise_depth = stackwise_depth
         self.include_rescaling = include_rescaling
         self.use_depthwise = use_depthwise
+        self.include_focus = include_focus
+        self.darknet_bn_momentum = darknet_bn_momentum
+        self.darknet_zero_padding = darknet_zero_padding
+        self.darknet_padding = darknet_padding
+        self.stem_stride = stem_stride
+        self.csp_wide_stem = csp_wide_stem
+        self.csp_kernel_sizes = csp_kernel_sizes
+        self.csp_concat_bottleneck_outputs = csp_concat_bottleneck_outputs
+        self.csp_always_residual = csp_always_residual
+        self.spp_after_csp = spp_after_csp
+        self.spp_pool_sizes = spp_pool_sizes
+        self.spp_sequential_pooling = spp_sequential_pooling
         self.input_tensor = input_tensor
 
     def get_config(self):
@@ -209,6 +247,18 @@ class CSPDarkNetBackbone(Backbone):
                 "stackwise_depth": self.stackwise_depth,
                 "include_rescaling": self.include_rescaling,
                 "use_depthwise": self.use_depthwise,
+                "include_focus": self.include_focus,
+                "darknet_bn_momentum": self.darknet_bn_momentum,
+                "darknet_zero_padding": self.darknet_zero_padding,
+                "darknet_padding": self.darknet_padding,
+                "stem_stride": self.stem_stride,
+                "csp_wide_stem": self.csp_wide_stem,
+                "csp_kernel_sizes": self.csp_kernel_sizes,
+                "csp_concat_bottleneck_outputs": self.csp_concat_bottleneck_outputs,  # noqa: E501
+                "csp_always_residual": self.csp_always_residual,
+                "spp_after_csp": self.spp_after_csp,
+                "spp_pool_sizes": self.spp_pool_sizes,
+                "spp_sequential_pooling": self.spp_sequential_pooling,
                 "input_shape": self.input_shape[1:],
                 "input_tensor": self.input_tensor,
             }

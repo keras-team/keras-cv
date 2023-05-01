@@ -29,10 +29,10 @@ def DarknetConvBlock(
     kernel_size,
     strides,
     use_bias=False,
-    activation="silu",
-    batch_norm_momentum=0.99,
-    use_zero_padding=False,
     padding="same",
+    use_zero_padding=False,
+    batch_norm_momentum=0.99,
+    activation="silu",
     name=None,
 ):
     """The basic conv block used in Darknet. Applies Conv2D followed by a
@@ -48,8 +48,15 @@ def DarknetConvBlock(
             of the convolution along the height and width. Can be a single
             integer to the same value both dimensions.
         use_bias: Boolean, whether the layer uses a bias vector.
-        activation: the activation applied after the BatchNorm layer. One of
-            "silu", "relu" or "leaky_relu", defaults to "silu".
+        padding: String, the padding used in the `Conv2D` layer. Defaults to
+            `"same"`.
+        use_zero_padding: Boolean, whether to use `ZeroPadding2D` layer at the
+            beginning of the block. The zero padding will only be applied when
+            `kernel_size` > 1. Defaults to `False`.
+        batch_norm_momentum: Float, momentum for the moving average for the
+            `BatchNormalization` layer. Defaults to `0.99`.
+        activation: the activation applied after the `BatchNormalization` layer.
+            One of `"silu"`, `"relu"` or `"leaky_relu"`, defaults to `"silu"`.
         name: the prefix for the layer names used in the block.
     """
 
@@ -147,12 +154,12 @@ def SpatialPyramidPoolingBottleneck(
     filters,
     hidden_filters=None,
     kernel_sizes=(5, 9, 13),
-    activation="silu",
-    name=None,
-    batch_norm_momentum=0.99,
-    use_zero_padding=False,
     padding="same",
+    use_zero_padding=False,
+    batch_norm_momentum=0.99,
+    activation="silu",
     sequential_pooling=False,
+    name=None,
 ):
     """Spatial pyramid pooling layer used in YOLOv3-SPP
 
@@ -165,7 +172,20 @@ def SpatialPyramidPoolingBottleneck(
             Defaults to None.
         kernel_sizes: A list or tuple representing all the pool sizes used for
             the pooling layers, defaults to (5, 9, 13).
+        padding: String, the padding used in the `Conv2D` layers in the
+            `DarknetConvBlock`s. Defaults to `"same"`.
+        use_zero_padding: Boolean, whether to use `ZeroPadding2D` layer at the
+            beginning of each `DarknetConvBlock`. The zero padding will only be
+            applied when `kernel_size` > 1. Defaults to `False`.
+        batch_norm_momentum: Float, momentum for the moving average for the
+            `BatchNormalization` layers in the `DarknetConvBlock`s. Defaults to
+            `0.99`.
         activation: Activation for the conv layers, defaults to "silu".
+        sequential_pooling: Boolean, whether the `MaxPooling2D` layers are
+            applied sequentially. If `True`, the output of a `MaxPooling2D`
+            layer will be the input to the next `MaxPooling2D` layer. If
+            `False`, the same input tensor is used to feed all the
+            `MaxPooling2D` layers. Defaults to `False`.
         name: the prefix for the layer names used in the block.
 
     Returns:
@@ -283,6 +303,23 @@ class CrossStagePartial(keras.Model):
         use_depthwise: a boolean value used to decide whether a depthwise conv
             block should be used over a regular darknet block, defaults to
             False.
+        wide_stem: Boolean, whether to combine the first two `DarknetConvBlock`s
+            into one with more filters and split the outputs to two tensors.
+            Defaults to `False`.
+        kernel_sizes: A list of integers of length 2. The kernel sizes of the
+            bottleneck layers. Defaults to `[1, 3]`.
+        concat_bottleneck_outputs: Boolean, whether to concatenate the outputs
+            of all the bottleneck blocks as the output for the next layer. If
+            `False`, only the output of the last bottleneck block is used.
+            Defaults to `False`.
+        padding: String, the padding used in the `Conv2D` layers in the
+            `DarknetConvBlock`s. Defaults to `"same"`.
+        use_zero_padding: Boolean, whether to use `ZeroPadding2D` layer at the
+            beginning of each `DarknetConvBlock`. The zero padding will only be
+            applied when `kernel_size` > 1. Defaults to `False`.
+        batch_norm_momentum: Float, momentum for the moving average for the
+            `BatchNormalization` layers in the `DarknetConvBlock`s. Defaults to
+            `0.99`.
         activation: the activation applied after the final layer. One of "silu",
             "relu" or "leaky_relu", defaults to "silu".
     """
@@ -293,13 +330,13 @@ class CrossStagePartial(keras.Model):
         num_bottlenecks,
         residual=True,
         use_depthwise=False,
-        activation="silu",
         wide_stem=False,
         kernel_sizes=[1, 3],
-        concat_all=False,
-        batch_norm_momentum=0.99,
-        use_zero_padding=False,
+        concat_bottleneck_outputs=False,
         padding="same",
+        use_zero_padding=False,
+        batch_norm_momentum=0.99,
+        activation="silu",
         name=None,
         **kwargs,
     ):
@@ -308,10 +345,13 @@ class CrossStagePartial(keras.Model):
         self.num_bottlenecks = num_bottlenecks
         self.residual = residual
         self.use_depthwise = use_depthwise
-        self.activation = activation
         self.wide_stem = wide_stem
         self.kernel_sizes = kernel_sizes
-        self.concat_all = concat_all
+        self.concat_bottleneck_outputs = concat_bottleneck_outputs
+        self.padding = padding
+        self.use_zero_padding = use_zero_padding
+        self.batch_norm_momentum = batch_norm_momentum
+        self.activation = activation
 
         hidden_channels = filters // 2
         ConvBlock = (
@@ -413,7 +453,7 @@ class CrossStagePartial(keras.Model):
                 deep = self.add([out[-1], deep])
             out.append(deep)
 
-        if self.concat_all:
+        if self.concat_bottleneck_outputs:
             x = self.concatenate(out)
         else:
             x = self.concatenate([deep, short])
@@ -426,6 +466,12 @@ class CrossStagePartial(keras.Model):
             "num_bottlenecks": self.num_bottlenecks,
             "residual": self.residual,
             "use_depthwise": self.use_depthwise,
+            "wide_stem": self.wide_stem,
+            "kernel_sizes": self.kernel_sizes,
+            "concat_bottleneck_outputs": self.concat_bottleneck_outputs,
+            "padding": self.padding,
+            "use_zero_padding": self.use_zero_padding,
+            "batch_norm_momentum": self.batch_norm_momentum,
             "activation": self.activation,
         }
         base_config = super().get_config()
