@@ -154,8 +154,6 @@ class EfficientNetV2Backbone(Backbone):
         input_tensor=None,
         **kwargs,
     ):
-        input_block_args = copy.deepcopy(block_args)
-
         block_args = [
             kernel_sizes,
             num_repeats,
