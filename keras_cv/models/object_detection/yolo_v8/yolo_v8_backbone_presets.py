@@ -13,6 +13,28 @@
 # limitations under the License.
 """YOLOv8 Backbone presets."""
 
+from tensorflow import keras
+
+
+def get_all_layers(model):
+    layers = []
+    for layer in model.layers:
+        if isinstance(layer, keras.Model):
+            layers += get_all_layers(layer)
+        elif not isinstance(layer, keras.layers.InputLayer):
+            layers.append(layer)
+    return layers
+
+
+def copy_weights(yolo_model, csp_model):
+    yolo_layers = {layer.name: layer for layer in get_all_layers(yolo_model)}
+    for layer in get_all_layers(csp_model):
+        if "split" in layer.name:
+            continue
+        assert layer.get_config() == yolo_layers[layer.name].get_config()
+        layer.set_weights(yolo_layers[layer.name].get_weights())
+
+
 backbone_presets_no_weights = {
     "yolov8_xs_backbone": {
         "metadata": {

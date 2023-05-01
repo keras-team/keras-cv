@@ -120,6 +120,110 @@ backbone_presets_no_weights = {
             "input_tensor": None,
         },
     },
+    "yolov8_xs_backbone": {
+        "metadata": {
+            "description": "An extra small YOLOV8 backbone",
+        },
+        "class_name": "keras_cv.models>CSPDarkNetBackbone",
+        "config": {
+            "stackwise_channels": [32, 64, 128, 256],
+            "stackwise_depth": [1, 2, 2, 1],
+            "include_rescaling": True,
+            "use_depthwise": False,
+            "input_shape": (None, None, 3),
+            "input_tensor": None,
+            "use_focus": False,
+            "batch_norm_momentum": 0.97,
+            "stem_stride": 2,
+            "spp_last": True,
+            "use_zero_padding": True,
+            "padding": "valid",
+            "spp_pool_sizes": (5, 5, 5),
+            "sequential_pooling": True,
+            "wide_stem": True,
+            "kernel_sizes": [3, 3],
+            "concat_all": True,
+            "always_residual": True,
+        },
+    },
+    "yolov8_s_backbone": {
+        "metadata": {
+            "description": "A small YOLOV8 backbone",
+        },
+        "class_name": "keras_cv.models>CSPDarkNetBackbone",
+        "config": {
+            "stackwise_channels": [64, 128, 256, 512],
+            "stackwise_depth": [1, 2, 2, 1],
+            "include_rescaling": True,
+            "use_depthwise": False,
+            "input_shape": (None, None, 3),
+            "input_tensor": None,
+            "use_focus": False,
+            "batch_norm_momentum": 0.97,
+            "stem_stride": 2,
+            "spp_last": True,
+            "use_zero_padding": True,
+            "padding": "valid",
+            "spp_pool_sizes": (5, 5, 5),
+            "sequential_pooling": True,
+            "wide_stem": True,
+            "kernel_sizes": [3, 3],
+            "concat_all": True,
+            "always_residual": True,
+        },
+    },
+    "yolov8_m_backbone": {
+        "metadata": {
+            "description": "A medium YOLOV8 backbone",
+        },
+        "class_name": "keras_cv.models>CSPDarkNetBackbone",
+        "config": {
+            "stackwise_channels": [96, 192, 384, 576],
+            "stackwise_depth": [2, 4, 4, 2],
+            "include_rescaling": True,
+            "use_depthwise": False,
+            "input_shape": (None, None, 3),
+            "input_tensor": None,
+            "use_focus": False,
+            "batch_norm_momentum": 0.97,
+            "stem_stride": 2,
+            "spp_last": True,
+            "use_zero_padding": True,
+            "padding": "valid",
+            "spp_pool_sizes": (5, 5, 5),
+            "sequential_pooling": True,
+            "wide_stem": True,
+            "kernel_sizes": [3, 3],
+            "concat_all": True,
+            "always_residual": True,
+        },
+    },
+    "yolov8_l_backbone": {
+        "metadata": {
+            "description": "A large YOLOV8 backbone",
+        },
+        "class_name": "keras_cv.models>CSPDarkNetBackbone",
+        "config": {
+            "stackwise_channels": [128, 256, 512, 512],
+            "stackwise_depth": [3, 6, 6, 3],
+            "include_rescaling": True,
+            "use_depthwise": False,
+            "input_shape": (None, None, 3),
+            "input_tensor": None,
+            "use_focus": False,
+            "batch_norm_momentum": 0.97,
+            "stem_stride": 2,
+            "spp_last": True,
+            "use_zero_padding": True,
+            "padding": "valid",
+            "spp_pool_sizes": (5, 5, 5),
+            "sequential_pooling": True,
+            "wide_stem": True,
+            "kernel_sizes": [3, 3],
+            "concat_all": True,
+            "always_residual": True,
+        },
+    },
     "yolov8_xl_backbone": {
         "metadata": {
             "description": "An extra large YOLOV8 backbone",
@@ -182,6 +286,42 @@ backbone_presets_with_weights = {
         "config": backbone_presets_no_weights["csp_darknet_l"]["config"],
         "weights_url": "https://storage.googleapis.com/keras-cv/models/cspdarknetl/imagenet/classification-v0-notop.h5",  # noqa: E501
         "weights_hash": "9303aabfadffbff8447171fce1e941f96d230d8f3cef30d3f05a9c85097f8f1e",  # noqa: E501
+    },
+    "yolov8_xs_backbone_coco": {
+        "metadata": {
+            "description": ("An extra small YOLOV8 backbone pretrained on COCO")
+        },
+        "class_name": "keras_cv.models>CSPDarkNetBackbone",
+        "config": backbone_presets_no_weights["yolov8_xs_backbone"]["config"],
+        "weights_url": "https://storage.googleapis.com/keras-cv/models/yolov8/coco/yolov8_n_backbone.h5",  # noqa: E501
+        "weights_hash": "636ba3cba064c7c457e30a0e4759716006c305c30876df1c1caf2e56b99eab6c",  # noqa: E501
+    },
+    "yolov8_s_backbone_coco": {
+        "metadata": {
+            "description": ("A small YOLOV8 backbone pretrained on COCO")
+        },
+        "class_name": "keras_cv.models>CSPDarkNetBackbone",
+        "config": backbone_presets_no_weights["yolov8_s_backbone"]["config"],
+        "weights_url": "https://storage.googleapis.com/keras-cv/models/yolov8/coco/yolov8_s_backbone.h5",  # noqa: E501
+        "weights_hash": "49ab5da87d6b36a1943e7f111a1960355171332c25312b6cc01526baaecf1b69",  # noqa: E501
+    },
+    "yolov8_m_backbone_coco": {
+        "metadata": {
+            "description": ("A medium YOLOV8 backbone pretrained on COCO")
+        },
+        "class_name": "keras_cv.models>CSPDarkNetBackbone",
+        "config": backbone_presets_no_weights["yolov8_m_backbone"]["config"],
+        "weights_url": "https://storage.googleapis.com/keras-cv/models/yolov8/coco/yolov8_m_backbone.h5",  # noqa: E501
+        "weights_hash": "a9719807699a2540da14aa7f9a0dda272d400d30c40a956298a63a2805aa6436",  # noqa: E501
+    },
+    "yolov8_l_backbone_coco": {
+        "metadata": {
+            "description": ("A large YOLOV8 backbone pretrained on COCO")
+        },
+        "class_name": "keras_cv.models>CSPDarkNetBackbone",
+        "config": backbone_presets_no_weights["yolov8_l_backbone"]["config"],
+        "weights_url": "https://storage.googleapis.com/keras-cv/models/yolov8/coco/yolov8_l_backbone.h5",  # noqa: E501
+        "weights_hash": "2c94ffe75492491974c6d7347d5c1d1aa209d8f6d78c63ab62df0f5dd51680b9",  # noqa: E501
     },
     "yolov8_xl_backbone_coco": {
         "metadata": {
