@@ -123,11 +123,12 @@ class ConvMixerBackboneTest(tf.test.TestCase, parameterized.TestCase):
         outputs = backbone_model(inputs)
 
         self.assertLen(outputs, 4)
-        self.assertEquals(list(outputs.keys()), [2, 3, 4, 5])
-        self.assertEquals(outputs[2].shape, [None, 64, 64, 256])
-        self.assertEquals(outputs[3].shape, [None, 32, 32, 512])
-        self.assertEquals(outputs[4].shape, [None, 16, 16, 1024])
-        self.assertEquals(outputs[5].shape, [None, 8, 8, 2048])
+        self.assertEquals(
+            list(outputs.keys()),
+            [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17],
+        )
+        for i in range(2, 18):
+            self.assertEquals(outputs[i].shape, [None, 36, 36, 512])
 
     def test_create_backbone_model_with_level_config(self):
         model = ConvMixerBackbone(
@@ -145,8 +146,8 @@ class ConvMixerBackboneTest(tf.test.TestCase, parameterized.TestCase):
         outputs = backbone_model(inputs)
         self.assertLen(outputs, 2)
         self.assertEquals(list(outputs.keys()), [3, 4])
-        self.assertEquals(outputs[3].shape, [None, 32, 32, 512])
-        self.assertEquals(outputs[4].shape, [None, 16, 16, 1024])
+        self.assertEquals(outputs[3].shape, [None, 36, 36, 512])
+        self.assertEquals(outputs[4].shape, [None, 36, 36, 512])
 
     @parameterized.named_parameters(
         ("one_channel", 1),
@@ -161,7 +162,7 @@ class ConvMixerBackboneTest(tf.test.TestCase, parameterized.TestCase):
             input_shape=(None, None, num_channels),
             include_rescaling=False,
         )
-        self.assertEqual(model.output_shape, (None, None, None, 2048))
+        self.assertEqual(model.output_shape, (None, None, None, 512))
 
     @parameterized.named_parameters(
         ("512_16", ConvMixer_512_16Backbone),
