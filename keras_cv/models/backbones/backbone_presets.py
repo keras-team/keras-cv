@@ -15,10 +15,10 @@
 """All Backbone presets"""
 
 from keras_cv.models.backbones.csp_darknet import csp_darknet_backbone_presets
-from keras_cv.models.backbones.mobilenet_v3 import mobilenet_v3_backbone_presets
 from keras_cv.models.backbones.efficientnet_v2 import (
     efficientnet_v2_backbone_presets,
 )
+from keras_cv.models.backbones.mobilenet_v3 import mobilenet_v3_backbone_presets
 from keras_cv.models.backbones.resnet_v1 import resnet_v1_backbone_presets
 from keras_cv.models.backbones.resnet_v2 import resnet_v2_backbone_presets
 
