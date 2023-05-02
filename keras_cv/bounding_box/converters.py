@@ -36,6 +36,7 @@ def _encode_box_to_deltas(
     anchor_format: str,
     box_format: str,
     variance: Optional[Union[List[float], tf.Tensor]] = None,
+    image_shape=None,
 ):
     """Converts bounding_boxes from `center_yxhw` to delta format."""
     if variance is not None:
@@ -49,11 +50,10 @@ def _encode_box_to_deltas(
         anchors,
         source=anchor_format,
         target="center_yxhw",
+        image_shape=image_shape,
     )
     boxes = convert_format(
-        boxes,
-        source=box_format,
-        target="center_yxhw",
+        boxes, source=box_format, target="center_yxhw", image_shape=image_shape
     )
     anchor_dimensions = tf.maximum(
         encoded_anchors[..., 2:], keras.backend.epsilon()
@@ -78,6 +78,7 @@ def _decode_deltas_to_boxes(
     anchor_format: str,
     box_format: str,
     variance: Optional[Union[List[float], tf.Tensor]] = None,
+    image_shape=None,
 ):
     """Converts bounding_boxes from delta format to `center_yxhw`."""
     if variance is not None:
@@ -94,6 +95,7 @@ def _decode_deltas_to_boxes(
             anchor,
             source=anchor_format,
             target="center_yxhw",
+            image_shape=image_shape,
         )
         if variance is not None:
             box_delta = box_delta * variance
@@ -106,7 +108,12 @@ def _decode_deltas_to_boxes(
             ],
             axis=-1,
         )
-        box = convert_format(box, source="center_yxhw", target=box_format)
+        box = convert_format(
+            box,
+            source="center_yxhw",
+            target=box_format,
+            image_shape=image_shape,
+        )
         return box
 
     if isinstance(anchors, dict) and isinstance(boxes_delta, dict):
