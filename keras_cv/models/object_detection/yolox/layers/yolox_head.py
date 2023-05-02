@@ -15,10 +15,10 @@
 
 from tensorflow import keras
 
-from keras_cv.models.backbones.csp_darknet.csp_darknet_utils import (
+from keras_cv.models.object_detection.yolox.layers.csp_darknet_utils_legacy import (  # noqa: E501
     DarknetConvBlock,
 )
-from keras_cv.models.backbones.csp_darknet.csp_darknet_utils import (
+from keras_cv.models.object_detection.yolox.layers.csp_darknet_utils_legacy import (  # noqa: E501
     DarknetConvBlockDepthwise,
 )
 

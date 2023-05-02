@@ -19,7 +19,7 @@ from absl.testing import parameterized
 
 from keras_cv.models import YOLOV8Backbone
 from keras_cv.models.backbones.csp_darknet import csp_darknet_backbone
-from keras_cv.models.backbones.csp_darknet import old
+from keras_cv.models.backbones.csp_darknet import legacy
 from keras_cv.models.object_detection.yolo_v8.yolo_v8_backbone_presets import (
     copy_weights,
 )
@@ -113,8 +113,8 @@ class CSPDarkNetPresetSmokeTest(tf.test.TestCase, parameterized.TestCase):
         ("tiny", "csp_darknet_tiny_imagenet", "csp_darknet_tiny"),
         ("l", "csp_darknet_l_imagenet", "csp_darknet_l"),
     )
-    def test_old_csp_preset_same_output(self, yolo_preset, csp_preset):
-        yolo_model = old.csp_darknet_backbone.CSPDarkNetBackbone.from_preset(
+    def test_legacy_csp_preset_same_output(self, yolo_preset, csp_preset):
+        yolo_model = legacy.csp_darknet_backbone.CSPDarkNetBackbone.from_preset(
             yolo_preset
         )
         csp_model = csp_darknet_backbone.CSPDarkNetBackbone.from_preset(

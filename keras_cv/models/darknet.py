@@ -24,13 +24,13 @@ from tensorflow.keras import layers
 
 from keras_cv.models import utils
 from keras_cv.models.backbones.csp_darknet.csp_darknet_utils import (
-    DarknetConvBlock,
-)
-from keras_cv.models.backbones.csp_darknet.csp_darknet_utils import (
     ResidualBlocks,
 )
 from keras_cv.models.backbones.csp_darknet.csp_darknet_utils import (
-    SpatialPyramidPoolingBottleneck,
+    apply_darknet_conv_block,
+)
+from keras_cv.models.backbones.csp_darknet.csp_darknet_utils import (
+    apply_spatial_pyramid_pooling_bottleneck,
 )
 from keras_cv.models.weights import parse_weights
 
@@ -155,13 +155,14 @@ class DarkNet(keras.Model):
             x = layers.Rescaling(1 / 255.0)(x)
 
         # stem
-        x = DarknetConvBlock(
+        x = apply_darknet_conv_block(
+            x,
             filters=32,
             kernel_size=3,
             strides=1,
             activation="leaky_relu",
             name="stem_conv",
-        )(x)
+        )
         x = ResidualBlocks(
             filters=64, num_blocks=1, name="stem_residual_block"
         )(x)
@@ -182,37 +183,41 @@ class DarkNet(keras.Model):
             layer_num += 1
 
         # remaining dark5 layers
-        x = DarknetConvBlock(
+        x = apply_darknet_conv_block(
+            x,
             filters=512,
             kernel_size=1,
             strides=1,
             activation="leaky_relu",
             name="dark5_conv1",
-        )(x)
-        x = DarknetConvBlock(
+        )
+        x = apply_darknet_conv_block(
+            x,
             filters=1024,
             kernel_size=3,
             strides=1,
             activation="leaky_relu",
             name="dark5_conv2",
-        )(x)
-        x = SpatialPyramidPoolingBottleneck(
-            512, activation="leaky_relu", name="dark5_spp"
-        )(x)
-        x = DarknetConvBlock(
+        )
+        x = apply_spatial_pyramid_pooling_bottleneck(
+            x, 512, activation="leaky_relu", name="dark5_spp"
+        )
+        x = apply_darknet_conv_block(
+            x,
             filters=1024,
             kernel_size=3,
             strides=1,
             activation="leaky_relu",
             name="dark5_conv3",
-        )(x)
-        x = DarknetConvBlock(
+        )
+        x = apply_darknet_conv_block(
+            x,
             filters=512,
             kernel_size=1,
             strides=1,
             activation="leaky_relu",
             name="dark5_conv4",
-        )(x)
+        )
 
         if include_top:
             x = layers.GlobalAveragePooling2D(name="avg_pool")(x)

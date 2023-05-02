@@ -20,23 +20,23 @@ from tensorflow.keras import layers
 
 from keras_cv.models import utils
 from keras_cv.models.backbones.backbone import Backbone
-from keras_cv.models.backbones.csp_darknet.old.csp_darknet_backbone_presets import (
+from keras_cv.models.backbones.csp_darknet.legacy.csp_darknet_backbone_presets import (  # noqa:E501
     backbone_presets,
 )
-from keras_cv.models.backbones.csp_darknet.old.csp_darknet_backbone_presets import (
+from keras_cv.models.backbones.csp_darknet.legacy.csp_darknet_backbone_presets import (  # noqa:E501
     backbone_presets_with_weights,
 )
-from keras_cv.models.backbones.csp_darknet.old.csp_darknet_utils import (
+from keras_cv.models.backbones.csp_darknet.legacy.csp_darknet_utils import (
     CrossStagePartial,
 )
-from keras_cv.models.backbones.csp_darknet.old.csp_darknet_utils import (
+from keras_cv.models.backbones.csp_darknet.legacy.csp_darknet_utils import (
     DarknetConvBlock,
 )
-from keras_cv.models.backbones.csp_darknet.old.csp_darknet_utils import (
+from keras_cv.models.backbones.csp_darknet.legacy.csp_darknet_utils import (
     DarknetConvBlockDepthwise,
 )
-from keras_cv.models.backbones.csp_darknet.old.csp_darknet_utils import Focus
-from keras_cv.models.backbones.csp_darknet.old.csp_darknet_utils import (
+from keras_cv.models.backbones.csp_darknet.legacy.csp_darknet_utils import Focus
+from keras_cv.models.backbones.csp_darknet.legacy.csp_darknet_utils import (
     SpatialPyramidPoolingBottleneck,
 )
 from keras_cv.utils.python_utils import classproperty

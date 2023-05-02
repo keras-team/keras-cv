@@ -20,24 +20,12 @@ from tensorflow.keras import layers
 
 from keras_cv.models import utils
 from keras_cv.models.backbones.backbone import Backbone
+from keras_cv.models.backbones.csp_darknet import csp_darknet_utils
 from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone_presets import (
     backbone_presets,
 )
 from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone_presets import (
     backbone_presets_with_weights,
-)
-from keras_cv.models.backbones.csp_darknet.csp_darknet_utils import (
-    CrossStagePartial,
-)
-from keras_cv.models.backbones.csp_darknet.csp_darknet_utils import (
-    DarknetConvBlock,
-)
-from keras_cv.models.backbones.csp_darknet.csp_darknet_utils import (
-    DarknetConvBlockDepthwise,
-)
-from keras_cv.models.backbones.csp_darknet.csp_darknet_utils import Focus
-from keras_cv.models.backbones.csp_darknet.csp_darknet_utils import (
-    SpatialPyramidPoolingBottleneck,
 )
 from keras_cv.utils.python_utils import classproperty
 
@@ -140,8 +128,10 @@ class CSPDarkNetBackbone(Backbone):
         input_tensor=None,
         **kwargs,
     ):
-        ConvBlock = (
-            DarknetConvBlockDepthwise if use_depthwise else DarknetConvBlock
+        apply_conv_block = (
+            csp_darknet_utils.apply_darknet_conv_block_depthwise
+            if use_depthwise
+            else csp_darknet_utils.apply_darknet_conv_block
         )
 
         inputs = utils.parse_model_inputs(input_shape, input_tensor)
@@ -152,11 +142,12 @@ class CSPDarkNetBackbone(Backbone):
 
         # stem
         if include_focus:
-            x = Focus(name="stem_focus")(x)
+            x = csp_darknet_utils.apply_focus(x, name="stem_focus")
 
         stem_width = stackwise_channels[0]
 
-        x = DarknetConvBlock(
+        x = apply_conv_block(
+            x,
             stem_width // 2,
             kernel_size=3,
             strides=stem_stride,
@@ -164,13 +155,14 @@ class CSPDarkNetBackbone(Backbone):
             use_zero_padding=darknet_zero_padding,
             batch_norm_momentum=darknet_bn_momentum,
             name="stem_conv",
-        )(x)
+        )
 
         pyramid_level_inputs = {}
         for index, (channels, depth) in enumerate(
             zip(stackwise_channels, stackwise_depth)
         ):
-            x = ConvBlock(
+            x = apply_conv_block(
+                x,
                 channels,
                 kernel_size=3,
                 strides=2,
@@ -178,43 +170,48 @@ class CSPDarkNetBackbone(Backbone):
                 use_zero_padding=darknet_zero_padding,
                 batch_norm_momentum=darknet_bn_momentum,
                 name=f"dark_{index + 2}_conv",
-            )(x)
-
-            spp_layer = SpatialPyramidPoolingBottleneck(
-                channels,
-                hidden_filters=channels // 2,
-                kernel_sizes=spp_pool_sizes,
-                padding=darknet_padding,
-                use_zero_padding=darknet_zero_padding,
-                batch_norm_momentum=darknet_bn_momentum,
-                sequential_pooling=spp_sequential_pooling,
-                name=f"dark_{index + 2}_spp",
             )
 
-            csp_layer = CrossStagePartial(
-                channels,
-                num_bottlenecks=depth,
-                use_depthwise=use_depthwise,
-                residual=(
-                    csp_always_residual or (index != len(stackwise_depth) - 1)
-                ),
-                wide_stem=csp_wide_stem,
-                kernel_sizes=csp_kernel_sizes,
-                concat_bottleneck_outputs=csp_concat_bottleneck_outputs,
-                padding=darknet_padding,
-                use_zero_padding=darknet_zero_padding,
-                batch_norm_momentum=darknet_bn_momentum,
-                name=f"dark_{index + 2}_csp",
-            )
+            def spp(x):
+                return csp_darknet_utils.apply_spatial_pyramid_pooling_bottleneck(  # noqa: E501
+                    x,
+                    channels,
+                    hidden_filters=channels // 2,
+                    kernel_sizes=spp_pool_sizes,
+                    padding=darknet_padding,
+                    use_zero_padding=darknet_zero_padding,
+                    batch_norm_momentum=darknet_bn_momentum,
+                    sequential_pooling=spp_sequential_pooling,
+                    name=f"dark_{index + 2}_spp",
+                )
+
+            def csp(x):
+                return csp_darknet_utils.apply_cross_stage_partial(
+                    x,
+                    channels,
+                    num_bottlenecks=depth,
+                    use_depthwise=use_depthwise,
+                    residual=(
+                        csp_always_residual
+                        or (index != len(stackwise_depth) - 1)
+                    ),
+                    wide_stem=csp_wide_stem,
+                    kernel_sizes=csp_kernel_sizes,
+                    concat_bottleneck_outputs=csp_concat_bottleneck_outputs,
+                    padding=darknet_padding,
+                    use_zero_padding=darknet_zero_padding,
+                    batch_norm_momentum=darknet_bn_momentum,
+                    name=f"dark_{index + 2}_csp",
+                )
 
             if index != len(stackwise_depth) - 1:
-                x = csp_layer(x)
+                x = csp(x)
             elif spp_after_csp:
-                x = csp_layer(x)
-                x = spp_layer(x)
+                x = csp(x)
+                x = spp(x)
             else:
-                x = spp_layer(x)
-                x = csp_layer(x)
+                x = spp(x)
+                x = csp(x)
 
             pyramid_level_inputs[index + 2] = x.node.layer.name
 

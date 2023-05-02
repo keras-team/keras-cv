@@ -12,5 +12,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from keras_cv.models.backbones.csp_darknet.old import csp_darknet_backbone
-from keras_cv.models.backbones.csp_darknet.old import csp_darknet_utils
+from keras_cv.models.backbones.csp_darknet.legacy import csp_darknet_backbone
+from keras_cv.models.backbones.csp_darknet.legacy import csp_darknet_utils
