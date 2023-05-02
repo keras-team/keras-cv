@@ -92,7 +92,7 @@ class MobileNetV3BackboneTest(tf.test.TestCase, parameterized.TestCase):
             tokens_mlp_dim=384,
             channels_mlp_dim=3072,
             include_rescaling=False,
-            input_shape=[256, 256, 3],
+            input_shape=(256, 256, 3),
         )
         levels = [3, 4]
         layer_names = [model.pyramid_level_inputs[level] for level in [3, 4]]
@@ -118,7 +118,7 @@ class MobileNetV3BackboneTest(tf.test.TestCase, parameterized.TestCase):
             input_shape=(None, None, num_channels),
             include_rescaling=False,
         )
-        self.assertEqual(model.output_shape, (None, None, None, 2048))
+        self.assertEqual(model.output_shape, (None, None, None, 768))
 
     @parameterized.named_parameters(
         ("B16", MLPMixerB16Backbone),

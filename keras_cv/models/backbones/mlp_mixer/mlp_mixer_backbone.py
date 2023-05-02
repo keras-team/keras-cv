@@ -139,12 +139,12 @@ class MLPMixerBackbone(Backbone):
         **kwargs,
     ):
         if not isinstance(input_shape, tuple):
-            raise ValueError("`input_shape` needs to be tuple.")
+            raise ValueError("`input_shape` needs to be a tuple.")
 
         if len(input_shape) != 3:
             raise ValueError(
-                "`input_shape` needs to contain dimensions for three"
-                " axes: height, width, and channel ((224, 224, 3) for example)."
+                "`input_shape` needs to contain dimensions for three "
+                "axes: height, width, and channel ((224, 224, 3) for example)."
             )
 
         if input_shape[0] != input_shape[1]:
