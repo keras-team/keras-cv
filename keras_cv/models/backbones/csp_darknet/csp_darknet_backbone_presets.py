@@ -267,8 +267,8 @@ backbone_presets_with_weights = {
         },
         "class_name": "keras_cv.models>CSPDarkNetBackbone",
         "config": backbone_presets_no_weights["csp_darknet_tiny"]["config"],
-        "weights_url": "https://storage.googleapis.com/keras-cv/models/cspdarknettiny/imagenet/classification-v0-notop.h5",  # noqa: E501
-        "weights_hash": "0007ae82c95be4d4aef06368a7c38e006381324d77e5df029b04890e18a8ad19",  # noqa: E501
+        "weights_url": "https://storage.googleapis.com/keras-cv/models/cspdarknet/imagenet/csp_darknet_tiny_imagenet.h5",  # noqa: E501
+        "weights_hash": "cd1b9cf97ac3a4dfc501da11dfbf606f6bac340187d8fc729204ab35a8dbe255",  # noqa: E501
     },
     "csp_darknet_l_imagenet": {
         "metadata": {
@@ -284,8 +284,8 @@ backbone_presets_with_weights = {
         },
         "class_name": "keras_cv.models>CSPDarkNetBackbone",
         "config": backbone_presets_no_weights["csp_darknet_l"]["config"],
-        "weights_url": "https://storage.googleapis.com/keras-cv/models/cspdarknetl/imagenet/classification-v0-notop.h5",  # noqa: E501
-        "weights_hash": "9303aabfadffbff8447171fce1e941f96d230d8f3cef30d3f05a9c85097f8f1e",  # noqa: E501
+        "weights_url": "https://storage.googleapis.com/keras-cv/models/cspdarknet/imagenet/csp_darknet_l_imagenet.h5",  # noqa: E501
+        "weights_hash": "b35eab73fdfcde39bf52425c7530fb3c4b0a4d3fa9acc534c0a627916b60563d",  # noqa: E501
     },
     "yolov8_xs_backbone_coco": {
         "metadata": {
@@ -293,8 +293,8 @@ backbone_presets_with_weights = {
         },
         "class_name": "keras_cv.models>CSPDarkNetBackbone",
         "config": backbone_presets_no_weights["yolov8_xs_backbone"]["config"],
-        "weights_url": "https://storage.googleapis.com/keras-cv/models/yolov8/coco/yolov8_n_backbone.h5",  # noqa: E501
-        "weights_hash": "636ba3cba064c7c457e30a0e4759716006c305c30876df1c1caf2e56b99eab6c",  # noqa: E501
+        "weights_url": "https://storage.googleapis.com/keras-cv/models/cspdarknet/coco/yolov8_xs_backbone.h5",  # noqa: E501
+        "weights_hash": "116cbb757dd49e619f619e3bbf1a58b616e5d5b24c04d19d72c3f6c0a3fc2ae7",  # noqa: E501
     },
     "yolov8_s_backbone_coco": {
         "metadata": {
@@ -302,8 +302,8 @@ backbone_presets_with_weights = {
         },
         "class_name": "keras_cv.models>CSPDarkNetBackbone",
         "config": backbone_presets_no_weights["yolov8_s_backbone"]["config"],
-        "weights_url": "https://storage.googleapis.com/keras-cv/models/yolov8/coco/yolov8_s_backbone.h5",  # noqa: E501
-        "weights_hash": "49ab5da87d6b36a1943e7f111a1960355171332c25312b6cc01526baaecf1b69",  # noqa: E501
+        "weights_url": "https://storage.googleapis.com/keras-cv/models/cspdarknet/coco/yolov8_s_backbone.h5",  # noqa: E501
+        "weights_hash": "449a0f0133b0f3400a81dcaa9cdd544783a1db00d00bc7d0e5213baf69bf60f4",  # noqa: E501
     },
     "yolov8_m_backbone_coco": {
         "metadata": {
@@ -311,8 +311,8 @@ backbone_presets_with_weights = {
         },
         "class_name": "keras_cv.models>CSPDarkNetBackbone",
         "config": backbone_presets_no_weights["yolov8_m_backbone"]["config"],
-        "weights_url": "https://storage.googleapis.com/keras-cv/models/yolov8/coco/yolov8_m_backbone.h5",  # noqa: E501
-        "weights_hash": "a9719807699a2540da14aa7f9a0dda272d400d30c40a956298a63a2805aa6436",  # noqa: E501
+        "weights_url": "https://storage.googleapis.com/keras-cv/models/cspdarknet/coco/yolov8_m_backbone.h5",  # noqa: E501
+        "weights_hash": "76b43f96ec8c7579e91bc5aff954a30d83f130e7ded5ae5b7a0abe990f6e95de",  # noqa: E501
     },
     "yolov8_l_backbone_coco": {
         "metadata": {
@@ -320,8 +320,8 @@ backbone_presets_with_weights = {
         },
         "class_name": "keras_cv.models>CSPDarkNetBackbone",
         "config": backbone_presets_no_weights["yolov8_l_backbone"]["config"],
-        "weights_url": "https://storage.googleapis.com/keras-cv/models/yolov8/coco/yolov8_l_backbone.h5",  # noqa: E501
-        "weights_hash": "2c94ffe75492491974c6d7347d5c1d1aa209d8f6d78c63ab62df0f5dd51680b9",  # noqa: E501
+        "weights_url": "https://storage.googleapis.com/keras-cv/models/cspdarknet/coco/yolov8_l_backbone.h5",  # noqa: E501
+        "weights_hash": "f7c3bc3376909767429f271ebc4933bf5e60122e2babd52a79b4fc570f7f961f",  # noqa: E501
     },
     "yolov8_xl_backbone_coco": {
         "metadata": {
@@ -329,8 +329,8 @@ backbone_presets_with_weights = {
         },
         "class_name": "keras_cv.models>CSPDarkNetBackbone",
         "config": backbone_presets_no_weights["yolov8_xl_backbone"]["config"],
-        "weights_url": "https://storage.googleapis.com/keras-cv/models/yolov8/coco/yolov8_x_backbone.h5",  # noqa: E501
-        "weights_hash": "ce0cc3235eacaffc4a9824e28b2366e674b6d42befc4c7b77f3be7d1d39960bd",  # noqa: E501
+        "weights_url": "https://storage.googleapis.com/keras-cv/models/cspdarknet/coco/yolov8_xl_backbone.h5",  # noqa: E501
+        "weights_hash": "cc7af446ac59593641b8051392002af88f7c1377b3a1cff04d008eb20717e588",  # noqa: E501
     },
 }
 
