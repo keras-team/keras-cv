@@ -109,20 +109,34 @@ class CSPDarkNetPresetSmokeTest(tf.test.TestCase, parameterized.TestCase):
         expected = yolo_model(tf.ones(shape=(1, 512, 512, 3)))
         self.assertAllClose(outputs, expected)
 
+        csp_model = csp_darknet_backbone.CSPDarkNetBackbone.from_preset(
+            yolo_preset
+        )
+        outputs = csp_model(tf.ones(shape=(1, 512, 512, 3)))
+        self.assertAllClose(outputs, expected)
+
     @parameterized.named_parameters(
         ("tiny", "csp_darknet_tiny_imagenet", "csp_darknet_tiny"),
         ("l", "csp_darknet_l_imagenet", "csp_darknet_l"),
     )
-    def test_legacy_csp_preset_same_output(self, yolo_preset, csp_preset):
-        yolo_model = legacy.csp_darknet_backbone.CSPDarkNetBackbone.from_preset(
-            yolo_preset
+    def test_legacy_csp_preset_same_output(self, old_csp_preset, csp_preset):
+        old_csp_model = (
+            legacy.csp_darknet_backbone.CSPDarkNetBackbone.from_preset(
+                old_csp_preset
+            )
         )
         csp_model = csp_darknet_backbone.CSPDarkNetBackbone.from_preset(
             csp_preset
         )
-        copy_weights(yolo_model, csp_model)
+        copy_weights(old_csp_model, csp_model)
         outputs = csp_model(tf.ones(shape=(1, 512, 512, 3)))
-        expected = yolo_model(tf.ones(shape=(1, 512, 512, 3)))
+        expected = old_csp_model(tf.ones(shape=(1, 512, 512, 3)))
+        self.assertAllClose(outputs, expected)
+
+        csp_model = csp_darknet_backbone.CSPDarkNetBackbone.from_preset(
+            old_csp_preset
+        )
+        outputs = csp_model(tf.ones(shape=(1, 512, 512, 3)))
         self.assertAllClose(outputs, expected)
 
 
