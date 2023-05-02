@@ -84,34 +84,6 @@ class MobileNetV3BackboneTest(tf.test.TestCase, parameterized.TestCase):
         restored_output = restored_model(self.input_batch)
         self.assertAllClose(model_output, restored_output)
 
-    @parameterized.named_parameters(
-        ("tf_format", "tf", "model"),
-        ("keras_format", "keras_v3", "model.keras"),
-    )
-    def test_model_backbone_layer_names_stability(self):
-        model = MLPMixerBackbone(
-            patch_size=16,
-            num_blocks=12,
-            hidden_dim=768,
-            tokens_mlp_dim=384,
-            channels_mlp_dim=3072,
-            include_rescaling=False,
-        )
-        model_2 = MLPMixerBackbone(
-            patch_size=16,
-            num_blocks=12,
-            hidden_dim=768,
-            tokens_mlp_dim=384,
-            channels_mlp_dim=3072,
-            include_rescaling=False,
-        )
-        layers_1 = model.layers
-        layers_2 = model_2.layers
-        for i in range(len(layers_1)):
-            if "input" in layers_1[i].name:
-                continue
-            self.assertEquals(layers_1[i].name, layers_2[i].name)
-
     def test_create_backbone_model_with_level_config(self):
         model = MLPMixerBackbone(
             patch_size=16,

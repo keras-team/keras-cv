@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""MLP Mixer backbone model for KerasCV.
+"""MLP Mixer backbone model.
 
 Reference:
   - [MLP-Mixer: An all-MLP Architecture for Vision](https://arxiv.org/abs/2105.01601)
@@ -175,7 +175,7 @@ class MLPMixerBackbone(Backbone):
             x = apply_mixer_block(
                 x, tokens_mlp_dim, channels_mlp_dim, name=f"mixer_block_{i}"
             )
-            pyramid_level_inputs[num_blocks] = x.node.layer.name
+            pyramid_level_inputs[num_blocks + 2] = x.node.layer.name
 
         x = layers.LayerNormalization()(x)
 
