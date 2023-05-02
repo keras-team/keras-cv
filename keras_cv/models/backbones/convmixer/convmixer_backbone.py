@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""ConvMixer backbone model for Keras.
+"""ConvMixer backbone model.
 
 References:
 - [Patches Are All You Need?](https://arxiv.org/abs/2201.09792)
@@ -140,7 +140,7 @@ class ConvMixerBackbone(Backbone):
         pyramid_level_inputs = {}
         for block_index in range(depth):
             x = apply_conv_mixer_layer(x, dim, kernel_size)
-            pyramid_level_inputs[block_index] = x.node.layer.name
+            pyramid_level_inputs[block_index + 2] = x.node.layer.name
 
         super().__init__(inputs=inputs, outputs=x, **kwargs)
 

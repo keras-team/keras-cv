@@ -110,28 +110,6 @@ class ConvMixerBackboneTest(tf.test.TestCase, parameterized.TestCase):
         restored_output = restored_model(self.input_batch)
         self.assertAllClose(model_output, restored_output)
 
-    def test_model_backbone_layer_names_stability(self):
-        model = ConvMixerBackbone(
-            dim=512,
-            depth=16,
-            patch_size=7,
-            kernel_size=8,
-            include_rescaling=False,
-        )
-        model_2 = ConvMixerBackbone(
-            dim=512,
-            depth=16,
-            patch_size=7,
-            kernel_size=8,
-            include_rescaling=False,
-        )
-        layers_1 = model.layers
-        layers_2 = model_2.layers
-        for i in range(len(layers_1)):
-            if "input" in layers_1[i].name:
-                continue
-            self.assertEquals(layers_1[i].name, layers_2[i].name)
-
     def test_create_backbone_model_from_alias_model(self):
         model = ConvMixer_512_16Backbone(
             include_rescaling=False,

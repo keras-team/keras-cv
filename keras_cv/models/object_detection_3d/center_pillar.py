@@ -159,7 +159,6 @@ class MultiHeadCenterPillar(keras.Model):
         backbone,
         voxel_net,
         multiclass_head,
-        label_encoder,
         prediction_decoder,
         **kwargs,
     ):
@@ -167,7 +166,6 @@ class MultiHeadCenterPillar(keras.Model):
         self._voxelization_layer = voxel_net
         self._unet_layer = backbone
         self._multiclass_head = multiclass_head
-        self._label_encoder = label_encoder
         self._prediction_decoder = prediction_decoder
         self._head_names = self._multiclass_head._head_names
 
@@ -218,11 +216,11 @@ class MultiHeadCenterPillar(keras.Model):
         y_pred = {}
         y_true = {}
         sample_weight = {}
+
         for head_name in self._head_names:
             prediction = predictions[head_name]
             heatmap_pred = tf.nn.softmax(prediction[..., :2])[..., 1]
             box_pred = prediction[..., 2:]
-
             box = targets[head_name]["boxes"]
             heatmap = targets[head_name]["heatmap"]
             index = targets[head_name]["top_k_index"]
@@ -230,19 +228,27 @@ class MultiHeadCenterPillar(keras.Model):
             # the prediction returns 2 outputs for background vs object
             y_pred["heatmap_" + head_name] = heatmap_pred
             y_true["heatmap_" + head_name] = heatmap
-            sample_weight["heatmap_" + head_name] = tf.ones_like(heatmap)
 
             # TODO(ianstenbit): loss heatmap threshold should be configurable.
             box_regression_mask = (
                 tf.gather_nd(heatmap, index, batch_dims=1) >= 0.95
             )
-            sample_weight["box_" + head_name] = tf.cast(
-                box_regression_mask, tf.float32
-            )
             box = tf.gather_nd(box, index, batch_dims=1)
             box_pred = tf.gather_nd(box_pred, index, batch_dims=1)
-            y_pred["box_" + head_name] = tf.squeeze(box_pred)
-            y_true["box_" + head_name] = tf.squeeze(box)
+
+            num_boxes = tf.math.maximum(
+                tf.reduce_sum(tf.cast(box_regression_mask, tf.float32)), 1
+            )
+
+            sample_weight["box_" + head_name] = (
+                tf.cast(box_regression_mask, tf.float32) / num_boxes
+            )
+            sample_weight["heatmap_" + head_name] = (
+                tf.ones_like(heatmap) / num_boxes
+            )
+
+            y_pred["box_" + head_name] = box_pred
+            y_true["box_" + head_name] = box
 
         return super().compute_loss(
             x={}, y=y_true, y_pred=y_pred, sample_weight=sample_weight

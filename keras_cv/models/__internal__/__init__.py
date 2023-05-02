@@ -11,12 +11,3 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-from keras_cv.models.__internal__.darknet_utils import CrossStagePartial
-from keras_cv.models.__internal__.darknet_utils import DarknetConvBlock
-from keras_cv.models.__internal__.darknet_utils import DarknetConvBlockDepthwise
-from keras_cv.models.__internal__.darknet_utils import Focus
-from keras_cv.models.__internal__.darknet_utils import ResidualBlocks
-from keras_cv.models.__internal__.darknet_utils import (
-    SpatialPyramidPoolingBottleneck,
-)

@@ -13,11 +13,14 @@
 # limitations under the License.
 
 
-import tensorflow as tf
 from tensorflow import keras
 
-from keras_cv.models.__internal__.darknet_utils import DarknetConvBlock
-from keras_cv.models.__internal__.darknet_utils import DarknetConvBlockDepthwise
+from keras_cv.models.backbones.csp_darknet.csp_darknet_utils import (
+    DarknetConvBlock,
+)
+from keras_cv.models.backbones.csp_darknet.csp_darknet_utils import (
+    DarknetConvBlockDepthwise,
+)
 
 
 class YoloXHead(keras.layers.Layer):
@@ -151,7 +154,7 @@ class YoloXHead(keras.layers.Layer):
             boxes = self.regression_preds[i](boxes_feat)
             objectness = self.objectness_preds[i](boxes_feat)
 
-            output = tf.keras.layers.Concatenate(axis=-1)(
+            output = keras.layers.Concatenate(axis=-1)(
                 [boxes, objectness, classes]
             )
             outputs.append(output)

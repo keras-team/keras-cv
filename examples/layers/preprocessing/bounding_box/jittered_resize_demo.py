@@ -18,22 +18,14 @@ import keras_cv
 
 
 def main():
-    augment = keras_cv.layers.JitteredResize(
-        target_size=(640, 640),
-        scale_factor=(0.75, 1.3),
-        bounding_box_format="xywh",
+    dataset = demo_utils.load_voc_dataset(bounding_box_format="xyxy")
+    jittered_resize = keras_cv.layers.JitteredResize(
+        target_size=(512, 512),
+        scale_factor=(3 / 4, 4 / 3),
+        bounding_box_format="xyxy",
     )
-    dataset = demo_utils.load_voc_dataset(bounding_box_format="xywh")
-    dataset = dataset.map(
-        lambda x: augment(x, training=True), num_parallel_calls=tf.data.AUTOTUNE
-    )
-    demo_utils.visualize_data(dataset, bounding_box_format="xywh")
-
-    dataset = dataset.map(
-        lambda x: augment(x, training=False),
-        num_parallel_calls=tf.data.AUTOTUNE,
-    )
-    demo_utils.visualize_data(dataset, bounding_box_format="xywh")
+    result = dataset.map(jittered_resize, num_parallel_calls=tf.data.AUTOTUNE)
+    demo_utils.visualize_data(result, bounding_box_format="xyxy")
 
 
 if __name__ == "__main__":

@@ -30,6 +30,33 @@ from keras_cv.models.backbones.convmixer.convmixer_backbone import (
 from keras_cv.models.backbones.convmixer.convmixer_backbone import (
     ConvMixerBackbone,
 )
+from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
+    CSPDarkNetBackbone,
+)
+from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
+    CSPDarkNetLBackbone,
+)
+from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
+    CSPDarkNetMBackbone,
+)
+from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
+    CSPDarkNetSBackbone,
+)
+from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
+    CSPDarkNetTinyBackbone,
+)
+from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
+    CSPDarkNetXLBackbone,
+)
+from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_backbone import (
+    MobileNetV3Backbone,
+)
+from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_backbone import (
+    MobileNetV3LargeBackbone,
+)
+from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_backbone import (
+    MobileNetV3SmallBackbone,
+)
 from keras_cv.models.backbones.resnet_v1.resnet_v1_backbone import (
     ResNet18Backbone,
 )
@@ -72,11 +99,6 @@ from keras_cv.models.convnext import ConvNeXtLarge
 from keras_cv.models.convnext import ConvNeXtSmall
 from keras_cv.models.convnext import ConvNeXtTiny
 from keras_cv.models.convnext import ConvNeXtXLarge
-from keras_cv.models.csp_darknet import CSPDarkNetL
-from keras_cv.models.csp_darknet import CSPDarkNetM
-from keras_cv.models.csp_darknet import CSPDarkNetS
-from keras_cv.models.csp_darknet import CSPDarkNetTiny
-from keras_cv.models.csp_darknet import CSPDarkNetX
 from keras_cv.models.darknet import DarkNet21
 from keras_cv.models.darknet import DarkNet53
 from keras_cv.models.densenet import DenseNet121
@@ -105,10 +127,14 @@ from keras_cv.models.efficientnet_v2 import EfficientNetV2S
 from keras_cv.models.mlp_mixer import MLPMixerB16
 from keras_cv.models.mlp_mixer import MLPMixerB32
 from keras_cv.models.mlp_mixer import MLPMixerL16
-from keras_cv.models.mobilenet_v3 import MobileNetV3Large
-from keras_cv.models.mobilenet_v3 import MobileNetV3Small
 from keras_cv.models.object_detection.faster_rcnn.faster_rcnn import FasterRCNN
-from keras_cv.models.object_detection.retina_net.retina_net import RetinaNet
+from keras_cv.models.object_detection.retinanet.retinanet import RetinaNet
+from keras_cv.models.object_detection.yolo_v8.yolo_v8_backbone import (
+    YOLOV8Backbone,
+)
+from keras_cv.models.object_detection.yolo_v8.yolo_v8_detector import (
+    YOLOV8Detector,
+)
 from keras_cv.models.object_detection_3d.center_pillar import (
     MultiHeadCenterPillar,
 )

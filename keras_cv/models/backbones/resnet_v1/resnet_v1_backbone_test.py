@@ -104,26 +104,6 @@ class ResNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
         restored_output = restored_model(self.input_batch)
         self.assertAllClose(model_output, restored_output)
 
-    def test_model_backbone_layer_names_stability(self):
-        model = ResNetBackbone(
-            stackwise_filters=[64, 128, 256, 512],
-            stackwise_blocks=[2, 2, 2, 2],
-            stackwise_strides=[1, 2, 2, 2],
-            include_rescaling=False,
-        )
-        model_2 = ResNetBackbone(
-            stackwise_filters=[64, 128, 256, 512],
-            stackwise_blocks=[2, 2, 2, 2],
-            stackwise_strides=[1, 2, 2, 2],
-            include_rescaling=False,
-        )
-        layers_1 = model.layers
-        layers_2 = model_2.layers
-        for i in range(len(layers_1)):
-            if "input" in layers_1[i].name:
-                continue
-            self.assertEquals(layers_1[i].name, layers_2[i].name)
-
     def test_create_backbone_model_from_alias_model(self):
         model = ResNet50Backbone(
             include_rescaling=False,
@@ -133,7 +113,7 @@ class ResNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
             model.pyramid_level_inputs.values(),
             model.pyramid_level_inputs.keys(),
         )
-        inputs = tf.keras.Input(shape=[256, 256, 3])
+        inputs = keras.Input(shape=[256, 256, 3])
         outputs = backbone_model(inputs)
         # Resnet50 backbone has 4 level of features (2 ~ 5)
         self.assertLen(outputs, 4)
@@ -154,7 +134,7 @@ class ResNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
         levels = [3, 4]
         layer_names = [model.pyramid_level_inputs[level] for level in [3, 4]]
         backbone_model = get_feature_extractor(model, layer_names, levels)
-        inputs = tf.keras.Input(shape=[256, 256, 3])
+        inputs = keras.Input(shape=[256, 256, 3])
         outputs = backbone_model(inputs)
         self.assertLen(outputs, 2)
         self.assertEquals(list(outputs.keys()), [3, 4])

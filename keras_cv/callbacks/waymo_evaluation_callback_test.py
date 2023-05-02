@@ -25,11 +25,10 @@ NUM_BOXES = 2
 BOX_FEATURES = 7
 
 METRIC_KEYS = [
-    "average_precision",
-    "average_precision_ha_weighted",
-    "precision_recall",
-    "precision_recall_ha_weighted",
-    "breakdown",
+    "average_precision_vehicle_l1",
+    "average_precision_vehicle_l2",
+    "average_precision_ped_l1",
+    "average_precision_ped_l2",
 ]
 
 

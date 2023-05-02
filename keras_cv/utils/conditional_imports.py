@@ -28,6 +28,12 @@ except ImportError:
     matplotlib = None
 
 
+try:
+    import pycocotools
+except ImportError:
+    pycocotools = None
+
+
 def assert_cv2_installed(symbol_name):
     if cv2 is None:
         raise ImportError(
@@ -54,4 +60,13 @@ def assert_waymo_open_dataset_installed(symbol_name):
             "Installation instructions can be found at "
             "https://github.com/waymo-research/waymo-open-dataset"
             "/blob/master/docs/quick_start.md"
+        )
+
+
+def assert_pycocotools_installed(symbol_name):
+    if pycocotools is None:
+        raise ImportError(
+            f"{symbol_name} requires the `pycocotools` package. "
+            "Please install the package using "
+            "`pip install pycocotools`."
         )
