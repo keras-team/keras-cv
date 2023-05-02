@@ -34,6 +34,16 @@ class StableDiffusionTest(tf.test.TestCase):
             img, stablediff.generate_image(text_encoding, seed=1337), atol=1e-4
         )
 
+    def DISABLED_test_image_encoder_golden_value(self):
+        stablediff = StableDiffusion(128, 128)
+
+        outputs = stablediff.image_encoder.predict(tf.ones((1, 128, 128, 3)))
+        self.assertAllClose(
+            outputs[0][1:4][0][0],
+            [2.451568, 1.607522, -0.546311, -1.194388],
+            atol=1e-4,
+        )
+
     def DISABLED_test_mixed_precision(self):
         mixed_precision.set_global_policy("mixed_float16")
         stablediff = StableDiffusion(128, 128)

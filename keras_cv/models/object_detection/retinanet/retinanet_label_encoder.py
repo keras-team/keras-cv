@@ -80,7 +80,7 @@ class RetinaNetLabelEncoder(layers.Layer):
         self.box_variance_tuple = box_variance
         self.built = True
 
-    def _encode_sample(self, box_labels, anchor_boxes):
+    def _encode_sample(self, box_labels, anchor_boxes, image_shape):
         """Creates box and classification targets for a batched sample
         Matches ground truth boxes to anchor boxes based on IOU.
         1. Calculates the pairwise IOU for the M `anchor_boxes` and N `gt_boxes`
@@ -110,7 +110,10 @@ class RetinaNetLabelEncoder(layers.Layer):
         gt_boxes = box_labels["boxes"]
         gt_classes = box_labels["classes"]
         iou_matrix = bounding_box.compute_iou(
-            anchor_boxes, gt_boxes, bounding_box_format="xywh"
+            anchor_boxes,
+            gt_boxes,
+            bounding_box_format=self.bounding_box_format,
+            image_shape=image_shape,
         )
         matched_gt_idx, matched_vals = self.box_matcher(iou_matrix)
         matched_vals = matched_vals[..., tf.newaxis]
@@ -125,6 +128,7 @@ class RetinaNetLabelEncoder(layers.Layer):
             anchor_format=self.bounding_box_format,
             box_format=self.bounding_box_format,
             variance=self.box_variance,
+            image_shape=image_shape,
         )
         matched_gt_cls_ids = target_gather._target_gather(
             gt_classes, matched_gt_idx
@@ -188,19 +192,20 @@ class RetinaNetLabelEncoder(layers.Layer):
                 f"Received `type(images)={type(images)}`."
             )
 
+        image_shape = tf.shape(images[0])
         box_labels = bounding_box.to_dense(box_labels)
         if box_labels["classes"].get_shape().rank == 2:
             box_labels["classes"] = box_labels["classes"][..., tf.newaxis]
-        anchor_boxes = self.anchor_generator(image_shape=tf.shape(images[0]))
+        anchor_boxes = self.anchor_generator(image_shape=image_shape)
         anchor_boxes = tf.concat(list(anchor_boxes.values()), axis=0)
         anchor_boxes = bounding_box.convert_format(
             anchor_boxes,
             source=self.anchor_generator.bounding_box_format,
             target=self.bounding_box_format,
-            images=images[0],
+            image_shape=image_shape,
         )
 
-        result = self._encode_sample(box_labels, anchor_boxes)
+        result = self._encode_sample(box_labels, anchor_boxes, image_shape)
         encoded_box_targets = result["boxes"]
         class_targets = result["classes"]
         return encoded_box_targets, class_targets

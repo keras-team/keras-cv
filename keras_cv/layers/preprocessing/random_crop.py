@@ -63,8 +63,10 @@ class RandomCrop(VectorizedBaseImageAugmentationLayer):
         )
         self.height = height
         self.width = width
-        self.seed = seed
         self.bounding_box_format = bounding_box_format
+        self.seed = seed
+
+        self.force_output_dense_images = True
 
     def compute_ragged_image_signature(self, images):
         ragged_spec = tf.RaggedTensorSpec(

@@ -14,24 +14,25 @@
 
 
 import tensorflow as tf
+from tensorflow import keras
 
 from keras_cv.models.object_detection.yolox.layers import YoloXHead
 
 
 class YoloXHeadTest(tf.test.TestCase):
     def test_num_parameters(self):
-        input1 = tf.keras.Input((80, 80, 256))
-        input2 = tf.keras.Input((40, 40, 512))
-        input3 = tf.keras.Input((20, 20, 1024))
+        input1 = keras.Input((80, 80, 256))
+        input2 = keras.Input((40, 40, 512))
+        input3 = keras.Input((20, 20, 1024))
 
         output = YoloXHead(20)([input1, input2, input3])
 
-        model = tf.keras.models.Model(
+        model = keras.models.Model(
             inputs=[input1, input2, input3], outputs=output
         )
 
         keras_params = sum(
-            [tf.keras.backend.count_params(p) for p in model.trainable_weights]
+            [keras.backend.count_params(p) for p in model.trainable_weights]
         )
         # taken from original implementation
         original_params = 7563595

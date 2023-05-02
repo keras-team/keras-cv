@@ -16,6 +16,8 @@ from keras.callbacks import Callback
 
 from keras_cv import bounding_box
 from keras_cv.metrics.coco import compute_pycoco_metrics
+from keras_cv.models.object_detection.__internal__ import unpack_input
+from keras_cv.utils.conditional_imports import assert_pycocotools_installed
 
 
 class PyCOCOCallback(Callback):
@@ -40,6 +42,7 @@ class PyCOCOCallback(Callback):
                 in main memory, so for large datasets consider avoiding shuffle
                 operations and passing `cache=False`.
         """
+        assert_pycocotools_installed("PyCOCOCallback")
         self.model = None
         self.val_data = validation_data
         if cache:
@@ -51,26 +54,28 @@ class PyCOCOCallback(Callback):
     def on_epoch_end(self, epoch, logs=None):
         logs = logs or {}
 
-        def images_only(images, boxes):
+        def images_only(data):
+            images, boxes = unpack_input(data)
             return images
 
-        def boxes_only(images, boxes):
-            return boxes
+        def boxes_only(data):
+            images, boxes = unpack_input(data)
+            return bounding_box.to_ragged(boxes)
 
         images_only_ds = self.val_data.map(images_only)
         y_pred = self.model.predict(images_only_ds)
-        box_pred = tf.convert_to_tensor(y_pred["boxes"])
-        cls_pred = tf.convert_to_tensor(y_pred["classes"])
-        confidence_pred = tf.convert_to_tensor(y_pred["confidence"])
-        valid_det = tf.convert_to_tensor(y_pred["num_detections"])
+        box_pred = y_pred["boxes"]
+        cls_pred = y_pred["classes"]
+        confidence_pred = y_pred["confidence"]
+        valid_det = y_pred["num_detections"]
 
         gt = [boxes for boxes in self.val_data.map(boxes_only)]
         gt_boxes = tf.concat(
-            [tf.RaggedTensor.from_tensor(boxes["boxes"]) for boxes in gt],
+            [boxes["boxes"] for boxes in gt],
             axis=0,
         )
         gt_classes = tf.concat(
-            [tf.RaggedTensor.from_tensor(boxes["classes"]) for boxes in gt],
+            [boxes["classes"] for boxes in gt],
             axis=0,
         )
 

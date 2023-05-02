@@ -16,9 +16,10 @@
 import warnings
 
 import tensorflow as tf
+from tensorflow import keras
 
 
-class BinaryCrossentropy(tf.keras.losses.Loss):
+class BinaryCrossentropy(keras.losses.Loss):
     """Computes the cross-entropy loss between true labels and predicted labels.
 
     Use this cross-entropy loss for binary (0 or 1) classification applications.
@@ -75,13 +76,13 @@ class BinaryCrossentropy(tf.keras.losses.Loss):
                 "solution covering all losses."
             )
             return tf.reduce_mean(
-                tf.keras.backend.binary_crossentropy(
+                keras.backend.binary_crossentropy(
                     y_true, y_pred, from_logits=self.from_logits
                 ),
                 axis=self.axis,
             )
 
-        return tf.keras.backend.binary_crossentropy(
+        return keras.backend.binary_crossentropy(
             y_true, y_pred, from_logits=self.from_logits
         )
 

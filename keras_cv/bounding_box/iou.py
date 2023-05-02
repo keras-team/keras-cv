@@ -70,6 +70,8 @@ def compute_iou(
     bounding_box_format,
     use_masking=False,
     mask_val=-1,
+    images=None,
+    image_shape=None,
 ):
     """Computes a lookup table vector containing the ious for a given set boxes.
 
@@ -129,11 +131,19 @@ def compute_iou(
         target_format = bounding_box.as_relative(target_format)
 
     boxes1 = bounding_box.convert_format(
-        boxes1, source=bounding_box_format, target=target_format
+        boxes1,
+        source=bounding_box_format,
+        target=target_format,
+        images=images,
+        image_shape=image_shape,
     )
 
     boxes2 = bounding_box.convert_format(
-        boxes2, source=bounding_box_format, target=target_format
+        boxes2,
+        source=bounding_box_format,
+        target=target_format,
+        images=images,
+        image_shape=image_shape,
     )
 
     intersect_area = _compute_intersection(boxes1, boxes2)

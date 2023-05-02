@@ -15,9 +15,15 @@
 
 from tensorflow import keras
 
-from keras_cv.models.__internal__.darknet_utils import CrossStagePartial
-from keras_cv.models.__internal__.darknet_utils import DarknetConvBlock
-from keras_cv.models.__internal__.darknet_utils import DarknetConvBlockDepthwise
+from keras_cv.models.backbones.csp_darknet.csp_darknet_utils import (
+    CrossStagePartial,
+)
+from keras_cv.models.backbones.csp_darknet.csp_darknet_utils import (
+    DarknetConvBlock,
+)
+from keras_cv.models.backbones.csp_darknet.csp_darknet_utils import (
+    DarknetConvBlockDepthwise,
+)
 
 
 class YoloXPAFPN(keras.layers.Layer):
