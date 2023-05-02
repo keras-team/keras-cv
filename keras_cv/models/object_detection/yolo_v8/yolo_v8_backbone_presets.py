@@ -31,6 +31,14 @@ def copy_weights(yolo_model, csp_model):
     for layer in get_all_layers(csp_model):
         if "split" in layer.name:
             continue
+        if "stem_focus" in layer.name:
+            continue
+        if layer.get_config() != yolo_layers[layer.name].get_config():
+            print(
+                layer.name,
+                layer.get_config(),
+                yolo_layers[layer.name].get_config(),
+            )
         assert layer.get_config() == yolo_layers[layer.name].get_config()
         layer.set_weights(yolo_layers[layer.name].get_weights())
 
