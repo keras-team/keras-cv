@@ -51,20 +51,20 @@ class CSPDarkNetBackbone(Backbone):
             True, inputs will be passed through a `Rescaling(1/255.0)` layer.
         include_focus: Boolean, whether to use `Focus` layer at the beginning of
             the backbone. Defaults to `True`.
-        use_depthwise: bool, whether a `DarknetConvBlockDepthwise` should be
-            used over a `DarknetConvBlock`, defaults to False.
+        use_depthwise: bool, whether a depthwise DarkNet block should be
+            used over a DarkNet block, defaults to False.
         darknet_padding: String, the padding used in the `Conv2D` layers in the
-            `DarknetConvBlock`s. Defaults to `"same"`.
+            DarkNet blocks. Defaults to `"same"`.
         darknet_zero_padding: Boolean, whether to use `ZeroPadding2D` layer at
-            the beginning of each `DarknetConvBlock`. The zero padding will only
+            the beginning of each DarkNet block. The zero padding will only
             be applied when `kernel_size` > 1. Defaults to `False`.
         darknet_bn_momentum: Float, momentum for the moving average for the
-            `BatchNormalization` layers in the `DarknetConvBlock`s. Defaults to
+            `BatchNormalization` layers in the DarkNet blocks. Defaults to
             `0.99`.
         stem_stride: The stride to use of the `Conv2D` layers in the stem part
             of the backbone. Defaults to `1`.
         csp_wide_stem: Boolean, in the CSP blocks, whether to combine the first
-            two `DarknetConvBlock`s into one with more filters and split the
+            two DarkNet blocks into one with more filters and split the
             outputs to two tensors.  Defaults to `False`.
         csp_kernel_sizes: A list of integers of length 2. The kernel sizes of the
             bottleneck layers in the CSP blocks. Defaults to `[1, 3]`.
@@ -75,9 +75,17 @@ class CSPDarkNetBackbone(Backbone):
         csp_always_residual: Boolean, whether to always use residual connections
             for the CSP blocks. If `False`, residual connections will be applied
             to all CSP blocks but the last one. Defautls to `False`.
-        spp_after_csp=False,
-        spp_pool_sizes=(5, 9, 13),
-        spp_sequential_pooling=False,
+        spp_after_csp: Boolean, whether the spatial pyramid pooling block should
+            be applied after the last CSP block. If set to `False`, it would be
+            applied before the last CSP block. Defaults to `False`.
+        spp_pool_sizes: A list or tuple representing all the pool sizes used for
+            the pooling layers in the spatial pyramid pooling block. Defaults to
+            (5, 9, 13).
+        spp_sequential_pooling: Boolean, in the spatial pyramid pooling block,
+            whether the `MaxPooling2D` layers are applied sequentially. If
+            `True`, the output of a `MaxPooling2D` layer will be the input to
+            the next `MaxPooling2D` layer. If `False`, the same input tensor is
+            used to feed all the `MaxPooling2D` layers. Defaults to `False`.
         input_shape: optional shape tuple, defaults to (None, None, 3).
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
             to use as image input for the model.

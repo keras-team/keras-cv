@@ -36,7 +36,7 @@ def apply_darknet_conv_block(
     activation="silu",
     name=None,
 ):
-    """The basic conv block used in Darknet. Applies Conv2D followed by a
+    """The basic conv block used in DarkNet. Applies Conv2D followed by a
     BatchNorm.
 
     Args:
@@ -177,12 +177,12 @@ def apply_spatial_pyramid_pooling_bottleneck(
         kernel_sizes: A list or tuple representing all the pool sizes used for
             the pooling layers, defaults to (5, 9, 13).
         padding: String, the padding used in the `Conv2D` layers in the
-            `DarknetConvBlock`s. Defaults to `"same"`.
+            DarkNet blocks. Defaults to `"same"`.
         use_zero_padding: Boolean, whether to use `ZeroPadding2D` layer at the
-            beginning of each `DarknetConvBlock`. The zero padding will only be
+            beginning of each DarkNet block. The zero padding will only be
             applied when `kernel_size` > 1. Defaults to `False`.
         batch_norm_momentum: Float, momentum for the moving average for the
-            `BatchNormalization` layers in the `DarknetConvBlock`s. Defaults to
+            `BatchNormalization` layers in the DarkNet blocks. Defaults to
             `0.99`.
         activation: Activation for the conv layers, defaults to "silu".
         sequential_pooling: Boolean, whether the `MaxPooling2D` layers are
@@ -256,7 +256,7 @@ def apply_darknet_conv_block_depthwise(
     activation="silu",
     name=None,
 ):
-    """The depthwise conv block used in CSPDarknet.
+    """The depthwise conv block used in CSPDarkNet.
 
     Args:
         inputs: The input tensor.
@@ -328,7 +328,7 @@ def apply_cross_stage_partial(
     activation="silu",
     name=None,
 ):
-    """A block used in Cross Stage Partial Darknet.
+    """A block used in Cross Stage Partial DarkNet.
 
     Args:
         inputs: The input tensor.
@@ -340,9 +340,9 @@ def apply_cross_stage_partial(
             bottleneck should be added to the output of the bottleneck as a
             residual, defaults to True.
         use_depthwise: a boolean value used to decide whether a depthwise conv
-            block should be used over a regular darknet block, defaults to
+            block should be used over a regular DarkNet block, defaults to
             False.
-        wide_stem: Boolean, whether to combine the first two `DarknetConvBlock`s
+        wide_stem: Boolean, whether to combine the first two DarkNet blocks
             into one with more filters and split the outputs to two tensors.
             Defaults to `False`.
         kernel_sizes: A list of integers of length 2. The kernel sizes of the
@@ -352,12 +352,12 @@ def apply_cross_stage_partial(
             `False`, only the output of the last bottleneck block is used.
             Defaults to `False`.
         padding: String, the padding used in the `Conv2D` layers in the
-            `DarknetConvBlock`s. Defaults to `"same"`.
+            DarkNet blocks. Defaults to `"same"`.
         use_zero_padding: Boolean, whether to use `ZeroPadding2D` layer at the
-            beginning of each `DarknetConvBlock`. The zero padding will only be
+            beginning of each DarkNet block. The zero padding will only be
             applied when `kernel_size` > 1. Defaults to `False`.
         batch_norm_momentum: Float, momentum for the moving average for the
-            `BatchNormalization` layers in the `DarknetConvBlock`s. Defaults to
+            `BatchNormalization` layers in the DarkNet blocks. Defaults to
             `0.99`.
         activation: the activation applied after the final layer. One of "silu",
             "relu" or "leaky_relu", defaults to "silu".
@@ -461,7 +461,7 @@ def apply_cross_stage_partial(
 
 
 def apply_focus(inputs, name=None):
-    """A block used in CSPDarknet to focus information into channels of the
+    """A block used in CSPDarkNet to focus information into channels of the
     image.
 
     If the dimensions of a batch input is (batch_size, width, height, channels),

@@ -15,7 +15,6 @@
 """CSPDarkNet models for KerasCV. """
 import copy
 
-from tensorflow import keras
 from tensorflow.keras import layers
 
 from keras_cv.models import utils
