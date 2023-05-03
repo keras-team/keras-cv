@@ -200,7 +200,6 @@ class EfficientNetV2BackboneTest(tf.test.TestCase, parameterized.TestCase):
         ("four_channels", 4),
     )
     def test_application_variable_input_channels(self, num_channels):
-        # ResNet50 model
         model = EfficientNetV2Backbone(
             stackwise_kernel_sizes=[3, 3, 3, 3, 3, 3],
             stackwise_num_repeats=[2, 4, 4, 6, 9, 15],
