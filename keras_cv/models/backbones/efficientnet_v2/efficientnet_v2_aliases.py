@@ -19,6 +19,9 @@ from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone import (
 from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone_presets import (  # noqa: E501
     backbone_presets,
 )
+from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone_presets import (  # noqa: E501
+    backbone_presets_with_weights,
+)
 from keras_cv.utils.python_utils import classproperty
 
 ALIAS_BASE_DOCSTRING = """Instantiates the {name} architecture.
@@ -72,7 +75,7 @@ class EfficientNetV2SBackbone(EfficientNetV2Backbone):
         weights."""
         return {
             "efficientnetv2-s_imagenet": copy.deepcopy(
-                backbone_presets["efficientnetv2-s_imagenet"]
+                backbone_presets_with_weights["efficientnetv2-s_imagenet"]
             ),
         }
 
@@ -178,7 +181,7 @@ class EfficientNetV2B0Backbone(EfficientNetV2Backbone):
         weights."""
         return {
             "efficientnetv2-b0_imagenet": copy.deepcopy(
-                backbone_presets["efficientnetv2-b0_imagenet"]
+                backbone_presets_with_weights["efficientnetv2-b0_imagenet"]
             ),
         }
 
@@ -216,7 +219,7 @@ class EfficientNetV2B1Backbone(EfficientNetV2Backbone):
         weights."""
         return {
             "efficientnetv2-b1_imagenet": copy.deepcopy(
-                backbone_presets["efficientnetv2-b1_imagenet"]
+                backbone_presets_with_weights["efficientnetv2-b1_imagenet"]
             ),
         }
 
@@ -254,7 +257,7 @@ class EfficientNetV2B2Backbone(EfficientNetV2Backbone):
         weights."""
         return {
             "efficientnetv2-b2_imagenet": copy.deepcopy(
-                backbone_presets["efficientnetv2-b2_imagenet"]
+                backbone_presets_with_weights["efficientnetv2-b2_imagenet"]
             ),
         }
 
