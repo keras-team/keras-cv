@@ -30,67 +30,6 @@ from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone_presets 
 from keras_cv.utils.python_utils import classproperty
 
 
-def conv_kernel_initializer(scale=2.0):
-    return keras.initializers.VarianceScaling(
-        scale=scale, mode="fan_out", distribution="truncated_normal"
-    )
-
-
-def round_filters(filters, width_coefficient, min_depth, depth_divisor):
-    """Round number of filters based on depth multiplier."""
-    filters *= width_coefficient
-    minimum_depth = min_depth or depth_divisor
-    new_filters = max(
-        minimum_depth,
-        int(filters + depth_divisor / 2) // depth_divisor * depth_divisor,
-    )
-    return int(new_filters)
-
-
-def round_repeats(repeats, depth_coefficient):
-    """Round number of repeats based on depth multiplier."""
-    return int(math.ceil(depth_coefficient * repeats))
-
-
-def get_conv_constructor(conv_type):
-    if conv_type == "unfused":
-        return MBConvBlock
-    elif conv_type == "fused":
-        return FusedMBConvBlock
-    else:
-        raise ValueError(
-            "Expected `conv_type` to be "
-            "one of 'unfused', 'fused', but got "
-            f"`conv_type={conv_type}`"
-        )
-
-
-def get_block_conv(
-    conv_type,
-    input_filters,
-    output_filters,
-    expand_ratio,
-    kernel_size,
-    strides,
-    squeeze_and_excite_ratio,
-    activation,
-    survival_probability,
-    name,
-):
-    return get_conv_constructor(conv_type)(
-        input_filters=input_filters,
-        output_filters=output_filters,
-        expand_ratio=expand_ratio,
-        kernel_size=kernel_size,
-        strides=strides,
-        se_ratio=squeeze_and_excite_ratio,
-        activation=activation,
-        bn_momentum=0.9,
-        survival_probability=survival_probability,
-        name=name,
-    )
-
-
 @keras.utils.register_keras_serializable(package="keras_cv.models")
 class EfficientNetV2Backbone(Backbone):
     """Instantiates the EfficientNetV2 architecture.
@@ -374,6 +313,67 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
     Returns:
       A `keras.Model` instance.
 """  # noqa: E501
+
+
+def conv_kernel_initializer(scale=2.0):
+    return keras.initializers.VarianceScaling(
+        scale=scale, mode="fan_out", distribution="truncated_normal"
+    )
+
+
+def round_filters(filters, width_coefficient, min_depth, depth_divisor):
+    """Round number of filters based on depth multiplier."""
+    filters *= width_coefficient
+    minimum_depth = min_depth or depth_divisor
+    new_filters = max(
+        minimum_depth,
+        int(filters + depth_divisor / 2) // depth_divisor * depth_divisor,
+    )
+    return int(new_filters)
+
+
+def round_repeats(repeats, depth_coefficient):
+    """Round number of repeats based on depth multiplier."""
+    return int(math.ceil(depth_coefficient * repeats))
+
+
+def get_conv_constructor(conv_type):
+    if conv_type == "unfused":
+        return MBConvBlock
+    elif conv_type == "fused":
+        return FusedMBConvBlock
+    else:
+        raise ValueError(
+            "Expected `conv_type` to be "
+            "one of 'unfused', 'fused', but got "
+            f"`conv_type={conv_type}`"
+        )
+
+
+def get_block_conv(
+    conv_type,
+    input_filters,
+    output_filters,
+    expand_ratio,
+    kernel_size,
+    strides,
+    squeeze_and_excite_ratio,
+    activation,
+    survival_probability,
+    name,
+):
+    return get_conv_constructor(conv_type)(
+        input_filters=input_filters,
+        output_filters=output_filters,
+        expand_ratio=expand_ratio,
+        kernel_size=kernel_size,
+        strides=strides,
+        se_ratio=squeeze_and_excite_ratio,
+        activation=activation,
+        bn_momentum=0.9,
+        survival_probability=survival_probability,
+        name=name,
+    )
 
 
 class EfficientNetV2SBackbone(EfficientNetV2Backbone):
