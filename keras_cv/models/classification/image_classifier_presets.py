@@ -79,8 +79,8 @@ classifier_presets = {
                 "`width_coefficient=1.0` and "
                 "`depth_coefficient=1.0`. Weights are "
                 "initialized to pretrained imagenet classification weights. "
-                "Published weights are capable of scoring 77.1%	top 1 accuracy and "
-                "93.3% top 5 accuracy on imagenet."
+                "Published weights are capable of scoring 77.1%	top 1 accuracy "
+                "and 93.3% top 5 accuracy on imagenet."
             ),
             "params": 7_200_312,
             "official_name": "ImageClassifier",
