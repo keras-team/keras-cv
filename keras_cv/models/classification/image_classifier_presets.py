@@ -18,8 +18,6 @@ from keras_cv.models.backbones.efficientnet_v2 import (
 )
 from keras_cv.models.backbones.resnet_v2 import resnet_v2_backbone_presets
 
-EFFICIENTNET_DESCRIPTION = "TODO"
-
 classifier_presets = {
     "resnet50_v2_imagenet_classifier": {
         "metadata": {
@@ -29,7 +27,7 @@ classifier_presets = {
                 "layers (v2 style). Trained on Imagenet 2012 classification "
                 "task."
             ),
-            "params": 25613800,
+            "params": 25_613_800,
             "official_name": "ImageClassifier",
             "path": "image_classifier",
         },
@@ -46,7 +44,18 @@ classifier_presets = {
     },
     "efficientnetv2-s_imagenet_classifier": {
         "metadata": {
-            "description": EFFICIENTNET_DESCRIPTION,
+            "description": (
+                "ImageClassifier using the EfficientNet small"
+                "architecture.  In this "
+                "variant of the EfficientNet architecture, there are "
+                "6 convolutional blocks. Weights are "
+                "initialized to pretrained imagenet classification weights."
+                "Published weights are capable of scoring 83.9%	top 1 accuracy "
+                "and 96.7% top 5 accuracy on imagenet."
+            ),
+            "params": 21_612_360,
+            "official_name": "ImageClassifier",
+            "path": "image_classifier",
         },
         "config": {
             "backbone": efficientnet_v2_backbone_presets.backbone_presets[
@@ -61,7 +70,20 @@ classifier_presets = {
     },
     "efficientnetv2-b0_imagenet_classifier": {
         "metadata": {
-            "description": EFFICIENTNET_DESCRIPTION,
+            "description": (
+                "ImageClassifier using the EfficientNet B0 "
+                "architecture.  In this variant of the EfficientNet architecture, "
+                "there are 6 convolutional blocks. As with all of the B "
+                "style EfficientNet variants, the number of filters in each "
+                "convolutional block is scaled by `width_coefficient=1.0` and "
+                "`depth_coefficient=1.0`. Weights are "
+                "initialized to pretrained imagenet classification weights. "
+                "Published weights are capable of scoring 77.1%	top 1 accuracy and "
+                "93.3% top 5 accuracy on imagenet."
+            ),
+            "params": 7_200_312,
+            "official_name": "ImageClassifier",
+            "path": "image_classifier",
         },
         "config": {
             "backbone": efficientnet_v2_backbone_presets.backbone_presets[
@@ -76,7 +98,20 @@ classifier_presets = {
     },
     "efficientnetv2-b1_imagenet_classifier": {
         "metadata": {
-            "description": EFFICIENTNET_DESCRIPTION,
+            "description": (
+                "ImageClassifier using the EfficientNet B1 "
+                "architecture.  In this variant of the EfficientNet architecture, "
+                "there are 6 convolutional blocks. As with all of the B "
+                "style EfficientNet variants, the number of filters in each "
+                "convolutional block is scaled by `width_coefficient=1.0` and "
+                "`depth_coefficient=1.1`. Weights are "
+                "initialized to pretrained imagenet classification weights."
+                "Published weights are capable of scoring 79.1%	top 1 accuracy and "
+                "94.4% top 5 accuracy on imagenet."
+            ),
+            "params": 8_212_124,
+            "official_name": "ImageClassifier",
+            "path": "image_classifier",
         },
         "config": {
             "backbone": efficientnet_v2_backbone_presets.backbone_presets[
@@ -91,7 +126,20 @@ classifier_presets = {
     },
     "efficientnetv2-b2_imagenet_classifier": {
         "metadata": {
-            "description": EFFICIENTNET_DESCRIPTION,
+            "description": (
+                "ImageClassifier using the EfficientNet B2 "
+                "architecture.  In this variant of the EfficientNet architecture, "
+                "there are 6 convolutional blocks. As with all of the B "
+                "style EfficientNet variants, the number of filters in each "
+                "convolutional block is scaled by `width_coefficient=1.1` and "
+                "`depth_coefficient1.2`. Weights are initialized to pretrained "
+                "imagenet classification weights."
+                "Published weights are capable of scoring 80.1%	top 1 accuracy and "
+                "94.9% top 5 accuracy on imagenet."
+            ),
+            "params": 10_178_374,
+            "official_name": "ImageClassifier",
+            "path": "image_classifier",
         },
         "config": {
             "backbone": efficientnet_v2_backbone_presets.backbone_presets[

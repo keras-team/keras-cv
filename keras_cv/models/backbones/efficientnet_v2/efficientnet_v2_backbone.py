@@ -53,14 +53,14 @@ def round_repeats(repeats, depth_coefficient):
 
 
 def get_conv_constructor(conv_type):
-    if conv_type == "mb_conv":
+    if conv_type == "unfused":
         return MBConvBlock
-    elif conv_type == "fused_mb_conv":
+    elif conv_type == "fused":
         return FusedMBConvBlock
     else:
         raise ValueError(
             "Expected `conv_type` to be "
-            "one of 'mb_conv', 'fused_mb_conv', but got "
+            "one of 'unfused', 'fused', but got "
             f"`conv_type={conv_type}`"
         )
 
@@ -77,9 +77,7 @@ def get_block_conv(
     survival_probability,
     name,
 ):
-    conv_constructor = get_conv_constructor(conv_type)
-
-    return conv_constructor(
+    return get_conv_constructor(conv_type)(
         input_filters=input_filters,
         output_filters=output_filters,
         expand_ratio=expand_ratio,
@@ -103,7 +101,6 @@ class EfficientNetV2Backbone(Backbone):
             layer.
         width_coefficient: float, scaling coefficient for network width.
         depth_coefficient: float, scaling coefficient for network depth.
-        default_size: integer, default input image size.
         stackwise_kernel_sizes:  list of ints, the kernel sizes used for each
             conv block.
         stackwise_num_repeats: list of ints, number of times to repeat each
@@ -112,27 +109,50 @@ class EfficientNetV2Backbone(Backbone):
             each conv block.
         stackwise_output_filters: list of ints, number of output filters for
             each stack in the conv blocks model.
-        stackwise_expand_ratios: list of floats, expand ratio passed to the
+        stackwise_expansion_ratios: list of floats, expand ratio passed to the
             squeeze and excitation blocks.
         stackwise_squeeze_and_excite_ratios: list of ints, the squeeze and
             excite ratios passed to the squeeze and excitation blocks.
         stackwise_strides: list of ints, stackwise_strides for each conv block.
-        stackwise_conv_types: list of strings.  Each value is either 'mb_conv'
-            or 'fused_mb_conv' depending on the desired blocks.
-        dropout_rate: float, dropout rate before final classifier layer.
-        drop_connect_rate: float, dropout rate at skip connections.
+        stackwise_conv_types: list of strings.  Each value is either 'unfused'
+            or 'fused' depending on the desired blocks.
+        skip_connection_dropout: float, dropout rate at skip connections.
         depth_divisor: integer, a unit of network width.
         min_depth: integer, minimum number of filters.
-        activation: activation function.
-        model_name: string, model name.
+        activation: activation function to use between each convolutional layer.
         input_shape: optional shape tuple, defaults to (None, None, 3).
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
             to use as image input for the model.
 
     Usage:
     ```python
+    # Construct an EfficientNetV2 from a preset:
     efficientnet = keras_cv.models.EfficientNetV2Backbone.from_preset(
         "efficientnetv2-s"
+    )
+    images = tf.ones((1, 256, 256, 3))
+    outputs = efficientnet.predict(images)
+
+    # Alternatively, you can also customize the EfficientNetV2 architecture:
+    model = EfficientNetV2Backbone(
+        stackwise_kernel_sizes=[3, 3, 3, 3, 3, 3],
+        stackwise_num_repeats=[2, 4, 4, 6, 9, 15],
+        stackwise_input_filters=[24, 24, 48, 64, 128, 160],
+        stackwise_output_filters=[24, 48, 64, 128, 160, 256],
+        stackwise_expansion_ratios=[1, 4, 4, 4, 6, 6],
+        stackwise_squeeze_and_excite_ratios=[0.0, 0.0, 0, 0.25, 0.25, 0.25],
+        stackwise_strides=[1, 2, 2, 2, 1, 2],
+        stackwise_conv_types=[
+            "fused",
+            "fused",
+            "fused",
+            "unfused",
+            "unfused",
+            "unfused",
+        ],
+        width_coefficient=1.0,
+        depth_coefficient=1.0,
+        include_rescaling=False,
     )
     images = tf.ones((1, 256, 256, 3))
     outputs = efficientnet.predict(images)
@@ -145,17 +165,15 @@ class EfficientNetV2Backbone(Backbone):
         include_rescaling,
         width_coefficient,
         depth_coefficient,
-        default_size,
         stackwise_kernel_sizes,
         stackwise_num_repeats,
         stackwise_input_filters,
         stackwise_output_filters,
-        stackwise_expand_ratios,
+        stackwise_expansion_ratios,
         stackwise_squeeze_and_excite_ratios,
         stackwise_strides,
         stackwise_conv_types,
-        dropout_rate=0.2,
-        drop_connect_rate=0.2,
+        skip_connection_dropout=0.2,
         depth_divisor=8,
         min_depth=8,
         activation="swish",
@@ -199,51 +217,53 @@ class EfficientNetV2Backbone(Backbone):
 
         pyramid_level_inputs = []
         for i in range(len(stackwise_kernel_sizes)):
-            args = {
-                "kernel_size": stackwise_kernel_sizes[i],
-                "num_repeat": stackwise_num_repeats[i],
-                "input_filters": stackwise_input_filters[i],
-                "output_filters": stackwise_output_filters[i],
-                "expand_ratio": stackwise_expand_ratios[i],
-                "squeeze_and_excite_ratio": stackwise_squeeze_and_excite_ratios[
-                    i
-                ],
-                "strides": stackwise_strides[i],
-                "conv_type": stackwise_conv_types[i],
-            }
+            kernel_size = stackwise_kernel_sizes[i]
+            num_repeat = stackwise_num_repeats[i]
+            input_filters = stackwise_input_filters[i]
+            output_filters = stackwise_output_filters[i]
+            expand_ratio = stackwise_expansion_ratios[i]
+            squeeze_and_excite_ratio = stackwise_squeeze_and_excite_ratios[i]
+            strides = stackwise_strides[i]
+            conv_type = stackwise_conv_types[i]
 
             # Update block input and output filters based on depth multiplier.
-            args["input_filters"] = round_filters(
-                filters=args["input_filters"],
+            input_filters = round_filters(
+                filters=input_filters,
                 width_coefficient=width_coefficient,
                 min_depth=min_depth,
                 depth_divisor=depth_divisor,
             )
-            args["output_filters"] = round_filters(
-                filters=args["output_filters"],
+            output_filters = round_filters(
+                filters=output_filters,
                 width_coefficient=width_coefficient,
                 min_depth=min_depth,
                 depth_divisor=depth_divisor,
             )
 
             repeats = round_repeats(
-                repeats=args.pop("num_repeat"),
+                repeats=num_repeat,
                 depth_coefficient=depth_coefficient,
             )
             for j in range(repeats):
                 # The first block needs to take care of stride and filter size
                 # increase.
                 if j > 0:
-                    args["strides"] = 1
-                    args["input_filters"] = args["output_filters"]
+                    strides = 1
+                    input_filters = output_filters
 
-                if args["strides"] != 1:
+                if strides != 1:
                     pyramid_level_inputs.append(x.node.layer.name)
 
                 block = get_block_conv(
-                    **args,
+                    conv_type=conv_type,
+                    input_filters=input_filters,
+                    output_filters=output_filters,
+                    expand_ratio=expand_ratio,
+                    kernel_size=kernel_size,
+                    strides=strides,
+                    squeeze_and_excite_ratio=squeeze_and_excite_ratio,
                     activation=activation,
-                    survival_probability=drop_connect_rate * b / blocks,
+                    survival_probability=skip_connection_dropout * b / blocks,
                     name="block{}{}_".format(i + 1, chr(j + 97)),
                 )
                 x = block(x)
@@ -282,9 +302,7 @@ class EfficientNetV2Backbone(Backbone):
         self.include_rescaling = include_rescaling
         self.width_coefficient = width_coefficient
         self.depth_coefficient = depth_coefficient
-        self.default_size = default_size
-        self.dropout_rate = dropout_rate
-        self.drop_connect_rate = drop_connect_rate
+        self.skip_connection_dropout = skip_connection_dropout
         self.depth_divisor = depth_divisor
         self.min_depth = min_depth
         self.activation = activation
@@ -296,7 +314,7 @@ class EfficientNetV2Backbone(Backbone):
         self.stackwise_num_repeats = stackwise_num_repeats
         self.stackwise_input_filters = stackwise_input_filters
         self.stackwise_output_filters = stackwise_output_filters
-        self.stackwise_expand_ratios = stackwise_expand_ratios
+        self.stackwise_expansion_ratios = stackwise_expansion_ratios
         self.stackwise_squeeze_and_excite_ratios = (
             stackwise_squeeze_and_excite_ratios
         )
@@ -310,9 +328,7 @@ class EfficientNetV2Backbone(Backbone):
                 "include_rescaling": self.include_rescaling,
                 "width_coefficient": self.width_coefficient,
                 "depth_coefficient": self.depth_coefficient,
-                "default_size": self.default_size,
-                "dropout_rate": self.dropout_rate,
-                "drop_connect_rate": self.drop_connect_rate,
+                "skip_connection_dropout": self.skip_connection_dropout,
                 "depth_divisor": self.depth_divisor,
                 "min_depth": self.min_depth,
                 "activation": self.activation,
@@ -322,7 +338,7 @@ class EfficientNetV2Backbone(Backbone):
                 "stackwise_num_repeats": self.stackwise_num_repeats,
                 "stackwise_input_filters": self.stackwise_input_filters,
                 "stackwise_output_filters": self.stackwise_output_filters,
-                "stackwise_expand_ratios": self.stackwise_expand_ratios,
+                "stackwise_expansion_ratios": self.stackwise_expansion_ratios,
                 "stackwise_squeeze_and_excite_ratios": self.stackwise_squeeze_and_excite_ratios,  # noqa: E501
                 "stackwise_strides": self.stackwise_strides,
                 "stackwise_conv_types": self.stackwise_conv_types,
@@ -381,13 +397,21 @@ class EfficientNetV2SBackbone(EfficientNetV2Backbone):
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
-        return {}
+        return {
+            "efficientnetv2-s": copy.deepcopy(
+                backbone_presets["efficientnetv2-s"]
+            ),
+        }
 
     @classproperty
     def presets_with_weights(cls):
         """Dictionary of preset names and configurations that include
         weights."""
-        return {}
+        return {
+            "efficientnetv2-s_imagenet": copy.deepcopy(
+                backbone_presets["efficientnetv2-s_imagenet"]
+            ),
+        }
 
 
 class EfficientNetV2MBackbone(EfficientNetV2Backbone):
@@ -411,7 +435,11 @@ class EfficientNetV2MBackbone(EfficientNetV2Backbone):
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
-        return {}
+        return {
+            "efficientnetv2-m": copy.deepcopy(
+                backbone_presets["efficientnetv2-m"]
+            ),
+        }
 
     @classproperty
     def presets_with_weights(cls):
@@ -441,7 +469,11 @@ class EfficientNetV2LBackbone(EfficientNetV2Backbone):
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
-        return {}
+        return {
+            "efficientnetv2-l": copy.deepcopy(
+                backbone_presets["efficientnetv2-l"]
+            ),
+        }
 
     @classproperty
     def presets_with_weights(cls):
@@ -471,13 +503,21 @@ class EfficientNetV2B0Backbone(EfficientNetV2Backbone):
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
-        return {}
+        return {
+            "efficientnetv2-b0": copy.deepcopy(
+                backbone_presets["efficientnetv2-b0"]
+            ),
+        }
 
     @classproperty
     def presets_with_weights(cls):
         """Dictionary of preset names and configurations that include
         weights."""
-        return {}
+        return {
+            "efficientnetv2-b0_imagenet": copy.deepcopy(
+                backbone_presets["efficientnetv2-b0_imagenet"]
+            ),
+        }
 
 
 class EfficientNetV2B1Backbone(EfficientNetV2Backbone):
@@ -501,13 +541,21 @@ class EfficientNetV2B1Backbone(EfficientNetV2Backbone):
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
-        return {}
+        return {
+            "efficientnetv2-b1": copy.deepcopy(
+                backbone_presets["efficientnetv2-b1"]
+            ),
+        }
 
     @classproperty
     def presets_with_weights(cls):
         """Dictionary of preset names and configurations that include
         weights."""
-        return {}
+        return {
+            "efficientnetv2-b1_imagenet": copy.deepcopy(
+                backbone_presets["efficientnetv2-b1_imagenet"]
+            ),
+        }
 
 
 class EfficientNetV2B2Backbone(EfficientNetV2Backbone):
@@ -531,13 +579,21 @@ class EfficientNetV2B2Backbone(EfficientNetV2Backbone):
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
-        return {}
+        return {
+            "efficientnetv2-b2": copy.deepcopy(
+                backbone_presets["efficientnetv2-b2"]
+            ),
+        }
 
     @classproperty
     def presets_with_weights(cls):
         """Dictionary of preset names and configurations that include
         weights."""
-        return {}
+        return {
+            "efficientnetv2-b2_imagenet": copy.deepcopy(
+                backbone_presets["efficientnetv2-b2_imagenet"]
+            ),
+        }
 
 
 class EfficientNetV2B3Backbone(EfficientNetV2Backbone):

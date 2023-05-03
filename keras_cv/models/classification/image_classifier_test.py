@@ -115,22 +115,11 @@ class ImageClassifierPresetSmokeTest(tf.test.TestCase, parameterized.TestCase):
             "efficientnetv2-s_imagenet_classifier",
             [-0.268132, -0.262596, -0.278071, -0.257657, -0.271685],
         ),
-        # Re-enable if making substantial changes to the EfficientNet backbone.
-        # (
-        #     "efficientnetv2-b0_imagenet_classifier",
-        #     "efficientnetv2-b0_imagenet_classifier",
-        #     [-0.278459, -0.278462, -0.159786, -0.277514, 0.537921],
-        # ),
-        # (
-        #     "efficientnetv2-b1_imagenet_classifier",
-        #     "efficientnetv2-b1_imagenet_classifier",
-        #     [0.042907, -0.235121, 0.020794, -0.141185, -0.274433],
-        # ),
-        # (
-        #     "efficientnetv2-b2_imagenet_classifier",
-        #     "efficientnetv2-b2_imagenet_classifier",
-        #     [-0.278461, -0.275706, 0.114995, -0.272108, -0.141438],
-        # ),
+        (
+            "efficientnetv2-b0_imagenet_classifier",
+            "efficientnetv2-b0_imagenet_classifier",
+            [-0.278459, -0.278462, -0.159786, -0.277514, 0.537921],
+        ),
     )
     def test_efficientnet_v2_preset(self, preset, expected):
         model = ImageClassifier.from_preset(
