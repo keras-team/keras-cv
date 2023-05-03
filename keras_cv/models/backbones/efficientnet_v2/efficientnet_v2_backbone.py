@@ -97,10 +97,6 @@ def get_block_conv(
 class EfficientNetV2Backbone(Backbone):
     """Instantiates the EfficientNetV2 architecture.
 
-    References:
-    - [EfficientNetV2: Smaller Models and Faster Training](https://arxiv.org/abs/2104.00298) (ICML 2021)
-    - [Based on the original keras.applications EfficientNetV2](https://github.com/keras-team/keras/blob/master/keras/applications/efficientnet_v2.py)
-
     Args:
         include_rescaling: bool, whether to rescale the inputs. If set
             to `True`, inputs will be passed through a `Rescaling(1/255.0)`
@@ -108,19 +104,21 @@ class EfficientNetV2Backbone(Backbone):
         width_coefficient: float, scaling coefficient for network width.
         depth_coefficient: float, scaling coefficient for network depth.
         default_size: integer, default input image size.
-        stackwise_kernel_sizes:  list of ints, the kernel sizes used for each conv block.
-        stackwise_num_repeats: list of ints, number of times to repeat each conv block.
-        stackwise_input_filters: list of ints, number of input filters for each conv
-            block.
-        stackwise_output_filters: list of ints, number of output filters for each stack in
-            the conv blocks model.
-        stackwise_expand_ratios: list of floats, expand ratio passed to the squeeze and
-            excitation blocks.
-        stackwise_squeeze_and_excite_ratios: list of ints, the squeeze and excite ratios passed to the
+        stackwise_kernel_sizes:  list of ints, the kernel sizes used for each
+            conv block.
+        stackwise_num_repeats: list of ints, number of times to repeat each
+            conv block.
+        stackwise_input_filters: list of ints, number of input filters for
+            each conv block.
+        stackwise_output_filters: list of ints, number of output filters for
+            each stack in the conv blocks model.
+        stackwise_expand_ratios: list of floats, expand ratio passed to the
             squeeze and excitation blocks.
+        stackwise_squeeze_and_excite_ratios: list of ints, the squeeze and
+            excite ratios passed to the squeeze and excitation blocks.
         stackwise_strides: list of ints, stackwise_strides for each conv block.
-        stackwise_conv_types: list of strings.  Each value is either 'mb_conv' or
-            'fused_mb_conv' depending on the desired blocks.
+        stackwise_conv_types: list of strings.  Each value is either 'mb_conv'
+            or 'fused_mb_conv' depending on the desired blocks.
         dropout_rate: float, dropout rate before final classifier layer.
         drop_connect_rate: float, dropout rate at skip connections.
         depth_divisor: integer, a unit of network width.
@@ -139,7 +137,7 @@ class EfficientNetV2Backbone(Backbone):
     images = tf.ones((1, 256, 256, 3))
     outputs = efficientnet.predict(images)
     ```
-    """
+    """  # noqa: E502
 
     def __init__(
         self,
@@ -325,7 +323,7 @@ class EfficientNetV2Backbone(Backbone):
                 "stackwise_input_filters": self.stackwise_input_filters,
                 "stackwise_output_filters": self.stackwise_output_filters,
                 "stackwise_expand_ratios": self.stackwise_expand_ratios,
-                "stackwise_squeeze_and_excite_ratios": self.stackwise_squeeze_and_excite_ratios,
+                "stackwise_squeeze_and_excite_ratios": self.stackwise_squeeze_and_excite_ratios,  # noqa: E501
                 "stackwise_strides": self.stackwise_strides,
                 "stackwise_conv_types": self.stackwise_conv_types,
             }
