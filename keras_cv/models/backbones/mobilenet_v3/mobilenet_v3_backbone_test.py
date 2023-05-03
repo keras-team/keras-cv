@@ -18,11 +18,11 @@ import tensorflow as tf
 from absl.testing import parameterized
 from tensorflow import keras
 
-from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_backbone import (
-    MobileNetV3Backbone,
-)
 from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_aliases import (
     MobileNetV3SmallBackbone,
+)
+from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_backbone import (
+    MobileNetV3Backbone,
 )
 from keras_cv.utils.train import get_feature_extractor
 
