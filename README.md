@@ -30,6 +30,7 @@ To learn more about the future project direction, please check the [roadmap](.gi
 - [Call for Contributions](https://github.com/keras-team/keras-cv/issues?q=is%3Aopen+is%3Aissue+label%3Acontribution-welcome)
 - [Roadmap](.github/ROADMAP.md)
 - [API Design Guidelines](.github/API_DESIGN.md)
+- [Developer Guides](https://keras.io/guides/keras_cv/)
 
 ## Installation
 
@@ -49,55 +50,65 @@ pip install git+https://github.com/keras-team/keras-cv.git tensorflow --upgrade
 ## Quickstart
 
 ```python
-import keras_cv
 import tensorflow as tf
 from tensorflow import keras
+from keras_cv.layers import RandomFlip, RandAugment, CutMix, Mixup
+from keras_cv.models import ResNet50V2Backbone, ImageClassifier
 import tensorflow_datasets as tfds
 
-# Create a preprocessing pipeline
+# Create a preprocessing pipeline with augmentations
+BATCH_SIZE = 16
+NUM_CLASSES = 3
 augmenter = keras.Sequential(
-    layers=[
-        keras_cv.layers.RandomFlip(),
-        keras_cv.layers.RandAugment(value_range=(0, 255)),
-        keras_cv.layers.CutMix(),
-        keras_cv.layers.MixUp()
+    [
+        RandomFlip(),
+        RandAugment(value_range=(0, 255)),
+        CutMix(),
+        MixUp()
     ]
 )
 
 def preprocess_data(images, labels, augment=False):
-    labels = tf.one_hot(labels, 3)
+    labels = tf.one_hot(labels, NUM_CLASSES)
     inputs = {"images": images, "labels": labels}
     outputs = augmenter(inputs) if augment else inputs
     return outputs['images'], outputs['labels']
 
-# Augment a `tf.data.Dataset`
 train_dataset, test_dataset = tfds.load(
     'rock_paper_scissors',
     as_supervised=True,
     split=['train', 'test'],
 )
-train_dataset = train_dataset.batch(16).map(
+train_dataset = train_dataset.batch(BATCH_SIZE).map(
     lambda x, y: preprocess_data(x, y, augment=True),
         num_parallel_calls=tf.data.AUTOTUNE).prefetch(
             tf.data.AUTOTUNE)
-test_dataset = test_dataset.batch(16).map(
+test_dataset = test_dataset.batch(BATCH_SIZE).map(
     preprocess_data, num_parallel_calls=tf.data.AUTOTUNE).prefetch(
         tf.data.AUTOTUNE)
 
-# Create a model
-densenet = keras_cv.models.DenseNet121(
-    include_rescaling=True,
-    include_top=True,
-    num_classes=3
+# Create a model using a pretrained backbone
+backbone = ResNet50V2Backbone.from_preset("resnet50_v2_imagenet")
+model = ImageClassifier(
+    backbone=backbone,
+    num_classes=3,
+    activation="softmax",
 )
-densenet.compile(
+model.compile(
     loss='categorical_crossentropy',
-    optimizer='adam',
+    optimizer=keras.optimizers.Adam(learning_rate=1e-5),
     metrics=['accuracy']
 )
 
+# Freeze backbone to avoid overfitting to small dataset
+model.backbone.trainable = False
+
 # Train your model
-densenet.fit(train_dataset, validation_data=test_dataset)
+model.fit(
+    train_dataset,
+    validation_data=test_dataset,
+    epochs=8,
+)
 ```
 
 ## Contributors
@@ -195,7 +206,7 @@ Here is the BibTeX entry:
 ```bibtex
 @misc{wood2022kerascv,
   title={KerasCV},
-  author={Wood, Luke and Tan, Zhenyu and Stenbit, Ian and Zhu, Scott and Chollet, Fran\c{c}ois and others},
+  author={Wood, Luke and Tan, Zhenyu and Stenbit, Ian and Bischof, Jonathan and Zhu, Scott and Chollet, Fran\c{c}ois and others},
   year={2022},
   howpublished={\url{https://github.com/keras-team/keras-cv}},
 }
