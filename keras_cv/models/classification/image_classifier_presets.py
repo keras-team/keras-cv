@@ -100,14 +100,15 @@ classifier_presets = {
         "metadata": {
             "description": (
                 "ImageClassifier using the EfficientNet B1 "
-                "architecture.  In this variant of the EfficientNet architecture, "
-                "there are 6 convolutional blocks. As with all of the B "
-                "style EfficientNet variants, the number of filters in each "
-                "convolutional block is scaled by `width_coefficient=1.0` and "
+                "architecture.  In this variant of the EfficientNet "
+                "architecture, there are 6 convolutional blocks. As with all "
+                "of the B style EfficientNet variants, the number of filters "
+                "in each convolutional block is scaled by "
+                "`width_coefficient=1.0` and "
                 "`depth_coefficient=1.1`. Weights are "
                 "initialized to pretrained imagenet classification weights."
-                "Published weights are capable of scoring 79.1%	top 1 accuracy and "
-                "94.4% top 5 accuracy on imagenet."
+                "Published weights are capable of scoring 79.1%	top 1 accuracy "
+                "and 94.4% top 5 accuracy on imagenet."
             ),
             "params": 8_212_124,
             "official_name": "ImageClassifier",
@@ -128,14 +129,15 @@ classifier_presets = {
         "metadata": {
             "description": (
                 "ImageClassifier using the EfficientNet B2 "
-                "architecture.  In this variant of the EfficientNet architecture, "
-                "there are 6 convolutional blocks. As with all of the B "
-                "style EfficientNet variants, the number of filters in each "
-                "convolutional block is scaled by `width_coefficient=1.1` and "
+                "architecture.  In this variant of the EfficientNet "
+                "architecture, there are 6 convolutional blocks. As with all "
+                "of the B style EfficientNet variants, the number of filters "
+                "in each convolutional block is scaled by "
+                "`width_coefficient=1.1` and "
                 "`depth_coefficient1.2`. Weights are initialized to pretrained "
                 "imagenet classification weights."
-                "Published weights are capable of scoring 80.1%	top 1 accuracy and "
-                "94.9% top 5 accuracy on imagenet."
+                "Published weights are capable of scoring 80.1%	top 1 "
+                "accuracy and 94.9% top 5 accuracy on imagenet."
             ),
             "params": 10_178_374,
             "official_name": "ImageClassifier",
