@@ -11,14 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-"""EfficientNet V2 models for KerasCV.
-
-Reference:
-    - [EfficientNetV2: Smaller Models and Faster Training](https://arxiv.org/abs/2104.00298) (ICML 2021)
-    - [Based on the original keras.applications EfficientNetV2](https://github.com/keras-team/keras/blob/master/keras/applications/efficientnet_v2.py)
-"""  # noqa: E501
-
 import copy
 import math
 
@@ -60,44 +52,54 @@ def round_repeats(repeats, depth_coefficient):
     return int(math.ceil(depth_coefficient * repeats))
 
 
-def get_block_conv(args, activation, survival_probability, name):
-    # Determine which conv type to use:
-    if args["conv_type"] == "mb_conv":
-        return MBConvBlock(
-            input_filters=args["input_filters"],
-            output_filters=args["output_filters"],
-            expand_ratio=args["expand_ratio"],
-            kernel_size=args["kernel_size"],
-            strides=args["strides"],
-            se_ratio=args["se_ratio"],
-            activation=activation,
-            bn_momentum=0.9,
-            survival_probability=survival_probability,
-            name=name,
+def get_conv_constructor(conv_type):
+    if conv_type == "mb_conv":
+        return MBConvBlock
+    elif conv_type == "fused_mb_conv":
+        return FusedMBConvBlock
+    else:
+        raise ValueError(
+            "Expected `conv_type` to be "
+            "one of 'mb_conv', 'fused_mb_conv', but got "
+            f"`conv_type={conv_type}`"
         )
-    elif args["conv_type"] == "fused_mb_conv":
-        return FusedMBConvBlock(
-            input_filters=args["input_filters"],
-            output_filters=args["output_filters"],
-            expand_ratio=args["expand_ratio"],
-            kernel_size=args["kernel_size"],
-            strides=args["strides"],
-            se_ratio=args["se_ratio"],
-            activation=activation,
-            bn_momentum=0.9,
-            survival_probability=survival_probability,
-            name=name,
-        )
-    raise ValueError(
-        "Expected `block_args['conv_type']` to be "
-        "one of 'mb_conv', 'fused_mb_conv', but got "
-        f"`block_args['conv_type']={args['conv_type']}`"
+
+
+def get_block_conv(
+    conv_type,
+    input_filters,
+    output_filters,
+    expand_ratio,
+    kernel_size,
+    strides,
+    squeeze_and_excite_ratio,
+    activation,
+    survival_probability,
+    name,
+):
+    conv_constructor = get_conv_constructor(conv_type)
+
+    return conv_constructor(
+        input_filters=input_filters,
+        output_filters=output_filters,
+        expand_ratio=expand_ratio,
+        kernel_size=kernel_size,
+        strides=strides,
+        se_ratio=squeeze_and_excite_ratio,
+        activation=activation,
+        bn_momentum=0.9,
+        survival_probability=survival_probability,
+        name=name,
     )
 
 
 @keras.utils.register_keras_serializable(package="keras_cv.models")
 class EfficientNetV2Backbone(Backbone):
     """Instantiates the EfficientNetV2 architecture.
+
+    References:
+    - [EfficientNetV2: Smaller Models and Faster Training](https://arxiv.org/abs/2104.00298) (ICML 2021)
+    - [Based on the original keras.applications EfficientNetV2](https://github.com/keras-team/keras/blob/master/keras/applications/efficientnet_v2.py)
 
     Args:
         include_rescaling: bool, whether to rescale the inputs. If set
@@ -106,15 +108,24 @@ class EfficientNetV2Backbone(Backbone):
         width_coefficient: float, scaling coefficient for network width.
         depth_coefficient: float, scaling coefficient for network depth.
         default_size: integer, default input image size.
+        stackwise_kernel_sizes:  list of ints, the kernel sizes used for each conv block.
+        stackwise_num_repeats: list of ints, number of times to repeat each conv block.
+        stackwise_input_filters: list of ints, number of input filters for each conv
+            block.
+        stackwise_output_filters: list of ints, number of output filters for each stack in
+            the conv blocks model.
+        stackwise_expand_ratios: list of floats, expand ratio passed to the squeeze and
+            excitation blocks.
+        stackwise_squeeze_and_excite_ratios: list of ints, the squeeze and excite ratios passed to the
+            squeeze and excitation blocks.
+        stackwise_strides: list of ints, stackwise_strides for each conv block.
+        stackwise_conv_types: list of strings.  Each value is either 'mb_conv' or
+            'fused_mb_conv' depending on the desired blocks.
         dropout_rate: float, dropout rate before final classifier layer.
         drop_connect_rate: float, dropout rate at skip connections.
         depth_divisor: integer, a unit of network width.
         min_depth: integer, minimum number of filters.
         activation: activation function.
-        kernel_size: List of integers, sizes to use for convolutional kernels in
-            each block.
-        num_repeats
-        block_args: list of dicts, parameters to construct block modules.
         model_name: string, model name.
         input_shape: optional shape tuple, defaults to (None, None, 3).
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
@@ -137,14 +148,14 @@ class EfficientNetV2Backbone(Backbone):
         width_coefficient,
         depth_coefficient,
         default_size,
-        kernel_sizes,
-        num_repeats,
-        input_filters,
-        output_filters,
-        expand_ratios,
-        se_ratios,
-        strides,
-        conv_types,
+        stackwise_kernel_sizes,
+        stackwise_num_repeats,
+        stackwise_input_filters,
+        stackwise_output_filters,
+        stackwise_expand_ratios,
+        stackwise_squeeze_and_excite_ratios,
+        stackwise_strides,
+        stackwise_conv_types,
         dropout_rate=0.2,
         drop_connect_rate=0.2,
         depth_divisor=8,
@@ -154,42 +165,6 @@ class EfficientNetV2Backbone(Backbone):
         input_tensor=None,
         **kwargs,
     ):
-        block_args = [
-            kernel_sizes,
-            num_repeats,
-            input_filters,
-            output_filters,
-            expand_ratios,
-            se_ratios,
-            strides,
-            conv_types,
-        ]
-        block_arg_names = [
-            kernel_sizes,
-            num_repeats,
-            input_filters,
-            output_filters,
-            expand_ratios,
-            se_ratios,
-            strides,
-            conv_types,
-        ]
-        block_arg_lengths = [len(x) for x in block_args]
-        if len(set(block_arg_lengths)) != 1:
-            raise ValueError(
-                f"Expected all of {','.join(block_arg_names)} to have the same "
-                f"length.  Got lengths {block_arg_lengths}. "
-                "Double check your input lists for these arguments!"
-            )
-        if any([x <= 0 for x in num_repeats]):
-            raise ValueError(
-                "Expected all values in `num_repeats` to be "
-                "greater than `0`. "
-                f"Got `num_repeats={num_repeats}`."
-            )
-        # they're all the same length now, just take the first
-        block_arg_lengths = block_arg_lengths[0]
-
         # Determine proper input shape
         img_input = utils.parse_model_inputs(input_shape, input_tensor)
 
@@ -200,7 +175,7 @@ class EfficientNetV2Backbone(Backbone):
 
         # Build stem
         stem_filters = round_filters(
-            filters=input_filters[0],
+            filters=stackwise_input_filters[0],
             width_coefficient=width_coefficient,
             min_depth=min_depth,
             depth_divisor=depth_divisor,
@@ -222,19 +197,21 @@ class EfficientNetV2Backbone(Backbone):
 
         # Build blocks
         b = 0
-        blocks = float(sum(num_repeat for num_repeat in num_repeats))
+        blocks = float(sum(num_repeat for num_repeat in stackwise_num_repeats))
 
         pyramid_level_inputs = []
-        for i in range(block_arg_lengths):
+        for i in range(len(stackwise_kernel_sizes)):
             args = {
-                "kernel_size": kernel_sizes[i],
-                "num_repeat": num_repeats[i],
-                "input_filters": input_filters[i],
-                "output_filters": output_filters[i],
-                "expand_ratio": expand_ratios[i],
-                "se_ratio": se_ratios[i],
-                "strides": strides[i],
-                "conv_type": conv_types[i],
+                "kernel_size": stackwise_kernel_sizes[i],
+                "num_repeat": stackwise_num_repeats[i],
+                "input_filters": stackwise_input_filters[i],
+                "output_filters": stackwise_output_filters[i],
+                "expand_ratio": stackwise_expand_ratios[i],
+                "squeeze_and_excite_ratio": stackwise_squeeze_and_excite_ratios[
+                    i
+                ],
+                "strides": stackwise_strides[i],
+                "conv_type": stackwise_conv_types[i],
             }
 
             # Update block input and output filters based on depth multiplier.
@@ -266,7 +243,7 @@ class EfficientNetV2Backbone(Backbone):
                     pyramid_level_inputs.append(x.node.layer.name)
 
                 block = get_block_conv(
-                    args,
+                    **args,
                     activation=activation,
                     survival_probability=drop_connect_rate * b / blocks,
                     name="block{}{}_".format(i + 1, chr(j + 97)),
@@ -317,14 +294,16 @@ class EfficientNetV2Backbone(Backbone):
         self.pyramid_level_inputs = {
             i + 1: name for i, name in enumerate(pyramid_level_inputs)
         }
-        self.kernel_sizes = kernel_sizes
-        self.num_repeats = num_repeats
-        self.input_filters = input_filters
-        self.output_filters = output_filters
-        self.expand_ratios = expand_ratios
-        self.se_ratios = se_ratios
-        self.strides = strides
-        self.conv_types = conv_types
+        self.stackwise_kernel_sizes = stackwise_kernel_sizes
+        self.stackwise_num_repeats = stackwise_num_repeats
+        self.stackwise_input_filters = stackwise_input_filters
+        self.stackwise_output_filters = stackwise_output_filters
+        self.stackwise_expand_ratios = stackwise_expand_ratios
+        self.stackwise_squeeze_and_excite_ratios = (
+            stackwise_squeeze_and_excite_ratios
+        )
+        self.stackwise_strides = stackwise_strides
+        self.stackwise_conv_types = stackwise_conv_types
 
     def get_config(self):
         config = super().get_config()
@@ -341,14 +320,14 @@ class EfficientNetV2Backbone(Backbone):
                 "activation": self.activation,
                 "input_shape": self.input_shape[1:],
                 "input_tensor": self.input_tensor,
-                "kernel_sizes": self.kernel_sizes,
-                "num_repeats": self.num_repeats,
-                "input_filters": self.input_filters,
-                "output_filters": self.output_filters,
-                "expand_ratios": self.expand_ratios,
-                "se_ratios": self.se_ratios,
-                "strides": self.strides,
-                "conv_types": self.conv_types,
+                "stackwise_kernel_sizes": self.stackwise_kernel_sizes,
+                "stackwise_num_repeats": self.stackwise_num_repeats,
+                "stackwise_input_filters": self.stackwise_input_filters,
+                "stackwise_output_filters": self.stackwise_output_filters,
+                "stackwise_expand_ratios": self.stackwise_expand_ratios,
+                "stackwise_squeeze_and_excite_ratios": self.stackwise_squeeze_and_excite_ratios,
+                "stackwise_strides": self.stackwise_strides,
+                "stackwise_conv_types": self.stackwise_conv_types,
             }
         )
         return config

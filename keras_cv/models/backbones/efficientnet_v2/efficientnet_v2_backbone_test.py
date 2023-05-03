@@ -33,14 +33,14 @@ class EfficientNetV2BackboneTest(tf.test.TestCase, parameterized.TestCase):
 
     def test_valid_call(self):
         model = EfficientNetV2Backbone(
-            kernel_sizes=[3, 3, 3, 3, 3, 3],
-            num_repeats=[2, 4, 4, 6, 9, 15],
-            input_filters=[24, 24, 48, 64, 128, 160],
-            output_filters=[24, 48, 64, 128, 160, 256],
-            expand_ratios=[1, 4, 4, 4, 6, 6],
-            se_ratios=[0.0, 0.0, 0, 0.25, 0.25, 0.25],
-            strides=[1, 2, 2, 2, 1, 2],
-            conv_types=[
+            stackwise_kernel_sizes=[3, 3, 3, 3, 3, 3],
+            stackwise_num_repeats=[2, 4, 4, 6, 9, 15],
+            stackwise_input_filters=[24, 24, 48, 64, 128, 160],
+            stackwise_output_filters=[24, 48, 64, 128, 160, 256],
+            stackwise_expand_ratios=[1, 4, 4, 4, 6, 6],
+            stackwise_squeeze_and_excite_ratios=[0.0, 0.0, 0, 0.25, 0.25, 0.25],
+            stackwise_strides=[1, 2, 2, 2, 1, 2],
+            stackwise_conv_types=[
                 "fused_mb_conv",
                 "fused_mb_conv",
                 "fused_mb_conv",
@@ -62,14 +62,14 @@ class EfficientNetV2BackboneTest(tf.test.TestCase, parameterized.TestCase):
 
     def test_valid_call_with_rescaling(self):
         model = EfficientNetV2Backbone(
-            kernel_sizes=[3, 3, 3, 3, 3, 3],
-            num_repeats=[2, 4, 4, 6, 9, 15],
-            input_filters=[24, 24, 48, 64, 128, 160],
-            output_filters=[24, 48, 64, 128, 160, 256],
-            expand_ratios=[1, 4, 4, 4, 6, 6],
-            se_ratios=[0.0, 0.0, 0, 0.25, 0.25, 0.25],
-            strides=[1, 2, 2, 2, 1, 2],
-            conv_types=[
+            stackwise_kernel_sizes=[3, 3, 3, 3, 3, 3],
+            stackwise_num_repeats=[2, 4, 4, 6, 9, 15],
+            stackwise_input_filters=[24, 24, 48, 64, 128, 160],
+            stackwise_output_filters=[24, 48, 64, 128, 160, 256],
+            stackwise_expand_ratios=[1, 4, 4, 4, 6, 6],
+            stackwise_squeeze_and_excite_ratios=[0.0, 0.0, 0, 0.25, 0.25, 0.25],
+            stackwise_strides=[1, 2, 2, 2, 1, 2],
+            stackwise_conv_types=[
                 "fused_mb_conv",
                 "fused_mb_conv",
                 "fused_mb_conv",
@@ -91,14 +91,14 @@ class EfficientNetV2BackboneTest(tf.test.TestCase, parameterized.TestCase):
     )
     def test_saved_model(self, save_format, filename):
         model = EfficientNetV2Backbone(
-            kernel_sizes=[3, 3, 3, 3, 3, 3],
-            num_repeats=[2, 4, 4, 6, 9, 15],
-            input_filters=[24, 24, 48, 64, 128, 160],
-            output_filters=[24, 48, 64, 128, 160, 256],
-            expand_ratios=[1, 4, 4, 4, 6, 6],
-            se_ratios=[0.0, 0.0, 0, 0.25, 0.25, 0.25],
-            strides=[1, 2, 2, 2, 1, 2],
-            conv_types=[
+            stackwise_kernel_sizes=[3, 3, 3, 3, 3, 3],
+            stackwise_num_repeats=[2, 4, 4, 6, 9, 15],
+            stackwise_input_filters=[24, 24, 48, 64, 128, 160],
+            stackwise_output_filters=[24, 48, 64, 128, 160, 256],
+            stackwise_expand_ratios=[1, 4, 4, 4, 6, 6],
+            stackwise_squeeze_and_excite_ratios=[0.0, 0.0, 0, 0.25, 0.25, 0.25],
+            stackwise_strides=[1, 2, 2, 2, 1, 2],
+            stackwise_conv_types=[
                 "fused_mb_conv",
                 "fused_mb_conv",
                 "fused_mb_conv",
@@ -164,14 +164,14 @@ class EfficientNetV2BackboneTest(tf.test.TestCase, parameterized.TestCase):
 
     def test_create_backbone_model_with_level_config(self):
         model = EfficientNetV2Backbone(
-            kernel_sizes=[3, 3, 3, 3, 3, 3],
-            num_repeats=[2, 4, 4, 6, 9, 15],
-            input_filters=[24, 24, 48, 64, 128, 160],
-            output_filters=[24, 48, 64, 128, 160, 256],
-            expand_ratios=[1, 4, 4, 4, 6, 6],
-            se_ratios=[0.0, 0.0, 0, 0.25, 0.25, 0.25],
-            strides=[1, 2, 2, 2, 1, 2],
-            conv_types=[
+            stackwise_kernel_sizes=[3, 3, 3, 3, 3, 3],
+            stackwise_num_repeats=[2, 4, 4, 6, 9, 15],
+            stackwise_input_filters=[24, 24, 48, 64, 128, 160],
+            stackwise_output_filters=[24, 48, 64, 128, 160, 256],
+            stackwise_expand_ratios=[1, 4, 4, 4, 6, 6],
+            stackwise_squeeze_and_excite_ratios=[0.0, 0.0, 0, 0.25, 0.25, 0.25],
+            stackwise_strides=[1, 2, 2, 2, 1, 2],
+            stackwise_conv_types=[
                 "fused_mb_conv",
                 "fused_mb_conv",
                 "fused_mb_conv",
@@ -202,14 +202,14 @@ class EfficientNetV2BackboneTest(tf.test.TestCase, parameterized.TestCase):
     def test_application_variable_input_channels(self, num_channels):
         # ResNet50 model
         model = EfficientNetV2Backbone(
-            kernel_sizes=[3, 3, 3, 3, 3, 3],
-            num_repeats=[2, 4, 4, 6, 9, 15],
-            input_filters=[24, 24, 48, 64, 128, 160],
-            output_filters=[24, 48, 64, 128, 160, 256],
-            expand_ratios=[1, 4, 4, 4, 6, 6],
-            se_ratios=[0.0, 0.0, 0, 0.25, 0.25, 0.25],
-            strides=[1, 2, 2, 2, 1, 2],
-            conv_types=[
+            stackwise_kernel_sizes=[3, 3, 3, 3, 3, 3],
+            stackwise_num_repeats=[2, 4, 4, 6, 9, 15],
+            stackwise_input_filters=[24, 24, 48, 64, 128, 160],
+            stackwise_output_filters=[24, 48, 64, 128, 160, 256],
+            stackwise_expand_ratios=[1, 4, 4, 4, 6, 6],
+            stackwise_squeeze_and_excite_ratios=[0.0, 0.0, 0, 0.25, 0.25, 0.25],
+            stackwise_strides=[1, 2, 2, 2, 1, 2],
+            stackwise_conv_types=[
                 "fused_mb_conv",
                 "fused_mb_conv",
                 "fused_mb_conv",
