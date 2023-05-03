@@ -17,11 +17,11 @@ import pytest
 import tensorflow as tf
 from absl.testing import parameterized
 
-from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone import (
-    EfficientNetV2Backbone,
+from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_aliases import (
+    EfficientNetV2SBackbone,
 )
 from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone import (
-    EfficientNetV2SBackbone,
+    EfficientNetV2Backbone,
 )
 from keras_cv.utils.train import get_feature_extractor
 
