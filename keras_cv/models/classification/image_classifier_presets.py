@@ -72,10 +72,11 @@ classifier_presets = {
         "metadata": {
             "description": (
                 "ImageClassifier using the EfficientNet B0 "
-                "architecture.  In this variant of the EfficientNet architecture, "
-                "there are 6 convolutional blocks. As with all of the B "
-                "style EfficientNet variants, the number of filters in each "
-                "convolutional block is scaled by `width_coefficient=1.0` and "
+                "architecture.  In this variant of the EfficientNet "
+                "architecture, there are 6 convolutional blocks. As with all "
+                "of the B style EfficientNet variants, the number of filters "
+                "in each convolutional block is scaled by "
+                "`width_coefficient=1.0` and "
                 "`depth_coefficient=1.0`. Weights are "
                 "initialized to pretrained imagenet classification weights. "
                 "Published weights are capable of scoring 77.1%	top 1 accuracy and "
