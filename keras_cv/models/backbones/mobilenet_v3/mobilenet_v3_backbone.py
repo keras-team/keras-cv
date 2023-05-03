@@ -40,141 +40,6 @@ BN_EPSILON = 1e-3
 BN_MOMENTUM = 0.999
 
 
-def adjust_channels(x, divisor=8, min_value=None):
-    """Ensure that all layers have a channel number divisible by the `divisor`.
-
-    Args:
-        x: integer, input value.
-        divisor: integer, the value by which a channel number should be
-            divisible, defaults to 8.
-        min_value: float, optional minimum value for the new tensor. If None,
-            defaults to value of divisor.
-
-    Returns:
-        the updated input scalar.
-    """
-
-    if min_value is None:
-        min_value = divisor
-
-    new_x = max(min_value, int(x + divisor / 2) // divisor * divisor)
-
-    # make sure that round down does not go down by more than 10%.
-    if new_x < 0.9 * x:
-        new_x += divisor
-    return new_x
-
-
-def apply_hard_sigmoid(x):
-    activation = layers.ReLU(6.0)
-    return activation(x + 3.0) * (1.0 / 6.0)
-
-
-def apply_hard_swish(x):
-    return layers.Multiply()([x, apply_hard_sigmoid(x)])
-
-
-def apply_inverted_res_block(
-    x,
-    expansion,
-    filters,
-    kernel_size,
-    stride,
-    se_ratio,
-    activation,
-    expansion_index,
-):
-    """An Inverted Residual Block.
-
-    Args:
-        x: input tensor.
-        expansion: integer, the expansion ratio, multiplied with infilters to
-            get the minimum value passed to adjust_channels.
-        filters: integer, number of filters for convolution layer.
-        kernel_size: integer, the kernel size for DepthWise Convolutions.
-        stride: integer, the stride length for DepthWise Convolutions.
-        se_ratio: float, ratio for bottleneck filters. Number of bottleneck
-            filters = filters * se_ratio.
-        activation: the activation layer to use.
-        expansion_index: integer, a unique identification if you want to use
-            expanded convolutions. If greater than 0, an additional Conv+BN
-            layer is added after the expanded convolutional layer.
-
-    Returns:
-        the updated input tensor.
-    """
-    if isinstance(activation, str):
-        if activation == "hard_swish":
-            activation = apply_hard_swish
-        else:
-            activation = keras.activations.get(activation)
-
-    shortcut = x
-    prefix = "expanded_conv/"
-    infilters = backend.int_shape(x)[CHANNEL_AXIS]
-
-    if expansion_index > 0:
-        prefix = f"expanded_conv_{expansion_index}/"
-
-        x = layers.Conv2D(
-            adjust_channels(infilters * expansion),
-            kernel_size=1,
-            padding="same",
-            use_bias=False,
-            name=prefix + "expand",
-        )(x)
-        x = layers.BatchNormalization(
-            axis=CHANNEL_AXIS,
-            epsilon=BN_EPSILON,
-            momentum=BN_MOMENTUM,
-            name=prefix + "expand/BatchNorm",
-        )(x)
-        x = activation(x)
-
-    x = layers.DepthwiseConv2D(
-        kernel_size,
-        strides=stride,
-        padding="same" if stride == 1 else "valid",
-        use_bias=False,
-        name=prefix + "depthwise",
-    )(x)
-    x = layers.BatchNormalization(
-        axis=CHANNEL_AXIS,
-        epsilon=BN_EPSILON,
-        momentum=BN_MOMENTUM,
-        name=prefix + "depthwise/BatchNorm",
-    )(x)
-    x = activation(x)
-
-    if se_ratio:
-        with custom_object_scope({"hard_sigmoid": apply_hard_sigmoid}):
-            x = cv_layers.SqueezeAndExcite2D(
-                filters=adjust_channels(infilters * expansion),
-                ratio=se_ratio,
-                squeeze_activation="relu",
-                excite_activation="hard_sigmoid",
-            )(x)
-
-    x = layers.Conv2D(
-        filters,
-        kernel_size=1,
-        padding="same",
-        use_bias=False,
-        name=prefix + "project",
-    )(x)
-    x = layers.BatchNormalization(
-        axis=CHANNEL_AXIS,
-        epsilon=BN_EPSILON,
-        momentum=BN_MOMENTUM,
-        name=prefix + "project/BatchNorm",
-    )(x)
-
-    if stride == 1 and infilters == filters:
-        x = layers.Add(name=prefix + "Add")([shortcut, x])
-
-    return x
-
-
 @keras.utils.register_keras_serializable(package="keras_cv.models")
 class MobileNetV3Backbone(Backbone):
     """Instantiates the MobileNetV3 architecture.
@@ -335,89 +200,136 @@ class MobileNetV3Backbone(Backbone):
         return copy.deepcopy(backbone_presets)
 
 
-ALIAS_DOCSTRING = """MobileNetV3Backbone model with {num_layers} layers.
-
-    References:
-        - [Searching for MobileNetV3](https://arxiv.org/abs/1905.02244)
-        - [Based on the Original keras.applications MobileNetv3](https://github.com/keras-team/keras/blob/master/keras/applications/mobilenet_v3.py)
-
-    For transfer learning use cases, make sure to read the
-    [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
+def adjust_channels(x, divisor=8, min_value=None):
+    """Ensure that all layers have a channel number divisible by the `divisor`.
 
     Args:
-        include_rescaling: bool, whether to rescale the inputs. If set to
-            True, inputs will be passed through a `Rescaling(scale=1 / 255)`
-            layer. Defaults to True.
-        input_shape: optional shape tuple, defaults to (None, None, 3).
-        input_tensor: optional Keras tensor (i.e., output of `layers.Input()`)
-            to use as image input for the model.
+        x: integer, input value.
+        divisor: integer, the value by which a channel number should be
+            divisible, defaults to 8.
+        min_value: float, optional minimum value for the new tensor. If None,
+            defaults to value of divisor.
 
-    Examples:
-    ```python
-    input_data = tf.ones(shape=(8, 224, 224, 3))
+    Returns:
+        the updated input scalar.
+    """
 
-    # Randomly initialized backbone
-    model = {name}Backbone()
-    output = model(input_data)
-    ```
-"""  # noqa: E501
+    if min_value is None:
+        min_value = divisor
 
+    new_x = max(min_value, int(x + divisor / 2) // divisor * divisor)
 
-class MobileNetV3SmallBackbone(MobileNetV3Backbone):
-    def __new__(
-        cls,
-        include_rescaling=True,
-        input_shape=(None, None, 3),
-        input_tensor=None,
-        **kwargs,
-    ):
-        # Pack args in kwargs
-        kwargs.update(
-            {
-                "include_rescaling": include_rescaling,
-                "input_shape": input_shape,
-                "input_tensor": input_tensor,
-            }
-        )
-        return MobileNetV3Backbone.from_preset("mobilenetv3small", **kwargs)
-
-    @classproperty
-    def presets(cls):
-        """Dictionary of preset names and configurations."""
-        return {}
+    # make sure that round down does not go down by more than 10%.
+    if new_x < 0.9 * x:
+        new_x += divisor
+    return new_x
 
 
-class MobileNetV3LargeBackbone(MobileNetV3Backbone):
-    def __new__(
-        cls,
-        include_rescaling=True,
-        input_shape=(None, None, 3),
-        input_tensor=None,
-        **kwargs,
-    ):
-        # Pack args in kwargs
-        kwargs.update(
-            {
-                "include_rescaling": include_rescaling,
-                "input_shape": input_shape,
-                "input_tensor": input_tensor,
-            }
-        )
-        return MobileNetV3Backbone.from_preset("mobilenetv3large", **kwargs)
-
-    @classproperty
-    def presets(cls):
-        """Dictionary of preset names and configurations."""
-        return {}
+def apply_hard_sigmoid(x):
+    activation = layers.ReLU(6.0)
+    return activation(x + 3.0) * (1.0 / 6.0)
 
 
-setattr(
-    MobileNetV3LargeBackbone,
-    "__doc__",
-    ALIAS_DOCSTRING.format(name="MobileNetV3Large", num_layers="28"),
-)
-setattr(
-    MobileNetV3SmallBackbone,
-    "__doc__",
-    ALIAS_DOCSTRING.format(name="MobileNetV3Small", num_layers="14"),
-)
+def apply_hard_swish(x):
+    return layers.Multiply()([x, apply_hard_sigmoid(x)])
+
+
+def apply_inverted_res_block(
+    x,
+    expansion,
+    filters,
+    kernel_size,
+    stride,
+    se_ratio,
+    activation,
+    expansion_index,
+):
+    """An Inverted Residual Block.
+
+    Args:
+        x: input tensor.
+        expansion: integer, the expansion ratio, multiplied with infilters to
+            get the minimum value passed to adjust_channels.
+        filters: integer, number of filters for convolution layer.
+        kernel_size: integer, the kernel size for DepthWise Convolutions.
+        stride: integer, the stride length for DepthWise Convolutions.
+        se_ratio: float, ratio for bottleneck filters. Number of bottleneck
+            filters = filters * se_ratio.
+        activation: the activation layer to use.
+        expansion_index: integer, a unique identification if you want to use
+            expanded convolutions. If greater than 0, an additional Conv+BN
+            layer is added after the expanded convolutional layer.
+
+    Returns:
+        the updated input tensor.
+    """
+    if isinstance(activation, str):
+        if activation == "hard_swish":
+            activation = apply_hard_swish
+        else:
+            activation = keras.activations.get(activation)
+
+    shortcut = x
+    prefix = "expanded_conv/"
+    infilters = backend.int_shape(x)[CHANNEL_AXIS]
+
+    if expansion_index > 0:
+        prefix = f"expanded_conv_{expansion_index}/"
+
+        x = layers.Conv2D(
+            adjust_channels(infilters * expansion),
+            kernel_size=1,
+            padding="same",
+            use_bias=False,
+            name=prefix + "expand",
+        )(x)
+        x = layers.BatchNormalization(
+            axis=CHANNEL_AXIS,
+            epsilon=BN_EPSILON,
+            momentum=BN_MOMENTUM,
+            name=prefix + "expand/BatchNorm",
+        )(x)
+        x = activation(x)
+
+    x = layers.DepthwiseConv2D(
+        kernel_size,
+        strides=stride,
+        padding="same" if stride == 1 else "valid",
+        use_bias=False,
+        name=prefix + "depthwise",
+    )(x)
+    x = layers.BatchNormalization(
+        axis=CHANNEL_AXIS,
+        epsilon=BN_EPSILON,
+        momentum=BN_MOMENTUM,
+        name=prefix + "depthwise/BatchNorm",
+    )(x)
+    x = activation(x)
+
+    if se_ratio:
+        with custom_object_scope({"hard_sigmoid": apply_hard_sigmoid}):
+            x = cv_layers.SqueezeAndExcite2D(
+                filters=adjust_channels(infilters * expansion),
+                ratio=se_ratio,
+                squeeze_activation="relu",
+                excite_activation="hard_sigmoid",
+            )(x)
+
+    x = layers.Conv2D(
+        filters,
+        kernel_size=1,
+        padding="same",
+        use_bias=False,
+        name=prefix + "project",
+    )(x)
+    x = layers.BatchNormalization(
+        axis=CHANNEL_AXIS,
+        epsilon=BN_EPSILON,
+        momentum=BN_MOMENTUM,
+        name=prefix + "project/BatchNorm",
+    )(x)
+
+    if stride == 1 and infilters == filters:
+        x = layers.Add(name=prefix + "Add")([shortcut, x])
+
+    return x
