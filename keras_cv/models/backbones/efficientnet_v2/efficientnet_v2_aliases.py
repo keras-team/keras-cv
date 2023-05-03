@@ -37,8 +37,6 @@ ALIAS_BASE_DOCSTRING = """Instantiates the {name} architecture.
         input_shape: optional shape tuple, defaults to (None, None, 3).
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
             to use as image input for the model.
-    Returns:
-      A `keras.Model` instance.
 """  # noqa: E501
 
 
