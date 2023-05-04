@@ -13,10 +13,14 @@
 # limitations under the License.
 """YOLOv8 Backbone presets."""
 
+
 backbone_presets_no_weights = {
     "yolov8_xs_backbone": {
         "metadata": {
             "description": "An extra small YOLOV8 backbone",
+            "params": 1277680,
+            "official_name": "YOLOV8",
+            "path": "yolov8",
         },
         "class_name": "keras_cv.models>YOLOV8Backbone",
         "config": {
@@ -30,6 +34,9 @@ backbone_presets_no_weights = {
     "yolov8_s_backbone": {
         "metadata": {
             "description": "A small YOLOV8 backbone",
+            "params": 5089760,
+            "official_name": "YOLOV8",
+            "path": "yolov8",
         },
         "class_name": "keras_cv.models>YOLOV8Backbone",
         "config": {
@@ -43,6 +50,9 @@ backbone_presets_no_weights = {
     "yolov8_m_backbone": {
         "metadata": {
             "description": "A medium YOLOV8 backbone",
+            "params": 11872464,
+            "official_name": "YOLOV8",
+            "path": "yolov8",
         },
         "class_name": "keras_cv.models>YOLOV8Backbone",
         "config": {
@@ -56,6 +66,9 @@ backbone_presets_no_weights = {
     "yolov8_l_backbone": {
         "metadata": {
             "description": "A large YOLOV8 backbone",
+            "params": 19831744,
+            "official_name": "YOLOV8",
+            "path": "yolov8",
         },
         "class_name": "keras_cv.models>YOLOV8Backbone",
         "config": {
@@ -69,6 +82,9 @@ backbone_presets_no_weights = {
     "yolov8_xl_backbone": {
         "metadata": {
             "description": "An extra large YOLOV8 backbone",
+            "params": 30972080,
+            "official_name": "YOLOV8",
+            "path": "yolov8",
         },
         "class_name": "keras_cv.models>YOLOV8Backbone",
         "config": {
@@ -84,7 +100,12 @@ backbone_presets_no_weights = {
 backbone_presets_with_weights = {
     "yolov8_xs_backbone_coco": {
         "metadata": {
-            "description": ("An extra small YOLOV8 backbone pretrained on COCO")
+            "description": (
+                "An extra small YOLOV8 backbone pretrained on COCO"
+            ),
+            "params": 1277680,
+            "official_name": "YOLOV8",
+            "path": "yolov8",
         },
         "class_name": "keras_cv.models>YOLOV8Backbone",
         "config": backbone_presets_no_weights["yolov8_xs_backbone"]["config"],
@@ -93,7 +114,10 @@ backbone_presets_with_weights = {
     },
     "yolov8_s_backbone_coco": {
         "metadata": {
-            "description": ("A small YOLOV8 backbone pretrained on COCO")
+            "description": ("A small YOLOV8 backbone pretrained on COCO"),
+            "params": 5089760,
+            "official_name": "YOLOV8",
+            "path": "yolov8",
         },
         "class_name": "keras_cv.models>YOLOV8Backbone",
         "config": backbone_presets_no_weights["yolov8_s_backbone"]["config"],
@@ -102,7 +126,10 @@ backbone_presets_with_weights = {
     },
     "yolov8_m_backbone_coco": {
         "metadata": {
-            "description": ("A medium YOLOV8 backbone pretrained on COCO")
+            "description": ("A medium YOLOV8 backbone pretrained on COCO"),
+            "params": 11872464,
+            "official_name": "YOLOV8",
+            "path": "yolov8",
         },
         "class_name": "keras_cv.models>YOLOV8Backbone",
         "config": backbone_presets_no_weights["yolov8_m_backbone"]["config"],
@@ -111,7 +138,10 @@ backbone_presets_with_weights = {
     },
     "yolov8_l_backbone_coco": {
         "metadata": {
-            "description": ("A large YOLOV8 backbone pretrained on COCO")
+            "description": ("A large YOLOV8 backbone pretrained on COCO"),
+            "params": 19831744,
+            "official_name": "YOLOV8",
+            "path": "yolov8",
         },
         "class_name": "keras_cv.models>YOLOV8Backbone",
         "config": backbone_presets_no_weights["yolov8_l_backbone"]["config"],
@@ -120,7 +150,12 @@ backbone_presets_with_weights = {
     },
     "yolov8_xl_backbone_coco": {
         "metadata": {
-            "description": ("An extra large YOLOV8 backbone pretrained on COCO")
+            "description": (
+                "An extra large YOLOV8 backbone pretrained on COCO"
+            ),
+            "params": 30972080,
+            "official_name": "YOLOV8",
+            "path": "yolov8",
         },
         "class_name": "keras_cv.models>YOLOV8Backbone",
         "config": backbone_presets_no_weights["yolov8_xl_backbone"]["config"],

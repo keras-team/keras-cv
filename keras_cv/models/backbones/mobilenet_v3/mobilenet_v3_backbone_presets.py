@@ -21,6 +21,9 @@ backbone_presets_no_weights = {
                 "normalization and hard-swish activation are applied after the "
                 "convolution layers."
             ),
+            "params": 933502,
+            "official_name": "MobileNetV3",
+            "path": "mobilenetv3",
         },
         "class_name": "keras_cv.models>MobileNetV3Backbone",
         "config": {
@@ -79,6 +82,9 @@ backbone_presets_no_weights = {
                 "normalization and hard-swish activation are applied after the "
                 "convolution layers."
             ),
+            "params": 2994518,
+            "official_name": "MobileNetV3",
+            "path": "mobilenetv3",
         },
         "class_name": "keras_cv.models>MobileNetV3Backbone",
         "config": {
