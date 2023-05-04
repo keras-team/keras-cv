@@ -179,6 +179,7 @@ class EfficientNetV2Backbone(Backbone):
                 depth_coefficient=depth_coefficient,
             )
             strides = stackwise_strides[i]
+            squeeze_and_excite_ratio = stackwise_squeeze_and_excite_ratios[i]
 
             for j in range(repeats):
                 # The first block needs to take care of stride and filter size
@@ -197,9 +198,7 @@ class EfficientNetV2Backbone(Backbone):
                     expand_ratio=stackwise_expansion_ratios[i],
                     kernel_size=stackwise_kernel_sizes[i],
                     strides=strides,
-                    squeeze_and_excite_ratio=stackwise_squeeze_and_excite_ratios[
-                        i
-                    ],
+                    squeeze_and_excite_ratio=squeeze_and_excite_ratio,
                     activation=activation,
                     survival_probability=skip_connection_dropout
                     * block_id
