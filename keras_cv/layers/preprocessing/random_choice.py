@@ -53,10 +53,10 @@ class RandomChoice(BaseImageAugmentationLayer):
             boost, but can only be used if all the layers provided to the
             `layers` argument support auto vectorization.
         batchwise: (Optional) bool, whether to pass entire batches to the
-            underlying layer. When set to true, only a single random sample is
-            drawn to determine if the batch should be passed to the underlying
-            layer. This is useful when using `MixUp()`, `CutMix()`, `Mosaic()`,
-            etc.
+            underlying layer. When set to `True`, each batch is passed to a
+            single layer, instead of each sample to an independent layer. This
+            is useful when using `MixUp()`, `CutMix()`, `Mosaic()`, etc.
+            Defaults to `False`.
         seed: Integer. Used to create a random seed.
     """
 
