@@ -250,7 +250,8 @@ with strategy.scope():
     model = models.ImageClassifier(
         backbone=backbone(input_shape=IMAGE_SIZE + (3,)),
         num_classes=NUM_CLASSES,
-        activation="softmax" ** eval(FLAGS.model_kwargs),
+        activation="softmax",
+        **eval(FLAGS.model_kwargs),
     )
 
 """
