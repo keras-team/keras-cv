@@ -151,7 +151,7 @@ class EfficientNetV2Backbone(Backbone):
         x = layers.Activation(activation, name="stem_activation")(x)
 
         # Build blocks
-        b = 0
+        block_id = 0
         blocks = float(sum(num_repeat for num_repeat in stackwise_num_repeats))
 
         pyramid_level_inputs = []
@@ -202,11 +202,13 @@ class EfficientNetV2Backbone(Backbone):
                     strides=strides,
                     squeeze_and_excite_ratio=squeeze_and_excite_ratio,
                     activation=activation,
-                    survival_probability=skip_connection_dropout * b / blocks,
+                    survival_probability=skip_connection_dropout
+                    * block_id
+                    / blocks,
                     name="block{}{}_".format(i + 1, chr(j + 97)),
                 )
                 x = block(x)
-                b += 1
+                block_id += 1
 
         # Build top
         top_filters = round_filters(
