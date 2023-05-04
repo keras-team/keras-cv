@@ -18,6 +18,8 @@ Reference:
   - [YoloV3 implementation](https://github.com/ultralytics/yolov3)
 """
 
+# TODO(haifeng-jin): Remove this file after YOLOx is migrated to Backbone and
+# uses the new csp_darknet_utils.
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import backend
