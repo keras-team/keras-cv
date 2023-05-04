@@ -23,6 +23,7 @@ from keras_cv.models.backbones.backbone_presets import backbone_presets
 from keras_cv.models.backbones.backbone_presets import (
     backbone_presets_with_weights,
 )
+from keras_cv.models.backbones.csp_darknet import csp_darknet_utils
 from keras_cv.models.object_detection import predict_utils
 from keras_cv.models.object_detection.__internal__ import unpack_input
 from keras_cv.models.object_detection.yolo_v8.yolo_v8_detector_presets import (
@@ -34,17 +35,14 @@ from keras_cv.models.object_detection.yolo_v8.yolo_v8_iou_loss import (
 from keras_cv.models.object_detection.yolo_v8.yolo_v8_label_encoder import (
     YOLOV8LabelEncoder,
 )
-from keras_cv.models.object_detection.yolo_v8.yolo_v8_layers import (
-    apply_conv_bn,
-)
-from keras_cv.models.object_detection.yolo_v8.yolo_v8_layers import (
-    apply_csp_block,
-)
 from keras_cv.models.task import Task
 from keras_cv.utils.python_utils import classproperty
 from keras_cv.utils.train import get_feature_extractor
 
+BATCH_NORM_MOMENTUM = 0.97
 BOX_REGRESSION_CHANNELS = 64
+PADDING = "valid"
+CSP_KERNEL_SIZES = [3, 3]
 
 
 def get_anchors(
@@ -123,61 +121,87 @@ def apply_path_aggregation_fpn(features, depth=3, name="fpn"):
     # Upsample P5 and concatenate with P4, then apply a CSPBlock.
     p5_upsampled = tf.image.resize(p5, tf.shape(p4)[1:-1], method="nearest")
     p4p5 = tf.concat([p5_upsampled, p4], axis=-1)
-    p4p5 = apply_csp_block(
+    p4p5 = csp_darknet_utils.apply_cross_stage_partial(
         p4p5,
-        channels=p4.shape[-1],
-        depth=depth,
-        shortcut=False,
-        activation="swish",
+        filters=p4.shape[-1],
+        num_bottlenecks=depth,
+        residual=False,
+        wide_stem=True,
+        kernel_sizes=CSP_KERNEL_SIZES,
+        concat_bottleneck_outputs=True,
+        padding=PADDING,
+        use_zero_padding=True,
+        batch_norm_momentum=BATCH_NORM_MOMENTUM,
         name=f"{name}_p4p5",
     )
 
     # Upsample P4P5 and concatenate with P3, then apply a CSPBlock.
     p4p5_upsampled = tf.image.resize(p4p5, tf.shape(p3)[1:-1], method="nearest")
     p3p4p5 = tf.concat([p4p5_upsampled, p3], axis=-1)
-    p3p4p5 = apply_csp_block(
+    p3p4p5 = csp_darknet_utils.apply_cross_stage_partial(
         p3p4p5,
-        channels=p3.shape[-1],
-        depth=depth,
-        shortcut=False,
-        activation="swish",
+        filters=p3.shape[-1],
+        num_bottlenecks=depth,
+        residual=False,
+        wide_stem=True,
+        kernel_sizes=CSP_KERNEL_SIZES,
+        concat_bottleneck_outputs=True,
+        padding=PADDING,
+        use_zero_padding=True,
+        batch_norm_momentum=BATCH_NORM_MOMENTUM,
         name=f"{name}_p3p4p5",
     )
 
     # Downsample P3P4P5, concatenate with P4P5, and apply a CSP Block.
-    p3p4p5_d1 = apply_conv_bn(
+    p3p4p5_d1 = csp_darknet_utils.apply_darknet_conv_block(
         p3p4p5,
         p3p4p5.shape[-1],
         kernel_size=3,
         strides=2,
-        activation="swish",
+        padding=PADDING,
+        use_zero_padding=True,
+        batch_norm_momentum=BATCH_NORM_MOMENTUM,
         name=f"{name}_p3p4p5_downsample1",
     )
     p3p4p5_d1 = tf.concat([p3p4p5_d1, p4p5], axis=-1)
-    p3p4p5_d1 = apply_csp_block(
+    p3p4p5_d1 = csp_darknet_utils.apply_cross_stage_partial(
         p3p4p5_d1,
-        channels=p4p5.shape[-1],
-        shortcut=False,
-        activation="swish",
+        filters=p4p5.shape[-1],
+        num_bottlenecks=depth,
+        residual=False,
+        wide_stem=True,
+        kernel_sizes=CSP_KERNEL_SIZES,
+        concat_bottleneck_outputs=True,
+        padding=PADDING,
+        use_zero_padding=True,
+        batch_norm_momentum=BATCH_NORM_MOMENTUM,
         name=f"{name}_p3p4p5_downsample1_block",
     )
 
     # Downsample the resulting P3P4P5 again, concatenate with P5, and apply
     # another CSP Block.
-    p3p4p5_d2 = apply_conv_bn(
+    p3p4p5_d2 = csp_darknet_utils.apply_darknet_conv_block(
         p3p4p5_d1,
         p3p4p5_d1.shape[-1],
         kernel_size=3,
         strides=2,
-        activation="swish",
+        padding=PADDING,
+        use_zero_padding=True,
+        batch_norm_momentum=BATCH_NORM_MOMENTUM,
         name=f"{name}_p3p4p5_downsample2",
     )
     p3p4p5_d2 = tf.concat([p3p4p5_d2, p5], axis=-1)
-    p3p4p5_d2 = apply_csp_block(
+    p3p4p5_d2 = csp_darknet_utils.apply_cross_stage_partial(
         p3p4p5_d2,
-        channels=p5.shape[-1],
-        shortcut=False,
-        activation="swish",
+        filters=p5.shape[-1],
+        num_bottlenecks=depth,
+        residual=False,
+        wide_stem=True,
+        kernel_sizes=CSP_KERNEL_SIZES,
+        concat_bottleneck_outputs=True,
+        padding=PADDING,
+        use_zero_padding=True,
+        batch_norm_momentum=BATCH_NORM_MOMENTUM,
         name=f"{name}_p3p4p5_downsample2_block",
     )
 
@@ -223,18 +247,24 @@ def apply_yolov8_head(
     for id, feature in enumerate(inputs):
         cur_name = f"{name}_{id+1}"
 
-        box_predictions = apply_conv_bn(
+        box_predictions = csp_darknet_utils.apply_darknet_conv_block(
             feature,
             box_channels,
             kernel_size=3,
-            activation="swish",
+            strides=1,
+            padding=PADDING,
+            use_zero_padding=True,
+            batch_norm_momentum=BATCH_NORM_MOMENTUM,
             name=f"{cur_name}_box_1",
         )
-        box_predictions = apply_conv_bn(
+        box_predictions = csp_darknet_utils.apply_darknet_conv_block(
             box_predictions,
             box_channels,
             kernel_size=3,
-            activation="swish",
+            strides=1,
+            padding=PADDING,
+            use_zero_padding=True,
+            batch_norm_momentum=BATCH_NORM_MOMENTUM,
             name=f"{cur_name}_box_2",
         )
         box_predictions = layers.Conv2D(
@@ -243,18 +273,24 @@ def apply_yolov8_head(
             name=f"{cur_name}_box_3_conv",
         )(box_predictions)
 
-        class_predictions = apply_conv_bn(
+        class_predictions = csp_darknet_utils.apply_darknet_conv_block(
             feature,
             class_channels,
             kernel_size=3,
-            activation="swish",
+            strides=1,
+            padding=PADDING,
+            use_zero_padding=True,
+            batch_norm_momentum=BATCH_NORM_MOMENTUM,
             name=f"{cur_name}_class_1",
         )
-        class_predictions = apply_conv_bn(
+        class_predictions = csp_darknet_utils.apply_darknet_conv_block(
             class_predictions,
             class_channels,
             kernel_size=3,
-            activation="swish",
+            strides=1,
+            padding=PADDING,
+            use_zero_padding=True,
+            batch_norm_momentum=BATCH_NORM_MOMENTUM,
             name=f"{cur_name}_class_2",
         )
         class_predictions = layers.Conv2D(
