@@ -191,6 +191,8 @@ class EfficientNetV2Backbone(Backbone):
                 if strides != 1:
                     pyramid_level_inputs.append(x.node.layer.name)
 
+                # 97 is the start of the lowercase alphabet.
+                letter_identifier = chr(j + 97)
                 block = get_block_conv(
                     conv_type=stackwise_conv_types[i],
                     input_filters=input_filters,
@@ -203,7 +205,7 @@ class EfficientNetV2Backbone(Backbone):
                     survival_probability=skip_connection_dropout
                     * block_id
                     / blocks,
-                    name="block{}{}_".format(i + 1, chr(j + 97)),
+                    name="block{}{}_".format(i + 1, letter_identifier),
                 )
                 x = block(x)
                 block_id += 1
