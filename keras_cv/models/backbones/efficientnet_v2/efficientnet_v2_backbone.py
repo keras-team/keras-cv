@@ -156,14 +156,9 @@ class EfficientNetV2Backbone(Backbone):
 
         pyramid_level_inputs = []
         for i in range(len(stackwise_kernel_sizes)):
-            kernel_size = stackwise_kernel_sizes[i]
             num_repeat = stackwise_num_repeats[i]
             input_filters = stackwise_input_filters[i]
             output_filters = stackwise_output_filters[i]
-            expand_ratio = stackwise_expansion_ratios[i]
-            squeeze_and_excite_ratio = stackwise_squeeze_and_excite_ratios[i]
-            strides = stackwise_strides[i]
-            conv_type = stackwise_conv_types[i]
 
             # Update block input and output filters based on depth multiplier.
             input_filters = round_filters(
@@ -183,6 +178,8 @@ class EfficientNetV2Backbone(Backbone):
                 repeats=num_repeat,
                 depth_coefficient=depth_coefficient,
             )
+            strides = stackwise_strides[i]
+
             for j in range(repeats):
                 # The first block needs to take care of stride and filter size
                 # increase.
@@ -194,13 +191,15 @@ class EfficientNetV2Backbone(Backbone):
                     pyramid_level_inputs.append(x.node.layer.name)
 
                 block = get_block_conv(
-                    conv_type=conv_type,
+                    conv_type=stackwise_conv_types[i],
                     input_filters=input_filters,
                     output_filters=output_filters,
-                    expand_ratio=expand_ratio,
-                    kernel_size=kernel_size,
+                    expand_ratio=stackwise_expansion_ratios[i],
+                    kernel_size=stackwise_kernel_sizes[i],
                     strides=strides,
-                    squeeze_and_excite_ratio=squeeze_and_excite_ratio,
+                    squeeze_and_excite_ratio=stackwise_squeeze_and_excite_ratios[
+                        i
+                    ],
                     activation=activation,
                     survival_probability=skip_connection_dropout
                     * block_id
