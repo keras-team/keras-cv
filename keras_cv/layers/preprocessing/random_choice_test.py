@@ -73,7 +73,6 @@ class RandomAugmentationPipelineTest(tf.test.TestCase, parameterized.TestCase):
         }
         pipeline(xs)
 
-
     def test_calls_layer_augmentation_single_image(self):
         layer = AddOneToInputs()
         pipeline = layers.RandomChoice(layers=[layer])
