@@ -167,7 +167,7 @@ def apply_path_aggregation_fpn(features, depth=3, name="fpn"):
     p3p4p5_d1 = csp_darknet_utils.apply_cross_stage_partial(
         p3p4p5_d1,
         filters=p4p5.shape[-1],
-        num_bottlenecks=depth,
+        num_bottlenecks=2,
         residual=False,
         wide_stem=True,
         kernel_sizes=CSP_KERNEL_SIZES,
@@ -194,7 +194,7 @@ def apply_path_aggregation_fpn(features, depth=3, name="fpn"):
     p3p4p5_d2 = csp_darknet_utils.apply_cross_stage_partial(
         p3p4p5_d2,
         filters=p5.shape[-1],
-        num_bottlenecks=depth,
+        num_bottlenecks=2,
         residual=False,
         wide_stem=True,
         kernel_sizes=CSP_KERNEL_SIZES,
