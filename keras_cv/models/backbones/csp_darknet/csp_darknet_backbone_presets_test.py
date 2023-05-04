@@ -17,12 +17,7 @@ import pytest
 import tensorflow as tf
 from absl.testing import parameterized
 
-from keras_cv.models import YOLOV8Backbone
 from keras_cv.models.backbones.csp_darknet import csp_darknet_backbone
-from keras_cv.models.backbones.csp_darknet import legacy
-from keras_cv.models.object_detection.yolo_v8.yolo_v8_backbone_presets import (
-    copy_weights,
-)
 
 
 @pytest.mark.large
@@ -91,53 +86,6 @@ class CSPDarkNetPresetSmokeTest(tf.test.TestCase, parameterized.TestCase):
             csp_darknet_backbone.CSPDarkNetBackbone.from_preset(
                 "csp_darknet_tiny", load_weights=True
             )
-
-    @parameterized.named_parameters(
-        ("xs", "yolov8_xs_backbone_coco", "yolov8_xs_backbone"),
-        ("s", "yolov8_s_backbone_coco", "yolov8_s_backbone"),
-        ("m", "yolov8_m_backbone_coco", "yolov8_m_backbone"),
-        ("l", "yolov8_l_backbone_coco", "yolov8_l_backbone"),
-        ("xl", "yolov8_xl_backbone_coco", "yolov8_xl_backbone"),
-    )
-    def test_yolo_v8_preset_same_output(self, yolo_preset, csp_preset):
-        yolo_model = YOLOV8Backbone.from_preset(yolo_preset)
-        csp_model = csp_darknet_backbone.CSPDarkNetBackbone.from_preset(
-            csp_preset
-        )
-        copy_weights(yolo_model, csp_model)
-        outputs = csp_model(tf.ones(shape=(1, 512, 512, 3)))
-        expected = yolo_model(tf.ones(shape=(1, 512, 512, 3)))
-        self.assertAllClose(outputs, expected)
-
-        csp_model = csp_darknet_backbone.CSPDarkNetBackbone.from_preset(
-            yolo_preset
-        )
-        outputs = csp_model(tf.ones(shape=(1, 512, 512, 3)))
-        self.assertAllClose(outputs, expected)
-
-    @parameterized.named_parameters(
-        ("tiny", "csp_darknet_tiny_imagenet", "csp_darknet_tiny"),
-        ("l", "csp_darknet_l_imagenet", "csp_darknet_l"),
-    )
-    def test_legacy_csp_preset_same_output(self, old_csp_preset, csp_preset):
-        old_csp_model = (
-            legacy.csp_darknet_backbone.CSPDarkNetBackbone.from_preset(
-                old_csp_preset
-            )
-        )
-        csp_model = csp_darknet_backbone.CSPDarkNetBackbone.from_preset(
-            csp_preset
-        )
-        copy_weights(old_csp_model, csp_model)
-        outputs = csp_model(tf.ones(shape=(1, 512, 512, 3)))
-        expected = old_csp_model(tf.ones(shape=(1, 512, 512, 3)))
-        self.assertAllClose(outputs, expected)
-
-        csp_model = csp_darknet_backbone.CSPDarkNetBackbone.from_preset(
-            old_csp_preset
-        )
-        outputs = csp_model(tf.ones(shape=(1, 512, 512, 3)))
-        self.assertAllClose(outputs, expected)
 
 
 @pytest.mark.extra_large

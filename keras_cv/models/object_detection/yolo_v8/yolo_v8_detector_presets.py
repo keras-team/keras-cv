@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """YOLOv8 Task presets."""
-from keras_cv.models.object_detection.yolo_v8 import yolo_v8_backbone_presets
+from keras_cv.models.backbones.csp_darknet import csp_darknet_backbone_presets
 
 yolo_v8_detector_presets = {
     "yolov8_m_pascalvoc": {
@@ -27,7 +27,7 @@ yolo_v8_detector_presets = {
             "path": "yolo_v8_detector",
         },
         "config": {
-            "backbone": yolo_v8_backbone_presets.backbone_presets[
+            "backbone": csp_darknet_backbone_presets.backbone_presets[
                 "yolov8_m_backbone"
             ],
             "num_classes": 20,

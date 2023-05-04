@@ -34,7 +34,7 @@ class YOLOV8DetectorTest(tf.test.TestCase):
             num_classes=2,
             fpn_depth=1,
             bounding_box_format=bounding_box_format,
-            backbone=keras_cv.models.YOLOV8Backbone.from_preset(
+            backbone=keras_cv.models.CSPDarkNetBackbone.from_preset(
                 "yolov8_xs_backbone"
             ),
         )
@@ -52,7 +52,7 @@ class YOLOV8DetectorTest(tf.test.TestCase):
             num_classes=2,
             fpn_depth=1,
             bounding_box_format="xywh",
-            backbone=keras_cv.models.YOLOV8Backbone.from_preset(
+            backbone=keras_cv.models.CSPDarkNetBackbone.from_preset(
                 "yolov8_s_backbone"
             ),
         )
@@ -64,7 +64,7 @@ class YOLOV8DetectorTest(tf.test.TestCase):
             num_classes=2,
             fpn_depth=1,
             bounding_box_format="xywh",
-            backbone=keras_cv.models.YOLOV8Backbone.from_preset(
+            backbone=keras_cv.models.CSPDarkNetBackbone.from_preset(
                 "yolov8_xs_backbone"
             ),
         )
@@ -88,7 +88,7 @@ class YOLOV8DetectorTest(tf.test.TestCase):
             num_classes=20,
             bounding_box_format="xywh",
             fpn_depth=1,
-            backbone=keras_cv.models.YOLOV8Backbone.from_preset(
+            backbone=keras_cv.models.CSPDarkNetBackbone.from_preset(
                 "yolov8_xs_backbone"
             ),
         )

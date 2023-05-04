@@ -109,9 +109,6 @@ from keras_cv.models.mobilenet_v3 import MobileNetV3Large
 from keras_cv.models.mobilenet_v3 import MobileNetV3Small
 from keras_cv.models.object_detection.faster_rcnn.faster_rcnn import FasterRCNN
 from keras_cv.models.object_detection.retinanet.retinanet import RetinaNet
-from keras_cv.models.object_detection.yolo_v8.yolo_v8_backbone import (
-    YOLOV8Backbone,
-)
 from keras_cv.models.object_detection.yolo_v8.yolo_v8_detector import (
     YOLOV8Detector,
 )
