@@ -60,6 +60,8 @@ class RandomAugmentationPipelineTest(tf.test.TestCase, parameterized.TestCase):
         os = pipeline(xs)
 
         self.assertAllClose(xs + 1, os)
+        # Ensure the layer is only called once for the entire batch
+        self.assertEqual(layer.call_counter, 1)
 
     def test_works_with_cutmix_mixup(self):
         pipeline = layers.RandomChoice(
