@@ -81,12 +81,7 @@ class RandomBrightness(VectorizedBaseImageAugmentationLayer):
 
     def augment_ragged_image(self, image, transformation, **kwargs):
         image = tf.expand_dims(image, axis=0)
-        factors = transformation["factors"]
-        value_ranges = transformation["value_ranges"]
-        transformation = {
-            "factors": tf.expand_dims(factors, axis=0),
-            "value_ranges": tf.expand_dims(value_ranges, axis=0),
-        }
+        transformation = tf.expand_dims(transformation, axis=0)
         image = self.augment_images(
             images=image, transformations=transformation, **kwargs
         )
