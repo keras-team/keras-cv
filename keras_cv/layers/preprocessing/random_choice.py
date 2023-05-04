@@ -52,7 +52,7 @@ class RandomChoice(BaseImageAugmentationLayer):
             apply the augmentations. This offers a significant performance
             boost, but can only be used if all the layers provided to the
             `layers` argument support auto vectorization.
-        batchwise: (Optional) bool, whether to pass entire batches to the
+        batchwise: Boolean, whether to pass entire batches to the
             underlying layer. When set to `True`, each batch is passed to a
             single layer, instead of each sample to an independent layer. This
             is useful when using `MixUp()`, `CutMix()`, `Mosaic()`, etc.
