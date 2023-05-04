@@ -53,6 +53,14 @@ class RandomAugmentationPipelineTest(tf.test.TestCase, parameterized.TestCase):
 
         self.assertAllClose(xs + 1, os)
 
+    def test_batchwise(self):
+        layer = AddOneToInputs()
+        pipeline = layers.RandomChoice(layers=[layer], batchwise=True)
+        xs = tf.random.uniform((4, 5, 5, 3), 0, 100, dtype=tf.float32)
+        os = pipeline(xs)
+
+        self.assertAllClose(xs + 1, os)
+
     def test_calls_layer_augmentation_single_image(self):
         layer = AddOneToInputs()
         pipeline = layers.RandomChoice(layers=[layer])
