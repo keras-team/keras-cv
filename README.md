@@ -22,10 +22,8 @@ Applied computer vision engineers can leverage KerasCV to quickly assemble produ
 In addition to API consistency, KerasCV components aim to be mixed-precision compatible, QAT compatible, XLA compilable, and TPU compatible.
 We also aim to provide generic model optimization tools for deployment on devices such as onboard GPUs, mobile, and edge chips.
 
-
-To learn more about the future project direction, please check the [roadmap](.github/ROADMAP.md).
-
 ## Quick Links
+- [List of avilable models and presets](https://keras.io/api/keras_cv/models/)
 - [Contributing Guide](.github/CONTRIBUTING.md)
 - [Call for Contributions](https://github.com/keras-team/keras-cv/issues?q=is%3Aopen+is%3Aissue+label%3Acontribution-welcome)
 - [Roadmap](.github/ROADMAP.md)
