@@ -246,12 +246,11 @@ Now we can begin training our model. We begin by loading a model from KerasCV.
 """
 
 with strategy.scope():
-    model = models.__dict__[FLAGS.model_name]
-    model = model(
-        include_rescaling=True,
-        include_top=True,
+    backbone = models.__dict__[FLAGS.model_name]
+    model = models.ImageClassifier(
+        backbone=backbone(input_shape=IMAGE_SIZE + (3,)),
         num_classes=NUM_CLASSES,
-        input_shape=IMAGE_SIZE + (3,),
+        activation="softmax",
         **eval(FLAGS.model_kwargs),
     )
 
