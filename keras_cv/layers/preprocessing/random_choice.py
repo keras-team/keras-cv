@@ -52,6 +52,11 @@ class RandomChoice(BaseImageAugmentationLayer):
             apply the augmentations. This offers a significant performance
             boost, but can only be used if all the layers provided to the
             `layers` argument support auto vectorization.
+        batchwise: Boolean, whether to pass entire batches to the
+            underlying layer. When set to `True`, each batch is passed to a
+            single layer, instead of each sample to an independent layer. This
+            is useful when using `MixUp()`, `CutMix()`, `Mosaic()`, etc.
+            Defaults to `False`.
         seed: Integer. Used to create a random seed.
     """
 
@@ -59,12 +64,14 @@ class RandomChoice(BaseImageAugmentationLayer):
         self,
         layers,
         auto_vectorize=False,
+        batchwise=False,
         seed=None,
         **kwargs,
     ):
         super().__init__(**kwargs, seed=seed, force_generator=True)
         self.layers = layers
         self.auto_vectorize = auto_vectorize
+        self.batchwise = batchwise
         self.seed = seed
 
     def _curry_call_layer(self, inputs, layer):
@@ -73,11 +80,16 @@ class RandomChoice(BaseImageAugmentationLayer):
 
         return call_layer
 
+    def _batch_augment(self, inputs):
+        if self.batchwise:
+            return self._augment(inputs)
+        else:
+            return super()._batch_augment(inputs)
+
     def _augment(self, inputs, *args, **kwargs):
         selected_op = self._random_generator.random_uniform(
             (), minval=0, maxval=len(self.layers), dtype=tf.int32
         )
-
         # Warning:
         # Do not replace the currying function with a lambda.
         # Originally we used a lambda, but due to Python's
@@ -105,6 +117,7 @@ class RandomChoice(BaseImageAugmentationLayer):
                 "layers": self.layers,
                 "auto_vectorize": self.auto_vectorize,
                 "seed": self.seed,
+                "batchwise": self.batchwise,
             }
         )
         return config
