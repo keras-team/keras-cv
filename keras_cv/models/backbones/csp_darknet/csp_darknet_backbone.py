@@ -81,7 +81,7 @@ class CSPDarkNetBackbone(Backbone):
     output = model(input_data)
 
     # Randomly initialized backbone with a custom config
-    model = CSPDarkNetBackbone(
+    model = keras_cv.models.CSPDarkNetBackbone(
         stackwise_channels=[128, 256, 512, 1024],
         stackwise_depth=[3, 9, 9, 3],
         include_rescaling=False,
