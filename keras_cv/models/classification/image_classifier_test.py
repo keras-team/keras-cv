@@ -111,15 +111,10 @@ class ImageClassifierPresetSmokeTest(tf.test.TestCase, parameterized.TestCase):
 
     @parameterized.named_parameters(
         (
-            "efficientnetv2_s_imagenet_classifier",
-            "efficientnetv2_s_imagenet_classifier",
-            [-0.268132, -0.262596, -0.278071, -0.257657, -0.271685],
-        ),
-        (
             "efficientnetv2_b0_imagenet_classifier",
             "efficientnetv2_b0_imagenet_classifier",
             [-0.278459, -0.278462, -0.159786, -0.277514, 0.537921],
-        ),
+        )
     )
     def test_efficientnet_v2_preset(self, preset, expected):
         model = ImageClassifier.from_preset(

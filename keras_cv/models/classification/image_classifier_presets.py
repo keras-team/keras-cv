@@ -65,7 +65,7 @@ classifier_presets = {
             "pooling": "avg",
             "activation": "softmax",
         },
-        "weights_url": "https://storage.googleapis.com/keras-cv/models/efficientnet_v2/efficientnetv2_s_imagenet_classifier.h5",  # noqa: E501
+        "weights_url": "https://storage.googleapis.com/keras-cv/models/efficientnet_v2/efficientnetv2-s_imagenet_classifier.h5",  # noqa: E501
         "weights_hash": "4da57ade035e11aff7e1c5cb04c4235e",
     },
     "efficientnetv2_b0_imagenet_classifier": {
@@ -94,7 +94,7 @@ classifier_presets = {
             "pooling": "avg",
             "activation": "softmax",
         },
-        "weights_url": "https://storage.googleapis.com/keras-cv/models/efficientnet_v2/efficientnetv2_b0_imagenet_classifier.h5",  # noqa: E501
+        "weights_url": "https://storage.googleapis.com/keras-cv/models/efficientnet_v2/efficientnetv2-b0_imagenet_classifier.h5",  # noqa: E501
         "weights_hash": "4b739de648c346b7e4156e11a223c338",
     },
     "efficientnetv2_b1_imagenet_classifier": {
@@ -123,7 +123,7 @@ classifier_presets = {
             "pooling": "avg",
             "activation": "softmax",
         },
-        "weights_url": "https://storage.googleapis.com/keras-cv/models/efficientnet_v2/efficientnetv2_b1_imagenet_classifier.h5",  # noqa: E501
+        "weights_url": "https://storage.googleapis.com/keras-cv/models/efficientnet_v2/efficientnetv2-b1_imagenet_classifier.h5",  # noqa: E501
         "weights_hash": "78c1c879143dbd8f74e6ffc4d3180197",
     },
     "efficientnetv2_b2_imagenet_classifier": {
@@ -152,7 +152,7 @@ classifier_presets = {
             "pooling": "avg",
             "activation": "softmax",
         },
-        "weights_url": "https://storage.googleapis.com/keras-cv/models/efficientnet_v2/efficientnetv2_b2_imagenet_classifier.h5",  # noqa: E501
+        "weights_url": "https://storage.googleapis.com/keras-cv/models/efficientnet_v2/efficientnetv2-b2_imagenet_classifier.h5",  # noqa: E501
         "weights_hash": "07eda1c48aee27e12a3fe2545e6c65ed",
     },
 }
