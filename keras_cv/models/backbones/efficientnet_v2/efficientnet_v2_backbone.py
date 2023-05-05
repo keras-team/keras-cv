@@ -103,7 +103,7 @@ class EfficientNetV2Backbone(Backbone):
     images = tf.ones((1, 256, 256, 3))
     outputs = efficientnet.predict(images)
     ```
-    """  # noqa: E502
+    """  # noqa: E501
 
     def __init__(
         self,
