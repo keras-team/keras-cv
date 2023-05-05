@@ -110,6 +110,28 @@ class ImageClassifierPresetSmokeTest(tf.test.TestCase, parameterized.TestCase):
         self.input_batch = tf.ones(shape=(2, 224, 224, 3))
 
     @parameterized.named_parameters(
+        (
+            "efficientnetv2_b0_imagenet_classifier",
+            "efficientnetv2_b0_imagenet_classifier",
+            [-0.278459, -0.278462, -0.159786, -0.277514, 0.537921],
+        )
+    )
+    def test_efficientnet_v2_preset(self, preset, expected):
+        model = ImageClassifier.from_preset(
+            preset,
+        )
+        model(self.input_batch)
+        # The forward pass from a preset should be stable!
+        # This test should catch cases where we unintentionally change our
+        # network code in a way that would invalidate our preset weights.
+        # We should only update these numbers if we are updating a weights
+        # file, or have found a discrepancy with the upstream source.
+        outputs = model.backbone(self.input_batch)
+        outputs = outputs[0, 0, 0, :5]
+        # Keep a high tolerance, so we are robust to different hardware.
+        self.assertAllClose(outputs, expected, atol=0.01, rtol=0.01)
+
+    @parameterized.named_parameters(
         ("preset_with_weights", "resnet50_v2_imagenet"),
         ("preset_no_weights", "resnet50_v2"),
     )

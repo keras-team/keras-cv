@@ -1,4 +1,4 @@
-# Copyright 2022 The KerasCV Authors
+# Copyright 2023 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -29,6 +29,30 @@ from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
 )
 from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
     CSPDarkNetXLBackbone,
+)
+from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_aliases import (
+    EfficientNetV2B0Backbone,
+)
+from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_aliases import (
+    EfficientNetV2B1Backbone,
+)
+from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_aliases import (
+    EfficientNetV2B2Backbone,
+)
+from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_aliases import (
+    EfficientNetV2B3Backbone,
+)
+from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_aliases import (
+    EfficientNetV2Backbone,
+)
+from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_aliases import (
+    EfficientNetV2LBackbone,
+)
+from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_aliases import (
+    EfficientNetV2MBackbone,
+)
+from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_aliases import (
+    EfficientNetV2SBackbone,
 )
 from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_backbone import (
     MobileNetV3Backbone,
@@ -104,13 +128,6 @@ from keras_cv.models.efficientnet_v1 import EfficientNetB4
 from keras_cv.models.efficientnet_v1 import EfficientNetB5
 from keras_cv.models.efficientnet_v1 import EfficientNetB6
 from keras_cv.models.efficientnet_v1 import EfficientNetB7
-from keras_cv.models.efficientnet_v2 import EfficientNetV2B0
-from keras_cv.models.efficientnet_v2 import EfficientNetV2B1
-from keras_cv.models.efficientnet_v2 import EfficientNetV2B2
-from keras_cv.models.efficientnet_v2 import EfficientNetV2B3
-from keras_cv.models.efficientnet_v2 import EfficientNetV2L
-from keras_cv.models.efficientnet_v2 import EfficientNetV2M
-from keras_cv.models.efficientnet_v2 import EfficientNetV2S
 from keras_cv.models.mlp_mixer import MLPMixerB16
 from keras_cv.models.mlp_mixer import MLPMixerB32
 from keras_cv.models.mlp_mixer import MLPMixerL16
