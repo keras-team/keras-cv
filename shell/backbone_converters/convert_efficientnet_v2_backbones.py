@@ -19,10 +19,10 @@ original_models_with_weights = [
     keras_cv.models.efficientnet_v2.EfficientNetV2B2,
 ]
 presets_with_weights = [
-    "efficientnetv2-s_imagenet_classifier",
-    "efficientnetv2-b0_imagenet_classifier",
-    "efficientnetv2-b1_imagenet_classifier",
-    "efficientnetv2-b2_imagenet_classifier",
+    "efficientnetv2_s_imagenet_classifier",
+    "efficientnetv2_b0_imagenet_classifier",
+    "efficientnetv2_b1_imagenet_classifier",
+    "efficientnetv2_b2_imagenet_classifier",
 ]
 
 preset_updates = {}

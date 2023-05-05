@@ -56,14 +56,14 @@ class EfficientNetV2SBackbone(EfficientNetV2Backbone):
                 "input_tensor": input_tensor,
             }
         )
-        return EfficientNetV2Backbone.from_preset("efficientnetv2-s", **kwargs)
+        return EfficientNetV2Backbone.from_preset("efficientnetv2_s", **kwargs)
 
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return {
-            "efficientnetv2-s": copy.deepcopy(
-                backbone_presets["efficientnetv2-s"]
+            "efficientnetv2_s": copy.deepcopy(
+                backbone_presets["efficientnetv2_s"]
             ),
         }
 
@@ -72,8 +72,8 @@ class EfficientNetV2SBackbone(EfficientNetV2Backbone):
         """Dictionary of preset names and configurations that include
         weights."""
         return {
-            "efficientnetv2-s_imagenet": copy.deepcopy(
-                backbone_presets_with_weights["efficientnetv2-s_imagenet"]
+            "efficientnetv2_s_imagenet": copy.deepcopy(
+                backbone_presets_with_weights["efficientnetv2_s_imagenet"]
             ),
         }
 
@@ -94,14 +94,14 @@ class EfficientNetV2MBackbone(EfficientNetV2Backbone):
                 "input_tensor": input_tensor,
             }
         )
-        return EfficientNetV2Backbone.from_preset("efficientnetv2-m", **kwargs)
+        return EfficientNetV2Backbone.from_preset("efficientnetv2_m", **kwargs)
 
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return {
-            "efficientnetv2-m": copy.deepcopy(
-                backbone_presets["efficientnetv2-m"]
+            "efficientnetv2_m": copy.deepcopy(
+                backbone_presets["efficientnetv2_m"]
             ),
         }
 
@@ -128,14 +128,14 @@ class EfficientNetV2LBackbone(EfficientNetV2Backbone):
                 "input_tensor": input_tensor,
             }
         )
-        return EfficientNetV2Backbone.from_preset("efficientnetv2-l", **kwargs)
+        return EfficientNetV2Backbone.from_preset("efficientnetv2_l", **kwargs)
 
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return {
-            "efficientnetv2-l": copy.deepcopy(
-                backbone_presets["efficientnetv2-l"]
+            "efficientnetv2_l": copy.deepcopy(
+                backbone_presets["efficientnetv2_l"]
             ),
         }
 
@@ -162,14 +162,14 @@ class EfficientNetV2B0Backbone(EfficientNetV2Backbone):
                 "input_tensor": input_tensor,
             }
         )
-        return EfficientNetV2Backbone.from_preset("efficientnetv2-b0", **kwargs)
+        return EfficientNetV2Backbone.from_preset("efficientnetv2_b0", **kwargs)
 
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return {
-            "efficientnetv2-b0": copy.deepcopy(
-                backbone_presets["efficientnetv2-b0"]
+            "efficientnetv2_b0": copy.deepcopy(
+                backbone_presets["efficientnetv2_b0"]
             ),
         }
 
@@ -178,8 +178,8 @@ class EfficientNetV2B0Backbone(EfficientNetV2Backbone):
         """Dictionary of preset names and configurations that include
         weights."""
         return {
-            "efficientnetv2-b0_imagenet": copy.deepcopy(
-                backbone_presets_with_weights["efficientnetv2-b0_imagenet"]
+            "efficientnetv2_b0_imagenet": copy.deepcopy(
+                backbone_presets_with_weights["efficientnetv2_b0_imagenet"]
             ),
         }
 
@@ -200,14 +200,14 @@ class EfficientNetV2B1Backbone(EfficientNetV2Backbone):
                 "input_tensor": input_tensor,
             }
         )
-        return EfficientNetV2Backbone.from_preset("efficientnetv2-b1", **kwargs)
+        return EfficientNetV2Backbone.from_preset("efficientnetv2_b1", **kwargs)
 
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return {
-            "efficientnetv2-b1": copy.deepcopy(
-                backbone_presets["efficientnetv2-b1"]
+            "efficientnetv2_b1": copy.deepcopy(
+                backbone_presets["efficientnetv2_b1"]
             ),
         }
 
@@ -216,8 +216,8 @@ class EfficientNetV2B1Backbone(EfficientNetV2Backbone):
         """Dictionary of preset names and configurations that include
         weights."""
         return {
-            "efficientnetv2-b1_imagenet": copy.deepcopy(
-                backbone_presets_with_weights["efficientnetv2-b1_imagenet"]
+            "efficientnetv2_b1_imagenet": copy.deepcopy(
+                backbone_presets_with_weights["efficientnetv2_b1_imagenet"]
             ),
         }
 
@@ -238,14 +238,14 @@ class EfficientNetV2B2Backbone(EfficientNetV2Backbone):
                 "input_tensor": input_tensor,
             }
         )
-        return EfficientNetV2Backbone.from_preset("efficientnetv2-b2", **kwargs)
+        return EfficientNetV2Backbone.from_preset("efficientnetv2_b2", **kwargs)
 
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return {
-            "efficientnetv2-b2": copy.deepcopy(
-                backbone_presets["efficientnetv2-b2"]
+            "efficientnetv2_b2": copy.deepcopy(
+                backbone_presets["efficientnetv2_b2"]
             ),
         }
 
@@ -254,8 +254,8 @@ class EfficientNetV2B2Backbone(EfficientNetV2Backbone):
         """Dictionary of preset names and configurations that include
         weights."""
         return {
-            "efficientnetv2-b2_imagenet": copy.deepcopy(
-                backbone_presets_with_weights["efficientnetv2-b2_imagenet"]
+            "efficientnetv2_b2_imagenet": copy.deepcopy(
+                backbone_presets_with_weights["efficientnetv2_b2_imagenet"]
             ),
         }
 
@@ -276,7 +276,7 @@ class EfficientNetV2B3Backbone(EfficientNetV2Backbone):
                 "input_tensor": input_tensor,
             }
         )
-        return EfficientNetV2Backbone.from_preset("efficientnetv2-b3", **kwargs)
+        return EfficientNetV2Backbone.from_preset("efficientnetv2_b3", **kwargs)
 
     @classproperty
     def presets(cls):

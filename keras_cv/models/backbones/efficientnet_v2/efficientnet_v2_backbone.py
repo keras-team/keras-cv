@@ -34,6 +34,10 @@ from keras_cv.utils.python_utils import classproperty
 class EfficientNetV2Backbone(Backbone):
     """Instantiates the EfficientNetV2 architecture.
 
+    Reference:
+    - [EfficientNetV2: Smaller Models and Faster Training](https://arxiv.org/abs/2104.00298)
+      (ICML 2021)
+
     Args:
         include_rescaling: bool, whether to rescale the inputs. If set
             to `True`, inputs will be passed through a `Rescaling(1/255.0)`
@@ -54,7 +58,10 @@ class EfficientNetV2Backbone(Backbone):
             excite ratios passed to the squeeze and excitation blocks.
         stackwise_strides: list of ints, stackwise_strides for each conv block.
         stackwise_conv_types: list of strings.  Each value is either 'unfused'
-            or 'fused' depending on the desired blocks.
+            or 'fused' depending on the desired blocks.  FusedMBConvBlock is
+            similar to MBConvBlock, but instead of using a depthwise convolution
+            and a 1x1 output convolution blocks fused blocks use a single 3x3
+            convolution block.
         skip_connection_dropout: float, dropout rate at skip connections.
         depth_divisor: integer, a unit of network width.
         min_depth: integer, minimum number of filters.
@@ -67,7 +74,7 @@ class EfficientNetV2Backbone(Backbone):
     ```python
     # Construct an EfficientNetV2 from a preset:
     efficientnet = keras_cv.models.EfficientNetV2Backbone.from_preset(
-        "efficientnetv2-s"
+        "efficientnetv2_s"
     )
     images = tf.ones((1, 256, 256, 3))
     outputs = efficientnet.predict(images)
@@ -152,11 +159,13 @@ class EfficientNetV2Backbone(Backbone):
 
         # Build blocks
         block_id = 0
-        blocks = float(sum(num_repeat for num_repeat in stackwise_num_repeats))
+        blocks = float(
+            sum(num_repeats for num_repeats in stackwise_num_repeats)
+        )
 
         pyramid_level_inputs = []
         for i in range(len(stackwise_kernel_sizes)):
-            num_repeat = stackwise_num_repeats[i]
+            num_repeats = stackwise_num_repeats[i]
             input_filters = stackwise_input_filters[i]
             output_filters = stackwise_output_filters[i]
 
@@ -175,7 +184,7 @@ class EfficientNetV2Backbone(Backbone):
             )
 
             repeats = round_repeats(
-                repeats=num_repeat,
+                repeats=num_repeats,
                 depth_coefficient=depth_coefficient,
             )
             strides = stackwise_strides[i]
@@ -193,18 +202,18 @@ class EfficientNetV2Backbone(Backbone):
 
                 # 97 is the start of the lowercase alphabet.
                 letter_identifier = chr(j + 97)
-                block = get_block_conv(
-                    conv_type=stackwise_conv_types[i],
+                block = get_conv_constructor(stackwise_conv_types[i])(
                     input_filters=input_filters,
                     output_filters=output_filters,
                     expand_ratio=stackwise_expansion_ratios[i],
                     kernel_size=stackwise_kernel_sizes[i],
                     strides=strides,
-                    squeeze_and_excite_ratio=squeeze_and_excite_ratio,
+                    se_ratio=squeeze_and_excite_ratio,
                     activation=activation,
                     survival_probability=skip_connection_dropout
                     * block_id
                     / blocks,
+                    bn_momentum=0.9,
                     name="block{}{}_".format(i + 1, letter_identifier),
                 )
                 x = block(x)
@@ -235,10 +244,9 @@ class EfficientNetV2Backbone(Backbone):
         x = layers.Activation(activation=activation, name="top_activation")(x)
 
         pyramid_level_inputs.append(x.node.layer.name)
-        inputs = img_input
 
         # Create model.
-        super().__init__(inputs=inputs, outputs=x, **kwargs)
+        super().__init__(inputs=img_input, outputs=x, **kwargs)
 
         self.include_rescaling = include_rescaling
         self.width_coefficient = width_coefficient
@@ -332,29 +340,3 @@ def get_conv_constructor(conv_type):
             "one of 'unfused', 'fused', but got "
             f"`conv_type={conv_type}`"
         )
-
-
-def get_block_conv(
-    conv_type,
-    input_filters,
-    output_filters,
-    expand_ratio,
-    kernel_size,
-    strides,
-    squeeze_and_excite_ratio,
-    activation,
-    survival_probability,
-    name,
-):
-    return get_conv_constructor(conv_type)(
-        input_filters=input_filters,
-        output_filters=output_filters,
-        expand_ratio=expand_ratio,
-        kernel_size=kernel_size,
-        strides=strides,
-        se_ratio=squeeze_and_excite_ratio,
-        activation=activation,
-        bn_momentum=0.9,
-        survival_probability=survival_probability,
-        name=name,
-    )
