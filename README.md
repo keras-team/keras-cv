@@ -52,8 +52,7 @@ pip install git+https://github.com/keras-team/keras-cv.git tensorflow --upgrade
 ```python
 import tensorflow as tf
 from tensorflow import keras
-from keras_cv.layers import RandomFlip, RandAugment, CutMix, Mixup
-from keras_cv.models import ResNet50V2Backbone, ImageClassifier
+import keras_cv
 import tensorflow_datasets as tfds
 
 # Create a preprocessing pipeline with augmentations
@@ -61,10 +60,9 @@ BATCH_SIZE = 16
 NUM_CLASSES = 3
 augmenter = keras.Sequential(
     [
-        RandomFlip(),
-        RandAugment(value_range=(0, 255)),
-        CutMix(),
-        MixUp()
+        keras_cv.layers.RandomFlip(),
+        keras_cv.layers.RandAugment(value_range=(0, 255)),
+        keras_cv.layers.CutMix(),
     ]
 )
 
@@ -88,10 +86,12 @@ test_dataset = test_dataset.batch(BATCH_SIZE).map(
         tf.data.AUTOTUNE)
 
 # Create a model using a pretrained backbone
-backbone = ResNet50V2Backbone.from_preset("resnet50_v2_imagenet")
-model = ImageClassifier(
+backbone = keras_cv.models.ResNetV2Backbone.from_preset(
+    "resnet50_v2_imagenet"
+)
+model = keras_cv.models.ImageClassifier(
     backbone=backbone,
-    num_classes=3,
+    num_classes=NUM_CLASSES,
     activation="softmax",
 )
 model.compile(
@@ -99,9 +99,6 @@ model.compile(
     optimizer=keras.optimizers.Adam(learning_rate=1e-5),
     metrics=['accuracy']
 )
-
-# Freeze backbone to avoid overfitting to small dataset
-model.backbone.trainable = False
 
 # Train your model
 model.fit(
