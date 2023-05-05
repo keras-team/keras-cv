@@ -23,7 +23,7 @@ In addition to API consistency, KerasCV components aim to be mixed-precision com
 We also aim to provide generic model optimization tools for deployment on devices such as onboard GPUs, mobile, and edge chips.
 
 ## Quick Links
-- [List of avilable models and presets](https://keras.io/api/keras_cv/models/)
+- [List of available models and presets](https://keras.io/api/keras_cv/models/)
 - [Developer Guides](https://keras.io/guides/keras_cv/)
 - [Contributing Guide](.github/CONTRIBUTING.md)
 - [Call for Contributions](https://github.com/keras-team/keras-cv/issues?q=is%3Aopen+is%3Aissue+label%3Acontribution-welcome)
