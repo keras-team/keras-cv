@@ -86,8 +86,8 @@ test_dataset = test_dataset.batch(BATCH_SIZE).map(
         tf.data.AUTOTUNE)
 
 # Create a model using a pretrained backbone
-backbone = keras_cv.models.ResNetV2Backbone.from_preset(
-    "resnet50_v2_imagenet"
+backbone = keras_cv.models.EfficientNetV2Backbone.from_preset(
+    "efficientnetv2_b0_imagenet"
 )
 model = keras_cv.models.ImageClassifier(
     backbone=backbone,
