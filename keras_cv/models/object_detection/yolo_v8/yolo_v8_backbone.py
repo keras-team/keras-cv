@@ -74,6 +74,8 @@ def apply_spatial_pyramid_pooling_fast(
 class YOLOV8Backbone(Backbone):
     """Implements the YOLOV8 backbone for object detection.
 
+    This backbone is a variant of the `CSPDarkNetBackbone` architecture.
+
     For transfer learning use cases, make sure to read the
     [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
 
@@ -84,8 +86,8 @@ class YOLOV8Backbone(Backbone):
             model.
         include_rescaling: bool, whether to rescale the inputs. If set to
             True, inputs will be passed through a `Rescaling(1/255.0)` layer.
-        activation: String. The activation functions to use in the backbone.
-            Defaults to "swish".
+        activation: String. The activation functions to use in the backbone to
+            use in the CSPDarkNet blocks. Defaults to "swish".
         input_shape: optional shape tuple, defaults to (None, None, 3).
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
             to use as image input for the model.
