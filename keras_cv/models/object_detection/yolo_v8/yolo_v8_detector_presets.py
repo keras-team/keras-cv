@@ -24,7 +24,7 @@ yolo_v8_detector_presets = {
             ),
             "params": 25901004,
             "official_name": "YOLOV8Detector",
-            "path": "yolo_v8_detector",
+            "path": "yolov8_detector",
         },
         "config": {
             "backbone": yolo_v8_backbone_presets.backbone_presets[
