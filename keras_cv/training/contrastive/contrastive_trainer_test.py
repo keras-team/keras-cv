@@ -129,9 +129,7 @@ class ContrastiveTrainerTest(tf.test.TestCase):
         with self.assertRaises(ValueError):
             _ = ContrastiveTrainer(
                 # A DenseNet without pooling does not have a flat output
-                encoder=DenseNet121Backbone(
-                    include_rescaling=False, include_top=False
-                ),
+                encoder=DenseNet121Backbone(include_rescaling=False),
                 augmenter=self.build_augmenter(),
                 projector=self.build_projector(),
                 probe=None,
@@ -166,9 +164,7 @@ class ContrastiveTrainerTest(tf.test.TestCase):
         return preprocessing.RandomFlip("horizontal")
 
     def build_encoder(self):
-        return DenseNet121Backbone(
-            include_rescaling=False, include_top=False, pooling="avg"
-        )
+        return DenseNet121Backbone(include_rescaling=False)
 
     def build_projector(self):
         return layers.Dense(128)
