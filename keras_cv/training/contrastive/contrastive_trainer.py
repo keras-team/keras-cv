@@ -44,7 +44,7 @@ class ContrastiveTrainer(keras.Model):
 
     Usage:
     ```python
-    encoder = keras_cv.models.DenseNet121(
+    encoder = keras_cv.models.DenseNet121Backbone(
         include_rescaling=True,
         include_top=False,
         pooling="avg")

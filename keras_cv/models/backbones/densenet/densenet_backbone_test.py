@@ -19,7 +19,7 @@ from keras_cv.models.backbones.densenet import densenet_backbone as densenet
 from keras_cv.models.models_test import ModelsTest
 
 MODEL_LIST = [
-    (densenet.DenseNet121, 1024, {}),
+    (densenet.DenseNet121Backbone, 1024, {}),
 ]
 """
 Below are other configurations that we omit from our CI but that can/should

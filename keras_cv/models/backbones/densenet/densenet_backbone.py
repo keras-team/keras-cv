@@ -19,12 +19,22 @@ Reference:
   - [Based on the Original keras.applications DenseNet](https://github.com/keras-team/keras/blob/master/keras/applications/densenet.py)
 """  # noqa: E501
 
+import copy
+
 from tensorflow import keras
 from tensorflow.keras import backend
 from tensorflow.keras import layers
 
 from keras_cv.models import utils
+from keras_cv.models.backbones.backbone import Backbone
+from keras_cv.models.backbones.densenet.densenet_backbone_presets import (
+    backbone_presets,
+)
+from keras_cv.models.backbones.densenet.densenet_backbone_presets import (
+    backbone_presets_with_weights,
+)
 from keras_cv.models.weights import parse_weights
+from keras_cv.utils.python_utils import classproperty
 
 MODEL_CONFIGS = {
     "DenseNet121": {
@@ -168,7 +178,7 @@ def apply_conv_block(x, growth_rate, name=None):
 
 
 @keras.utils.register_keras_serializable(package="keras_cv.models")
-class DenseNet(keras.Model):
+class DenseNetBackbone(Backbone):
     """Instantiates the DenseNet architecture.
 
     Reference:
@@ -215,24 +225,13 @@ class DenseNet(keras.Model):
 
     def __init__(
         self,
+        *,
         blocks,
         include_rescaling,
-        include_top,
-        num_classes=None,
-        weights=None,
         input_shape=(None, None, 3),
         input_tensor=None,
-        pooling=None,
-        classifier_activation="softmax",
-        name="DenseNet",
         **kwargs,
     ):
-        if include_top and not num_classes:
-            raise ValueError(
-                "If `include_top` is True, you should specify `num_classes`. "
-                f"Received: num_classes={num_classes}"
-            )
-
         inputs = utils.parse_model_inputs(input_shape, input_tensor)
 
         x = inputs
@@ -248,67 +247,61 @@ class DenseNet(keras.Model):
         x = layers.Activation("relu", name="conv1/relu")(x)
         x = layers.MaxPooling2D(3, strides=2, padding="same", name="pool1")(x)
 
+        pyramid_level_inputs = {}
         x = apply_dense_block(x, blocks[0], name="conv2")
+        pyramid_level_inputs[2] = x.node.layer.name
         x = apply_transition_block(x, 0.5, name="pool2")
+        pyramid_level_inputs[3] = x.node.layer.name
         x = apply_dense_block(x, blocks[1], name="conv3")
+        pyramid_level_inputs[4] = x.node.layer.name
         x = apply_transition_block(x, 0.5, name="pool3")
+        pyramid_level_inputs[5] = x.node.layer.name
         x = apply_dense_block(x, blocks[2], name="conv4")
+        pyramid_level_inputs[6] = x.node.layer.name
         x = apply_transition_block(x, 0.5, name="pool4")
+        pyramid_level_inputs[7] = x.node.layer.name
         x = apply_dense_block(x, blocks[3], name="conv5")
+        pyramid_level_inputs[8] = x.node.layer.name
 
         x = layers.BatchNormalization(
             axis=BN_AXIS, epsilon=BN_EPSILON, name="bn"
         )(x)
         x = layers.Activation("relu", name="relu")(x)
 
-        if include_top:
-            x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-            x = layers.Dense(
-                num_classes,
-                activation=classifier_activation,
-                name="predictions",
-            )(x)
-        elif pooling == "avg":
-            x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-        elif pooling == "max":
-            x = layers.GlobalMaxPooling2D(name="max_pool")(x)
-
         # Create model.
         super().__init__(inputs=inputs, outputs=x, **kwargs)
 
         # All references to `self` below this line
-        if weights is not None:
-            self.load_weights(weights)
 
         self.blocks = blocks
         self.include_rescaling = include_rescaling
-        self.include_top = include_top
-        self.num_classes = num_classes
         self.input_tensor = input_tensor
-        self.pooling = pooling
-        self.classifier_activation = classifier_activation
 
     def get_config(self):
-        return {
-            "blocks": self.blocks,
-            "include_rescaling": self.include_rescaling,
-            "include_top": self.include_top,
-            # Remove batch dimension from `input_shape`
-            "input_shape": self.input_shape[1:],
-            "num_classes": self.num_classes,
-            "input_tensor": self.input_tensor,
-            "pooling": self.pooling,
-            "classifier_activation": self.classifier_activation,
-            "name": self.name,
-            "trainable": self.trainable,
-        }
+        config = super().get_config()
+        config.update(
+            {
+                "blocks": self.blocks,
+                "include_rescaling": self.include_rescaling,
+                # Remove batch dimension from `input_shape`
+                "input_shape": self.input_shape[1:],
+                "input_tensor": self.input_tensor,
+            }
+        )
+        return config
 
-    @classmethod
-    def from_config(cls, config):
-        return cls(**config)
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return copy.deepcopy(backbone_presets)
+
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include weights."""  # noqa: E501
+        return copy.deepcopy(backbone_presets_with_weights)
 
 
-def DenseNet121(
+def DenseNet121Backbone(
     *,
     include_rescaling,
     include_top,
@@ -320,7 +313,7 @@ def DenseNet121(
     name="DenseNet121",
     **kwargs,
 ):
-    return DenseNet(
+    return DenseNetBackbone(
         blocks=MODEL_CONFIGS["DenseNet121"]["blocks"],
         include_rescaling=include_rescaling,
         include_top=include_top,
@@ -334,7 +327,7 @@ def DenseNet121(
     )
 
 
-def DenseNet169(
+def DenseNet169Backbone(
     *,
     include_rescaling,
     include_top,
@@ -346,7 +339,7 @@ def DenseNet169(
     name="DenseNet169",
     **kwargs,
 ):
-    return DenseNet(
+    return DenseNetBackbone(
         blocks=MODEL_CONFIGS["DenseNet169"]["blocks"],
         include_rescaling=include_rescaling,
         include_top=include_top,
@@ -360,7 +353,7 @@ def DenseNet169(
     )
 
 
-def DenseNet201(
+def DenseNet201Backbone(
     *,
     include_rescaling,
     include_top,
@@ -372,7 +365,7 @@ def DenseNet201(
     name="DenseNet201",
     **kwargs,
 ):
-    return DenseNet(
+    return DenseNetBackbone(
         blocks=MODEL_CONFIGS["DenseNet201"]["blocks"],
         include_rescaling=include_rescaling,
         include_top=include_top,
@@ -386,6 +379,12 @@ def DenseNet201(
     )
 
 
-setattr(DenseNet121, "__doc__", BASE_DOCSTRING.format(name="DenseNet121"))
-setattr(DenseNet169, "__doc__", BASE_DOCSTRING.format(name="DenseNet169"))
-setattr(DenseNet201, "__doc__", BASE_DOCSTRING.format(name="DenseNet201"))
+setattr(
+    DenseNet121Backbone, "__doc__", BASE_DOCSTRING.format(name="DenseNet121")
+)
+setattr(
+    DenseNet169Backbone, "__doc__", BASE_DOCSTRING.format(name="DenseNet169")
+)
+setattr(
+    DenseNet201Backbone, "__doc__", BASE_DOCSTRING.format(name="DenseNet201")
+)
