@@ -38,54 +38,12 @@ from keras_cv.utils.python_utils import classproperty
 BN_AXIS = 3
 BN_EPSILON = 1.001e-5
 
-BASE_DOCSTRING = """Instantiates the {name} architecture.
-
-    Reference:
-        - [Densely Connected Convolutional Networks (CVPR 2017)](https://arxiv.org/abs/1608.06993)
-
-    This function returns a Keras {name} model.
-
-    For transfer learning use cases, make sure to read the
-    [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
-
-    Args:
-        include_rescaling: bool, whether to rescale the inputs. If set
-            to `True`, inputs will be passed through a `Rescaling(1/255.0)`
-            layer.
-        include_top: bool, whether to include the fully-connected layer at the
-            top of the network. If provided, `num_classes` must be provided.
-        num_classes: optional int, number of classes to classify images into
-            (only to be specified if `include_top` is `True`).
-        weights: one of `None` (random initialization), a pretrained weight file
-            path, or a reference to pre-trained weights (e.g.
-            'imagenet/classification')(see available pre-trained weights in
-            weights.py)
-        input_shape: optional shape tuple, defaults to (None, None, 3).
-        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
-            to use as image input for the model.
-        pooling: optional pooling mode for feature extraction
-            when `include_top` is `False`.
-            - `None` means that the output of the model will be the 4D tensor
-                output of the last convolutional block.
-            - `avg` means that global average pooling will be applied to the
-                output of the last convolutional block, and thus the output of
-                the model will be a 2D tensor.
-            - `max` means that global max pooling will be applied.
-        name: (Optional) name to pass to the model, defaults to "{name}".
-        classifier_activation: A `str` or callable. The activation function to
-            use on the "top" layer. Ignored unless `include_top=True`. Set
-            `classifier_activation=None` to return the logits of the "top"
-            layer.
-
-    Returns:
-      A `keras.Model` instance.
-"""  # noqa: E501
-
 
 def apply_dense_block(x, blocks, name=None):
     """A dense block.
 
     Args:
+      x: input tensor.
       blocks: int, number of building blocks.
       name: string, block label.
 
@@ -104,6 +62,7 @@ def apply_transition_block(x, reduction, name=None):
     """A transition block.
 
     Args:
+      x: input tensor.
       reduction: float, compression rate at transition layers.
       name: string, block label.
 
@@ -132,6 +91,7 @@ def apply_conv_block(x, growth_rate, name=None):
     """A building block for a dense block.
 
     Args:
+      x: input tensor.
       growth_rate: float, growth rate at dense layers.
       name: string, block label.
 
@@ -168,46 +128,30 @@ def apply_conv_block(x, growth_rate, name=None):
 class DenseNetBackbone(Backbone):
     """Instantiates the DenseNet architecture.
 
-    Reference:
-        - [Densely Connected Convolutional Networks (CVPR 2017)](https://arxiv.org/abs/1608.06993)
-
-    This function returns a Keras DenseNet model.
-
-    For transfer learning use cases, make sure to read the
-    [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
-
     Args:
         blocks: numbers of building blocks for the four dense layers.
         include_rescaling: bool, whether to rescale the inputs. If set
             to `True`, inputs will be passed through a `Rescaling(1/255.0)`
             layer.
-        include_top: bool, whether to include the fully-connected layer at the
-            top of the network. If provided, `num_classes` must be provided.
-        num_classes: optional int, number of classes to classify images into
-            (only to be specified if `include_top` is `True`).
-        weights: one of `None` (random initialization), a pretrained weight file
-            path, or a reference to pre-trained weights (e.g.
-            'imagenet/classification')(see available pre-trained weights in
-            weights.py)
         input_shape: optional shape tuple, defaults to (None, None, 3).
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
             to use as image input for the model.
-        pooling: optional pooling mode for feature extraction
-            when `include_top` is `False`.
-            - `None` means that the output of the model will be the 4D tensor
-                output of the last convolutional block.
-            - `avg` means that global average pooling will be applied to the
-                output of the last convolutional block, and thus the output of
-                the model will be a 2D tensor.
-            - `max` means that global max pooling will be applied.
-        name: (Optional) name to pass to the model, defaults to "DenseNet".
-        classifier_activation: A `str` or callable. The activation function to
-            use on the "top" layer. Ignored unless `include_top=True`. Set
-            `classifier_activation=None` to return the logits of the "top"
-            layer.
 
-    Returns:
-      A `keras.Model` instance.
+    Examples:
+    ```python
+    input_data = tf.ones(shape=(8, 224, 224, 3))
+
+    # Pretrained backbone
+    model = keras_cv.models.DenseNetBackbone.from_preset("densenet121_imagenet")
+    output = model(input_data)
+
+    # Randomly initialized backbone with a custom config
+    model = DenseNetBackbone(
+        blocks=[6, 12, 24, 16],
+        include_rescaling=False,
+    )
+    output = model(input_data)
+    ```
     """  # noqa: E501
 
     def __init__(
@@ -286,6 +230,33 @@ class DenseNetBackbone(Backbone):
     def presets_with_weights(cls):
         """Dictionary of preset names and configurations that include weights."""  # noqa: E501
         return copy.deepcopy(backbone_presets_with_weights)
+
+
+ALIAS_DOCSTRING = """DenseNetBackbone model with {num_layers} layers.
+
+    Reference:
+        - [Densely Connected Convolutional Networks (CVPR 2017)](https://arxiv.org/abs/1608.06993)
+
+    For transfer learning use cases, make sure to read the
+    [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
+
+    Args:
+        include_rescaling: bool, whether to rescale the inputs. If set
+            to `True`, inputs will be passed through a `Rescaling(1/255.0)`
+            layer.
+        input_shape: optional shape tuple, defaults to (None, None, 3).
+        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
+            to use as image input for the model.
+
+    Examples:
+    ```python
+    input_data = tf.ones(shape=(8, 224, 224, 3))
+
+    # Randomly initialized backbone
+    model = DenseNet{num_layers}Backbone()
+    output = model(input_data)
+    ```
+"""  # noqa: E501
 
 
 class DenseNet121Backbone(DenseNetBackbone):
@@ -387,12 +358,6 @@ class DenseNet201Backbone(DenseNetBackbone):
         return cls.presets
 
 
-setattr(
-    DenseNet121Backbone, "__doc__", BASE_DOCSTRING.format(name="DenseNet121")
-)
-setattr(
-    DenseNet169Backbone, "__doc__", BASE_DOCSTRING.format(name="DenseNet169")
-)
-setattr(
-    DenseNet201Backbone, "__doc__", BASE_DOCSTRING.format(name="DenseNet201")
-)
+setattr(DenseNet121Backbone, "__doc__", ALIAS_DOCSTRING.format(num_layers=121))
+setattr(DenseNet169Backbone, "__doc__", ALIAS_DOCSTRING.format(num_layers=169))
+setattr(DenseNet201Backbone, "__doc__", ALIAS_DOCSTRING.format(num_layers=201))
