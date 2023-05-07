@@ -27,6 +27,7 @@ backbone_presets_no_weights = {
             "include_rescaling": True,
             "input_shape": (None, None, 3),
             "input_tensor": None,
+            "pooling": None,
         },
     },
     "densenet169": {
@@ -42,6 +43,7 @@ backbone_presets_no_weights = {
             "include_rescaling": True,
             "input_shape": (None, None, 3),
             "input_tensor": None,
+            "pooling": None,
         },
     },
     "densenet201": {
@@ -57,6 +59,7 @@ backbone_presets_no_weights = {
             "include_rescaling": True,
             "input_shape": (None, None, 3),
             "input_tensor": None,
+            "pooling": None,
         },
     },
 }

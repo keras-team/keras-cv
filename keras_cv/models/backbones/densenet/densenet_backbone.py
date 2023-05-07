@@ -161,6 +161,7 @@ class DenseNetBackbone(Backbone):
         include_rescaling,
         input_shape=(None, None, 3),
         input_tensor=None,
+        pooling=None,
         **kwargs,
     ):
         inputs = utils.parse_model_inputs(input_shape, input_tensor)
@@ -198,6 +199,9 @@ class DenseNetBackbone(Backbone):
             axis=BN_AXIS, epsilon=BN_EPSILON, name="bn"
         )(x)
         x = layers.Activation("relu", name="relu")(x)
+
+        if pooling == "avg":
+            x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
 
         # Create model.
         super().__init__(inputs=inputs, outputs=x, **kwargs)
