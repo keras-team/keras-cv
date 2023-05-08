@@ -26,8 +26,8 @@ class SqueezeAndExcite2D(layers.Layer):
     weights adaptively. It first squeezes the feature maps into a single value
     using global average pooling, which are then fed into two Conv1D layers,
     which act like fully-connected layers. The first layer reduces the
-    dimensionality of the feature maps by a factor of `ratio`, whereas the
-    second layer restores it to its original value.
+    dimensionality of the feature maps, and second layer restores it to its
+    original value.
 
     The resultant values are the adaptive weights for each channel. These
     weights are then multiplied with the original inputs to scale the outputs
@@ -37,8 +37,8 @@ class SqueezeAndExcite2D(layers.Layer):
     Args:
         filters: Number of input and output filters. The number of input and
             output filters is same.
-        ratio: Ratio for bottleneck filters. Number of bottleneck filters =
-            filters * ratio, defaults to 0.25.
+        bottleneck_filters: (Optional) Number of bottleneck filters. Defaults
+            to `0.25 * filters`
         squeeze_activation: (Optional) String, callable (or
             keras.layers.Layer) or keras.activations.Activation instance
             denoting activation to be applied after squeeze convolution.
@@ -61,7 +61,7 @@ class SqueezeAndExcite2D(layers.Layer):
     def __init__(
         self,
         filters,
-        ratio=0.25,
+        bottleneck_filters=None,
         squeeze_activation="relu",
         excite_activation="sigmoid",
         **kwargs,
@@ -70,9 +70,11 @@ class SqueezeAndExcite2D(layers.Layer):
 
         self.filters = filters
 
-        if ratio <= 0.0 or ratio >= 1.0:
+        if bottleneck_filters and bottleneck_filters >= filters:
             raise ValueError(
-                f"`ratio` should be a float between 0 and 1. Got {ratio}"
+                "`bottleneck_filters` should be smaller than `filters`. Got "
+                f"`filters={filters}`, and "
+                f"`bottleneck_filters={bottleneck_filters}`."
             )
 
         if filters <= 0 or not isinstance(filters, int):
@@ -80,9 +82,7 @@ class SqueezeAndExcite2D(layers.Layer):
                 f"`filters` should be a positive integer. Got {filters}"
             )
 
-        self.ratio = ratio
-        self.bottleneck_filters = int(self.filters * self.ratio)
-
+        self.bottleneck_filters = bottleneck_filters or (filters // 4)
         self.squeeze_activation = squeeze_activation
         self.excite_activation = excite_activation
 
@@ -106,7 +106,7 @@ class SqueezeAndExcite2D(layers.Layer):
     def get_config(self):
         config = {
             "filters": self.filters,
-            "ratio": self.ratio,
+            "bottleneck_filters": self.bottleneck_filters,
             "squeeze_activation": self.squeeze_activation,
             "excite_activation": self.excite_activation,
         }

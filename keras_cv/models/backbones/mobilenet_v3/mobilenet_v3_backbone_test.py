@@ -73,8 +73,8 @@ class MobileNetV3BackboneTest(tf.test.TestCase, parameterized.TestCase):
         outputs = backbone_model(inputs)
         self.assertLen(outputs, 2)
         self.assertEquals(list(outputs.keys()), [4, 5])
-        self.assertEquals(outputs[4].shape, [None, 31, 31, 24])
-        self.assertEquals(outputs[5].shape, [None, 14, 14, 40])
+        self.assertEquals(outputs[4].shape, [None, 32, 32, 24])
+        self.assertEquals(outputs[5].shape, [None, 16, 16, 40])
 
     @parameterized.named_parameters(
         ("one_channel", 1),
