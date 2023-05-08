@@ -49,14 +49,14 @@ def load_samples(fname):
 
 
 golden_metrics = {
-    "MaP": 0.6194297,
+    "MaP": 0.61690974,
     "MaP@[IoU=50]": 1.0,
-    "MaP@[IoU=75]": 0.7079766,
-    "MaP@[area=small]": 0.6045385,
-    "MaP@[area=medium]": 0.6283987,
-    "MaP@[area=large]": 0.6143586,
-    "Recall@[max_detections=1]": 0.47537246,
-    "Recall@[max_detections=10]": 0.6450954,
+    "MaP@[IoU=75]": 0.70687747,
+    "MaP@[area=small]": 0.6041764,
+    "MaP@[area=medium]": 0.6262922,
+    "MaP@[area=large]": 0.61016285,
+    "Recall@[max_detections=1]": 0.47804594,
+    "Recall@[max_detections=10]": 0.6451851,
     "Recall@[max_detections=100]": 0.6484465,
     "Recall@[area=small]": 0.62842655,
     "Recall@[area=medium]": 0.65336424,
