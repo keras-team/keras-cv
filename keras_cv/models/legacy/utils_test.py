@@ -14,8 +14,9 @@
 """Tests for KerasCV model utils."""
 
 import tensorflow as tf
-from tensorflow import keras
 from keras import layers
+from tensorflow import keras
+
 from keras_cv.models.legacy import utils
 
 

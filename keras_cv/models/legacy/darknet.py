@@ -22,7 +22,6 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 
-from keras_cv.models.legacy import utils
 from keras_cv.models.backbones.csp_darknet.csp_darknet_utils import (
     DarknetConvBlock,
 )
@@ -32,6 +31,7 @@ from keras_cv.models.backbones.csp_darknet.csp_darknet_utils import (
 from keras_cv.models.backbones.csp_darknet.csp_darknet_utils import (
     SpatialPyramidPoolingBottleneck,
 )
+from keras_cv.models.legacy import utils
 from keras_cv.models.legacy.weights import parse_weights
 
 BASE_DOCSTRING = """Represents the {name} architecture.
