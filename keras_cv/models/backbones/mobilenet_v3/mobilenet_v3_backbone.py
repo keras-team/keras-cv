@@ -33,6 +33,9 @@ from keras_cv.models.backbones.backbone import Backbone
 from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_backbone_presets import (  # noqa: E501
     backbone_presets,
 )
+from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_backbone_presets import (  # noqa: E501
+    backbone_presets_with_weights,
+)
 from keras_cv.utils.python_utils import classproperty
 
 CHANNEL_AXIS = -1
@@ -367,6 +370,12 @@ class MobileNetV3Backbone(Backbone):
         """Dictionary of preset names and configurations."""
         return copy.deepcopy(backbone_presets)
 
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include
+        weights."""
+        return copy.deepcopy(backbone_presets_with_weights)
+
 
 ALIAS_DOCSTRING = """MobileNetV3Backbone model with {num_layers} layers.
 
@@ -417,7 +426,11 @@ class MobileNetV3SmallBackbone(MobileNetV3Backbone):
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
-        return {}
+        return {
+            "mobilenetv3small": copy.deepcopy(
+                backbone_presets["mobilenetv3small"]
+            ),
+        }
 
 
 class MobileNetV3LargeBackbone(MobileNetV3Backbone):
@@ -441,7 +454,24 @@ class MobileNetV3LargeBackbone(MobileNetV3Backbone):
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
-        return {}
+        return {
+            "mobilenetv3large": copy.deepcopy(
+                backbone_presets["mobilenetv3large"]
+            ),
+            "mobilenetv3large_imagenet": copy.deepcopy(
+                backbone_presets["mobilenetv3large_imagenet"]
+            ),
+        }
+
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include
+        weights."""
+        return {
+            "mobilenetv3large_imagenet": copy.deepcopy(
+                backbone_presets["mobilenetv3large_imagenet"]
+            ),
+        }
 
 
 setattr(
