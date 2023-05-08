@@ -16,8 +16,8 @@
 from keras_cv.models.backbones.efficientnet_v2 import (
     efficientnet_v2_backbone_presets,
 )
-from keras_cv.models.backbones.resnet_v2 import resnet_v2_backbone_presets
 from keras_cv.models.backbones.mobilenet_v3 import mobilenet_v3_backbone_presets
+from keras_cv.models.backbones.resnet_v2 import resnet_v2_backbone_presets
 
 classifier_presets = {
     "resnet50_v2_imagenet_classifier": {
@@ -167,7 +167,7 @@ classifier_presets = {
                 "Published weights are capable of scoring 69.4%	top-1 "
                 "accuracy and 89.4% top 5 accuracy on imagenet."
             ),
-            "params": 10_178_374, # TODO this is wrong
+            "params": 3_957_352,  # TODO this is wrong
             "official_name": "ImageClassifier",
             "path": "image_classifier",
         },
@@ -180,6 +180,6 @@ classifier_presets = {
             "activation": "softmax",
         },
         "weights_url": "https://storage.googleapis.com/keras-cv/models/mobilenetv3/mobilenetv3_large_imagenet_classifier.h5",  # noqa: E501
-        "weights_hash": "4130fbc249d3812719396439031d89042dce440dd256cda941a109bce6d4e305",
+        "weights_hash": "4130fbc249d3812719396439031d89042dce440dd256cda941a109bce6d4e305",  # noqa: E501
     },
 }

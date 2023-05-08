@@ -191,7 +191,7 @@ backbone_presets_with_weights = {
                 "convolution layers. "
                 "Pre-trained on the ImageNet 2012 classification task."
             ),
-            "params": 23561152, # TODO this is wrong.
+            "params": 2_994_518,
             "official_name": "MobileNetV3",
             "path": "mobilenetv3",
         },
