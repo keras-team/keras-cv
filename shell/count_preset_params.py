@@ -15,9 +15,9 @@
 Small utility script to count parameters in our preset checkpoints.
 
 Usage:
-python tools/count_preset_params.py
-python tools/count_preset_params.py --model ResNetV2Backbone
-python tools/count_preset_params.py --preset resnet50_v2_imagenet
+python shell/count_preset_params.py
+python shell/count_preset_params.py --model ResNetV2Backbone
+python shell/count_preset_params.py --preset resnet50_v2_imagenet
 """
 
 import inspect
