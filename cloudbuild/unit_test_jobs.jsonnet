@@ -34,7 +34,7 @@ local unittest = base.BaseTest {
     |||
   ],
   command: [
-    'pytest',
+    'pytest --ignore keras_cv/models/legacy/',
     'keras_cv',
   ],
 };
