@@ -15,22 +15,17 @@
 import tensorflow as tf
 from absl.testing import parameterized
 
-from keras_cv.models import densenet
+from keras_cv.models.legacy import darknet
 
 from .models_test import ModelsTest
 
 MODEL_LIST = [
-    (densenet.DenseNet121, 1024, {}),
+    (darknet.DarkNet21, 512, {}),
+    (darknet.DarkNet53, 512, {}),
 ]
-"""
-Below are other configurations that we omit from our CI but that can/should
-be tested manually when making changes to this model.
-(densenet.DenseNet169, 1664, {}),
-(densenet.DenseNet201, 1920, {}),
-"""
 
 
-class DenseNetTest(ModelsTest, tf.test.TestCase, parameterized.TestCase):
+class DarkNetTest(ModelsTest, tf.test.TestCase, parameterized.TestCase):
     @parameterized.parameters(*MODEL_LIST)
     def test_application_base(self, app, _, args):
         super()._test_application_base(app, _, args)

@@ -17,8 +17,8 @@ from tensorflow import keras
 from tensorflow.keras import layers
 
 from keras_cv.layers.spatial_pyramid import SpatialPyramidPooling
-from keras_cv.models import utils
-from keras_cv.models.weights import parse_weights
+from keras_cv.models.legacy import utils
+from keras_cv.models.legacy.weights import parse_weights
 
 
 @keras.utils.register_keras_serializable(package="keras_cv")

@@ -12,31 +12,36 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
 import tensorflow as tf
 from absl.testing import parameterized
 
-from keras_cv.models import efficientnet_v1
+from keras_cv.models.legacy import regnet
 
 from .models_test import ModelsTest
 
 MODEL_LIST = [
-    (efficientnet_v1.EfficientNetB0, 1280, {}),
+    (regnet.RegNetX002, 368, {}),
 ]
 
 """
 Below are other configurations that we omit from our CI but that can/should
 be tested manually when making changes to this model.
-(efficientnet_v1.EfficientNetB1, 1280, {}),
-(efficientnet_v1.EfficientNetB2, 1408, {}),
-(efficientnet_v1.EfficientNetB3, 1536, {}),
-(efficientnet_v1.EfficientNetB4, 1792, {}),
-(efficientnet_v1.EfficientNetB5, 2048, {}),
-(efficientnet_v1.EfficientNetB6, 2304, {}),
-(efficientnet_v1.EfficientNetB7, 2560, {}),
+(regnet.RegNetX004, 384, {}),
+(regnet.RegNetX006, 528, {}),
+(regnet.RegNetX008, 672, {}),
+(regnet.RegNetX016, 912, {}),
+(regnet.RegNetX032, 1008, {}),
+(regnet.RegNetX040, 1360, {}),
+(regnet.RegNetX064, 1624, {}),
+(regnet.RegNetX080, 1920, {}),
+(regnet.RegNetX120, 2240, {}),
+(regnet.RegNetX160, 2048, {}),
+(regnet.RegNetX320, 2520, {}),
 """
 
 
-class EfficientNetV1Test(ModelsTest, tf.test.TestCase, parameterized.TestCase):
+class RegNetXTest(ModelsTest, tf.test.TestCase, parameterized.TestCase):
     @parameterized.parameters(*MODEL_LIST)
     def test_application_base(self, app, _, args):
         super()._test_application_base(app, _, args)

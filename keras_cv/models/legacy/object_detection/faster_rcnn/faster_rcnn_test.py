@@ -25,7 +25,7 @@ from keras_cv.models import ResNet50V2Backbone
 from keras_cv.models.object_detection.__test_utils__ import (
     _create_bounding_box_dataset,
 )
-from keras_cv.models.object_detection.faster_rcnn.faster_rcnn import FasterRCNN
+from keras_cv.models.legacy.object_detection.faster_rcnn.faster_rcnn import FasterRCNN
 
 
 class FasterRCNNTest(tf.test.TestCase, parameterized.TestCase):

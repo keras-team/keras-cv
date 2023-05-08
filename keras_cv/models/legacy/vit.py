@@ -25,8 +25,8 @@ from tensorflow.keras import layers
 
 from keras_cv.layers import TransformerEncoder
 from keras_cv.layers.vit_layers import PatchingAndEmbedding
-from keras_cv.models import utils
-from keras_cv.models.weights import parse_weights
+from keras_cv.models.legacy import utils
+from keras_cv.models.legacy.weights import parse_weights
 
 MODEL_CONFIGS = {
     "ViTTiny16": {

@@ -15,16 +15,22 @@
 import tensorflow as tf
 from absl.testing import parameterized
 
-from keras_cv.models import vgg19
+from keras_cv.models.legacy import densenet
 
 from .models_test import ModelsTest
 
 MODEL_LIST = [
-    (vgg19.VGG19, 512, {}),
+    (densenet.DenseNet121, 1024, {}),
 ]
+"""
+Below are other configurations that we omit from our CI but that can/should
+be tested manually when making changes to this model.
+(densenet.DenseNet169, 1664, {}),
+(densenet.DenseNet201, 1920, {}),
+"""
 
 
-class VGG19Test(ModelsTest, tf.test.TestCase, parameterized.TestCase):
+class DenseNetTest(ModelsTest, tf.test.TestCase, parameterized.TestCase):
     @parameterized.parameters(*MODEL_LIST)
     def test_application_base(self, app, _, args):
         super()._test_application_base(app, _, args)

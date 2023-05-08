@@ -23,7 +23,7 @@ from tensorflow import keras
 from tensorflow.keras import backend
 from tensorflow.keras import layers
 
-from keras_cv.models import utils
+from keras_cv.models.legacy import utils
 
 MODEL_CONFIGS = {
     "MLPMixerB16": {

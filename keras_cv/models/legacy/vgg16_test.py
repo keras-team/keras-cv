@@ -15,17 +15,16 @@
 import tensorflow as tf
 from absl.testing import parameterized
 
-from keras_cv.models import darknet
+from keras_cv.models.legacy import vgg16
 
 from .models_test import ModelsTest
 
 MODEL_LIST = [
-    (darknet.DarkNet21, 512, {}),
-    (darknet.DarkNet53, 512, {}),
+    (vgg16.VGG16, 512, {}),
 ]
 
 
-class DarkNetTest(ModelsTest, tf.test.TestCase, parameterized.TestCase):
+class VGG16Test(ModelsTest, tf.test.TestCase, parameterized.TestCase):
     @parameterized.parameters(*MODEL_LIST)
     def test_application_base(self, app, _, args):
         super()._test_application_base(app, _, args)

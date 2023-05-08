@@ -18,7 +18,7 @@ import tensorflow_datasets as tfds
 from tensorflow import keras
 
 from keras_cv.models import ResNet50V2Backbone
-from keras_cv.models import segmentation
+from keras_cv.models.legacy import segmentation
 
 
 class DeeplabTest(tf.test.TestCase):

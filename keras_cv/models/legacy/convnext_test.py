@@ -15,7 +15,7 @@
 import tensorflow as tf
 from absl.testing import parameterized
 
-from keras_cv.models import convnext
+from keras_cv.models.legacy import convnext
 
 from .models_test import ModelsTest
 

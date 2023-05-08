@@ -13,73 +13,34 @@
 # limitations under the License.
 # ==============================================================================
 
-"""VGG16 model for KerasCV.
+"""VGG19 model for KerasCV.
 Reference:
   - [Very Deep Convolutional Networks for Large-Scale Image Recognition](https://arxiv.org/abs/1409.1556)
     (ICLR 2015)
 """  # noqa: E501
-
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 
-from keras_cv.models import utils
-
-
-def apply_vgg_block(
-    x,
-    num_layers,
-    filters,
-    kernel_size,
-    activation,
-    padding,
-    max_pool,
-    name,
-):
-    """
-    Applies VGG block
-    Args:
-        x: Tensor, input tensor to pass through network
-        num_layers: int, number of CNN layers in the block
-        filters: int, filter size of each CNN layer in block
-        kernel_size: int (or) tuple, kernel size for CNN layer in block
-        activation: str (or) callable, activation function for each CNN layer in
-            block
-        padding: str (or) callable, padding function for each CNN layer in block
-        max_pool: bool, whether to add MaxPooling2D layer at end of block
-        name: str, name of the block
-
-    Returns:
-        tf.Tensor
-    """
-    for num in range(1, num_layers + 1):
-        x = layers.Conv2D(
-            filters,
-            kernel_size,
-            activation=activation,
-            padding=padding,
-            name=f"{name}_conv{str(num)}",
-        )(x)
-    if max_pool:
-        x = layers.MaxPooling2D((2, 2), strides=(2, 2), name=f"{name}_pool")(x)
-    return x
+from keras_cv.models.legacy import utils
+from keras_cv.models.legacy.vgg16 import apply_vgg_block
 
 
 @keras.utils.register_keras_serializable(package="keras_cv.models")
-class VGG16(keras.Model):
+class VGG19(keras.Model):
     """
     Reference:
     - [Very Deep Convolutional Networks for Large-Scale Image Recognition](https://arxiv.org/abs/1409.1556)
         (ICLR 2015)
-    This class represents a Keras VGG16 model.
+    This class represents a Keras VGG19 model.
     Args:
       include_rescaling: bool, whether to rescale the inputs. If set to
         True, inputs will be passed through a `Rescaling(1/255.0)` layer.
       include_top: bool, whether to include the 3 fully-connected
         layers at the top of the network. If provided, num_classes must be
-          provided.
-      num_classes: int, optional number of classes to classify images into,
-        only to be specified if `include_top` is True.
+        provided.
+      num_classes: int, optional number of classes to classify images into, only
+        to be specified if `include_top` is True.
       weights: os.PathLike or None, one of `None` (random initialization), or a
         pretrained weight file path.
       input_shape: tuple, optional shape tuple, defaults to (224, 224, 3).
@@ -101,7 +62,7 @@ class VGG16(keras.Model):
         `classifier_activation=None` to return the logits of the "top" layer.
         When loading pretrained weights, `classifier_activation` can only
         be `None` or `"softmax"`.
-      name: (Optional) name to pass to the model, defaults to "VGG16".
+      name: (Optional) name to pass to the model, defaults to "VGG19".
     Returns:
       A `keras.Model` instance.
     """  # noqa: E501
@@ -116,7 +77,7 @@ class VGG16(keras.Model):
         input_shape=(224, 224, 3),
         pooling=None,
         classifier_activation="softmax",
-        name="VGG16",
+        name="VGG19",
         **kwargs,
     ):
         if weights and not tf.io.gfile.exists(weights):
@@ -168,7 +129,7 @@ class VGG16(keras.Model):
 
         x = apply_vgg_block(
             x=x,
-            num_layers=3,
+            num_layers=4,
             filters=256,
             kernel_size=(3, 3),
             activation="relu",
@@ -179,7 +140,7 @@ class VGG16(keras.Model):
 
         x = apply_vgg_block(
             x=x,
-            num_layers=3,
+            num_layers=4,
             filters=512,
             kernel_size=(3, 3),
             activation="relu",
@@ -190,7 +151,7 @@ class VGG16(keras.Model):
 
         x = apply_vgg_block(
             x=x,
-            num_layers=3,
+            num_layers=4,
             filters=512,
             kernel_size=(3, 3),
             activation="relu",

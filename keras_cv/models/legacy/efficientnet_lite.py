@@ -29,8 +29,8 @@ from keras import backend
 from keras import layers
 from tensorflow import keras
 
-from keras_cv.models import utils
-from keras_cv.models.weights import parse_weights
+from keras_cv.models.legacy import utils
+from keras_cv.models.legacy.weights import parse_weights
 
 DEFAULT_BLOCKS_ARGS = [
     {

@@ -23,8 +23,8 @@ from tensorflow.keras import backend
 from tensorflow.keras import layers
 
 from keras_cv.layers import SqueezeAndExcite2D
-from keras_cv.models import utils
-from keras_cv.models.weights import parse_weights
+from keras_cv.models.legacy import utils
+from keras_cv.models.legacy.weights import parse_weights
 
 # The widths and depths are deduced from a quantized linear function. For
 # more information, please refer to "Designing Network Design Spaces" by
