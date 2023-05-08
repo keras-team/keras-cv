@@ -173,7 +173,7 @@ class BoxCOCOMetrics(keras.metrics.Metric):
             y_true_classes = y_true["classes"]
             y_pred_boxes = y_pred["boxes"]
             y_pred_classes = y_pred["classes"]
-            y_pred_confidence = y_pred["classes"]
+            y_pred_confidence = y_pred["confidence"]
             eager_inputs = [
                 y_true_boxes,
                 y_true_classes,
