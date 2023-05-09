@@ -455,9 +455,6 @@ class MobileNetV3LargeBackbone(MobileNetV3Backbone):
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return {
-            "mobilenetv3large": copy.deepcopy(
-                backbone_presets["mobilenetv3large"]
-            ),
             "mobilenetv3large_imagenet": copy.deepcopy(
                 backbone_presets["mobilenetv3large_imagenet"]
             ),
@@ -467,11 +464,7 @@ class MobileNetV3LargeBackbone(MobileNetV3Backbone):
     def presets_with_weights(cls):
         """Dictionary of preset names and configurations that include
         weights."""
-        return {
-            "mobilenetv3large_imagenet": copy.deepcopy(
-                backbone_presets["mobilenetv3large_imagenet"]
-            ),
-        }
+        return cls.presets
 
 
 setattr(
