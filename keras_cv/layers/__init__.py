@@ -76,9 +76,6 @@ from keras_cv.layers.preprocessing.random_sharpness import RandomSharpness
 from keras_cv.layers.preprocessing.random_shear import RandomShear
 from keras_cv.layers.preprocessing.random_translation import RandomTranslation
 from keras_cv.layers.preprocessing.random_zoom import RandomZoom
-from keras_cv.layers.preprocessing.randomly_zoomed_crop import (
-    RandomlyZoomedCrop,
-)
 from keras_cv.layers.preprocessing.repeated_augmentation import (
     RepeatedAugmentation,
 )
