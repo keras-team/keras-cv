@@ -79,9 +79,12 @@ class RandomBrightness(VectorizedBaseImageAugmentationLayer):
         return random_rgb_deltas
 
     def augment_ragged_image(self, image, transformation, **kwargs):
-        return self.augment_images(
+        image = tf.expand_dims(image, axis=0)
+        transformation = tf.expand_dims(transformation, axis=0)
+        image = self.augment_images(
             images=image, transformations=transformation, **kwargs
         )
+        return tf.squeeze(image, axis=0)
 
     def augment_images(self, images, transformations, **kwargs):
         rank = images.shape.rank
