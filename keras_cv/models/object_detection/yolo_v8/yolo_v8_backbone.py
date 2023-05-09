@@ -101,7 +101,7 @@ class YOLOV8Backbone(Backbone):
 
     # Pretrained backbone
     model = keras_cv.models.YOLOV8Backbone.from_preset(
-        "yolov8_xs_backbone_coco"
+        "yolo_v8_xs_backbone_coco"
     )
     output = model(input_data)
 
