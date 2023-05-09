@@ -232,7 +232,7 @@ class RandomCropTest(tf.test.TestCase, parameterized.TestCase):
 
         results = layer(inputs)
 
-        self.assertTrue(isinstance(results["images"], tf.RaggedTensor))
+        self.assertTrue(isinstance(results["images"], tf.Tensor))
         self.assertTrue(
             isinstance(results["bounding_boxes"]["boxes"], tf.RaggedTensor)
         )

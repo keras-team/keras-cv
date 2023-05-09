@@ -28,20 +28,20 @@ from keras_cv.models.stable_diffusion.__internal__.layers.resnet_block import (
 class ImageEncoder(keras.Sequential):
     """ImageEncoder is the VAE Encoder for StableDiffusion."""
 
-    def __init__(self, img_height=512, img_width=512, download_weights=True):
+    def __init__(self, download_weights=True):
         super().__init__(
             [
-                keras.layers.Input((img_height, img_width, 3)),
+                keras.layers.Input((None, None, 3)),
                 PaddedConv2D(128, 3, padding=1),
                 ResnetBlock(128),
                 ResnetBlock(128),
-                PaddedConv2D(128, 3, padding=1, strides=2),
+                PaddedConv2D(128, 3, padding=((0, 1), (0, 1)), strides=2),
                 ResnetBlock(256),
                 ResnetBlock(256),
-                PaddedConv2D(256, 3, padding=1, strides=2),
+                PaddedConv2D(256, 3, padding=((0, 1), (0, 1)), strides=2),
                 ResnetBlock(512),
                 ResnetBlock(512),
-                PaddedConv2D(512, 3, padding=1, strides=2),
+                PaddedConv2D(512, 3, padding=((0, 1), (0, 1)), strides=2),
                 ResnetBlock(512),
                 ResnetBlock(512),
                 ResnetBlock(512),

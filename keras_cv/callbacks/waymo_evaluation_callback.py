@@ -17,9 +17,12 @@ from keras.callbacks import Callback
 from keras_cv.utils import assert_waymo_open_dataset_installed
 
 try:
+    from waymo_open_dataset import label_pb2
     from waymo_open_dataset.metrics.python.wod_detection_evaluator import (
         WODDetectionEvaluator,
     )
+    from waymo_open_dataset.protos import breakdown_pb2
+    from waymo_open_dataset.protos import metrics_pb2
 except ImportError:
     WODDetectionEvaluator = None
 
@@ -44,8 +47,35 @@ class WaymoEvaluationCallback(Callback):
         )
         self.model = None
         self.val_data = validation_data
-        self.evaluator = WODDetectionEvaluator(config=config)
+        self.evaluator = WODDetectionEvaluator(
+            config=config or self._get_default_config()
+        )
         super().__init__(**kwargs)
+
+    def _get_default_config(self):
+        """Returns the default Config proto for detection."""
+        config = metrics_pb2.Config()
+
+        config.breakdown_generator_ids.append(
+            breakdown_pb2.Breakdown.OBJECT_TYPE
+        )
+        difficulty = config.difficulties.add()
+        difficulty.levels.append(label_pb2.Label.LEVEL_1)
+        difficulty.levels.append(label_pb2.Label.LEVEL_2)
+
+        config.matcher_type = metrics_pb2.MatcherProto.TYPE_HUNGARIAN
+        config.iou_thresholds.append(0.0)  # Unknown
+        config.iou_thresholds.append(0.7)  # Vehicle
+        config.iou_thresholds.append(0.5)  # Pedestrian
+        config.iou_thresholds.append(0.5)  # Sign
+        config.iou_thresholds.append(0.5)  # Cyclist
+        config.box_type = label_pb2.Label.Box.TYPE_3D
+
+        for i in range(100):
+            config.score_cutoffs.append(i * 0.01)
+        config.score_cutoffs.append(1.0)
+
+        return config
 
     def on_epoch_end(self, epoch, logs=None):
         logs = logs or {}
@@ -56,11 +86,10 @@ class WaymoEvaluationCallback(Callback):
         metrics = self.evaluator.evaluate()
 
         metrics_dict = {
-            "average_precision": metrics.average_precision,
-            "average_precision_ha_weighted": metrics.average_precision_ha_weighted,  # noqa: E501
-            "precision_recall": metrics.precision_recall,
-            "precision_recall_ha_weighted": metrics.precision_recall_ha_weighted,  # noqa: E501
-            "breakdown": metrics.breakdown,
+            "average_precision_vehicle_l1": metrics.average_precision[0],
+            "average_precision_vehicle_l2": metrics.average_precision[1],
+            "average_precision_ped_l1": metrics.average_precision[2],
+            "average_precision_ped_l2": metrics.average_precision[3],
         }
 
         logs.update(metrics_dict)
@@ -135,9 +164,8 @@ class WaymoEvaluationCallback(Callback):
         prediction_scores = tf.reshape(
             model_outputs["confidence"], (total_predicted_boxes, 1)
         )
-        # Remove boxes with class of -1 (these are non-boxes that may come from
-        # padding)
-        pred_real_boxes = tf.reduce_all(predicted_classes != -1, axis=[-1])
+        # Remove boxes that come from padding
+        pred_real_boxes = tf.squeeze(prediction_scores > 0)
         predicted_boxes = tf.boolean_mask(predicted_boxes, pred_real_boxes)
         predicted_classes = tf.boolean_mask(predicted_classes, pred_real_boxes)
         prediction_scores = tf.boolean_mask(prediction_scores, pred_real_boxes)
