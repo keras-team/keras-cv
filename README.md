@@ -10,6 +10,8 @@ KerasCV is a library of modular computer vision oriented Keras components.
 These components include models, layers, metrics, losses, callbacks, and utility
 functions.
 
+<img style="width: 440px; max-width: 90%;" src="https://storage.googleapis.com/keras-cv/guides/keras-cv-augmentations.gif">
+
 KerasCV's primary goal is to provide a coherent, elegant, and pleasant API to train state of the art computer vision models.
 Users should be able to train state of the art models using only `Keras`, `KerasCV`, and TensorFlow core (i.e. `tf.data`) components.
 
