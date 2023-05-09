@@ -421,16 +421,17 @@ class MobileNetV3SmallBackbone(MobileNetV3Backbone):
                 "input_tensor": input_tensor,
             }
         )
-        return MobileNetV3Backbone.from_preset("mobilenetv3small", **kwargs)
+        return MobileNetV3Backbone.from_preset("mobilenet_v3_small", **kwargs)
 
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
-        return {
-            "mobilenetv3small": copy.deepcopy(
-                backbone_presets["mobilenetv3small"]
-            ),
-        }
+        return {}
+
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
 
 
 class MobileNetV3LargeBackbone(MobileNetV3Backbone):
@@ -449,14 +450,14 @@ class MobileNetV3LargeBackbone(MobileNetV3Backbone):
                 "input_tensor": input_tensor,
             }
         )
-        return MobileNetV3Backbone.from_preset("mobilenetv3large", **kwargs)
+        return MobileNetV3Backbone.from_preset("mobilenet_v3_large", **kwargs)
 
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return {
-            "mobilenetv3large_imagenet": copy.deepcopy(
-                backbone_presets["mobilenetv3large_imagenet"]
+            "mobilenet_v3_large_imagenet": copy.deepcopy(
+                backbone_presets["mobilenet_v3_large_imagenet"]
             ),
         }
 

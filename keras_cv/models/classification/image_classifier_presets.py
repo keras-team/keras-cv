@@ -173,7 +173,7 @@ classifier_presets = {
         },
         "config": {
             "backbone": mobilenet_v3_backbone_presets.backbone_presets[
-                "mobilenetv3large"
+                "mobilenet_v3_large"
             ],
             "num_classes": 1000,
             "pooling": "avg",
