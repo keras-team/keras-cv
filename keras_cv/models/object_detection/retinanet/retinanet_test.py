@@ -155,7 +155,7 @@ class RetinaNetTest(tf.test.TestCase):
         }
         ds = tf.data.Dataset.from_tensor_slices((xs, ys))
         ds = ds.repeat(2)
-        ds = ds.ragged_batch(2)
+        ds = ds.batch(2)
         retina_net.fit(ds, epochs=1)
 
         weights = retina_net.get_weights()
