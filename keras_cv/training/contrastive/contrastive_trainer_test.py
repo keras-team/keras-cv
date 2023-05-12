@@ -164,7 +164,7 @@ class ContrastiveTrainerTest(tf.test.TestCase):
         return preprocessing.RandomFlip("horizontal")
 
     def build_encoder(self):
-        return DenseNet121Backbone(include_rescaling=False)
+        return DenseNet121Backbone(include_rescaling=False, pooling="avg")
 
     def build_projector(self):
         return layers.Dense(128)
