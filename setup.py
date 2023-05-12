@@ -13,10 +13,8 @@
 # limitations under the License.
 
 """Setup script."""
-
-import os
 import pathlib
-
+import os
 from setuptools import find_packages
 from setuptools import setup
 from setuptools.dist import Distribution
