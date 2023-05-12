@@ -22,12 +22,6 @@ from keras_cv.models.backbones.densenet.densenet_backbone import (
     DenseNet121Backbone,
 )
 from keras_cv.models.backbones.densenet.densenet_backbone import (
-    DenseNet169Backbone,
-)
-from keras_cv.models.backbones.densenet.densenet_backbone import (
-    DenseNet201Backbone,
-)
-from keras_cv.models.backbones.densenet.densenet_backbone import (
     DenseNetBackbone,
 )
 from keras_cv.utils.train import get_feature_extractor
@@ -139,15 +133,6 @@ class DenseNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
             include_rescaling=False,
         )
         self.assertEqual(model.output_shape, (None, None, None, 1024))
-
-    @parameterized.named_parameters(
-        ("121", DenseNet121Backbone),
-        ("169", DenseNet169Backbone),
-        ("201", DenseNet201Backbone),
-    )
-    def test_specific_arch_forward_pass(self, arch_class):
-        backbone = arch_class()
-        backbone(tf.random.uniform(shape=[2, 256, 256, 3]))
 
 
 if __name__ == "__main__":

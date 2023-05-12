@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""DenseNet models for KerasCV.
+"""DenseNet backbone model.
 
 Reference:
   - [Densely Connected Convolutional Networks](https://arxiv.org/abs/1608.06993)
