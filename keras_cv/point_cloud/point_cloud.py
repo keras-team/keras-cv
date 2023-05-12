@@ -105,7 +105,7 @@ def group_points_by_boxes(points, boxes):
 # TODO(lengzhaoqi/tanzhenyu): compare the performance with v1
 def is_within_any_box3d_v2(points, boxes, keepdims=False):
     """Checks if 3d points are within 3d bounding boxes.
-    Currently only xyz format is supported.
+    Currently, only xyz format is supported.
 
     Args:
       points: [..., num_points, 3] float32 Tensor for 3d points in xyz format.

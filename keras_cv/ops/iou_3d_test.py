@@ -34,7 +34,7 @@ class IoU3DTest(tf.test.TestCase):
         # 1: a 2x2x2 box centered at 1,1,1, rotated 135 degrees
         # Ground Truth boxes:
         # 0: a 2x2x2 box centered at 1,1,1, rotated 45 degrees
-        #    (idential to predicted box 1)
+        #    (identical to predicted box 1)
         # 1: a 2x2x2 box centered at 1,1,1, rotated 0 degrees
         box_preds = [[0, 0, 0, 2, 2, 2, 0], [1, 1, 1, 2, 2, 2, 3 * math.pi / 4]]
         box_gt = [[1, 1, 1, 2, 2, 2, math.pi / 4], [1, 1, 1, 2, 2, 2, 0]]

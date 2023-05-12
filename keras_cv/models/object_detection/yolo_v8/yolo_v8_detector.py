@@ -58,12 +58,12 @@ def get_anchors(
     matches ground truth boxes to anchors based on center points.
 
     Args:
-        image_shape: tuple or list of two integers representing the heigh and
+        image_shape: tuple or list of two integers representing the height and
             width of input images, respectively.
         strides: tuple of list of integers, the size of the strides across the
             image size that should be used to create anchors.
         base_anchors: tuple or list of two integers representing the offset from
-            (0,0) to start creating the center of anchor boxes, releative to the
+            (0,0) to start creating the center of anchor boxes, relative to the
             stride. For example, using the default (0.5, 0.5) creates the first
             anchor box for each stride such that its center is half of a stride
             from the edge of the image.
