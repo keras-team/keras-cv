@@ -96,7 +96,7 @@ def apply_conv_block(x, growth_rate, name=None):
       name: string, block label.
 
     Returns:
-      a function that takes an input Tensor representing a apply_conv_block.
+      a function that takes an input Tensor representing an apply_conv_block.
     """
     if name is None:
         name = f"conv_block_{backend.get_uid('conv_block')}"
@@ -207,7 +207,7 @@ class DenseNetBackbone(Backbone):
         super().__init__(inputs=inputs, outputs=x, **kwargs)
 
         # All references to `self` below this line
-
+        self.pyramid_level_inputs = pyramid_level_inputs
         self.blocks = blocks
         self.include_rescaling = include_rescaling
         self.input_tensor = input_tensor
