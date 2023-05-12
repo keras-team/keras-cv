@@ -181,7 +181,7 @@ class RandomRotation(VectorizedBaseImageAugmentationLayer):
         # point_x : x coordinates of all corners of the bounding box
         point_xs = tf.gather(points, [0], axis=3)
         point_x_offsets = tf.cast((point_xs - origin_x), dtype=tf.float32)
-        # point_y : y cordinates of all corners of the bounding box
+        # point_y : y coordinates of all corners of the bounding box
         point_ys = tf.gather(points, [1], axis=3)
         point_y_offsets = tf.cast((point_ys - origin_y), dtype=tf.float32)
         # rotated bounding box coordinates
@@ -201,9 +201,9 @@ class RandomRotation(VectorizedBaseImageAugmentationLayer):
         out = tf.concat([new_x, new_y], axis=3)
         # find readjusted coordinates of bounding box to represent it in corners
         # format
-        min_cordinates = tf.math.reduce_min(out, axis=2)
-        max_cordinates = tf.math.reduce_max(out, axis=2)
-        boxes = tf.concat([min_cordinates, max_cordinates], axis=2)
+        min_coordinates = tf.math.reduce_min(out, axis=2)
+        max_coordinates = tf.math.reduce_max(out, axis=2)
+        boxes = tf.concat([min_coordinates, max_coordinates], axis=2)
 
         bounding_boxes = bounding_boxes.copy()
         bounding_boxes["boxes"] = boxes
@@ -251,7 +251,7 @@ class RandomRotation(VectorizedBaseImageAugmentationLayer):
                 segmentation_masks, transformations
             )
             # Round because we are in one-hot encoding, and we may have
-            # pixels with ambugious value due to floating point math for
+            # pixels with ambiguous value due to floating point math for
             # rotation.
             return tf.round(rotated_mask)
 

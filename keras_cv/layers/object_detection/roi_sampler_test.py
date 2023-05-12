@@ -47,7 +47,7 @@ class ROISamplerTest(tf.test.TestCase):
         _, sampled_gt_boxes, _, sampled_gt_classes, _ = roi_sampler(
             rois, gt_boxes, gt_classes
         )
-        # given we only choose 1 positive sample, and `append_labesl` is False,
+        # given we only choose 1 positive sample, and `append_label` is False,
         # only the 2nd ROI is chosen.
         expected_gt_boxes = tf.constant(
             [[0.0, 0.0, 0, 0.0], [0.0, 0.0, 0, 0.0]]
