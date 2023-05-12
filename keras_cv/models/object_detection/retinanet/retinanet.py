@@ -434,6 +434,16 @@ class RetinaNet(Task):
             "box": box_weights,
             "classification": cls_weights,
         }
+        zero_weight = {
+            "box": tf.zeros_like(box_weights),
+            "classification": tf.zeros_like(cls_weights),
+        }
+
+        sample_weights = tf.cond(
+            normalizer == 0,
+            lambda: zero_weight,
+            lambda: sample_weights,
+        )
         return super().compute_loss(
             x=x, y=y_true, y_pred=y_pred, sample_weight=sample_weights
         )
