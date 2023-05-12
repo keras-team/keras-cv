@@ -184,10 +184,10 @@ def apply_path_aggregation_fpn(features, depth=3, name="fpn"):
     return [p3p4p5, p3p4p5_d1, p3p4p5_d2]
 
 
-def apply_yolov8_head(
+def apply_yolo_v8_head(
     inputs,
     num_classes,
-    name="yolov8_head",
+    name="yolo_v8_head",
 ):
     """Applies a YOLOV8 head.
 
@@ -363,7 +363,7 @@ class YOLOV8Detector(Task):
         num_classes=20,
         bounding_box_format="xywh",
         backbone=keras_cv.models.YOLOV8Backbone.from_preset(
-            "yolov8_m_coco"
+            "yolo_v8_m_coco"
         ),
         fpn_depth=2.
     )
@@ -410,7 +410,7 @@ class YOLOV8Detector(Task):
             features, depth=fpn_depth, name="pa_fpn"
         )
 
-        outputs = apply_yolov8_head(
+        outputs = apply_yolo_v8_head(
             fpn_features,
             num_classes,
         )

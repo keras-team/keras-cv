@@ -20,7 +20,7 @@ from tensorflow.keras import optimizers
 
 from keras_cv.layers import preprocessing
 from keras_cv.losses import SimCLRLoss
-from keras_cv.models import DenseNet121Backbone
+from keras_cv.models.legacy import DenseNet121Backbone
 from keras_cv.training import ContrastiveTrainer
 
 

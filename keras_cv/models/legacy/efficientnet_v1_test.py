@@ -1,4 +1,4 @@
-# Copyright 2023 The KerasCV Authors
+# Copyright 2022 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,27 +15,28 @@
 import tensorflow as tf
 from absl.testing import parameterized
 
-from keras_cv.models import efficientnet_lite
+from keras_cv.models.legacy import efficientnet_v1
 
 from .models_test import ModelsTest
 
 MODEL_LIST = [
-    (efficientnet_lite.EfficientNetLiteB0, 1280, {}),
+    (efficientnet_v1.EfficientNetB0, 1280, {}),
 ]
 
 """
 Below are other configurations that we omit from our CI but that can/should
 be tested manually when making changes to this model.
-(efficientnet_lite.EfficientNetLiteB1, 1280, {}),
-(efficientnet_lite.EfficientNetLiteB2, 1280, {}),
-(efficientnet_lite.EfficientNetLiteB3, 1280, {}),
-(efficientnet_lite.EfficientNetLiteB4, 1280, {}),
+(efficientnet_v1.EfficientNetB1, 1280, {}),
+(efficientnet_v1.EfficientNetB2, 1408, {}),
+(efficientnet_v1.EfficientNetB3, 1536, {}),
+(efficientnet_v1.EfficientNetB4, 1792, {}),
+(efficientnet_v1.EfficientNetB5, 2048, {}),
+(efficientnet_v1.EfficientNetB6, 2304, {}),
+(efficientnet_v1.EfficientNetB7, 2560, {}),
 """
 
 
-class EfficientNetLiteTest(
-    ModelsTest, tf.test.TestCase, parameterized.TestCase
-):
+class EfficientNetV1Test(ModelsTest, tf.test.TestCase, parameterized.TestCase):
     @parameterized.parameters(*MODEL_LIST)
     def test_application_base(self, app, _, args):
         super()._test_application_base(app, _, args)

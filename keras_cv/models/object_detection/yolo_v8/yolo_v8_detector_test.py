@@ -35,7 +35,7 @@ class YOLOV8DetectorTest(tf.test.TestCase):
             fpn_depth=1,
             bounding_box_format=bounding_box_format,
             backbone=keras_cv.models.YOLOV8Backbone.from_preset(
-                "yolov8_xs_backbone"
+                "yolo_v8_xs_backbone"
             ),
         )
 
@@ -53,7 +53,7 @@ class YOLOV8DetectorTest(tf.test.TestCase):
             fpn_depth=1,
             bounding_box_format="xywh",
             backbone=keras_cv.models.YOLOV8Backbone.from_preset(
-                "yolov8_s_backbone"
+                "yolo_v8_s_backbone"
             ),
         )
 
@@ -65,7 +65,7 @@ class YOLOV8DetectorTest(tf.test.TestCase):
             fpn_depth=1,
             bounding_box_format="xywh",
             backbone=keras_cv.models.YOLOV8Backbone.from_preset(
-                "yolov8_xs_backbone"
+                "yolo_v8_xs_backbone"
             ),
         )
 
@@ -89,7 +89,7 @@ class YOLOV8DetectorTest(tf.test.TestCase):
             bounding_box_format="xywh",
             fpn_depth=1,
             backbone=keras_cv.models.YOLOV8Backbone.from_preset(
-                "yolov8_xs_backbone"
+                "yolo_v8_xs_backbone"
             ),
         )
         serialized_1 = keras.utils.serialize_keras_object(model)
@@ -105,7 +105,7 @@ class YOLOV8DetectorSmokeTest(tf.test.TestCase):
     # TODO(ianstenbit): Update this test to use a KerasCV-trained preset.
     def test_preset_with_forward_pass(self):
         model = keras_cv.models.YOLOV8Detector.from_preset(
-            "yolov8_m_pascalvoc",
+            "yolo_v8_m_pascalvoc",
             bounding_box_format="xywh",
         )
 
@@ -137,7 +137,7 @@ class YOLOV8DetectorPresetFullTest(tf.test.TestCase):
     `pytest keras_cv/models/object_detection/yolo_v8/yolo_v8_detector_test.py --run_extra_large`
     """  # noqa: E501
 
-    def test_load_yolov8_detector(self):
+    def test_load_yolo_v8_detector(self):
         input_data = tf.ones(shape=(2, 224, 224, 3))
         for preset in yolo_v8_detector_presets:
             model = keras_cv.models.YOLOV8Detector.from_preset(

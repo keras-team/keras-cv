@@ -15,30 +15,16 @@
 import tensorflow as tf
 from absl.testing import parameterized
 
-from keras_cv.models import mlp_mixer
+from keras_cv.models.legacy import vgg19
 
 from .models_test import ModelsTest
 
 MODEL_LIST = [
-    (
-        mlp_mixer.MLPMixerB16,
-        768,
-        {"input_shape": (224, 224, 3)},
-    ),
-    (
-        mlp_mixer.MLPMixerB32,
-        768,
-        {"input_shape": (224, 224, 3)},
-    ),
-    (
-        mlp_mixer.MLPMixerL16,
-        1024,
-        {"input_shape": (224, 224, 3)},
-    ),
+    (vgg19.VGG19, 512, {}),
 ]
 
 
-class MLPMixerTest(ModelsTest, tf.test.TestCase, parameterized.TestCase):
+class VGG19Test(ModelsTest, tf.test.TestCase, parameterized.TestCase):
     @parameterized.parameters(*MODEL_LIST)
     def test_application_base(self, app, _, args):
         super()._test_application_base(app, _, args)

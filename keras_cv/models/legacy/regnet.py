@@ -23,8 +23,8 @@ from tensorflow.keras import backend
 from tensorflow.keras import layers
 
 from keras_cv.layers import SqueezeAndExcite2D
-from keras_cv.models import utils
-from keras_cv.models.weights import parse_weights
+from keras_cv.models.legacy import utils
+from keras_cv.models.legacy.weights import parse_weights
 
 # The widths and depths are deduced from a quantized linear function. For
 # more information, please refer to "Designing Network Design Spaces" by
@@ -465,9 +465,11 @@ def apply_y_block(
     )
 
     # Squeeze-Excitation block
-    x = SqueezeAndExcite2D(filters_out, ratio=squeeze_excite_ratio, name=name)(
-        x
-    )
+    x = SqueezeAndExcite2D(
+        filters_out,
+        bottleneck_filters=filters_out * squeeze_excite_ratio,
+        name=name,
+    )(x)
 
     # conv_1x1_2
     x = apply_conv2d_bn(
@@ -548,7 +550,9 @@ def apply_z_block(
 
     # Squeeze-Excitation block
     x = SqueezeAndExcite2D(
-        inv_btlneck_filters, ratio=squeeze_excite_ratio, name=name
+        inv_btlneck_filters,
+        bottleneck_filter=inv_btlneck_filters * squeeze_excite_ratio,
+        name=name,
     )(x)
 
     # conv_1x1_2

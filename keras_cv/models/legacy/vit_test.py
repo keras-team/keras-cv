@@ -15,16 +15,30 @@
 import tensorflow as tf
 from absl.testing import parameterized
 
-from keras_cv.models import vgg16
+from keras_cv.models.legacy import vit
 
 from .models_test import ModelsTest
 
 MODEL_LIST = [
-    (vgg16.VGG16, 512, {}),
+    (vit.ViTS16, 384, {"input_shape": (224, 224, 3)}),
 ]
 
+"""
+Below are other configurations that we omit from our CI but that can/should
+be tested manually when making changes to this model.
+(vit.ViTTiny16, 192, {"input_shape": (224, 224, 3)}),
+(vit.ViTB16, 768, {"input_shape": (224, 224, 3)}),
+(vit.ViTL16, 1024, {"input_shape": (224, 224, 3)}),
+(vit.ViTH16, 1280, {"input_shape": (224, 224, 3)}),
+(vit.ViTTiny32, 192, {"input_shape": (224, 224, 3)}),
+(vit.ViTS32, 384, {"input_shape": (224, 224, 3)}),
+(vit.ViTB32, 768, {"input_shape": (224, 224, 3)}),
+(vit.ViTL32, 1024, {"input_shape": (224, 224, 3)}),
+(vit.ViTH32, 1280, {"input_shape": (224, 224, 3)}),
+"""
 
-class VGG16Test(ModelsTest, tf.test.TestCase, parameterized.TestCase):
+
+class ViTTest(ModelsTest, tf.test.TestCase, parameterized.TestCase):
     @parameterized.parameters(*MODEL_LIST)
     def test_application_base(self, app, _, args):
         super()._test_application_base(app, _, args)

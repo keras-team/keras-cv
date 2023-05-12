@@ -178,7 +178,7 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             cv_layers.SqueezeAndExcite2D,
             {
                 "filters": 16,
-                "ratio": 0.25,
+                "bottleneck_filters": 4,
                 "squeeze_activation": keras.layers.ReLU(),
                 "excite_activation": keras.activations.relu,
             },

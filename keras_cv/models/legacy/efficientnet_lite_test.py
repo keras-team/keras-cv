@@ -1,4 +1,4 @@
-# Copyright 2022 The KerasCV Authors
+# Copyright 2023 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,36 +12,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 import tensorflow as tf
 from absl.testing import parameterized
 
-from keras_cv.models import regnet
+from keras_cv.models.legacy import efficientnet_lite
 
 from .models_test import ModelsTest
 
 MODEL_LIST = [
-    (regnet.RegNetX002, 368, {}),
+    (efficientnet_lite.EfficientNetLiteB0, 1280, {}),
 ]
 
 """
 Below are other configurations that we omit from our CI but that can/should
 be tested manually when making changes to this model.
-(regnet.RegNetX004, 384, {}),
-(regnet.RegNetX006, 528, {}),
-(regnet.RegNetX008, 672, {}),
-(regnet.RegNetX016, 912, {}),
-(regnet.RegNetX032, 1008, {}),
-(regnet.RegNetX040, 1360, {}),
-(regnet.RegNetX064, 1624, {}),
-(regnet.RegNetX080, 1920, {}),
-(regnet.RegNetX120, 2240, {}),
-(regnet.RegNetX160, 2048, {}),
-(regnet.RegNetX320, 2520, {}),
+(efficientnet_lite.EfficientNetLiteB1, 1280, {}),
+(efficientnet_lite.EfficientNetLiteB2, 1280, {}),
+(efficientnet_lite.EfficientNetLiteB3, 1280, {}),
+(efficientnet_lite.EfficientNetLiteB4, 1280, {}),
 """
 
 
-class RegNetXTest(ModelsTest, tf.test.TestCase, parameterized.TestCase):
+class EfficientNetLiteTest(
+    ModelsTest, tf.test.TestCase, parameterized.TestCase
+):
     @parameterized.parameters(*MODEL_LIST)
     def test_application_base(self, app, _, args):
         super()._test_application_base(app, _, args)

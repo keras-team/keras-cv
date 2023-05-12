@@ -12,23 +12,36 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
 import tensorflow as tf
 from absl.testing import parameterized
 
-from keras_cv.models import convmixer
+from keras_cv.models.legacy import regnet
 
 from .models_test import ModelsTest
 
 MODEL_LIST = [
-    (
-        convmixer.ConvMixer_1024_16,
-        1024,
-        {},
-    ),
+    (regnet.RegNetY002, 368, {}),
 ]
 
+"""
+Below are other configurations that we omit from our CI but that can/should
+be tested manually when making changes to this model.
+(regnet.RegNetY004, 440, {}),
+(regnet.RegNetY006, 608, {}),
+(regnet.RegNetY008, 768, {}),
+(regnet.RegNetY016, 888, {}),
+(regnet.RegNetY032, 1512, {}),
+(regnet.RegNetY040, 1088, {}),
+(regnet.RegNetY064, 1296, {}),
+(regnet.RegNetY080, 2016, {}),
+(regnet.RegNetY120, 2240, {}),
+(regnet.RegNetY160, 3024, {}),
+(regnet.RegNetY320, 3712, {}),
+"""
 
-class ConvMixerTest(ModelsTest, tf.test.TestCase, parameterized.TestCase):
+
+class RegNetYTest(ModelsTest, tf.test.TestCase, parameterized.TestCase):
     @parameterized.parameters(*MODEL_LIST)
     def test_application_base(self, app, _, args):
         super()._test_application_base(app, _, args)

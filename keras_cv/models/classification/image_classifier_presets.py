@@ -16,6 +16,7 @@
 from keras_cv.models.backbones.efficientnet_v2 import (
     efficientnet_v2_backbone_presets,
 )
+from keras_cv.models.backbones.mobilenet_v3 import mobilenet_v3_backbone_presets
 from keras_cv.models.backbones.resnet_v2 import resnet_v2_backbone_presets
 
 classifier_presets = {
@@ -154,5 +155,31 @@ classifier_presets = {
         },
         "weights_url": "https://storage.googleapis.com/keras-cv/models/efficientnet_v2/efficientnetv2-b2_imagenet_classifier.h5",  # noqa: E501
         "weights_hash": "07eda1c48aee27e12a3fe2545e6c65ed",
+    },
+    "mobilenet_v3_large_imagenet_classifier": {
+        "metadata": {
+            "description": (
+                "ImageClassifier using the MobileNetV3Large architecture. "
+                "This preset uses a Dense layer as a classification head "
+                "instead of the typical fully-convolutional MobileNet head. As "
+                "a result, it has fewer parameters than the original "
+                "MobileNetV3Large model, which has 5.4 million parameters."
+                "Published weights are capable of scoring 69.4%	top-1 "
+                "accuracy and 89.4% top 5 accuracy on imagenet."
+            ),
+            "params": 3_957_352,  # TODO this is wrong
+            "official_name": "ImageClassifier",
+            "path": "image_classifier",
+        },
+        "config": {
+            "backbone": mobilenet_v3_backbone_presets.backbone_presets[
+                "mobilenet_v3_large"
+            ],
+            "num_classes": 1000,
+            "pooling": "avg",
+            "activation": "softmax",
+        },
+        "weights_url": "https://storage.googleapis.com/keras-cv/models/mobilenetv3/mobilenetv3_large_imagenet_classifier.h5",  # noqa: E501
+        "weights_hash": "4130fbc249d3812719396439031d89042dce440dd256cda941a109bce6d4e305",  # noqa: E501
     },
 }
