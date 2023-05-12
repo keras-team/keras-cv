@@ -58,7 +58,7 @@ class PyCOCOWrapper(COCO):
           eval_type: either 'box' or 'mask'.
           annotation_file: a JSON file that stores annotations of the eval
             dataset. This is required if `gt_dataset` is not provided.
-          gt_dataset: the groundtruth eval datatset in COCO API format.
+          gt_dataset: the groundtruth eval dataset in COCO API format.
         """
         assert_pycocotools_installed("PyCOCOWrapper")
         COCO.__init__(self, annotation_file=None)

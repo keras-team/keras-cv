@@ -529,7 +529,7 @@ class VectorizedBaseImageAugmentationLayerTest(tf.test.TestCase):
         result = add_layer(images)
         self.assertTrue(isinstance(result, tf.Tensor))
 
-    def test_converts_ragged_to_dense_segmention_masks(self):
+    def test_converts_ragged_to_dense_segmentation_masks(self):
         images = tf.ragged.stack(
             [
                 np.random.random(size=(8, 8, 3)).astype("float32"),
