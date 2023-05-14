@@ -301,7 +301,7 @@ class MobileNetV3Backbone(Backbone):
         )(x)
         x = apply_hard_swish(x)
 
-        pyramid_level_inputs = ['expanded_conv/project/BatchNorm']
+        pyramid_level_inputs = [x.node.layer.name]
         for stack_index in range(len(stackwise_filters)):
             x = apply_inverted_res_block(
                 x,
