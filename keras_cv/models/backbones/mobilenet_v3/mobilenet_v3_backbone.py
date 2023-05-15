@@ -43,32 +43,6 @@ BN_EPSILON = 1e-3
 BN_MOMENTUM = 0.999
 
 
-def correct_pad_downsample(inputs, kernel_size):
-    """Returns a tuple for zero-padding for 2D convolution with downsampling.
-
-    Args:
-      inputs: Input tensor.
-      kernel_size: An integer
-
-    Returns:
-      A tuple.
-    """
-    input_size = backend.int_shape(inputs)[1:3]
-    kernel_size = (kernel_size, kernel_size)
-
-    if input_size[0] is None:
-        adjust = (1, 1)
-    else:
-        adjust = (1 - input_size[0] % 2, 1 - input_size[1] % 2)
-
-    correct = (kernel_size[0] // 2, kernel_size[1] // 2)
-
-    return (
-        (correct[0] - adjust[0], correct[0]),
-        (correct[1] - adjust[1], correct[1]),
-    )
-
-
 def adjust_channels(x, divisor=8, min_value=None):
     """Ensure that all layers have a channel number divisible by the `divisor`.
 
@@ -162,7 +136,7 @@ def apply_inverted_res_block(
 
     if stride == 2:
         x = layers.ZeroPadding2D(
-            padding=correct_pad_downsample(x, kernel_size),
+            padding=utils.correct_pad_downsample(x, kernel_size),
             name=prefix + "depthwise/pad",
         )(x)
 
