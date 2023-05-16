@@ -57,6 +57,7 @@ class SwapBackground(base_augmentation_layer_3d.BaseAugmentationLayer3D):
     """
 
     def __init__(self, **kwargs):
+        # TODO(ianstenbit): Support the model input format.
         super().__init__(**kwargs)
         self.auto_vectorize = False
 

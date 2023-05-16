@@ -169,7 +169,12 @@ class BaseAugmentationLayer3D(keras.__internal__.layers.BaseRandomLayer):
             # TODO(ianstenbit): Consider using the better format internally
             # internally, instead of wrapping it at call time.
             point_clouds, bounding_boxes = convert_from_model_format(inputs)
+            inputs = {
+                POINT_CLOUDS: point_clouds,
+                BOUNDING_BOXES: bounding_boxes,
+            }
             use_model_format = True
+            print("Using model format")
         else:
             point_clouds = inputs[POINT_CLOUDS]
             bounding_boxes = inputs[BOUNDING_BOXES]
@@ -216,7 +221,7 @@ class BaseAugmentationLayer3D(keras.__internal__.layers.BaseRandomLayer):
         return self._map_fn(self._augment, inputs)
 
 
-def convert_to_model_format(y):
+def convert_to_model_format(inputs):
     point_clouds = {
         "point_xyz": inputs["point_clouds"][..., :3],
         "point_feature": inputs["point_clouds"][..., 3:-1],
@@ -229,7 +234,7 @@ def convert_to_model_format(y):
     }
 
     # Special case for when we have a difficulty field
-    if inputs.shape[-1] == 9:
+    if inputs["bounding_boxes"].shape[-1] > 8:
         boxes["difficulty"] = inputs["bounding_boxes"][..., -1]
 
     return {
@@ -243,7 +248,13 @@ def convert_from_model_format(inputs):
         [
             inputs["point_clouds"]["point_xyz"],
             inputs["point_clouds"]["point_feature"],
-            tf.expand_dims(tf.cast(inputs["point_clouds"]["point_mask"], inputs["point_clouds"]["point_xyz"].dtype), axis=-1)
+            tf.expand_dims(
+                tf.cast(
+                    inputs["point_clouds"]["point_mask"],
+                    inputs["point_clouds"]["point_xyz"].dtype,
+                ),
+                axis=-1,
+            ),
         ],
         axis=-1,
     )
@@ -251,12 +262,19 @@ def convert_from_model_format(inputs):
     box_tensors = [
         inputs["3d_boxes"]["boxes"],
         tf.expand_dims(inputs["3d_boxes"]["classes"], axis=-1),
-        tf.expand_dims(tf.cast(inputs["3d_boxes"]["mask"], inputs["3d_boxes"]["boxes"].dtype), axis=-1),
+        tf.expand_dims(
+            tf.cast(
+                inputs["3d_boxes"]["mask"], inputs["3d_boxes"]["boxes"].dtype
+            ),
+            axis=-1,
+        ),
     ]
 
     # Special case for when we have a difficulty field
     if "difficulty" in inputs["3d_boxes"].keys():
-        box_tensors.append(tf.expand_dims(inputs["3d_boxes"]["difficulty"], axis=-1))
+        box_tensors.append(
+            tf.expand_dims(inputs["3d_boxes"]["difficulty"], axis=-1)
+        )
 
     boxes = tf.concat(box_tensors, axis=-1)
 
