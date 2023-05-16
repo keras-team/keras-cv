@@ -174,7 +174,6 @@ class BaseAugmentationLayer3D(keras.__internal__.layers.BaseRandomLayer):
                 BOUNDING_BOXES: bounding_boxes,
             }
             use_model_format = True
-            print("Using model format")
         else:
             point_clouds = inputs[POINT_CLOUDS]
             bounding_boxes = inputs[BOUNDING_BOXES]
