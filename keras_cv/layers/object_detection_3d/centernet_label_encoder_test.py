@@ -24,7 +24,6 @@ class CenterNetLabelEncoderTest(tf.test.TestCase):
     def test_voxelization_output_shape_no_z(self):
         layer = CenterNetLabelEncoder(
             voxel_size=[0.1, 0.1, 1000],
-            min_radius=[0.8, 0.8, 0.0],
             max_radius=[8.0, 8.0, 0.0],
             spatial_size=[-20, 20, -20, 20, -20, 20],
             num_classes=2,
@@ -57,7 +56,6 @@ class CenterNetLabelEncoderTest(tf.test.TestCase):
     def test_voxelization_output_shape_with_z(self):
         layer = CenterNetLabelEncoder(
             voxel_size=[0.1, 0.1, 10],
-            min_radius=[0.8, 0.8, 0.0],
             max_radius=[8.0, 8.0, 0.0],
             spatial_size=[-20, 20, -20, 20, -20, 20],
             num_classes=2,
@@ -90,7 +88,6 @@ class CenterNetLabelEncoderTest(tf.test.TestCase):
     def test_voxelization_output_shape_missing_topk(self):
         layer = CenterNetLabelEncoder(
             voxel_size=[0.1, 0.1, 1000],
-            min_radius=[0.8, 0.8, 0.0],
             max_radius=[8.0, 8.0, 0.0],
             spatial_size=[-20, 20, -20, 20, -20, 20],
             num_classes=2,

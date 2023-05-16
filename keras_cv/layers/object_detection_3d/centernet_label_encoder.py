@@ -57,7 +57,6 @@ def compute_heatmap(
     box_3d: tf.Tensor,
     box_mask: tf.Tensor,
     voxel_size: Sequence[float],
-    min_radius: Sequence[float],
     max_radius: Sequence[float],
 ) -> Tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
     """Compute heatmap for boxes.
@@ -66,7 +65,6 @@ def compute_heatmap(
       box_3d: 3d boxes in xyz format, vehicle frame, [B, boxes, 7].
       box_mask: box masking, [B, boxes]
       voxel_size: the size on each voxel dimension (xyz)
-      min_radius: the minimum radius on each voxel dimension (xyz)
       max_radius: the maximum radius on each voxel dimension (xyz)
 
     Returns:
@@ -334,7 +332,6 @@ class CenterNetLabelEncoder(keras.layers.Layer):
 
     Args:
       voxel_size: the x, y, z dimension (in meters) of each voxel.
-      min_radius: minimum Gaussian radius in each dimension in meters.
       max_radius: maximum Gaussian radius in each dimension in meters.
       spatial_size: the x, y, z boundary of voxels
       num_classes: number of object classes.
@@ -344,7 +341,6 @@ class CenterNetLabelEncoder(keras.layers.Layer):
     def __init__(
         self,
         voxel_size: Sequence[float],
-        min_radius: Sequence[float],
         max_radius: Sequence[float],
         spatial_size: Sequence[float],
         num_classes: int,
@@ -353,7 +349,6 @@ class CenterNetLabelEncoder(keras.layers.Layer):
     ):
         super().__init__(**kwargs)
         self._voxel_size = voxel_size
-        self._min_radius = min_radius
         self._max_radius = max_radius
         self._spatial_size = spatial_size
         self._num_classes = num_classes
@@ -390,7 +385,6 @@ class CenterNetLabelEncoder(keras.layers.Layer):
             box_3d,
             box_mask,
             self._voxel_size,
-            self._min_radius,
             self._max_radius,
         )
         # heatmap - [B, H, W, Z]
