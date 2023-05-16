@@ -137,6 +137,18 @@ class CSPDarkNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
         backbone = arch_class()
         backbone(tf.random.uniform(shape=[2, 256, 256, 3]))
 
+    @parameterized.named_parameters(
+        ("Tiny", csp_darknet_backbone.CSPDarkNetTinyBackbone),
+        ("S", csp_darknet_backbone.CSPDarkNetSBackbone),
+        ("M", csp_darknet_backbone.CSPDarkNetMBackbone),
+        ("L", csp_darknet_backbone.CSPDarkNetLBackbone),
+        ("XL", csp_darknet_backbone.CSPDarkNetXLBackbone),
+    )
+    def test_specific_arch_presets(self, arch_class):
+        self.assertDictEqual(
+            arch_class.presets, arch_class.presets_with_weights
+        )
+
 
 if __name__ == "__main__":
     tf.test.main()
