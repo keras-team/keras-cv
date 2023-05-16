@@ -335,7 +335,7 @@ class YOLOV8Detector(Task):
             sensible backbone to use is the `keras_cv.models.YOLOV8Backbone`.
         fpn_depth: integer, a specification of the depth of the CSP blocks in
             the Feature Pyramid Network. This is usually 1, 2, or 3, depending
-            on the size of your YOLOV8Detector model.
+            on the size of your YOLOV8Detector model. Defaults to 2.
         label_encoder: (Optional)  A `YOLOV8LabelEncoder` that is
             responsible for transforming input boxes into trainable labels for
             YOLOV8Detector. If not provided, a default is provided.
@@ -390,7 +390,7 @@ class YOLOV8Detector(Task):
         num_classes,
         bounding_box_format,
         backbone,
-        fpn_depth,
+        fpn_depth=2,
         label_encoder=None,
         prediction_decoder=None,
         **kwargs,
