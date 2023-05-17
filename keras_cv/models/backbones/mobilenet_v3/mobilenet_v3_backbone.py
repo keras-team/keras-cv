@@ -275,8 +275,10 @@ class MobileNetV3Backbone(Backbone):
         )(x)
         x = apply_hard_swish(x)
 
-        pyramid_level_inputs = {}
+        pyramid_level_inputs = []
         for stack_index in range(len(stackwise_filters)):
+            if stackwise_stride[stack_index] != 1:
+                pyramid_level_inputs.append(x.node.layer.name)
             x = apply_inverted_res_block(
                 x,
                 expansion=stackwise_expansion[stack_index],
@@ -289,7 +291,7 @@ class MobileNetV3Backbone(Backbone):
                 activation=stackwise_activation[stack_index],
                 expansion_index=stack_index,
             )
-            pyramid_level_inputs[stack_index + 2] = x.node.layer.name
+        pyramid_level_inputs.append(x.node.layer.name)
 
         last_conv_ch = adjust_channels(backend.int_shape(x)[CHANNEL_AXIS] * 6)
 
@@ -310,7 +312,9 @@ class MobileNetV3Backbone(Backbone):
 
         super().__init__(inputs=inputs, outputs=x, **kwargs)
 
-        self.pyramid_level_inputs = pyramid_level_inputs
+        self.pyramid_level_inputs = {
+            i + 1: name for i, name in enumerate(pyramid_level_inputs)
+        }
         self.stackwise_expansion = stackwise_expansion
         self.stackwise_filters = stackwise_filters
         self.stackwise_kernel_size = stackwise_kernel_size
