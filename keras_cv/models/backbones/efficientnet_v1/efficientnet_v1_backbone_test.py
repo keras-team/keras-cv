@@ -15,14 +15,8 @@
 import tensorflow as tf
 from absl.testing import parameterized
 
-<<<<<<<< HEAD:keras_cv/models/backbones/efficientnet_v1/efficientnet_v1_backbone_test.py
-from keras_cv.models import efficientnet_v1
-from keras_cv.models.models_test import ModelsTest
-========
-from keras_cv.models.legacy import efficientnet_v1
-
-from .models_test import ModelsTest
->>>>>>>> master:keras_cv/models/legacy/efficientnet_v1_test.py
+from keras_cv.models.backbones.efficientnet_v1 import efficientnet_v1
+from keras_cv.models.legacy.models_test import ModelsTest
 
 MODEL_LIST = [
     (efficientnet_v1.EfficientNetB0, 1280, {}),

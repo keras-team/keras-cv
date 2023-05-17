@@ -12,6 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
+    CSPDarkNetBackbone,
+)
+from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
+    CSPDarkNetLBackbone,
+)
+from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
+    CSPDarkNetMBackbone,
+)
+from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
+    CSPDarkNetSBackbone,
+)
+from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
+    CSPDarkNetTinyBackbone,
+)
+from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
+    CSPDarkNetXLBackbone,
+)
 from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_backbone import (
     EfficientNetV1B0Backbone,
 )
@@ -35,24 +53,6 @@ from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_backbone import (
 )
 from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_backbone import (
     EfficientNetV1B7Backbone,
-)
-from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
-    CSPDarkNetBackbone,
-)
-from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
-    CSPDarkNetLBackbone,
-)
-from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
-    CSPDarkNetMBackbone,
-)
-from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
-    CSPDarkNetSBackbone,
-)
-from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
-    CSPDarkNetTinyBackbone,
-)
-from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
-    CSPDarkNetXLBackbone,
 )
 from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_aliases import (
     EfficientNetV2B0Backbone,
