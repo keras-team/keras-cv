@@ -181,8 +181,8 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             },
         ),
         (
-            "MaybeApply",
-            cv_layers.MaybeApply,
+            "RandomApply",
+            cv_layers.RandomApply,
             {
                 "rate": 0.5,
                 "layer": None,
