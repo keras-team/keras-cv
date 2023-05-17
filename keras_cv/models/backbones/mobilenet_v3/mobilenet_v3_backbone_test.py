@@ -26,6 +26,20 @@ from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_backbone import (
 )
 from keras_cv.utils.train import get_feature_extractor
 
+# from https://arxiv.org/pdf/1905.02244.pdf
+pyramid_level_input_shapes = {
+    "mobilenet_v3_small": {
+        3: [None, 28, 28, 24],
+        4: [None, 14, 14, 48],
+        5: [None, 7, 7, 96],
+    },
+    "mobilenet_v3_large": {
+        3: [None, 28, 28, 40],
+        4: [None, 14, 14, 112],
+        5: [None, 7, 7, 160],
+    },
+}
+
 
 class MobileNetV3BackboneTest(tf.test.TestCase, parameterized.TestCase):
     def setUp(self):
@@ -61,20 +75,28 @@ class MobileNetV3BackboneTest(tf.test.TestCase, parameterized.TestCase):
         restored_output = restored_model(self.input_batch)
         self.assertAllClose(model_output, restored_output)
 
-    def test_create_backbone_model_with_level_config(self):
-        model = MobileNetV3SmallBackbone(
-            include_rescaling=False,
-            input_shape=[256, 256, 3],
-        )
-        levels = [4, 5]
-        layer_names = [model.pyramid_level_inputs[level] for level in [4, 5]]
+    @parameterized.named_parameters(
+        ("small", "mobilenet_v3_small"),
+        ("large", "mobilenet_v3_large"),
+    )
+    def test_create_backbone_model_with_level_config(self, preset):
+        metadata = MobileNetV3Backbone.presets[preset]
+        metadata["config"]["input_shape"] = [224, 224, 3]
+        model = MobileNetV3Backbone.from_config(metadata["config"])
+
+        levels = [3, 4, 5]
+        layer_names = [model.pyramid_level_inputs[level] for level in levels]
         backbone_model = get_feature_extractor(model, layer_names, levels)
-        inputs = tf.keras.Input(shape=[256, 256, 3])
+        inputs = tf.keras.Input(shape=[224, 224, 3])
         outputs = backbone_model(inputs)
-        self.assertLen(outputs, 2)
-        self.assertEquals(list(outputs.keys()), [4, 5])
-        self.assertEquals(outputs[4].shape, [None, 32, 32, 24])
-        self.assertEquals(outputs[5].shape, [None, 16, 16, 40])
+
+        # confirm the shapes of the pyramid level input
+        self.assertLen(outputs, len(levels))
+        self.assertEquals(list(outputs.keys()), [3, 4, 5])
+        for level in levels:
+            self.assertEquals(
+                outputs[level].shape, pyramid_level_input_shapes[preset][level]
+            )
 
     @parameterized.named_parameters(
         ("one_channel", 1),
