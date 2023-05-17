@@ -31,13 +31,13 @@ pyramid_level_input_shapes = {
     "mobilenet_v3_small": {
         3: [None, 28, 28, 24],
         4: [None, 14, 14, 48],
-        5: [None, 7, 7, 96]
+        5: [None, 7, 7, 96],
     },
     "mobilenet_v3_large": {
         3: [None, 28, 28, 40],
         4: [None, 14, 14, 112],
-        5: [None, 7, 7, 160]
-    }
+        5: [None, 7, 7, 160],
+    },
 }
 
 
@@ -94,8 +94,9 @@ class MobileNetV3BackboneTest(tf.test.TestCase, parameterized.TestCase):
         self.assertLen(outputs, len(levels))
         self.assertEquals(list(outputs.keys()), [3, 4, 5])
         for level in levels:
-            self.assertEquals(outputs[level].shape,
-                              pyramid_level_input_shapes[preset][level])
+            self.assertEquals(
+                outputs[level].shape, pyramid_level_input_shapes[preset][level]
+            )
 
     @parameterized.named_parameters(
         ("one_channel", 1),
