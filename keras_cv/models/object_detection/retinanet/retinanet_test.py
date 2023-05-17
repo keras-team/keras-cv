@@ -226,7 +226,8 @@ class RetinaNetTest(tf.test.TestCase):
         self.assertEqual(serialized_1, serialized_2)
 
 
-@pytest.mark.large
+# TODO(jbischof): reduce back to "large" once #1725 fixed
+@pytest.mark.extra_large
 class RetinaNetSmokeTest(tf.test.TestCase):
     def test_backbone_preset_weight_loading(self):
         # Check that backbone preset weights loaded correctly
