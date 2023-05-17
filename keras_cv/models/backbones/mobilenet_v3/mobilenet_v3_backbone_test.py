@@ -40,6 +40,7 @@ pyramid_level_input_shapes = {
     }
 }
 
+
 class MobileNetV3BackboneTest(tf.test.TestCase, parameterized.TestCase):
     def setUp(self):
         self.input_batch = tf.ones(shape=(2, 224, 224, 3))
@@ -93,7 +94,8 @@ class MobileNetV3BackboneTest(tf.test.TestCase, parameterized.TestCase):
         self.assertLen(outputs, len(levels))
         self.assertEquals(list(outputs.keys()), [3, 4, 5])
         for level in levels:
-            self.assertEquals(outputs[level].shape, pyramid_level_input_shapes[preset][level])
+            self.assertEquals(outputs[level].shape,
+                              pyramid_level_input_shapes[preset][level])
 
     @parameterized.named_parameters(
         ("one_channel", 1),
