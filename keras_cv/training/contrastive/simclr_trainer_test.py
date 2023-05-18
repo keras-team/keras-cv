@@ -24,6 +24,8 @@ from keras_cv.training import SimCLRAugmenter
 from keras_cv.training import SimCLRTrainer
 
 
+# TODO(jbischof): revisit "extra_large" tag once development resumes.
+# These tests are currently some of the slowest in our repo.
 @pytest.mark.extra_large
 class SimCLRTrainerTest(tf.test.TestCase):
     def test_train_without_probing(self):

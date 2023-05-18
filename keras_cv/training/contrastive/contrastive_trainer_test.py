@@ -25,6 +25,8 @@ from keras_cv.models.legacy import DenseNet121
 from keras_cv.training import ContrastiveTrainer
 
 
+# TODO(jbischof): revisit "extra_large" tag once development resumes.
+# These tests are currently some of the slowest in our repo.
 @pytest.mark.extra_large
 class ContrastiveTrainerTest(tf.test.TestCase):
     def test_probe_requires_probe_optimizer(self):
