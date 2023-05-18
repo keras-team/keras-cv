@@ -138,7 +138,7 @@ class BoxCOCOMetricsTest(tf.test.TestCase):
                 metrics["coco_metrics_" + metric], golden_metrics[metric]
             )
 
-    def test_coco_metric_suite_ragged_bbox(self):
+    def test_coco_metric_suite_ragged_prediction(self):
         bounding_boxes = {
             "boxes": tf.ragged.constant(
                 [
@@ -166,9 +166,7 @@ class BoxCOCOMetricsTest(tf.test.TestCase):
         }
         dense_bounding_boxes = bounding_box.to_dense(bounding_boxes)
         ragged_bounding_boxes = bounding_box.to_ragged(dense_bounding_boxes)
-        suite = BoxCOCOMetrics(
-            bounding_box_format="xyxy", evaluate_freq=1, name="coco_metrics"
-        )
+        suite = BoxCOCOMetrics(bounding_box_format="xyxy", evaluate_freq=1)
         y_true = dense_bounding_boxes
         y_pred = ragged_bounding_boxes
 
