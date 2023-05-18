@@ -23,6 +23,7 @@ from keras_cv.training import SimCLRAugmenter
 from keras_cv.training import SimCLRTrainer
 
 
+@pytest.mark.extra_large
 class SimCLRTrainerTest(tf.test.TestCase):
     def test_train_without_probing(self):
         simclr_without_probing = SimCLRTrainer(
