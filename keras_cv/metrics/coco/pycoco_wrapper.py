@@ -125,18 +125,18 @@ def _convert_predictions_to_coco_annotations(predictions):
     coco_predictions = []
     num_batches = len(predictions["source_id"])
     for i in range(num_batches):
-        predictions["detection_boxes"][i] = _yxyx_to_xywh(
-            predictions["detection_boxes"][i]
-        )
         batch_size = predictions["source_id"][i].shape[0]
         for j in range(batch_size):
             max_num_detections = predictions["num_detections"][i][j]
+            predictions["detection_boxes"][i][j] = _yxyx_to_xywh(
+                predictions["detection_boxes"][i][j]
+            )
             for k in range(max_num_detections):
                 ann = {}
                 ann["image_id"] = predictions["source_id"][i][j]
-                ann["category_id"] = predictions["detection_classes"][i][j, k]
-                ann["bbox"] = predictions["detection_boxes"][i][j, k]
-                ann["score"] = predictions["detection_scores"][i][j, k]
+                ann["category_id"] = predictions["detection_classes"][i][j][k]
+                ann["bbox"] = predictions["detection_boxes"][i][j][k]
+                ann["score"] = predictions["detection_scores"][i][j][k]
                 coco_predictions.append(ann)
 
     for i, ann in enumerate(coco_predictions):
@@ -162,17 +162,17 @@ def _convert_groundtruths_to_coco_dataset(groundtruths, label_map=None):
                 ann = {}
                 ann["image_id"] = groundtruths["source_id"][i][j]
                 ann["iscrowd"] = 0
-                ann["category_id"] = int(groundtruths["classes"][i][j, k])
+                ann["category_id"] = int(groundtruths["classes"][i][j][k])
                 boxes = groundtruths["boxes"][i]
                 ann["bbox"] = [
-                    float(boxes[j, k, 1]),
-                    float(boxes[j, k, 0]),
-                    float(boxes[j, k, 3] - boxes[j, k, 1]),
-                    float(boxes[j, k, 2] - boxes[j, k, 0]),
+                    float(boxes[j][k][1]),
+                    float(boxes[j][k][0]),
+                    float(boxes[j][k][3] - boxes[j][k][1]),
+                    float(boxes[j][k][2] - boxes[j][k][0]),
                 ]
                 ann["area"] = float(
-                    (boxes[j, k, 3] - boxes[j, k, 1])
-                    * (boxes[j, k, 2] - boxes[j, k, 0])
+                    (boxes[j][k][3] - boxes[j][k][1])
+                    * (boxes[j][k][2] - boxes[j][k][0])
                 )
                 gt_annotations.append(ann)
 
