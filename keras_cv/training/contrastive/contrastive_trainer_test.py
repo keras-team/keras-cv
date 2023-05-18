@@ -24,6 +24,7 @@ from keras_cv.models.legacy import DenseNet121
 from keras_cv.training import ContrastiveTrainer
 
 
+@pytest.mark.extra_large
 class ContrastiveTrainerTest(tf.test.TestCase):
     def test_probe_requires_probe_optimizer(self):
         trainer = ContrastiveTrainer(
