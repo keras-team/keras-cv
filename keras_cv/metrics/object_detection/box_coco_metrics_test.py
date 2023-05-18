@@ -137,3 +137,45 @@ class BoxCOCOMetricsTest(tf.test.TestCase):
             self.assertAlmostEqual(
                 metrics["coco_metrics_" + metric], golden_metrics[metric]
             )
+
+    def test_coco_metric_suite_ragged_bbox(self):
+        bounding_boxes = {
+            "boxes": tf.ragged.constant(
+                [
+                    [[10, 10, 20, 20], [100, 100, 150, 150]],  # small, medium
+                    [
+                        [200, 200, 400, 400],  # large
+                    ],
+                ],
+                dtype=tf.float32,
+            ),
+            "classes": tf.ragged.constant(
+                [
+                    [0, 1],
+                    [2],
+                ],
+                dtype=tf.float32,
+            ),
+            "confidence": tf.ragged.constant(
+                [
+                    [0.7, 0.8],
+                    [0.9],
+                ],
+                dtype=tf.float32,
+            ),
+        }
+        dense_bounding_boxes = bounding_box.to_dense(bounding_boxes)
+        ragged_bounding_boxes = bounding_box.to_ragged(dense_bounding_boxes)
+        suite = BoxCOCOMetrics(
+            bounding_box_format="xyxy", evaluate_freq=1, name="coco_metrics"
+        )
+        y_true = dense_bounding_boxes
+        y_pred = ragged_bounding_boxes
+
+        suite.update_state(y_true, y_pred)
+        metrics = suite.result(force=True)
+
+        for metric in metrics:
+            # The metrics will be all 1.0 because the prediction and ground
+            # truth is identical.
+            self.assertAllEqual(metrics[metric], 1.0)
