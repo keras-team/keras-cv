@@ -167,7 +167,7 @@ class BaseAugmentationLayer3D(keras.__internal__.layers.BaseRandomLayer):
     def call(self, inputs):
         if "3d_boxes" in inputs.keys():
             # TODO(ianstenbit): Consider using the better format internally
-            # internally, instead of wrapping it at call time.
+            # (in the KPL implementations) instead of wrapping it at call time.
             point_clouds, bounding_boxes = convert_from_model_format(inputs)
             inputs = {
                 POINT_CLOUDS: point_clouds,
