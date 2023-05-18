@@ -243,6 +243,7 @@ class GroupPointsByBoundingBoxes(
         return result
 
     def call(self, inputs):
+        # TODO(ianstenbit): Support the model input format.
         point_clouds = inputs[POINT_CLOUDS]
         bounding_boxes = inputs[BOUNDING_BOXES]
         if point_clouds.shape.rank == 3 and bounding_boxes.shape.rank == 3:
