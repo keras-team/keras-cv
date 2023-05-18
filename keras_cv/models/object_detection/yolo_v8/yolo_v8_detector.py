@@ -323,6 +323,9 @@ class YOLOV8Detector(Task):
     """Implements the YOLOV8 architecture for object detection.
 
     Args:
+        backbone: `keras.Model`, must implement the `pyramid_level_inputs`
+            property with keys 2, 3, and 4 and layer names as values. A
+            sensible backbone to use is the `keras_cv.models.YOLOV8Backbone`.
         num_classes: integer, the number of classes in your dataset excluding the
             background class. Classes should be represented by integers in the
             range [0, num_classes).
@@ -330,9 +333,6 @@ class YOLOV8Detector(Task):
             Refer
             [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
             for more details on supported bounding box formats.
-        backbone: `keras.Model`, must implement the `pyramid_level_inputs`
-            property with keys 2, 3, and 4 and layer names as values. A
-            sensible backbone to use is the `keras_cv.models.YOLOV8Backbone`.
         fpn_depth: integer, a specification of the depth of the CSP blocks in
             the Feature Pyramid Network. This is usually 1, 2, or 3, depending
             on the size of your YOLOV8Detector model. We recommend using 3 for
@@ -388,9 +388,9 @@ class YOLOV8Detector(Task):
 
     def __init__(
         self,
+        backbone,
         num_classes,
         bounding_box_format,
-        backbone,
         fpn_depth=2,
         label_encoder=None,
         prediction_decoder=None,
