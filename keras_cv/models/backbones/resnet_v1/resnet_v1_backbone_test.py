@@ -13,8 +13,8 @@
 # limitations under the License.
 
 import os
-import pytest
 
+import pytest
 import tensorflow as tf
 from absl.testing import parameterized
 from tensorflow import keras
