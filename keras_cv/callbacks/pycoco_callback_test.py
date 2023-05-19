@@ -31,6 +31,7 @@ class PyCOCOCallbackTest(tf.test.TestCase):
         yield
         keras.backend.clear_session()
 
+    @pytest.mark.large  # Fit is slow, so mark these large.
     def test_model_fit_retinanet(self):
         model = keras_cv.models.RetinaNet(
             num_classes=10,

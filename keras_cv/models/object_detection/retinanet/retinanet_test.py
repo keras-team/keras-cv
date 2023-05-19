@@ -210,9 +210,8 @@ class RetinaNetTest(tf.test.TestCase):
         for w1, w2 in zip(original_fpn_weights, fpn_after_fit):
             self.assertNotAllClose(w1, w2)
 
+    @pytest.mark.large  # Saving is slow, so mark these large.
     def test_serialization(self):
-        # TODO(haifengj): Reuse test code from
-        # ModelTest._test_model_serialization.
         model = keras_cv.models.RetinaNet(
             num_classes=20,
             bounding_box_format="xywh",
