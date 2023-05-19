@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import copy
-import os
 
 import pytest
 import tensorflow as tf
@@ -53,12 +52,7 @@ class RetinaNetTest(tf.test.TestCase):
         # self.assertIsNotNone(retinanet.backbone.get_layer(name="rescaling"))
         # TODO(lukewood): test compile with the FocalLoss class
 
-    @pytest.mark.skipif(
-        "INTEGRATION" not in os.environ or os.environ["INTEGRATION"] != "true",
-        reason="Takes a long time to run, only runs when INTEGRATION "
-        "environment variable is set. To run the test please run: \n"
-        "`INTEGRATION=true pytest keras_cv/",
-    )
+    @pytest.mark.large  # Fit is slow, so mark these large.
     def test_retinanet_call(self):
         retinanet = keras_cv.models.RetinaNet(
             num_classes=20,
