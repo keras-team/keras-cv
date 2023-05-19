@@ -14,6 +14,7 @@
 
 import os
 
+import pytest
 import tensorflow as tf
 from absl.testing import parameterized
 from tensorflow import keras
@@ -57,6 +58,7 @@ class ResNetV2BackboneTest(tf.test.TestCase, parameterized.TestCase):
         ("tf_format", "tf", "model"),
         ("keras_format", "keras_v3", "model.keras"),
     )
+    @pytest.mark.large  # Saving is slow, so mark these large.
     def test_saved_model(self, save_format, filename):
         model = ResNetV2Backbone(
             stackwise_filters=[64, 128, 256, 512],
@@ -80,6 +82,7 @@ class ResNetV2BackboneTest(tf.test.TestCase, parameterized.TestCase):
         ("tf_format", "tf", "model"),
         ("keras_format", "keras_v3", "model.keras"),
     )
+    @pytest.mark.large  # Saving is slow, so mark these large.
     def test_saved_alias_model(self, save_format, filename):
         model = ResNet50V2Backbone()
         model_output = model(self.input_batch)

@@ -44,6 +44,7 @@ class ImageClassifierTest(tf.test.TestCase, parameterized.TestCase):
     @parameterized.named_parameters(
         ("jit_compile_false", False), ("jit_compile_true", True)
     )
+    @pytest.mark.large  # Fit is slow, so mark these large.
     def test_classifier_fit(self, jit_compile):
         model = ImageClassifier(
             backbone=ResNet18V2Backbone(),
@@ -80,6 +81,7 @@ class ImageClassifierTest(tf.test.TestCase, parameterized.TestCase):
         ("tf_format", "tf", "model"),
         ("keras_format", "keras_v3", "model.keras"),
     )
+    @pytest.mark.large  # Saving is slow, so mark these large.
     def test_saved_model(self, save_format, filename):
         model = ImageClassifier(
             backbone=ResNet18V2Backbone(),

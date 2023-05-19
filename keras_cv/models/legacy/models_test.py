@@ -162,6 +162,7 @@ class ModelsTest:
         model = keras.Model(inputs=inputs, outputs=[backbone_output])
         model.compile()
 
+    @pytest.mark.large  # Saving is slow, so mark these large.
     def _test_model_serialization(self, app, _, args, save_format, filename):
         model = app(include_rescaling=True, include_top=False, **args)
         input_batch = tf.ones(shape=(16, 224, 224, 3))

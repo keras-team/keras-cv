@@ -14,6 +14,7 @@
 
 import os
 
+import pytest
 import tensorflow as tf
 from absl.testing import parameterized
 from tensorflow import keras
@@ -50,6 +51,7 @@ class CSPDarkNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
         ("tf_format", "tf", "model"),
         ("keras_format", "keras_v3", "model.keras"),
     )
+    @pytest.mark.large  # Saving is slow, so mark these large.
     def test_saved_model(self, save_format, filename):
         model = csp_darknet_backbone.CSPDarkNetBackbone(
             stackwise_channels=[48, 96, 192, 384],
@@ -74,6 +76,7 @@ class CSPDarkNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
         ("tf_format", "tf", "model"),
         ("keras_format", "keras_v3", "model.keras"),
     )
+    @pytest.mark.large  # Saving is slow, so mark these large.
     def test_saved_alias_model(self, save_format, filename):
         model = csp_darknet_backbone.CSPDarkNetLBackbone()
         model_output = model(self.input_batch)

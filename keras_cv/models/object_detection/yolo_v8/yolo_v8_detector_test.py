@@ -28,6 +28,7 @@ from keras_cv.models.object_detection.yolo_v8.yolo_v8_detector_presets import (
 
 
 class YOLOV8DetectorTest(tf.test.TestCase):
+    @pytest.mark.large  # Fit is slow, so mark these large.
     def test_fit(self):
         bounding_box_format = "xywh"
         yolo = keras_cv.models.YOLOV8Detector(
@@ -83,6 +84,7 @@ class YOLOV8DetectorTest(tf.test.TestCase):
         ):
             yolo.compile(box_loss="iou", classification_loss="bad_loss")
 
+    @pytest.mark.large  # Saving is slow, so mark these large.
     def test_serialization(self):
         model = keras_cv.models.YOLOV8Detector(
             num_classes=20,
