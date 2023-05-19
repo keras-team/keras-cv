@@ -134,6 +134,7 @@ class RetinaNetTest(tf.test.TestCase):
         # box_head
         self.assertIn("prediction_head_1/conv2d_12/kernel:0", variable_names)
 
+    @pytest.mark.large  # Fit is slow, so mark these large.
     def test_no_nans(self):
         retina_net = keras_cv.models.RetinaNet(
             num_classes=2,
@@ -162,6 +163,7 @@ class RetinaNetTest(tf.test.TestCase):
         for weight in weights:
             self.assertFalse(tf.math.reduce_any(tf.math.is_nan(weight)))
 
+    @pytest.mark.large  # Fit is slow, so mark these large.
     def test_weights_change(self):
         bounding_box_format = "xywh"
         retinanet = keras_cv.models.RetinaNet(
