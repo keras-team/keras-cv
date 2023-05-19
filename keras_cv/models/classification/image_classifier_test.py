@@ -41,10 +41,10 @@ class ImageClassifierTest(tf.test.TestCase, parameterized.TestCase):
         )
         model(self.input_batch)
 
-    @pytest.mark.large  # Fit is slow, so mark these large.
     @parameterized.named_parameters(
         ("jit_compile_false", False), ("jit_compile_true", True)
     )
+    @pytest.mark.large  # Fit is slow, so mark these large.
     def test_classifier_fit(self, jit_compile):
         model = ImageClassifier(
             backbone=ResNet18V2Backbone(),
