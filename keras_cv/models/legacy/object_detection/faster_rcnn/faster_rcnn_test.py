@@ -12,15 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-
 import pytest
 import tensorflow as tf
 from absl.testing import parameterized
 from tensorflow import keras
 from tensorflow.keras import optimizers
 
-import keras_cv
 from keras_cv.models import ResNet50V2Backbone
 from keras_cv.models.legacy.object_detection.faster_rcnn.faster_rcnn import (
     FasterRCNN,
