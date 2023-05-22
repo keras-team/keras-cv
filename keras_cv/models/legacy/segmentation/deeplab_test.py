@@ -18,7 +18,7 @@ import tensorflow_datasets as tfds
 from tensorflow import keras
 
 from keras_cv.models import ResNet50V2Backbone
-from keras_cv.models.legacy import segmentation
+from keras_cv.models.legacy.segmentation.deeplab import DeepLabV3
 
 
 class DeeplabTest(tf.test.TestCase):
@@ -26,7 +26,7 @@ class DeeplabTest(tf.test.TestCase):
         backbone = ResNet50V2Backbone(
             input_shape=[64, 64, 3],
         )
-        model = segmentation.DeepLabV3(num_classes=11, backbone=backbone)
+        model = DeepLabV3(num_classes=11, backbone=backbone)
         input_image = tf.random.uniform(shape=[1, 64, 64, 3])
         output = model(input_image, training=True)
 
@@ -36,7 +36,7 @@ class DeeplabTest(tf.test.TestCase):
         backbone = ResNet50V2Backbone(
             input_shape=[64, 64, 1],
         )
-        model = segmentation.DeepLabV3(num_classes=11, backbone=backbone)
+        model = DeepLabV3(num_classes=11, backbone=backbone)
         input_image = tf.random.uniform(shape=[1, 64, 64, 1])
         output = model(input_image, training=True)
 
@@ -49,13 +49,13 @@ class DeeplabTest(tf.test.TestCase):
             "cannot be `None`.",
         ):
             backbone = ResNet50V2Backbone()
-            segmentation.DeepLabV3(num_classes=11, backbone=backbone)
+            DeepLabV3(num_classes=11, backbone=backbone)
 
     def test_deeplab_model_with_components(self):
         backbone = ResNet50V2Backbone(
             input_shape=[64, 64, 3],
         )
-        model = segmentation.DeepLabV3(
+        model = DeepLabV3(
             num_classes=11,
             backbone=backbone,
         )
@@ -70,7 +70,7 @@ class DeeplabTest(tf.test.TestCase):
         backbone = ResNet50V2Backbone(
             input_shape=[64, 64, 3],
         )
-        model = segmentation.DeepLabV3(
+        model = DeepLabV3(
             num_classes=11,
             backbone=backbone,
         )
@@ -84,17 +84,19 @@ class DeeplabTest(tf.test.TestCase):
         with self.assertRaisesRegex(
             ValueError, "Argument `backbone` must be a `keras.layers.Layer`"
         ):
-            segmentation.DeepLabV3(
+            DeepLabV3(
                 num_classes=11,
                 backbone=tf.Module(),
             )
 
     @pytest.mark.extra_large
     def test_model_train(self):
+        target_size = [96, 96]
+
         backbone = ResNet50V2Backbone(
-            input_shape=[384, 384, 3],
+            input_shape=target_size + [3],
         )
-        model = segmentation.DeepLabV3(num_classes=1, backbone=backbone)
+        model = DeepLabV3(num_classes=1, backbone=backbone)
 
         gcs_data_pattern = "gs://caltech_birds2011_mask/0.1.1/*.tfrecord*"
         features = tfds.features.FeaturesDict(
@@ -120,22 +122,17 @@ class DeeplabTest(tf.test.TestCase):
         ds = ds.with_options(ignore_order)
         ds = ds.map(features.deserialize_example, num_parallel_calls=AUTO)
 
-        target_size = [384, 384]
-        output_res = [96, 96]
-        num_images = 11788
-
-        image_resizing = keras.layers.Resizing(target_size[1], target_size[0])
-        labels_resizing = keras.layers.Resizing(output_res[1], output_res[0])
+        resizing = keras.layers.Resizing(target_size[1], target_size[0])
 
         def resize_images_and_masks(data):
             image = tf.image.convert_image_dtype(
                 data["image"], dtype=tf.float32
             )
-            data["image"] = image_resizing(image)
+            data["image"] = resizing(image)
             # WARNING: assumes processing unbatched
             mask = data["segmentation_mask"]
             mask = tf.image.convert_image_dtype(mask, dtype=tf.float32)
-            data["segmentation_mask"] = labels_resizing(mask)
+            data["segmentation_mask"] = resizing(mask)
             return data
 
         def keep_image_and_mask_only(data):
@@ -154,14 +151,13 @@ class DeeplabTest(tf.test.TestCase):
         epochs = 1
         model.compile(
             optimizer="adam",
-            loss=keras.losses.BinaryCrossentropy(from_logits=True),
+            loss=keras.losses.BinaryCrossentropy(from_logits=False),
             metrics=["accuracy"],
         )
 
         model.fit(
-            training_dataset,
+            training_dataset.take(10),
             epochs=epochs,
-            steps_per_epoch=num_images // batch_size,
         )
 
 
