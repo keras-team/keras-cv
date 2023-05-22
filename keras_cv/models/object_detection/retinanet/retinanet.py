@@ -532,9 +532,23 @@ class RetinaNet(Task):
             "backbone": keras.utils.serialize_keras_object(self.backbone),
             "label_encoder": self.label_encoder,
             "prediction_decoder": self._prediction_decoder,
-            "classification_head": self.classification_head,
-            "box_head": self.box_head,
+            "classification_head": keras.utils.serialize_keras_object(
+                self.classification_head
+            ),
+            "box_head": keras.utils.serialize_keras_object(self.box_head),
         }
+
+    @classmethod
+    def from_config(cls, config):
+        config.update(
+            {
+                "box_head": keras.layers.deserialize(config["box_head"]),
+                "classification_head": keras.layers.deserialize(
+                    config["classification_head"]
+                ),
+            }
+        )
+        return super().from_config(config)
 
     @classproperty
     def presets(cls):
