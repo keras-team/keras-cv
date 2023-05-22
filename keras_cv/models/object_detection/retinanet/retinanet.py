@@ -163,9 +163,10 @@ class RetinaNet(Task):
             box_variance=BOX_VARIANCE,
         )
 
-        extractor_levels = [3, 4, 5]
+        # Using strings to keep the TF saving flow happy.
+        extractor_levels = ["3", "4", "5"]
         extractor_layer_names = [
-            backbone.pyramid_level_inputs[i] for i in extractor_levels
+            backbone.pyramid_level_inputs[int(i)] for i in extractor_levels
         ]
         feature_extractor = get_feature_extractor(
             backbone, extractor_layer_names, extractor_levels
