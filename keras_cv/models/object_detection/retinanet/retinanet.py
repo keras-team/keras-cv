@@ -541,14 +541,14 @@ class RetinaNet(Task):
 
     @classmethod
     def from_config(cls, config):
-        config.update(
-            {
-                "box_head": keras.layers.deserialize(config["box_head"]),
-                "classification_head": keras.layers.deserialize(
-                    config["classification_head"]
-                ),
-            }
-        )
+        if "box_head" in config and isinstance(config["box_head"], dict):
+            config["box_head"] = keras.layers.deserialize(config["box_head"])
+        if "classification_head" in config and isinstance(
+            config["classification_head"], dict
+        ):
+            config["classification_head"] = keras.layers.deserialize(
+                config["classification_head"]
+            )
         return super().from_config(config)
 
     @classproperty
