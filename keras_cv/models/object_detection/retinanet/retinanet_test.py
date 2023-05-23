@@ -28,12 +28,6 @@ from keras_cv.models.object_detection.__test_utils__ import (
 
 
 class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
-    def setUp(self):
-        self.input_batch = tf.ones(shape=(2, 224, 224, 3))
-        self.dataset = tf.data.Dataset.from_tensor_slices(
-            (self.input_batch, tf.one_hot(tf.ones((2,), dtype="int32"), 2))
-        ).batch(4)
-
     @pytest.fixture(autouse=True)
     def cleanup_global_session(self):
         # Code before yield runs before the test
@@ -225,7 +219,8 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
             bounding_box_format="xywh",
             backbone=keras_cv.models.ResNet18V2Backbone(),
         )
-        model_output = model(self.input_batch)
+        input_batch = tf.ones(shape=(2, 224, 224, 3))
+        model_output = model(input_batch)
         save_path = os.path.join(self.get_temp_dir(), filename)
         model.save(save_path, save_format=save_format)
         restored_model = keras.models.load_model(save_path)
@@ -234,7 +229,7 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
         self.assertIsInstance(restored_model, keras_cv.models.RetinaNet)
 
         # Check that output matches.
-        restored_output = restored_model(self.input_batch)
+        restored_output = restored_model(input_batch)
         self.assertAllClose(model_output, restored_output)
 
 
