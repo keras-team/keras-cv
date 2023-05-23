@@ -214,20 +214,6 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
         for w1, w2 in zip(original_fpn_weights, fpn_after_fit):
             self.assertNotAllClose(w1, w2)
 
-    @pytest.mark.large  # Saving is slow, so mark these large.
-    def test_serialization(self):
-        model = keras_cv.models.RetinaNet(
-            num_classes=20,
-            bounding_box_format="xywh",
-            backbone=keras_cv.models.ResNet18V2Backbone(),
-        )
-        serialized_1 = keras.utils.serialize_keras_object(model)
-        restored = keras.utils.deserialize_keras_object(
-            copy.deepcopy(serialized_1)
-        )
-        serialized_2 = keras.utils.serialize_keras_object(restored)
-        self.assertEqual(serialized_1, serialized_2)
-
     @parameterized.named_parameters(
         ("tf_format", "tf", "model"),
         ("keras_format", "keras_v3", "model.keras"),

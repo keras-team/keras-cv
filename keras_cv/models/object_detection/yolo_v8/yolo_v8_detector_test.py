@@ -86,23 +86,6 @@ class YOLOV8DetectorTest(tf.test.TestCase, parameterized.TestCase):
         ):
             yolo.compile(box_loss="iou", classification_loss="bad_loss")
 
-    @pytest.mark.large  # Saving is slow, so mark these large.
-    def test_serialization(self):
-        model = keras_cv.models.YOLOV8Detector(
-            num_classes=20,
-            bounding_box_format="xywh",
-            fpn_depth=1,
-            backbone=keras_cv.models.YOLOV8Backbone.from_preset(
-                "yolo_v8_xs_backbone"
-            ),
-        )
-        serialized_1 = keras.utils.serialize_keras_object(model)
-        restored = keras.utils.deserialize_keras_object(
-            copy.deepcopy(serialized_1)
-        )
-        serialized_2 = keras.utils.serialize_keras_object(restored)
-        self.assertEqual(serialized_1, serialized_2)
-
     @parameterized.named_parameters(
         ("tf_format", "tf", "model"),
         ("keras_format", "keras_v3", "model.keras"),
