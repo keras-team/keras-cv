@@ -356,7 +356,7 @@ class ResNetV2Backbone(Backbone):
                 first_shortcut=(block_type == "block" or stack_index > 0),
                 name=f"v2_stack_{stack_index}",
             )
-            pyramid_level_inputs[stack_index + 2] = x.node.layer.name
+            pyramid_level_inputs["P" + str(stack_index + 2)] = x.node.layer.name
 
         x = layers.BatchNormalization(
             axis=BN_AXIS, epsilon=BN_EPSILON, name="post_bn"

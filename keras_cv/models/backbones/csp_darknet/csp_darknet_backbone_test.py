@@ -105,13 +105,13 @@ class CSPDarkNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
         )
         inputs = keras.Input(shape=[224, 224, 3])
         outputs = backbone_model(inputs)
-        # CSPDarkNet backbone has 4 level of features (2 ~ 5)
+        # CSPDarkNet backbone has 4 level of features (P2 ~ P5)
         self.assertLen(outputs, 4)
-        self.assertEquals(list(outputs.keys()), [2, 3, 4, 5])
-        self.assertEquals(outputs[2].shape, [None, 56, 56, 128])
-        self.assertEquals(outputs[3].shape, [None, 28, 28, 256])
-        self.assertEquals(outputs[4].shape, [None, 14, 14, 512])
-        self.assertEquals(outputs[5].shape, [None, 7, 7, 1024])
+        self.assertEquals(list(outputs.keys()), ["P2", "P3", "P4", "P5"])
+        self.assertEquals(outputs["P2"].shape, [None, 56, 56, 128])
+        self.assertEquals(outputs["P3"].shape, [None, 28, 28, 256])
+        self.assertEquals(outputs["P4"].shape, [None, 14, 14, 512])
+        self.assertEquals(outputs["P5"].shape, [None, 7, 7, 1024])
 
     def test_create_backbone_model_with_level_config(self):
         model = csp_darknet_backbone.CSPDarkNetBackbone(
@@ -119,15 +119,17 @@ class CSPDarkNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
             stackwise_depth=[1, 3, 3, 1],
             include_rescaling=True,
         )
-        levels = [3, 4]
-        layer_names = [model.pyramid_level_inputs[level] for level in [3, 4]]
+        levels = ["P3", "P4"]
+        layer_names = [
+            model.pyramid_level_inputs[level] for level in ["P3", "P4"]
+        ]
         backbone_model = get_feature_extractor(model, layer_names, levels)
         inputs = keras.Input(shape=[256, 256, 3])
         outputs = backbone_model(inputs)
         self.assertLen(outputs, 2)
-        self.assertEquals(list(outputs.keys()), [3, 4])
-        self.assertEquals(outputs[3].shape, [None, 32, 32, 96])
-        self.assertEquals(outputs[4].shape, [None, 16, 16, 192])
+        self.assertEquals(list(outputs.keys()), ["P3", "P4"])
+        self.assertEquals(outputs["P3"].shape, [None, 32, 32, 96])
+        self.assertEquals(outputs["P4"].shape, [None, 16, 16, 192])
 
     @parameterized.named_parameters(
         ("Tiny", csp_darknet_backbone.CSPDarkNetTinyBackbone),

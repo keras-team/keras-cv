@@ -53,10 +53,10 @@ class FeaturePyramid(keras.layers.Layer):
         self.upsample_2x = keras.layers.UpSampling2D(2)
 
     def call(self, inputs, training=None):
-        c2_output = inputs[2]
-        c3_output = inputs[3]
-        c4_output = inputs[4]
-        c5_output = inputs[5]
+        c2_output = inputs["P2"]
+        c3_output = inputs["P3"]
+        c4_output = inputs["P4"]
+        c5_output = inputs["P5"]
 
         c6_output = self.conv_c6_pool(c5_output)
         p6_output = c6_output
@@ -248,7 +248,7 @@ class FasterRCNN(keras.Model):
             [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
             for more details on supported bounding box formats.
         backbone: Optional `keras.Model`. Must implement the
-            `pyramid_level_inputs` property with keys 2, 3, 4, and 5 and layer
+            `pyramid_level_inputs` property with keys P2, P3, P4, and P5 and layer
             names as values. If `None`, defaults to
             `keras_cv.models.ResNet50Backbone()`.
         anchor_generator: (Optional) a `keras_cv.layers.AnchorGenerator`. It is
@@ -316,7 +316,7 @@ class FasterRCNN(keras.Model):
         self.roi_pooler = _ROIAligner(bounding_box_format="yxyx")
         self.rcnn_head = rcnn_head or RCNNHead(num_classes)
         self.backbone = backbone or keras_cv.models.ResNet50Backbone()
-        extractor_levels = [2, 3, 4, 5]
+        extractor_levels = ["P2", "P3", "P4", "P5"]
         extractor_layer_names = [
             self.backbone.pyramid_level_inputs[i] for i in extractor_levels
         ]

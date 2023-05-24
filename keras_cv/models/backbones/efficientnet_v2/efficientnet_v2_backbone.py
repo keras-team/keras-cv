@@ -257,7 +257,8 @@ class EfficientNetV2Backbone(Backbone):
         self.activation = activation
         self.input_tensor = input_tensor
         self.pyramid_level_inputs = {
-            i + 1: name for i, name in enumerate(pyramid_level_inputs)
+            "P" + str(i + 1): name
+            for i, name in enumerate(pyramid_level_inputs)
         }
         self.stackwise_kernel_sizes = stackwise_kernel_sizes
         self.stackwise_num_repeats = stackwise_num_repeats

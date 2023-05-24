@@ -94,7 +94,7 @@ class RetinaNet(Task):
             [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
             for more details on supported bounding box formats.
         backbone: `keras.Model`. Must implement the `pyramid_level_inputs`
-            property with keys 3, 4, and 5 and layer names as values. A somewhat
+            property with keys P3, P4, and P5 and layer names as values. A somewhat
             sensible backbone to use in many cases is the:
             `keras_cv.models.ResNetBackbone.from_preset("resnet50_imagenet")`
         anchor_generator: (Optional) a `keras_cv.layers.AnchorGenerator`. If
@@ -163,10 +163,9 @@ class RetinaNet(Task):
             box_variance=BOX_VARIANCE,
         )
 
-        # Using strings to keep the TF saving flow happy.
-        extractor_levels = ["3", "4", "5"]
+        extractor_levels = ["P3", "P4", "P5"]
         extractor_layer_names = [
-            backbone.pyramid_level_inputs[int(i)] for i in extractor_levels
+            backbone.pyramid_level_inputs[i] for i in extractor_levels
         ]
         feature_extractor = get_feature_extractor(
             backbone, extractor_layer_names, extractor_levels
