@@ -12,10 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import copy
+import os
 
 import pytest
 import tensorflow as tf
+from absl.testing import parameterized
 from tensorflow import keras
 
 import keras_cv
@@ -27,7 +28,7 @@ from keras_cv.models.object_detection.yolo_v8.yolo_v8_detector_presets import (
 )
 
 
-class YOLOV8DetectorTest(tf.test.TestCase):
+class YOLOV8DetectorTest(tf.test.TestCase, parameterized.TestCase):
     @pytest.mark.large  # Fit is slow, so mark these large.
     def test_fit(self):
         bounding_box_format = "xywh"
@@ -84,8 +85,12 @@ class YOLOV8DetectorTest(tf.test.TestCase):
         ):
             yolo.compile(box_loss="iou", classification_loss="bad_loss")
 
+    @parameterized.named_parameters(
+        ("tf_format", "tf", "model"),
+        ("keras_format", "keras_v3", "model.keras"),
+    )
     @pytest.mark.large  # Saving is slow, so mark these large.
-    def test_serialization(self):
+    def test_saved_model(self, save_format, filename):
         model = keras_cv.models.YOLOV8Detector(
             num_classes=20,
             bounding_box_format="xywh",
@@ -94,12 +99,18 @@ class YOLOV8DetectorTest(tf.test.TestCase):
                 "yolo_v8_xs_backbone"
             ),
         )
-        serialized_1 = keras.utils.serialize_keras_object(model)
-        restored = keras.utils.deserialize_keras_object(
-            copy.deepcopy(serialized_1)
-        )
-        serialized_2 = keras.utils.serialize_keras_object(restored)
-        self.assertEqual(serialized_1, serialized_2)
+        xs, _ = _create_bounding_box_dataset("xywh")
+        model_output = model(xs)
+        save_path = os.path.join(self.get_temp_dir(), filename)
+        model.save(save_path, save_format=save_format)
+        restored_model = keras.models.load_model(save_path)
+
+        # Check we got the real object back.
+        self.assertIsInstance(restored_model, keras_cv.models.YOLOV8Detector)
+
+        # Check that output matches.
+        restored_output = restored_model(xs)
+        self.assertAllClose(model_output, restored_output)
 
 
 @pytest.mark.large

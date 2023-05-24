@@ -12,10 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import copy
+import os
 
 import pytest
 import tensorflow as tf
+from absl.testing import parameterized
 from tensorflow import keras
 from tensorflow.keras import optimizers
 
@@ -25,7 +26,7 @@ from keras_cv.models.object_detection.__test_utils__ import (
 )
 
 
-class RetinaNetTest(tf.test.TestCase):
+class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
     @pytest.fixture(autouse=True)
     def cleanup_global_session(self):
         # Code before yield runs before the test
@@ -40,7 +41,7 @@ class RetinaNetTest(tf.test.TestCase):
         retinanet = keras_cv.models.RetinaNet(
             num_classes=20,
             bounding_box_format="xywh",
-            backbone=keras_cv.models.ResNet50V2Backbone(),
+            backbone=keras_cv.models.ResNet18V2Backbone(),
         )
         retinanet.compile(
             classification_loss="focal",
@@ -48,7 +49,7 @@ class RetinaNetTest(tf.test.TestCase):
             optimizer="adam",
         )
 
-        # TODO(lukewood) uncomment when using keras_cv.models.ResNet50
+        # TODO(lukewood) uncomment when using keras_cv.models.ResNet18
         # self.assertIsNotNone(retinanet.backbone.get_layer(name="rescaling"))
         # TODO(lukewood): test compile with the FocalLoss class
 
@@ -57,7 +58,7 @@ class RetinaNetTest(tf.test.TestCase):
         retinanet = keras_cv.models.RetinaNet(
             num_classes=20,
             bounding_box_format="xywh",
-            backbone=keras_cv.models.ResNet50V2Backbone(),
+            backbone=keras_cv.models.ResNet18V2Backbone(),
         )
         images = tf.random.uniform((2, 512, 512, 3))
         _ = retinanet(images)
@@ -67,7 +68,7 @@ class RetinaNetTest(tf.test.TestCase):
         retinanet = keras_cv.models.RetinaNet(
             num_classes=2,
             bounding_box_format="xywh",
-            backbone=keras_cv.models.ResNet50V2Backbone(),
+            backbone=keras_cv.models.ResNet18V2Backbone(),
         )
 
         with self.assertRaisesRegex(
@@ -88,7 +89,7 @@ class RetinaNetTest(tf.test.TestCase):
         retinanet = keras_cv.models.RetinaNet(
             num_classes=2,
             bounding_box_format="xywh",
-            backbone=keras_cv.models.ResNet50V2Backbone(),
+            backbone=keras_cv.models.ResNet18V2Backbone(),
         )
 
         retinanet.compile(
@@ -106,7 +107,7 @@ class RetinaNetTest(tf.test.TestCase):
         retinanet = keras_cv.models.RetinaNet(
             num_classes=2,
             bounding_box_format=bounding_box_format,
-            backbone=keras_cv.models.ResNet50V2Backbone(),
+            backbone=keras_cv.models.ResNet18V2Backbone(),
         )
         retinanet.backbone.trainable = False
         retinanet.compile(
@@ -133,7 +134,7 @@ class RetinaNetTest(tf.test.TestCase):
         retina_net = keras_cv.models.RetinaNet(
             num_classes=2,
             bounding_box_format="xywh",
-            backbone=keras_cv.models.ResNet50V2Backbone(),
+            backbone=keras_cv.models.ResNet18V2Backbone(),
         )
 
         retina_net.compile(
@@ -163,7 +164,7 @@ class RetinaNetTest(tf.test.TestCase):
         retinanet = keras_cv.models.RetinaNet(
             num_classes=2,
             bounding_box_format=bounding_box_format,
-            backbone=keras_cv.models.ResNet50V2Backbone(),
+            backbone=keras_cv.models.ResNet18V2Backbone(),
         )
 
         retinanet.compile(
@@ -206,19 +207,29 @@ class RetinaNetTest(tf.test.TestCase):
         for w1, w2 in zip(original_fpn_weights, fpn_after_fit):
             self.assertNotAllClose(w1, w2)
 
+    @parameterized.named_parameters(
+        ("tf_format", "tf", "model"),
+        ("keras_format", "keras_v3", "model.keras"),
+    )
     @pytest.mark.large  # Saving is slow, so mark these large.
-    def test_serialization(self):
+    def test_saved_model(self, save_format, filename):
         model = keras_cv.models.RetinaNet(
             num_classes=20,
             bounding_box_format="xywh",
-            backbone=keras_cv.models.ResNet50V2Backbone(),
+            backbone=keras_cv.models.ResNet18V2Backbone(),
         )
-        serialized_1 = keras.utils.serialize_keras_object(model)
-        restored = keras.utils.deserialize_keras_object(
-            copy.deepcopy(serialized_1)
-        )
-        serialized_2 = keras.utils.serialize_keras_object(restored)
-        self.assertEqual(serialized_1, serialized_2)
+        input_batch = tf.ones(shape=(2, 224, 224, 3))
+        model_output = model(input_batch)
+        save_path = os.path.join(self.get_temp_dir(), filename)
+        model.save(save_path, save_format=save_format)
+        restored_model = keras.models.load_model(save_path)
+
+        # Check we got the real object back.
+        self.assertIsInstance(restored_model, keras_cv.models.RetinaNet)
+
+        # Check that output matches.
+        restored_output = restored_model(input_batch)
+        self.assertAllClose(model_output, restored_output)
 
 
 # TODO(jbischof): reduce back to "large" once #1725 fixed

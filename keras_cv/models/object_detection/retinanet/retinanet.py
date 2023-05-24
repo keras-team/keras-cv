@@ -163,9 +163,10 @@ class RetinaNet(Task):
             box_variance=BOX_VARIANCE,
         )
 
-        extractor_levels = [3, 4, 5]
+        # Using strings to keep the TF saving flow happy.
+        extractor_levels = ["3", "4", "5"]
         extractor_layer_names = [
-            backbone.pyramid_level_inputs[i] for i in extractor_levels
+            backbone.pyramid_level_inputs[int(i)] for i in extractor_levels
         ]
         feature_extractor = get_feature_extractor(
             backbone, extractor_layer_names, extractor_levels
@@ -532,9 +533,23 @@ class RetinaNet(Task):
             "backbone": keras.utils.serialize_keras_object(self.backbone),
             "label_encoder": self.label_encoder,
             "prediction_decoder": self._prediction_decoder,
-            "classification_head": self.classification_head,
-            "box_head": self.box_head,
+            "classification_head": keras.utils.serialize_keras_object(
+                self.classification_head
+            ),
+            "box_head": keras.utils.serialize_keras_object(self.box_head),
         }
+
+    @classmethod
+    def from_config(cls, config):
+        if "box_head" in config and isinstance(config["box_head"], dict):
+            config["box_head"] = keras.layers.deserialize(config["box_head"])
+        if "classification_head" in config and isinstance(
+            config["classification_head"], dict
+        ):
+            config["classification_head"] = keras.layers.deserialize(
+                config["classification_head"]
+            )
+        return super().from_config(config)
 
     @classproperty
     def presets(cls):
