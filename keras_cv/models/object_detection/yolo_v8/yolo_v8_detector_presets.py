@@ -33,7 +33,7 @@ yolo_v8_detector_presets = {
             "num_classes": 20,
             "fpn_depth": 2,
         },
-        "weights_url": "https://storage.googleapis.com/keras-cv/models/yolov8/pascal_voc/yolov8_m.h5",  # noqa: E501
-        "weights_hash": "e641690aec205a3ca1ea730ea362ddc36c8b4a5abcebb6a23b18cbc9c091316d",  # noqa: E501
+        "weights_url": "https://storage.googleapis.com/keras-cv/models/yolov8/pascal_voc/yolov8_m_no_duplicate_backbone.h5",  # noqa: E501
+        "weights_hash": "2891fbd66f71e0b9da0cb02ef3afbccb819e1b8f18204157f643f4ec058a71a8",  # noqa: E501
     },
 }

@@ -154,10 +154,16 @@ class Task(keras.Model):
 
     @property
     def layers(self):
-        # Remove preprocessor from layers so it does not show up in the summary.
+        # Some of our task models don't use the Backbone directly, but create
+        # a feature extractor from it. In these cases, we don't want to count
+        # the `backbone` as a layer, because it will be included in the model
+        # summary and saves weights despite not being part of the model graph.
         layers = super().layers
         if hasattr(self, "_backbone") and self.backbone in layers:
-            layers.remove(self.backbone)
+            # We know that the backbone is not part of the graph if it has no
+            # inbound nodes.
+            if len(self.backbone._inbound_nodes) == 0:
+                layers.remove(self.backbone)
         return layers
 
     def __init_subclass__(cls, **kwargs):
