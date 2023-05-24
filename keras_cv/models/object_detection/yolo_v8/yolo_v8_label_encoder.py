@@ -376,6 +376,11 @@ class YOLOV8LabelEncoder(layers.Layer):
 
         return target_bboxes, target_scores
 
+    def count_params(self):
+        # The label encoder has no weights, so we short-circuit the weight
+        # counting to avoid having to `build` this layer unnecessarily.
+        return 0
+
     def get_config(self):
         config = {
             "max_anchor_matches": self.max_anchor_matches,
