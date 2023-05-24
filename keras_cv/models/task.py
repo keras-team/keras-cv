@@ -152,6 +152,14 @@ class Task(keras.Model):
         model.load_weights(weights)
         return model
 
+    @property
+    def layers(self):
+        # Remove preprocessor from layers so it does not show up in the summary.
+        layers = super().layers
+        if hasattr(self, "_backbone") and self.backbone in layers:
+            layers.remove(self.backbone)
+        return layers
+
     def __init_subclass__(cls, **kwargs):
         # Use __init_subclass__ to set up a correct docstring for from_preset.
         super().__init_subclass__(**kwargs)
