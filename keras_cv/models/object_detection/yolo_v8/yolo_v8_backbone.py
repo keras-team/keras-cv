@@ -180,7 +180,7 @@ class YOLOV8Backbone(Backbone):
                     activation=activation,
                     name=f"{stack_name}_spp_fast",
                 )
-            pyramid_level_inputs["P" + str(stack_id + 2)] = x.node.layer.name
+            pyramid_level_inputs[f"P{stack_id + 2}"] = x.node.layer.name
 
         super().__init__(inputs=inputs, outputs=x, **kwargs)
         self.pyramid_level_inputs = pyramid_level_inputs
