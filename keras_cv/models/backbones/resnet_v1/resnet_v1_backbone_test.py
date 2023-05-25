@@ -18,13 +18,12 @@ from keras_cv import use_keras_core
 
 if use_keras_core():
     from keras_core import Input
-    from keras_core.operations import ones
     from keras_core.saving import load_model
 else:
-    from tensorflow import ones
     from keras.models import load_model
     from keras import Input
 
+import numpy as np
 import pytest
 import tensorflow as tf
 from absl.testing import parameterized
@@ -49,7 +48,7 @@ from keras_cv.utils.train import get_feature_extractor
 
 class ResNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
     def setUp(self):
-        self.input_batch = ones(shape=(2, 224, 224, 3))
+        self.input_batch = np.ones(shape=(2, 224, 224, 3))
 
     def test_valid_call(self):
         model = ResNetBackbone(
