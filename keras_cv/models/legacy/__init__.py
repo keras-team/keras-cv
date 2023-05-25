@@ -17,11 +17,6 @@ from keras_cv.models.legacy.convmixer import ConvMixer_768_32
 from keras_cv.models.legacy.convmixer import ConvMixer_1024_16
 from keras_cv.models.legacy.convmixer import ConvMixer_1536_20
 from keras_cv.models.legacy.convmixer import ConvMixer_1536_24
-from keras_cv.models.legacy.convnext import ConvNeXtBase
-from keras_cv.models.legacy.convnext import ConvNeXtLarge
-from keras_cv.models.legacy.convnext import ConvNeXtSmall
-from keras_cv.models.legacy.convnext import ConvNeXtTiny
-from keras_cv.models.legacy.convnext import ConvNeXtXLarge
 from keras_cv.models.legacy.darknet import DarkNet21
 from keras_cv.models.legacy.darknet import DarkNet53
 from keras_cv.models.legacy.densenet import DenseNet121
