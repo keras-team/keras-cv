@@ -16,50 +16,47 @@
 backbone_presets_no_weights = {
     "densenet121": {
         "metadata": {
-            "description": (
-                "DenseNet model with 121 layers where the batch normalization "
-                "and ReLU activation are applied after the convolution layers."
-            ),
+            "description": "DenseNet model with 121 layers.",
         },
         "class_name": "keras_cv.models>DenseNetBackbone",
         "config": {
-            "blocks": [6, 12, 24, 16],
+            "stackwise_num_repeats": [6, 12, 24, 16],
             "include_rescaling": True,
             "input_shape": (None, None, 3),
             "input_tensor": None,
             "pooling": None,
+            "compression_ratio": 0.5,
+            "growth_rate": 32,
         },
     },
     "densenet169": {
         "metadata": {
-            "description": (
-                "DenseNet model with 169 layers where the batch normalization "
-                "and ReLU activation are applied after the convolution layers."
-            ),
+            "description": "DenseNet model with 169 layers.",
         },
         "class_name": "keras_cv.models>DenseNetBackbone",
         "config": {
-            "blocks": [6, 12, 32, 32],
+            "stackwise_num_repeats": [6, 12, 32, 32],
             "include_rescaling": True,
             "input_shape": (None, None, 3),
             "input_tensor": None,
             "pooling": None,
+            "compression_ratio": 0.5,
+            "growth_rate": 32,
         },
     },
     "densenet201": {
         "metadata": {
-            "description": (
-                "DenseNet model with 201 layers where the batch normalization "
-                "and ReLU activation are applied after the convolution layers."
-            ),
+            "description": "DenseNet model with 201 layers.",
         },
         "class_name": "keras_cv.models>DenseNetBackbone",
         "config": {
-            "blocks": [6, 12, 48, 32],
+            "stackwise_num_repeats": [6, 12, 48, 32],
             "include_rescaling": True,
             "input_shape": (None, None, 3),
             "input_tensor": None,
             "pooling": None,
+            "compression_ratio": 0.5,
+            "growth_rate": 32,
         },
     },
 }
@@ -68,9 +65,8 @@ backbone_presets_with_weights = {
     "densenet121_imagenet": {
         "metadata": {
             "description": (
-                "DenseNet model with 121 layers where the batch normalization "
-                "and ReLU activation are applied after the convolution layers. "
-                "Trained on Imagenet 2012 classification task."
+                "DenseNet model with 121 layers. Trained on Imagenet 2012 "
+                "classification task."
             ),
         },
         "class_name": "keras_cv.models>DenseNetBackbone",
@@ -81,9 +77,8 @@ backbone_presets_with_weights = {
     "densenet169_imagenet": {
         "metadata": {
             "description": (
-                "DenseNet model with 169 layers where the batch normalization "
-                "and ReLU activation are applied after the convolution layers. "
-                "Trained on Imagenet 2012 classification task."
+                "DenseNet model with 169 layers. Trained on Imagenet 2012 "
+                "classification task."
             ),
         },
         "class_name": "keras_cv.models>DenseNetBackbone",
@@ -94,9 +89,8 @@ backbone_presets_with_weights = {
     "densenet201_imagenet": {
         "metadata": {
             "description": (
-                "DenseNet model with 201 layers where the batch normalization "
-                "and ReLU activation are applied after the convolution layers. "
-                "Trained on Imagenet 2012 classification task."
+                "DenseNet model with 201 layers. Trained on Imagenet 2012 "
+                "classification task."
             ),
         },
         "class_name": "keras_cv.models>DenseNetBackbone",

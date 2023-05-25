@@ -39,36 +39,29 @@ BN_AXIS = 3
 BN_EPSILON = 1.001e-5
 
 
-def apply_dense_block(x, blocks, name=None):
+def apply_dense_block(x, num_repeats, growth_rate, name=None):
     """A dense block.
 
     Args:
       x: input tensor.
-      blocks: int, number of building blocks.
+      num_repeats: int, number of repeated convolutional blocks.
       name: string, block label.
-
-    Returns:
-      a function that takes an input Tensor representing an apply_dense_block.
     """
     if name is None:
         name = f"dense_block_{backend.get_uid('dense_block')}"
 
-    for i in range(blocks):
-        x = apply_conv_block(x, 32, name=f"{name}_block_{i}")
+    for i in range(num_repeats):
+        x = apply_conv_block(x, growth_rate, name=f"{name}_block_{i}")
     return x
 
 
-def apply_transition_block(x, reduction, name=None):
+def apply_transition_block(x, compression_ratio, name=None):
     """A transition block.
 
     Args:
       x: input tensor.
-      reduction: float, compression rate at transition layers.
+      compression_ratio: float, compression rate at transition layers.
       name: string, block label.
-
-    Returns:
-      a function that takes an input Tensor representing an
-      apply_transition_block.
     """
     if name is None:
         name = f"transition_block_{backend.get_uid('transition_block')}"
@@ -78,7 +71,7 @@ def apply_transition_block(x, reduction, name=None):
     )(x)
     x = layers.Activation("relu", name=f"{name}_relu")(x)
     x = layers.Conv2D(
-        int(backend.int_shape(x)[BN_AXIS] * reduction),
+        int(backend.int_shape(x)[BN_AXIS] * compression_ratio),
         1,
         use_bias=False,
         name=f"{name}_conv",
@@ -92,16 +85,13 @@ def apply_conv_block(x, growth_rate, name=None):
 
     Args:
       x: input tensor.
-      growth_rate: float, growth rate at dense layers.
+      growth_rate: int, number of filters added by each dense block.
       name: string, block label.
-
-    Returns:
-      a function that takes an input Tensor representing an apply_conv_block.
     """
     if name is None:
         name = f"conv_block_{backend.get_uid('conv_block')}"
 
-    x1 = x
+    shortcut = x
     x = layers.BatchNormalization(
         axis=BN_AXIS, epsilon=BN_EPSILON, name=f"{name}_0_bn"
     )(x)
@@ -120,7 +110,7 @@ def apply_conv_block(x, growth_rate, name=None):
         use_bias=False,
         name=f"{name}_2_conv",
     )(x)
-    x = layers.Concatenate(axis=BN_AXIS, name=f"{name}_concat")([x1, x])
+    x = layers.Concatenate(axis=BN_AXIS, name=f"{name}_concat")([shortcut, x])
     return x
 
 
@@ -129,7 +119,8 @@ class DenseNetBackbone(Backbone):
     """Instantiates the DenseNet architecture.
 
     Args:
-        blocks: numbers of building blocks for the four dense layers.
+        stackwise_num_repeats: list of ints, number of repeated convolutional
+            blocks per dense block.
         include_rescaling: bool, whether to rescale the inputs. If set
             to `True`, inputs will be passed through a `Rescaling(1/255.0)`
             layer.
@@ -147,7 +138,7 @@ class DenseNetBackbone(Backbone):
 
     # Randomly initialized backbone with a custom config
     model = DenseNetBackbone(
-        blocks=[6, 12, 24, 16],
+        stackwise_num_repeats=[6, 12, 24, 16],
         include_rescaling=False,
     )
     output = model(input_data)
@@ -157,11 +148,13 @@ class DenseNetBackbone(Backbone):
     def __init__(
         self,
         *,
-        blocks,
+        stackwise_num_repeats,
         include_rescaling,
         input_shape=(None, None, 3),
         input_tensor=None,
         pooling=None,
+        compression_ratio=0.5,
+        growth_rate=32,
         **kwargs,
     ):
         inputs = utils.parse_model_inputs(input_shape, input_tensor)
@@ -180,21 +173,22 @@ class DenseNetBackbone(Backbone):
         x = layers.MaxPooling2D(3, strides=2, padding="same", name="pool1")(x)
 
         pyramid_level_inputs = {}
-        x = apply_dense_block(x, blocks[0], name="conv2")
-        pyramid_level_inputs[2] = x.node.layer.name
-        x = apply_transition_block(x, 0.5, name="pool2")
-        pyramid_level_inputs[3] = x.node.layer.name
-        x = apply_dense_block(x, blocks[1], name="conv3")
-        pyramid_level_inputs[4] = x.node.layer.name
-        x = apply_transition_block(x, 0.5, name="pool3")
-        pyramid_level_inputs[5] = x.node.layer.name
-        x = apply_dense_block(x, blocks[2], name="conv4")
-        pyramid_level_inputs[6] = x.node.layer.name
-        x = apply_transition_block(x, 0.5, name="pool4")
-        pyramid_level_inputs[7] = x.node.layer.name
-        x = apply_dense_block(x, blocks[3], name="conv5")
-        pyramid_level_inputs[8] = x.node.layer.name
+        for stack_index in range(len(stackwise_num_repeats) - 1):
+            index = stack_index + 2
+            x = apply_dense_block(
+                x,
+                stackwise_num_repeats[stack_index],
+                growth_rate,
+                name=f"conv{index}",
+            )
+            x = apply_transition_block(
+                x, compression_ratio, name=f"pool{index}"
+            )
+            pyramid_level_inputs[index] = x.node.layer.name
 
+        x = apply_dense_block(
+            x, stackwise_num_repeats[3], growth_rate, name="conv5"
+        )
         x = layers.BatchNormalization(
             axis=BN_AXIS, epsilon=BN_EPSILON, name="bn"
         )(x)
@@ -208,19 +202,23 @@ class DenseNetBackbone(Backbone):
 
         # All references to `self` below this line
         self.pyramid_level_inputs = pyramid_level_inputs
-        self.blocks = blocks
+        self.stackwise_num_repeats = stackwise_num_repeats
         self.include_rescaling = include_rescaling
         self.input_tensor = input_tensor
+        self.compression_ratio = (compression_ratio,)
+        self.growth_rate = (growth_rate,)
 
     def get_config(self):
         config = super().get_config()
         config.update(
             {
-                "blocks": self.blocks,
+                "stackwise_num_repeats": self.stackwise_num_repeats,
                 "include_rescaling": self.include_rescaling,
                 # Remove batch dimension from `input_shape`
                 "input_shape": self.input_shape[1:],
                 "input_tensor": self.input_tensor,
+                "compression_ratio": self.compression_ratio,
+                "growth_rate": self.growth_rate,
             }
         )
         return config
