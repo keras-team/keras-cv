@@ -34,7 +34,7 @@ class DenseNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
 
     def test_valid_call(self):
         model = DenseNetBackbone(
-            blocks=[6, 12, 24, 16],
+            stackwise_num_repeats=[6, 12, 24, 16],
             include_rescaling=False,
         )
         model(self.input_batch)
@@ -45,7 +45,7 @@ class DenseNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
 
     def test_valid_call_with_rescaling(self):
         model = DenseNetBackbone(
-            blocks=[6, 12, 24, 16],
+            stackwise_num_repeats=[6, 12, 24, 16],
             include_rescaling=True,
         )
         model(self.input_batch)
@@ -57,7 +57,7 @@ class DenseNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
     @pytest.mark.large  # Saving is slow, so mark these large.
     def test_saved_model(self, save_format, filename):
         model = DenseNetBackbone(
-            blocks=[6, 12, 24, 16],
+            stackwise_num_repeats=[6, 12, 24, 16],
             include_rescaling=False,
         )
         model_output = model(self.input_batch)
@@ -116,7 +116,7 @@ class DenseNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
 
     def test_create_backbone_model_with_level_config(self):
         model = DenseNetBackbone(
-            blocks=[6, 12, 24, 16],
+            stackwise_num_repeats=[6, 12, 24, 16],
             include_rescaling=False,
         )
         levels = [3, 4]
@@ -135,7 +135,7 @@ class DenseNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
     )
     def test_application_variable_input_channels(self):
         model = DenseNetBackbone(
-            blocks=[6, 12, 24, 16],
+            stackwise_num_repeats=[6, 12, 24, 16],
             include_rescaling=False,
         )
         self.assertEqual(model.output_shape, (None, None, None, 1024))
