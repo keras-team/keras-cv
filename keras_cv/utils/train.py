@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import keras_core
 import tensorflow as tf
 from tensorflow import keras
 
@@ -79,3 +80,29 @@ def get_feature_extractor(model, layer_names, output_keys=None):
     items = zip(output_keys, layer_names)
     outputs = {key: model.get_layer(name).output for key, name in items}
     return keras.Model(inputs=model.inputs, outputs=outputs)
+
+
+def get_feature_extractor_keras_core(model, layer_names, output_keys=None):
+    """Create a feature extractor model with augmented output.
+
+    This method produces a new `keras_core.Model` with the same input signature
+    as the source but with the layers in `layer_names` as the output.
+    This is useful for downstream tasks that require more output than the
+    final layer of the backbone.
+
+    Args:
+        model: keras_core.Model. The source model.
+        layer_names: list of strings. Names of layers to include in the
+            output signature.
+        output_keys: optional, list of strings. Key to use for each layer in
+            the model's output dictionary.
+
+    Returns:
+        `keras.Model` which has dict as outputs.
+    """
+
+    if not output_keys:
+        output_keys = layer_names
+    items = zip(output_keys, layer_names)
+    outputs = {key: model.get_layer(name).output for key, name in items}
+    return keras_core.Model(inputs=model.inputs, outputs=outputs)
