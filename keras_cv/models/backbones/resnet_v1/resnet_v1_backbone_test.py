@@ -85,7 +85,10 @@ class ResNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
         save_path = os.path.join(
             self.get_temp_dir(), "resnet_v1_backbone.keras"
         )
-        model.save(save_path)
+        if use_keras_core():
+            model.save(save_path)
+        else:
+            model.save(save_path, save_format="keras_v3")
         restored_model = load_model(save_path)
 
         # Check we got the real object back.
@@ -102,7 +105,10 @@ class ResNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
         save_path = os.path.join(
             self.get_temp_dir(), "resnet_v1_alias_backbone.keras"
         )
-        model.save(save_path)
+        if use_keras_core():
+            model.save(save_path)
+        else:
+            model.save(save_path, save_format="keras_v3")
         restored_model = load_model(save_path)
 
         # Check we got the real object back.
