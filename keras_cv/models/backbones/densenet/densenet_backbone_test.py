@@ -104,15 +104,11 @@ class DenseNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
         inputs = tf.keras.Input(shape=[256, 256, 3])
         outputs = backbone_model(inputs)
 
-        self.assertLen(outputs, 7)
-        self.assertEquals(list(outputs.keys()), [2, 3, 4, 5, 6, 7, 8])
-        self.assertEquals(outputs[2].shape, [None, 64, 64, 256])
-        self.assertEquals(outputs[3].shape, [None, 32, 32, 128])
-        self.assertEquals(outputs[4].shape, [None, 32, 32, 512])
-        self.assertEquals(outputs[5].shape, [None, 16, 16, 256])
-        self.assertEquals(outputs[6].shape, [None, 16, 16, 1024])
-        self.assertEquals(outputs[7].shape, [None, 8, 8, 512])
-        self.assertEquals(outputs[8].shape, [None, 8, 8, 1024])
+        self.assertLen(outputs, 3)
+        self.assertEquals(list(outputs.keys()), [2, 3, 4])
+        self.assertEquals(outputs[2].shape, [None, 32, 32, 128])
+        self.assertEquals(outputs[3].shape, [None, 16, 16, 256])
+        self.assertEquals(outputs[4].shape, [None, 8, 8, 512])
 
     def test_create_backbone_model_with_level_config(self):
         model = DenseNetBackbone(
@@ -126,16 +122,17 @@ class DenseNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
         outputs = backbone_model(inputs)
         self.assertLen(outputs, 2)
         self.assertEquals(list(outputs.keys()), [3, 4])
-        self.assertEquals(outputs[3].shape, [None, 32, 32, 128])
-        self.assertEquals(outputs[4].shape, [None, 32, 32, 512])
+        self.assertEquals(outputs[3].shape, [None, 16, 16, 256])
+        self.assertEquals(outputs[4].shape, [None, 8, 8, 512])
 
     @parameterized.named_parameters(
         ("one_channel", 1),
         ("four_channels", 4),
     )
-    def test_application_variable_input_channels(self):
+    def test_application_variable_input_channels(self, num_channels):
         model = DenseNetBackbone(
             stackwise_num_repeats=[6, 12, 24, 16],
+            input_shape=(None, None, num_channels),
             include_rescaling=False,
         )
         self.assertEqual(model.output_shape, (None, None, None, 1024))
