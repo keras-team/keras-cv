@@ -20,7 +20,7 @@ from keras_cv.models.legacy.models_test import ModelsTest
 
 MODEL_LIST = [
     (
-        convnext.ConvNeXtTiny,
+        convnext.ConvNeXtTinyBackbone,
         768,
         {"drop_path_rate": 0.1, "layer_scale_init_value": 1e-6},
     ),

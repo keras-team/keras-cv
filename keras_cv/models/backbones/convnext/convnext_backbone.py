@@ -17,6 +17,7 @@ References:
 - [A ConvNet for the 2020s](https://arxiv.org/abs/2201.03545)
   (CVPR 2022)
 """
+import copy
 
 import tensorflow as tf
 from tensorflow import keras
@@ -24,7 +25,12 @@ from tensorflow.keras import backend
 from tensorflow.keras import layers
 
 from keras_cv.layers.regularization import StochasticDepth
+from keras_cv.models.backbones.backbone import Backbone
+from keras_cv.models.backbones.convnext.convnext_backbone_presets import (
+    backbone_presets,
+)
 from keras_cv.models.legacy import utils
+from keras_cv.utils.python_utils import classproperty
 
 MODEL_CONFIGS = {
     "tiny": {
@@ -216,7 +222,7 @@ def apply_head(x, num_classes, activation="softmax", name=None):
 
 
 @keras.utils.register_keras_serializable(package="keras_cv.models")
-class ConvNeXt(keras.Model):
+class ConvNeXtBackbone(Backbone):
     """Instantiates ConvNeXt architecture given specific configuration.
     Args:
         include_rescaling: bool, whether to rescale the inputs. If set
@@ -265,41 +271,16 @@ class ConvNeXt(keras.Model):
 
     def __init__(
         self,
+        *,
         include_rescaling,
-        include_top,
         depths,
         projection_dims,
         drop_path_rate=0.0,
         layer_scale_init_value=1e-6,
-        weights=None,
         input_shape=(None, None, 3),
         input_tensor=None,
-        pooling=None,
-        num_classes=None,
-        classifier_activation="softmax",
-        name="convnext",
         **kwargs,
     ):
-        if weights and not tf.io.gfile.exists(weights):
-            raise ValueError(
-                "The `weights` argument should be either "
-                "`None` or the path to the weights file to be loaded. "
-                f"Weights file not found at location: {weights}"
-            )
-
-        if include_top and not num_classes:
-            raise ValueError(
-                "If `include_top` is True, "
-                "you should specify `num_classes`. "
-                f"Received: num_classes={num_classes}"
-            )
-
-        if include_top and pooling:
-            raise ValueError(
-                f"`pooling` must be `None` when `include_top=True`."
-                f"Received pooling={pooling} and include_top={include_top}. "
-            )
-
         inputs = utils.parse_model_inputs(input_shape, input_tensor)
 
         x = inputs
@@ -313,13 +294,11 @@ class ConvNeXt(keras.Model):
                     projection_dims[0],
                     kernel_size=4,
                     strides=4,
-                    name=name + "_stem_conv",
+                    name="stem_conv",
                 ),
-                layers.LayerNormalization(
-                    epsilon=1e-6, name=name + "_stem_layernorm"
-                ),
+                layers.LayerNormalization(epsilon=1e-6, name="stem_layernorm"),
             ],
-            name=name + "_stem",
+            name="stem",
         )
 
         # Downsampling blocks.
@@ -327,23 +306,25 @@ class ConvNeXt(keras.Model):
         downsample_layers.append(stem)
 
         num_downsample_layers = 3
+        pyramid_level_inputs = {}
         for i in range(num_downsample_layers):
             downsample_layer = keras.Sequential(
                 [
                     layers.LayerNormalization(
                         epsilon=1e-6,
-                        name=name + "_downsampling_layernorm_" + str(i),
+                        name="downsampling_layernorm_" + str(i),
                     ),
                     layers.Conv2D(
                         projection_dims[i + 1],
                         kernel_size=2,
                         strides=2,
-                        name=name + "_downsampling_conv_" + str(i),
+                        name="downsampling_conv_" + str(i),
                     ),
                 ],
-                name=name + "_downsampling_block_" + str(i),
+                name="downsampling_block_" + str(i),
             )
             downsample_layers.append(downsample_layer)
+            pyramid_level_inputs[i + 2] = downsample_layer.node.layer.name
 
         # Stochastic depth schedule.
         # This is referred from the original ConvNeXt codebase:
@@ -364,66 +345,43 @@ class ConvNeXt(keras.Model):
                     projection_dim=projection_dims[i],
                     drop_path_rate=depth_drop_rates[cur + j],
                     layer_scale_init_value=layer_scale_init_value,
-                    name=name + f"_stage_{i}_block_{j}",
+                    name=f"stage_{i}_block_{j}",
                 )
             cur += depths[i]
-
-        if include_top:
-            x = apply_head(
-                x,
-                num_classes=num_classes,
-                activation=classifier_activation,
-                name=name,
-            )
-
-        else:
-            if pooling == "avg":
-                x = layers.GlobalAveragePooling2D()(x)
-            elif pooling == "max":
-                x = layers.GlobalMaxPooling2D()(x)
-            x = layers.LayerNormalization(epsilon=1e-6)(x)
 
         # Create model.
         super().__init__(inputs=inputs, outputs=x, **kwargs)
 
-        if weights is not None:
-            self.load_weights(weights)
-
+        self.pyramid_level_inputs = pyramid_level_inputs
         self.include_rescaling = include_rescaling
-        self.include_top = include_top
         self.depths = depths
         self.projection_dims = projection_dims
         self.drop_path_rate = drop_path_rate
         self.layer_scale_init_value = layer_scale_init_value
         self.input_tensor = input_tensor
-        self.pooling = pooling
-        self.num_classes = num_classes
-        self.classifier_activation = classifier_activation
 
     def get_config(self):
-        return {
-            "include_rescaling": self.include_rescaling,
-            "include_top": self.include_top,
-            "depths": self.depths,
-            "projection_dims": self.projection_dims,
-            "drop_path_rate": self.drop_path_rate,
-            "layer_scale_init_value": self.layer_scale_init_value,
-            # Remove batch dimension from `input_shape`
-            "input_shape": self.input_shape[1:],
-            "input_tensor": self.input_tensor,
-            "pooling": self.pooling,
-            "num_classes": self.num_classes,
-            "classifier_activation": self.classifier_activation,
-            "name": self.name,
-            "trainable": self.trainable,
-        }
+        config = super().get_config()
+        config.update(
+            {
+                "include_rescaling": self.include_rescaling,
+                "depths": self.depths,
+                "projection_dims": self.projection_dims,
+                "drop_path_rate": self.drop_path_rate,
+                "layer_scale_init_value": self.layer_scale_init_value,
+                "input_shape": self.input_shape[1:],
+                "input_tensor": self.input_tensor,
+            }
+        )
+        return config
 
-    @classmethod
-    def from_config(cls, config):
-        return cls(**config)
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return copy.deepcopy(backbone_presets)
 
 
-def ConvNeXtTiny(
+def ConvNeXtTinyBackbone(
     *,
     include_rescaling,
     include_top,
@@ -437,7 +395,7 @@ def ConvNeXtTiny(
     classifier_activation="softmax",
     name="convnext_tiny",
 ):
-    return ConvNeXt(
+    return ConvNeXtBackbone(
         include_rescaling=include_rescaling,
         include_top=include_top,
         depths=MODEL_CONFIGS["tiny"]["depths"],
@@ -454,7 +412,7 @@ def ConvNeXtTiny(
     )
 
 
-def ConvNeXtSmall(
+def ConvNeXtSmallBackbone(
     *,
     include_rescaling,
     include_top,
@@ -468,7 +426,7 @@ def ConvNeXtSmall(
     classifier_activation="softmax",
     name="convnext_small",
 ):
-    return ConvNeXt(
+    return ConvNeXtBackbone(
         include_rescaling=include_rescaling,
         include_top=include_top,
         depths=MODEL_CONFIGS["small"]["depths"],
@@ -485,7 +443,7 @@ def ConvNeXtSmall(
     )
 
 
-def ConvNeXtBase(
+def ConvNeXtBaseBackbone(
     *,
     include_rescaling,
     include_top,
@@ -499,7 +457,7 @@ def ConvNeXtBase(
     classifier_activation="softmax",
     name="convnext_base",
 ):
-    return ConvNeXt(
+    return ConvNeXtBackbone(
         include_rescaling=include_rescaling,
         include_top=include_top,
         depths=MODEL_CONFIGS["base"]["depths"],
@@ -516,7 +474,7 @@ def ConvNeXtBase(
     )
 
 
-def ConvNeXtLarge(
+def ConvNeXtLargeBackbone(
     *,
     include_rescaling,
     include_top,
@@ -530,7 +488,7 @@ def ConvNeXtLarge(
     classifier_activation="softmax",
     name="convnext_large",
 ):
-    return ConvNeXt(
+    return ConvNeXtBackbone(
         include_rescaling=include_rescaling,
         include_top=include_top,
         depths=MODEL_CONFIGS["large"]["depths"],
@@ -547,7 +505,7 @@ def ConvNeXtLarge(
     )
 
 
-def ConvNeXtXLarge(
+def ConvNeXtXLargeBackbone(
     *,
     include_rescaling,
     include_top,
@@ -561,7 +519,7 @@ def ConvNeXtXLarge(
     classifier_activation="softmax",
     name="convnext_xlarge",
 ):
-    return ConvNeXt(
+    return ConvNeXtBackbone(
         include_rescaling=include_rescaling,
         include_top=include_top,
         depths=MODEL_CONFIGS["xlarge"]["depths"],
@@ -578,8 +536,8 @@ def ConvNeXtXLarge(
     )
 
 
-ConvNeXtTiny.__doc__ = BASE_DOCSTRING.format(name="ConvNeXtTiny")
-ConvNeXtSmall.__doc__ = BASE_DOCSTRING.format(name="ConvNeXtSmall")
-ConvNeXtBase.__doc__ = BASE_DOCSTRING.format(name="ConvNeXtBase")
-ConvNeXtLarge.__doc__ = BASE_DOCSTRING.format(name="ConvNeXtLarge")
-ConvNeXtXLarge.__doc__ = BASE_DOCSTRING.format(name="ConvNeXtXLarge")
+ConvNeXtTinyBackbone.__doc__ = BASE_DOCSTRING.format(name="ConvNeXtTiny")
+ConvNeXtSmallBackbone.__doc__ = BASE_DOCSTRING.format(name="ConvNeXtSmall")
+ConvNeXtBaseBackbone.__doc__ = BASE_DOCSTRING.format(name="ConvNeXtBase")
+ConvNeXtLargeBackbone.__doc__ = BASE_DOCSTRING.format(name="ConvNeXtLarge")
+ConvNeXtXLargeBackbone.__doc__ = BASE_DOCSTRING.format(name="ConvNeXtXLarge")

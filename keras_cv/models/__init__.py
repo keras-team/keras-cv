@@ -13,11 +13,21 @@
 # limitations under the License.
 
 from keras_cv.models import legacy
-from keras_cv.models.backbones.convnext.convnext_backbone import ConvNeXtBase
-from keras_cv.models.backbones.convnext.convnext_backbone import ConvNeXtLarge
-from keras_cv.models.backbones.convnext.convnext_backbone import ConvNeXtSmall
-from keras_cv.models.backbones.convnext.convnext_backbone import ConvNeXtTiny
-from keras_cv.models.backbones.convnext.convnext_backbone import ConvNeXtXLarge
+from keras_cv.models.backbones.convnext.convnext_backbone import (
+    ConvNeXtBaseBackbone,
+)
+from keras_cv.models.backbones.convnext.convnext_backbone import (
+    ConvNeXtLargeBackbone,
+)
+from keras_cv.models.backbones.convnext.convnext_backbone import (
+    ConvNeXtSmallBackbone,
+)
+from keras_cv.models.backbones.convnext.convnext_backbone import (
+    ConvNeXtTinyBackbone,
+)
+from keras_cv.models.backbones.convnext.convnext_backbone import (
+    ConvNeXtXLargeBackbone,
+)
 from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
     CSPDarkNetBackbone,
 )
