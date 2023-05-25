@@ -32,34 +32,6 @@ from keras_cv.models.backbones.convnext.convnext_backbone_presets import (
 from keras_cv.models.legacy import utils
 from keras_cv.utils.python_utils import classproperty
 
-MODEL_CONFIGS = {
-    "tiny": {
-        "depths": [3, 3, 9, 3],
-        "projection_dims": [96, 192, 384, 768],
-        "default_size": 224,
-    },
-    "small": {
-        "depths": [3, 3, 27, 3],
-        "projection_dims": [96, 192, 384, 768],
-        "default_size": 224,
-    },
-    "base": {
-        "depths": [3, 3, 27, 3],
-        "projection_dims": [128, 256, 512, 1024],
-        "default_size": 224,
-    },
-    "large": {
-        "depths": [3, 3, 27, 3],
-        "projection_dims": [192, 384, 768, 1536],
-        "default_size": 224,
-    },
-    "xlarge": {
-        "depths": [3, 3, 27, 3],
-        "projection_dims": [256, 512, 1024, 2048],
-        "default_size": 224,
-    },
-}
-
 BASE_DOCSTRING = """Instantiates the {name} architecture.
     - [A ConvNet for the 2020s](https://arxiv.org/abs/2201.03545) (CVPR 2022)
 
@@ -381,159 +353,124 @@ class ConvNeXtBackbone(Backbone):
         return copy.deepcopy(backbone_presets)
 
 
-def ConvNeXtTinyBackbone(
-    *,
-    include_rescaling,
-    include_top,
-    drop_path_rate,
-    layer_scale_init_value,
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    num_classes=None,
-    classifier_activation="softmax",
-    name="convnext_tiny",
-):
-    return ConvNeXtBackbone(
-        include_rescaling=include_rescaling,
-        include_top=include_top,
-        depths=MODEL_CONFIGS["tiny"]["depths"],
-        projection_dims=MODEL_CONFIGS["tiny"]["projection_dims"],
-        drop_path_rate=drop_path_rate,
-        layer_scale_init_value=layer_scale_init_value,
-        weights=weights,
-        input_tensor=input_tensor,
-        input_shape=input_shape,
-        pooling=pooling,
-        num_classes=num_classes,
-        classifier_activation=classifier_activation,
-        name=name,
-    )
+class ConvNeXtTinyBackbone(ConvNeXtBackbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
+        **kwargs,
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return ConvNeXtBackbone.from_preset("convnext_tiny", **kwargs)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
 
 
-def ConvNeXtSmallBackbone(
-    *,
-    include_rescaling,
-    include_top,
-    drop_path_rate,
-    layer_scale_init_value,
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    num_classes=None,
-    classifier_activation="softmax",
-    name="convnext_small",
-):
-    return ConvNeXtBackbone(
-        include_rescaling=include_rescaling,
-        include_top=include_top,
-        depths=MODEL_CONFIGS["small"]["depths"],
-        projection_dims=MODEL_CONFIGS["small"]["projection_dims"],
-        drop_path_rate=drop_path_rate,
-        layer_scale_init_value=layer_scale_init_value,
-        weights=weights,
-        input_tensor=input_tensor,
-        input_shape=input_shape,
-        pooling=pooling,
-        num_classes=num_classes,
-        classifier_activation=classifier_activation,
-        name=name,
-    )
+class ConvNeXtSmallBackbone(ConvNeXtBackbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
+        **kwargs,
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return ConvNeXtBackbone.from_preset("convnext_small", **kwargs)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
 
 
-def ConvNeXtBaseBackbone(
-    *,
-    include_rescaling,
-    include_top,
-    drop_path_rate,
-    layer_scale_init_value,
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    num_classes=None,
-    classifier_activation="softmax",
-    name="convnext_base",
-):
-    return ConvNeXtBackbone(
-        include_rescaling=include_rescaling,
-        include_top=include_top,
-        depths=MODEL_CONFIGS["base"]["depths"],
-        projection_dims=MODEL_CONFIGS["base"]["projection_dims"],
-        drop_path_rate=drop_path_rate,
-        layer_scale_init_value=layer_scale_init_value,
-        weights=weights,
-        input_tensor=input_tensor,
-        input_shape=input_shape,
-        pooling=pooling,
-        num_classes=num_classes,
-        classifier_activation=classifier_activation,
-        name=name,
-    )
+class ConvNeXtBaseBackbone(ConvNeXtBackbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
+        **kwargs,
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return ConvNeXtBackbone.from_preset("convnext_base", **kwargs)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
 
 
-def ConvNeXtLargeBackbone(
-    *,
-    include_rescaling,
-    include_top,
-    drop_path_rate,
-    layer_scale_init_value,
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    num_classes=None,
-    classifier_activation="softmax",
-    name="convnext_large",
-):
-    return ConvNeXtBackbone(
-        include_rescaling=include_rescaling,
-        include_top=include_top,
-        depths=MODEL_CONFIGS["large"]["depths"],
-        projection_dims=MODEL_CONFIGS["large"]["projection_dims"],
-        drop_path_rate=drop_path_rate,
-        layer_scale_init_value=layer_scale_init_value,
-        weights=weights,
-        input_tensor=input_tensor,
-        input_shape=input_shape,
-        pooling=pooling,
-        num_classes=num_classes,
-        classifier_activation=classifier_activation,
-        name=name,
-    )
+class ConvNeXtLargeBackbone(ConvNeXtBackbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
+        **kwargs,
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return ConvNeXtBackbone.from_preset("convnext_large", **kwargs)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
 
 
-def ConvNeXtXLargeBackbone(
-    *,
-    include_rescaling,
-    include_top,
-    drop_path_rate,
-    layer_scale_init_value,
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    num_classes=None,
-    classifier_activation="softmax",
-    name="convnext_xlarge",
-):
-    return ConvNeXtBackbone(
-        include_rescaling=include_rescaling,
-        include_top=include_top,
-        depths=MODEL_CONFIGS["xlarge"]["depths"],
-        projection_dims=MODEL_CONFIGS["xlarge"]["projection_dims"],
-        drop_path_rate=drop_path_rate,
-        layer_scale_init_value=layer_scale_init_value,
-        weights=weights,
-        input_tensor=input_tensor,
-        input_shape=input_shape,
-        pooling=pooling,
-        num_classes=num_classes,
-        classifier_activation=classifier_activation,
-        name=name,
-    )
+class ConvNeXtXLargeBackbone(ConvNeXtBackbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
+        **kwargs,
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return ConvNeXtBackbone.from_preset("convnext_xlarge", **kwargs)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
 
 
 ConvNeXtTinyBackbone.__doc__ = BASE_DOCSTRING.format(name="ConvNeXtTiny")
