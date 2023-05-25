@@ -13,7 +13,12 @@
 # limitations under the License.
 """Tests for loading pretrained model presets."""
 
-import keras_core
+from keras_cv import use_keras_core
+
+if use_keras_core():
+    from keras_core.operations import ones
+else:
+    from tensorflow import ones
 import pytest
 import tensorflow as tf
 
@@ -34,7 +39,7 @@ class ResNetPresetSmokeTest(tf.test.TestCase):
     """
 
     def setUp(self):
-        self.input_batch = keras_core.operations.ones(shape=(2, 224, 224, 3))
+        self.input_batch = ones(shape=(2, 224, 224, 3))
 
     def test_backbone_output(self):
         model = ResNetBackbone.from_preset("resnet50")
@@ -49,7 +54,7 @@ class ResNetPresetSmokeTest(tf.test.TestCase):
         # We should only update these numbers if we are updating a weights
         # file, or have found a discrepancy with the upstream source.
 
-        outputs = model(keras_core.operations.ones(shape=(1, 512, 512, 3)))
+        outputs = model(ones(shape=(1, 512, 512, 3)))
         expected = [0.0, 0.0, 0.0, 0.05175382, 0.0]
         # Keep a high tolerance, so we are robust to different hardware.
         self.assertAllClose(
@@ -90,7 +95,7 @@ class ResNetPresetFullTest(tf.test.TestCase):
     """
 
     def test_load_resnet(self):
-        input_data = keras_core.operations.ones(shape=(2, 224, 224, 3))
+        input_data = ones(shape=(2, 224, 224, 3))
         for preset in ResNetBackbone.presets:
             model = ResNetBackbone.from_preset(preset)
             model(input_data)

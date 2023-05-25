@@ -20,9 +20,15 @@ Reference:
 
 import copy
 
-import keras_core
-from keras_core import backend
-from keras_core import layers
+from keras_cv import register_keras_serializable
+from keras_cv import use_keras_core
+
+if use_keras_core():
+    from keras_core import backend
+    from keras_core import layers
+else:
+    from keras import backend
+    from keras import layers
 
 from keras_cv.models import utils
 from keras_cv.models.backbones.backbone import Backbone
@@ -221,7 +227,7 @@ def apply_stack(
     return x
 
 
-@keras_core.saving.register_keras_serializable(package="keras_cv.models")
+@register_keras_serializable(package="keras_cv.models")
 class ResNetBackbone(Backbone):
     """Instantiates the ResNet architecture.
 
@@ -283,7 +289,7 @@ class ResNetBackbone(Backbone):
         block_type="block",
         **kwargs,
     ):
-        inputs = utils.parse_keras_core_model_inputs(input_shape, input_tensor)
+        inputs = utils.parse_model_inputs(input_shape, input_tensor)
         x = inputs
 
         if include_rescaling:
@@ -315,9 +321,9 @@ class ResNetBackbone(Backbone):
                 first_shortcut=(block_type == "block" or stack_index > 0),
                 name=f"v2_stack_{stack_index}",
             )
-            pyramid_level_inputs[
-                stack_index + 2
-            ] = x._keras_history.operation.name
+            pyramid_level_inputs[stack_index + 2] = utils.get_tensor_input_name(
+                x
+            )
 
         # Create model.
         super().__init__(inputs=inputs, outputs=x, **kwargs)

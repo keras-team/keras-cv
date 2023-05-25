@@ -14,29 +14,30 @@
 # ==============================================================================
 """Utility functions for models"""
 
-import keras_core
-from keras import backend
-from keras import layers
-from tensorflow import keras
+from keras_cv import use_keras_core
+
+if use_keras_core():
+    from keras_core import backend
+    from keras_core import layers
+    from keras_core.backend import is_keras_tensor
+else:
+    from keras import backend
+    from keras import layers
+    from keras.backend import is_keras_tensor
 
 
-def parse_keras_core_model_inputs(input_shape, input_tensor):
-    if input_tensor is None:
-        return keras_core.layers.Input(shape=input_shape)
+def get_tensor_input_name(tensor):
+    if use_keras_core():
+        return tensor._keras_history.operation.name
     else:
-        if not keras_core.backend.is_keras_tensor(input_tensor):
-            return keras_core.layers.Input(
-                tensor=input_tensor, shape=input_shape
-            )
-        else:
-            return input_tensor
+        return tensor.node.layer.name
 
 
 def parse_model_inputs(input_shape, input_tensor):
     if input_tensor is None:
         return layers.Input(shape=input_shape)
     else:
-        if not keras.backend.is_keras_tensor(input_tensor):
+        if not is_keras_tensor(input_tensor):
             return layers.Input(tensor=input_tensor, shape=input_shape)
         else:
             return input_tensor

@@ -14,7 +14,17 @@
 
 import os
 
-import keras_core
+from keras_cv import use_keras_core
+
+if use_keras_core():
+    from keras_core import Input
+    from keras_core.operations import ones
+    from keras_core.saving import load_model
+else:
+    from tensorflow import ones
+    from keras.models import load_model
+    from keras import Input
+
 import pytest
 import tensorflow as tf
 from absl.testing import parameterized
@@ -34,12 +44,12 @@ from keras_cv.models.backbones.resnet_v1.resnet_v1_backbone import (
 from keras_cv.models.backbones.resnet_v1.resnet_v1_backbone import (
     ResNetBackbone,
 )
-from keras_cv.utils.train import get_feature_extractor_keras_core
+from keras_cv.utils.train import get_feature_extractor
 
 
 class ResNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
     def setUp(self):
-        self.input_batch = keras_core.operations.ones(shape=(2, 224, 224, 3))
+        self.input_batch = ones(shape=(2, 224, 224, 3))
 
     def test_valid_call(self):
         model = ResNetBackbone(
@@ -76,7 +86,7 @@ class ResNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
             self.get_temp_dir(), "resnet_v1_backbone.keras"
         )
         model.save(save_path)
-        restored_model = keras_core.saving.load_model(save_path)
+        restored_model = load_model(save_path)
 
         # Check we got the real object back.
         self.assertIsInstance(restored_model, ResNetBackbone)
@@ -93,7 +103,7 @@ class ResNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
             self.get_temp_dir(), "resnet_v1_alias_backbone.keras"
         )
         model.save(save_path)
-        restored_model = keras_core.saving.load_model(save_path)
+        restored_model = load_model(save_path)
 
         # Check we got the real object back.
         # Note that these aliases serialized as the base class
@@ -107,12 +117,12 @@ class ResNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
         model = ResNet50Backbone(
             include_rescaling=False,
         )
-        backbone_model = get_feature_extractor_keras_core(
+        backbone_model = get_feature_extractor(
             model,
             model.pyramid_level_inputs.values(),
             model.pyramid_level_inputs.keys(),
         )
-        inputs = keras_core.Input(shape=[256, 256, 3])
+        inputs = Input(shape=[256, 256, 3])
         outputs = backbone_model(inputs)
         # Resnet50 backbone has 4 level of features (2 ~ 5)
         self.assertLen(outputs, 4)
@@ -132,10 +142,8 @@ class ResNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
         )
         levels = [3, 4]
         layer_names = [model.pyramid_level_inputs[level] for level in [3, 4]]
-        backbone_model = get_feature_extractor_keras_core(
-            model, layer_names, levels
-        )
-        inputs = keras_core.Input(shape=[256, 256, 3])
+        backbone_model = get_feature_extractor(model, layer_names, levels)
+        inputs = Input(shape=[256, 256, 3])
         outputs = backbone_model(inputs)
         self.assertLen(outputs, 2)
         self.assertEquals(list(outputs.keys()), [3, 4])

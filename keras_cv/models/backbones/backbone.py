@@ -15,13 +15,20 @@
 
 import os
 
-import keras_core
+from keras_cv import use_keras_core
+
+if use_keras_core():
+    import keras_core
+
+from tensorflow import keras
 
 from keras_cv.utils.python_utils import classproperty
 from keras_cv.utils.python_utils import format_docstring
 
+base_class = keras_core.Model if use_keras_core() else keras.Model
 
-class Backbone(keras_core.Model):
+
+class Backbone(base_class):
     """Base class for Backbone models.
 
     Backbones are reusable layers of models trained on a standard task such as
@@ -114,12 +121,20 @@ class Backbone(keras_core.Model):
         if preset not in cls.presets_with_weights or load_weights is False:
             return model
 
-        weights = keras_core.utils.file_utils.get_file(
-            "model.h5",
-            metadata["weights_url"],
-            cache_subdir=os.path.join("models", preset),
-            file_hash=metadata["weights_hash"],
-        )
+        if use_keras_core():
+            weights = keras_core.utils.file_utils.get_file(
+                "model.h5",
+                metadata["weights_url"],
+                cache_subdir=os.path.join("models", preset),
+                file_hash=metadata["weights_hash"],
+            )
+        else:
+            weights = keras.utils.get_file(
+                "model.h5",
+                metadata["weights_url"],
+                cache_subdir=os.path.join("models", preset),
+                file_hash=metadata["weights_hash"],
+            )
 
         model.load_weights(weights)
         return model
