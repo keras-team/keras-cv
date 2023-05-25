@@ -32,62 +32,18 @@ from keras_cv.models.backbones.convnext.convnext_backbone_presets import (
 from keras_cv.models.legacy import utils
 from keras_cv.utils.python_utils import classproperty
 
-BASE_DOCSTRING = """Instantiates the {name} architecture.
-    - [A ConvNet for the 2020s](https://arxiv.org/abs/2201.03545) (CVPR 2022)
-
-    This function returns a Keras {name} model.
-    Args:
-        include_rescaling: bool, whether to rescale the inputs. If set
-            to `True`, inputs will be passed through a `Rescaling(1/255.0)`
-            layer.
-        include_top: bool, whether to include the fully-connected layer at the
-            top of the network. If provided, `num_classes` must be provided.
-        depths: an iterable containing depths for each individual stages.
-        projection_dims: An iterable containing output number of channels of
-            each individual stages.
-        drop_path_rate: stochastic depth probability, if 0.0, then stochastic
-            depth won't be used.
-        layer_scale_init_value: layer scale coefficient, if 0.0, layer scaling
-            won't be used.
-        weights: one of `None` (random initialization), a pretrained weight file
-            path, or a reference to pre-trained weights (e.g.
-            'imagenet/classification')(see available pre-trained weights in
-            weights.py)
-        input_shape: optional shape tuple, defaults to (None, None, 3).
-        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
-            to use as image input for the model.
-        pooling: optional pooling mode for feature extraction
-            when `include_top` is `False`.
-            - `None` means that the output of the model will be the 4D tensor
-                output of the last convolutional block.
-            - `avg` means that global average pooling will be applied to the
-                output of the last convolutional block, and thus the output of
-                the model will be a 2D tensor.
-            - `max` means that global max pooling will be applied.
-        num_classes: optional int, number of classes to classify images into
-            (only to be specified if `include_top` is `True`).
-        classifier_activation: A `str` or callable. The activation function to
-            use on the "top" layer. Ignored unless `include_top=True`. Set
-            `classifier_activation=None` to return the logits of the "top"
-            layer.
-        name: (Optional) name to pass to the model, defaults to "{name}".
-
-    Returns:
-      A `keras.Model` instance.
-"""
-
 
 @keras.utils.register_keras_serializable(package="keras_cv")
 class LayerScale(layers.Layer):
     """Layer scale module.
     References:
-      - https://arxiv.org/abs/2103.17239
+        - https://arxiv.org/abs/2103.17239
     Args:
-      init_values (float): Initial value for layer scale. Should be within
-        [0, 1].
-      projection_dim (int): Projection dimensionality.
+        init_values: float, initial value for layer scale. Should be within
+            [0, 1].
+        projection_dim: int, projection dimensionality.
     Returns:
-      Tensor multiplied to the scale.
+        Tensor multiplied to the scale.
     """
 
     def __init__(self, init_values, projection_dim, **kwargs):
@@ -95,7 +51,7 @@ class LayerScale(layers.Layer):
         self.init_values = init_values
         self.projection_dim = projection_dim
 
-    def build(self, input_shape):
+    def build(self):
         self.gamma = tf.Variable(
             self.init_values * tf.ones((self.projection_dim,))
         )
@@ -123,20 +79,21 @@ def apply_block(
 ):
     """ConvNeXt block.
     References:
-      - https://arxiv.org/abs/2201.03545
-      - https://github.com/facebookresearch/ConvNeXt/blob/main/models/convnext.py
+        - https://arxiv.org/abs/2201.03545
+        - https://github.com/facebookresearch/ConvNeXt/blob/main/models/convnext.py
     Notes:
-      In the original ConvNeXt implementation (linked above), the authors use
-      `Dense` layers for pointwise convolutions for increased efficiency.
-      Following that, this implementation also uses the same.
+        In the original ConvNeXt implementation (linked above), the authors use
+        `Dense` layers for pointwise convolutions for increased efficiency.
+        Following that, this implementation also uses the same.
     Args:
-      projection_dim (int): Number of filters for convolution layers. In the
-        ConvNeXt paper, this is referred to as projection dimension.
-      drop_path_rate (float): Probability of dropping paths. Should be within
-        [0, 1].
-      layer_scale_init_value (float): Layer scale value. Should be a small float
-        number.
-      name: name to path to the keras layer.
+        x: input tensor
+        projection_dim: int, number of filters for convolution layers. In the
+            ConvNeXt paper, this is referred to as projection dimension.
+        drop_path_rate: float, probability of dropping paths. Should be within
+            [0, 1].
+        layer_scale_init_value: float, layer scale value. Should be a small
+            float number.
+        name: string, name to path to the keras layer.
     Returns:
       A function representing a ConvNeXtBlock block.
     """  # noqa: E501
@@ -174,11 +131,12 @@ def apply_block(
 def apply_head(x, num_classes, activation="softmax", name=None):
     """Implementation of classification head of ConvNeXt.
     Args:
-      num_classes: number of classes for Dense layer
-      activation: activation function for Dense layer
-      name: name prefix
+        x: input tensor
+        num_classes: number of classes for Dense layer
+        activation: activation function for Dense layer
+        name: name prefix
     Returns:
-      Classification head function.
+        Classification head function.
     """
     if name is None:
         name = str(backend.get_uid("head"))
@@ -200,53 +158,39 @@ class ConvNeXtBackbone(Backbone):
         include_rescaling: bool, whether to rescale the inputs. If set
             to `True`, inputs will be passed through a `Rescaling(1/255.0)`
             layer.
-        include_top: bool, whether to include the fully-connected layer at the
-            top of the network. If provided, `num_classes` must be provided.
-        depths: An iterable containing depths for each individual stages.
-        projection_dims: An iterable containing output number of channels of
-        each individual stages.
+        stackwise_depths: An iterable containing depths for each individual
+            stages.
+        stackwise_projection_dims: An iterable containing output number of
+            channels of each individual stages.
         drop_path_rate: Stochastic depth probability. If 0.0, then stochastic
-        depth won't be used.
+            depth won't be used.
         layer_scale_init_value: Layer scale coefficient. If 0.0, layer scaling
-        won't be used.
-        weights: one of `None` (random initialization), a pretrained weight file
-            path, or a reference to pre-trained weights (e.g.
-            'imagenet/classification')(see available pre-trained weights in
-            weights.py)
+            won't be used.
         input_shape: optional shape tuple, defaults to (None, None, 3).
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
             to use as image input for the model.
-        pooling: optional pooling mode for feature extraction
-            when `include_top` is `False`.
-            - `None` means that the output of the model will be the 4D tensor
-                output of the last convolutional block.
-            - `avg` means that global average pooling will be applied to the
-                output of the last convolutional block, and thus the output of
-                the model will be a 2D tensor.
-            - `max` means that global max pooling will be applied.
-        num_classes: optional int, number of classes to classify images into
-            (only to be specified if `include_top` is `True`).
-        classifier_activation: A `str` or callable. The activation function to
-            use on the "top" layer. Ignored unless `include_top=True`. Set
-            `classifier_activation=None` to return the logits of the "top"
-            layer.
-        name: (Optional) name to pass to the model, defaults to "convnext".
-    Returns:
-      A `keras.Model` instance.
-    Raises:
-        ValueError: in case of invalid argument for `weights`, or invalid input
-            shape.
-        ValueError: if `classifier_activation` is not `softmax`, or `None` when
-            using a pretrained top layer.
-        ValueError: if `include_top` is True but `num_classes` is not specified.
+
+    Examples:
+    ```python
+    input_data = tf.ones(shape=(8, 224, 224, 3))
+
+    # Randomly initialized backbone with a custom config
+    model = ConvNeXtBackbone(
+        stackwise_depths=[3, 3, 9, 3],
+        stackwise_projection_dims=[96, 192, 384, 768],
+        default_size=224,
+        include_rescaling=False,
+    )
+    output = model(input_data)
+    ```
     """
 
     def __init__(
         self,
         *,
         include_rescaling,
-        depths,
-        projection_dims,
+        stackwise_depths,
+        stackwise_projection_dims,
         drop_path_rate=0.0,
         layer_scale_init_value=1e-6,
         input_shape=(None, None, 3),
@@ -263,7 +207,7 @@ class ConvNeXtBackbone(Backbone):
         stem = keras.Sequential(
             [
                 layers.Conv2D(
-                    projection_dims[0],
+                    stackwise_projection_dims[0],
                     kernel_size=4,
                     strides=4,
                     name="stem_conv",
@@ -278,7 +222,6 @@ class ConvNeXtBackbone(Backbone):
         downsample_layers.append(stem)
 
         num_downsample_layers = 3
-        pyramid_level_inputs = {}
         for i in range(num_downsample_layers):
             downsample_layer = keras.Sequential(
                 [
@@ -287,7 +230,7 @@ class ConvNeXtBackbone(Backbone):
                         name="downsampling_layernorm_" + str(i),
                     ),
                     layers.Conv2D(
-                        projection_dims[i + 1],
+                        stackwise_projection_dims[i + 1],
                         kernel_size=2,
                         strides=2,
                         name="downsampling_conv_" + str(i),
@@ -296,38 +239,40 @@ class ConvNeXtBackbone(Backbone):
                 name="downsampling_block_" + str(i),
             )
             downsample_layers.append(downsample_layer)
-            pyramid_level_inputs[i + 2] = downsample_layer.node.layer.name
 
         # Stochastic depth schedule.
         # This is referred from the original ConvNeXt codebase:
         # https://github.com/facebookresearch/ConvNeXt/blob/main/models/convnext.py#L86
         depth_drop_rates = [
-            float(x) for x in tf.linspace(0.0, drop_path_rate, sum(depths))
+            float(x)
+            for x in tf.linspace(0.0, drop_path_rate, sum(stackwise_depths))
         ]
 
         # First apply downsampling blocks and then apply ConvNeXt stages.
         cur = 0
 
         num_convnext_blocks = 4
+        pyramid_level_inputs = {}
         for i in range(num_convnext_blocks):
             x = downsample_layers[i](x)
-            for j in range(depths[i]):
+            for j in range(stackwise_depths[i]):
                 x = apply_block(
                     x,
-                    projection_dim=projection_dims[i],
+                    projection_dim=stackwise_projection_dims[i],
                     drop_path_rate=depth_drop_rates[cur + j],
                     layer_scale_init_value=layer_scale_init_value,
                     name=f"stage_{i}_block_{j}",
                 )
-            cur += depths[i]
+            cur += stackwise_depths[i]
+            pyramid_level_inputs[i + 2] = x.node.layer.name
 
         # Create model.
         super().__init__(inputs=inputs, outputs=x, **kwargs)
 
         self.pyramid_level_inputs = pyramid_level_inputs
         self.include_rescaling = include_rescaling
-        self.depths = depths
-        self.projection_dims = projection_dims
+        self.stackwise_depths = stackwise_depths
+        self.projection_dims = stackwise_projection_dims
         self.drop_path_rate = drop_path_rate
         self.layer_scale_init_value = layer_scale_init_value
         self.input_tensor = input_tensor
@@ -337,8 +282,8 @@ class ConvNeXtBackbone(Backbone):
         config.update(
             {
                 "include_rescaling": self.include_rescaling,
-                "depths": self.depths,
-                "projection_dims": self.projection_dims,
+                "stackwise_depths": self.stackwise_depths,
+                "stackwise_projection_dims": self.stackwise_projection_dims,
                 "drop_path_rate": self.drop_path_rate,
                 "layer_scale_init_value": self.layer_scale_init_value,
                 "input_shape": self.input_shape[1:],
@@ -351,6 +296,39 @@ class ConvNeXtBackbone(Backbone):
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return copy.deepcopy(backbone_presets)
+
+
+ALIAS_DOCSTRING = """{name} backbone model.
+
+    Reference:
+        - [A ConvNet for the 2020s](https://arxiv.org/abs/2201.03545)
+        (CVPR 2022)
+
+    Args:
+        include_rescaling: bool, whether to rescale the inputs. If set
+            to `True`, inputs will be passed through a `Rescaling(1/255.0)`
+            layer.
+        stackwise_depths: an iterable containing depths for each individual
+            stages.
+        stackwise_projection_dims: An iterable containing output number of
+            channels of each individual stages.
+        drop_path_rate: stochastic depth probability, if 0.0, then stochastic
+            depth won't be used.
+        layer_scale_init_value: layer scale coefficient, if 0.0, layer scaling
+            won't be used.
+        input_shape: optional shape tuple, defaults to (None, None, 3).
+        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
+            to use as image input for the model.
+
+    Examples:
+    ```python
+    input_data = tf.ones(shape=(8, 224, 224, 3))
+
+    # Randomly initialized backbone
+    model = {name}Backbone()
+    output = model(input_data)
+    ```
+"""
 
 
 class ConvNeXtTinyBackbone(ConvNeXtBackbone):
@@ -473,8 +451,8 @@ class ConvNeXtXLargeBackbone(ConvNeXtBackbone):
         return {}
 
 
-ConvNeXtTinyBackbone.__doc__ = BASE_DOCSTRING.format(name="ConvNeXtTiny")
-ConvNeXtSmallBackbone.__doc__ = BASE_DOCSTRING.format(name="ConvNeXtSmall")
-ConvNeXtBaseBackbone.__doc__ = BASE_DOCSTRING.format(name="ConvNeXtBase")
-ConvNeXtLargeBackbone.__doc__ = BASE_DOCSTRING.format(name="ConvNeXtLarge")
-ConvNeXtXLargeBackbone.__doc__ = BASE_DOCSTRING.format(name="ConvNeXtXLarge")
+ConvNeXtTinyBackbone.__doc__ = ALIAS_DOCSTRING.format(name="ConvNeXtTiny")
+ConvNeXtSmallBackbone.__doc__ = ALIAS_DOCSTRING.format(name="ConvNeXtSmall")
+ConvNeXtBaseBackbone.__doc__ = ALIAS_DOCSTRING.format(name="ConvNeXtBase")
+ConvNeXtLargeBackbone.__doc__ = ALIAS_DOCSTRING.format(name="ConvNeXtLarge")
+ConvNeXtXLargeBackbone.__doc__ = ALIAS_DOCSTRING.format(name="ConvNeXtXLarge")
