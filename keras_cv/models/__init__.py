@@ -14,6 +14,9 @@
 
 from keras_cv.models import legacy
 from keras_cv.models.backbones.convnext.convnext_backbone import (
+    ConvNeXtBackbone,
+)
+from keras_cv.models.backbones.convnext.convnext_backbone import (
     ConvNeXtBaseBackbone,
 )
 from keras_cv.models.backbones.convnext.convnext_backbone import (
