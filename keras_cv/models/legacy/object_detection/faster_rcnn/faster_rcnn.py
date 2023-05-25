@@ -251,7 +251,7 @@ class FasterRCNN(keras.Model):
             `pyramid_level_inputs` property with keys 2, 3, 4, and 5 and layer
             names as values. If `None`, defaults to
             `keras_cv.models.ResNet50Backbone()`.
-        anchor_generator: (Optional) a `keras_cv.layers.AnchorGeneratot`. It is
+        anchor_generator: (Optional) a `keras_cv.layers.AnchorGenerator`. It is
             used in the model to match ground truth boxes and labels with
             anchors, or with region proposals. By default it uses the sizes and
             ratios from the paper, that is optimized for image size between

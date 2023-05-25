@@ -23,6 +23,32 @@ from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_backbone import (
 )
 
 
+@pytest.mark.large
+class MobileNetV3PresetSmokeTest(tf.test.TestCase):
+    """
+    A smoke test for MobileNetV3 presets we run continuously.
+    This only tests the smallest weights we have available. Run with:
+    `pytest keras_cv/models/backbones/mobilenet_v3/mobilenet_v3_backbone_presets_test.py --run_large`
+    """  # noqa: E501
+
+    def setUp(self):
+        self.input_batch = tf.ones(shape=(8, 224, 224, 3))
+
+    def test_backbone_output(self):
+        model = MobileNetV3Backbone.from_preset("mobilenet_v3_large_imagenet")
+        outputs = model(self.input_batch)
+
+        # The forward pass from a preset should be stable!
+        # This test should catch cases where we unintentionally change our
+        # network code in a way that would invalidate our preset weights.
+        # We should only update these numbers if we are updating a weights
+        # file, or have found a discrepancy with the upstream source.
+        outputs = outputs[0, 0, 0, :5]
+        expected = [0.27, 0.01, 0.29, 0.08, -0.12]
+        # Keep a high tolerance, so we are robust to different hardware.
+        self.assertAllClose(outputs, expected, atol=0.01, rtol=0.01)
+
+
 @pytest.mark.extra_large
 class MobileNetV3PresetFullTest(tf.test.TestCase, parameterized.TestCase):
     """

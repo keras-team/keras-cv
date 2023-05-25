@@ -31,6 +31,7 @@ from tensorflow import keras
 
 from keras_cv.models.legacy import utils
 from keras_cv.models.legacy.weights import parse_weights
+from keras_cv.models.utils import correct_pad_downsample
 
 DEFAULT_BLOCKS_ARGS = [
     {
@@ -164,31 +165,6 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
 BN_AXIS = 3
 
 
-def correct_pad(inputs, kernel_size):
-    """Returns a tuple for zero-padding for 2D convolution with downsampling.
-
-    Args:
-        inputs: Input tensor.
-        kernel_size: An integer or tuple/list of 2 integers.
-
-    Returns:
-        A tuple.
-    """
-    img_dim = 1
-    input_size = backend.int_shape(inputs)[img_dim : (img_dim + 2)]
-    if isinstance(kernel_size, int):
-        kernel_size = (kernel_size, kernel_size)
-    if input_size[0] is None:
-        adjust = (1, 1)
-    else:
-        adjust = (1 - input_size[0] % 2, 1 - input_size[1] % 2)
-    correct = (kernel_size[0] // 2, kernel_size[1] // 2)
-    return (
-        (correct[0] - adjust[0], correct[0]),
-        (correct[1] - adjust[1], correct[1]),
-    )
-
-
 def round_filters(filters, depth_divisor, width_coefficient):
     """Round number of filters based on depth multiplier."""
     filters *= width_coefficient
@@ -258,7 +234,7 @@ def apply_efficient_net_lite_block(
     # Depthwise Convolution
     if strides == 2:
         x = layers.ZeroPadding2D(
-            padding=correct_pad(x, kernel_size),
+            padding=correct_pad_downsample(x, kernel_size),
             name=name + "dwconv_pad",
         )(x)
         conv_pad = "valid"
@@ -410,7 +386,7 @@ class EfficientNetLite(keras.Model):
             x = layers.Rescaling(1.0 / 255.0)(x)
 
         x = layers.ZeroPadding2D(
-            padding=correct_pad(x, 3), name="stem_conv_pad"
+            padding=correct_pad_downsample(x, 3), name="stem_conv_pad"
         )(x)
         x = layers.Conv2D(
             32,

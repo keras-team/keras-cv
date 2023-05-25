@@ -58,12 +58,12 @@ def get_anchors(
     matches ground truth boxes to anchors based on center points.
 
     Args:
-        image_shape: tuple or list of two integers representing the heigh and
+        image_shape: tuple or list of two integers representing the height and
             width of input images, respectively.
         strides: tuple of list of integers, the size of the strides across the
             image size that should be used to create anchors.
         base_anchors: tuple or list of two integers representing the offset from
-            (0,0) to start creating the center of anchor boxes, releative to the
+            (0,0) to start creating the center of anchor boxes, relative to the
             stride. For example, using the default (0.5, 0.5) creates the first
             anchor box for each stride such that its center is half of a stride
             from the edge of the image.
@@ -323,6 +323,9 @@ class YOLOV8Detector(Task):
     """Implements the YOLOV8 architecture for object detection.
 
     Args:
+        backbone: `keras.Model`, must implement the `pyramid_level_inputs`
+            property with keys 2, 3, and 4 and layer names as values. A
+            sensible backbone to use is the `keras_cv.models.YOLOV8Backbone`.
         num_classes: integer, the number of classes in your dataset excluding the
             background class. Classes should be represented by integers in the
             range [0, num_classes).
@@ -330,12 +333,10 @@ class YOLOV8Detector(Task):
             Refer
             [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
             for more details on supported bounding box formats.
-        backbone: `keras.Model`, must implement the `pyramid_level_inputs`
-            property with keys 2, 3, and 4 and layer names as values. A
-            sensible backbone to use is the `keras_cv.models.YOLOV8Backbone`.
         fpn_depth: integer, a specification of the depth of the CSP blocks in
             the Feature Pyramid Network. This is usually 1, 2, or 3, depending
-            on the size of your YOLOV8Detector model.
+            on the size of your YOLOV8Detector model. We recommend using 3 for
+            "yolo_v8_l_backbone" and "yolo_v8_xl_backbone". Defaults to 2.
         label_encoder: (Optional)  A `YOLOV8LabelEncoder` that is
             responsible for transforming input boxes into trainable labels for
             YOLOV8Detector. If not provided, a default is provided.
@@ -387,17 +388,18 @@ class YOLOV8Detector(Task):
 
     def __init__(
         self,
+        backbone,
         num_classes,
         bounding_box_format,
-        backbone,
-        fpn_depth,
+        fpn_depth=2,
         label_encoder=None,
         prediction_decoder=None,
         **kwargs,
     ):
-        extractor_levels = [3, 4, 5]
+        # Using strings to keep the TF saving flow happy.
+        extractor_levels = ["3", "4", "5"]
         extractor_layer_names = [
-            backbone.pyramid_level_inputs[i] for i in extractor_levels
+            backbone.pyramid_level_inputs[int(i)] for i in extractor_levels
         ]
         feature_extractor = get_feature_extractor(
             backbone, extractor_layer_names, extractor_levels

@@ -20,7 +20,7 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 
 
 @keras.utils.register_keras_serializable(package="keras_cv")
-class MaybeApply(BaseImageAugmentationLayer):
+class RandomApply(BaseImageAugmentationLayer):
     """Apply provided layer to random elements in a batch.
 
     Args:
@@ -65,8 +65,8 @@ class MaybeApply(BaseImageAugmentationLayer):
     #         [0.288486  , 0.252975  ]]], dtype=float32)>
 
     # Apply the layer with 50% probability:
-    maybe_apply = MaybeApply(layer=zero_out, rate=0.5, seed=1234)
-    outputs = maybe_apply(images)
+    random_apply = RandomApply(layer=zero_out, rate=0.5, seed=1234)
+    outputs = random_apply(images)
     print(outputs[..., 0])
     # <tf.Tensor: shape=(5, 2, 2), dtype=float32, numpy=
     # array([[[0.        , 0.        ],

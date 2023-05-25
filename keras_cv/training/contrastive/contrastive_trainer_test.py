@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
@@ -24,6 +25,9 @@ from keras_cv.models import DenseNet121Backbone
 from keras_cv.training import ContrastiveTrainer
 
 
+# TODO(jbischof): revisit "extra_large" tag once development resumes.
+# These tests are currently some of the slowest in our repo.
+@pytest.mark.extra_large
 class ContrastiveTrainerTest(tf.test.TestCase):
     def test_probe_requires_probe_optimizer(self):
         trainer = ContrastiveTrainer(

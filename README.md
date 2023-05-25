@@ -118,7 +118,7 @@ process for how to contribute to this repository:
 
 1) Contributors are always welcome to help us fix an issue, add tests, better documentation. 
 2) If contributors would like to create a backbone, we usually require a pre-trained weight set
-with the model for one dataset as the first PR, and a training script as a follow-up. The training script will preferrably help us reproduce the results claimed from paper. The backbone should be generic but the training script can contain paper specific parameters such as learning rate schedules and weight decays. The training script will be used to produce leaderboard results. 
+with the model for one dataset as the first PR, and a training script as a follow-up. The training script will preferably help us reproduce the results claimed from paper. The backbone should be generic but the training script can contain paper specific parameters such as learning rate schedules and weight decays. The training script will be used to produce leaderboard results. 
 Exceptions apply to large transformer-based models which are difficult to train. If this is the case,
 contributors should let us know so the team can help in training the model or providing GCP resources.
 3) If contributors would like to create a meta arch, please try to be aligned with our roadmap and create a PR for design review to make sure the meta arch is modular.

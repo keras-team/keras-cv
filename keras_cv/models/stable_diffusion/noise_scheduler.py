@@ -31,7 +31,7 @@ class NoiseScheduler:
         betas: a complete set of betas, in lieu of using one of the existing
             schedules.
         variance_type: options to clip the variance used when adding noise to
-            the denoised sample. Choose from `fixed_small`, `fixed_small_log`,
+            the de-noised sample. Choose from `fixed_small`, `fixed_small_log`,
             `fixed_large`, `fixed_large_log`, `learned` or `learned_range`.
         clip_sample: option to clip predicted sample between -1 and 1 for
             numerical stability.

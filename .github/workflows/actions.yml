@@ -43,7 +43,7 @@ jobs:
       env:
         TEST_CUSTOM_OPS: true
       run: |
-        pytest keras_cv/ --ignore keras_cv/models
+        pytest keras_cv/ --ignore keras_cv/models/legacy/ --durations 0
   format:
     name: Check the code format
     runs-on: ubuntu-latest

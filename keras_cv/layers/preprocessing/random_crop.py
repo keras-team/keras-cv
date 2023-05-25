@@ -22,7 +22,7 @@ from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer impo
 )
 
 # In order to support both unbatched and batched inputs, the horizontal
-# and verticle axis is reverse indexed
+# and vertical axis is reverse indexed
 H_AXIS = -3
 W_AXIS = -2
 
@@ -39,7 +39,7 @@ class RandomCrop(VectorizedBaseImageAugmentationLayer):
     matches the target aspect ratio.
 
     Input pixel values can be of any range (e.g. `[0., 1.)` or `[0, 255]`) and
-    of interger or floating point dtype.
+    of integer or floating point dtype.
 
     Input shape:
         3D (unbatched) or 4D (batched) tensor with shape:

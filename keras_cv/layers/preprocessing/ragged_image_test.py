@@ -122,16 +122,6 @@ DENSE_OUTPUT_TEST_CONFIGURATIONS = [
         },
     ),
     (
-        "RandomlyZoomedCrop",
-        layers.RandomlyZoomedCrop,
-        {
-            "height": 224,
-            "width": 224,
-            "zoom_factor": (0.8, 1.0),
-            "aspect_ratio_factor": (3 / 4, 4 / 3),
-        },
-    ),
-    (
         "Resizing",
         layers.Resizing,
         {

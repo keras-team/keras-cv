@@ -43,32 +43,6 @@ BN_EPSILON = 1e-3
 BN_MOMENTUM = 0.999
 
 
-def correct_pad_downsample(inputs, kernel_size):
-    """Returns a tuple for zero-padding for 2D convolution with downsampling.
-
-    Args:
-      inputs: Input tensor.
-      kernel_size: An integer
-
-    Returns:
-      A tuple.
-    """
-    input_size = backend.int_shape(inputs)[1:3]
-    kernel_size = (kernel_size, kernel_size)
-
-    if input_size[0] is None:
-        adjust = (1, 1)
-    else:
-        adjust = (1 - input_size[0] % 2, 1 - input_size[1] % 2)
-
-    correct = (kernel_size[0] // 2, kernel_size[1] // 2)
-
-    return (
-        (correct[0] - adjust[0], correct[0]),
-        (correct[1] - adjust[1], correct[1]),
-    )
-
-
 def adjust_channels(x, divisor=8, min_value=None):
     """Ensure that all layers have a channel number divisible by the `divisor`.
 
@@ -162,7 +136,7 @@ def apply_inverted_res_block(
 
     if stride == 2:
         x = layers.ZeroPadding2D(
-            padding=correct_pad_downsample(x, kernel_size),
+            padding=utils.correct_pad_downsample(x, kernel_size),
             name=prefix + "depthwise/pad",
         )(x)
 
@@ -301,8 +275,10 @@ class MobileNetV3Backbone(Backbone):
         )(x)
         x = apply_hard_swish(x)
 
-        pyramid_level_inputs = {}
+        pyramid_level_inputs = []
         for stack_index in range(len(stackwise_filters)):
+            if stackwise_stride[stack_index] != 1:
+                pyramid_level_inputs.append(x.node.layer.name)
             x = apply_inverted_res_block(
                 x,
                 expansion=stackwise_expansion[stack_index],
@@ -315,7 +291,7 @@ class MobileNetV3Backbone(Backbone):
                 activation=stackwise_activation[stack_index],
                 expansion_index=stack_index,
             )
-            pyramid_level_inputs[stack_index + 2] = x.node.layer.name
+        pyramid_level_inputs.append(x.node.layer.name)
 
         last_conv_ch = adjust_channels(backend.int_shape(x)[CHANNEL_AXIS] * 6)
 
@@ -336,7 +312,9 @@ class MobileNetV3Backbone(Backbone):
 
         super().__init__(inputs=inputs, outputs=x, **kwargs)
 
-        self.pyramid_level_inputs = pyramid_level_inputs
+        self.pyramid_level_inputs = {
+            i + 1: name for i, name in enumerate(pyramid_level_inputs)
+        }
         self.stackwise_expansion = stackwise_expansion
         self.stackwise_filters = stackwise_filters
         self.stackwise_kernel_size = stackwise_kernel_size
