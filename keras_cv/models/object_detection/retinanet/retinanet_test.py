@@ -232,8 +232,7 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
         self.assertAllClose(model_output, restored_output)
 
 
-# TODO(jbischof): reduce back to "large" once #1725 fixed
-@pytest.mark.extra_large
+@pytest.mark.large
 class RetinaNetSmokeTest(tf.test.TestCase):
     def test_backbone_preset_weight_loading(self):
         # Check that backbone preset weights loaded correctly
