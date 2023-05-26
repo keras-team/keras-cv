@@ -18,18 +18,18 @@ DESCRIPTION = "One of the many EfficientNetV1 variants.  Each variant is built"
 "based on one of the parameterizations described in the original EfficientNetV1"
 "publication.  To learn more about the parameterizations and their tradeoffs,"
 "please check keras.io.  As a starting point, we recommend starting with the"
-'"efficientnetv1-b0" architecture, and increasing in size to'
-'"efficientnetv1-b4" or "efficientnetv1-b7" if resources permit.'
+'"efficientnetv1_b0" architecture, and increasing in size to'
+'"efficientnetv1_b4" or "efficientnetv1_b7" if resources permit.'
 
 backbone_presets_no_weights = {
-    "efficientnetv1-b0": {
-        "model_name": "efficientnetv1-b0",
+    "efficientnetv1_b0": {
+        "model_name": "efficientnetv1_b0",
         "metadata": {
             "description": DESCRIPTION,
         },
         "class_name": "keras_cv.models>EfficientNetV1Backbone",
         "config": {
-            "model_name": "efficientnetv1-b0",
+            "model_name": "efficientnetv1_b0",
             "width_coefficient": 1.0,
             "depth_coefficient": 1.0,
             "default_size": 224,
@@ -59,13 +59,13 @@ backbone_presets_no_weights = {
             ],
         },
     },
-    "efficientnetv1-b1": {
+    "efficientnetv1_b1": {
         "metadata": {
             "description": DESCRIPTION,
         },
         "class_name": "keras_cv.models>EfficientNetV1Backbone",
         "config": {
-            "model_name": "efficientnetv1-b1",
+            "model_name": "efficientnetv1_b1",
             "width_coefficient": 1.0,
             "depth_coefficient": 1.1,
             "default_size": 240,
@@ -95,13 +95,13 @@ backbone_presets_no_weights = {
             ],
         },
     },
-    "efficientnetv1-b2": {
+    "efficientnetv1_b2": {
         "metadata": {
             "description": DESCRIPTION,
         },
         "class_name": "keras_cv.models>EfficientNetV1Backbone",
         "config": {
-            "model_name": "efficientnetv1-b2",
+            "model_name": "efficientnetv1_b2",
             "width_coefficient": 1.1,
             "depth_coefficient": 1.2,
             "default_size": 260,
@@ -131,13 +131,13 @@ backbone_presets_no_weights = {
             ],
         },
     },
-    "efficientnetv1-b3": {
+    "efficientnetv1_b3": {
         "metadata": {
             "description": DESCRIPTION,
         },
         "class_name": "keras_cv.models>EfficientNetV1Backbone",
         "config": {
-            "model_name": "efficientnetv1-b3",
+            "model_name": "efficientnetv1_b3",
             "width_coefficient": 1.2,
             "depth_coefficient": 1.4,
             "default_size": 300,
@@ -167,13 +167,13 @@ backbone_presets_no_weights = {
             ],
         },
     },
-    "efficientnetv1-b4": {
+    "efficientnetv1_b4": {
         "metadata": {
             "description": DESCRIPTION,
         },
         "class_name": "keras_cv.models>EfficientNetV1Backbone",
         "config": {
-            "model_name": "efficientnetv1-b4",
+            "model_name": "efficientnetv1_b4",
             "width_coefficient": 1.4,
             "depth_coefficient": 1.8,
             "default_size": 380,
@@ -203,13 +203,13 @@ backbone_presets_no_weights = {
             ],
         },
     },
-    "efficientnetv1-b5": {
+    "efficientnetv1_b5": {
         "metadata": {
             "description": DESCRIPTION,
         },
         "class_name": "keras_cv.models>EfficientNetV1Backbone",
         "config": {
-            "model_name": "efficientnetv1-b5",
+            "model_name": "efficientnetv1_b5",
             "width_coefficient": 1.6,
             "depth_coefficient": 2.2,
             "default_size": 456,
@@ -239,13 +239,13 @@ backbone_presets_no_weights = {
             ],
         },
     },
-    "efficientnetv1-b6": {
+    "efficientnetv1_b6": {
         "metadata": {
             "description": DESCRIPTION,
         },
         "class_name": "keras_cv.models>EfficientNetV1Backbone",
         "config": {
-            "model_name": "efficientnetv1-b6",
+            "model_name": "efficientnetv1_b6",
             "width_coefficient": 1.8,
             "depth_coefficient": 2.6,
             "default_size": 528,
@@ -275,13 +275,13 @@ backbone_presets_no_weights = {
             ],
         },
     },
-    "efficientnetv1-b7": {
+    "efficientnetv1_b7": {
         "metadata": {
             "description": DESCRIPTION,
         },
         "class_name": "keras_cv.models>EfficientNetV1Backbone",
         "config": {
-            "model_name": "efficientnetv1-b7",
+            "model_name": "efficientnetv1_b7",
             "width_coefficient": 2.0,
             "depth_coefficient": 3.1,
             "default_size": 600,

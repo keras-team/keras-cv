@@ -53,7 +53,7 @@ class EfficientNetV1B0Backbone(EfficientNetV1Backbone):
                 "input_tensor": input_tensor,
             }
         )
-        return EfficientNetV1Backbone.from_preset("efficientnetv1-b0", **kwargs)
+        return EfficientNetV1Backbone.from_preset("efficientnetv1_b0", **kwargs)
 
     @classproperty
     def presets(cls):
@@ -81,7 +81,7 @@ class EfficientNetV1B1Backbone(EfficientNetV1Backbone):
                 "input_tensor": input_tensor,
             }
         )
-        return EfficientNetV1Backbone.from_preset("efficientnetv1-b1", **kwargs)
+        return EfficientNetV1Backbone.from_preset("efficientnetv1_b1", **kwargs)
 
     @classproperty
     def presets(cls):
@@ -109,7 +109,7 @@ class EfficientNetV1B2Backbone(EfficientNetV1Backbone):
                 "input_tensor": input_tensor,
             }
         )
-        return EfficientNetV1Backbone.from_preset("efficientnetv1-b2", **kwargs)
+        return EfficientNetV1Backbone.from_preset("efficientnetv1_b2", **kwargs)
 
     @classproperty
     def presets(cls):
@@ -137,7 +137,7 @@ class EfficientNetV1B3Backbone(EfficientNetV1Backbone):
                 "input_tensor": input_tensor,
             }
         )
-        return EfficientNetV1Backbone.from_preset("efficientnetv1-b3", **kwargs)
+        return EfficientNetV1Backbone.from_preset("efficientnetv1_b3", **kwargs)
 
     @classproperty
     def presets(cls):
@@ -165,7 +165,7 @@ class EfficientNetV1B4Backbone(EfficientNetV1Backbone):
                 "input_tensor": input_tensor,
             }
         )
-        return EfficientNetV1Backbone.from_preset("efficientnetv1-b4", **kwargs)
+        return EfficientNetV1Backbone.from_preset("efficientnetv1_b4", **kwargs)
 
     @classproperty
     def presets(cls):
@@ -193,7 +193,7 @@ class EfficientNetV1B5Backbone(EfficientNetV1Backbone):
                 "input_tensor": input_tensor,
             }
         )
-        return EfficientNetV1Backbone.from_preset("efficientnetv1-b5", **kwargs)
+        return EfficientNetV1Backbone.from_preset("efficientnetv1_b5", **kwargs)
 
     @classproperty
     def presets(cls):
@@ -221,7 +221,7 @@ class EfficientNetV1B6Backbone(EfficientNetV1Backbone):
                 "input_tensor": input_tensor,
             }
         )
-        return EfficientNetV1Backbone.from_preset("efficientnetv1-b6", **kwargs)
+        return EfficientNetV1Backbone.from_preset("efficientnetv1_b6", **kwargs)
 
     @classproperty
     def presets(cls):
@@ -249,7 +249,7 @@ class EfficientNetV1B7Backbone(EfficientNetV1Backbone):
                 "input_tensor": input_tensor,
             }
         )
-        return EfficientNetV1Backbone.from_preset("efficientnetv1-b7", **kwargs)
+        return EfficientNetV1Backbone.from_preset("efficientnetv1_b7", **kwargs)
 
     @classproperty
     def presets(cls):
