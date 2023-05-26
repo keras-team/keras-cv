@@ -188,13 +188,13 @@ class ConvNeXtBackbone(Backbone):
     def __init__(
         self,
         *,
-        include_rescaling,
         stackwise_depths,
         stackwise_projection_dims,
-        drop_path_rate=0.0,
-        layer_scale_init_value=1e-6,
+        include_rescaling,
         input_shape=(None, None, 3),
         input_tensor=None,
+        drop_path_rate=0.0,
+        layer_scale_init_value=1e-6,
         **kwargs,
     ):
         inputs = utils.parse_model_inputs(input_shape, input_tensor)

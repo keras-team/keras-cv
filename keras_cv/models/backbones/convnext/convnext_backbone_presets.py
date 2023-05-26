@@ -22,10 +22,11 @@ backbone_presets_no_weights = {
         "config": {
             "stackwise_depths": [3, 3, 9, 3],
             "stackwise_projection_dims": [96, 192, 384, 768],
-            "default_size": 224,
             "include_rescaling": True,
             "input_shape": (None, None, 3),
             "input_tensor": None,
+            "drop_path_rate": 0.0,
+            "layer_scale_init_value": 1e-6,
         },
     },
     "convnext_small": {
@@ -36,10 +37,11 @@ backbone_presets_no_weights = {
         "config": {
             "stackwise_depths": [3, 3, 27, 3],
             "stackwise_projection_dims": [96, 192, 384, 768],
-            "default_size": 224,
             "include_rescaling": True,
             "input_shape": (None, None, 3),
             "input_tensor": None,
+            "drop_path_rate": 0.0,
+            "layer_scale_init_value": 1e-6,
         },
     },
     "convnext_base": {
@@ -50,10 +52,11 @@ backbone_presets_no_weights = {
         "config": {
             "stackwise_depths": [3, 3, 27, 3],
             "stackwise_projection_dims": [128, 256, 512, 1024],
-            "default_size": 224,
             "include_rescaling": True,
             "input_shape": (None, None, 3),
             "input_tensor": None,
+            "drop_path_rate": 0.0,
+            "layer_scale_init_value": 1e-6,
         },
     },
     "convnext_large": {
@@ -64,10 +67,11 @@ backbone_presets_no_weights = {
         "config": {
             "stackwise_depths": [3, 3, 27, 3],
             "stackwise_projection_dims": [192, 384, 768, 1536],
-            "default_size": 224,
             "include_rescaling": True,
             "input_shape": (None, None, 3),
             "input_tensor": None,
+            "drop_path_rate": 0.0,
+            "layer_scale_init_value": 1e-6,
         },
     },
     "convnext_xlarge": {
@@ -78,10 +82,11 @@ backbone_presets_no_weights = {
         "config": {
             "stackwise_depths": [3, 3, 27, 3],
             "stackwise_projection_dims": [256, 512, 1024, 2048],
-            "default_size": 224,
             "include_rescaling": True,
             "input_shape": (None, None, 3),
             "input_tensor": None,
+            "drop_path_rate": 0.0,
+            "layer_scale_init_value": 1e-6,
         },
     },
 }
