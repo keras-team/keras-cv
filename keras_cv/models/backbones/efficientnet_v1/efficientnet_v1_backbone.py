@@ -116,7 +116,7 @@ class EfficientNetV1Backbone(Backbone):
         stem_filters = round_filters(
             filters=stackwise_input_filters[0],
             width_coefficient=width_coefficient,
-            depth_divisor=depth_divisor,
+            divisor=depth_divisor,
         )
         x = layers.Conv2D(
             filters=stem_filters,
@@ -149,12 +149,12 @@ class EfficientNetV1Backbone(Backbone):
             input_filters = round_filters(
                 filters=input_filters,
                 width_coefficient=width_coefficient,
-                depth_divisor=depth_divisor,
+                divisor=depth_divisor,
             )
             output_filters = round_filters(
                 filters=output_filters,
                 width_coefficient=width_coefficient,
-                depth_divisor=depth_divisor,
+                divisor=depth_divisor,
             )
 
             repeats = round_repeats(
@@ -195,7 +195,7 @@ class EfficientNetV1Backbone(Backbone):
         top_filters = round_filters(
             filters=1280,
             width_coefficient=width_coefficient,
-            depth_divisor=depth_divisor,
+            divisor=depth_divisor,
         )
 
         x = layers.Conv2D(
