@@ -73,8 +73,8 @@ class ConvNeXtBackboneTest(tf.test.TestCase, parameterized.TestCase):
         outputs = backbone_model(inputs)
         self.assertLen(outputs, 2)
         self.assertEquals(list(outputs.keys()), [4, 5])
-        self.assertEquals(outputs[4].shape, [None, 31, 31, 24])
-        self.assertEquals(outputs[5].shape, [None, 14, 14, 40])
+        self.assertEquals(outputs[4].shape, [None, 16, 16, 384])
+        self.assertEquals(outputs[5].shape, [None, 8, 8, 768])
 
     @parameterized.named_parameters(
         ("one_channel", 1),
@@ -85,7 +85,7 @@ class ConvNeXtBackboneTest(tf.test.TestCase, parameterized.TestCase):
             input_shape=(None, None, num_channels),
             include_rescaling=False,
         )
-        self.assertEqual(model.output_shape, (None, None, None, 576))
+        self.assertEqual(model.output_shape, (None, None, None, 768))
 
 
 if __name__ == "__main__":
