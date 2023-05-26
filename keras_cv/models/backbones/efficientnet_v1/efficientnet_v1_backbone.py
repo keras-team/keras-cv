@@ -423,7 +423,7 @@ def apply_efficientnet_block(
             1,
             padding="same",
             activation=activation,
-            kernel_initializer=conv_kernel_initializer,
+            kernel_initializer=conv_kernel_initializer(),
             name="_se_reduce",
         )(se)
         se = layers.Conv2D(
@@ -431,7 +431,7 @@ def apply_efficientnet_block(
             1,
             padding="same",
             activation="sigmoid",
-            kernel_initializer=conv_kernel_initializer,
+            kernel_initializer=conv_kernel_initializer(),
             name="_se_expand",
         )(se)
         x = layers.multiply([x, se], name="_se_excite")
