@@ -51,7 +51,7 @@ class LayerScale(layers.Layer):
         self.init_values = init_values
         self.projection_dim = projection_dim
 
-    def build(self):
+    def build(self, input_shape):
         self.gamma = tf.Variable(
             self.init_values * tf.ones((self.projection_dim,))
         )
