@@ -397,8 +397,7 @@ def apply_efficientnet_block(
     else:
         conv_pad = "same"
 
-    x = layers.Conv2D(
-        filters=None,
+    x = layers.DepthwiseConv2D(
         kernel_size=kernel_size,
         strides=strides,
         padding=conv_pad,
