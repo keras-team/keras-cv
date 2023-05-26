@@ -192,7 +192,7 @@ class RetinaNet(Task):
         batch_size = tf.shape(images)[0]
         cls_pred = []
         box_pred = []
-        for feature in features:
+        for feature in features.values():
             box_pred.append(tf.reshape(box_head(feature), [batch_size, -1, 4]))
             cls_pred.append(
                 tf.reshape(
