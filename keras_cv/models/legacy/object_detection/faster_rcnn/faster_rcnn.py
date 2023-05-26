@@ -76,11 +76,11 @@ class FeaturePyramid(keras.layers.Layer):
         p2_output = self.conv_c2_3x3(p2_output)
 
         return {
-            2: p2_output,
-            3: p3_output,
-            4: p4_output,
-            5: p5_output,
-            6: p6_output,
+            "P2": p2_output,
+            "P3": p3_output,
+            "P4": p4_output,
+            "P5": p5_output,
+            "P6": p6_output,
         }
 
     def get_config(self):
@@ -290,10 +290,16 @@ class FasterRCNN(keras.Model):
         aspect_ratios = [0.5, 1.0, 2.0]
         self.anchor_generator = anchor_generator or AnchorGenerator(
             bounding_box_format="yxyx",
-            sizes={2: 32.0, 3: 64.0, 4: 128.0, 5: 256.0, 6: 512.0},
+            sizes={
+                "P2": 32.0,
+                "P3": 64.0,
+                "P4": 128.0,
+                "P5": 256.0,
+                "P6": 512.0,
+            },
             scales=scales,
             aspect_ratios=aspect_ratios,
-            strides={i: 2**i for i in range(2, 7)},
+            strides={f"P{i}": 2**i for i in range(2, 7)},
             clip_boxes=True,
         )
         self.rpn_head = RPNHead(
