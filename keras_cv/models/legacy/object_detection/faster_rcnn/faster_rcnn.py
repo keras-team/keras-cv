@@ -248,8 +248,8 @@ class FasterRCNN(keras.Model):
             [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
             for more details on supported bounding box formats.
         backbone: Optional `keras.Model`. Must implement the
-            `pyramid_level_inputs` property with keys P2, P3, P4, and P5 and layer
-            names as values. If `None`, defaults to
+            `pyramid_level_inputs` property with keys "P2", "P3", "P4", and "P5"
+            and layer names as values. If `None`, defaults to
             `keras_cv.models.ResNet50Backbone()`.
         anchor_generator: (Optional) a `keras_cv.layers.AnchorGenerator`. It is
             used in the model to match ground truth boxes and labels with

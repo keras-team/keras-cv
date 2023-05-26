@@ -94,8 +94,8 @@ class RetinaNet(Task):
             [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
             for more details on supported bounding box formats.
         backbone: `keras.Model`. Must implement the `pyramid_level_inputs`
-            property with keys P3, P4, and P5 and layer names as values. A somewhat
-            sensible backbone to use in many cases is the:
+            property with keys "P3", "P4", and "P5" and layer names as values.
+            A somewhat sensible backbone to use in many cases is the:
             `keras_cv.models.ResNetBackbone.from_preset("resnet50_imagenet")`
         anchor_generator: (Optional) a `keras_cv.layers.AnchorGenerator`. If
             provided, the anchor generator will be passed to both the

@@ -324,8 +324,8 @@ class YOLOV8Detector(Task):
 
     Args:
         backbone: `keras.Model`, must implement the `pyramid_level_inputs`
-            property with keys P2, P3, and P4 and layer names as values. A
-            sensible backbone to use is the `keras_cv.models.YOLOV8Backbone`.
+            property with keys "P2", "P3", and "P4" and layer names as values.
+            A sensible backbone to use is the `keras_cv.models.YOLOV8Backbone`.
         num_classes: integer, the number of classes in your dataset excluding the
             background class. Classes should be represented by integers in the
             range [0, num_classes).

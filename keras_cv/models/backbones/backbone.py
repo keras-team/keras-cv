@@ -160,10 +160,9 @@ class Backbone(keras.Model):
 
         Format is a dictionary with string as key and layer name as value.
         The string key represents the level of the feature output. A typical
-        feature pyramid has five levels corresponding to scales P3, P4, P5,
-        P6, P7 in the backbone. Scale Pn represents a feature map 2^n times
-        smaller in width and height than the input image.
-        String keys are necessary to make Tensorflow saving flow happy.
+        feature pyramid has five levels corresponding to scales "P3", "P4",
+        "P5", "P6", "P7" in the backbone. Scale Pn represents a feature map 2^n
+        times smaller in width and height than the input image.
 
         Example:
         ```python
