@@ -30,29 +30,32 @@ from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
 from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
     CSPDarkNetXLBackbone,
 )
-from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_backbone import (
+from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_aliases import (
     EfficientNetV1B0Backbone,
 )
-from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_backbone import (
+from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_aliases import (
     EfficientNetV1B1Backbone,
 )
-from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_backbone import (
+from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_aliases import (
     EfficientNetV1B2Backbone,
 )
-from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_backbone import (
+from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_aliases import (
     EfficientNetV1B3Backbone,
 )
-from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_backbone import (
+from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_aliases import (
     EfficientNetV1B4Backbone,
 )
-from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_backbone import (
+from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_aliases import (
     EfficientNetV1B5Backbone,
 )
-from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_backbone import (
+from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_aliases import (
     EfficientNetV1B6Backbone,
 )
-from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_backbone import (
+from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_aliases import (
     EfficientNetV1B7Backbone,
+)
+from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_aliases import (
+    EfficientNetV1Backbone,
 )
 from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_aliases import (
     EfficientNetV2B0Backbone,
