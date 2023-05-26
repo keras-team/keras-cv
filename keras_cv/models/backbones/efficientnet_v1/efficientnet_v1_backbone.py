@@ -391,7 +391,7 @@ def apply_efficientnet_block(
     if strides == 2:
         x = layers.ZeroPadding2D(
             padding=correct_pad(x, kernel_size),
-            name=name + "_dwconv_pad",
+            name="dwconv_pad",
         )(x)
         conv_pad = "valid"
     else:
@@ -414,16 +414,16 @@ def apply_efficientnet_block(
     # Squeeze and Excitation phase
     if 0 < se_ratio <= 1:
         filters_se = max(1, int(filters_in * se_ratio))
-        se = layers.GlobalAveragePooling2D(name="_se_squeeze")(x)
+        se = layers.GlobalAveragePooling2D(name="se_squeeze")(x)
         se_shape = (1, 1, filters)
-        se = layers.Reshape(se_shape, name="_se_reshape")(se)
+        se = layers.Reshape(se_shape, name="se_reshape")(se)
         se = layers.Conv2D(
             filters_se,
             1,
             padding="same",
             activation=activation,
             kernel_initializer=conv_kernel_initializer(),
-            name="_se_reduce",
+            name="se_reduce",
         )(se)
         se = layers.Conv2D(
             filters,
@@ -431,9 +431,9 @@ def apply_efficientnet_block(
             padding="same",
             activation="sigmoid",
             kernel_initializer=conv_kernel_initializer(),
-            name="_se_expand",
+            name="se_expand",
         )(se)
-        x = layers.multiply([x, se], name="_se_excite")
+        x = layers.multiply([x, se], name="se_excite")
 
     # Output phase
     x = layers.Conv2D(
@@ -456,8 +456,8 @@ def apply_efficientnet_block(
             x = layers.Dropout(
                 drop_rate,
                 noise_shape=(None, 1, 1, 1),
-                name=name + "_drop",
+                name="drop",
             )(x)
-        x = layers.add([x, inputs], name=name + "_add")
+        x = layers.add([x, inputs], name="add")
 
     return x
