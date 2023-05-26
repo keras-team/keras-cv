@@ -32,14 +32,6 @@ from keras_cv.models.legacy.efficientnet_lite import EfficientNetLiteB1
 from keras_cv.models.legacy.efficientnet_lite import EfficientNetLiteB2
 from keras_cv.models.legacy.efficientnet_lite import EfficientNetLiteB3
 from keras_cv.models.legacy.efficientnet_lite import EfficientNetLiteB4
-from keras_cv.models.legacy.efficientnet_v1 import EfficientNetB0
-from keras_cv.models.legacy.efficientnet_v1 import EfficientNetB1
-from keras_cv.models.legacy.efficientnet_v1 import EfficientNetB2
-from keras_cv.models.legacy.efficientnet_v1 import EfficientNetB3
-from keras_cv.models.legacy.efficientnet_v1 import EfficientNetB4
-from keras_cv.models.legacy.efficientnet_v1 import EfficientNetB5
-from keras_cv.models.legacy.efficientnet_v1 import EfficientNetB6
-from keras_cv.models.legacy.efficientnet_v1 import EfficientNetB7
 from keras_cv.models.legacy.mlp_mixer import MLPMixerB16
 from keras_cv.models.legacy.mlp_mixer import MLPMixerB32
 from keras_cv.models.legacy.mlp_mixer import MLPMixerL16
