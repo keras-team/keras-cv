@@ -274,7 +274,7 @@ class ConvNeXtBackbone(Backbone):
         self.pyramid_level_inputs = pyramid_level_inputs
         self.include_rescaling = include_rescaling
         self.stackwise_depths = stackwise_depths
-        self.projection_dims = stackwise_projection_dims
+        self.stackwise_projection_dims = stackwise_projection_dims
         self.drop_path_rate = drop_path_rate
         self.layer_scale_init_value = layer_scale_init_value
         self.input_tensor = input_tensor
