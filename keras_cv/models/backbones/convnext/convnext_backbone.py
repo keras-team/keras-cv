@@ -266,6 +266,8 @@ class ConvNeXtBackbone(Backbone):
             cur += stackwise_depths[i]
             pyramid_level_inputs[i + 2] = x.node.layer.name
 
+        x = layers.LayerNormalization(epsilon=1e-6)(x)
+
         # Create model.
         super().__init__(inputs=inputs, outputs=x, **kwargs)
 
