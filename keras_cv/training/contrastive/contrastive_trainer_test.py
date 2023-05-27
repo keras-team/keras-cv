@@ -168,7 +168,12 @@ class ContrastiveTrainerTest(tf.test.TestCase):
         return preprocessing.RandomFlip("horizontal")
 
     def build_encoder(self):
-        return DenseNet121Backbone(include_rescaling=False, pooling="avg")
+        return keras.Sequential(
+            [
+                DenseNet121Backbone(include_rescaling=False),
+                layers.GlobalAveragePooling2D(name="avg_pool"),
+            ],
+        )
 
     def build_projector(self):
         return layers.Dense(128)
