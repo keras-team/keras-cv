@@ -68,7 +68,6 @@ class DeepLabV3Backbone(Backbone):
 
         self.feature_extractor = feature_extractor
         self.spatial_pyramid_pooling = spatial_pyramid_pooling
-        self.input_shape = input_shape
         self.input_tensor = input_tensor
 
     def get_config(self):
@@ -77,7 +76,6 @@ class DeepLabV3Backbone(Backbone):
             {
                 "feature_extractor": self.feature_extractor,
                 "spatial_pyramid_pooling": self.spatial_pyramid_pooling,
-                "input_shape": self.input_shape[1:],
                 "input_tensor": self.input_tensor,
             }
         )
