@@ -13,7 +13,6 @@ from keras_cv.models.segmentation.deeplab_v3_backbone_presets import (
     backbone_presets_with_weights,
 )
 from keras_cv.utils.python_utils import classproperty
-from keras_cv.utils.train import get_feature_extractor
 
 
 @keras.utils.register_keras_serializable(package="keras_cv.models")
