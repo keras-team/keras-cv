@@ -377,13 +377,13 @@ def apply_efficientnet_block(
             padding="same",
             use_bias=False,
             kernel_initializer=conv_kernel_initializer(),
-            name="expand_conv",
+            name=name + "_expand",
         )(inputs)
         x = layers.BatchNormalization(
             axis=3,
-            name="expand_bn",
+            name=name + "_bn",
         )(x)
-        x = layers.Activation(activation, name="expand_activation")(x)
+        x = layers.Activation(activation, name=name + "_activation")(x)
     else:
         x = inputs
 
@@ -391,7 +391,7 @@ def apply_efficientnet_block(
     if strides == 2:
         x = layers.ZeroPadding2D(
             padding=correct_pad(x, kernel_size),
-            name="dwconv_pad",
+            name=name + "_dwconv_pad",
         )(x)
         conv_pad = "valid"
     else:
@@ -403,27 +403,27 @@ def apply_efficientnet_block(
         padding=conv_pad,
         use_bias=False,
         kernel_initializer=conv_kernel_initializer(),
-        name="depthwise_conv",
+        name=name + "_dwconv",
     )(x)
     x = layers.BatchNormalization(
         axis=3,
-        name="depthwise_bn",
+        name=name + "_bn",
     )(x)
-    x = layers.Activation(activation, name="depthwise_activation")(x)
+    x = layers.Activation(activation, name=name + "_activation")(x)
 
     # Squeeze and Excitation phase
     if 0 < se_ratio <= 1:
         filters_se = max(1, int(filters_in * se_ratio))
-        se = layers.GlobalAveragePooling2D(name="se_squeeze")(x)
+        se = layers.GlobalAveragePooling2D(name=name + "_se_squeeze")(x)
         se_shape = (1, 1, filters)
-        se = layers.Reshape(se_shape, name="se_reshape")(se)
+        se = layers.Reshape(se_shape, name=name + "_se_reshape")(se)
         se = layers.Conv2D(
             filters_se,
             1,
             padding="same",
             activation=activation,
             kernel_initializer=conv_kernel_initializer(),
-            name="se_reduce",
+            name=name + "_se_reduce",
         )(se)
         se = layers.Conv2D(
             filters,
@@ -431,9 +431,9 @@ def apply_efficientnet_block(
             padding="same",
             activation="sigmoid",
             kernel_initializer=conv_kernel_initializer(),
-            name="se_expand",
+            name=name + "_se_expand",
         )(se)
-        x = layers.multiply([x, se], name="se_excite")
+        x = layers.multiply([x, se], name=name + "_se_excite")
 
     # Output phase
     x = layers.Conv2D(
@@ -443,21 +443,21 @@ def apply_efficientnet_block(
         padding="same",
         use_bias=False,
         kernel_initializer=conv_kernel_initializer(),
-        name="output_conv",
+        name=name + "_output_phase",
     )(x)
     x = layers.BatchNormalization(
         axis=3,
-        name="output_bn",
+        name=name + "_bn",
     )(x)
-    x = layers.Activation(activation, name="output_activation")(x)
+    x = layers.Activation(activation, name=name + "_activation")(x)
 
     if id_skip and strides == 1 and filters_in == filters_out:
         if drop_rate > 0:
             x = layers.Dropout(
                 drop_rate,
                 noise_shape=(None, 1, 1, 1),
-                name="drop",
+                name=name + "_drop",
             )(x)
-        x = layers.add([x, inputs], name="add")
+        x = layers.add([x, inputs], name=name + "_add")
 
     return x
