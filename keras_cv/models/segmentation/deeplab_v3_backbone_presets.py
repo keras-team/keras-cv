@@ -1,3 +1,17 @@
+# Copyright 2022 The KerasCV Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 from keras_cv.models import ResNet50V2Backbone
 
 backbone_presets_no_weights = {
@@ -9,7 +23,7 @@ backbone_presets_no_weights = {
             ),
             "params": 39102976,
             "official_name": "DeepLabV3",
-            "path": "deeplabv3"
+            "path": "deeplabv3",
         },
         "class_name": "keras_cv.models>DeepLabV3Backbone",
         "config": {
@@ -29,13 +43,13 @@ backbone_presets_with_weights = {
             ),
             "params": 39102976,
             "official_name": "DeepLabV3",
-            "path": "deeplabv3"
+            "path": "deeplabv3",
         },
         "class_name": "keras_cv.models>DeepLabV3Backbone",
         "config": backbone_presets_no_weights["deeplab_v3_test"]["config"],
         # Add DeepLabV3 Weights URL
-        "weights_url": "https://storage.googleapis.com/keras-cv/models/mobilenetv3/mobilenetv3_large_imagenet_backbone.h5",   # noqa: E501
-        "weights_hash": "ec55ea2f4f4ee9a2ddf3ee8e2dd784e9d5732690c1fc5afc7e1b2a66703f3337"  # noqa: E501
+        "weights_url": "https://storage.googleapis.com/keras-cv/models/mobilenetv3/mobilenetv3_large_imagenet_backbone.h5",  # noqa: E501
+        "weights_hash": "ec55ea2f4f4ee9a2ddf3ee8e2dd784e9d5732690c1fc5afc7e1b2a66703f3337",  # noqa: E501
     }
 }
 
