@@ -33,12 +33,12 @@ class EfficientNetV1BackboneTest(tf.test.TestCase, parameterized.TestCase):
 
     def test_valid_call(self):
         model = EfficientNetV1Backbone(
+            id_skip=True,
             stackwise_kernel_sizes=[3, 3, 5, 3, 5, 5, 3],
             stackwise_num_repeats=[1, 2, 2, 3, 3, 4, 1],
             stackwise_input_filters=[32, 16, 24, 40, 80, 112, 192],
             stackwise_output_filters=[16, 24, 40, 80, 112, 192, 320],
             stackwise_expansion_ratios=[1, 6, 6, 6, 6, 6, 6],
-            stackwise_id_skip=True,
             stackwise_strides=[1, 2, 2, 2, 1, 2, 1],
             stackwise_squeeze_and_excite_ratios=[
                 0.25,
@@ -61,12 +61,12 @@ class EfficientNetV1BackboneTest(tf.test.TestCase, parameterized.TestCase):
 
     def test_valid_call_with_rescaling(self):
         model = EfficientNetV1Backbone(
+            id_skip=True,
             stackwise_kernel_sizes=[3, 3, 5, 3, 5, 5, 3],
             stackwise_num_repeats=[1, 2, 2, 3, 3, 4, 1],
             stackwise_input_filters=[32, 16, 24, 40, 80, 112, 192],
             stackwise_output_filters=[16, 24, 40, 80, 112, 192, 320],
             stackwise_expansion_ratios=[1, 6, 6, 6, 6, 6, 6],
-            stackwise_id_skip=True,
             stackwise_strides=[1, 2, 2, 2, 1, 2, 1],
             stackwise_squeeze_and_excite_ratios=[
                 0.25,
@@ -89,12 +89,12 @@ class EfficientNetV1BackboneTest(tf.test.TestCase, parameterized.TestCase):
     )
     def test_saved_model(self, save_format, filename):
         model = EfficientNetV1Backbone(
+            id_skip=True,
             stackwise_kernel_sizes=[3, 3, 5, 3, 5, 5, 3],
             stackwise_num_repeats=[1, 2, 2, 3, 3, 4, 1],
             stackwise_input_filters=[32, 16, 24, 40, 80, 112, 192],
             stackwise_output_filters=[16, 24, 40, 80, 112, 192, 320],
             stackwise_expansion_ratios=[1, 6, 6, 6, 6, 6, 6],
-            stackwise_id_skip=True,
             stackwise_strides=[1, 2, 2, 2, 1, 2, 1],
             stackwise_squeeze_and_excite_ratios=[
                 0.25,
@@ -162,12 +162,12 @@ class EfficientNetV1BackboneTest(tf.test.TestCase, parameterized.TestCase):
 
     def test_create_backbone_model_with_level_config(self):
         model = EfficientNetV1Backbone(
+            id_skip=True,
             stackwise_kernel_sizes=[3, 3, 5, 3, 5, 5, 3],
             stackwise_num_repeats=[1, 2, 2, 3, 3, 4, 1],
             stackwise_input_filters=[32, 16, 24, 40, 80, 112, 192],
             stackwise_output_filters=[16, 24, 40, 80, 112, 192, 320],
             stackwise_expansion_ratios=[1, 6, 6, 6, 6, 6, 6],
-            stackwise_id_skip=True,
             stackwise_strides=[1, 2, 2, 2, 1, 2, 1],
             stackwise_squeeze_and_excite_ratios=[
                 0.25,
@@ -198,12 +198,12 @@ class EfficientNetV1BackboneTest(tf.test.TestCase, parameterized.TestCase):
     )
     def test_application_variable_input_channels(self, num_channels):
         model = EfficientNetV1Backbone(
+            id_skip=True,
             stackwise_kernel_sizes=[3, 3, 5, 3, 5, 5, 3],
             stackwise_num_repeats=[1, 2, 2, 3, 3, 4, 1],
             stackwise_input_filters=[32, 16, 24, 40, 80, 112, 192],
             stackwise_output_filters=[16, 24, 40, 80, 112, 192, 320],
             stackwise_expansion_ratios=[1, 6, 6, 6, 6, 6, 6],
-            stackwise_id_skip=True,
             stackwise_strides=[1, 2, 2, 2, 1, 2, 1],
             stackwise_squeeze_and_excite_ratios=[
                 0.25,
