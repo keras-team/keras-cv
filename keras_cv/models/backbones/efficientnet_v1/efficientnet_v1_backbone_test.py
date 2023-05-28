@@ -1,4 +1,4 @@
-# Copyright 2022 The KerasCV Authors
+# Copyright 2023 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,49 +12,213 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+
 import tensorflow as tf
 from absl.testing import parameterized
+from tensorflow import keras
 
-from keras_cv.models.backbones.efficientnet_v1 import efficientnet_v1
-from keras_cv.models.legacy.models_test import ModelsTest
-
-MODEL_LIST = [
-    (efficientnet_v1.EfficientNetB0, 1280, {}),
-]
-
-"""
-Below are other configurations that we omit from our CI but that can/should
-be tested manually when making changes to this model.
-(efficientnet_v1.EfficientNetB1, 1280, {}),
-(efficientnet_v1.EfficientNetB2, 1408, {}),
-(efficientnet_v1.EfficientNetB3, 1536, {}),
-(efficientnet_v1.EfficientNetB4, 1792, {}),
-(efficientnet_v1.EfficientNetB5, 2048, {}),
-(efficientnet_v1.EfficientNetB6, 2304, {}),
-(efficientnet_v1.EfficientNetB7, 2560, {}),
-"""
+from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_aliases import (
+    EfficientNetV1B0Backbone,
+)
+from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_backbone import (
+    EfficientNetV1Backbone,
+)
+from keras_cv.utils.train import get_feature_extractor
 
 
-class EfficientNetV1Test(ModelsTest, tf.test.TestCase, parameterized.TestCase):
-    @parameterized.parameters(*MODEL_LIST)
-    def test_application_base(self, app, _, args):
-        super()._test_application_base(app, _, args)
+class EfficientNetV1BackboneTest(tf.test.TestCase, parameterized.TestCase):
+    def setUp(self):
+        self.input_batch = tf.ones(shape=(8, 224, 224, 3))
 
-    @parameterized.parameters(*MODEL_LIST)
-    def test_application_with_rescaling(self, app, last_dim, args):
-        super()._test_application_with_rescaling(app, last_dim, args)
+    def test_valid_call(self):
+        model = EfficientNetV1Backbone(
+            stackwise_kernel_sizes=[3, 3, 5, 3, 5, 5, 3],
+            stackwise_num_repeats=[1, 2, 2, 3, 3, 4, 1],
+            stackwise_input_filters=[32, 16, 24, 40, 80, 112, 192],
+            stackwise_output_filters=[16, 24, 40, 80, 112, 192, 320],
+            stackwise_expansion_ratios=[1, 6, 6, 6, 6, 6, 6],
+            stackwise_id_skip=True,
+            stackwise_strides=[1, 2, 2, 2, 1, 2, 1],
+            stackwise_squeeze_and_excite_ratios=[
+                0.25,
+                0.25,
+                0.25,
+                0.25,
+                0.25,
+                0.25,
+                0.25,
+            ],
+            width_coefficient=1.0,
+            depth_coefficient=1.0,
+            include_rescaling=False,
+        )
+        model(self.input_batch)
 
-    @parameterized.parameters(*MODEL_LIST)
-    def test_application_pooling(self, app, last_dim, args):
-        super()._test_application_pooling(app, last_dim, args)
+    def test_valid_call_alias_model_with_rescaling(self):
+        model = EfficientNetV1B0Backbone(include_rescaling=True)
+        model(self.input_batch)
 
-    @parameterized.parameters(*MODEL_LIST)
-    def test_application_variable_input_channels(self, app, last_dim, args):
-        super()._test_application_variable_input_channels(app, last_dim, args)
+    def test_valid_call_with_rescaling(self):
+        model = EfficientNetV1Backbone(
+            stackwise_kernel_sizes=[3, 3, 5, 3, 5, 5, 3],
+            stackwise_num_repeats=[1, 2, 2, 3, 3, 4, 1],
+            stackwise_input_filters=[32, 16, 24, 40, 80, 112, 192],
+            stackwise_output_filters=[16, 24, 40, 80, 112, 192, 320],
+            stackwise_expansion_ratios=[1, 6, 6, 6, 6, 6, 6],
+            stackwise_id_skip=True,
+            stackwise_strides=[1, 2, 2, 2, 1, 2, 1],
+            stackwise_squeeze_and_excite_ratios=[
+                0.25,
+                0.25,
+                0.25,
+                0.25,
+                0.25,
+                0.25,
+                0.25,
+            ],
+            width_coefficient=1.0,
+            depth_coefficient=1.0,
+            include_rescaling=True,
+        )
+        model(self.input_batch)
 
-    @parameterized.parameters(*MODEL_LIST)
-    def test_model_can_be_used_as_backbone(self, app, last_dim, args):
-        super()._test_model_can_be_used_as_backbone(app, last_dim, args)
+    @parameterized.named_parameters(
+        ("tf_format", "tf", "model"),
+        ("keras_format", "keras_v3", "model.keras"),
+    )
+    def test_saved_model(self, save_format, filename):
+        model = EfficientNetV1Backbone(
+            stackwise_kernel_sizes=[3, 3, 5, 3, 5, 5, 3],
+            stackwise_num_repeats=[1, 2, 2, 3, 3, 4, 1],
+            stackwise_input_filters=[32, 16, 24, 40, 80, 112, 192],
+            stackwise_output_filters=[16, 24, 40, 80, 112, 192, 320],
+            stackwise_expansion_ratios=[1, 6, 6, 6, 6, 6, 6],
+            stackwise_id_skip=True,
+            stackwise_strides=[1, 2, 2, 2, 1, 2, 1],
+            stackwise_squeeze_and_excite_ratios=[
+                0.25,
+                0.25,
+                0.25,
+                0.25,
+                0.25,
+                0.25,
+                0.25,
+            ],
+            width_coefficient=1.0,
+            depth_coefficient=1.0,
+            include_rescaling=True,
+        )
+        model_output = model(self.input_batch)
+        save_path = os.path.join(self.get_temp_dir(), filename)
+        model.save(save_path, save_format=save_format)
+        restored_model = keras.models.load_model(save_path)
+
+        # Check we got the real object back.
+        self.assertIsInstance(restored_model, EfficientNetV1Backbone)
+
+        # Check that output matches.
+        restored_output = restored_model(self.input_batch)
+        self.assertAllClose(model_output, restored_output)
+
+    @parameterized.named_parameters(
+        ("tf_format", "tf", "model"),
+        ("keras_format", "keras_v3", "model.keras"),
+    )
+    def test_saved_alias_model(self, save_format, filename):
+        model = EfficientNetV1B0Backbone()
+        model_output = model(self.input_batch)
+        save_path = os.path.join(self.get_temp_dir(), filename)
+        model.save(save_path, save_format=save_format)
+        restored_model = keras.models.load_model(save_path)
+
+        # Check we got the real object back.
+        # Note that these aliases serialized as the base class
+        self.assertIsInstance(restored_model, EfficientNetV1Backbone)
+
+        # Check that output matches.
+        restored_output = restored_model(self.input_batch)
+        self.assertAllClose(model_output, restored_output)
+
+    def test_create_backbone_model_from_alias_model(self):
+        model = EfficientNetV1B0Backbone(
+            include_rescaling=False,
+        )
+        backbone_model = get_feature_extractor(
+            model,
+            model.pyramid_level_inputs.values(),
+            model.pyramid_level_inputs.keys(),
+        )
+        inputs = keras.Input(shape=[256, 256, 3])
+        outputs = backbone_model(inputs)
+
+        # EfficientNetV1B0 backbone has 4 level of features (1 ~ 5)
+        self.assertLen(outputs, 5)
+        self.assertEquals(list(outputs.keys()), [1, 2, 3, 4, 5])
+        self.assertEquals(outputs[2].shape, [None, 64, 64, 24])
+        self.assertEquals(outputs[3].shape, [None, 32, 32, 40])
+        self.assertEquals(outputs[4].shape, [None, 16, 16, 112])
+        self.assertEquals(outputs[5].shape, [None, 8, 8, 1280])
+
+    def test_create_backbone_model_with_level_config(self):
+        model = EfficientNetV1Backbone(
+            stackwise_kernel_sizes=[3, 3, 5, 3, 5, 5, 3],
+            stackwise_num_repeats=[1, 2, 2, 3, 3, 4, 1],
+            stackwise_input_filters=[32, 16, 24, 40, 80, 112, 192],
+            stackwise_output_filters=[16, 24, 40, 80, 112, 192, 320],
+            stackwise_expansion_ratios=[1, 6, 6, 6, 6, 6, 6],
+            stackwise_id_skip=True,
+            stackwise_strides=[1, 2, 2, 2, 1, 2, 1],
+            stackwise_squeeze_and_excite_ratios=[
+                0.25,
+                0.25,
+                0.25,
+                0.25,
+                0.25,
+                0.25,
+                0.25,
+            ],
+            width_coefficient=1.0,
+            depth_coefficient=1.0,
+            include_rescaling=True,
+        )
+        levels = [3, 4]
+        layer_names = [model.pyramid_level_inputs[level] for level in [3, 4]]
+        backbone_model = get_feature_extractor(model, layer_names, levels)
+        inputs = keras.Input(shape=[256, 256, 3])
+        outputs = backbone_model(inputs)
+        self.assertLen(outputs, 2)
+        self.assertEquals(list(outputs.keys()), [3, 4])
+        self.assertEquals(outputs[3].shape, [None, 32, 32, 40])
+        self.assertEquals(outputs[4].shape, [None, 16, 16, 112])
+
+    @parameterized.named_parameters(
+        ("one_channel", 1),
+        ("four_channels", 4),
+    )
+    def test_application_variable_input_channels(self, num_channels):
+        model = EfficientNetV1Backbone(
+            stackwise_kernel_sizes=[3, 3, 5, 3, 5, 5, 3],
+            stackwise_num_repeats=[1, 2, 2, 3, 3, 4, 1],
+            stackwise_input_filters=[32, 16, 24, 40, 80, 112, 192],
+            stackwise_output_filters=[16, 24, 40, 80, 112, 192, 320],
+            stackwise_expansion_ratios=[1, 6, 6, 6, 6, 6, 6],
+            stackwise_id_skip=True,
+            stackwise_strides=[1, 2, 2, 2, 1, 2, 1],
+            stackwise_squeeze_and_excite_ratios=[
+                0.25,
+                0.25,
+                0.25,
+                0.25,
+                0.25,
+                0.25,
+                0.25,
+            ],
+            width_coefficient=1.0,
+            depth_coefficient=1.0,
+            include_rescaling=True,
+        )
+        self.assertEqual(model.output_shape, (None, None, None, 1280))
 
 
 if __name__ == "__main__":

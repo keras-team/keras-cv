@@ -1,4 +1,4 @@
-# Copyright 2022 The KerasCV Authors
+# Copyright 2023 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,9 +17,13 @@ import pytest
 import tensorflow as tf
 from absl.testing import parameterized
 
+from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_aliases import (
+    EfficientNetV1B0Backbone,
+)
 from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_backbone import (
     EfficientNetV1Backbone,
 )
+from keras_cv.utils.train import get_feature_extractor
 
 
 @pytest.mark.extra_large
@@ -38,3 +42,18 @@ class EfficientNetV1PresetFullTest(tf.test.TestCase, parameterized.TestCase):
         input_data = tf.ones(shape=(2, 224, 224, 3))
         model = EfficientNetV1Backbone.from_preset(preset)
         model(input_data)
+
+    def test_efficientnet_feature_extractor(self):
+        model = EfficientNetV1B0Backbone(
+            include_rescaling=False,
+            input_shape=[256, 256, 3],
+        )
+        levels = [3, 4]
+        layer_names = [model.pyramid_level_inputs[level] for level in [3, 4]]
+        backbone_model = get_feature_extractor(model, layer_names, levels)
+        inputs = tf.keras.Input(shape=[256, 256, 3])
+        outputs = backbone_model(inputs)
+        self.assertLen(outputs, 2)
+        self.assertEquals(list(outputs.keys()), [3, 4])
+        self.assertEquals(outputs[3].shape[:3], [None, 32, 32])
+        self.assertEquals(outputs[4].shape[:3], [None, 16, 16])
