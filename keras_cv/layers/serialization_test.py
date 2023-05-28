@@ -19,6 +19,7 @@ from absl.testing import parameterized
 from tensorflow import keras
 
 from keras_cv import layers as cv_layers
+from keras_cv.layers.segmentation.segmentation_head import SegmentationHead
 from keras_cv.layers.vit_layers import PatchingAndEmbedding
 from keras_cv.utils import test_utils
 
@@ -374,6 +375,20 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             {
                 "bounding_box_format": "yxyx",
                 "from_logits": True,
+            },
+        ),
+        (
+            "SegmentationHead",
+            SegmentationHead,
+            {
+                "num_classes": 11,
+                "convolutions": 2,
+                "filters": 256,
+                "activations": "relu",
+                "dropout": 0.0,
+                "kernel_size": 3,
+                "activation": "softmax",
+                "use_bias": False,
             },
         ),
     )
