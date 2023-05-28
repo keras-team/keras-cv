@@ -30,7 +30,6 @@ backbone_presets_no_weights = {
         "config": {
             "width_coefficient": 1.0,
             "depth_coefficient": 1.0,
-            "default_size": 224,
             "dropout_rate": 0.2,
             "drop_connect_rate": 0.2,
             "depth_divisor": 8,
@@ -64,7 +63,6 @@ backbone_presets_no_weights = {
         "config": {
             "width_coefficient": 1.0,
             "depth_coefficient": 1.1,
-            "default_size": 240,
             "dropout_rate": 0.2,
             "drop_connect_rate": 0.2,
             "depth_divisor": 8,
@@ -98,7 +96,6 @@ backbone_presets_no_weights = {
         "config": {
             "width_coefficient": 1.1,
             "depth_coefficient": 1.2,
-            "default_size": 260,
             "dropout_rate": 0.3,
             "drop_connect_rate": 0.2,
             "depth_divisor": 8,
@@ -132,7 +129,6 @@ backbone_presets_no_weights = {
         "config": {
             "width_coefficient": 1.2,
             "depth_coefficient": 1.4,
-            "default_size": 300,
             "dropout_rate": 0.3,
             "drop_connect_rate": 0.2,
             "depth_divisor": 8,
@@ -166,7 +162,6 @@ backbone_presets_no_weights = {
         "config": {
             "width_coefficient": 1.4,
             "depth_coefficient": 1.8,
-            "default_size": 380,
             "dropout_rate": 0.4,
             "drop_connect_rate": 0.2,
             "depth_divisor": 8,
@@ -200,7 +195,6 @@ backbone_presets_no_weights = {
         "config": {
             "width_coefficient": 1.6,
             "depth_coefficient": 2.2,
-            "default_size": 456,
             "dropout_rate": 0.4,
             "drop_connect_rate": 0.2,
             "depth_divisor": 8,
@@ -234,7 +228,6 @@ backbone_presets_no_weights = {
         "config": {
             "width_coefficient": 1.8,
             "depth_coefficient": 2.6,
-            "default_size": 528,
             "dropout_rate": 0.5,
             "drop_connect_rate": 0.2,
             "depth_divisor": 8,
@@ -268,7 +261,6 @@ backbone_presets_no_weights = {
         "config": {
             "width_coefficient": 2.0,
             "depth_coefficient": 3.1,
-            "default_size": 600,
             "dropout_rate": 0.5,
             "drop_connect_rate": 0.2,
             "depth_divisor": 8,

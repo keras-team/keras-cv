@@ -66,7 +66,6 @@ class EfficientNetV1Backbone(Backbone):
             True, inputs will be passed through a `Rescaling(1/255.0)` layer.
         width_coefficient: float, scaling coefficient for network width.
         depth_coefficient: float, scaling coefficient for network depth.
-        default_size: integer, default input image size.
         dropout_rate: float, dropout rate before final classifier layer.
         drop_connect_rate: float, dropout rate at skip connections.
         depth_divisor: integer, a unit of network width.
@@ -83,7 +82,6 @@ class EfficientNetV1Backbone(Backbone):
         include_rescaling,
         width_coefficient,
         depth_coefficient,
-        default_size,
         dropout_rate=0.2,
         drop_connect_rate=0.2,
         depth_divisor=8,
@@ -221,7 +219,6 @@ class EfficientNetV1Backbone(Backbone):
         self.include_rescaling = include_rescaling
         self.width_coefficient = width_coefficient
         self.depth_coefficient = depth_coefficient
-        self.default_size = default_size
         self.dropout_rate = dropout_rate
         self.drop_connect_rate = drop_connect_rate
         self.depth_divisor = depth_divisor
@@ -248,7 +245,6 @@ class EfficientNetV1Backbone(Backbone):
                 "include_rescaling": self.include_rescaling,
                 "width_coefficient": self.width_coefficient,
                 "depth_coefficient": self.depth_coefficient,
-                "default_size": self.default_size,
                 "dropout_rate": self.dropout_rate,
                 "drop_connect_rate": self.drop_connect_rate,
                 "depth_divisor": self.depth_divisor,
