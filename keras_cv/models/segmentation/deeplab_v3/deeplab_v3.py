@@ -116,6 +116,10 @@ class DeepLabV3(Task):
             ),
             interpolation="bilinear",
         )
+    
+    def compile(self, weight_decay=0.0001, **kwargs):
+        super().compile(**kwargs)
+        self.weight_decay = weight_decay
 
     def train_step(self, data):
         images, y_true, sample_weight = keras.utils.unpack_x_y_sample_weight(
