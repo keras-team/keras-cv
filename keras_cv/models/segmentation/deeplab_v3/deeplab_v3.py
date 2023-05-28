@@ -24,6 +24,56 @@ from keras_cv.models.task import Task
 
 @keras.utils.register_keras_serializable(package="keras_cv")
 class DeepLabV3(Task):
+    """A Keras model implementing the DeepLabV3 architecture for semantic
+    segmentation.
+
+    References:
+        - [Rethinking Atrous Convolution for Semantic Image Segmentation](https://arxiv.org/abs/1706.05587)
+        (CVPR 2017)
+
+    Examples:
+    ```python
+    import tensorflow as tf
+    import keras_cv
+
+    images = tf.ones(shape=(1, 96, 96, 3))
+    backbone = keras_cv.models.ResNet50V2Backbone(input_shape=[96, 96, 3])
+    model = keras_cv.model.segmentation.DeepLabV3(
+        num_classes=1, backbone=backbone
+    )
+
+    # Evaluate model
+    model(images)
+
+    # Train model
+    model.compile(
+        weight_decay=0.0001,
+        optimizer="adam",
+        loss=keras.losses.BinaryCrossentropy(from_logits=False),
+        metrics=["accuracy"],
+    )
+    model.fit(training_dataset.take(10), epochs=3)
+    ```
+
+    Args:
+        num_classes: int, the number of classes for the detection model. Note
+            that the num_classes doesn't contain the background class, and the
+            classes from the data should be represented by integers with range
+            [0, num_classes).
+        backbone: Backbone network for the model. Should be a KerasCV model.
+        spatial_pyramid_pooling: Also known as Atrous Spatial Pyramid Pooling
+            (ASPP). Performs spatial pooling on different spatial levels in the
+            pyramid, with dilation.
+        segmentation_head: Optional `keras.Layer` that predict the segmentation
+            mask based on feature from backbone and feature from decoder.
+        segmentation_head_activation: Optional `str` or function, activation
+            functions between the `keras.layers.Conv2D` layers and the final
+            classification layer, defaults to `"relu"`.
+        input_shape: optional shape tuple, defaults to (None, None, 3).
+        input_tensor: optional Keras tensor (i.e., output of `layers.Input()`)
+            to use as image input for the model.
+    """
+
     def __init__(
         self,
         num_classes,
@@ -116,10 +166,16 @@ class DeepLabV3(Task):
             ),
             interpolation="bilinear",
         )
-    
+
     def compile(self, weight_decay=0.0001, **kwargs):
-        super().compile(**kwargs)
+        """compiles the DeepLabV3 model.
+
+        Args:
+            weight_decay: Optional float, factor of weight decay applied during
+                training, defaults to `0.0001`.
+        """
         self.weight_decay = weight_decay
+        super().compile(**kwargs)
 
     def train_step(self, data):
         images, y_true, sample_weight = keras.utils.unpack_x_y_sample_weight(
