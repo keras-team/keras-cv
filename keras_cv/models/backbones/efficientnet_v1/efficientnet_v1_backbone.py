@@ -34,29 +34,6 @@ from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_backbone_presets 
 )
 from keras_cv.utils.python_utils import classproperty
 
-BASE_DOCSTRING = """Instantiates the {name} architecture.
-
-    Reference:
-    - [EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks](https://arxiv.org/abs/1905.11946)
-    (ICML 2019) # noqa: E501
-
-    This class represents a Keras image classification model.
-
-    For image classification use cases, see
-    [this page for detailed examples](https://keras.io/api/applications/#usage-examples-for-image-classification-models). # noqa: E501
-
-    For transfer learning use cases, make sure to read the
-    [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/). # noqa: E501
-
-    Args:
-        include_rescaling: bool, whether to rescale the inputs. If set to
-            True, inputs will be passed through a `Rescaling(1/255.0)` layer.
-        input_shape: tuple, Optional shape tuple. It should have exactly 3
-            inputs channels.
-        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`) to
-            use as image input for the model.
-"""
-
 
 @keras.utils.register_keras_serializable(package="keras_cv.models")
 class EfficientNetV1Backbone(Backbone):
@@ -74,7 +51,55 @@ class EfficientNetV1Backbone(Backbone):
             channels.
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`) to
             use as image input for the model.
-    """
+        stackwise_kernel_sizes:  list of ints, the kernel sizes used for each
+            conv block.
+        stackwise_num_repeats: list of ints, number of times to repeat each
+            conv block.
+        stackwise_input_filters: list of ints, number of input filters for
+            each conv block.
+        stackwise_output_filters: list of ints, number of output filters for
+            each stack in the conv blocks model.
+        stackwise_expansion_ratios: list of floats, expand ratio passed to the
+            squeeze and excitation blocks.
+        stackwise_strides: list of ints, stackwise_strides for each conv block.
+        stackwise_squeeze_and_excite_ratios: list of ints, the squeeze and
+            excite ratios passed to the squeeze and excitation blocks.
+
+    Usage:
+    ```python
+    # Construct an EfficientNetV1 from a preset:
+    efficientnet = keras_cv.models.EfficientNetV1Backbone.from_preset(
+        "efficientnetv1_b0"
+    )
+    images = tf.ones((1, 256, 256, 3))
+    outputs = efficientnet.predict(images)
+
+    # Alternatively, you can also customize the EfficientNetV1 architecture:
+    model = EfficientNetV1Backbone(
+        stackwise_kernel_sizes=[3, 3, 5, 3, 5, 5, 3],
+        stackwise_num_repeats=[1, 2, 2, 3, 3, 4, 1],
+        stackwise_input_filters=[32, 16, 24, 40, 80, 112, 192],
+        stackwise_output_filters=[16, 24, 40, 80, 112, 192, 320],
+        stackwise_expansion_ratios=[1, 6, 6, 6, 6, 6, 6],
+        stackwise_id_skip=True,
+        stackwise_strides=[1, 2, 2, 2, 1, 2, 1],
+        stackwise_squeeze_and_excite_ratios=[
+            0.25,
+            0.25,
+            0.25,
+            0.25,
+            0.25,
+            0.25,
+            0.25,
+        ],
+        width_coefficient=1.0,
+        depth_coefficient=1.0,
+        include_rescaling=False,
+    )
+    images = tf.ones((1, 256, 256, 3))
+    outputs = efficientnet.predict(images)
+    ```
+    """ # noqa: E501
 
     def __init__(
         self,
