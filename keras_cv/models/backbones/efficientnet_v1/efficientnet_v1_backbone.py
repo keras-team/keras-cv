@@ -377,13 +377,13 @@ def apply_efficientnet_block(
             padding="same",
             use_bias=False,
             kernel_initializer=conv_kernel_initializer(),
-            name=name + "_expand",
+            name=name + "_expand_conv",
         )(inputs)
         x = layers.BatchNormalization(
             axis=3,
-            name=name + "_bn",
+            name=name + "_expand_bn",
         )(x)
-        x = layers.Activation(activation, name=name + "_activation")(x)
+        x = layers.Activation(activation, name=name + "_expand_activation")(x)
     else:
         x = inputs
 
@@ -407,9 +407,9 @@ def apply_efficientnet_block(
     )(x)
     x = layers.BatchNormalization(
         axis=3,
-        name=name + "_bn",
+        name=name + "_dwconv_bn",
     )(x)
-    x = layers.Activation(activation, name=name + "_activation")(x)
+    x = layers.Activation(activation, name=name + "_dwconv_activation")(x)
 
     # Squeeze and Excitation phase
     if 0 < se_ratio <= 1:
@@ -447,9 +447,9 @@ def apply_efficientnet_block(
     )(x)
     x = layers.BatchNormalization(
         axis=3,
-        name=name + "_bn",
+        name=name + "outout_phase_bn",
     )(x)
-    x = layers.Activation(activation, name=name + "_activation")(x)
+    x = layers.Activation(activation, name=name + "output_phase_activation")(x)
 
     if id_skip and strides == 1 and filters_in == filters_out:
         if drop_rate > 0:
