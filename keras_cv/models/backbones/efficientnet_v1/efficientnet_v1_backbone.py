@@ -51,6 +51,7 @@ class EfficientNetV1Backbone(Backbone):
             channels.
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`) to
             use as image input for the model.
+        id_skip: boolean.
         stackwise_kernel_sizes:  list of ints, the kernel sizes used for each
             conv block.
         stackwise_num_repeats: list of ints, number of times to repeat each
@@ -81,7 +82,6 @@ class EfficientNetV1Backbone(Backbone):
         stackwise_input_filters=[32, 16, 24, 40, 80, 112, 192],
         stackwise_output_filters=[16, 24, 40, 80, 112, 192, 320],
         stackwise_expansion_ratios=[1, 6, 6, 6, 6, 6, 6],
-        stackwise_id_skip=True,
         stackwise_strides=[1, 2, 2, 2, 1, 2, 1],
         stackwise_squeeze_and_excite_ratios=[
             0.25,
@@ -113,12 +113,12 @@ class EfficientNetV1Backbone(Backbone):
         activation="swish",
         input_shape=(None, None, 3),
         input_tensor=None,
+        id_skip,
         stackwise_kernel_sizes,
         stackwise_num_repeats,
         stackwise_input_filters,
         stackwise_output_filters,
         stackwise_expansion_ratios,
-        stackwise_id_skip,
         stackwise_strides,
         stackwise_squeeze_and_excite_ratios,
         **kwargs,
@@ -252,12 +252,12 @@ class EfficientNetV1Backbone(Backbone):
         self.pyramid_level_inputs = {
             i + 1: name for i, name in enumerate(pyramid_level_inputs)
         }
+        self.id_skip = id_skip
         self.stackwise_kernel_sizes = stackwise_kernel_sizes
         self.stackwise_num_repeats = stackwise_num_repeats
         self.stackwise_input_filters = stackwise_input_filters
         self.stackwise_output_filters = stackwise_output_filters
         self.stackwise_expansion_ratios = stackwise_expansion_ratios
-        self.stackwise_id_skip = stackwise_id_skip
         self.stackwise_strides = stackwise_strides
         self.stackwise_squeeze_and_excite_ratios = (
             stackwise_squeeze_and_excite_ratios
@@ -277,12 +277,12 @@ class EfficientNetV1Backbone(Backbone):
                 "input_tensor": self.input_tensor,
                 "input_shape": self.input_shape[1:],
                 "trainable": self.trainable,
+                "id_skip": self.id_skip,
                 "stackwise_kernel_sizes": self.stackwise_kernel_sizes,
                 "stackwise_num_repeats": self.stackwise_num_repeats,
                 "stackwise_input_filters": self.stackwise_input_filters,
                 "stackwise_output_filters": self.stackwise_output_filters,
                 "stackwise_expansion_ratios": self.stackwise_expansion_ratios,
-                "stackwise_id_skip": self.stackwise_id_skip,
                 "stackwise_strides": self.stackwise_strides,
                 "stackwise_squeeze_and_excite_ratios": (
                     self.stackwise_squeeze_and_excite_ratios
