@@ -155,7 +155,9 @@ class Resizing(BaseImageAugmentationLayer):
             inputs["bounding_boxes"] = outputs["bounding_boxes"]
 
         if segmentation_masks is not None:
-            segmentation_masks = tf.squeeze(outputs["segmentation_masks"], axis=0)
+            segmentation_masks = tf.squeeze(
+                outputs["segmentation_masks"], axis=0
+            )
             inputs["segmentation_masks"] = segmentation_masks
 
         return inputs
@@ -306,7 +308,7 @@ class Resizing(BaseImageAugmentationLayer):
             return keras.preprocessing.image.smart_resize(
                 x, size=size, interpolation=self._interpolation_method
             )
-        
+
         def resize_with_crop_to_aspect_segmentation_masks(x):
             if isinstance(x, tf.RaggedTensor):
                 x = x.to_tensor()
@@ -319,7 +321,9 @@ class Resizing(BaseImageAugmentationLayer):
             shape = size_as_shape + images.shape[-1:]
             spec = tf.TensorSpec(shape, input_dtype)
             images = tf.map_fn(
-                resize_with_crop_to_aspect_images, images, fn_output_signature=spec
+                resize_with_crop_to_aspect_images,
+                images,
+                fn_output_signature=spec,
             )
         else:
             images = resize_with_crop_to_aspect_images(images)
@@ -337,8 +341,10 @@ class Resizing(BaseImageAugmentationLayer):
                     fn_output_signature=spec,
                 )
             else:
-                segmentation_masks = resize_with_crop_to_aspect_segmentation_masks(
-                    segmentation_masks
+                segmentation_masks = (
+                    resize_with_crop_to_aspect_segmentation_masks(
+                        segmentation_masks
+                    )
                 )
 
             inputs["segmentation_masks"] = segmentation_masks
