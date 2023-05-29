@@ -29,7 +29,7 @@ supported_keys = [
     "labels",
     "targets",
     "bounding_boxes",
-    "segmentation_maps",
+    "segmentation_masks",
 ]
 
 
@@ -119,7 +119,7 @@ class Resizing(BaseImageAugmentationLayer):
     def _augment(self, inputs):
         images = inputs.get("images", None)
         bounding_boxes = inputs.get("bounding_boxes", None)
-        segmentation_maps = inputs.get("segmentation_maps", None)
+        segmentation_masks = inputs.get("segmentation_masks", None)
 
         if images is not None:
             images = tf.expand_dims(images, axis=0)
@@ -135,9 +135,9 @@ class Resizing(BaseImageAugmentationLayer):
             )
             inputs["bounding_boxes"] = bounding_boxes
 
-        if segmentation_maps is not None:
-            segmentation_maps = tf.expand_dims(segmentation_maps, axis=0)
-            inputs["segmentation_maps"] = segmentation_maps
+        if segmentation_masks is not None:
+            segmentation_masks = tf.expand_dims(segmentation_masks, axis=0)
+            inputs["segmentation_masks"] = segmentation_masks
 
         outputs = self._batch_augment(inputs)
 
@@ -154,15 +154,15 @@ class Resizing(BaseImageAugmentationLayer):
             )
             inputs["bounding_boxes"] = outputs["bounding_boxes"]
 
-        if segmentation_maps is not None:
-            segmentation_maps = tf.squeeze(outputs["segmentation_maps"], axis=0)
-            inputs["segmentation_maps"] = segmentation_maps
+        if segmentation_masks is not None:
+            segmentation_masks = tf.squeeze(outputs["segmentation_masks"], axis=0)
+            inputs["segmentation_masks"] = segmentation_masks
 
         return inputs
 
     def _resize_with_distortion(self, inputs):
         images = inputs.get("images", None)
-        segmentation_maps = inputs.get("segmentation_maps", None)
+        segmentation_masks = inputs.get("segmentation_masks", None)
 
         size = [self.height, self.width]
         images = tf.image.resize(
@@ -170,13 +170,13 @@ class Resizing(BaseImageAugmentationLayer):
         )
         images = tf.cast(images, self.compute_dtype)
 
-        if segmentation_maps is not None:
-            segmentation_maps = tf.image.resize(
-                segmentation_maps, size=size, method=self._interpolation_method
+        if segmentation_masks is not None:
+            segmentation_masks = tf.image.resize(
+                segmentation_masks, size=size, method=self._interpolation_method
             )
 
         inputs["images"] = images
-        inputs["segmentation_maps"] = segmentation_maps
+        inputs["segmentation_masks"] = segmentation_masks
 
         return inputs
 
@@ -184,7 +184,7 @@ class Resizing(BaseImageAugmentationLayer):
         def resize_single_with_pad_to_aspect(x):
             image = x.get("images", None)
             bounding_boxes = x.get("bounding_boxes", None)
-            segmentation_maps = x.get("segmentation_maps", None)
+            segmentation_masks = x.get("segmentation_masks", None)
 
             # images must be dense-able at this point.
             if isinstance(image, tf.RaggedTensor):
@@ -242,16 +242,16 @@ class Resizing(BaseImageAugmentationLayer):
                     bounding_boxes
                 )
 
-            if segmentation_maps is not None:
-                segmentation_maps = tf.image.resize(
-                    segmentation_maps,
+            if segmentation_masks is not None:
+                segmentation_masks = tf.image.resize(
+                    segmentation_masks,
                     size=(target_height, target_width),
                     method=self._interpolation_method,
                 )
-                segmentation_maps = tf.image.pad_to_bounding_box(
-                    segmentation_maps, 0, 0, self.height, self.width
+                segmentation_masks = tf.image.pad_to_bounding_box(
+                    segmentation_masks, 0, 0, self.height, self.width
                 )
-                inputs["segmentation_maps"] = segmentation_maps
+                inputs["segmentation_masks"] = segmentation_masks
 
             return inputs
 
@@ -265,13 +265,13 @@ class Resizing(BaseImageAugmentationLayer):
             boxes_spec = self._compute_bounding_box_signature(bounding_boxes)
             fn_output_signature["bounding_boxes"] = boxes_spec
 
-        segmentation_maps = inputs.get("segmentation_maps", None)
-        if segmentation_maps is not None:
+        segmentation_masks = inputs.get("segmentation_masks", None)
+        if segmentation_masks is not None:
             seg_map_shape = (
-                size_as_shape + inputs["segmentation_maps"].shape[-1:]
+                size_as_shape + inputs["segmentation_masks"].shape[-1:]
             )
             seg_map_spec = tf.TensorSpec(seg_map_shape, self.compute_dtype)
-            fn_output_signature["segmentation_maps"] = seg_map_spec
+            fn_output_signature["segmentation_masks"] = seg_map_spec
 
         return tf.map_fn(
             resize_single_with_pad_to_aspect,
@@ -282,7 +282,7 @@ class Resizing(BaseImageAugmentationLayer):
     def _resize_with_crop(self, inputs):
         images = inputs.get("images", None)
         bounding_boxes = inputs.get("bounding_boxes", None)
-        segmentation_maps = inputs.get("segmentation_maps", None)
+        segmentation_masks = inputs.get("segmentation_masks", None)
         if bounding_boxes is not None:
             raise ValueError(
                 "Resizing(crop_to_aspect_ratio=True) does not support "
@@ -319,22 +319,22 @@ class Resizing(BaseImageAugmentationLayer):
 
         inputs["images"] = images
 
-        if segmentation_maps is not None:
-            if isinstance(segmentation_maps, tf.RaggedTensor):
+        if segmentation_masks is not None:
+            if isinstance(segmentation_masks, tf.RaggedTensor):
                 size_as_shape = tf.TensorShape(size)
-                shape = size_as_shape + segmentation_maps.shape[-1:]
+                shape = size_as_shape + segmentation_masks.shape[-1:]
                 spec = tf.TensorSpec(shape, input_dtype)
-                segmentation_maps = tf.map_fn(
+                segmentation_masks = tf.map_fn(
                     resize_with_crop_to_aspect,
-                    segmentation_maps,
+                    segmentation_masks,
                     fn_output_signature=spec,
                 )
             else:
-                segmentation_maps = resize_with_crop_to_aspect(
-                    segmentation_maps
+                segmentation_masks = resize_with_crop_to_aspect(
+                    segmentation_masks
                 )
 
-            inputs["segmentation_maps"] = segmentation_maps
+            inputs["segmentation_masks"] = segmentation_masks
 
         return inputs
 
