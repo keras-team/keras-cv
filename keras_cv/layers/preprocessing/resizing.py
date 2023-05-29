@@ -172,7 +172,7 @@ class Resizing(BaseImageAugmentationLayer):
 
         if segmentation_maps is not None:
             segmentation_maps = tf.image.resize(
-                segmentation_maps, size=size, method="nearest"
+                segmentation_maps, size=size, method=self._interpolation_method
             )
 
         inputs["images"] = images
@@ -246,7 +246,7 @@ class Resizing(BaseImageAugmentationLayer):
                 segmentation_maps = tf.image.resize(
                     segmentation_maps,
                     size=(target_height, target_width),
-                    method="nearest",
+                    method=self._interpolation_method,
                 )
                 segmentation_maps = tf.image.pad_to_bounding_box(
                     segmentation_maps, 0, 0, self.height, self.width
