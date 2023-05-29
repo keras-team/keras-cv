@@ -267,7 +267,9 @@ class Resizing(BaseImageAugmentationLayer):
 
         segmentation_maps = inputs.get("segmentation_maps", None)
         if segmentation_maps is not None:
-            seg_map_shape = size_as_shape + inputs["segmentation_maps"].shape[-1:]
+            seg_map_shape = (
+                size_as_shape + inputs["segmentation_maps"].shape[-1:]
+            )
             seg_map_spec = tf.TensorSpec(seg_map_shape, self.compute_dtype)
             fn_output_signature["segmentation_maps"] = seg_map_spec
 
