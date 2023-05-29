@@ -321,7 +321,7 @@ class Resizing(BaseImageAugmentationLayer):
             if isinstance(segmentation_maps, tf.RaggedTensor):
                 size_as_shape = tf.TensorShape(size)
                 shape = size_as_shape + segmentation_maps.shape[-1:]
-                spec = tf.TensorSpec(shape, tf.int32)
+                spec = tf.TensorSpec(shape, input_dtype)
                 segmentation_maps = tf.map_fn(
                     resize_with_crop_to_aspect,
                     segmentation_maps,
