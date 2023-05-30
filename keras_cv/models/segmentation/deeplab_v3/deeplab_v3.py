@@ -45,7 +45,6 @@ class DeepLabV3(Task):
 
     # Train model
     model.compile(
-        weight_decay=0.0001,
         optimizer="adam",
         loss=keras.losses.BinaryCrossentropy(from_logits=False),
         metrics=["accuracy"],
@@ -95,6 +94,38 @@ class DeepLabV3(Task):
 
         inputs = utils.parse_model_inputs(input_shape, input_tensor)
 
+        encoder_outputs = self._make_deeplabv3_encoder(
+            inputs,
+            input_tensor,
+            input_shape,
+            backbone,
+            spatial_pyramid_pooling,
+        )
+
+        if segmentation_head is None:
+            segmentation_head = self._make_segmentation_head(
+                dropout, num_classes
+            )
+
+        # Segmentation head expects a multiple-level output dictionary
+        outputs = segmentation_head(encoder_outputs)
+
+        super().__init__(inputs=inputs, outputs=outputs, **kwargs)
+
+        self.num_classes = num_classes
+        self.backbone = backbone
+        self.spatial_pyramid_pooling = spatial_pyramid_pooling
+        self.segmentation_head = segmentation_head
+        self.segmentation_head_activation = segmentation_head_activation
+
+    def _make_deeplabv3_encoder(
+        self,
+        inputs,
+        input_tensor,
+        input_shape,
+        backbone,
+        spatial_pyramid_pooling,
+    ):
         if input_shape[0] is None and input_shape[1] is None:
             input_shape = backbone.input_shape[1:]
             inputs = keras.Input(tensor=input_tensor, shape=input_shape)
@@ -124,56 +155,45 @@ class DeepLabV3(Task):
             interpolation="bilinear",
         )(outputs)
 
-        if segmentation_head is None:
-            segmentation_head = keras.Sequential(
-                [
-                    keras.layers.Conv2D(
-                        name="segmentation_head_conv",
-                        filters=256,
-                        kernel_size=1,
-                        padding="same",
-                        use_bias=False,
-                    ),
-                    keras.layers.BatchNormalization(
-                        name="segmentation_head_norm"
-                    ),
-                    keras.layers.ReLU(name="segmentation_head_relu"),
-                ]
-            )
+        return outputs
 
-            if dropout:
-                segmentation_head.add(
-                    keras.layers.Dropout(
-                        dropout, name="segmentation_head_dropout"
-                    )
-                )
-
-            # Classification layer
-            segmentation_head.add(
+    def _make_segmentation_head(self, dropout, num_classes):
+        segmentation_head = keras.Sequential(
+            [
                 keras.layers.Conv2D(
-                    name="segmentation_output",
-                    filters=num_classes,
+                    name="segmentation_head_conv",
+                    filters=256,
                     kernel_size=1,
-                    use_bias=False,
                     padding="same",
-                    activation="softmax",
-                    # Force the dtype of the classification layer to float32
-                    # to avoid the NAN loss issue when used with mixed
-                    # precision API.
-                    dtype=tf.float32,
-                )
+                    use_bias=False,
+                ),
+                keras.layers.BatchNormalization(name="segmentation_head_norm"),
+                keras.layers.ReLU(name="segmentation_head_relu"),
+            ]
+        )
+
+        if dropout:
+            segmentation_head.add(
+                keras.layers.Dropout(dropout, name="segmentation_head_dropout")
             )
 
-        # Segmentation head expects a multiple-level output dictionary
-        outputs = segmentation_head(outputs)
+        # Classification layer
+        segmentation_head.add(
+            keras.layers.Conv2D(
+                name="segmentation_output",
+                filters=num_classes,
+                kernel_size=1,
+                use_bias=False,
+                padding="same",
+                activation="softmax",
+                # Force the dtype of the classification layer to float32
+                # to avoid the NAN loss issue when used with mixed
+                # precision API.
+                dtype=tf.float32,
+            )
+        )
 
-        super().__init__(inputs=inputs, outputs=outputs, **kwargs)
-
-        self.num_classes = num_classes
-        self.backbone = backbone
-        self.spatial_pyramid_pooling = spatial_pyramid_pooling
-        self.segmentation_head = segmentation_head
-        self.segmentation_head_activation = segmentation_head_activation
+        return segmentation_head
 
     def get_config(self):
         return {
