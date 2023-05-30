@@ -32,7 +32,7 @@ jobs:
           ${{ runner.os }}-pip-
     - name: Install dependencies
       run: |
-        git clone git+git@github.com:keras-team/keras-core.git
+        git clone https://{{YOUR_ACCESS_TOKEN}}@github.com/keras-team/keras-core.git`
         pip install keras-core/
         pip install tensorflow-cpu==2.11.0
         pip install -e ".[tests]" --progress-bar off --upgrade
