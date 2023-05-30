@@ -14,7 +14,6 @@
 
 import tensorflow as tf
 from tensorflow import keras
-from tensorflow.keras import layers
 
 from keras_cv.layers.spatial_pyramid import SpatialPyramidPooling
 from keras_cv.models.legacy import utils
@@ -80,6 +79,7 @@ class DeepLabV3(Task):
         spatial_pyramid_pooling=None,
         segmentation_head=None,
         segmentation_head_activation="softmax",
+        dropout=0.0,
         input_shape=(None, None, 3),
         input_tensor=None,
         **kwargs,
@@ -97,7 +97,7 @@ class DeepLabV3(Task):
 
         if input_shape[0] is None and input_shape[1] is None:
             input_shape = backbone.input_shape[1:]
-            inputs = layers.Input(tensor=input_tensor, shape=input_shape)
+            inputs = keras.Input(tensor=input_tensor, shape=input_shape)
 
         if input_shape[0] is None and input_shape[1] is None:
             raise ValueError(
@@ -124,18 +124,48 @@ class DeepLabV3(Task):
             interpolation="bilinear",
         )(outputs)
 
-        # if segmentation_head is None:
-        #     segmentation_head = SegmentationHead(
-        #         num_classes=num_classes,
-        #         name="segmentation_head",
-        #         convolutions=1,
-        #         dropout=0.2,
-        #         kernel_size=1,
-        #         activation=segmentation_head_activation,
-        #     )
+        if segmentation_head is None:
+            segmentation_head = keras.Sequential(
+                [
+                    keras.layers.Conv2D(
+                        name="segmentation_head_conv",
+                        filters=256,
+                        kernel_size=1,
+                        padding="same",
+                        use_bias=False,
+                    ),
+                    keras.layers.BatchNormalization(
+                        name="segmentation_head_norm"
+                    ),
+                    keras.layers.ReLU(name="segmentation_head_relu"),
+                ]
+            )
 
-        # # Segmentation head expects a multiple-level output dictionary
-        # outputs = segmentation_head({1: outputs})
+            if dropout:
+                segmentation_head.add(
+                    keras.layers.Dropout(
+                        dropout, name="segmentation_head_dropout"
+                    )
+                )
+
+            # Classification layer
+            segmentation_head.add(
+                keras.layers.Conv2D(
+                    name="segmentation_output",
+                    filters=num_classes,
+                    kernel_size=1,
+                    use_bias=False,
+                    padding="same",
+                    activation="softmax",
+                    # Force the dtype of the classification layer to float32
+                    # to avoid the NAN loss issue when used with mixed
+                    # precision API.
+                    dtype=tf.float32,
+                )
+            )
+
+        # Segmentation head expects a multiple-level output dictionary
+        outputs = segmentation_head(outputs)
 
         super().__init__(inputs=inputs, outputs=outputs, **kwargs)
 
