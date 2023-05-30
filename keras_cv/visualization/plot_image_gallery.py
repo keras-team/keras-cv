@@ -58,7 +58,7 @@ def plot_image_gallery(
     ![example gallery](https://i.imgur.com/r0ndse0.png)
 
     Args:
-        images: a Tensor or NumPy array containing images to show in the
+        images: a Tensor, `tf.data.Dataset` or NumPy array containing images to show in the
             gallery.
         value_range: value range of the images. Common examples include
             `(0, 255)` and `(0, 1)`.
