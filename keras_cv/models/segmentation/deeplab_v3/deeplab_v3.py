@@ -72,8 +72,7 @@ class DeepLabV3(Task):
         segmentation_head: (Optional) a `keras.layers.Layer`. If provided, the
             outputs of the DeepLabV3 encoder is passed to this layer and it should
             predict the segmentation mask based on feature from backbone and feature
-            from decoder, otherwise a similar architecture implemented at
-            `_make_segmentation_head` is used.
+            from decoder, otherwise a similar architecture is used.
         segmentation_head_activation: Optional `str` or function, activation
             functions between the `keras.layers.Conv2D` layers and the final
             classification layer, defaults to `"relu"`.
@@ -116,13 +115,62 @@ class DeepLabV3(Task):
                 "backbone.input_shape={backbone.input_shape[1:]}"
             )
 
-        encoder_outputs = self._make_deeplabv3_encoder(
-            inputs, input_shape, backbone, spatial_pyramid_pooling
-        )
+        height = input_shape[0]
+        width = input_shape[1]
+
+        feature_map = backbone(inputs)
+        if spatial_pyramid_pooling is None:
+            spatial_pyramid_pooling = SpatialPyramidPooling(
+                dilation_rates=[6, 12, 18]
+            )
+
+        outputs = spatial_pyramid_pooling(feature_map)
+        encoder_outputs = keras.layers.UpSampling2D(
+            size=(
+                height // feature_map.shape[1],
+                width // feature_map.shape[2],
+            ),
+            interpolation="bilinear",
+        )(outputs)
 
         if segmentation_head is None:
-            segmentation_head = self._make_segmentation_head(
-                dropout, num_classes
+            segmentation_head = keras.Sequential(
+                [
+                    keras.layers.Conv2D(
+                        name="segmentation_head_conv",
+                        filters=256,
+                        kernel_size=1,
+                        padding="same",
+                        use_bias=False,
+                    ),
+                    keras.layers.BatchNormalization(
+                        name="segmentation_head_norm"
+                    ),
+                    keras.layers.ReLU(name="segmentation_head_relu"),
+                ]
+            )
+
+            if dropout:
+                segmentation_head.add(
+                    keras.layers.Dropout(
+                        dropout, name="segmentation_head_dropout"
+                    )
+                )
+
+            # Classification layer
+            segmentation_head.add(
+                keras.layers.Conv2D(
+                    name="segmentation_output",
+                    filters=num_classes,
+                    kernel_size=1,
+                    use_bias=False,
+                    padding="same",
+                    activation="softmax",
+                    # Force the dtype of the classification layer to float32
+                    # to avoid the NAN loss issue when used with mixed
+                    # precision API.
+                    dtype=tf.float32,
+                )
             )
 
         # Segmentation head expects a multiple-level output dictionary
@@ -135,67 +183,6 @@ class DeepLabV3(Task):
         self.spatial_pyramid_pooling = spatial_pyramid_pooling
         self.segmentation_head = segmentation_head
         self.segmentation_head_activation = segmentation_head_activation
-
-    def _make_deeplabv3_encoder(
-        self, inputs, input_shape, backbone, spatial_pyramid_pooling
-    ):
-        height = input_shape[0]
-        width = input_shape[1]
-
-        feature_map = backbone(inputs)
-        if spatial_pyramid_pooling is None:
-            spatial_pyramid_pooling = SpatialPyramidPooling(
-                dilation_rates=[6, 12, 18]
-            )
-
-        outputs = spatial_pyramid_pooling(feature_map)
-        outputs = keras.layers.UpSampling2D(
-            size=(
-                height // feature_map.shape[1],
-                width // feature_map.shape[2],
-            ),
-            interpolation="bilinear",
-        )(outputs)
-
-        return outputs
-
-    def _make_segmentation_head(self, dropout, num_classes):
-        segmentation_head = keras.Sequential(
-            [
-                keras.layers.Conv2D(
-                    name="segmentation_head_conv",
-                    filters=256,
-                    kernel_size=1,
-                    padding="same",
-                    use_bias=False,
-                ),
-                keras.layers.BatchNormalization(name="segmentation_head_norm"),
-                keras.layers.ReLU(name="segmentation_head_relu"),
-            ]
-        )
-
-        if dropout:
-            segmentation_head.add(
-                keras.layers.Dropout(dropout, name="segmentation_head_dropout")
-            )
-
-        # Classification layer
-        segmentation_head.add(
-            keras.layers.Conv2D(
-                name="segmentation_output",
-                filters=num_classes,
-                kernel_size=1,
-                use_bias=False,
-                padding="same",
-                activation="softmax",
-                # Force the dtype of the classification layer to float32
-                # to avoid the NAN loss issue when used with mixed
-                # precision API.
-                dtype=tf.float32,
-            )
-        )
-
-        return segmentation_head
 
     def get_config(self):
         return {
