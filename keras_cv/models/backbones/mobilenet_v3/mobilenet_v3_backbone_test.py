@@ -94,7 +94,7 @@ class MobileNetV3BackboneTest(tf.test.TestCase, parameterized.TestCase):
 
         # confirm the shapes of the pyramid level input
         self.assertLen(outputs, len(levels))
-        self.assertEquals(list(outputs.keys()), ["P3", "P4", "P5"])
+        self.assertEquals(list(outputs.keys()), levels)
         for level in levels:
             self.assertEquals(
                 outputs[level].shape, pyramid_level_input_shapes[preset][level]

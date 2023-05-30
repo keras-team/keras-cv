@@ -152,8 +152,9 @@ class EfficientNetV2BackboneTest(tf.test.TestCase, parameterized.TestCase):
         inputs = keras.Input(shape=[256, 256, 3])
         outputs = backbone_model(inputs)
         # EfficientNetV2S backbone has 4 level of features (P1 ~ P5)
+        levels = ["P1", "P2", "P3", "P4", "P5"]
         self.assertLen(outputs, 5)
-        self.assertEquals(list(outputs.keys()), ["P1", "P2", "P3", "P4", "P5"])
+        self.assertEquals(list(outputs.keys()), levels)
         self.assertEquals(outputs["P2"].shape, [None, 64, 64, 48])
         self.assertEquals(outputs["P3"].shape, [None, 32, 32, 64])
         self.assertEquals(outputs["P4"].shape, [None, 16, 16, 160])
@@ -181,14 +182,12 @@ class EfficientNetV2BackboneTest(tf.test.TestCase, parameterized.TestCase):
             include_rescaling=True,
         )
         levels = ["P3", "P4"]
-        layer_names = [
-            model.pyramid_level_inputs[level] for level in ["P3", "P4"]
-        ]
+        layer_names = [model.pyramid_level_inputs[level] for level in levels]
         backbone_model = get_feature_extractor(model, layer_names, levels)
         inputs = keras.Input(shape=[256, 256, 3])
         outputs = backbone_model(inputs)
         self.assertLen(outputs, 2)
-        self.assertEquals(list(outputs.keys()), ["P3", "P4"])
+        self.assertEquals(list(outputs.keys()), levels)
         self.assertEquals(outputs["P3"].shape, [None, 32, 32, 64])
         self.assertEquals(outputs["P4"].shape, [None, 16, 16, 160])
 

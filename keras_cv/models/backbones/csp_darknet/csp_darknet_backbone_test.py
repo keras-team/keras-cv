@@ -106,8 +106,9 @@ class CSPDarkNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
         inputs = keras.Input(shape=[224, 224, 3])
         outputs = backbone_model(inputs)
         # CSPDarkNet backbone has 4 level of features (P2 ~ P5)
+        levels = ["P2", "P3", "P4", "P5"]
         self.assertLen(outputs, 4)
-        self.assertEquals(list(outputs.keys()), ["P2", "P3", "P4", "P5"])
+        self.assertEquals(list(outputs.keys()), levels)
         self.assertEquals(outputs["P2"].shape, [None, 56, 56, 128])
         self.assertEquals(outputs["P3"].shape, [None, 28, 28, 256])
         self.assertEquals(outputs["P4"].shape, [None, 14, 14, 512])
@@ -120,14 +121,12 @@ class CSPDarkNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
             include_rescaling=True,
         )
         levels = ["P3", "P4"]
-        layer_names = [
-            model.pyramid_level_inputs[level] for level in ["P3", "P4"]
-        ]
+        layer_names = [model.pyramid_level_inputs[level] for level in levels]
         backbone_model = get_feature_extractor(model, layer_names, levels)
         inputs = keras.Input(shape=[256, 256, 3])
         outputs = backbone_model(inputs)
         self.assertLen(outputs, 2)
-        self.assertEquals(list(outputs.keys()), ["P3", "P4"])
+        self.assertEquals(list(outputs.keys()), levels)
         self.assertEquals(outputs["P3"].shape, [None, 32, 32, 96])
         self.assertEquals(outputs["P4"].shape, [None, 16, 16, 192])
 

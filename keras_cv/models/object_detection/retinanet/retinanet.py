@@ -192,7 +192,9 @@ class RetinaNet(Task):
         batch_size = tf.shape(images)[0]
         cls_pred = []
         box_pred = []
-        for feature in features.values():
+        pyramid_levels = ["P3", "P4", "P5", "P6", "P7"]
+        for pyramid_level in pyramid_levels:
+            feature = features[pyramid_level]
             box_pred.append(tf.reshape(box_head(feature), [batch_size, -1, 4]))
             cls_pred.append(
                 tf.reshape(
