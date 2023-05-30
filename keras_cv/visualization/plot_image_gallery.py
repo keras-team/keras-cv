@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import numpy as np
 import keras_cv
 import tensorflow as tf
 from keras_cv import utils
@@ -27,10 +26,10 @@ except:
 def plot_image_gallery(
     images,
     value_range,
+    scale=2,
     rows=None,
     cols=None,
     batch_size=8,
-    scale=2,
     path=None,
     show=None,
     transparent=True,
@@ -66,6 +65,8 @@ def plot_image_gallery(
         scale: how large to scale the images in the gallery
         rows: (Optional) number of rows in the gallery to show.
         cols: (Optional) number of columns in the gallery to show.
+        batch_size: (Optional) batch size of a given `tf.data.Dataset` instance.
+            Defaults to 8. Only required when using a `tf.data.Dataset` instance.
         path: (Optional) path to save the resulting gallery to.
         show: (Optional) whether to show the gallery of images.
         transparent: (Optional) whether to give the image a transparent
