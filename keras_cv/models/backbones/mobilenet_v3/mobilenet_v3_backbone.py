@@ -313,7 +313,7 @@ class MobileNetV3Backbone(Backbone):
         super().__init__(inputs=inputs, outputs=x, **kwargs)
 
         self.pyramid_level_inputs = {
-            i + 1: name for i, name in enumerate(pyramid_level_inputs)
+            f"P{i + 1}": name for i, name in enumerate(pyramid_level_inputs)
         }
         self.stackwise_expansion = stackwise_expansion
         self.stackwise_filters = stackwise_filters

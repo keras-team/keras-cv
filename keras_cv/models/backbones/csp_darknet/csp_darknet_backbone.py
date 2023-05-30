@@ -144,7 +144,7 @@ class CSPDarkNetBackbone(Backbone):
                 residual=(index != len(stackwise_depth) - 1),
                 name=f"dark{index + 2}_csp",
             )(x)
-            pyramid_level_inputs[index + 2] = x.node.layer.name
+            pyramid_level_inputs[f"P{index + 2}"] = x.node.layer.name
 
         super().__init__(inputs=inputs, outputs=x, **kwargs)
         self.pyramid_level_inputs = pyramid_level_inputs

@@ -34,9 +34,9 @@ class FeaturePyramid(keras.layers.Layer):
 
     def call(self, inputs, training=False):
         if isinstance(inputs, dict):
-            c3_output = inputs["3"]
-            c4_output = inputs["4"]
-            c5_output = inputs["5"]
+            c3_output = inputs["P3"]
+            c4_output = inputs["P4"]
+            c5_output = inputs["P5"]
         else:
             c3_output, c4_output, c5_output = inputs
         p3_output = self.conv_c3_1x1(c3_output, training=training)
@@ -49,4 +49,10 @@ class FeaturePyramid(keras.layers.Layer):
         p5_output = self.conv_c5_3x3(p5_output, training=training)
         p6_output = self.conv_c6_3x3(c5_output, training=training)
         p7_output = self.conv_c7_3x3(tf.nn.relu(p6_output), training=training)
-        return p3_output, p4_output, p5_output, p6_output, p7_output
+        return {
+            "P3": p3_output,
+            "P4": p4_output,
+            "P5": p5_output,
+            "P6": p6_output,
+            "P7": p7_output,
+        }
