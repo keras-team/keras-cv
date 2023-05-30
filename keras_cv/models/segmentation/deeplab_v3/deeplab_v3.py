@@ -94,12 +94,19 @@ class DeepLabV3(Task):
 
         inputs = utils.parse_model_inputs(input_shape, input_tensor)
 
+        if input_shape[0] is None and input_shape[1] is None:
+            input_shape = backbone.input_shape[1:]
+            inputs = keras.Input(tensor=input_tensor, shape=input_shape)
+
+        if input_shape[0] is None and input_shape[1] is None:
+            raise ValueError(
+                "Input shapes for both the backbone and DeepLabV3 cannot be "
+                "`None`. Received: input_shape={input_shape} and "
+                "backbone.input_shape={backbone.input_shape[1:]}"
+            )
+
         encoder_outputs = self._make_deeplabv3_encoder(
-            inputs,
-            input_tensor,
-            input_shape,
-            backbone,
-            spatial_pyramid_pooling,
+            inputs, input_shape, backbone, spatial_pyramid_pooling
         )
 
         if segmentation_head is None:
@@ -119,24 +126,8 @@ class DeepLabV3(Task):
         self.segmentation_head_activation = segmentation_head_activation
 
     def _make_deeplabv3_encoder(
-        self,
-        inputs,
-        input_tensor,
-        input_shape,
-        backbone,
-        spatial_pyramid_pooling,
+        self, inputs, input_shape, backbone, spatial_pyramid_pooling
     ):
-        if input_shape[0] is None and input_shape[1] is None:
-            input_shape = backbone.input_shape[1:]
-            inputs = keras.Input(tensor=input_tensor, shape=input_shape)
-
-        if input_shape[0] is None and input_shape[1] is None:
-            raise ValueError(
-                "Input shapes for both the backbone and DeepLabV3 cannot be "
-                "`None`. Received: input_shape={input_shape} and "
-                "backbone.input_shape={backbone.input_shape[1:]}"
-            )
-
         height = input_shape[0]
         width = input_shape[1]
 
