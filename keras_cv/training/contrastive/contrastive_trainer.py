@@ -45,11 +45,11 @@ class ContrastiveTrainer(keras.Model):
     Usage:
     ```python
     encoder = keras.Sequential(
-                  [
-                      DenseNet121Backbone(include_rescaling=False),
-                      layers.GlobalAveragePooling2D(name="avg_pool"),
-                  ],
-              )
+        [
+            DenseNet121Backbone(include_rescaling=False),
+            layers.GlobalAveragePooling2D(name="avg_pool"),
+        ],
+    )
     augmenter = keras_cv.layers.preprocessing.RandomFlip()
     projector = keras.layers.Dense(64)
     probe = keras_cv.training.ContrastiveTrainer.linear_probe(num_classes=10)

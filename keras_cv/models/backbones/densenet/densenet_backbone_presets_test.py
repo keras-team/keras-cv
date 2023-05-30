@@ -36,10 +36,6 @@ class DenseNetPresetSmokeTest(tf.test.TestCase, parameterized.TestCase):
     def setUp(self):
         self.input_batch = tf.ones(shape=(2, 224, 224, 3))
 
-    @parameterized.named_parameters(
-        ("preset_with_weights", "densenet121_imagenet"),
-        # ("preset_no_weights", "densenet121"),
-    )
     def test_backbone_output(self):
         model = DenseNetBackbone.from_preset("densenet121")
         model(self.input_batch)

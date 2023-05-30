@@ -188,7 +188,10 @@ class DenseNetBackbone(Backbone):
             pyramid_level_inputs[index] = x.node.layer.name
 
         x = apply_dense_block(
-            x, stackwise_num_repeats[3], growth_rate, name="conv5"
+            x,
+            stackwise_num_repeats[-1],
+            growth_rate,
+            name=f"conv{len(stackwise_num_repeats) + 1}",
         )
         x = layers.BatchNormalization(
             axis=BN_AXIS, epsilon=BN_EPSILON, name="bn"
@@ -281,17 +284,15 @@ class DenseNet121Backbone(DenseNetBackbone):
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return {
-            "densenet121": copy.deepcopy(backbone_presets["densenet121"]),
+            "densenet121_imagenet": copy.deepcopy(
+                backbone_presets["densenet121_imagenet"]
+            ),
         }
 
     @classproperty
     def presets_with_weights(cls):
         """Dictionary of preset names and configurations that include weights."""  # noqa: E501
-        return {
-            "densenet121_imagenet": copy.deepcopy(
-                backbone_presets_with_weights["densenet121_imagenet"]
-            ),
-        }
+        return cls.presets
 
 
 class DenseNet169Backbone(DenseNetBackbone):
@@ -316,17 +317,15 @@ class DenseNet169Backbone(DenseNetBackbone):
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return {
-            "densenet169": copy.deepcopy(backbone_presets["densenet169"]),
+            "densenet169_imagenet": copy.deepcopy(
+                backbone_presets["densenet169_imagenet"]
+            ),
         }
 
     @classproperty
     def presets_with_weights(cls):
         """Dictionary of preset names and configurations that include weights."""  # noqa: E501
-        return {
-            "densenet169_imagenet": copy.deepcopy(
-                backbone_presets_with_weights["densenet169_imagenet"]
-            ),
-        }
+        return cls.presets
 
 
 class DenseNet201Backbone(DenseNetBackbone):
@@ -351,17 +350,15 @@ class DenseNet201Backbone(DenseNetBackbone):
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return {
-            "densenet201": copy.deepcopy(backbone_presets["densenet201"]),
+            "densenet201_imagenet": copy.deepcopy(
+                backbone_presets["densenet201_imagenet"]
+            ),
         }
 
     @classproperty
     def presets_with_weights(cls):
         """Dictionary of preset names and configurations that include weights."""  # noqa: E501
-        return {
-            "densenet201_imagenet": copy.deepcopy(
-                backbone_presets_with_weights["densenet201_imagenet"]
-            ),
-        }
+        return cls.presets
 
 
 setattr(DenseNet121Backbone, "__doc__", ALIAS_DOCSTRING.format(num_layers=121))
