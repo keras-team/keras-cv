@@ -112,6 +112,39 @@ class YOLOV8DetectorTest(tf.test.TestCase, parameterized.TestCase):
         restored_output = restored_model(xs)
         self.assertAllClose(model_output, restored_output)
 
+    def test_update_prediction_decoder(self):
+        yolo = keras_cv.models.YOLOV8Detector(
+            num_classes=2,
+            fpn_depth=1,
+            bounding_box_format="xywh",
+            backbone=keras_cv.models.YOLOV8Backbone.from_preset(
+                "yolo_v8_s_backbone"
+            ),
+            prediction_decoder=keras_cv.layers.MultiClassNonMaxSuppression(
+                bounding_box_format="xywh",
+                from_logits=False,
+                confidence_threshold=0.0,
+                iou_threshold=1.0,
+            ),
+        )
+
+        image = tf.ones((1, 512, 512, 3))
+
+        outputs = yolo.predict(image)
+        # We predicted at least 1 box with confidence_threshold 0
+        self.assertGreater(outputs["boxes"]._values.shape[0], 0)
+
+        yolo.prediction_decoder = keras_cv.layers.MultiClassNonMaxSuppression(
+            bounding_box_format="xywh",
+            from_logits=False,
+            confidence_threshold=1.0,
+            iou_threshold=1.0,
+        )
+
+        outputs = yolo.predict(image)
+        # We predicted no boxes with confidence threshold 1
+        self.assertEqual(outputs["boxes"]._values.shape[0], 0)
+
 
 @pytest.mark.large
 class YOLOV8DetectorSmokeTest(tf.test.TestCase):
