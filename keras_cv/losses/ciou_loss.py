@@ -50,7 +50,7 @@ class CIoULoss(keras.losses.Loss):
         minval=0,
         maxval=10,
         dtype=tf.dtypes.int32)
-    loss = CIoULoss(bounding_box_format="xyWH")
+    loss = CIoULoss()
     loss(y_true, y_pred).numpy()
     ```
 
