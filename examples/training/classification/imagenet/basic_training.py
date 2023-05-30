@@ -13,7 +13,7 @@
 # limitations under the License.
 """
 Title: Training a KerasCV model for Imagenet Classification
-Author: [ianjjohnson](https://github.com/ianjjohnson)
+Author: [Ian Stenbit](https://github.com/ianstenbit)
 Date created: 2022/07/25
 Last modified: 2022/07/25
 Description: Use KerasCV to train an image classifier using modern best
