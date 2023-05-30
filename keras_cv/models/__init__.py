@@ -111,5 +111,6 @@ from keras_cv.models.object_detection.yolo_v8.yolo_v8_detector import (
 from keras_cv.models.object_detection_3d.center_pillar import (
     MultiHeadCenterPillar,
 )
+from keras_cv.models.segmentation import DeepLabV3
 from keras_cv.models.stable_diffusion import StableDiffusion
 from keras_cv.models.stable_diffusion import StableDiffusionV2
