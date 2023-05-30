@@ -16,7 +16,6 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 
-from keras_cv.layers.segmentation.segmentation_head import SegmentationHead
 from keras_cv.layers.spatial_pyramid import SpatialPyramidPooling
 from keras_cv.models.legacy import utils
 from keras_cv.models.task import Task
@@ -125,18 +124,18 @@ class DeepLabV3(Task):
             interpolation="bilinear",
         )(outputs)
 
-        if segmentation_head is None:
-            segmentation_head = SegmentationHead(
-                num_classes=num_classes,
-                name="segmentation_head",
-                convolutions=1,
-                dropout=0.2,
-                kernel_size=1,
-                activation=segmentation_head_activation,
-            )
+        # if segmentation_head is None:
+        #     segmentation_head = SegmentationHead(
+        #         num_classes=num_classes,
+        #         name="segmentation_head",
+        #         convolutions=1,
+        #         dropout=0.2,
+        #         kernel_size=1,
+        #         activation=segmentation_head_activation,
+        #     )
 
-        # Segmentation head expects a multiple-level output dictionary
-        outputs = segmentation_head({1: outputs})
+        # # Segmentation head expects a multiple-level output dictionary
+        # outputs = segmentation_head({1: outputs})
 
         super().__init__(inputs=inputs, outputs=outputs, **kwargs)
 
