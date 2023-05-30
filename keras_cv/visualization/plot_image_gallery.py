@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import math
 import keras_cv
 import tensorflow as tf
 from keras_cv import utils
@@ -29,13 +30,11 @@ def plot_image_gallery(
     scale=2,
     rows=None,
     cols=None,
-    batch_size=8,
     path=None,
     show=None,
     transparent=True,
     dpi=60,
     legend_handles=None,
-    image_key="image",
 ):
     """Displays a gallery of images.
 
@@ -65,8 +64,6 @@ def plot_image_gallery(
         scale: how large to scale the images in the gallery
         rows: (Optional) number of rows in the gallery to show.
         cols: (Optional) number of columns in the gallery to show.
-        batch_size: (Optional) batch size of a given `tf.data.Dataset` instance.
-            Defaults to 8. Only required when using a `tf.data.Dataset` instance.
         path: (Optional) path to save the resulting gallery to.
         show: (Optional) whether to show the gallery of images.
         transparent: (Optional) whether to give the image a transparent
@@ -76,9 +73,10 @@ def plot_image_gallery(
         legend_handles: (Optional) matplotlib.patches List of legend handles.
             I.e. passing: `[patches.Patch(color='red', label='mylabel')]` will
             produce a legend with a single red patch and the label 'mylabel'.
-        image_key: (Optional) Key of the argument holding the image. Only
-            required when using a `tf.data.Dataset` instance. Defaults to
-            "image".
+
+    Note:
+        If using a `tf.data.Dataset`, it is important that the images present in
+        the `FeaturesDict` should have the key `image`.
     """
     assert_matplotlib_installed("plot_bounding_box_gallery")
 
@@ -91,38 +89,58 @@ def plot_image_gallery(
             "to be true."
         )
 
-    if isinstance(images, tf.data.Dataset):
-
-        # Find final dataset batch size
-        sample = next(iter(images.take(1)))
-        if len(sample[image_key].shape) == 3:
-            default_dataset_batch_size = 8
-            images = images.ragged_batch(batch_size=default_dataset_batch_size)
-        elif len(sample[image_key].shape) == 4:
-            default_dataset_batch_size = sample[image_key].shape[0]
-        else:
-            raise ValueError(
-                "plot_image_gallery() expects `tf.data.Dataset` to have TensorShape with length 3 or 4."
-            )
-
-        batches = default_dataset_batch_size
-
-        def unpack_images(inputs):
-            return inputs[image_key]
-
-        images = images.map(unpack_images)
-        images = images.take(batches)
-        images = next(iter(images))
+    def unpack_images(inputs):
+        return inputs["image"]
 
     # Calculate appropriate number of rows and columns
     if rows is None and cols is None:
-        total_plots = batch_size
-        cols = batch_size // 2
+        if isinstance(images, tf.data.Dataset):
+            sample = next(iter(images.take(1)))
+            sample_shape = sample["image"].shape
+            if len(sample_shape) == 4:
+                batch_size = sample_shape[0]
+            else:
+                raise ValueError(
+                    "Passed `tf.data.Dataset` does not appear to be batched. Please batch using the `.batch().`"
+                )
 
-        rows = total_plots // cols
+            images = images.map(unpack_images)
+            images = images.take(batch_size)
+            images = next(iter(images))
+        else:
+            sample_shape = images.shape
+            if len(sample_shape) == 4:
+                batch_size = sample_shape[0]
+            else:
+                raise ValueError(
+                    f"Passed '`{type(images)}`' does not appear to be batched. Please batch using the `.batch()."
+                )
 
-        if total_plots % cols != 0:
-            rows += 1
+    elif rows is not None and cols is not None:
+        if isinstance(images, tf.data.Dataset):
+            batch_size = rows * cols
+
+            sample = next(iter(images.take(1)))
+            sample_shape = sample["image"].shape
+
+            if len(sample_shape) == 4:
+                images = images.unbatch()
+
+            images = images.ragged_batch(batch_size=batch_size)
+
+            images = images.map(unpack_images)
+            images = images.take(batch_size)
+            images = next(iter(images))
+        else:
+            batch_size = rows * cols
+            images = images[:batch_size, ...]
+    else:
+        raise ValueError(
+            "plot_image_gallery() expects `tf.data.Dataset` to be batched if rows and cols are not specified."
+        )
+
+    rows = int(math.ceil(batch_size**0.5))
+    cols = int(math.ceil(batch_size // rows))
 
     # Generate subplots
     fig, axes = plt.subplots(
@@ -143,9 +161,7 @@ def plot_image_gallery(
     images = keras_cv.utils.transform_value_range(
         images, original_range=value_range, target_range=(0, 255)
     )
-
     images = utils.to_numpy(images)
-    images = images.astype(int)
 
     for row in range(rows):
         for col in range(cols):
