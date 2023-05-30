@@ -59,6 +59,7 @@ class CIoULoss(keras.losses.Loss):
     model.compile(optimizer='adam', loss=CIoULoss())
     ```
     """
+
     def __init__(self, eps, **kwargs):
         super().__init__(**kwargs)
         self.eps = eps
@@ -83,7 +84,7 @@ class CIoULoss(keras.losses.Loss):
         iou = inter / union
 
         cw = tf.math.maximum(b1_x2, b2_x2) - tf.math.minimum(
-        b1_x1, b2_x1
+            b1_x1, b2_x1
         )  # convex (smallest enclosing box) width
         ch = tf.math.maximum(b1_y2, b2_y2) - tf.math.minimum(
             b1_y1, b2_y1
@@ -93,11 +94,12 @@ class CIoULoss(keras.losses.Loss):
             (b2_x1 + b2_x2 - b1_x1 - b1_x2) ** 2
             + (b2_y1 + b2_y2 - b1_y1 - b1_y2) ** 2
         ) / 4  # center dist ** 2
-        v = tf.pow((4 / math.pi**2) * (tf.atan(w2 / h2) - tf.atan(w1 / h1)), 2)
+        v = tf.pow(
+            (4 / math.pi**2) * (tf.atan(w2 / h2) - tf.atan(w1 / h1)), 2
+        )
         alpha = v / (v - iou + (1 + self.eps))
         ciou = iou - (rho2 / c2 + v * alpha)
         return ciou
-    
 
     def call(self, y_true, y_pred):
         y_pred = tf.convert_to_tensor(y_pred)
