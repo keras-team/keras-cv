@@ -58,8 +58,11 @@ class DeepLabV3(Task):
             that the `num_classes` doesn't contain the background class, and the
             classes from the data should be represented by integers with range
             [0, `num_classes`).
-        backbone: `keras.Model`. The backbone network for the model. Should be a
-            KerasCV model.
+        backbone: `keras.Model`. The backbone network for the model that is used as
+            a feature extractor for the DeepLabV3 Encoder. Should be a
+            `keras_cv.models.backbones.backbone.Backbone`. A somewhat sensible
+            backbone to use in many cases is the:
+            `keras_cv.models.ResNet50V2Backbone.from_preset("resnet50_v2_imagenet")`
         spatial_pyramid_pooling: (Optional) a `keras.layers.Layer`. Also known as
             Atrous Spatial Pyramid Pooling (ASPP). Performs spatial pooling on
             different spatial levels in the pyramid, with dilation. If provided,
