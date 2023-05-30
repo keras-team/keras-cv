@@ -166,36 +166,3 @@ class DeepLabV3(Task):
             ),
             interpolation="bilinear",
         )
-
-    def compile(self, weight_decay=0.0001, **kwargs):
-        """compiles the DeepLabV3 model.
-
-        Args:
-            weight_decay: Optional float, factor of weight decay applied during
-                training, defaults to `0.0001`.
-        """
-        self.weight_decay = weight_decay
-        super().compile(**kwargs)
-
-    def train_step(self, data):
-        images, y_true, sample_weight = keras.utils.unpack_x_y_sample_weight(
-            data
-        )
-        with tf.GradientTape() as tape:
-            y_pred = self(images, training=True)
-            total_loss = self.compute_loss(
-                images, y_true, y_pred, sample_weight
-            )
-            reg_losses = []
-            if self.weight_decay:
-                for var in self.trainable_variables:
-                    if "bn" not in var.name:
-                        reg_losses.append(
-                            self.weight_decay * tf.nn.l2_loss(var)
-                        )
-                l2_loss = tf.math.add_n(reg_losses)
-                total_loss += l2_loss
-        self.optimizer.minimize(total_loss, self.trainable_variables, tape=tape)
-        return self.compute_metrics(
-            images, y_true, y_pred, sample_weight=sample_weight
-        )
