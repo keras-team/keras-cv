@@ -35,6 +35,7 @@ class DeepLabV3(Task):
     import keras_cv
 
     images = tf.ones(shape=(1, 96, 96, 3))
+    labels = tf.zeros(shape=(1, 96, 96, 1))
     backbone = keras_cv.models.ResNet50V2Backbone(input_shape=[96, 96, 3])
     model = keras_cv.model.segmentation.DeepLabV3(
         num_classes=1, backbone=backbone
@@ -49,24 +50,31 @@ class DeepLabV3(Task):
         loss=keras.losses.BinaryCrossentropy(from_logits=False),
         metrics=["accuracy"],
     )
-    model.fit(training_dataset.take(10), epochs=3)
+    model.fit(images, labels, epochs=3)
     ```
 
     Args:
         num_classes: int, the number of classes for the detection model. Note
-            that the num_classes doesn't contain the background class, and the
+            that the `num_classes` doesn't contain the background class, and the
             classes from the data should be represented by integers with range
-            [0, num_classes).
-        backbone: Backbone network for the model. Should be a KerasCV model.
-        spatial_pyramid_pooling: Also known as Atrous Spatial Pyramid Pooling
-            (ASPP). Performs spatial pooling on different spatial levels in the
-            pyramid, with dilation.
-        segmentation_head: Optional `keras.Layer` that predict the segmentation
-            mask based on feature from backbone and feature from decoder.
+            [0, `num_classes`).
+        backbone: `keras.Model`. The backbone network for the model. Should be a
+            KerasCV model.
+        spatial_pyramid_pooling: (Optional) a `keras.layers.Layer`. Also known as
+            Atrous Spatial Pyramid Pooling (ASPP). Performs spatial pooling on
+            different spatial levels in the pyramid, with dilation. If provided,
+            the feature map from the backbone is passed to it inside the DeepLabV3
+            Encoder, otherwise `keras_cv.layers.spatial_pyramid.SpatialPyramidPooling`
+            is used.
+        segmentation_head: (Optional) a `keras.layers.Layer`. If provided, the
+            outputs of the DeepLabV3 encoder is passed to this layer and it should
+            predict the segmentation mask based on feature from backbone and feature
+            from decoder, otherwise a similar architecture implemented at
+            `_make_segmentation_head` is used.
         segmentation_head_activation: Optional `str` or function, activation
             functions between the `keras.layers.Conv2D` layers and the final
             classification layer, defaults to `"relu"`.
-        input_shape: optional shape tuple, defaults to (None, None, 3).
+        input_shape: optional shape tuple, defaults to `(None, None, 3)`.
         input_tensor: optional Keras tensor (i.e., output of `layers.Input()`)
             to use as image input for the model.
     """
