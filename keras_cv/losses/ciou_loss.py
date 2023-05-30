@@ -133,7 +133,7 @@ class CIoULoss(keras.losses.Loss):
         config = super().get_config()
         config.update(
             {
-                "axis": self.axis,
+                "eps": self.eps,
             }
         )
         return config
