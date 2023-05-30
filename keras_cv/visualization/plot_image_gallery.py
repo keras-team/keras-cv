@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numpy as np
 import keras_cv
+import tensorflow as tf
 from keras_cv import utils
 from keras_cv.utils import assert_matplotlib_installed
 
@@ -25,14 +27,16 @@ except:
 def plot_image_gallery(
     images,
     value_range,
-    rows=3,
-    cols=3,
+    rows=None,
+    cols=None,
+    batch_size=8,
     scale=2,
     path=None,
     show=None,
     transparent=True,
     dpi=60,
     legend_handles=None,
+    image_key="image",
 ):
     """Displays a gallery of images.
 
@@ -45,19 +49,10 @@ def plot_image_gallery(
         shuffle_files=True,
     )
 
-
-    def unpackage_tfds_inputs(inputs):
-        return inputs["image"]
-
-    train_ds = train_ds.map(unpackage_tfds_inputs)
-    train_ds = train_ds.apply(tf.data.experimental.dense_to_ragged_batch(16))
-
     keras_cv.visualization.plot_image_gallery(
-        next(iter(train_ds.take(1))),
+        train_ds,
         value_range=(0, 255),
         scale=3,
-        rows=2,
-        cols=2,
     )
     ```
 
@@ -68,9 +63,9 @@ def plot_image_gallery(
             gallery.
         value_range: value range of the images. Common examples include
             `(0, 255)` and `(0, 1)`.
-        rows: number of rows in the gallery to show.
-        cols: number of columns in the gallery to show.
         scale: how large to scale the images in the gallery
+        rows: (Optional) number of rows in the gallery to show.
+        cols: (Optional) number of columns in the gallery to show.
         path: (Optional) path to save the resulting gallery to.
         show: (Optional) whether to show the gallery of images.
         transparent: (Optional) whether to give the image a transparent
@@ -80,6 +75,9 @@ def plot_image_gallery(
         legend_handles: (Optional) matplotlib.patches List of legend handles.
             I.e. passing: `[patches.Patch(color='red', label='mylabel')]` will
             produce a legend with a single red patch and the label 'mylabel'.
+        image_key: (Optional) Key of the argument holding the image. Only
+            required when using a `tf.data.Dataset` instance. Defaults to
+            "image".
     """
     assert_matplotlib_installed("plot_bounding_box_gallery")
 
@@ -92,27 +90,69 @@ def plot_image_gallery(
             "to be true."
         )
 
-    fig = plt.figure(figsize=(cols * scale, rows * scale))
-    fig.tight_layout()  # Or equivalently,  "plt.tight_layout()"
-    plt.subplots_adjust(wspace=0, hspace=0)
-    plt.margins(x=0, y=0)
-    plt.axis("off")
+    if isinstance(images, tf.data.Dataset):
+
+        # Find final dataset batch size
+        sample = next(iter(images.take(1)))
+        if len(sample[image_key].shape) == 3:
+            default_dataset_batch_size = 8
+            images = images.ragged_batch(batch_size=default_dataset_batch_size)
+        elif len(sample[image_key].shape) == 4:
+            default_dataset_batch_size = sample[image_key].shape[0]
+        else:
+            raise ValueError(
+                "plot_image_gallery() expects `tf.data.Dataset` to have TensorShape with length 3 or 4."
+            )
+
+        batches = default_dataset_batch_size
+
+        def unpack_images(inputs):
+            return inputs[image_key]
+
+        images = images.map(unpack_images)
+        images = images.take(batches)
+        images = next(iter(images))
+
+    # Calculate appropriate number of rows and columns
+    if rows is None and cols is None:
+        total_plots = batch_size
+        cols = batch_size // 2
+
+        rows = total_plots // cols
+
+        if total_plots % cols != 0:
+            rows += 1
+
+    # Generate subplots
+    fig, axes = plt.subplots(
+        nrows=rows,
+        ncols=cols,
+        figsize=(cols * scale, rows * scale),
+        layout="tight",
+        squeeze=True,
+        sharex="row",
+        sharey="col",
+    )
+    fig.subplots_adjust(wspace=0, hspace=0)
 
     if legend_handles is not None:
         fig.legend(handles=legend_handles, loc="lower center")
 
+    # Perform image range transform
     images = keras_cv.utils.transform_value_range(
         images, original_range=value_range, target_range=(0, 255)
     )
+
     images = utils.to_numpy(images)
     images = images.astype(int)
+
     for row in range(rows):
         for col in range(cols):
             index = row * cols + col
-            plt.subplot(rows, cols, index + 1)
-            plt.imshow(images[index].astype("uint8"))
-            plt.axis("off")
-            plt.margins(x=0, y=0)
+            current_axis = axes[row, col]
+            current_axis.imshow(images[index].astype("uint8"))
+            current_axis.margins(x=0, y=0)
+            current_axis.axis("off")
 
     if path is None and not show:
         return
