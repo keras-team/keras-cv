@@ -35,7 +35,7 @@ class CIoULoss(keras.losses.Loss):
             Each bounding box is defined by these 4 values. For detailed
             information on the supported formats, see the [KerasCV bounding box
             documentation](https://keras.io/api/keras_cv/bounding_box/formats/).
-        eps: A small value added to avoid division by zero and stabilize 
+        eps: A small value added to avoid division by zero and stabilize
             calculations.
 
     References:
