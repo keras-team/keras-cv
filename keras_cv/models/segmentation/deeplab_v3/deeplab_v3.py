@@ -22,7 +22,7 @@ from keras_cv.models.task import Task
 
 @keras.utils.register_keras_serializable(package="keras_cv")
 class DeepLabV3(Task):
-    """A Keras model implementing the DeepLabV3+ architecture for semantic
+    """A Keras model implementing the DeepLabV3 and DeepLabV3+ architectures for semantic
     segmentation.
 
     References:
@@ -52,7 +52,7 @@ class DeepLabV3(Task):
             will be extracted and combined with the encoder features to be passed to
             the `segmentation_head`. If not specified, no low-level features from the
             `backbone` will be combined with the encoder output and the resulting
-            architecture will be similar to a DeepLabV3 model.
+            architecture is that of a DeepLabV3 model, otherwise a DeepLabV3+ model.
         projection_filters: (Optional) int, number of filters in the convolution layer
             projecting low-level features from the `backbone`. This parameter is only
             relevant if `low_level_feature_layer_name` is also specified.
