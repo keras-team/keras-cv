@@ -39,7 +39,6 @@ class CIoULoss(keras.losses.Loss):
 
     References:
         - [CIoU paper](https://arxiv.org/pdf/2005.03572.pdf)
-        - [TFAddons Implementation](https://www.tensorflow.org/addons/api_docs/python/tfa/losses/CIoULoss)
 
     Sample Usage:
     ```python

@@ -43,7 +43,7 @@ class CIoUTest(tf.test.TestCase):
         self.assertAllEqual(
             ciou_loss(y_true, y_pred).shape,
             [
-                2,
+                (2, 2),
             ],
         )
 
