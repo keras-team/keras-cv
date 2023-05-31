@@ -71,9 +71,12 @@ jobs:
         pip install keras-core/
         pip install tensorflow-cpu==2.11.0
         pip install -e ".[tests]" --progress-bar off --upgrade
+        pip install jax
     - name: Test with pytest
       env:
         TEST_CUSTOM_OPS: false # TODO(ianstenbit): test custom ops, or figure out what our story is here
+        KERAS_CV_MULTI_BACKEND: true
+        KERAS_BACKEND: jax
       run: |
         pytest keras_cv/models/backbones/resnet_v1 --durations 0
   format:
