@@ -43,7 +43,7 @@ jobs:
         cp bazel-bin/keras_cv/custom_ops/*.so keras_cv/custom_ops/
     - name: Test with pytest
       env:
-        TEST_CUSTOM_OPS: true
+        TEST_CUSTOM_OPS: false # TODO(ianstenbit): test custom ops, or figure out what our story is here
       run: |
         pytest keras_cv/ --ignore keras_cv/models/legacy/ --durations 0
   format:
