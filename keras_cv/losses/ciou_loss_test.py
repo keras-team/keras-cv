@@ -1,4 +1,4 @@
-# Copyright 2022 The KerasCV Authors
+# Copyright 2023 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,25 +20,25 @@ from keras_cv.losses.ciou_loss import CIoULoss
 class CIoUTest(tf.test.TestCase):
     def test_output_shape(self):
         y_true = tf.random.uniform(
-            shape=(2, 2, 4), minval=0, maxval=10, dtype=tf.float32
+            shape=(2, 2, 4), minval=0, maxval=10, dtype=tf.int32
         )
         y_pred = tf.random.uniform(
-            shape=(2, 2, 4), minval=0, maxval=20, dtype=tf.float32
+            shape=(2, 2, 4), minval=0, maxval=20, dtype=tf.int32
         )
 
-        ciou_loss = CIoULoss()
+        ciou_loss = CIoULoss(bounding_box_format="xywh")
 
         self.assertAllEqual(ciou_loss(y_true, y_pred).shape, ())
 
     def test_output_shape_reduction_none(self):
         y_true = tf.random.uniform(
-            shape=(2, 2, 4), minval=0, maxval=10, dtype=tf.float32
+            shape=(2, 2, 4), minval=0, maxval=10, dtype=tf.int32
         )
         y_pred = tf.random.uniform(
-            shape=(2, 2, 4), minval=0, maxval=20, dtype=tf.float32
+            shape=(2, 2, 4), minval=0, maxval=20, dtype=tf.int32
         )
 
-        ciou_loss = CIoULoss(reduction="none")
+        ciou_loss = CIoULoss(bounding_box_format="xywh", reduction="none")
 
         self.assertAllEqual(
             ciou_loss(y_true, y_pred).shape,
@@ -62,26 +62,26 @@ class CIoUTest(tf.test.TestCase):
             [0.2, 0.1, 0.3, 0.3],
         ]
 
-        ciou_loss = CIoULoss()
+        ciou_loss = CIoULoss(bounding_box_format="rel_xyxy")
 
         self.assertAllEqual(ciou_loss(y_true, y_pred).shape, ())
 
     def test_output_value(self):
         y_true = [
-            [0.0, 0.0, 1.0, 1.0],
-            [0.0, 0.0, 2.0, 3.0],
-            [4.0, 5.0, 3.0, 6.0],
-            [2.0, 2.0, 3.0, 3.0],
+            [0, 0, 1, 1],
+            [0, 0, 2, 3],
+            [4, 5, 3, 6],
+            [2, 2, 3, 3],
         ]
 
         y_pred = [
-            [0.0, 0.0, 5.0, 6.0],
-            [0.0, 0.0, 7.0, 3.0],
-            [4.0, 5.0, 5.0, 6.0],
-            [2.0, 1.0, 3.0, 3.0],
+            [0, 0, 5, 6],
+            [0, 0, 7, 3],
+            [4, 5, 5, 6],
+            [2, 1, 3, 3],
         ]
 
-        ciou_loss = CIoULoss()
+        ciou_loss = CIoULoss(bounding_box_format="xyxy")
 
         # expected value for these values is 1.0320253
         self.assertAllClose(ciou_loss(y_true, y_pred), 1.0320253)

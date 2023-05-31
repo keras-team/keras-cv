@@ -63,11 +63,24 @@ class CIoULoss(keras.losses.Loss):
     ```
     """
 
-    def __init__(self, eps=1e-7, **kwargs):
+    def __init__(self, bounding_box_format, eps=1e-7, **kwargs):
         super().__init__(**kwargs)
         self.eps = eps
-
+        self.bounding_box_format = bounding_box_format
+        
     def compute_ciou(self, boxes1, boxes2):
+        target_format = "xyxy"
+        if bounding_box.is_relative(self.bounding_box_format):
+            target_format = bounding_box.as_relative(target_format)
+
+        boxes1 = bounding_box.convert_format(
+            boxes1, source=self.bounding_box_format, target=target_format
+        )
+
+        boxes2 = bounding_box.convert_format(
+            boxes2, source=self.bounding_box_format, target=target_format
+        )
+
         b1_x1, b1_y1, b1_x2, b1_y2 = tf.split(boxes1, 4, axis=-1)
         b2_x1, b2_y1, b2_x2, b2_y2 = tf.split(boxes2, 4, axis=-1)
         w1, h1 = b1_x2 - b1_x1, b1_y2 - b1_y1 + self.eps
