@@ -178,6 +178,8 @@ def multilevel_crop_and_resize(
 
     Args:
       features: A dictionary with key as pyramid level and value as features.
+        The pyramid level keys need to be represented by strings like so:
+        "P2", "P3", "P4", and so on.
         The features are in shape of [batch_size, height_l, width_l,
         num_filters].
       boxes: A 3-D Tensor of shape [batch_size, num_boxes, 4]. Each row
@@ -192,10 +194,14 @@ def multilevel_crop_and_resize(
     """
 
     with tf.name_scope("multilevel_crop_and_resize"):
-        levels = list(features.keys())
-        min_level = int(min(levels))
-        max_level = int(max(levels))
-        features_shape = tf.shape(features[min_level])
+        levels_str = list(features.keys())
+        # Levels are represented by strings with a prefix "P" to represent
+        # pyramid levels. The integer level can be obtained by looking at
+        # the value that follows the "P".
+        levels = [int(level_str[1:]) for level_str in levels_str]
+        min_level = min(levels)
+        max_level = max(levels)
+        features_shape = tf.shape(features[f"P{min_level}"])
         batch_size, max_feature_height, max_feature_width, num_filters = (
             features_shape[0],
             features_shape[1],
@@ -211,13 +217,13 @@ def multilevel_crop_and_resize(
         feature_heights = []
         feature_widths = []
         for level in range(min_level, max_level + 1):
-            shape = features[level].get_shape().as_list()
+            shape = features[f"P{level}"].get_shape().as_list()
             feature_heights.append(shape[1])
             feature_widths.append(shape[2])
             # Concat tensor of [batch_size, height_l * width_l, num_filters] for
             # each level.
             features_all.append(
-                tf.reshape(features[level], [batch_size, -1, num_filters])
+                tf.reshape(features[f"P{level}"], [batch_size, -1, num_filters])
             )
         features_r2 = tf.reshape(tf.concat(features_all, 1), [-1, num_filters])
 
@@ -377,7 +383,7 @@ class _ROIAligner(keras.layers.Layer):
         bounding_box_format,
         target_size=7,
         sample_offset: float = 0.5,
-        **kwargs
+        **kwargs,
     ):
         """
         Generates ROI Aligner.

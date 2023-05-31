@@ -9,7 +9,6 @@ new image to Google Kubernetes Engine cluster, then run all tests in
 - `cloudbuild.yaml`: The cloud build configuration that specifies steps to run
   by cloud build.
 - `Dockerfile`: The configuration to build the docker image for deployment.
-- `requirements.txt`: Dependencies of KerasCV.
 - `unit_test_jobs.jsonnet`: Jsonnet config that tells GKE cluster to run all
   unit tests in `keras_cv/`.
 
@@ -41,7 +40,7 @@ RUN apt-get -y install bazel-5.4.0
 RUN apt-get -y install git
 RUN git clone https://github.com/{path_to_keras_cv_fork}.git
 RUN cd keras-cv && git checkout {branch_name}
-RUN pip install -r keras-cv/cloudbuild/requirements.txt
+RUN pip install -r keras-cv/requirements.txt
 ```
 - Run the following command from the directory with your `Dockerfile`:
 ```
