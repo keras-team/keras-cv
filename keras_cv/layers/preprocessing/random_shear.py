@@ -319,6 +319,11 @@ class RandomShear(VectorizedBaseImageAugmentationLayer):
         )
         return bounding_boxes
 
+    @staticmethod
+    def _format_transform(transform):
+        transform = tf.convert_to_tensor(transform, dtype=tf.float32)
+        return transform[tf.newaxis]
+
     def get_config(self):
         config = super().get_config()
         config.update(
