@@ -229,9 +229,9 @@ class ResNetBackbone(Backbone):
 
     The difference in ResNetV1 and ResNetV2 rests in the structure of their
     individual building blocks. In ResNetV2, the batch normalization and
-    ReLU activation precede the convolution keras.layers, as opposed to ResNetV1 where
+    ReLU activation precede the convolution layers, as opposed to ResNetV1 where
     the batch normalization and ReLU activation are applied after the
-    convolution keras.layers.
+    convolution layers.
 
     For transfer learning use cases, make sure to read the
     [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
@@ -358,16 +358,16 @@ class ResNetBackbone(Backbone):
         return copy.deepcopy(backbone_presets_with_weights)
 
 
-ALIAS_DOCSTRING = """ResNetBackbone (V1) model with {num_layers} keras.layers.
+ALIAS_DOCSTRING = """ResNetBackbone (V1) model with {num_layers} layers.
 
     Reference:
         - [Deep Residual Learning for Image Recognition](https://arxiv.org/abs/1512.03385)
 
     The difference in ResNetV1 and ResNetV2 rests in the structure of their
     individual building blocks. In ResNetV2, the batch normalization and
-    ReLU activation precede the convolution keras.layers, as opposed to ResNetV1 where
+    ReLU activation precede the convolution layers, as opposed to ResNetV1 where
     the batch normalization and ReLU activation are applied after the
-    convolution keras.layers.
+    convolution layers.
 
     For transfer learning use cases, make sure to read the
     [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
