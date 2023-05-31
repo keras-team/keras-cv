@@ -12,17 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import keras
 import tensorflow as tf
 
-import keras
 if hasattr(keras, "src"):
-    from keras.src.engine.training import reduce_per_replica
     from keras.src.engine.training import _minimum_control_deps
+    from keras.src.engine.training import reduce_per_replica
     from keras.src.utils import tf_utils
 else:
-    from keras.engine.training import reduce_per_replica
     from keras.engine.training import _minimum_control_deps
+    from keras.engine.training import reduce_per_replica
     from keras.utils import tf_utils
+
 
 def make_predict_function(model, force=False):
     if model.predict_function is not None and not force:
