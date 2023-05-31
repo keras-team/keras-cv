@@ -41,10 +41,8 @@ class CIoUTest(tf.test.TestCase):
         ciou_loss = CIoULoss(bounding_box_format="xyxy", reduction="none")
 
         self.assertAllEqual(
+            [2, 2],
             ciou_loss(y_true, y_pred).shape,
-            [
-                (2, 2),
-            ],
         )
 
     def test_output_shape_relative_formats(self):
