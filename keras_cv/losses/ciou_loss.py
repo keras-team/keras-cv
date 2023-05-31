@@ -13,7 +13,6 @@
 # limitations under the License.
 
 
-import warnings
 import math
 
 import tensorflow as tf
