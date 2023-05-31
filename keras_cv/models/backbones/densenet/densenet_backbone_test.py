@@ -104,11 +104,12 @@ class DenseNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
         inputs = tf.keras.Input(shape=[256, 256, 3])
         outputs = backbone_model(inputs)
 
+        levels = ["P2", "P3", "P4"]
         self.assertLen(outputs, 3)
-        self.assertEquals(list(outputs.keys()), [2, 3, 4])
-        self.assertEquals(outputs[2].shape, [None, 32, 32, 128])
-        self.assertEquals(outputs[3].shape, [None, 16, 16, 256])
-        self.assertEquals(outputs[4].shape, [None, 8, 8, 512])
+        self.assertEquals(list(outputs.keys()), levels)
+        self.assertEquals(outputs["P2"].shape, [None, 32, 32, 128])
+        self.assertEquals(outputs["P3"].shape, [None, 16, 16, 256])
+        self.assertEquals(outputs["P4"].shape, [None, 8, 8, 512])
 
     @parameterized.named_parameters(
         ("one_channel", 1),

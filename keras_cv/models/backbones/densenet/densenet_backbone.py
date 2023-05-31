@@ -185,7 +185,7 @@ class DenseNetBackbone(Backbone):
             x = apply_transition_block(
                 x, compression_ratio, name=f"pool{index}"
             )
-            pyramid_level_inputs[index] = x.node.layer.name
+            pyramid_level_inputs[f"P{index}"] = x.node.layer.name
 
         x = apply_dense_block(
             x,
