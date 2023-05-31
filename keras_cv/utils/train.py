@@ -12,14 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from keras_cv import use_keras_core
-
-if use_keras_core():
-    from keras_core import Model
-else:
-    from keras import Model
-
 import tensorflow as tf
+
+from keras_cv.backend import keras
 
 
 def scale_loss_for_distribution(loss_value):
@@ -84,4 +79,4 @@ def get_feature_extractor(model, layer_names, output_keys=None):
         output_keys = layer_names
     items = zip(output_keys, layer_names)
     outputs = {key: model.get_layer(name).output for key, name in items}
-    return Model(inputs=model.inputs, outputs=outputs)
+    return keras.Model(inputs=model.inputs, outputs=outputs)

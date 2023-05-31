@@ -20,16 +20,7 @@ Reference:
 
 import copy
 
-from keras_cv import register_keras_serializable
-from keras_cv import use_keras_core
-
-if use_keras_core():
-    from keras_core import backend
-    from keras_core import layers
-else:
-    from keras import backend
-    from keras import layers
-
+from keras_cv.backend import keras
 from keras_cv.models import utils
 from keras_cv.models.backbones.backbone import Backbone
 from keras_cv.models.backbones.resnet_v1.resnet_v1_backbone_presets import (
@@ -63,23 +54,23 @@ def apply_basic_block(
     """
 
     if name is None:
-        name = f"v1_basic_block_{backend.get_uid('v1_basic_block_')}"
+        name = f"v1_basic_block_{keras.backend.get_uid('v1_basic_block_')}"
 
     if conv_shortcut:
-        shortcut = layers.Conv2D(
+        shortcut = keras.layers.Conv2D(
             filters,
             1,
             strides=stride,
             use_bias=False,
             name=name + "_0_conv",
         )(x)
-        shortcut = layers.BatchNormalization(
+        shortcut = keras.layers.BatchNormalization(
             axis=BN_AXIS, epsilon=BN_EPSILON, name=name + "_0_bn"
         )(shortcut)
     else:
         shortcut = x
 
-    x = layers.Conv2D(
+    x = keras.layers.Conv2D(
         filters,
         kernel_size,
         padding="SAME",
@@ -87,24 +78,24 @@ def apply_basic_block(
         use_bias=False,
         name=name + "_1_conv",
     )(x)
-    x = layers.BatchNormalization(
+    x = keras.layers.BatchNormalization(
         axis=BN_AXIS, epsilon=BN_EPSILON, name=name + "_1_bn"
     )(x)
-    x = layers.Activation("relu", name=name + "_1_relu")(x)
+    x = keras.layers.Activation("relu", name=name + "_1_relu")(x)
 
-    x = layers.Conv2D(
+    x = keras.layers.Conv2D(
         filters,
         kernel_size,
         padding="SAME",
         use_bias=False,
         name=name + "_2_conv",
     )(x)
-    x = layers.BatchNormalization(
+    x = keras.layers.BatchNormalization(
         axis=BN_AXIS, epsilon=BN_EPSILON, name=name + "_2_bn"
     )(x)
 
-    x = layers.Add(name=name + "_add")([shortcut, x])
-    x = layers.Activation("relu", name=name + "_out")(x)
+    x = keras.layers.Add(name=name + "_add")([shortcut, x])
+    x = keras.layers.Activation("relu", name=name + "_out")(x)
     return x
 
 
@@ -127,49 +118,51 @@ def apply_block(
     """
 
     if name is None:
-        name = f"v1_block_{backend.get_uid('v1_block')}"
+        name = f"v1_block_{keras.backend.get_uid('v1_block')}"
 
     if conv_shortcut:
-        shortcut = layers.Conv2D(
+        shortcut = keras.layers.Conv2D(
             4 * filters,
             1,
             strides=stride,
             use_bias=False,
             name=name + "_0_conv",
         )(x)
-        shortcut = layers.BatchNormalization(
+        shortcut = keras.layers.BatchNormalization(
             axis=BN_AXIS, epsilon=BN_EPSILON, name=name + "_0_bn"
         )(shortcut)
     else:
         shortcut = x
 
-    x = layers.Conv2D(
+    x = keras.layers.Conv2D(
         filters, 1, strides=stride, use_bias=False, name=name + "_1_conv"
     )(x)
-    x = layers.BatchNormalization(
+    x = keras.layers.BatchNormalization(
         axis=BN_AXIS, epsilon=BN_EPSILON, name=name + "_1_bn"
     )(x)
-    x = layers.Activation("relu", name=name + "_1_relu")(x)
+    x = keras.layers.Activation("relu", name=name + "_1_relu")(x)
 
-    x = layers.Conv2D(
+    x = keras.layers.Conv2D(
         filters,
         kernel_size,
         padding="SAME",
         use_bias=False,
         name=name + "_2_conv",
     )(x)
-    x = layers.BatchNormalization(
+    x = keras.layers.BatchNormalization(
         axis=BN_AXIS, epsilon=BN_EPSILON, name=name + "_2_bn"
     )(x)
-    x = layers.Activation("relu", name=name + "_2_relu")(x)
+    x = keras.layers.Activation("relu", name=name + "_2_relu")(x)
 
-    x = layers.Conv2D(4 * filters, 1, use_bias=False, name=name + "_3_conv")(x)
-    x = layers.BatchNormalization(
+    x = keras.layers.Conv2D(
+        4 * filters, 1, use_bias=False, name=name + "_3_conv"
+    )(x)
+    x = keras.layers.BatchNormalization(
         axis=BN_AXIS, epsilon=BN_EPSILON, name=name + "_3_bn"
     )(x)
 
-    x = layers.Add(name=name + "_add")([shortcut, x])
-    x = layers.Activation("relu", name=name + "_out")(x)
+    x = keras.layers.Add(name=name + "_add")([shortcut, x])
+    x = keras.layers.Activation("relu", name=name + "_out")(x)
     return x
 
 
@@ -227,7 +220,7 @@ def apply_stack(
     return x
 
 
-@register_keras_serializable(package="keras_cv.models")
+@keras.saving.register_keras_serializable(package="keras_cv.models")
 class ResNetBackbone(Backbone):
     """Instantiates the ResNet architecture.
 
@@ -236,9 +229,9 @@ class ResNetBackbone(Backbone):
 
     The difference in ResNetV1 and ResNetV2 rests in the structure of their
     individual building blocks. In ResNetV2, the batch normalization and
-    ReLU activation precede the convolution layers, as opposed to ResNetV1 where
+    ReLU activation precede the convolution keras.layers, as opposed to ResNetV1 where
     the batch normalization and ReLU activation are applied after the
-    convolution layers.
+    convolution keras.layers.
 
     For transfer learning use cases, make sure to read the
     [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
@@ -253,7 +246,7 @@ class ResNetBackbone(Backbone):
             to `True`, inputs will be passed through a `Rescaling(1/255.0)`
             layer.
         input_shape: optional shape tuple, defaults to (None, None, 3).
-        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
+        input_tensor: optional Keras tensor (i.e. output of `keras.layers.Input()`)
             to use as image input for the model.
         block_type: string, one of "basic_block" or "block". The block type to
             stack. Use "basic_block" for ResNet18 and ResNet34.
@@ -293,18 +286,18 @@ class ResNetBackbone(Backbone):
         x = inputs
 
         if include_rescaling:
-            x = layers.Rescaling(1 / 255.0)(x)
+            x = keras.layers.Rescaling(1 / 255.0)(x)
 
-        x = layers.Conv2D(
+        x = keras.layers.Conv2D(
             64, 7, strides=2, use_bias=False, padding="same", name="conv1_conv"
         )(x)
 
-        x = layers.BatchNormalization(
+        x = keras.layers.BatchNormalization(
             axis=BN_AXIS, epsilon=BN_EPSILON, name="conv1_bn"
         )(x)
-        x = layers.Activation("relu", name="conv1_relu")(x)
+        x = keras.layers.Activation("relu", name="conv1_relu")(x)
 
-        x = layers.MaxPooling2D(
+        x = keras.layers.MaxPooling2D(
             3, strides=2, padding="same", name="pool1_pool"
         )(x)
 
@@ -321,9 +314,9 @@ class ResNetBackbone(Backbone):
                 first_shortcut=(block_type == "block" or stack_index > 0),
                 name=f"v2_stack_{stack_index}",
             )
-            pyramid_level_inputs[f"P{stack_index + 2}"] = utils.get_tensor_input_name(
-                x
-            )
+            pyramid_level_inputs[
+                f"P{stack_index + 2}"
+            ] = utils.get_tensor_input_name(x)
 
         # Create model.
         super().__init__(inputs=inputs, outputs=x, **kwargs)
@@ -365,16 +358,16 @@ class ResNetBackbone(Backbone):
         return copy.deepcopy(backbone_presets_with_weights)
 
 
-ALIAS_DOCSTRING = """ResNetBackbone (V1) model with {num_layers} layers.
+ALIAS_DOCSTRING = """ResNetBackbone (V1) model with {num_layers} keras.layers.
 
     Reference:
         - [Deep Residual Learning for Image Recognition](https://arxiv.org/abs/1512.03385)
 
     The difference in ResNetV1 and ResNetV2 rests in the structure of their
     individual building blocks. In ResNetV2, the batch normalization and
-    ReLU activation precede the convolution layers, as opposed to ResNetV1 where
+    ReLU activation precede the convolution keras.layers, as opposed to ResNetV1 where
     the batch normalization and ReLU activation are applied after the
-    convolution layers.
+    convolution keras.layers.
 
     For transfer learning use cases, make sure to read the
     [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
@@ -384,7 +377,7 @@ ALIAS_DOCSTRING = """ResNetBackbone (V1) model with {num_layers} layers.
             to `True`, inputs will be passed through a `Rescaling(1/255.0)`
             layer.
         input_shape: optional shape tuple, defaults to (None, None, 3).
-        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
+        input_tensor: optional Keras tensor (i.e. output of `keras.layers.Input()`)
             to use as image input for the model.
 
     Examples:
