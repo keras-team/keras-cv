@@ -14,17 +14,23 @@
 # ==============================================================================
 """Utility functions for models"""
 
-from keras import backend
-from keras import layers
-from tensorflow import keras
+from keras_cv.backend import keras
+from keras_cv.backend.config import multi_backend
+
+
+def get_tensor_input_name(tensor):
+    if multi_backend():
+        return tensor._keras_history.operation.name
+    else:
+        return tensor.node.layer.name
 
 
 def parse_model_inputs(input_shape, input_tensor):
     if input_tensor is None:
-        return layers.Input(shape=input_shape)
+        return keras.layers.Input(shape=input_shape)
     else:
         if not keras.backend.is_keras_tensor(input_tensor):
-            return layers.Input(tensor=input_tensor, shape=input_shape)
+            return keras.layers.Input(tensor=input_tensor, shape=input_shape)
         else:
             return input_tensor
 
@@ -40,7 +46,7 @@ def correct_pad_downsample(inputs, kernel_size):
         A tuple.
     """
     img_dim = 1
-    input_size = backend.int_shape(inputs)[img_dim : (img_dim + 2)]
+    input_size = keras.backend.int_shape(inputs)[img_dim : (img_dim + 2)]
     if isinstance(kernel_size, int):
         kernel_size = (kernel_size, kernel_size)
     if input_size[0] is None:
