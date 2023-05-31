@@ -21,6 +21,7 @@ from tensorflow import keras
 
 from keras_cv import bounding_box
 
+
 class CIoULoss(keras.losses.Loss):
     """Implements the Complete IoU (CIoU) Loss
 
@@ -67,7 +68,7 @@ class CIoULoss(keras.losses.Loss):
         super().__init__(**kwargs)
         self.eps = eps
         self.bounding_box_format = bounding_box_format
-        
+
     def compute_ciou(self, boxes1, boxes2):
         target_format = "xyxy"
         if bounding_box.is_relative(self.bounding_box_format):
