@@ -1,4 +1,4 @@
-# Copyright 2022 The KerasCV Authors
+# Copyright 2023 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,10 +13,13 @@
 # limitations under the License.
 
 
+import warnings
 import math
+
 import tensorflow as tf
 from tensorflow import keras
 
+from keras_cv import bounding_box
 
 class CIoULoss(keras.losses.Loss):
     """Implements the Complete IoU (CIoU) Loss
@@ -32,7 +35,7 @@ class CIoULoss(keras.losses.Loss):
             Each bounding box is defined by these 4 values. For detailed
             information on the supported formats, see the [KerasCV bounding box
             documentation](https://keras.io/api/keras_cv/bounding_box/formats/).
-        axis: the axis along which to mean the ious, defaults to -1.
+        axis: the axis along which to mean the IoUs, defaults to -1.
 
     References:
         - [CIoU paper](https://arxiv.org/pdf/2005.03572.pdf)
@@ -50,7 +53,7 @@ class CIoULoss(keras.losses.Loss):
         minval=0,
         maxval=10,
         dtype=tf.dtypes.int32)
-    loss = CIoULoss()
+    loss = keras_cv.losses.CIoULoss()
     loss(y_true, y_pred).numpy()
     ```
 
@@ -60,7 +63,7 @@ class CIoULoss(keras.losses.Loss):
     ```
     """
 
-    def __init__(self, eps, **kwargs):
+    def __init__(self, eps=1e-7, **kwargs):
         super().__init__(**kwargs)
         self.eps = eps
 
