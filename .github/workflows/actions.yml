@@ -32,8 +32,6 @@ jobs:
           ${{ runner.os }}-pip-
     - name: Install dependencies
       run: |
-        git clone https://ianstenbit:${{ secrets.PAT }}@github.com/keras-team/keras-core.git
-        pip install keras-core/
         pip install tensorflow-cpu==2.11.0
         pip install -e ".[tests]" --progress-bar off --upgrade
     - name: Build custom ops for tests
@@ -43,9 +41,41 @@ jobs:
         cp bazel-bin/keras_cv/custom_ops/*.so keras_cv/custom_ops/
     - name: Test with pytest
       env:
-        TEST_CUSTOM_OPS: false # TODO(ianstenbit): test custom ops, or figure out what our story is here
+        TEST_CUSTOM_OPS: true
       run: |
         pytest keras_cv/ --ignore keras_cv/models/legacy/ --durations 0
+  multibackend:
+    name: Test the code with Keras Core + Jax
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.8
+    - name: Get pip cache dir
+      id: pip-cache
+      run: |
+        python -m pip install --upgrade pip setuptools
+        echo "::set-output name=dir::$(pip cache dir)"
+    - name: pip cache
+      uses: actions/cache@v2
+      with:
+        path: ${{ steps.pip-cache.outputs.dir }}
+        key: ${{ runner.os }}-pip-${{ hashFiles('setup.py') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    - name: Install dependencies
+      run: |
+        git clone https://ianstenbit:${{ secrets.PAT }}@github.com/keras-team/keras-core.git
+        pip install keras-core/
+        pip install tensorflow-cpu==2.11.0
+        pip install -e ".[tests]" --progress-bar off --upgrade
+    - name: Test with pytest
+      env:
+        TEST_CUSTOM_OPS: false # TODO(ianstenbit): test custom ops, or figure out what our story is here
+      run: |
+        pytest keras_cv/models/backbones/resnet_v1 --durations 0
   format:
     name: Check the code format
     runs-on: ubuntu-latest
@@ -80,4 +110,3 @@ jobs:
         extensions: 'h,c,cpp,hpp,cc'
         clangFormatVersion: 14
         style: google
-  
