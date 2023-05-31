@@ -55,7 +55,6 @@ class GridMask(BaseImageAugmentationLayer):
             Floats should be in the range [0, 1]. 0.5 indicates that grid and
             spacing will be of equal size. To always use the same value, pass a
             `keras_cv.ConstantFactorSampler()`.
-
             Defaults to `(0, 0.5)`.
         rotation_factor:
             The rotation_factor will be used to randomly rotate the grid_mask

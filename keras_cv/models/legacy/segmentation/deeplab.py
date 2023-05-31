@@ -197,9 +197,9 @@ class SegmentationHead(layers.Layer):
             should include all the classes (e.g. background) for the model to
             predict.
         convolutions: int, number of `Conv2D` layers that are stacked before the
-            final classification layer, defaults to 2.
+            final classification layer, defaults to `2`.
         filters: int, number of filter/channels for the conv2D layers.
-            Defaults to 256.
+            Defaults to `256`.
         activations: str or function, activation functions between the conv2D
             layers and the final classification layer, defaults to `"relu"`.
         output_scale_factor: int, or a pair of ints. Factor for upsampling the
@@ -207,14 +207,13 @@ class SegmentationHead(layers.Layer):
             size as the input image. When single int is provided, the mask will
             be scaled with same ratio on both width and height. When a pair of
             ints are provided, they will be parsed as `(height_factor,
-            width_factor)`. Defaults to `None`, which means no resize will
-            happen to the output mask tensor.
+            width_factor)`. `None` means no resize will happen to the output
+            mask tensor. Defaults to `None`.
         kernel_size: int, the kernel size to be used in each of the
-            convolutional blocks, defaults to 3.
+            convolutional blocks, defaults to `3`.
         use_bias: boolean, whether to use bias or not in each of the
-            convolutional blocks, defaults to False since the blocks use
-            `BatchNormalization` after each convolution, rendering bias
-            obsolete.
+            convolutional blocks, since the blocks use `BatchNormalization`
+            after each convolution, rendering bias obsolete. Defaults to `False`.
         activation: str or function, activation to apply in the classification
             layer (output of the head), defaults to `"softmax"`.
 

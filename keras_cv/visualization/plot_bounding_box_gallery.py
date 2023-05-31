@@ -104,12 +104,12 @@ def plot_bounding_box_gallery(
         prediction_mapping: (Optional) class mapping from class IDs to strings,
             defaults to `class_mapping`
         line_thickness: (Optional) line_thickness for the box and text labels.
-            Defaults to 2.
+            Defaults to `2`.
         text_thickness: (Optional) the line_thickness for the text, defaults to
             `1.0`.
         font_scale: (Optional) font size to draw bounding boxes in.
         legend: whether to create a legend with the specified colors for
-            `y_true` and `y_pred`, defaults to False.
+            `y_true` and `y_pred`, defaults to `False`.
         kwargs: keyword arguments to propagate to
             `keras_cv.visualization.plot_image_gallery()`.
     """

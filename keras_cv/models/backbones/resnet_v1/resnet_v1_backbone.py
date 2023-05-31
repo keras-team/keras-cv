@@ -46,8 +46,8 @@ def apply_basic_block(
     Args:
         x: input tensor.
         filters: int, filters of the basic layer.
-        kernel_size: int, kernel size of the bottleneck layer, defaults to 3.
-        stride: int, stride of the first layer, defaults to 1.
+        kernel_size: int, kernel size of the bottleneck layer, defaults to `3`.
+        stride: int, stride of the first layer, defaults to `1`.
         conv_shortcut: bool, uses convolution shortcut if `True`. If `False`
             (default), uses identity or pooling shortcut, based on stride.
         name: string, optional prefix for the layer names used in the block.
@@ -110,8 +110,8 @@ def apply_block(
     Args:
         x: input tensor.
         filters: int, filters of the basic layer.
-        kernel_size: int, kernel size of the bottleneck layer, defaults to 3.
-        stride: int, stride of the first layer, defaults to 1.
+        kernel_size: int, kernel size of the bottleneck layer, defaults to `3`.
+        stride: int, stride of the first layer, defaults to `1`.
         conv_shortcut: bool, uses convolution shortcut if `True`. If `False`
             (default), uses identity or pooling shortcut, based on stride.
         name: string, optional prefix for the layer names used in the block.
@@ -183,7 +183,7 @@ def apply_stack(
         filters: int, filters of the layer in a block.
         blocks: int, blocks in the stacked blocks.
         stride: int, stride of the first layer in the first block, defaults to
-            2.
+            `2`.
         name: string, optional prefix for the layer names used in the block.
         block_type: string, one of "basic_block" or "block". The block type to
               stack. Use "basic_block" for ResNet18 and ResNet34.
@@ -246,7 +246,7 @@ class ResNetBackbone(Backbone):
         include_rescaling: bool, whether to rescale the inputs. If set
             to `True`, inputs will be passed through a `Rescaling(1/255.0)`
             layer.
-        input_shape: optional shape tuple, defaults to (None, None, 3).
+        input_shape: optional shape tuple, defaults to `(None, None, 3)`.
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
             to use as image input for the model.
         block_type: string, one of "basic_block" or "block". The block type to
@@ -375,7 +375,7 @@ ALIAS_DOCSTRING = """ResNetBackbone (V1) model with {num_layers} layers.
         include_rescaling: bool, whether to rescale the inputs. If set
             to `True`, inputs will be passed through a `Rescaling(1/255.0)`
             layer.
-        input_shape: optional shape tuple, defaults to (None, None, 3).
+        input_shape: optional shape tuple, defaults to `(None, None, 3)`.
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
             to use as image input for the model.
 

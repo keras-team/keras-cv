@@ -53,7 +53,7 @@ class OldRandomlyZoomedCrop(BaseImageAugmentationLayer):
             value `(1.0, 1.0)`.
         interpolation: (Optional) A string specifying the sampling method for
             resizing, defaults to "bilinear".
-        seed: (Optional) Used to create a random seed, defaults to None.
+        seed: (Optional) Used to create a random seed, defaults to `None`.
     """
 
     def __init__(

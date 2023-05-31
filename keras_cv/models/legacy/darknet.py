@@ -56,7 +56,7 @@ BASE_DOCSTRING = """Represents the {name} architecture.
             into. Only to be specified if `include_top` is True.
         weights: one of `None` (random initialization), or a pretrained weight
             file path.
-        input_shape: optional shape tuple, defaults to (None, None, 3).
+        input_shape: optional shape tuple, defaults to `(None, None, 3)`.
         input_tensor: optional Keras tensor (i.e., output of `layers.Input()`)
             to use as image input for the model.
         pooling: optional pooling mode for feature extraction when `include_top`
@@ -100,7 +100,7 @@ class DarkNet(keras.Model):
             into. Only to be specified if `include_top` is True.
         weights: one of `None` (random initialization) or a pretrained weight
             file path.
-        input_shape: optional shape tuple, defaults to (None, None, 3).
+        input_shape: optional shape tuple, defaults to `(None, None, 3)`.
         input_tensor: optional Keras tensor (i.e., output of `layers.Input()`)
             to use as image input for the model.
         pooling: optional pooling mode for feature extraction when `include_top`

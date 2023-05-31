@@ -66,7 +66,7 @@ class EfficientNetV2Backbone(Backbone):
         depth_divisor: integer, a unit of network width.
         min_depth: integer, minimum number of filters.
         activation: activation function to use between each convolutional layer.
-        input_shape: optional shape tuple, defaults to (None, None, 3).
+        input_shape: optional shape tuple, defaults to `(None, None, 3)`.
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
             to use as image input for the model.
 

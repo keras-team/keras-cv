@@ -138,9 +138,9 @@ def SpatialPyramidPoolingBottleneck(
         hidden_filters: Integer, the dimensionality of the intermediate
             bottleneck space (i.e. the number of output filters in the
             bottleneck convolution). If None, it will be equal to filters.
-            Defaults to None.
+            Defaults to `None`.
         kernel_sizes: A list or tuple representing all the pool sizes used for
-            the pooling layers, defaults to (5, 9, 13).
+            the pooling layers, defaults to `(5, 9, 13)`.
         activation: Activation for the conv layers, defaults to "silu".
         name: the prefix for the layer names used in the block.
 
@@ -245,10 +245,10 @@ class CrossStagePartial(layers.Layer):
             the layer bottleneck.
         residual: a boolean representing whether the value tensor before the
             bottleneck should be added to the output of the bottleneck as a
-            residual, defaults to True.
+            residual, defaults to `True`.
         use_depthwise: a boolean value used to decide whether a depthwise conv
             block should be used over a regular darknet block, defaults to
-            False.
+            `False`.
         activation: the activation applied after the final layer. One of "silu",
             "relu" or "leaky_relu", defaults to "silu".
     """

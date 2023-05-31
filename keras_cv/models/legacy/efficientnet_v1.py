@@ -149,21 +149,23 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`) to
             use as image input for the model.
         pooling: Optional pooling mode for feature extraction when `include_top`
-            is `False`, defaults to None.
+            is `False`.
             - `None` means that the output of the model will be the 4D tensor
                 output of the last convolutional layer.
             - `avg` means that global average pooling will be applied to the
                 output of the last convolutional layer, and thus the output of
                 the model will be a 2D tensor.
             - `max` means that global max pooling will be applied.
+            Defaults to `None`.
         num_classes: int, Optional number of classes to classify images into,
             only to be specified if `include_top` is True, and if no `weights`
             argument is specified, defaults to None.
         classifier_activation: A `str` or callable. The activation function to
             use on the "top" layer. Ignored unless `include_top=True`. Set
             `classifier_activation=None` to return the logits of the "top"
-            layer. Defaults to 'softmax'. When loading pretrained weights,
+            layer. When loading pretrained weights,
             `classifier_activation` can only be `None` or `"softmax"`.
+            Defaults to 'softmax'.
 
     Returns:
         A `keras.Model` instance.

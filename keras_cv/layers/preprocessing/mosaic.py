@@ -53,7 +53,7 @@ class Mosaic(VectorizedBaseImageAugmentationLayer):
             single float is used, a value between `0.0` and the passed float is
             sampled. In order to ensure the value is always the same, please
             pass a tuple with two identical floats: `(0.5, 0.5)`. Defaults to
-            (0.25, 0.75).
+            `(0.25, 0.75)`.
         bounding_box_format: a case-insensitive string (for example, "xyxy") to
             be passed if bounding boxes are being augmented by this layer. Each
             bounding box is defined by at least these 4 values. The inputs may
@@ -61,7 +61,7 @@ class Mosaic(VectorizedBaseImageAugmentationLayer):
             these 4 values but these values will be ignored and returned as is.
             For detailed information on the supported formats, see the
             [KerasCV bounding box documentation](https://keras.io/api/keras_cv/bounding_box/formats/).
-            Defaults to None.
+            Defaults to `None`.
         seed: integer, used to create a random seed.
 
     References:

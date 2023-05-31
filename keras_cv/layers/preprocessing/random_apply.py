@@ -29,7 +29,7 @@ class RandomApply(BaseImageAugmentationLayer):
             modify the size of provided inputs.
         rate: controls the frequency of applying the layer. 1.0 means all
             elements in a batch will be modified. 0.0 means no elements will be
-            modified. Defaults to 0.5.
+            modified. Defaults to `0.5`.
         batchwise: (Optional) bool, whether to pass entire batches to the
             underlying layer. When set to true, only a single random sample is
             drawn to determine if the batch should be passed to the underlying
@@ -37,7 +37,7 @@ class RandomApply(BaseImageAugmentationLayer):
             etc.
         auto_vectorize: bool, whether to use tf.vectorized_map or tf.map_fn for
             batched input. Setting this to True might give better performance
-            but currently doesn't work with XLA. Defaults to False.
+            but currently doesn't work with XLA. Defaults to `False`.
         seed: integer, controls random behaviour.
 
     Example usage:

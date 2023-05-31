@@ -143,7 +143,7 @@ class StableDiffusionBase:
             encoded_text: Tensor of shape (`batch_size`, 77, 768), or a Tensor
                 of shape (77, 768). When the batch axis is omitted, the same
                 encoded text will be used to produce every generated image.
-            batch_size: int, number of images to generate, defaults to 1.
+            batch_size: int, number of images to generate, defaults to `1`.
             negative_prompt: a string containing information to negatively guide
                 the image generation (e.g. by removing or altering certain
                 aspects of the generated image), defaults to None.
@@ -152,7 +152,7 @@ class StableDiffusionBase:
             unconditional_guidance_scale: float, controlling how closely the
                 image should adhere to the prompt. Larger values result in more
                 closely adhering to the prompt, but will make the image noisier.
-                Defaults to 7.5.
+                Defaults to `7.5`.
             diffusion_noise: Tensor of shape (`batch_size`, img_height // 8,
                 img_width // 8, 4), or a Tensor of shape (img_height // 8,
                 img_width // 8, 4). Optional custom noise to seed the diffusion
@@ -355,13 +355,13 @@ class StableDiffusion(StableDiffusionBase):
     Arguments:
         img_height: int, height of the images to generate, in pixel. Note that
             only multiples of 128 are supported; the value provided will be
-            rounded to the nearest valid value. Defaults to 512.
+            rounded to the nearest valid value. Defaults to `512`.
         img_width: int, width of the images to generate, in pixel. Note that
             only multiples of 128 are supported; the value provided will be
-            rounded to the nearest valid value. Defaults to 512.
+            rounded to the nearest valid value. Defaults to `512`.
         jit_compile: bool, whether to compile the underlying models to XLA.
             This can lead to a significant speedup on some systems. Defaults to
-            False.
+            `False`.
 
     Example:
 
@@ -440,13 +440,13 @@ class StableDiffusionV2(StableDiffusionBase):
     Arguments:
         img_height: int, height of the images to generate, in pixel. Note that
             only multiples of 128 are supported; the value provided will be
-            rounded to the nearest valid value. Defaults to 512.
+            rounded to the nearest valid value. Defaults to `512`.
         img_width: int, width of the images to generate, in pixel. Note that
             only multiples of 128 are supported; the value provided will be
-            rounded to the nearest valid value. Defaults to 512.
+            rounded to the nearest valid value. Defaults to `512`.
         jit_compile: bool, whether to compile the underlying models to XLA.
             This can lead to a significant speedup on some systems. Defaults to
-            False.
+            `False`.
     Example:
 
     ```python

@@ -43,7 +43,7 @@ class RetinaNetLabelEncoder(layers.Layer):
         negative_threshold: the float threshold to set an anchor to negative
             match to gt box. Values below it are negative matches.
         box_variance: The scaling factors used to scale the bounding box
-            targets, defaults to (0.1, 0.1, 0.2, 0.2).
+            targets, defaults to `(0.1, 0.1, 0.2, 0.2)`.
         background_class: (Optional) The class ID used for the background class,
             defaults to -1.
         ignore_class: (Optional) The class ID used for the ignore class,

@@ -159,7 +159,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
             in weights.py). Note that the 'imagenet' weights only work on an
             input shape of (224, 224, 3) due to the input shape dependent
             patching and flattening logic.
-        input_shape: optional shape tuple, defaults to (None, None, 3).
+        input_shape: optional shape tuple, defaults to `(None, None, 3)`.
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
             to use as image input for the model.
         pooling: optional pooling mode for feature extraction

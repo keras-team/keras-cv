@@ -88,7 +88,7 @@ class YOLOV8Backbone(Backbone):
             True, inputs will be passed through a `Rescaling(1/255.0)` layer.
         activation: String. The activation functions to use in the backbone to
             use in the CSPDarkNet blocks. Defaults to "swish".
-        input_shape: optional shape tuple, defaults to (None, None, 3).
+        input_shape: optional shape tuple, defaults to `(None, None, 3)`.
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
             to use as image input for the model.
 

@@ -67,7 +67,7 @@ class RandAugment(RandomAugmentationPipeline):
             augmentation 10/11th of the time. Defaults to `1.0`.
         geometric: whether to include geometric augmentations. This
             should be set to False when performing object detection. Defaults to
-            True.
+            `True`.
     Usage:
     ```python
     (x_test, y_test), _ = keras.datasets.cifar10.load_data()

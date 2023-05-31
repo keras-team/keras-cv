@@ -484,8 +484,8 @@ def load(
             dataset. Defaults to `sbd_train`.
         data_dir: string, local directory path for the loaded data. This will be
             used to download the data file, and unzip. It will be used as a
-            cache directory. Defaults to None, and `~/.keras/pascal_voc_2012`
-            will be used.
+            cache directory. When `None`: `~/.keras/pascal_voc_2012`
+            will be used. Defaults to `None`.
     """
     supported_split_value = [
         "train",

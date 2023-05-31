@@ -27,8 +27,8 @@ class FourierMix(BaseImageAugmentationLayer):
     Args:
         alpha: Float value for beta distribution. Inverse scale parameter for
             the gamma distribution. This controls the shape of the distribution
-            from which the smoothing values are sampled. Defaults to 0.5, which
-            is a recommended value in the paper.
+            from which the smoothing values are sampled. 0.5 is a recommended
+            value in the paper. Defaults to `0.5`.
         decay_power: A float value representing the decay power, defaults to 3,
             as recommended in the paper.
         seed: Integer. Used to create a random seed.

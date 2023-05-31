@@ -336,7 +336,7 @@ class YOLOV8Detector(Task):
         fpn_depth: integer, a specification of the depth of the CSP blocks in
             the Feature Pyramid Network. This is usually 1, 2, or 3, depending
             on the size of your YOLOV8Detector model. We recommend using 3 for
-            "yolo_v8_l_backbone" and "yolo_v8_xl_backbone". Defaults to 2.
+            "yolo_v8_l_backbone" and "yolo_v8_xl_backbone". Defaults to `2`.
         label_encoder: (Optional)  A `YOLOV8LabelEncoder` that is
             responsible for transforming input boxes into trainable labels for
             YOLOV8Detector. If not provided, a default is provided.
@@ -464,9 +464,9 @@ class YOLOV8Detector(Task):
                 preconfigured loss is provided when the string
                 "binary_crossentropy" is passed.
             box_loss_weight: (optional) float, a scaling factor for the box
-                loss. Defaults to 7.5.
+                loss. Defaults to `7.5`.
             classification_loss_weight: (optional) float, a scaling factor for
-                the classification loss. Defaults to 0.5.
+                the classification loss. Defaults to `0.5`.
             kwargs: most other `keras.Model.compile()` arguments are supported
                 and propagated to the `keras.Model` class.
         """

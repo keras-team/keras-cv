@@ -58,9 +58,9 @@ class OldRandomFlip(BaseImageAugmentationLayer):
 
     Arguments:
       mode: String indicating which flip mode to use. Can be `"horizontal"`,
-        `"vertical"`, or `"horizontal_and_vertical"`, defaults to
-        `"horizontal"`. `"horizontal"` is a left-right flip and `"vertical"` is
-        a top-bottom flip.
+        `"vertical"`, or `"horizontal_and_vertical"`. `"horizontal"` is a
+        left-right flip and `"vertical"` is a top-bottom flip.
+        Defaults to `"horizontal"`.
       seed: Integer. Used to create a random seed.
       bounding_box_format: The format of bounding boxes of input dataset.
         Refer to

@@ -82,7 +82,7 @@ class VGG16(keras.Model):
         only to be specified if `include_top` is True.
       weights: os.PathLike or None, one of `None` (random initialization), or a
         pretrained weight file path.
-      input_shape: tuple, optional shape tuple, defaults to (224, 224, 3).
+      input_shape: tuple, optional shape tuple, defaults to `(224, 224, 3)`.
       input_tensor: Tensor, optional Keras tensor (i.e. output of
         `layers.Input()`) to use as image input for the model.
       pooling: bool, Optional pooling mode for feature extraction
