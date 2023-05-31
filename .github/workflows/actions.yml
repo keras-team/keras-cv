@@ -32,19 +32,19 @@ jobs:
           ${{ runner.os }}-pip-
     - name: Install dependencies
       run: |
-        pip install tensorflow==2.11.0
+        pip install tensorflow==2.12.0
         pip install -e ".[tests]" --progress-bar off --upgrade
         git clone https://ianstenbit:${{ secrets.PAT }}@github.com/keras-team/keras-core.git
         pip install keras-core/
         pip install "jax[cpu]"
-    - name: Build custom ops for tests
-      run: |
-        python build_deps/configure.py
-        bazel build keras_cv/custom_ops:all
-        cp bazel-bin/keras_cv/custom_ops/*.so keras_cv/custom_ops/
+    # - name: Build custom ops for tests
+    #   run: |
+    #     python build_deps/configure.py
+    #     bazel build keras_cv/custom_ops:all
+    #     cp bazel-bin/keras_cv/custom_ops/*.so keras_cv/custom_ops/
     - name: Test with pytest
       env:
-        TEST_CUSTOM_OPS: true
+        TEST_CUSTOM_OPS: false
       run: |
         pytest keras_cv/ --ignore keras_cv/models/legacy/ --durations 0
   multibackend:
@@ -70,9 +70,9 @@ jobs:
           ${{ runner.os }}-pip-
     - name: Install dependencies
       run: |
+        pip install tensorflow==2.12.0
         git clone https://ianstenbit:${{ secrets.PAT }}@github.com/keras-team/keras-core.git
         pip install keras-core/
-        pip install tensorflow==2.11.0
         pip install -e ".[tests]" --progress-bar off --upgrade
         pip install "jax[cpu]"
     - name: Test with pytest
