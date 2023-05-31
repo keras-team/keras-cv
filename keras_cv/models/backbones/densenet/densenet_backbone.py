@@ -39,81 +39,6 @@ BN_AXIS = 3
 BN_EPSILON = 1.001e-5
 
 
-def apply_dense_block(x, num_repeats, growth_rate, name=None):
-    """A dense block.
-
-    Args:
-      x: input tensor.
-      num_repeats: int, number of repeated convolutional blocks.
-      name: string, block label.
-    """
-    if name is None:
-        name = f"dense_block_{backend.get_uid('dense_block')}"
-
-    for i in range(num_repeats):
-        x = apply_conv_block(x, growth_rate, name=f"{name}_block_{i}")
-    return x
-
-
-def apply_transition_block(x, compression_ratio, name=None):
-    """A transition block.
-
-    Args:
-      x: input tensor.
-      compression_ratio: float, compression rate at transition layers.
-      name: string, block label.
-    """
-    if name is None:
-        name = f"transition_block_{backend.get_uid('transition_block')}"
-
-    x = layers.BatchNormalization(
-        axis=BN_AXIS, epsilon=BN_EPSILON, name=f"{name}_bn"
-    )(x)
-    x = layers.Activation("relu", name=f"{name}_relu")(x)
-    x = layers.Conv2D(
-        int(backend.int_shape(x)[BN_AXIS] * compression_ratio),
-        1,
-        use_bias=False,
-        name=f"{name}_conv",
-    )(x)
-    x = layers.AveragePooling2D(2, strides=2, name=f"{name}_pool")(x)
-    return x
-
-
-def apply_conv_block(x, growth_rate, name=None):
-    """A building block for a dense block.
-
-    Args:
-      x: input tensor.
-      growth_rate: int, number of filters added by each dense block.
-      name: string, block label.
-    """
-    if name is None:
-        name = f"conv_block_{backend.get_uid('conv_block')}"
-
-    shortcut = x
-    x = layers.BatchNormalization(
-        axis=BN_AXIS, epsilon=BN_EPSILON, name=f"{name}_0_bn"
-    )(x)
-    x = layers.Activation("relu", name=f"{name}_0_relu")(x)
-    x = layers.Conv2D(
-        4 * growth_rate, 1, use_bias=False, name=f"{name}_1_conv"
-    )(x)
-    x = layers.BatchNormalization(
-        axis=BN_AXIS, epsilon=BN_EPSILON, name=f"{name}_1_bn"
-    )(x)
-    x = layers.Activation("relu", name=f"{name}_1_relu")(x)
-    x = layers.Conv2D(
-        growth_rate,
-        3,
-        padding="same",
-        use_bias=False,
-        name=f"{name}_2_conv",
-    )(x)
-    x = layers.Concatenate(axis=BN_AXIS, name=f"{name}_concat")([shortcut, x])
-    return x
-
-
 @keras.utils.register_keras_serializable(package="keras_cv.models")
 class DenseNetBackbone(Backbone):
     """Instantiates the DenseNet architecture.
@@ -235,132 +160,77 @@ class DenseNetBackbone(Backbone):
         return copy.deepcopy(backbone_presets_with_weights)
 
 
-ALIAS_DOCSTRING = """DenseNetBackbone model with {num_layers} layers.
-
-    Reference:
-        - [Densely Connected Convolutional Networks (CVPR 2017)](https://arxiv.org/abs/1608.06993)
-
-    For transfer learning use cases, make sure to read the
-    [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
+def apply_dense_block(x, num_repeats, growth_rate, name=None):
+    """A dense block.
 
     Args:
-        include_rescaling: bool, whether to rescale the inputs. If set
-            to `True`, inputs will be passed through a `Rescaling(1/255.0)`
-            layer.
-        input_shape: optional shape tuple, defaults to (None, None, 3).
-        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
-            to use as image input for the model.
+      x: input tensor.
+      num_repeats: int, number of repeated convolutional blocks.
+      growth_rate: int, number of filters added by each dense block.
+      name: string, block label.
+    """
+    if name is None:
+        name = f"dense_block_{backend.get_uid('dense_block')}"
 
-    Examples:
-    ```python
-    input_data = tf.ones(shape=(8, 224, 224, 3))
-
-    # Randomly initialized backbone
-    model = DenseNet{num_layers}Backbone()
-    output = model(input_data)
-    ```
-"""  # noqa: E501
+    for i in range(num_repeats):
+        x = apply_conv_block(x, growth_rate, name=f"{name}_block_{i}")
+    return x
 
 
-class DenseNet121Backbone(DenseNetBackbone):
-    def __new__(
-        cls,
-        include_rescaling=True,
-        input_shape=(None, None, 3),
-        input_tensor=None,
-        **kwargs,
-    ):
-        # Pack args in kwargs
-        kwargs.update(
-            {
-                "include_rescaling": include_rescaling,
-                "input_shape": input_shape,
-                "input_tensor": input_tensor,
-            }
-        )
-        return DenseNetBackbone.from_preset("densenet121", **kwargs)
+def apply_transition_block(x, compression_ratio, name=None):
+    """A transition block.
 
-    @classproperty
-    def presets(cls):
-        """Dictionary of preset names and configurations."""
-        return {
-            "densenet121_imagenet": copy.deepcopy(
-                backbone_presets["densenet121_imagenet"]
-            ),
-        }
+    Args:
+      x: input tensor.
+      compression_ratio: float, compression rate at transition layers.
+      name: string, block label.
+    """
+    if name is None:
+        name = f"transition_block_{backend.get_uid('transition_block')}"
 
-    @classproperty
-    def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include weights."""  # noqa: E501
-        return cls.presets
+    x = layers.BatchNormalization(
+        axis=BN_AXIS, epsilon=BN_EPSILON, name=f"{name}_bn"
+    )(x)
+    x = layers.Activation("relu", name=f"{name}_relu")(x)
+    x = layers.Conv2D(
+        int(backend.int_shape(x)[BN_AXIS] * compression_ratio),
+        1,
+        use_bias=False,
+        name=f"{name}_conv",
+    )(x)
+    x = layers.AveragePooling2D(2, strides=2, name=f"{name}_pool")(x)
+    return x
 
 
-class DenseNet169Backbone(DenseNetBackbone):
-    def __new__(
-        cls,
-        include_rescaling=True,
-        input_shape=(None, None, 3),
-        input_tensor=None,
-        **kwargs,
-    ):
-        # Pack args in kwargs
-        kwargs.update(
-            {
-                "include_rescaling": include_rescaling,
-                "input_shape": input_shape,
-                "input_tensor": input_tensor,
-            }
-        )
-        return DenseNetBackbone.from_preset("densenet169", **kwargs)
+def apply_conv_block(x, growth_rate, name=None):
+    """A building block for a dense block.
 
-    @classproperty
-    def presets(cls):
-        """Dictionary of preset names and configurations."""
-        return {
-            "densenet169_imagenet": copy.deepcopy(
-                backbone_presets["densenet169_imagenet"]
-            ),
-        }
+    Args:
+      x: input tensor.
+      growth_rate: int, number of filters added by each dense block.
+      name: string, block label.
+    """
+    if name is None:
+        name = f"conv_block_{backend.get_uid('conv_block')}"
 
-    @classproperty
-    def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include weights."""  # noqa: E501
-        return cls.presets
-
-
-class DenseNet201Backbone(DenseNetBackbone):
-    def __new__(
-        cls,
-        include_rescaling=True,
-        input_shape=(None, None, 3),
-        input_tensor=None,
-        **kwargs,
-    ):
-        # Pack args in kwargs
-        kwargs.update(
-            {
-                "include_rescaling": include_rescaling,
-                "input_shape": input_shape,
-                "input_tensor": input_tensor,
-            }
-        )
-        return DenseNetBackbone.from_preset("densenet201", **kwargs)
-
-    @classproperty
-    def presets(cls):
-        """Dictionary of preset names and configurations."""
-        return {
-            "densenet201_imagenet": copy.deepcopy(
-                backbone_presets["densenet201_imagenet"]
-            ),
-        }
-
-    @classproperty
-    def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include weights."""  # noqa: E501
-        return cls.presets
-
-
-setattr(DenseNet121Backbone, "__doc__", ALIAS_DOCSTRING.format(num_layers=121))
-setattr(DenseNet169Backbone, "__doc__", ALIAS_DOCSTRING.format(num_layers=169))
-setattr(DenseNet201Backbone, "__doc__", ALIAS_DOCSTRING.format(num_layers=201))
+    shortcut = x
+    x = layers.BatchNormalization(
+        axis=BN_AXIS, epsilon=BN_EPSILON, name=f"{name}_0_bn"
+    )(x)
+    x = layers.Activation("relu", name=f"{name}_0_relu")(x)
+    x = layers.Conv2D(
+        4 * growth_rate, 1, use_bias=False, name=f"{name}_1_conv"
+    )(x)
+    x = layers.BatchNormalization(
+        axis=BN_AXIS, epsilon=BN_EPSILON, name=f"{name}_1_bn"
+    )(x)
+    x = layers.Activation("relu", name=f"{name}_1_relu")(x)
+    x = layers.Conv2D(
+        growth_rate,
+        3,
+        padding="same",
+        use_bias=False,
+        name=f"{name}_2_conv",
+    )(x)
+    x = layers.Concatenate(axis=BN_AXIS, name=f"{name}_concat")([shortcut, x])
+    return x

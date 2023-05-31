@@ -17,7 +17,7 @@ import pytest
 import tensorflow as tf
 from absl.testing import parameterized
 
-from keras_cv.models.backbones.densenet.densenet_backbone import (
+from keras_cv.models.backbones.densenet.densenet_aliases import (
     DenseNet121Backbone,
 )
 from keras_cv.models.backbones.densenet.densenet_backbone import (
