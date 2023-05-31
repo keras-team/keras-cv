@@ -480,7 +480,7 @@ class StableDiffusionV2(StableDiffusionBase):
         print(
             "By using this model checkpoint, you acknowledge that its usage is "
             "subject to the terms of the CreativeML Open RAIL++-M license at "
-            "https://github.com/Stability-AI/stablediffusion/main/LICENSE-MODEL"
+            "https://github.com/Stability-AI/stablediffusion/blob/main/LICENSE-MODEL"  # noqa: E501
         )
 
     @property
