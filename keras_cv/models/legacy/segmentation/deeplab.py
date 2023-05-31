@@ -213,7 +213,8 @@ class SegmentationHead(layers.Layer):
             convolutional blocks, defaults to `3`.
         use_bias: boolean, whether to use bias or not in each of the
             convolutional blocks, since the blocks use `BatchNormalization`
-            after each convolution, rendering bias obsolete. Defaults to `False`.
+            after each convolution, rendering bias obsolete.
+            Defaults to `False`.
         activation: str or function, activation to apply in the classification
             layer (output of the head), defaults to `"softmax"`.
 

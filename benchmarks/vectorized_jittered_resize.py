@@ -90,11 +90,11 @@ class OldJitteredResize(BaseImageAugmentationLayer):
             image, when not provided, defaults to `target_size`.
         bounding_box_format: The format of bounding boxes of input boxes.
             Refer to
-            https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box/converters.py
+            keras-team/keras-cv/blob/master/keras_cv/bounding_box/converters.py
             for more details on supported bounding box formats.
-        interpolation: String, the interpolation method. Supports `"bilinear"`, `"nearest"`, `"bicubic"`,
-            `"area"`, `"lanczos3"`, `"lanczos5"`, `"gaussian"`,
-            `"mitchellcubic"`. Defaults to `"bilinear"`.
+        interpolation: String, the interpolation method. Supports `"bilinear"`,
+            `"nearest"`, `"bicubic"`, `"area"`, `"lanczos3"`, `"lanczos5"`,
+            `"gaussian"`, `"mitchellcubic"`. Defaults to `"bilinear"`.
         seed: (Optional) integer to use as the random seed.
     """
 
