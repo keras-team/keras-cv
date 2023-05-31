@@ -12,14 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import keras
 import tensorflow as tf
 
-if hasattr(keras, "src"):
+try:
     from keras.src.engine.training import _minimum_control_deps
     from keras.src.engine.training import reduce_per_replica
     from keras.src.utils import tf_utils
-else:
+except ImportError:
     from keras.engine.training import _minimum_control_deps
     from keras.engine.training import reduce_per_replica
     from keras.utils import tf_utils
