@@ -71,7 +71,7 @@ jobs:
         pip install keras-core/
         pip install tensorflow-cpu==2.11.0
         pip install -e ".[tests]" --progress-bar off --upgrade
-        pip install jax
+        pip install "jax[cpu]"
     - name: Test with pytest
       env:
         TEST_CUSTOM_OPS: false # TODO(ianstenbit): test custom ops, or figure out what our story is here
