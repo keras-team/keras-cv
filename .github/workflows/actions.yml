@@ -34,6 +34,8 @@ jobs:
       run: |
         pip install tensorflow-cpu==2.11.0
         pip install -e ".[tests]" --progress-bar off --upgrade
+        git clone https://ianstenbit:${{ secrets.PAT }}@github.com/keras-team/keras-core.git
+        pip install keras-core/
     - name: Build custom ops for tests
       run: |
         python build_deps/configure.py
