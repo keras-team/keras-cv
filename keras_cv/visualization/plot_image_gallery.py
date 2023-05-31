@@ -62,8 +62,8 @@ def plot_image_gallery(
         value_range: value range of the images. Common examples include
             `(0, 255)` and `(0, 1)`.
         scale: how large to scale the images in the gallery
-        rows: (Optional) number of rows in the gallery to show.
-        cols: (Optional) number of columns in the gallery to show.
+        rows: (Optional) number of rows in the gallery to show. Required if inputs are unbatched.
+        cols: (Optional) number of columns in the gallery to show. Required if inputs are unbatched.
         path: (Optional) path to save the resulting gallery to.
         show: (Optional) whether to show the gallery of images.
         transparent: (Optional) whether to give the image a transparent
@@ -93,7 +93,7 @@ def plot_image_gallery(
         return inputs["image"]
 
     # Calculate appropriate number of rows and columns
-    if rows is None and cols is None:
+    if rows is None or cols is None:
         if isinstance(images, tf.data.Dataset):
             sample = next(iter(images.take(1)))
             sample_shape = sample["image"].shape
@@ -113,7 +113,8 @@ def plot_image_gallery(
                 batch_size = sample_shape[0]
             else:
                 raise ValueError(
-                    f"Passed '`{type(images)}`' does not appear to be batched. Please batch using the `.batch()."
+                    f"`plot_image_gallery` received unbatched images and `cols` and `rows` "
+                    "were both `None`. Either images should be batched, or `cols` and `rows` should be specified."
                 )
 
     elif rows is not None and cols is not None:
@@ -136,7 +137,7 @@ def plot_image_gallery(
             images = images[:batch_size, ...]
     else:
         raise ValueError(
-            "plot_image_gallery() expects `tf.data.Dataset` to be batched if rows and cols are not specified."
+            "plot_image_gallery() expects `tf.data.Dataset` to be batched if rows or cols are not specified."
         )
 
     rows = int(math.ceil(batch_size**0.5))
