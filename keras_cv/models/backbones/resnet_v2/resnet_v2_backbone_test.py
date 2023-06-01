@@ -14,6 +14,7 @@
 
 import os
 
+import numpy as np
 import pytest
 import tensorflow as tf
 from absl.testing import parameterized
@@ -30,7 +31,7 @@ from keras_cv.utils.train import get_feature_extractor
 
 class ResNetV2BackboneTest(tf.test.TestCase, parameterized.TestCase):
     def setUp(self):
-        self.input_batch = tf.ones(shape=(8, 224, 224, 3))
+        self.input_batch = np.ones(shape=(8, 224, 224, 3))
 
     def test_valid_call(self):
         model = ResNetV2Backbone(
