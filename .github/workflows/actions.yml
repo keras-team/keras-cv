@@ -83,8 +83,9 @@ jobs:
       run: |
         pytest keras_cv/models/backbones/resnet_v1 \
                keras_cv/models/backbones/resnet_v2 \
+               keras_cv/models/backbones/efficientnet_v2 \
                keras_cv/models/classification/image_classifier_test.py \
-               --durations 0
+               --durations 0 --run_large --run_extra_large
   format:
     name: Check the code format
     runs-on: ubuntu-latest
