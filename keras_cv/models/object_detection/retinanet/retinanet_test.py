@@ -231,20 +231,36 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
         restored_output = restored_model(input_batch)
         self.assertAllClose(model_output, restored_output)
 
+
 @pytest.mark.large
 class RetinaNetSmokeTest(tf.test.TestCase):
     def test_backbone_preset(self):
-        weights = ["csp_darknet_tiny", "csp_darknet_s",
-                   "csp_darknet_m", "csp_darknet_l",
-                   "csp_darknet_xl", "efficientnetv2_s",
-                   "efficientnetv2_m", "efficientnetv2_l",
-                   "efficientnetv2_b0", "efficientnetv2_b1",
-                   "efficientnetv2_b2", "efficientnetv2_b3",
-                   "mobilenet_v3_small", "mobilenet_v3_small",
-                   "resnet18", "resnet34", "resnet50",
-                   "resnet101", "resnet152", "resnet18_v2",
-                   "resnet34_v2", "resnet50_v2", "resnet101_v2",
-                   "resnet152_v2",]
+        weights = [
+            "csp_darknet_tiny",
+            "csp_darknet_s",
+            "csp_darknet_m",
+            "csp_darknet_l",
+            "csp_darknet_xl",
+            "efficientnetv2_s",
+            "efficientnetv2_m",
+            "efficientnetv2_l",
+            "efficientnetv2_b0",
+            "efficientnetv2_b1",
+            "efficientnetv2_b2",
+            "efficientnetv2_b3",
+            "mobilenet_v3_small",
+            "mobilenet_v3_small",
+            "resnet18",
+            "resnet34",
+            "resnet50",
+            "resnet101",
+            "resnet152",
+            "resnet18_v2",
+            "resnet34_v2",
+            "resnet50_v2",
+            "resnet101_v2",
+            "resnet152_v2",
+        ]
         for weight in weights:
             model = keras_cv.models.RetinaNet.from_preset(
                 weight,
@@ -253,7 +269,7 @@ class RetinaNetSmokeTest(tf.test.TestCase):
             )
             xs, _ = _create_bounding_box_dataset(bounding_box_format="xywh")
             output = model(xs)
-            self.assertEqual(output['box'].shape, (xs.shape[0], 49104, 4))
+            self.assertEqual(output["box"].shape, (xs.shape[0], 49104, 4))
 
     def test_full_preset_weight_loading(self):
         model = keras_cv.models.RetinaNet.from_preset(
@@ -263,7 +279,7 @@ class RetinaNetSmokeTest(tf.test.TestCase):
         xs, _ = _create_bounding_box_dataset(bounding_box_format="xywh")
         output = model(xs)
 
-        #How to get expected_box as on every run it will be different
+        # How to get expected_box as on every run it will be different
         expected_box = []
 
         self.assertTrue(output["box"][0, 123, :], expected_box)
