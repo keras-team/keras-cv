@@ -55,12 +55,8 @@ class ResNetV2BackboneTest(tf.test.TestCase, parameterized.TestCase):
         )
         model(self.input_batch)
 
-    @parameterized.named_parameters(
-        ("tf_format", "tf", "model"),
-        ("keras_format", "keras_v3", "model.keras"),
-    )
     @pytest.mark.large  # Saving is slow, so mark these large.
-    def test_saved_model(self, save_format, filename):
+    def test_saved_model(self):
         model = ResNetV2Backbone(
             stackwise_filters=[64, 128, 256, 512],
             stackwise_blocks=[2, 2, 2, 2],
@@ -68,8 +64,10 @@ class ResNetV2BackboneTest(tf.test.TestCase, parameterized.TestCase):
             include_rescaling=False,
         )
         model_output = model(self.input_batch)
-        save_path = os.path.join(self.get_temp_dir(), filename)
-        model.save(save_path, save_format=save_format)
+        save_path = os.path.join(
+            self.get_temp_dir(), "resnet_v2_backbone.keras"
+        )
+        model.save(save_path)
         restored_model = keras.models.load_model(save_path)
 
         # Check we got the real object back.
@@ -79,16 +77,14 @@ class ResNetV2BackboneTest(tf.test.TestCase, parameterized.TestCase):
         restored_output = restored_model(self.input_batch)
         self.assertAllClose(model_output, restored_output)
 
-    @parameterized.named_parameters(
-        ("tf_format", "tf", "model"),
-        ("keras_format", "keras_v3", "model.keras"),
-    )
     @pytest.mark.large  # Saving is slow, so mark these large.
-    def test_saved_alias_model(self, save_format, filename):
+    def test_saved_alias_model(self):
         model = ResNet50V2Backbone()
         model_output = model(self.input_batch)
-        save_path = os.path.join(self.get_temp_dir(), filename)
-        model.save(save_path, save_format=save_format)
+        save_path = os.path.join(
+            self.get_temp_dir(), "resnet_v2_backbone.keras"
+        )
+        model.save(save_path)
         restored_model = keras.models.load_model(save_path)
 
         # Check we got the real object back.

@@ -13,6 +13,7 @@
 # limitations under the License.
 """Tests for loading pretrained model presets."""
 
+import numpy as np
 import pytest
 import tensorflow as tf
 from absl.testing import parameterized
@@ -34,7 +35,7 @@ class ResNetV2PresetSmokeTest(tf.test.TestCase, parameterized.TestCase):
     """  # noqa: E501
 
     def setUp(self):
-        self.input_batch = tf.ones(shape=(8, 224, 224, 3))
+        self.input_batch = np.ones(shape=(8, 224, 224, 3))
 
     @parameterized.named_parameters(
         ("preset_with_weights", "resnet50_v2_imagenet"),
@@ -89,7 +90,7 @@ class ResNetV2PresetFullTest(tf.test.TestCase, parameterized.TestCase):
     """  # noqa: E501
 
     def test_load_resnetv2(self):
-        input_data = tf.ones(shape=(8, 224, 224, 3))
+        input_data = np.ones(shape=(8, 224, 224, 3))
         for preset in ResNetV2Backbone.presets:
             model = ResNetV2Backbone.from_preset(preset)
             model(input_data)
