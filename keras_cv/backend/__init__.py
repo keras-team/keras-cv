@@ -13,36 +13,52 @@
 # limitations under the License.
 from keras_cv.backend.config import multi_backend
 
+# Keys are of the form: "module.where.attr.exists->module.where.to.alias"
+# Value are of the form: ["attr1", "attr2", ...] or
+#                        [("attr1_original_name", "attr1_alias_name")]
+_KERAS_CORE_ALIASES = {
+    "saving->utils": [
+        "register_keras_serializable",
+        "deserialize_keras_object",
+        "serialize_keras_object",
+        "get_registered_object",
+    ],
+    "utils.file_utils->utils": ["get_file"],
+    "saving->layers": [
+        ("serialize_keras_object", "serialize"),
+        ("deserialize_keras_object", "deserialize"),
+    ],
+    "saving->models": ["load_model"],
+    "utils.naming->backend": ["get_uid"],
+}
+
+
 if multi_backend():
     import keras_core as keras
 
-    if not hasattr(keras.utils, "register_keras_serializable"):
-        keras.utils.register_keras_serializable = (
-            keras.saving.register_keras_serializable
-        )
-    if not hasattr(keras.utils, "deserialize_keras_object"):
-        keras.utils.deserialize_keras_object = (
-            keras.saving.deserialize_keras_object
-        )
-    if not hasattr(keras.utils, "serialize_keras_object"):
-        keras.utils.serialize_keras_object = keras.saving.serialize_keras_object
-    if not hasattr(keras.utils, "get_file"):
-        keras.utils.get_file = keras.utils.file_utils.get_file
-    if not hasattr(keras.utils, "get_registered_object"):
-        keras.utils.get_registered_object = keras.saving.get_registered_object
+    # add aliases
+    for key, value in _KERAS_CORE_ALIASES.items():
+        src, _, dst = key.partition("->")
+        src = src.split(".")
+        dst = dst.split(".")
 
-    if not hasattr(keras.layers, "serialize"):
-        keras.layers.serialize = keras.saving.serialize_keras_object
-    if not hasattr(keras.layers, "deserialize"):
-        keras.layers.deserialize = keras.saving.deserialize_keras_object
+        src_mod, dst_mod = keras, keras
 
-    if not hasattr(keras.models, "load_model"):
-        keras.models.load_model = keras.saving.load_model
+        # navigate to where we want to alias the attributes
+        for mod in src:
+            src_mod = getattr(src_mod, mod)
+        for mod in dst:
+            dst_mod = getattr(dst_mod, mod)
 
-    if not hasattr(keras.backend, "get_uid"):
-        keras.backend.get_uid = keras.utils.naming.get_uid
+        # add an alias for each attribute
+        for attr in value:
+            if isinstance(attr, tuple):
+                src_attr, dst_attr = attr
+            else:
+                src_attr, dst_attr = attr, attr
+            attr_val = getattr(src_mod, src_attr)
+            setattr(dst_mod, dst_attr, attr_val)
 else:
     from tensorflow import keras
 
-
-from keras_cv.backend import ops
+from keras_cv.backend import ops  # noqa: E402
