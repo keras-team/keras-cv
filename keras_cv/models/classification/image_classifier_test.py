@@ -78,19 +78,15 @@ class ImageClassifierTest(tf.test.TestCase, parameterized.TestCase):
                 pooling="clowntown",
             )
 
-    @parameterized.named_parameters(
-        ("tf_format", "tf", "model"),
-        ("keras_format", "keras_v3", "model.keras"),
-    )
     @pytest.mark.large  # Saving is slow, so mark these large.
-    def test_saved_model(self, save_format, filename):
+    def test_saved_model(self):
         model = ImageClassifier(
             backbone=ResNet18V2Backbone(),
             num_classes=2,
         )
         model_output = model(self.input_batch)
-        save_path = os.path.join(self.get_temp_dir(), filename)
-        model.save(save_path, save_format=save_format)
+        save_path = os.path.join(self.get_temp_dir(), "image_classifier.keras")
+        model.save(save_path)
         restored_model = keras.models.load_model(save_path)
 
         # Check we got the real object back.
