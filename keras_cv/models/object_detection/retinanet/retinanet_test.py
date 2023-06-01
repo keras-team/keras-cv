@@ -232,23 +232,34 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
         self.assertAllClose(model_output, restored_output)
 
 
-@pytest.mark.large
 class RetinaNetSmokeTest(tf.test.TestCase):
     def test_backbone_preset_weight_loading(self):
         # Check that backbone preset weights loaded correctly
         # TODO(lukewood): need to forward pass test once proper weights are
         # implemented
-        keras_cv.models.RetinaNet.from_preset(
-            "resnet50_v2_imagenet",
-            num_classes=20,
-            bounding_box_format="xywh",
-        )
+        weights = ["csp_darknet_tiny_imagenet", "csp_darknet_l_imagenet", 
+                   "efficientnetv2_b0_imagenet", "efficientnetv2_b1_imagenet", 
+                   "efficientnetv2_b2_imagenet", "efficientnetv2_s_imagenet",
+                   "mobilenet_v3_large_imagenet", "resnet50_imagenet",
+                   "resnet50_imagenet"]
+        for i in weights:
+            model = keras_cv.models.RetinaNet.from_preset(
+                "resnet50_v2_imagenet",
+                num_classes=20,
+                bounding_box_format="xywh",
+            )
+            xs, _ = _create_bounding_box_dataset(bounding_box_format="xywh")
+            output = model(xs)
+            self.assertEqual(output['box'].shape, (xs.shape[0], 49104, 4))
 
     def test_full_preset_weight_loading(self):
         # Check that backbone preset weights loaded correctly
         # TODO(lukewood): need to forward pass test once proper weights are
         # implemented
-        keras_cv.models.RetinaNet.from_preset(
+        model = keras_cv.models.RetinaNet.from_preset(
             "retinanet_resnet50_pascalvoc",
             bounding_box_format="xywh",
         )
+        xs, _ = _create_bounding_box_dataset(bounding_box_format="xywh")
+        output = model(xs)
+        self.assertEqual(output['box'].shape, (xs.shape[0], 49104, 4))
