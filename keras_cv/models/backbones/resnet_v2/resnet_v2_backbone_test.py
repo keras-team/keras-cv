@@ -114,10 +114,10 @@ class ResNetV2BackboneTest(tf.test.TestCase, parameterized.TestCase):
         levels = ["P2", "P3", "P4", "P5"]
         self.assertLen(outputs, 4)
         self.assertEquals(list(outputs.keys()), levels)
-        self.assertEquals(outputs["P2"].shape, [None, 64, 64, 256])
-        self.assertEquals(outputs["P3"].shape, [None, 32, 32, 512])
-        self.assertEquals(outputs["P4"].shape, [None, 16, 16, 1024])
-        self.assertEquals(outputs["P5"].shape, [None, 8, 8, 2048])
+        self.assertEquals(outputs["P2"].shape, (None, 64, 64, 256))
+        self.assertEquals(outputs["P3"].shape, (None, 32, 32, 512))
+        self.assertEquals(outputs["P4"].shape, (None, 16, 16, 1024))
+        self.assertEquals(outputs["P5"].shape, (None, 8, 8, 2048))
 
     def test_create_backbone_model_with_level_config(self):
         model = ResNetV2Backbone(
@@ -134,8 +134,8 @@ class ResNetV2BackboneTest(tf.test.TestCase, parameterized.TestCase):
         outputs = backbone_model(inputs)
         self.assertLen(outputs, 2)
         self.assertEquals(list(outputs.keys()), levels)
-        self.assertEquals(outputs["P3"].shape, [None, 32, 32, 512])
-        self.assertEquals(outputs["P4"].shape, [None, 16, 16, 1024])
+        self.assertEquals(outputs["P3"].shape, (None, 32, 32, 512))
+        self.assertEquals(outputs["P4"].shape, (None, 16, 16, 1024))
 
     @parameterized.named_parameters(
         ("one_channel", 1),
