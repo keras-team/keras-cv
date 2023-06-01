@@ -16,6 +16,7 @@
 
 import os
 
+import numpy as np
 import pytest
 import tensorflow as tf
 from absl.testing import parameterized
@@ -29,7 +30,7 @@ from keras_cv.models.classification.image_classifier import ImageClassifier
 
 class ImageClassifierTest(tf.test.TestCase, parameterized.TestCase):
     def setUp(self):
-        self.input_batch = tf.ones(shape=(2, 224, 224, 3))
+        self.input_batch = np.ones(shape=(2, 224, 224, 3))
         self.dataset = tf.data.Dataset.from_tensor_slices(
             (self.input_batch, tf.one_hot(tf.ones((2,), dtype="int32"), 2))
         ).batch(4)
@@ -109,7 +110,7 @@ class ImageClassifierPresetSmokeTest(tf.test.TestCase, parameterized.TestCase):
     """
 
     def setUp(self):
-        self.input_batch = tf.ones(shape=(2, 224, 224, 3))
+        self.input_batch = np.ones(shape=(2, 224, 224, 3))
 
     @parameterized.named_parameters(
         (
