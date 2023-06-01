@@ -15,15 +15,34 @@ from keras_cv.backend.config import multi_backend
 
 if multi_backend():
     import keras_core as keras
+
+    if not hasattr(keras.utils, "register_keras_serializable"):
+        keras.utils.register_keras_serializable = (
+            keras.saving.register_keras_serializable
+        )
+    if not hasattr(keras.utils, "deserialize_keras_object"):
+        keras.utils.deserialize_keras_object = (
+            keras.saving.deserialize_keras_object
+        )
+    if not hasattr(keras.utils, "serialize_keras_object"):
+        keras.utils.serialize_keras_object = keras.saving.serialize_keras_object
+    if not hasattr(keras.utils, "get_file"):
+        keras.utils.get_file = keras.utils.file_utils.get_file
+    if not hasattr(keras.utils, "get_registered_object"):
+        keras.utils.get_registered_object = keras.saving.get_registered_object
+
+    if not hasattr(keras.layers, "serialize"):
+        keras.layers.serialize = keras.saving.serialize_keras_object
+    if not hasattr(keras.layers, "deserialize"):
+        keras.layers.deserialize = keras.saving.deserialize_keras_object
+
+    if not hasattr(keras.models, "load_model"):
+        keras.models.load_model = keras.saving.load_model
+
+    if not hasattr(keras.backend, "get_uid"):
+        keras.backend.get_uid = keras.utils.naming.get_uid
 else:
     from tensorflow import keras
-
-    if not hasattr(keras.saving, "deserialize_keras_object"):
-        keras.saving.deserialize_keras_object = (
-            keras.utils.deserialize_keras_object
-        )
-    if not hasattr(keras.saving, "serialize_keras_object"):
-        keras.saving.serialize_keras_object = keras.utils.serialize_keras_object
 
 
 from keras_cv.backend import ops
