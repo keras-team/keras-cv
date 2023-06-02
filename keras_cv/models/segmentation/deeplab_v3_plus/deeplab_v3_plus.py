@@ -20,7 +20,7 @@ from keras_cv.models.task import Task
 
 
 @keras.utils.register_keras_serializable(package="keras_cv")
-class DeepLabV3(Task):
+class DeepLabV3Plus(Task):
     """A Keras model implementing the DeepLabV3 and DeepLabV3+ architectures
     for semantic segmentation.
 
@@ -40,15 +40,10 @@ class DeepLabV3(Task):
             `keras_cv.models.backbones.backbone.Backbone`. A somewhat sensible
             backbone to use in many cases is the:
             `keras_cv.models.ResNet50V2Backbone.from_preset("resnet50_v2_imagenet")`.
-        use_low_level_features: bool, whether to combine low-level features from
-            the backbone with the output of the encoder or not. If set to `True`,
-            the model is DeepLabV3+, otherwise it is DeepLabV3.
         projection_filters: int, number of filters in the
             convolution layer projecting low-level features from the `backbone`.
             The default value is set to `48`, as per the
             [TensorFlow implementation of DeepLab](https://github.com/tensorflow/models/blob/master/research/deeplab/model.py#L676).
-            This parameter is only relevant if `use_low_level_features` is also
-            specified.
         spatial_pyramid_pooling: (Optional) a `keras.layers.Layer`. Also known
             as Atrous Spatial Pyramid Pooling (ASPP). Performs spatial pooling
             on different spatial levels in the pyramid, with dilation. If
@@ -68,7 +63,7 @@ class DeepLabV3(Task):
     images = tf.ones(shape=(1, 96, 96, 3))
     labels = tf.zeros(shape=(1, 96, 96, 1))
     backbone = keras_cv.models.ResNet50V2Backbone(input_shape=[96, 96, 3])
-    model = keras_cv.models.segmentation.DeepLabV3(
+    model = keras_cv.models.segmentation.DeepLabV3Plus(
         num_classes=1, backbone=backbone,
     )
 
@@ -89,7 +84,6 @@ class DeepLabV3(Task):
         self,
         num_classes,
         backbone,
-        use_low_level_features=False,
         projection_filters=48,
         spatial_pyramid_pooling=None,
         segmentation_head=None,
@@ -106,77 +100,57 @@ class DeepLabV3(Task):
             )
 
         inputs = backbone.input
-        input_shape = backbone.input_shape[1:]
-        input_tensor = backbone.input_tensor
 
-        if input_shape[0] is None and input_shape[1] is None:
-            input_shape = backbone.input_shape[1:]
-            inputs = keras.Input(tensor=input_tensor, shape=input_shape)
-
-        if input_shape[0] is None and input_shape[1] is None:
-            raise ValueError(
-                "Input shapes for both the backbone and DeepLabV3 cannot be "
-                "`None`. Received: input_shape={input_shape} and "
-                "backbone.input_shape={backbone.input_shape[1:]}"
-            )
-
-        height = input_shape[0]
-        width = input_shape[1]
-
+        final_backbone_pyramid_output = backbone.get_layer(
+            list(backbone.pyramid_level_inputs.values())[-1]
+        ).output
         feature_extractor = keras.Model(
             inputs=backbone.input,
-            outputs=backbone.get_layer(
-                list(backbone.pyramid_level_inputs.values())[-1]
-            ).output,
+            outputs=final_backbone_pyramid_output,
+            name="feature-extractor",
         )
         feature_map = feature_extractor(inputs)
+
         if spatial_pyramid_pooling is None:
             spatial_pyramid_pooling = SpatialPyramidPooling(
                 dilation_rates=[6, 12, 18]
             )
-
         spp_outputs = spatial_pyramid_pooling(feature_map)
 
         encoder_outputs = keras.layers.UpSampling2D(
-            size=(
-                height // 4 // spp_outputs.shape[1],
-                width // 4 // spp_outputs.shape[2],
-            ),
+            size=(8, 8),
             interpolation="bilinear",
+            name="encoder_output_upsampling",
         )(spp_outputs)
 
-        if use_low_level_features:
-            low_level_feature_extractor = keras.Model(
-                inputs=backbone.input,
-                outputs=backbone.get_layer(
-                    backbone.pyramid_level_inputs["P2"]
-                ).output,
-            )
-            low_level_feature_projector = keras.Sequential(
-                [
-                    keras.layers.Conv2D(
-                        name="low_level_feature_conv",
-                        filters=projection_filters,
-                        kernel_size=1,
-                        padding="same",
-                        use_bias=False,
-                    ),
-                    keras.layers.BatchNormalization(
-                        name="low_level_feature_norm"
-                    ),
-                    keras.layers.ReLU(name="low_level_feature_relu"),
-                ]
-            )
+        low_level_feature_extractor = keras.Model(
+            inputs=backbone.input,
+            outputs=backbone.get_layer(
+                backbone.pyramid_level_inputs["P2"]
+            ).output,
+            name="low-level-feature-extractor",
+        )
+        low_level_feature_projector = keras.Sequential(
+            [
+                keras.layers.Conv2D(
+                    name="low_level_feature_conv",
+                    filters=projection_filters,
+                    kernel_size=1,
+                    padding="same",
+                    use_bias=False,
+                ),
+                keras.layers.BatchNormalization(name="low_level_feature_norm"),
+                keras.layers.ReLU(name="low_level_feature_relu"),
+            ]
+        )
 
-            low_level_features = low_level_feature_extractor(inputs)
-            low_level_projected_features = low_level_feature_projector(
-                low_level_features
-            )
-            combined_encoder_outputs = keras.layers.Concatenate(axis=-1)(
-                [encoder_outputs, low_level_projected_features]
-            )
-        else:
-            combined_encoder_outputs = encoder_outputs
+        low_level_features = low_level_feature_extractor(inputs)
+        low_level_projected_features = low_level_feature_projector(
+            low_level_features
+        )
+        combined_encoder_outputs = keras.layers.Concatenate(axis=-1)(
+            [encoder_outputs, low_level_projected_features]
+        )
 
         if segmentation_head is None:
             segmentation_head = keras.Sequential(
@@ -227,7 +201,6 @@ class DeepLabV3(Task):
 
         self.num_classes = num_classes
         self.backbone = backbone
-        self.use_low_level_features = use_low_level_features
         self.spatial_pyramid_pooling = spatial_pyramid_pooling
         self.projection_filters = projection_filters
         self.segmentation_head = segmentation_head
@@ -236,7 +209,6 @@ class DeepLabV3(Task):
         return {
             "num_classes": self.num_classes,
             "backbone": self.backbone,
-            "use_low_level_features": self.use_low_level_features,
             "spatial_pyramid_pooling": self.spatial_pyramid_pooling,
             "projection_filters": self.projection_filters,
             "segmentation_head": self.segmentation_head,

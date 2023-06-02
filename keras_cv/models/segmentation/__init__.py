@@ -12,4 +12,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from keras_cv.models.segmentation.deeplab_v3 import DeepLabV3
+from keras_cv.models.segmentation.deeplab_v3_plus import DeepLabV3Plus
