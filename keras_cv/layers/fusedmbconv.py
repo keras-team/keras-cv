@@ -13,9 +13,7 @@
 # limitations under the License.
 
 
-from keras import backend
-from tensorflow import keras
-from tensorflow.keras import layers
+from keras_cv.backend import keras
 
 BN_AXIS = 3
 
@@ -30,7 +28,7 @@ CONV_KERNEL_INITIALIZER = {
 
 
 @keras.utils.register_keras_serializable(package="keras_cv")
-class FusedMBConvBlock(layers.Layer):
+class FusedMBConvBlock(keras.layers.Layer):
     """
     Implementation of the FusedMBConv block (Fused Mobile Inverted Residual
     Bottleneck) from:
@@ -112,7 +110,7 @@ class FusedMBConvBlock(layers.Layer):
         self.filters = self.input_filters * self.expand_ratio
         self.filters_se = max(1, int(input_filters * se_ratio))
 
-        self.conv1 = layers.Conv2D(
+        self.conv1 = keras.layers.Conv2D(
             filters=self.filters,
             kernel_size=kernel_size,
             strides=strides,
@@ -122,20 +120,20 @@ class FusedMBConvBlock(layers.Layer):
             use_bias=False,
             name=self.name + "expand_conv",
         )
-        self.bn1 = layers.BatchNormalization(
+        self.bn1 = keras.layers.BatchNormalization(
             axis=BN_AXIS,
             momentum=self.bn_momentum,
             name=self.name + "expand_bn",
         )
-        self.act = layers.Activation(
+        self.act = keras.layers.Activation(
             self.activation, name=self.name + "expand_activation"
         )
 
-        self.bn2 = layers.BatchNormalization(
+        self.bn2 = keras.layers.BatchNormalization(
             axis=BN_AXIS, momentum=self.bn_momentum, name=self.name + "bn"
         )
 
-        self.se_conv1 = layers.Conv2D(
+        self.se_conv1 = keras.layers.Conv2D(
             self.filters_se,
             1,
             padding="same",
@@ -144,7 +142,7 @@ class FusedMBConvBlock(layers.Layer):
             name=self.name + "se_reduce",
         )
 
-        self.se_conv2 = layers.Conv2D(
+        self.se_conv2 = keras.layers.Conv2D(
             self.filters,
             1,
             padding="same",
@@ -153,7 +151,7 @@ class FusedMBConvBlock(layers.Layer):
             name=self.name + "se_expand",
         )
 
-        self.output_conv = layers.Conv2D(
+        self.output_conv = keras.layers.Conv2D(
             filters=self.output_filters,
             kernel_size=1 if expand_ratio != 1 else kernel_size,
             strides=1,
@@ -164,7 +162,7 @@ class FusedMBConvBlock(layers.Layer):
             name=self.name + "project_conv",
         )
 
-        self.bn3 = layers.BatchNormalization(
+        self.bn3 = keras.layers.BatchNormalization(
             axis=BN_AXIS,
             momentum=self.bn_momentum,
             name=self.name + "project_bn",
@@ -172,7 +170,7 @@ class FusedMBConvBlock(layers.Layer):
 
     def build(self, input_shape):
         if self.name is None:
-            self.name = backend.get_uid("block0")
+            self.name = keras.backend.get_uid("block0")
 
     def call(self, inputs):
         # Expansion phase
@@ -185,18 +183,22 @@ class FusedMBConvBlock(layers.Layer):
 
         # Squeeze and excite
         if 0 < self.se_ratio <= 1:
-            se = layers.GlobalAveragePooling2D(name=self.name + "se_squeeze")(x)
+            se = keras.layers.GlobalAveragePooling2D(
+                name=self.name + "se_squeeze"
+            )(x)
             if BN_AXIS == 1:
                 se_shape = (self.filters, 1, 1)
             else:
                 se_shape = (1, 1, self.filters)
 
-            se = layers.Reshape(se_shape, name=self.name + "se_reshape")(se)
+            se = keras.layers.Reshape(se_shape, name=self.name + "se_reshape")(
+                se
+            )
 
             se = self.se_conv1(se)
             se = self.se_conv2(se)
 
-            x = layers.multiply([x, se], name=self.name + "se_excite")
+            x = keras.layers.multiply([x, se], name=self.name + "se_excite")
 
         # Output phase:
         x = self.output_conv(x)
@@ -207,12 +209,12 @@ class FusedMBConvBlock(layers.Layer):
         # Residual:
         if self.strides == 1 and self.input_filters == self.output_filters:
             if self.survival_probability:
-                x = layers.Dropout(
+                x = keras.layers.Dropout(
                     self.survival_probability,
                     noise_shape=(None, 1, 1, 1),
                     name=self.name + "drop",
                 )(x)
-            x = layers.add([x, inputs], name=self.name + "add")
+            x = keras.layers.add([x, inputs], name=self.name + "add")
         return x
 
     def get_config(self):
