@@ -16,7 +16,6 @@ import tensorflow as tf
 from tensorflow import keras
 
 from keras_cv.layers.spatial_pyramid import SpatialPyramidPooling
-from keras_cv.models.legacy import utils
 from keras_cv.models.task import Task
 
 
