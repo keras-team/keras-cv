@@ -41,23 +41,21 @@ class DeepLabV3(Task):
             `keras_cv.models.backbones.backbone.Backbone`. A somewhat sensible
             backbone to use in many cases is the:
             `keras_cv.models.ResNet50V2Backbone.from_preset("resnet50_v2_imagenet")`.
+        use_low_level_features: bool, whether to combine low-level features from
+            the backbone with the output of the encoder or not. If set to `True`,
+            the model is DeepLabV3+, otherwise it is DeepLabV3.
+        projection_filters: int, number of filters in the
+            convolution layer projecting low-level features from the `backbone`.
+            The default value is set to `48`, as per the
+            [TensorFlow implementation of DeepLab](https://github.com/tensorflow/models/blob/master/research/deeplab/model.py#L676).
+            This parameter is only relevant if `use_low_level_features` is also
+            specified.
         spatial_pyramid_pooling: (Optional) a `keras.layers.Layer`. Also known
             as Atrous Spatial Pyramid Pooling (ASPP). Performs spatial pooling
             on different spatial levels in the pyramid, with dilation. If
             provided, the feature map from the backbone is passed to it inside
             the DeepLabV3 Encoder, otherwise
             `keras_cv.layers.spatial_pyramid.SpatialPyramidPooling` is used.
-        low_level_feature_pyramid_level: (Optional) str, which refers to the
-            pyramid level the `backbone` from which the low-level features
-            will be extracted and combined with the encoder features to be
-            passed to the `segmentation_head`. If not specified, no low-level
-            features from the `backbone` will be combined with the encoder
-            output and the resulting architecture is that of a DeepLabV3 model,
-            otherwise a DeepLabV3+ model.
-        projection_filters: (Optional) int, number of filters in the
-            convolution layer projecting low-level features from the
-            `backbone`. This parameter is only relevant if
-            `low_level_feature_pyramid_level` is also specified.
         segmentation_head: (Optional) a `keras.layers.Layer`. If provided, the
             outputs of the DeepLabV3 encoder is passed to this layer and it
             should predict the segmentation mask based on feature from backbone
@@ -72,9 +70,7 @@ class DeepLabV3(Task):
     labels = tf.zeros(shape=(1, 96, 96, 1))
     backbone = keras_cv.models.ResNet50V2Backbone(input_shape=[96, 96, 3])
     model = keras_cv.models.segmentation.DeepLabV3(
-        num_classes=1,
-        backbone=backbone,
-        low_level_feature_pyramid_level="v2_stack_0_block1_2_relu"
+        num_classes=1, backbone=backbone,
     )
 
     # Evaluate model
@@ -94,9 +90,9 @@ class DeepLabV3(Task):
         self,
         num_classes,
         backbone,
+        use_low_level_features=False,
+        projection_filters=48,
         spatial_pyramid_pooling=None,
-        low_level_feature_pyramid_level=None,
-        projection_filters=None,
         segmentation_head=None,
         dropout=0.0,
         **kwargs,
@@ -128,7 +124,13 @@ class DeepLabV3(Task):
         height = input_shape[0]
         width = input_shape[1]
 
-        feature_map = backbone(inputs)
+        feature_extractor = keras.Model(
+            inputs=backbone.input,
+            outputs=backbone.get_layer(
+                list(backbone.pyramid_level_inputs.values())[-1]
+            ).output,
+        )
+        feature_map = feature_extractor(inputs)
         if spatial_pyramid_pooling is None:
             spatial_pyramid_pooling = SpatialPyramidPooling(
                 dilation_rates=[6, 12, 18]
@@ -144,13 +146,11 @@ class DeepLabV3(Task):
             interpolation="bilinear",
         )(spp_outputs)
 
-        if low_level_feature_pyramid_level is not None:
+        if use_low_level_features:
             low_level_feature_extractor = keras.Model(
                 inputs=backbone.input,
                 outputs=backbone.get_layer(
-                    backbone.pyramid_level_inputs[
-                        f"P{low_level_feature_pyramid_level}"
-                    ]
+                    backbone.pyramid_level_inputs["P2"]
                 ).output,
             )
             low_level_feature_projector = keras.Sequential(
@@ -228,8 +228,8 @@ class DeepLabV3(Task):
 
         self.num_classes = num_classes
         self.backbone = backbone
+        self.use_low_level_features = use_low_level_features
         self.spatial_pyramid_pooling = spatial_pyramid_pooling
-        self.low_level_feature_pyramid_level = low_level_feature_pyramid_level
         self.projection_filters = projection_filters
         self.segmentation_head = segmentation_head
 
@@ -237,8 +237,8 @@ class DeepLabV3(Task):
         return {
             "num_classes": self.num_classes,
             "backbone": self.backbone,
+            "use_low_level_features": self.use_low_level_features,
             "spatial_pyramid_pooling": self.spatial_pyramid_pooling,
-            "low_level_feature_pyramid_level": self.low_level_feature_pyramid_level,
             "projection_filters": self.projection_filters,
             "segmentation_head": self.segmentation_head,
         }
