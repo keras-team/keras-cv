@@ -47,13 +47,13 @@ class DeepLabV3(Task):
             provided, the feature map from the backbone is passed to it inside
             the DeepLabV3 Encoder, otherwise
             `keras_cv.layers.spatial_pyramid.SpatialPyramidPooling` is used.
-        low_level_feature_pyramid_level: (Optional) str, which refers to the name
-            of the intermediate layer from the `backbone` from which the
-            low-level features will be extracted and combined with the encoder
-            features to be passed to the `segmentation_head`. If not specified,
-            no low-level features from the `backbone` will be combined with the
-            encoder output and the resulting architecture is that of a
-            DeepLabV3 model, otherwise a DeepLabV3+ model.
+        low_level_feature_pyramid_level: (Optional) str, which refers to the
+            pyramid level the `backbone` from which the low-level features
+            will be extracted and combined with the encoder features to be
+            passed to the `segmentation_head`. If not specified, no low-level
+            features from the `backbone` will be combined with the encoder
+            output and the resulting architecture is that of a DeepLabV3 model,
+            otherwise a DeepLabV3+ model.
         projection_filters: (Optional) int, number of filters in the
             convolution layer projecting low-level features from the
             `backbone`. This parameter is only relevant if
