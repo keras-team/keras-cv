@@ -62,9 +62,6 @@ class DeepLabV3(Task):
             outputs of the DeepLabV3 encoder is passed to this layer and it
             should predict the segmentation mask based on feature from backbone
             and feature from decoder, otherwise a similar architecture is used.
-        input_shape: optional shape tuple, defaults to `(None, None, 3)`.
-        input_tensor: optional Keras tensor (i.e., output of `layers.Input()`)
-            to use as image input for the model.
 
     Examples:
     ```python
@@ -102,8 +99,6 @@ class DeepLabV3(Task):
         projection_filters=None,
         segmentation_head=None,
         dropout=0.0,
-        input_shape=(None, None, 3),
-        input_tensor=None,
         **kwargs,
     ):
         if not isinstance(backbone, keras.layers.Layer) or not isinstance(
@@ -115,7 +110,9 @@ class DeepLabV3(Task):
                 f"backbone={backbone} (of type {type(backbone)})."
             )
 
-        inputs = utils.parse_model_inputs(input_shape, input_tensor)
+        inputs = backbone.input
+        input_shape = backbone.input_shape[1:]
+        input_tensor = backbone.input_tensor
 
         if input_shape[0] is None and input_shape[1] is None:
             input_shape = backbone.input_shape[1:]
