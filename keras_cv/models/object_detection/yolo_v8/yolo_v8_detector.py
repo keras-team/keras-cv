@@ -324,8 +324,8 @@ class YOLOV8Detector(Task):
 
     Args:
         backbone: `keras.Model`, must implement the `pyramid_level_inputs`
-            property with keys 2, 3, and 4 and layer names as values. A
-            sensible backbone to use is the `keras_cv.models.YOLOV8Backbone`.
+            property with keys "P2", "P3", and "P4" and layer names as values.
+            A sensible backbone to use is the `keras_cv.models.YOLOV8Backbone`.
         num_classes: integer, the number of classes in your dataset excluding the
             background class. Classes should be represented by integers in the
             range [0, num_classes).
@@ -396,10 +396,9 @@ class YOLOV8Detector(Task):
         prediction_decoder=None,
         **kwargs,
     ):
-        # Using strings to keep the TF saving flow happy.
-        extractor_levels = ["3", "4", "5"]
+        extractor_levels = ["P3", "P4", "P5"]
         extractor_layer_names = [
-            backbone.pyramid_level_inputs[int(i)] for i in extractor_levels
+            backbone.pyramid_level_inputs[i] for i in extractor_levels
         ]
         feature_extractor = get_feature_extractor(
             backbone, extractor_layer_names, extractor_levels
@@ -427,7 +426,7 @@ class YOLOV8Detector(Task):
         super().__init__(inputs=images, outputs=outputs, **kwargs)
 
         self.bounding_box_format = bounding_box_format
-        self.prediction_decoder = (
+        self._prediction_decoder = (
             prediction_decoder
             or keras_cv.layers.MultiClassNonMaxSuppression(
                 bounding_box_format=bounding_box_format,
@@ -608,6 +607,26 @@ class YOLOV8Detector(Task):
     def make_predict_function(self, force=False):
         return predict_utils.make_predict_function(self, force=force)
 
+    @property
+    def prediction_decoder(self):
+        return self._prediction_decoder
+
+    @prediction_decoder.setter
+    def prediction_decoder(self, prediction_decoder):
+        if prediction_decoder.bounding_box_format != self.bounding_box_format:
+            raise ValueError(
+                "Expected `prediction_decoder` and YOLOV8Detector to "
+                "use the same `bounding_box_format`, but got "
+                "`prediction_decoder.bounding_box_format="
+                f"{prediction_decoder.bounding_box_format}`, and "
+                "`self.bounding_box_format="
+                f"{self.bounding_box_format}`."
+            )
+        self._prediction_decoder = prediction_decoder
+        self.make_predict_function(force=True)
+        self.make_train_function(force=True)
+        self.make_test_function(force=True)
+
     def get_config(self):
         return {
             "num_classes": self.num_classes,
@@ -615,7 +634,7 @@ class YOLOV8Detector(Task):
             "fpn_depth": self.fpn_depth,
             "backbone": keras.utils.serialize_keras_object(self.backbone),
             "label_encoder": self.label_encoder,
-            "prediction_decoder": self.prediction_decoder,
+            "prediction_decoder": self._prediction_decoder,
         }
 
     @classproperty
