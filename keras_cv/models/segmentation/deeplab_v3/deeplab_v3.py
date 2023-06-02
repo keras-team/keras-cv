@@ -218,7 +218,6 @@ class DeepLabV3(Task):
                 )
             )
 
-        # Segmentation head expects a multiple-level output dictionary
         outputs = segmentation_head(combined_encoder_outputs)
 
         super().__init__(inputs=inputs, outputs=outputs, **kwargs)
