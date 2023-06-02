@@ -22,8 +22,8 @@ from keras_cv.models.task import Task
 
 @keras.utils.register_keras_serializable(package="keras_cv")
 class DeepLabV3(Task):
-    """A Keras model implementing the DeepLabV3 and DeepLabV3+ architectures for semantic
-    segmentation.
+    """A Keras model implementing the DeepLabV3 and DeepLabV3+ architectures
+    for semantic segmentation.
 
     References:
         - [Encoder-Decoder with Atrous Separable Convolution for Semantic Image Segmentation](https://arxiv.org/abs/1802.02611)
@@ -36,30 +36,32 @@ class DeepLabV3(Task):
             that the `num_classes` doesn't contain the background class, and the
             classes from the data should be represented by integers with range
             [0, `num_classes`).
-        backbone: `keras.Model`. The backbone network for the model that is used as
-            a feature extractor for the DeepLabV3 Encoder. Should be a
+        backbone: `keras.Model`. The backbone network for the model that is
+            used as a feature extractor for the DeepLabV3 Encoder. Should be a
             `keras_cv.models.backbones.backbone.Backbone`. A somewhat sensible
             backbone to use in many cases is the:
             `keras_cv.models.ResNet50V2Backbone.from_preset("resnet50_v2_imagenet")`.
-        spatial_pyramid_pooling: (Optional) a `keras.layers.Layer`. Also known as
-            Atrous Spatial Pyramid Pooling (ASPP). Performs spatial pooling on
-            different spatial levels in the pyramid, with dilation. If provided,
-            the feature map from the backbone is passed to it inside the DeepLabV3
-            Encoder, otherwise `keras_cv.layers.spatial_pyramid.SpatialPyramidPooling`
-            is used.
-        low_level_feature_layer_name: (Optional) str, which refers to the name of the
-            intermediate layer from the `backbone` from which the low-level features
-            will be extracted and combined with the encoder features to be passed to
-            the `segmentation_head`. If not specified, no low-level features from the
-            `backbone` will be combined with the encoder output and the resulting
-            architecture is that of a DeepLabV3 model, otherwise a DeepLabV3+ model.
-        projection_filters: (Optional) int, number of filters in the convolution layer
-            projecting low-level features from the `backbone`. This parameter is only
-            relevant if `low_level_feature_layer_name` is also specified.
+        spatial_pyramid_pooling: (Optional) a `keras.layers.Layer`. Also known
+            as Atrous Spatial Pyramid Pooling (ASPP). Performs spatial pooling
+            on different spatial levels in the pyramid, with dilation. If
+            provided, the feature map from the backbone is passed to it inside
+            the DeepLabV3 Encoder, otherwise
+            `keras_cv.layers.spatial_pyramid.SpatialPyramidPooling` is used.
+        low_level_feature_layer_name: (Optional) str, which refers to the name
+            of the intermediate layer from the `backbone` from which the
+            low-level features will be extracted and combined with the encoder
+            features to be passed to the `segmentation_head`. If not specified,
+            no low-level features from the `backbone` will be combined with the
+            encoder output and the resulting architecture is that of a
+            DeepLabV3 model, otherwise a DeepLabV3+ model.
+        projection_filters: (Optional) int, number of filters in the
+            convolution layer projecting low-level features from the
+            `backbone`. This parameter is only relevant if
+            `low_level_feature_layer_name` is also specified.
         segmentation_head: (Optional) a `keras.layers.Layer`. If provided, the
-            outputs of the DeepLabV3 encoder is passed to this layer and it should
-            predict the segmentation mask based on feature from backbone and feature
-            from decoder, otherwise a similar architecture is used.
+            outputs of the DeepLabV3 encoder is passed to this layer and it
+            should predict the segmentation mask based on feature from backbone
+            and feature from decoder, otherwise a similar architecture is used.
         segmentation_head_activation: Optional `str` or function, activation
             functions between the `keras.layers.Conv2D` layers and the final
             classification layer, defaults to `"relu"`.
