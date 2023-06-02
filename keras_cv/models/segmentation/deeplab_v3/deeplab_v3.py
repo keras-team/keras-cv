@@ -71,7 +71,7 @@ class DeepLabV3(Task):
     images = tf.ones(shape=(1, 96, 96, 3))
     labels = tf.zeros(shape=(1, 96, 96, 1))
     backbone = keras_cv.models.ResNet50V2Backbone(input_shape=[96, 96, 3])
-    model = keras_cv.model.segmentation.DeepLabV3(
+    model = keras_cv.models.segmentation.DeepLabV3(
         num_classes=1,
         backbone=backbone,
         low_level_feature_layer_name="v2_stack_0_block1_2_relu"
