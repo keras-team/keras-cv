@@ -20,6 +20,7 @@ from absl.testing import parameterized
 from tensorflow import keras
 
 import keras_cv
+from keras_cv import bounding_box
 from keras_cv.models.object_detection.__test_utils__ import (
     _create_bounding_box_dataset,
 )
@@ -47,7 +48,31 @@ class YOLOV8DetectorTest(tf.test.TestCase, parameterized.TestCase):
             box_loss="iou",
         )
         xs, ys = _create_bounding_box_dataset(bounding_box_format)
+
         yolo.fit(x=xs, y=ys, epochs=1)
+
+    @pytest.mark.large  # Fit is slow, so mark these large.
+    def test_throws_with_ragged_tensors(self):
+        bounding_box_format = "xywh"
+        yolo = keras_cv.models.YOLOV8Detector(
+            num_classes=2,
+            fpn_depth=1,
+            bounding_box_format=bounding_box_format,
+            backbone=keras_cv.models.YOLOV8Backbone.from_preset(
+                "yolo_v8_xs_backbone"
+            ),
+        )
+
+        yolo.compile(
+            optimizer="adam",
+            classification_loss="binary_crossentropy",
+            box_loss="iou",
+        )
+        xs, ys = _create_bounding_box_dataset(bounding_box_format)
+        ys = bounding_box.to_ragged(ys)
+
+        with self.assertRaisesRegex(ValueError, "does not support Ragged"):
+            yolo.fit(x=xs, y=ys, epochs=1)
 
     def test_trainable_weight_count(self):
         yolo = keras_cv.models.YOLOV8Detector(
@@ -111,6 +136,39 @@ class YOLOV8DetectorTest(tf.test.TestCase, parameterized.TestCase):
         # Check that output matches.
         restored_output = restored_model(xs)
         self.assertAllClose(model_output, restored_output)
+
+    def test_update_prediction_decoder(self):
+        yolo = keras_cv.models.YOLOV8Detector(
+            num_classes=2,
+            fpn_depth=1,
+            bounding_box_format="xywh",
+            backbone=keras_cv.models.YOLOV8Backbone.from_preset(
+                "yolo_v8_s_backbone"
+            ),
+            prediction_decoder=keras_cv.layers.MultiClassNonMaxSuppression(
+                bounding_box_format="xywh",
+                from_logits=False,
+                confidence_threshold=0.0,
+                iou_threshold=1.0,
+            ),
+        )
+
+        image = tf.ones((1, 512, 512, 3))
+
+        outputs = yolo.predict(image)
+        # We predicted at least 1 box with confidence_threshold 0
+        self.assertGreater(outputs["boxes"]._values.shape[0], 0)
+
+        yolo.prediction_decoder = keras_cv.layers.MultiClassNonMaxSuppression(
+            bounding_box_format="xywh",
+            from_logits=False,
+            confidence_threshold=1.0,
+            iou_threshold=1.0,
+        )
+
+        outputs = yolo.predict(image)
+        # We predicted no boxes with confidence threshold 1
+        self.assertEqual(outputs["boxes"]._values.shape[0], 0)
 
 
 @pytest.mark.large
