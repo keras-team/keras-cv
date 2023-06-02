@@ -62,9 +62,6 @@ class DeepLabV3(Task):
             outputs of the DeepLabV3 encoder is passed to this layer and it
             should predict the segmentation mask based on feature from backbone
             and feature from decoder, otherwise a similar architecture is used.
-        segmentation_head_activation: Optional `str` or function, activation
-            functions between the `keras.layers.Conv2D` layers and the final
-            classification layer, defaults to `"relu"`.
         input_shape: optional shape tuple, defaults to `(None, None, 3)`.
         input_tensor: optional Keras tensor (i.e., output of `layers.Input()`)
             to use as image input for the model.
@@ -104,7 +101,6 @@ class DeepLabV3(Task):
         low_level_feature_layer_name=None,
         projection_filters=None,
         segmentation_head=None,
-        segmentation_head_activation="softmax",
         dropout=0.0,
         input_shape=(None, None, 3),
         input_tensor=None,
@@ -236,7 +232,6 @@ class DeepLabV3(Task):
         self.low_level_feature_layer_name = low_level_feature_layer_name
         self.projection_filters = projection_filters
         self.segmentation_head = segmentation_head
-        self.segmentation_head_activation = segmentation_head_activation
 
     def get_config(self):
         return {
@@ -246,7 +241,6 @@ class DeepLabV3(Task):
             "low_level_feature_layer_name": self.low_level_feature_layer_name,
             "projection_filters": self.projection_filters,
             "segmentation_head": self.segmentation_head,
-            "segmentation_head_activation": self.segmentation_head_activation,
         }
 
     def build(self, input_shape):
