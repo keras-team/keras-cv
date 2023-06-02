@@ -47,7 +47,7 @@ class DeepLabV3(Task):
             provided, the feature map from the backbone is passed to it inside
             the DeepLabV3 Encoder, otherwise
             `keras_cv.layers.spatial_pyramid.SpatialPyramidPooling` is used.
-        low_level_feature_layer_name: (Optional) str, which refers to the name
+        low_level_feature_pyramid_level: (Optional) str, which refers to the name
             of the intermediate layer from the `backbone` from which the
             low-level features will be extracted and combined with the encoder
             features to be passed to the `segmentation_head`. If not specified,
@@ -57,7 +57,7 @@ class DeepLabV3(Task):
         projection_filters: (Optional) int, number of filters in the
             convolution layer projecting low-level features from the
             `backbone`. This parameter is only relevant if
-            `low_level_feature_layer_name` is also specified.
+            `low_level_feature_pyramid_level` is also specified.
         segmentation_head: (Optional) a `keras.layers.Layer`. If provided, the
             outputs of the DeepLabV3 encoder is passed to this layer and it
             should predict the segmentation mask based on feature from backbone
@@ -74,7 +74,7 @@ class DeepLabV3(Task):
     model = keras_cv.models.segmentation.DeepLabV3(
         num_classes=1,
         backbone=backbone,
-        low_level_feature_layer_name="v2_stack_0_block1_2_relu"
+        low_level_feature_pyramid_level="v2_stack_0_block1_2_relu"
     )
 
     # Evaluate model
@@ -95,7 +95,7 @@ class DeepLabV3(Task):
         num_classes,
         backbone,
         spatial_pyramid_pooling=None,
-        low_level_feature_layer_name=None,
+        low_level_feature_pyramid_level=None,
         projection_filters=None,
         segmentation_head=None,
         dropout=0.0,
@@ -144,10 +144,14 @@ class DeepLabV3(Task):
             interpolation="bilinear",
         )(spp_outputs)
 
-        if low_level_feature_layer_name is not None:
+        if low_level_feature_pyramid_level is not None:
             low_level_feature_extractor = keras.Model(
                 inputs=backbone.input,
-                outputs=backbone.get_layer(low_level_feature_layer_name).output,
+                outputs=backbone.get_layer(
+                    backbone.pyramid_level_inputs[
+                        f"P{low_level_feature_pyramid_level}"
+                    ]
+                ).output,
             )
             low_level_feature_projector = keras.Sequential(
                 [
@@ -225,7 +229,7 @@ class DeepLabV3(Task):
         self.num_classes = num_classes
         self.backbone = backbone
         self.spatial_pyramid_pooling = spatial_pyramid_pooling
-        self.low_level_feature_layer_name = low_level_feature_layer_name
+        self.low_level_feature_pyramid_level = low_level_feature_pyramid_level
         self.projection_filters = projection_filters
         self.segmentation_head = segmentation_head
 
@@ -234,7 +238,7 @@ class DeepLabV3(Task):
             "num_classes": self.num_classes,
             "backbone": self.backbone,
             "spatial_pyramid_pooling": self.spatial_pyramid_pooling,
-            "low_level_feature_layer_name": self.low_level_feature_layer_name,
+            "low_level_feature_pyramid_level": self.low_level_feature_pyramid_level,
             "projection_filters": self.projection_filters,
             "segmentation_head": self.segmentation_head,
         }
