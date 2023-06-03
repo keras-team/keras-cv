@@ -279,7 +279,36 @@ class RetinaNetSmokeTest(tf.test.TestCase):
         xs, _ = _create_bounding_box_dataset(bounding_box_format="xywh")
         output = model(xs)
 
-        # How to get expected_box as on every run it will be different
-        expected_box = []
+        expected_box = tf.constant(
+            [-0.40364307, 0.15742484, -1.3398054, 0.38104224]
+        )
+        self.assertAllClose(output["box"][0, 123, :], expected_box, atol=0.2)
 
-        self.assertTrue(output["box"][0, 123, :], expected_box)
+        expected_class = tf.constant(
+            [
+                -8.110557,
+                -7.5584545,
+                -7.9096074,
+                -8.163499,
+                -6.721413,
+                -7.8551226,
+                -6.9021387,
+                -8.499062,
+                -6.190583,
+                -7.294302,
+                -6.341216,
+                -7.6847053,
+                -7.8064694,
+                -7.7984314,
+                -6.5489616,
+                -6.524928,
+                -7.1218467,
+                -7.070874,
+                -8.457317,
+                -6.167918,
+            ]
+        )
+        expected_class = tf.reshape(expected_class, (20,))
+        self.assertAllClose(
+            output["classification"][0, 123], expected_class, atol=0.2
+        )
