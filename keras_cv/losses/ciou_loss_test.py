@@ -15,6 +15,7 @@
 import numpy as np
 import tensorflow as tf
 from absl.testing import parameterized
+
 from keras_cv.losses.ciou_loss import CIoULoss
 
 
@@ -66,8 +67,8 @@ class CIoUTest(tf.test.TestCase, parameterized.TestCase):
         self.assertAllEqual(ciou_loss(y_true, y_pred).shape, ())
 
     @parameterized.named_parameters(
-    ("xyxy", "xyxy"),
-    ("rel_xyxy", "rel_xyxy"),
+        ("xyxy", "xyxy"),
+        ("rel_xyxy", "rel_xyxy"),
     )
     def test_output_value(self, name):
         y_true = [
@@ -93,4 +94,6 @@ class CIoUTest(tf.test.TestCase, parameterized.TestCase):
             y_true = tf.constant(y_true_scaled, dtype=tf.float32)
             y_pred = tf.constant(y_pred_scaled, dtype=tf.float32)
 
-        self.assertAllClose(ciou_loss(y_true, y_pred), expected_loss, atol=0.0001)
+        self.assertAllClose(
+            ciou_loss(y_true, y_pred), expected_loss, atol=0.0001
+        )
