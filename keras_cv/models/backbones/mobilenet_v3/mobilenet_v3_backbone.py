@@ -214,13 +214,13 @@ class MobileNetV3Backbone(Backbone):
 
 class HardSigmoidActivation(layers.Layer):
     def __init__(self):
-        super(HardSigmoidActivation, self).__init__()
+        super().__init__()
 
     def call(self, x):
         return apply_hard_sigmoid(x)
 
     def get_config(self):
-        return super(HardSigmoidActivation, self).get_config()
+        return super().get_config()
 
 
 def adjust_channels(x, divisor=8, min_value=None):
