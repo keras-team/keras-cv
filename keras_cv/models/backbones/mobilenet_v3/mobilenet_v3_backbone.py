@@ -25,7 +25,6 @@ import copy
 from tensorflow import keras
 from tensorflow.keras import backend
 from tensorflow.keras import layers
-from tensorflow.keras.utils import custom_object_scope
 
 from keras_cv import layers as cv_layers
 from keras_cv.models import utils
@@ -213,6 +212,17 @@ class MobileNetV3Backbone(Backbone):
         return copy.deepcopy(backbone_presets_with_weights)
 
 
+class HardSigmoidActivation(layers.Layer):
+    def __init__(self):
+        super(HardSigmoidActivation, self).__init__()
+
+    def call(self, x):
+        return apply_hard_sigmoid(x)
+
+    def get_config(self):
+        return super(HardSigmoidActivation, self).get_config()
+
+
 def adjust_channels(x, divisor=8, min_value=None):
     """Ensure that all layers have a channel number divisible by the `divisor`.
 
@@ -326,14 +336,13 @@ def apply_inverted_res_block(
     x = activation(x)
 
     if se_ratio:
-        with custom_object_scope({"hard_sigmoid": apply_hard_sigmoid}):
-            se_filters = adjust_channels(infilters * expansion)
-            x = cv_layers.SqueezeAndExcite2D(
-                filters=se_filters,
-                bottleneck_filters=adjust_channels(se_filters * se_ratio),
-                squeeze_activation="relu",
-                excite_activation="hard_sigmoid",
-            )(x)
+        se_filters = adjust_channels(infilters * expansion)
+        x = cv_layers.SqueezeAndExcite2D(
+            filters=se_filters,
+            bottleneck_filters=adjust_channels(se_filters * se_ratio),
+            squeeze_activation="relu",
+            excite_activation=HardSigmoidActivation(),
+        )(x)
 
     x = layers.Conv2D(
         filters,
