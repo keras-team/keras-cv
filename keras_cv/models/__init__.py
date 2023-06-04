@@ -61,6 +61,9 @@ from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_aliases import (
 from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_aliases import (
     MobileNetV3SmallBackbone,
 )
+from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_backbone import (
+    MobileNetV3Backbone,
+)
 from keras_cv.models.backbones.resnet_v1.resnet_v1_aliases import (
     ResNet18Backbone,
 )
