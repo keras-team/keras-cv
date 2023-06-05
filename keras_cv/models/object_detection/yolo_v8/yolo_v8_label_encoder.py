@@ -121,7 +121,7 @@ class YOLOV8LabelEncoder(layers.Layer):
         alpha=0.5,
         beta=6.0,
         epsilon=1e-9,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(**kwargs)
         self.max_anchor_matches = max_anchor_matches
@@ -162,6 +162,13 @@ class YOLOV8LabelEncoder(layers.Layer):
                     truth box. Anchors that didn't match with a ground truth
                     box should be excluded from both class and box losses.
         """
+        if isinstance(gt_bboxes, tf.RaggedTensor):
+            raise ValueError(
+                "`YOLOV8LabelEncoder`'s `call()` method does not "
+                "support RaggedTensor inputs for the `gt_bboxes` argument. "
+                f"Received `type(gt_bboxes)={type(gt_bboxes)}`."
+            )
+
         max_num_boxes = gt_bboxes.shape[1]
 
         mask_pos, align_metric, overlaps = self.get_pos_mask(

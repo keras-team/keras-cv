@@ -11,7 +11,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest] # No windows for now (Jaxlib + Windows seems sad)
+        # Skipping windows-latest due to custom ops #1854
+        os: [ubuntu-latest]
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python 3.8

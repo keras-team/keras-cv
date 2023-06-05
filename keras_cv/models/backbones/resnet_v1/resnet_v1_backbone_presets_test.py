@@ -17,7 +17,7 @@ import numpy as np
 import pytest
 import tensorflow as tf
 
-from keras_cv.models.backbones.resnet_v1.resnet_v1_backbone import (
+from keras_cv.models.backbones.resnet_v1.resnet_v1_aliases import (
     ResNet50Backbone,
 )
 from keras_cv.models.backbones.resnet_v1.resnet_v1_backbone import (
@@ -84,7 +84,7 @@ class ResNetPresetSmokeTest(tf.test.TestCase):
 class ResNetPresetFullTest(tf.test.TestCase):
     """
     Test the full enumeration of our preset.
-    This every presets for ResNet and is only run manually.
+    This tests every preset for ResNet and is only run manually.
     Run with:
     `pytest keras_cv/models/backbones/resnet_v1/resnet_v1_backbone_presets_test.py --run_extra_large`  # noqa: E501
     """

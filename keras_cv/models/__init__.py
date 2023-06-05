@@ -55,28 +55,25 @@ from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_aliases import (
 from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_aliases import (
     EfficientNetV2SBackbone,
 )
-from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_backbone import (
-    MobileNetV3Backbone,
-)
-from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_backbone import (
+from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_aliases import (
     MobileNetV3LargeBackbone,
 )
-from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_backbone import (
+from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_aliases import (
     MobileNetV3SmallBackbone,
 )
-from keras_cv.models.backbones.resnet_v1.resnet_v1_backbone import (
+from keras_cv.models.backbones.resnet_v1.resnet_v1_aliases import (
     ResNet18Backbone,
 )
-from keras_cv.models.backbones.resnet_v1.resnet_v1_backbone import (
+from keras_cv.models.backbones.resnet_v1.resnet_v1_aliases import (
     ResNet34Backbone,
 )
-from keras_cv.models.backbones.resnet_v1.resnet_v1_backbone import (
+from keras_cv.models.backbones.resnet_v1.resnet_v1_aliases import (
     ResNet50Backbone,
 )
-from keras_cv.models.backbones.resnet_v1.resnet_v1_backbone import (
+from keras_cv.models.backbones.resnet_v1.resnet_v1_aliases import (
     ResNet101Backbone,
 )
-from keras_cv.models.backbones.resnet_v1.resnet_v1_backbone import (
+from keras_cv.models.backbones.resnet_v1.resnet_v1_aliases import (
     ResNet152Backbone,
 )
 from keras_cv.models.backbones.resnet_v1.resnet_v1_backbone import (
