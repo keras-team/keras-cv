@@ -150,16 +150,6 @@ class CSPDarkNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
             arch_class.presets, arch_class.presets_with_weights
         )
 
-    def repro(self):
-        model = keras.Sequential(
-            [
-                keras.layers.Dense(10),
-                keras.layers.Lambda(lambda x: keras.activations.silu(x)),
-            ]
-        )
-        x = keras.layers.Input(shape=(224, 224, 3))
-        x = model(x)
-
 
 if __name__ == "__main__":
     tf.test.main()
