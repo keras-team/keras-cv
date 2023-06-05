@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from functools import partial
+
 import tensorflow as tf
 from tensorflow import keras
 
@@ -302,31 +304,31 @@ class Resizing(BaseImageAugmentationLayer):
         else:
             input_dtype = tf.float32
 
-        def resize_with_crop_to_aspect_images(x):
+        def resize_with_crop_to_aspect_images(x, interpolation_method):
             if isinstance(x, tf.RaggedTensor):
                 x = x.to_tensor()
             return keras.preprocessing.image.smart_resize(
-                x, size=size, interpolation=self._interpolation_method
-            )
-
-        def resize_with_crop_to_aspect_segmentation_masks(x):
-            if isinstance(x, tf.RaggedTensor):
-                x = x.to_tensor()
-            return keras.preprocessing.image.smart_resize(
-                x, size=size, interpolation="nearest"
+                x, size=size, interpolation=interpolation_method,
             )
 
         if isinstance(images, tf.RaggedTensor):
             size_as_shape = tf.TensorShape(size)
             shape = size_as_shape + images.shape[-1:]
             spec = tf.TensorSpec(shape, input_dtype)
-            images = tf.map_fn(
+            map_fn = partial(
                 resize_with_crop_to_aspect_images,
+                interpolation_method=self._interpolation_method
+            )
+            images = tf.map_fn(
+                map_fn,
                 images,
                 fn_output_signature=spec,
             )
         else:
-            images = resize_with_crop_to_aspect_images(images)
+            images = resize_with_crop_to_aspect_images(
+                images,
+                interpolation_method=self._interpolation_method,
+            )
 
         inputs["images"] = images
 
@@ -335,15 +337,20 @@ class Resizing(BaseImageAugmentationLayer):
                 size_as_shape = tf.TensorShape(size)
                 shape = size_as_shape + segmentation_masks.shape[-1:]
                 spec = tf.TensorSpec(shape, input_dtype)
+                map_fn = partial(
+                    resize_with_crop_to_aspect_images,
+                    interpolation_method="nearest"
+                )
                 segmentation_masks = tf.map_fn(
-                    resize_with_crop_to_aspect_segmentation_masks,
+                    map_fn,
                     segmentation_masks,
                     fn_output_signature=spec,
                 )
             else:
                 segmentation_masks = (
-                    resize_with_crop_to_aspect_segmentation_masks(
-                        segmentation_masks
+                    resize_with_crop_to_aspect_images(
+                        segmentation_masks,
+                        interpolation_method="nearest",
                     )
                 )
 
