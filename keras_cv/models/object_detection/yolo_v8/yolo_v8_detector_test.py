@@ -108,7 +108,7 @@ class YOLOV8DetectorTest(tf.test.TestCase, parameterized.TestCase):
             ValueError,
             "Invalid classification loss",
         ):
-            yolo.compile(box_loss="iou", classification_loss="bad_loss")
+            yolo.compile(box_loss="ciou", classification_loss="bad_loss")
 
     @parameterized.named_parameters(
         ("tf_format", "tf", "model"),
