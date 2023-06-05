@@ -66,7 +66,7 @@ def DarknetConvBlock(
     elif activation == "leaky_relu":
         model_layers.append(keras.layers.LeakyReLU(0.1))
 
-    return keras.Sequential(model_layers, name=None)
+    return keras.Sequential(model_layers, name=name)
 
 
 def ResidualBlocks(filters, num_blocks, name=None):
