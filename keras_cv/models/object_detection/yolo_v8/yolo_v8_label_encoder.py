@@ -19,7 +19,7 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 
-from keras_cv.models.object_detection.yolo_v8.yolo_v8_iou_loss import bbox_iou
+from keras_cv.losses.ciou_loss import CIoULoss
 
 
 def select_highest_overlaps(mask_pos, overlaps, max_num_boxes):
@@ -297,7 +297,7 @@ class YOLOV8LabelEncoder(layers.Layer):
 
         gt_boxes = tf.repeat(tf.expand_dims(gt_bboxes, axis=2), na, axis=2)
 
-        iou = tf.squeeze(bbox_iou(gt_boxes, pd_boxes), axis=-1)
+        iou = CIoULoss(gt_boxes, pd_boxes)
         iou = tf.where(iou > 0, iou, 0)
 
         iou = tf.reshape(iou, (-1, max_num_boxes, na))

@@ -28,9 +28,7 @@ from keras_cv.models.object_detection.__internal__ import unpack_input
 from keras_cv.models.object_detection.yolo_v8.yolo_v8_detector_presets import (
     yolo_v8_detector_presets,
 )
-from keras_cv.models.object_detection.yolo_v8.yolo_v8_iou_loss import (
-    YOLOV8IoULoss,
-)
+from keras_cv.losses.ciou_loss import CIoULoss
 from keras_cv.models.object_detection.yolo_v8.yolo_v8_label_encoder import (
     YOLOV8LabelEncoder,
 )
@@ -474,8 +472,8 @@ class YOLOV8Detector(Task):
             raise ValueError("User metrics not yet supported for YOLOV8")
 
         if isinstance(box_loss, str):
-            if box_loss == "iou":
-                box_loss = YOLOV8IoULoss(reduction="sum")
+            if box_loss == "ciou":
+                box_loss = CIoULoss(bounding_box_format="xyxy", reduction="sum")
             else:
                 raise ValueError(
                     f"Invalid box loss for YOLOV8Detector: {box_loss}. Box "
