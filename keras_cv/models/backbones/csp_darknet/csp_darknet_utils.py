@@ -59,7 +59,7 @@ def DarknetConvBlock(
 
     if activation == "silu":
         model_layers.append(
-            keras.layers.Lambda(lambda x: keras.activations.swish(x))
+            keras.layers.Lambda(lambda x: keras.activations.silu(x))
         )
     elif activation == "relu":
         model_layers.append(keras.layers.ReLU())

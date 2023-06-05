@@ -18,7 +18,7 @@ import numpy as np
 import pytest
 import tensorflow as tf
 from absl.testing import parameterized
-from tensorflow import keras
+from keras_cv.backend import keras
 
 from keras_cv.models.backbones.csp_darknet import csp_darknet_backbone
 from keras_cv.utils.train import get_feature_extractor
@@ -48,20 +48,18 @@ class CSPDarkNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
         )
         model(self.input_batch)
 
-    @parameterized.named_parameters(
-        ("tf_format", "tf", "model"),
-        ("keras_format", "keras_v3", "model.keras"),
-    )
     @pytest.mark.large  # Saving is slow, so mark these large.
-    def test_saved_model(self, save_format, filename):
+    def test_saved_model(self):
         model = csp_darknet_backbone.CSPDarkNetBackbone(
             stackwise_channels=[48, 96, 192, 384],
             stackwise_depth=[1, 3, 3, 1],
             include_rescaling=True,
         )
         model_output = model(self.input_batch)
-        save_path = os.path.join(self.get_temp_dir(), filename)
-        model.save(save_path, save_format=save_format)
+        save_path = os.path.join(
+            self.get_temp_dir(), "csp_darknet_backbone.keras"
+        )
+        model.save(save_path)
         restored_model = keras.models.load_model(save_path)
 
         # Check we got the real object back.
@@ -151,6 +149,11 @@ class CSPDarkNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
         self.assertDictEqual(
             arch_class.presets, arch_class.presets_with_weights
         )
+
+    def repro(self):
+        model = keras.Sequential([keras.layers.Dense(10), keras.layers.Lambda(lambda x: keras.activations.silu(x))])
+        x = keras.layers.Input(shape=(224, 224, 3))
+        x = model(x)
 
 
 if __name__ == "__main__":
