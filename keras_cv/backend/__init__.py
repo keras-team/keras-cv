@@ -61,4 +61,7 @@ if multi_backend():
 else:
     from tensorflow import keras
 
+    # TF Keras doesn't have this rename.
+    keras.activations.silu = keras.activations.swish
+
 from keras_cv.backend import ops  # noqa: E402
