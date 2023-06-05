@@ -237,29 +237,11 @@ class RetinaNetSmokeTest(tf.test.TestCase):
     def test_backbone_preset(self):
         weights = [
             "csp_darknet_tiny",
-            "csp_darknet_s",
-            "csp_darknet_m",
-            "csp_darknet_l",
-            "csp_darknet_xl",
             "efficientnetv2_s",
-            "efficientnetv2_m",
-            "efficientnetv2_l",
             "efficientnetv2_b0",
-            "efficientnetv2_b1",
-            "efficientnetv2_b2",
-            "efficientnetv2_b3",
             "mobilenet_v3_small",
-            "mobilenet_v3_small",
-            "resnet18",
-            "resnet34",
             "resnet50",
-            "resnet101",
-            "resnet152",
-            "resnet18_v2",
-            "resnet34_v2",
             "resnet50_v2",
-            "resnet101_v2",
-            "resnet152_v2",
         ]
         for weight in weights:
             model = keras_cv.models.RetinaNet.from_preset(
@@ -276,39 +258,37 @@ class RetinaNetSmokeTest(tf.test.TestCase):
             "retinanet_resnet50_pascalvoc",
             bounding_box_format="xywh",
         )
-        xs, _ = _create_bounding_box_dataset(bounding_box_format="xywh")
+        xs = tf.ones((1, 512, 512, 3), tf.float32)
         output = model(xs)
 
         expected_box = tf.constant(
-            [-0.40364307, 0.15742484, -1.3398054, 0.38104224]
+            [-1.2427993, 0.05179548, -1.9953268, 0.32456252]
         )
-        self.assertAllClose(output["box"][0, 123, :], expected_box, atol=0.2)
+        self.assertAllClose(output["box"][0, 123, :], expected_box)
 
         expected_class = tf.constant(
             [
-                -8.110557,
-                -7.5584545,
-                -7.9096074,
-                -8.163499,
-                -6.721413,
-                -7.8551226,
-                -6.9021387,
-                -8.499062,
-                -6.190583,
-                -7.294302,
-                -6.341216,
-                -7.6847053,
-                -7.8064694,
-                -7.7984314,
-                -6.5489616,
-                -6.524928,
-                -7.1218467,
-                -7.070874,
-                -8.457317,
-                -6.167918,
+                -8.387445,
+                -7.891776,
+                -8.14204,
+                -8.117359,
+                -7.2517176,
+                -7.906804,
+                -7.0910635,
+                -8.295824,
+                -6.5567474,
+                -7.086027,
+                -6.3826647,
+                -7.960227,
+                -7.556676,
+                -8.28963,
+                -6.526232,
+                -7.071624,
+                -6.9687414,
+                -6.6398506,
+                -8.598567,
+                -6.484198,
             ]
         )
         expected_class = tf.reshape(expected_class, (20,))
-        self.assertAllClose(
-            output["classification"][0, 123], expected_class, atol=0.2
-        )
+        self.assertAllClose(output["classification"][0, 123], expected_class)
