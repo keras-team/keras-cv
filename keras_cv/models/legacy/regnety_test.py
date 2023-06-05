@@ -18,7 +18,7 @@ from absl.testing import parameterized
 
 from keras_cv.models.legacy import regnet
 
-from .models_test import ModelsTest
+from .models_test_keras_core import ModelsTest
 
 MODEL_LIST = [
     (regnet.RegNetY002, 368, {}),
