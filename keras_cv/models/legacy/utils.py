@@ -28,6 +28,20 @@ def parse_model_inputs(input_shape, input_tensor):
             return input_tensor
 
 
+def parse_model_inputs_keras_core(input_shape, input_tensor):
+    from keras_cv.backend import keras as keras_core
+
+    if input_tensor is None:
+        return keras_core.layers.Input(shape=input_shape)
+    else:
+        if not keras_core.backend.is_keras_tensor(input_tensor):
+            return keras_core.layers.Input(
+                tensor=input_tensor, shape=input_shape
+            )
+        else:
+            return input_tensor
+
+
 def as_backbone(self, min_level=None, max_level=None):
     """Convert the application model into a model backbone for other tasks.
     The backbone model will usually take same inputs as the original application

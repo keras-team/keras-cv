@@ -18,8 +18,8 @@ import numpy as np
 import pytest
 import tensorflow as tf
 from absl.testing import parameterized
-from keras_cv.backend import keras
 
+from keras_cv.backend import keras
 from keras_cv.models.backbones.csp_darknet import csp_darknet_backbone
 from keras_cv.utils.train import get_feature_extractor
 
@@ -151,7 +151,12 @@ class CSPDarkNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
         )
 
     def repro(self):
-        model = keras.Sequential([keras.layers.Dense(10), keras.layers.Lambda(lambda x: keras.activations.silu(x))])
+        model = keras.Sequential(
+            [
+                keras.layers.Dense(10),
+                keras.layers.Lambda(lambda x: keras.activations.silu(x)),
+            ]
+        )
         x = keras.layers.Input(shape=(224, 224, 3))
         x = model(x)
 
