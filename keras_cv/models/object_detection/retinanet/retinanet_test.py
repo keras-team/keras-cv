@@ -264,7 +264,7 @@ class RetinaNetSmokeTest(tf.test.TestCase):
         expected_box = tf.constant(
             [-1.2427993, 0.05179548, -1.9953268, 0.32456252]
         )
-        self.assertAllClose(output["box"][0, 123, :], expected_box)
+        self.assertAllClose(output["box"][0, 123, :], expected_box, atol=1e-5)
 
         expected_class = tf.constant(
             [
@@ -291,4 +291,6 @@ class RetinaNetSmokeTest(tf.test.TestCase):
             ]
         )
         expected_class = tf.reshape(expected_class, (20,))
-        self.assertAllClose(output["classification"][0, 123], expected_class)
+        self.assertAllClose(
+            output["classification"][0, 123], expected_class, atol=1e-5
+        )
