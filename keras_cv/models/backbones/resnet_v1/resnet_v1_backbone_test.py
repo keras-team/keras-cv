@@ -20,16 +20,16 @@ import tensorflow as tf
 from absl.testing import parameterized
 
 from keras_cv.backend import keras
-from keras_cv.models.backbones.resnet_v1.resnet_v1_backbone import (
+from keras_cv.models.backbones.resnet_v1.resnet_v1_aliases import (
     ResNet18Backbone,
 )
-from keras_cv.models.backbones.resnet_v1.resnet_v1_backbone import (
+from keras_cv.models.backbones.resnet_v1.resnet_v1_aliases import (
     ResNet50Backbone,
 )
-from keras_cv.models.backbones.resnet_v1.resnet_v1_backbone import (
+from keras_cv.models.backbones.resnet_v1.resnet_v1_aliases import (
     ResNet101Backbone,
 )
-from keras_cv.models.backbones.resnet_v1.resnet_v1_backbone import (
+from keras_cv.models.backbones.resnet_v1.resnet_v1_aliases import (
     ResNet152Backbone,
 )
 from keras_cv.models.backbones.resnet_v1.resnet_v1_backbone import (

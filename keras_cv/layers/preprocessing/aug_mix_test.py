@@ -77,3 +77,16 @@ class AugMixTest(tf.test.TestCase):
         xs = tf.ones((2, 512, 512, 1))
         xs = layer(xs)
         self.assertEqual(xs.shape, [2, 512, 512, 1])
+
+    def test_many_augmentations(self):
+        layer = preprocessing.AugMix([0, 255], chain_depth=[25, 26])
+
+        # RGB
+        xs = tf.ones((2, 512, 512, 3))
+        xs = layer(xs)
+        self.assertEqual(xs.shape, [2, 512, 512, 3])
+
+        # greyscale
+        xs = tf.ones((2, 512, 512, 1))
+        xs = layer(xs)
+        self.assertEqual(xs.shape, [2, 512, 512, 1])
