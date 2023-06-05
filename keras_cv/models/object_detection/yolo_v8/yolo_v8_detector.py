@@ -376,7 +376,7 @@ class YOLOV8Detector(Task):
     # Train model
     model.compile(
         classification_loss='binary_crossentropy',
-        box_loss='iou',
+        box_loss='ciou',
         optimizer=tf.optimizers.SGD(global_clipnorm=10.0),
         jit_compile=False,
     )
@@ -457,7 +457,7 @@ class YOLOV8Detector(Task):
 
         Args:
             box_loss: a Keras loss to use for box offset regression. A
-                preconfigured loss is provided when the string "iou" is passed.
+                preconfigured loss is provided when the string "ciou" is passed.
             classification_loss: a Keras loss to use for box classification. A
                 preconfigured loss is provided when the string
                 "binary_crossentropy" is passed.
@@ -477,7 +477,7 @@ class YOLOV8Detector(Task):
             else:
                 raise ValueError(
                     f"Invalid box loss for YOLOV8Detector: {box_loss}. Box "
-                    "loss should be a keras.Loss or the string 'iou'."
+                    "loss should be a keras.Loss or the string 'ciou'."
                 )
         if isinstance(classification_loss, str):
             if classification_loss == "binary_crossentropy":
