@@ -21,7 +21,6 @@ from tensorflow import keras
 import keras_cv
 from keras_cv import bounding_box
 from keras_cv.losses.ciou_loss import CIoULoss
-from keras_cv.losses.iou_loss import IoULoss
 from keras_cv.models.backbones.backbone_presets import backbone_presets
 from keras_cv.models.backbones.backbone_presets import (
     backbone_presets_with_weights,
@@ -478,7 +477,8 @@ class YOLOV8Detector(Task):
                 box_loss = CIoULoss(bounding_box_format="xyxy", reduction="sum")
             elif box_loss == "iou":
                 warnings.warn(
-                    "YOLOV8 recommends using CIoU loss, but was configured to use standard IoU. Consider using `box_loss='ciou'` instead."
+                    "YOLOV8 recommends using CIoU loss, but was configured to "
+                    "use standard IoU. Consider using `box_loss='ciou'` instead."
                 )
             else:
                 raise ValueError(
