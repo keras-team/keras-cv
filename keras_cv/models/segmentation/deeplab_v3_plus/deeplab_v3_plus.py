@@ -55,7 +55,9 @@ class DeepLabV3Plus(Task):
             should predict the segmentation mask based on feature from backbone
             and feature from decoder, otherwise a similar architecture is used.
         dropout (Optional) float, The dropout rate applied to the outputs of the
-            decoder in the `segmentation_head`.
+            decoder in the `segmentation_head`. This parameter is only relevant if
+            `segmentation_head` is `None`, i.e, the default segmentation head is
+            being used.
 
     Examples:
     ```python
