@@ -309,10 +309,9 @@ class ResizingTest(tf.test.TestCase, parameterized.TestCase):
 
     def test_resize_with_mask(self):
         input_images = np.random.normal(size=(2, 4, 4, 3))
-        seg_masks = (
-            np.random.uniform(low=0.0, high=3.0, size=(2, 4, 4, 3))
-            .astype("int32")
-        )
+        seg_masks = np.random.uniform(
+            low=0.0, high=3.0, size=(2, 4, 4, 3)
+        ).astype("int32")
         inputs = {
             "images": input_images,
             "segmentation_masks": seg_masks,
@@ -323,13 +322,10 @@ class ResizingTest(tf.test.TestCase, parameterized.TestCase):
 
         expected_output_images = tf.image.resize(input_images, size=(2, 2))
         expected_output_seg_masks = tf.image.resize(
-            seg_masks,
-            size=(2, 2),
-            method="nearest"
+            seg_masks, size=(2, 2), method="nearest"
         )
 
         self.assertAllEqual(expected_output_images, outputs["images"])
         self.assertAllEqual(
-            expected_output_seg_masks,
-            outputs["segmentation_masks"]
+            expected_output_seg_masks, outputs["segmentation_masks"]
         )
