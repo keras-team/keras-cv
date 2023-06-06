@@ -253,7 +253,11 @@ class Resizing(BaseImageAugmentationLayer):
                     method="nearest",
                 )
                 segmentation_masks = tf.image.pad_to_bounding_box(
-                    segmentation_masks, 0, 0, self.height, self.width
+                    tf.cast(segmentation_masks, dtype="float32"),
+                    0,
+                    0,
+                    self.height,
+                    self.width,
                 )
                 inputs["segmentation_masks"] = segmentation_masks
 
@@ -308,7 +312,9 @@ class Resizing(BaseImageAugmentationLayer):
             if isinstance(x, tf.RaggedTensor):
                 x = x.to_tensor()
             return keras.preprocessing.image.smart_resize(
-                x, size=size, interpolation=interpolation_method,
+                x,
+                size=size,
+                interpolation=interpolation_method,
             )
 
         if isinstance(images, tf.RaggedTensor):
@@ -317,7 +323,7 @@ class Resizing(BaseImageAugmentationLayer):
             spec = tf.TensorSpec(shape, input_dtype)
             map_fn = partial(
                 resize_with_crop_to_aspect_images,
-                interpolation_method=self._interpolation_method
+                interpolation_method=self._interpolation_method,
             )
             images = tf.map_fn(
                 map_fn,
@@ -339,7 +345,7 @@ class Resizing(BaseImageAugmentationLayer):
                 spec = tf.TensorSpec(shape, input_dtype)
                 map_fn = partial(
                     resize_with_crop_to_aspect_images,
-                    interpolation_method="nearest"
+                    interpolation_method="nearest",
                 )
                 segmentation_masks = tf.map_fn(
                     map_fn,
@@ -347,11 +353,9 @@ class Resizing(BaseImageAugmentationLayer):
                     fn_output_signature=spec,
                 )
             else:
-                segmentation_masks = (
-                    resize_with_crop_to_aspect_images(
-                        segmentation_masks,
-                        interpolation_method="nearest",
-                    )
+                segmentation_masks = resize_with_crop_to_aspect_images(
+                    segmentation_masks,
+                    interpolation_method="nearest",
                 )
 
             inputs["segmentation_masks"] = segmentation_masks
