@@ -31,15 +31,15 @@ class DeepLabV3Plus(Task):
         (CVPR 2017)
 
     Args:
-        num_classes: int, the number of classes for the detection model. Note
-            that the `num_classes` doesn't contain the background class, and the
-            classes from the data should be represented by integers with range
-            [0, `num_classes`).
         backbone: `keras.Model`. The backbone network for the model that is
             used as a feature extractor for the DeepLabV3 Encoder. Should be a
             `keras_cv.models.backbones.backbone.Backbone`. A somewhat sensible
             backbone to use in many cases is the:
             `keras_cv.models.ResNet50V2Backbone.from_preset("resnet50_v2_imagenet")`.
+        num_classes: int, the number of classes for the detection model. Note
+            that the `num_classes` doesn't contain the background class, and the
+            classes from the data should be represented by integers with range
+            [0, `num_classes`).
         projection_filters: int, number of filters in the
             convolution layer projecting low-level features from the `backbone`.
             The default value is set to `48`, as per the
@@ -84,8 +84,8 @@ class DeepLabV3Plus(Task):
 
     def __init__(
         self,
-        num_classes,
         backbone,
+        num_classes,
         projection_filters=48,
         spatial_pyramid_pooling=None,
         segmentation_head=None,
