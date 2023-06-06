@@ -13,8 +13,6 @@
 # limitations under the License.
 
 
-import math
-
 import tensorflow as tf
 from tensorflow import keras
 
@@ -92,7 +90,9 @@ class CIoULoss(keras.losses.Loss):
                 f"y_pred={y_pred.shape[-2]}."
             )
 
-        ciou = tf.squeeze(compute_ciou(y_true, y_pred, self.bounding_box_format), axis=-1)
+        ciou = tf.squeeze(
+            compute_ciou(y_true, y_pred, self.bounding_box_format), axis=-1
+        )
         return 1 - ciou
 
     def get_config(self):
