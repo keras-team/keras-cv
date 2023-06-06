@@ -23,16 +23,6 @@ from keras_cv.models import ResNet18V2Backbone, DeepLabV3Plus
 
 
 class DeepLabV3PlusTest(tf.test.TestCase, parameterized.TestCase):
-    @pytest.fixture(autouse=True)
-    def cleanup_global_session(self):
-        # Code before yield runs before the test
-        tf.config.set_soft_device_placement(False)
-        yield
-        # Reset soft device placement to not interfere with other unit test
-        # files
-        tf.config.set_soft_device_placement(True)
-        keras.backend.clear_session()
-
     def test_deeplab_v3_plus_construction(self):
         backbone = ResNet18V2Backbone(input_shape=[512, 512, 3])
         model = DeepLabV3Plus(num_classes=1, backbone=backbone)
