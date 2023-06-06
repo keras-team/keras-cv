@@ -25,6 +25,8 @@ from keras_cv.models.object_detection.__test_utils__ import (
     _create_bounding_box_dataset,
 )
 
+from keras_cv.models import ResNetBackbone
+
 
 class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
     @pytest.fixture(autouse=True)
@@ -234,6 +236,19 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
 
 @pytest.mark.large
 class RetinaNetSmokeTest(tf.test.TestCase):
+    def test_resnet_backbone_preset(self):
+        for preset in ResNetBackbone.presets:
+            if preset in ResNetBackbone.presets_with_weights:
+                model = keras_cv.models.RetinaNet.from_preset(
+                    preset,
+                    num_classes=20,
+                    bounding_box_format="xywh",
+                )
+                xs, _ = _create_bounding_box_dataset(bounding_box_format="xywh")
+                output = model(xs)
+                self.assertEqual(output["box"].shape, (xs.shape[0], 49104, 4))
+
+
     def test_backbone_preset(self):
         weights = [
             "csp_darknet_tiny",
@@ -252,6 +267,7 @@ class RetinaNetSmokeTest(tf.test.TestCase):
             xs, _ = _create_bounding_box_dataset(bounding_box_format="xywh")
             output = model(xs)
             self.assertEqual(output["box"].shape, (xs.shape[0], 49104, 4))
+
 
     def test_full_preset_weight_loading(self):
         model = keras_cv.models.RetinaNet.from_preset(
