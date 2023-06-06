@@ -14,6 +14,7 @@
 
 """Tests for loading pretrained model presets."""
 
+import numpy as np
 import pytest
 import tensorflow as tf
 from absl.testing import parameterized
@@ -32,7 +33,7 @@ class MobileNetV3PresetSmokeTest(tf.test.TestCase):
     """  # noqa: E501
 
     def setUp(self):
-        self.input_batch = tf.ones(shape=(8, 224, 224, 3))
+        self.input_batch = np.ones(shape=(8, 224, 224, 3))
 
     def test_backbone_output(self):
         model = MobileNetV3Backbone.from_preset("mobilenet_v3_large_imagenet")
@@ -59,7 +60,7 @@ class MobileNetV3PresetFullTest(tf.test.TestCase, parameterized.TestCase):
     """  # noqa: E501
 
     def test_load_mobilenet_v3(self):
-        input_data = tf.ones(shape=(2, 224, 224, 3))
+        input_data = np.ones(shape=(2, 224, 224, 3))
         for preset in MobileNetV3Backbone.presets:
             model = MobileNetV3Backbone.from_preset(preset)
             model(input_data)
