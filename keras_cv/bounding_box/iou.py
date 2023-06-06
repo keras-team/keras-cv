@@ -176,7 +176,39 @@ def compute_iou(
     return iou_lookup_table
 
 
-def compute_ciou(box1, box2, eps=1e-7):
+def compute_ciou(box1, box2, bounding_box_format, eps=1e-7):
+    """
+    Computes the Complete IoU (CIoU) between two bounding boxes.
+
+    CIoU loss is an extension of GIoU loss, which further improves the IoU
+    optimization for object detection. CIoU loss not only penalizes the
+    bounding box coordinates but also considers the aspect ratio and center
+    distance of the boxes. The length of the last dimension should be 4 to
+    represent the bounding boxes.
+
+    Args:
+        box1 (tf.Tensor): Tensor representing the first bounding box with shape (..., 4).
+        box2 (tf.Tensor): Tensor representing the second bounding box with shape (..., 4).
+        bounding_box_format: a case-insensitive string (for example, "xyxy").
+            Each bounding box is defined by these 4 values. For detailed
+            information on the supported formats, see the [KerasCV bounding box
+            documentation](https://keras.io/api/keras_cv/bounding_box/formats/).
+        eps (float, optional): A small value to avoid division by zero. Default is 1e-7.
+
+    Returns:
+        tf.Tensor: The CIoU distance between the two bounding boxes.
+    """
+    target_format = "xyxy"
+    if bounding_box.is_relative(bounding_box_format):
+        target_format = bounding_box.as_relative(target_format)
+
+    box1 = bounding_box.convert_format(
+        box1, source=bounding_box_format, target=target_format
+    )
+
+    box2 = bounding_box.convert_format(
+        box2, source=bounding_box_format, target=target_format
+    )
     b1_x1, b1_y1, b1_x2, b1_y2 = tf.split(box1, 4, axis=-1)
     b2_x1, b2_y1, b2_x2, b2_y2 = tf.split(box2, 4, axis=-1)
     w1, h1 = b1_x2 - b1_x1, b1_y2 - b1_y1 + eps
