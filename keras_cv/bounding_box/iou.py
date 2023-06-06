@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Contains functions to compute ious of bounding boxes."""
-import tensorflow as tf
 import math
+
+import tensorflow as tf
+
 from keras_cv import bounding_box
 
 
