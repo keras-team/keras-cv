@@ -34,7 +34,7 @@ class DeepLabV3PlusTest(tf.test.TestCase, parameterized.TestCase):
         keras.backend.clear_session()
 
     def test_deeplab_v3_plus_construction(self):
-        backbone = ResNet18V2Backbone(input_shape=[96, 96, 3])
+        backbone = ResNet18V2Backbone(input_shape=[512, 512, 3])
         model = DeepLabV3Plus(num_classes=1, backbone=backbone)
         model.compile(
             optimizer="adam",
@@ -44,7 +44,7 @@ class DeepLabV3PlusTest(tf.test.TestCase, parameterized.TestCase):
 
     @pytest.mark.large
     def test_deeplab_v3_plus_call(self):
-        backbone = ResNet18V2Backbone(input_shape=[96, 96, 3])
+        backbone = ResNet18V2Backbone(input_shape=[512, 512, 3])
         model = DeepLabV3Plus(num_classes=1, backbone=backbone)
         images = tf.random.uniform((2, 512, 512, 3))
         _ = model(images)
