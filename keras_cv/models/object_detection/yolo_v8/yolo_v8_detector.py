@@ -478,7 +478,8 @@ class YOLOV8Detector(Task):
             elif box_loss == "iou":
                 warnings.warn(
                     "YOLOV8 recommends using CIoU loss, but was configured to "
-                    "use standard IoU. Consider using `box_loss='ciou'` instead."
+                    "use standard IoU. Consider using `box_loss='ciou'` "
+                    "instead."
                 )
             else:
                 raise ValueError(
