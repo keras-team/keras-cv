@@ -18,7 +18,7 @@ import math
 import tensorflow as tf
 from tensorflow import keras
 
-from keras_cv import bounding_box
+from keras_cv.bounding_box.iou import compute_ciou
 
 
 class CIoULoss(keras.losses.Loss):
@@ -68,55 +68,6 @@ class CIoULoss(keras.losses.Loss):
         self.eps = eps
         self.bounding_box_format = bounding_box_format
 
-    def compute_ciou(self, boxes1, boxes2):
-        target_format = "xyxy"
-        if bounding_box.is_relative(self.bounding_box_format):
-            target_format = bounding_box.as_relative(target_format)
-
-        boxes1 = bounding_box.convert_format(
-            boxes1, source=self.bounding_box_format, target=target_format
-        )
-
-        boxes2 = bounding_box.convert_format(
-            boxes2, source=self.bounding_box_format, target=target_format
-        )
-
-        b1_x1, b1_y1, b1_x2, b1_y2 = tf.split(boxes1, 4, axis=-1)
-        b2_x1, b2_y1, b2_x2, b2_y2 = tf.split(boxes2, 4, axis=-1)
-        w1, h1 = b1_x2 - b1_x1, b1_y2 - b1_y1 + self.eps
-        w2, h2 = b2_x2 - b2_x1, b2_y2 - b2_y1 + self.eps
-
-        # Intersection area
-        inter = tf.math.maximum(
-            tf.math.minimum(b1_x2, b2_x2) - tf.math.maximum(b1_x1, b2_x1), 0
-        ) * tf.math.maximum(
-            tf.math.minimum(b1_y2, b2_y2) - tf.math.maximum(b1_y1, b2_y1), 0
-        )
-
-        # Union Area
-        union = w1 * h1 + w2 * h2 - inter + self.eps
-
-        # IoU
-        iou = inter / union
-
-        cw = tf.math.maximum(b1_x2, b2_x2) - tf.math.minimum(
-            b1_x1, b2_x1
-        )  # convex (smallest enclosing box) width
-        ch = tf.math.maximum(b1_y2, b2_y2) - tf.math.minimum(
-            b1_y1, b2_y1
-        )  # convex height
-        c2 = cw**2 + ch**2 + self.eps  # convex diagonal squared
-        rho2 = (
-            (b2_x1 + b2_x2 - b1_x1 - b1_x2) ** 2
-            + (b2_y1 + b2_y2 - b1_y1 - b1_y2) ** 2
-        ) / 4  # center dist ** 2
-        v = tf.pow(
-            (4 / math.pi**2) * (tf.atan(w2 / h2) - tf.atan(w1 / h1)), 2
-        )
-        alpha = v / (v - iou + (1 + self.eps))
-        ciou = iou - (rho2 / c2 + v * alpha)
-        return ciou
-
     def call(self, y_true, y_pred):
         y_pred = tf.convert_to_tensor(y_pred)
         y_true = tf.cast(y_true, y_pred.dtype)
@@ -141,7 +92,7 @@ class CIoULoss(keras.losses.Loss):
                 f"y_pred={y_pred.shape[-2]}."
             )
 
-        ciou = tf.squeeze(self.compute_ciou(y_true, y_pred), axis=-1)
+        ciou = tf.squeeze(compute_ciou(y_true, y_pred, self.bounding_box_format), axis=-1)
         return 1 - ciou
 
     def get_config(self):
