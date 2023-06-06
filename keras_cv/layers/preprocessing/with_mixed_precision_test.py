@@ -58,7 +58,7 @@ TEST_CONFIGURATIONS = [
     (
         "RandomTranslation",
         layers.RandomTranslation,
-        {"width_factor": 0.5, "height_factor": 0.5},
+        {"width_factor": 0.5, "height_factor": 0.5, "bounding_box_format":"xyxy"},
     ),
     (
         "RandomChannelShift",
@@ -88,7 +88,7 @@ TEST_CONFIGURATIONS = [
         {"kernel_size": 3, "factor": (0.0, 3.0)},
     ),
     ("RandomJpegQuality", layers.RandomJpegQuality, {"factor": (75, 100)}),
-    ("RandomRotation", layers.RandomRotation, {"factor": 0.5}),
+    ("RandomRotation", layers.RandomRotation, {"factor": 0.5, "bounding_box_format":"xyxy"}),
     ("RandomSaturation", layers.RandomSaturation, {"factor": 0.5}),
     (
         "RandomSharpness",
@@ -96,7 +96,8 @@ TEST_CONFIGURATIONS = [
         {"factor": 0.5, "value_range": (0, 255)},
     ),
     ("RandomAspectRatio", layers.RandomAspectRatio, {"factor": (0.9, 1.1)}),
-    ("RandomShear", layers.RandomShear, {"x_factor": 0.3, "x_factor": 0.3}),
+    ("RandomShear", layers.RandomShear, {"x_factor": 0.3, "x_factor": 0.3, "bounding_box_format":"xyxy"}),
+    # ("RandomShear", layers.RandomShear, {"x_factor": 0.3, "x_factor": 0.3}),
     ("Solarization", layers.Solarization, {"value_range": (0, 255)}),
     ("Mosaic", layers.Mosaic, {}),
     ("CutMix", layers.CutMix, {}),
@@ -107,6 +108,8 @@ TEST_CONFIGURATIONS = [
         {
             "height": 224,
             "width": 224,
+            "bounding_box_format":"xyxy",
+            "pad_to_aspect_ratio":True
         },
     ),
     (
@@ -161,11 +164,25 @@ class WithMixedPrecisionTest(tf.test.TestCase, parameterized.TestCase):
         img = tf.random.uniform(
             shape=(3, 512, 512, 3), minval=0, maxval=255, dtype=tf.float32
         )
-        labels = tf.ones((3,), dtype=tf.float32)
-        inputs = {"images": img, "labels": labels}
+        
+        bounding_boxes = {
+            "boxes": tf.convert_to_tensor(
+                [[200, 200, 400, 400], [100, 100, 300, 300], [300, 300, 500, 500]], dtype=tf.float32),
+            "classes":tf.ones((3,), dtype=tf.float32)
+        }
+        
+        # inputs = {"images": img, "labels": labels}
+        inputs = {"images": img,"bounding_boxes" : bounding_boxes}
+
+        # img = tf.random.uniform(
+        #     shape=(3, 512, 512, 3), minval=0, maxval=255, dtype=tf.float32
+        # )
+        # labels = tf.ones((3,), dtype=tf.float32)
+        # inputs = {"images": img, "labels": labels}
 
         layer = layer_cls(**init_args)
         layer(inputs)
+
 
     @classmethod
     def tearDownClass(cls) -> None:
