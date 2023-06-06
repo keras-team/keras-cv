@@ -119,12 +119,6 @@ class DeepLabV3Plus(Task):
             )
         spp_outputs = spatial_pyramid_pooling(feature_map)
 
-        encoder_outputs = keras.layers.UpSampling2D(
-            size=(8, 8),
-            interpolation="bilinear",
-            name="encoder_output_upsampling",
-        )(spp_outputs)
-
         low_level_feature_extractor = keras.Model(
             inputs=backbone.input,
             outputs=backbone.get_layer(
@@ -150,6 +144,16 @@ class DeepLabV3Plus(Task):
         low_level_projected_features = low_level_feature_projector(
             low_level_features
         )
+
+        encoder_outputs = keras.layers.UpSampling2D(
+            size=(
+                low_level_projected_features.shape[1] // spp_outputs.shape[1],
+                low_level_projected_features.shape[2] // spp_outputs.shape[2]
+            ),
+            interpolation="bilinear",
+            name="encoder_output_upsampling",
+        )(spp_outputs)
+
         combined_encoder_outputs = keras.layers.Concatenate(axis=-1)(
             [encoder_outputs, low_level_projected_features]
         )
