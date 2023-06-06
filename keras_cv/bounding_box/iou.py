@@ -178,7 +178,8 @@ def compute_iou(
 
 def compute_ciou(box1, box2, bounding_box_format, eps=1e-7):
     """
-    Computes the Complete IoU (CIoU) between two bounding boxes.
+    Computes the Complete IoU (CIoU) between two bounding boxes or between
+    two batches of bounding boxes.
 
     CIoU loss is an extension of GIoU loss, which further improves the IoU
     optimization for object detection. CIoU loss not only penalizes the
