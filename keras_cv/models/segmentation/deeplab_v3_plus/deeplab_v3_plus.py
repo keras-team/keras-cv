@@ -62,8 +62,8 @@ class DeepLabV3Plus(Task):
     import tensorflow as tf
     import keras_cv
 
-    images = tf.ones(shape=(1, 96, 96, 3))
-    labels = tf.zeros(shape=(1, 96, 96, 1))
+    images = np.ones(shape=(1, 96, 96, 3))
+    labels = np.zeros(shape=(1, 96, 96, 1))
     backbone = keras_cv.models.ResNet50V2Backbone(input_shape=[96, 96, 3])
     model = keras_cv.models.segmentation.DeepLabV3Plus(
         num_classes=1, backbone=backbone,
