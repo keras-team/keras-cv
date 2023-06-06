@@ -111,13 +111,13 @@ class DeepLabV3Plus(Task):
             outputs=final_backbone_pyramid_output,
             name="feature-extractor",
         )
-        feature_map = feature_extractor(inputs)
+        backbone_outputs = feature_extractor(inputs)
 
         if spatial_pyramid_pooling is None:
             spatial_pyramid_pooling = SpatialPyramidPooling(
                 dilation_rates=[6, 12, 18]
             )
-        spp_outputs = spatial_pyramid_pooling(feature_map)
+        spp_outputs = spatial_pyramid_pooling(backbone_outputs)
 
         low_level_feature_extractor = keras.Model(
             inputs=backbone.input,
