@@ -484,7 +484,7 @@ class YOLOV8Detector(Task):
             else:
                 raise ValueError(
                     f"Invalid box loss for YOLOV8Detector: {box_loss}. Box "
-                    "loss should be a keras.Loss or the string 'ciou' or 'iou'."
+                    "loss should be a keras.Loss or the string 'ciou'."
                 )
         if isinstance(classification_loss, str):
             if classification_loss == "binary_crossentropy":
