@@ -187,15 +187,15 @@ def compute_ciou(box1, box2, bounding_box_format, eps=1e-7):
     represent the bounding boxes.
 
     Args:
-        box1 (tf.Tensor): Tensor representing the first bounding box with 
+        box1 (tf.Tensor): Tensor representing the first bounding box with
             shape (..., 4).
-        box2 (tf.Tensor): Tensor representing the second bounding box with 
+        box2 (tf.Tensor): Tensor representing the second bounding box with
             shape (..., 4).
         bounding_box_format: a case-insensitive string (for example, "xyxy").
             Each bounding box is defined by these 4 values. For detailed
             information on the supported formats, see the [KerasCV bounding box
             documentation](https://keras.io/api/keras_cv/bounding_box/formats/).
-        eps (float, optional): A small value to avoid division by zero. Default 
+        eps (float, optional): A small value to avoid division by zero. Default
             is 1e-7.
 
     Returns:
