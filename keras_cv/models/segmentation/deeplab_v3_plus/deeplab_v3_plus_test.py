@@ -33,7 +33,7 @@ class DeepLabV3PlusTest(tf.test.TestCase, parameterized.TestCase):
         tf.config.set_soft_device_placement(True)
         keras.backend.clear_session()
 
-    def test_retinanet_construction(self):
+    def test_deeplab_v3_plus_construction(self):
         backbone = ResNet18V2Backbone(input_shape=[96, 96, 3])
         model = DeepLabV3Plus(num_classes=1, backbone=backbone)
         model.compile(
@@ -43,7 +43,7 @@ class DeepLabV3PlusTest(tf.test.TestCase, parameterized.TestCase):
         )
 
     @pytest.mark.large
-    def test_retinanet_call(self):
+    def test_deeplab_v3_plus_call(self):
         backbone = ResNet18V2Backbone(input_shape=[96, 96, 3])
         model = DeepLabV3Plus(num_classes=1, backbone=backbone)
         images = tf.random.uniform((2, 512, 512, 3))
