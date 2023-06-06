@@ -54,6 +54,8 @@ class DeepLabV3Plus(Task):
             outputs of the DeepLabV3 encoder is passed to this layer and it
             should predict the segmentation mask based on feature from backbone
             and feature from decoder, otherwise a similar architecture is used.
+        dropout (Optional) float, The dropout rate applied to the outputs of the
+            decoder in the `segmentation_head`.
 
     Examples:
     ```python
