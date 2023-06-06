@@ -21,8 +21,8 @@ from keras_cv.models.task import Task
 
 @keras.utils.register_keras_serializable(package="keras_cv")
 class DeepLabV3Plus(Task):
-    """A Keras model implementing the DeepLabV3 and DeepLabV3+ architectures
-    for semantic segmentation.
+    """A Keras model implementing the DeepLabV3+ architecture for semantic
+    segmentation.
 
     References:
         - [Encoder-Decoder with Atrous Separable Convolution for Semantic Image Segmentation](https://arxiv.org/abs/1802.02611)
