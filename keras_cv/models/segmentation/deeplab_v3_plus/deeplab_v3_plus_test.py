@@ -25,7 +25,7 @@ from keras_cv.models import ResNet18V2Backbone, DeepLabV3Plus
 class DeepLabV3PlusTest(tf.test.TestCase, parameterized.TestCase):
     def test_deeplab_v3_plus_construction(self):
         backbone = ResNet18V2Backbone(input_shape=[512, 512, 3])
-        model = DeepLabV3Plus(num_classes=1, backbone=backbone)
+        model = DeepLabV3Plus(backbone=backbone, num_classes=1)
         model.compile(
             optimizer="adam",
             loss=keras.losses.BinaryCrossentropy(),
@@ -35,7 +35,7 @@ class DeepLabV3PlusTest(tf.test.TestCase, parameterized.TestCase):
     @pytest.mark.large
     def test_deeplab_v3_plus_call(self):
         backbone = ResNet18V2Backbone(input_shape=[512, 512, 3])
-        model = DeepLabV3Plus(num_classes=1, backbone=backbone)
+        model = DeepLabV3Plus(backbone=backbone, num_classes=1)
         images = tf.random.uniform((2, 512, 512, 3))
         _ = model(images)
         _ = model.predict(images)
@@ -45,7 +45,7 @@ class DeepLabV3PlusTest(tf.test.TestCase, parameterized.TestCase):
         images = tf.ones(shape=[1] + target_size + [3])
 
         backbone = ResNet18V2Backbone(input_shape=target_size + [3])
-        model = DeepLabV3Plus(num_classes=1, backbone=backbone)
+        model = DeepLabV3Plus(backbone=backbone, num_classes=1)
 
         model.compile(
             optimizer="adam",
@@ -74,7 +74,7 @@ class DeepLabV3PlusTest(tf.test.TestCase, parameterized.TestCase):
         ds = ds.batch(2)
 
         backbone = ResNet18V2Backbone(input_shape=target_size + [3])
-        model = DeepLabV3Plus(num_classes=1, backbone=backbone)
+        model = DeepLabV3Plus(backbone=backbone, num_classes=1)
 
         model.compile(
             optimizer="adam",
@@ -99,7 +99,7 @@ class DeepLabV3PlusTest(tf.test.TestCase, parameterized.TestCase):
         target_size = [512, 512]
 
         backbone = ResNet18V2Backbone(input_shape=target_size + [3])
-        model = DeepLabV3Plus(num_classes=1, backbone=backbone)
+        model = DeepLabV3Plus(backbone=backbone, num_classes=1)
 
         input_batch = tf.ones(shape=[2] + target_size + [3])
         model_output = model(input_batch)
