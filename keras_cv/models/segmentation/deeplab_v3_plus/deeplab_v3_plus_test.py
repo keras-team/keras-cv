@@ -74,30 +74,6 @@ class DeepLabV3PlusTest(tf.test.TestCase, parameterized.TestCase):
         self.assertEqual(outputs.shape, tuple([1] + target_size + [1]))
 
     @pytest.mark.large
-    def test_no_nans(self):
-        target_size = [512, 512]
-
-        images = tf.ones(shape=[1] + target_size + [3])
-        labels = tf.zeros(shape=[1] + target_size + [3])
-        ds = tf.data.Dataset.from_tensor_slices((images, labels))
-        ds = ds.repeat(2)
-        ds = ds.batch(2)
-
-        backbone = ResNet18V2Backbone(input_shape=target_size + [3])
-        model = DeepLabV3Plus(num_classes=1, backbone=backbone)
-
-        model.compile(
-            optimizer="adam",
-            loss=keras.losses.BinaryCrossentropy(),
-            metrics=["accuracy"],
-        )
-        model.fit(ds, epochs=1)
-
-        weights = model.get_weights()
-        for weight in weights:
-            self.assertFalse(tf.math.reduce_any(tf.math.is_nan(weight)))
-
-    @pytest.mark.large
     def test_weights_change(self):
         target_size = [512, 512]
 
@@ -122,6 +98,7 @@ class DeepLabV3PlusTest(tf.test.TestCase, parameterized.TestCase):
 
         for w1, w2 in zip(original_weights, updated_weights):
             self.assertNotAllClose(w1, w2)
+            self.assertFalse(tf.math.reduce_any(tf.math.is_nan(w2)))
 
     @parameterized.named_parameters(
         ("tf_format", "tf", "model"),
