@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import copy
+import warnings
 
 import tensorflow as tf
 from keras import layers
@@ -476,7 +477,9 @@ class YOLOV8Detector(Task):
             if box_loss == "ciou":
                 box_loss = CIoULoss(bounding_box_format="xyxy", reduction="sum")
             elif box_loss == "iou":
-                box_loss = IoULoss(bounding_box_format="xyxy", reduction="sum")
+                warnings.warn(
+                    "YOLOV8 recommends using CIoU loss, but was configured to use standard IoU. Consider using `box_loss='ciou'` instead."
+                )
             else:
                 raise ValueError(
                     f"Invalid box loss for YOLOV8Detector: {box_loss}. Box "
