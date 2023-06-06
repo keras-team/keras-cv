@@ -29,6 +29,7 @@ from keras_cv.models.object_detection.yolo_v8.yolo_v8_detector_presets import (
     yolo_v8_detector_presets,
 )
 from keras_cv.losses.ciou_loss import CIoULoss
+from keras_cv.losses.iou_loss import IoULoss
 from keras_cv.models.object_detection.yolo_v8.yolo_v8_label_encoder import (
     YOLOV8LabelEncoder,
 )
@@ -474,10 +475,12 @@ class YOLOV8Detector(Task):
         if isinstance(box_loss, str):
             if box_loss == "ciou":
                 box_loss = CIoULoss(bounding_box_format="xyxy", reduction="sum")
+            elif box_loss == "iou":
+                box_loss = IoULoss(bounding_box_format="xyxy", reduction="sum")
             else:
                 raise ValueError(
                     f"Invalid box loss for YOLOV8Detector: {box_loss}. Box "
-                    "loss should be a keras.Loss or the string 'ciou'."
+                    "loss should be a keras.Loss or the string 'ciou' or 'iou'."
                 )
         if isinstance(classification_loss, str):
             if classification_loss == "binary_crossentropy":

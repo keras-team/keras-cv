@@ -21,7 +21,6 @@ from tensorflow.keras import layers
 
 from keras_cv.losses.ciou_loss import CIoULoss
 
-
 def select_highest_overlaps(mask_pos, overlaps, max_num_boxes):
     """Break ties when two GT boxes match to the same anchor.
 
