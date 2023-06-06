@@ -26,7 +26,9 @@ from keras_cv.models.object_detection.__test_utils__ import (
 )
 
 from keras_cv.models import ResNetBackbone
-
+from keras_cv.models import ResNetV2Backbone
+from keras_cv.models import EfficientNetV2Backbone
+from keras_cv.models import CSPDarkNetBackbone
 
 class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
     @pytest.fixture(autouse=True)
@@ -236,9 +238,18 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
 
 @pytest.mark.large
 class RetinaNetSmokeTest(tf.test.TestCase):
-    def test_resnet_backbone_preset(self):
-        for preset in ResNetBackbone.presets:
-            if preset in ResNetBackbone.presets_with_weights:
+    def test_backbone_preset(self):
+        backbones = [
+            ResNetBackbone,
+            ResNetV2Backbone,
+            ResNetV2Backbone,
+            CSPDarkNetBackbone,
+            EfficientNetV2Backbone
+        ]
+        for backbone in backbones:
+            for preset in backbone.presets:
+                if preset in backbone.presets_with_weights:
+                    continue
                 model = keras_cv.models.RetinaNet.from_preset(
                     preset,
                     num_classes=20,
