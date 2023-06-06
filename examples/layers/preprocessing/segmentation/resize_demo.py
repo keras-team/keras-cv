@@ -44,8 +44,6 @@ def map_fn_for_visualization(inputs):
     masks = tf.expand_dims(masks, axis=0)
 
     masks = tf.repeat(masks, repeats=3, axis=-1)
-    print(images.dtype)
-    print(masks.dtype)
     image_masks = tf.concat([images, masks], axis=2)
     return image_masks[0]
 
