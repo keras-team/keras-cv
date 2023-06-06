@@ -19,7 +19,8 @@ import tensorflow as tf
 from absl.testing import parameterized
 from tensorflow import keras
 
-from keras_cv.models import ResNet18V2Backbone, DeepLabV3Plus
+from keras_cv.models import DeepLabV3Plus
+from keras_cv.models import ResNet18V2Backbone
 
 
 class DeepLabV3PlusTest(tf.test.TestCase, parameterized.TestCase):
