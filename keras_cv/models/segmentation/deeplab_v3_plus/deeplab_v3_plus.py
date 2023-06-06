@@ -150,7 +150,7 @@ class DeepLabV3Plus(Task):
         encoder_outputs = keras.layers.UpSampling2D(
             size=(
                 low_level_projected_features.shape[1] // spp_outputs.shape[1],
-                low_level_projected_features.shape[2] // spp_outputs.shape[2]
+                low_level_projected_features.shape[2] // spp_outputs.shape[2],
             ),
             interpolation="bilinear",
             name="encoder_output_upsampling",
