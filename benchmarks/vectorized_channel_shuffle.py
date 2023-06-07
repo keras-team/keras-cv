@@ -38,7 +38,7 @@ class OldChannelShuffle(BaseImageAugmentationLayer):
         `(..., height, width, channels)`, in `"channels_last"` format
 
     Args:
-        groups: Number of groups to divide the input channels, defaults to `3`.
+        groups: Number of groups to divide the input channels. Defaults to `3`.
         seed: Integer. Used to create a random seed.
 
     Call arguments:
@@ -48,7 +48,7 @@ class OldChannelShuffle(BaseImageAugmentationLayer):
             ` or (width, height, channels)`, with dtype
                 tf.float32 / tf.uint8
         training: A boolean argument that determines whether the call should be
-            run in inference mode or training mode, defaults to `True`.
+            run in inference mode or training mode. Defaults to `True`.
 
     Usage:
     ```python

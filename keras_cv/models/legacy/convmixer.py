@@ -80,7 +80,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
             path, or a reference to pre-trained weights (e.g.
             'imagenet/classification')(see available pre-trained weights in
             weights.py)
-        input_shape: optional shape tuple, defaults to `(None, None, 3)`.
+        input_shape: optional shape tuple. Defaults to `(None, None, 3)`.
         input_tensor: optional Keras tensor (i.e., output of `layers.Input()`)
             to use as image input for the model.
         pooling: optional pooling mode for feature extraction
@@ -91,7 +91,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
                 output of the last convolutional block, and thus the output of
                 the model will be a 2D tensor.
             - `max` means that global max pooling will be applied.
-        name: string, optional name to pass to the model, defaults to "{name}".
+        name: string, optional name to pass to the model. Defaults to "{name}".
 
     Returns:
       A `keras.Model` instance.
@@ -151,11 +151,11 @@ class ConvMixer(keras.Model):
             top of the network.
         include_rescaling: bool, whether to rescale the inputs. If set to True,
             inputs will be passed through a `Rescaling(1/255.0)` layer.
-        name: string, optional name to pass to the model, defaults to
+        name: string, optional name to pass to the model. Defaults to
             "ConvMixer".
         weights: one of `None` (random initialization) or the path to the
             weights file to be loaded.
-        input_shape: optional shape tuple, defaults to `(None, None, 3)`.
+        input_shape: optional shape tuple. Defaults to `(None, None, 3)`.
         input_tensor: optional Keras tensor (i.e., output of `layers.Input()`)
             to use as image input for the model.
         pooling: optional pooling mode for feature extraction when `include_top`

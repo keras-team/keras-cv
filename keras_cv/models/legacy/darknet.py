@@ -56,7 +56,7 @@ BASE_DOCSTRING = """Represents the {name} architecture.
             into. Only to be specified if `include_top` is True.
         weights: one of `None` (random initialization), or a pretrained weight
             file path.
-        input_shape: optional shape tuple, defaults to `(None, None, 3)`.
+        input_shape: optional shape tuple. Defaults to `(None, None, 3)`.
         input_tensor: optional Keras tensor (i.e., output of `layers.Input()`)
             to use as image input for the model.
         pooling: optional pooling mode for feature extraction when `include_top`
@@ -67,7 +67,7 @@ BASE_DOCSTRING = """Represents the {name} architecture.
                 output of the last convolutional block, and thus the output of
                 the model will be a 2D tensor.
             - `max` means that global max pooling will be applied.
-        name: string, optional name to pass to the model, defaults to "{name}".
+        name: string, optional name to pass to the model. Defaults to "{name}".
 
     Returns:
         A `keras.Model` instance.
@@ -100,7 +100,7 @@ class DarkNet(keras.Model):
             into. Only to be specified if `include_top` is True.
         weights: one of `None` (random initialization) or a pretrained weight
             file path.
-        input_shape: optional shape tuple, defaults to `(None, None, 3)`.
+        input_shape: optional shape tuple. Defaults to `(None, None, 3)`.
         input_tensor: optional Keras tensor (i.e., output of `layers.Input()`)
             to use as image input for the model.
         pooling: optional pooling mode for feature extraction when `include_top`
@@ -115,7 +115,7 @@ class DarkNet(keras.Model):
             use on the "top" layer. Ignored unless `include_top=True`. Set
             `classifier_activation=None` to return the logits of the "top"
             layer.
-        name: string, optional name to pass to the model, defaults to "DarkNet".
+        name: string, optional name to pass to the model. Defaults to "DarkNet".
 
     Returns:
         A `keras.Model` instance.

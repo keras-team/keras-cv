@@ -74,8 +74,8 @@ def plot_image_gallery(
         path: (Optional) path to save the resulting gallery to.
         show: (Optional) whether to show the gallery of images.
         transparent: (Optional) whether to give the image a transparent
-            background, defaults to `True`.
-        dpi: (Optional) the dpi to pass to matplotlib.savefig(), defaults to
+            background. Defaults to `True`.
+        dpi: (Optional) the dpi to pass to matplotlib.savefig(). Defaults to
             `60`.
         legend_handles: (Optional) matplotlib.patches List of legend handles.
             I.e. passing: `[patches.Patch(color='red', label='mylabel')]` will

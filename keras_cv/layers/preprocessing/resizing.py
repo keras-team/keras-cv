@@ -46,7 +46,7 @@ class Resizing(BaseImageAugmentationLayer):
     Args:
         height: Integer, the height of the output shape.
         width: Integer, the width of the output shape.
-        interpolation: String, the interpolation method, defaults to
+        interpolation: String, the interpolation method. Defaults to
             `"bilinear"`. Supports `"bilinear"`, `"nearest"`, `"bicubic"`,
             `"area"`, `"lanczos3"`, `"lanczos5"`, `"gaussian"`,
             `"mitchellcubic"`.

@@ -82,7 +82,7 @@ class VGG16(keras.Model):
         only to be specified if `include_top` is True.
       weights: os.PathLike or None, one of `None` (random initialization), or a
         pretrained weight file path.
-      input_shape: tuple, optional shape tuple, defaults to `(224, 224, 3)`.
+      input_shape: tuple, optional shape tuple. Defaults to `(224, 224, 3)`.
       input_tensor: Tensor, optional Keras tensor (i.e. output of
         `layers.Input()`) to use as image input for the model.
       pooling: bool, Optional pooling mode for feature extraction
@@ -101,7 +101,7 @@ class VGG16(keras.Model):
         `classifier_activation=None` to return the logits of the "top" layer.
         When loading pretrained weights, `classifier_activation` can only
         be `None` or `"softmax"`.
-      name: (Optional) name to pass to the model, defaults to "VGG16".
+      name: (Optional) name to pass to the model. Defaults to "VGG16".
     Returns:
       A `keras.Model` instance.
     """  # noqa: E501

@@ -70,7 +70,7 @@ if FLAGS.mixed_precision:
     logging.info("mixed precision training enabled")
     keras.mixed_precision.set_global_policy("mixed_float16")
 
-# Try to detect an available TPU. If none is present, defaults to
+# Try to detect an available TPU. If none is present. Defaults to
 # MirroredStrategy
 try:
     tpu = tf.distribute.cluster_resolver.TPUClusterResolver.connect()

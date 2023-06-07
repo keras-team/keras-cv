@@ -45,9 +45,9 @@ class GlobalRandomFlip(base_augmentation_layer_3d.BaseAugmentationLayer3D):
       A dictionary of Tensors with the same shape as input Tensors.
 
     Args:
-      flip_x: whether to flip over the X axis, defaults to `False`.
-      flip_y: whether to flip over the Y axis, defaults to `True`.
-      flip_z: whether to flip over the Z axis, defaults to `False`.
+      flip_x: whether to flip over the X axis. Defaults to `False`.
+      flip_y: whether to flip over the Y axis. Defaults to `True`.
+      flip_z: whether to flip over the Z axis. Defaults to `False`.
     """
 
     def __init__(self, flip_x=False, flip_y=True, flip_z=False, **kwargs):

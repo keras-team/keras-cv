@@ -159,7 +159,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
             Defaults to `None`.
         num_classes: int, Optional number of classes to classify images into,
             only to be specified if `include_top` is True, and if no `weights`
-            argument is specified, defaults to None.
+            argument is specified. Defaults to None.
         classifier_activation: A `str` or callable. The activation function to
             use on the "top" layer. Ignored unless `include_top=True`. Set
             `classifier_activation=None` to return the logits of the "top"

@@ -229,13 +229,13 @@ BASE_DOCSTRING = """This class represents the {name} architecture.
     num_classes: Optional number of classes to classify images
         into, only to be specified if `include_top` is True.
     weights: One of `None` (random initialization), or the path to the weights
-          file to be loaded, defaults to `None`.
+          file to be loaded. Defaults to `None`.
     input_tensor: Optional Keras tensor (i.e. output of `layers.Input()`)
         to use as image input for the model.
     input_shape: Optional shape tuple. It should have exactly 3 inputs
         channels. Defaults to `(None, None, 3)`.
     pooling: Optional pooling mode for feature extraction
-        when `include_top` is `False`, defaults to None.
+        when `include_top` is `False`. Defaults to None.
         - `None` means that the output of the model will be
             the 4D tensor output of the
             last convolutional layer.
@@ -692,13 +692,13 @@ class RegNet(keras.Model):
             into, only to be specified if `include_top` is True, and
             if no `weights` argument is specified.
         weights: str, One of `None` (random initialization), or the path to the
-            weights file to be loaded, defaults to `None`.
+            weights file to be loaded. Defaults to `None`.
         input_tensor: Tensor, Optional Keras tensor (i.e. output of
             `layers.Input()`) to use as image input for the model.
-        input_shape: Optional shape tuple, defaults to (None, None, 3).
+        input_shape: Optional shape tuple. Defaults to (None, None, 3).
             It should have exactly 3 inputs channels.
         pooling: Optional pooling mode for feature extraction
-            when `include_top` is `False`, defaults to None.
+            when `include_top` is `False`. Defaults to None.
             - `None` means that the output of the model will be
                 the 4D tensor output of the
                 last convolutional layer.

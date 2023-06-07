@@ -143,10 +143,10 @@ class StableDiffusionBase:
             encoded_text: Tensor of shape (`batch_size`, 77, 768), or a Tensor
                 of shape (77, 768). When the batch axis is omitted, the same
                 encoded text will be used to produce every generated image.
-            batch_size: int, number of images to generate, defaults to `1`.
+            batch_size: int, number of images to generate. Defaults to `1`.
             negative_prompt: a string containing information to negatively guide
                 the image generation (e.g. by removing or altering certain
-                aspects of the generated image), defaults to None.
+                aspects of the generated image). Defaults to None.
             num_steps: int, number of diffusion steps (controls image quality),
                 defaults to 50.
             unconditional_guidance_scale: float, controlling how closely the

@@ -33,15 +33,15 @@ class BinaryPenaltyReducedFocalCrossEntropy(keras.losses.Loss):
       alpha: a focusing parameter used to compute the focal factor.
         Note, this is equivalent to the `gamma` parameter in
         `keras.losses.BinaryFocalCrossentropy`. Defaults to `2.0`.
-      beta: a float parameter, penalty exponent for negative labels, defaults to
+      beta: a float parameter, penalty exponent for negative labels. Defaults to
         `4.0`.
       from_logits: Whether `y_pred` is expected to be a logits tensor, defaults
         to `False`.
       positive_threshold: Anything bigger than this is treated as positive
-        label, defaults to 0.99.
-      positive_weight: single scalar weight on positive examples, defaults to
+        label. Defaults to 0.99.
+      positive_weight: single scalar weight on positive examples. Defaults to
         1.0.
-      negative_weight: single scalar weight on negative examples, defaults to
+      negative_weight: single scalar weight on negative examples. Defaults to
         1.0.
 
     Inputs:

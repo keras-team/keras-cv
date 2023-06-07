@@ -46,7 +46,7 @@ class RandAugment(RandomAugmentationPipeline):
             This is typically either `[0, 1]` or `[0, 255]` depending
             on how your preprocessing pipeline is set up.
         augmentations_per_image: the number of layers to use in the rand augment
-            policy, defaults to `3`.
+            policy. Defaults to `3`.
         magnitude: magnitude is the mean of the normal distribution used to
             sample the magnitude used for each data augmentation. Magnitude
             should be a float in the range `[0, 1]`. A magnitude of `0`

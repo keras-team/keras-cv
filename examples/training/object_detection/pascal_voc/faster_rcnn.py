@@ -49,7 +49,7 @@ FLAGS(sys.argv)
 
 # parameters from FasterRCNN [paper](https://arxiv.org/pdf/1506.01497.pdf)
 
-# Try to detect an available TPU. If none is present, defaults to
+# Try to detect an available TPU. If none is present. Defaults to
 # MirroredStrategy
 try:
     tpu = tf.distribute.cluster_resolver.TPUClusterResolver.connect()

@@ -44,7 +44,7 @@ class RandomChannelShift(BaseImageAugmentationLayer):
             the range `[0.0, 1.0]`. If `factor` is a single value, it will
             interpret as equivalent to the tuple `(0.0, factor)`. The `factor`
             will sample between its range for every image to augment.
-        channels: integer, the number of channels to shift, defaults to 3 which
+        channels: integer, the number of channels to shift. Defaults to 3 which
             corresponds to an RGB shift. In some cases, there may ber more or
             less channels.
         seed: Integer. Used to create a random seed.

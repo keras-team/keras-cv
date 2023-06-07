@@ -141,7 +141,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
             path, or a reference to pre-trained weights (e.g.
             'imagenet/classification')(see available pre-trained weights in
             weights.py)
-        input_shape: optional shape tuple, defaults to `(None, None, 3)`.
+        input_shape: optional shape tuple. Defaults to `(None, None, 3)`.
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
             to use as image input for the model.
         pooling: optional pooling mode for feature extraction
@@ -156,7 +156,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
             use on the "top" layer. Ignored unless `include_top=True`. Set
             `classifier_activation=None` to return the logits of the "top"
             layer.
-        name: (Optional) name to pass to the model, defaults to "{name}".
+        name: (Optional) name to pass to the model. Defaults to "{name}".
 
     Returns:
         A `keras.Model` instance.

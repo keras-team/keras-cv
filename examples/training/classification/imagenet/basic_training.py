@@ -153,7 +153,7 @@ appropriate distribution strategy accordingly. We scale our learning rate and
 batch size based on the number of accelerators being used.
 """
 
-# Try to detect an available TPU. If none is present, defaults to
+# Try to detect an available TPU. If none is present. Defaults to
 # MirroredStrategy
 try:
     tpu = tf.distribute.cluster_resolver.TPUClusterResolver.connect()

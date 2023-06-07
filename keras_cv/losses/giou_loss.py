@@ -36,7 +36,7 @@ class GIoULoss(keras.losses.Loss):
             Each bounding box is defined by these 4 values.For detailed
             information on the supported formats, see the [KerasCV bounding box
             documentation](https://keras.io/api/keras_cv/bounding_box/formats/).
-        axis: the axis along which to mean the ious, defaults to `-1`.
+        axis: the axis along which to mean the ious. Defaults to `-1`.
 
     References:
         - [GIoU paper](https://arxiv.org/pdf/1902.09630)
