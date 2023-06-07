@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""ResNet models for KerasCV.
+"""ResNet backbone model.
 Reference:
   - [Deep Residual Learning for Image Recognition](https://arxiv.org/abs/1512.03385)
     (CVPR 2015)
@@ -46,8 +46,8 @@ def apply_basic_block(
     Args:
         x: input tensor.
         filters: int, filters of the basic layer.
-        kernel_size: int, kernel size of the bottleneck layer. Defaults to `3`.
-        stride: int, stride of the first layer. Defaults to `1`.
+        kernel_size: int, kernel size of the bottleneck layer, defaults to 3.
+        stride: int, stride of the first layer, defaults to 1.
         conv_shortcut: bool, uses convolution shortcut if `True`. If `False`
             (default), uses identity or pooling shortcut, based on stride.
         name: string, optional prefix for the layer names used in the block.
@@ -110,8 +110,8 @@ def apply_block(
     Args:
         x: input tensor.
         filters: int, filters of the basic layer.
-        kernel_size: int, kernel size of the bottleneck layer. Defaults to `3`.
-        stride: int, stride of the first layer. Defaults to `1`.
+        kernel_size: int, kernel size of the bottleneck layer, defaults to 3.
+        stride: int, stride of the first layer, defaults to 1.
         conv_shortcut: bool, uses convolution shortcut if `True`. If `False`
             (default), uses identity or pooling shortcut, based on stride.
         name: string, optional prefix for the layer names used in the block.
@@ -182,8 +182,8 @@ def apply_stack(
         x: input tensor.
         filters: int, filters of the layer in a block.
         blocks: int, blocks in the stacked blocks.
-        stride: int, stride of the first layer in the first block. Defaults to
-            `2`.
+        stride: int, stride of the first layer in the first block, defaults to
+            2.
         name: string, optional prefix for the layer names used in the block.
         block_type: string, one of "basic_block" or "block". The block type to
               stack. Use "basic_block" for ResNet18 and ResNet34.
@@ -246,7 +246,7 @@ class ResNetBackbone(Backbone):
         include_rescaling: bool, whether to rescale the inputs. If set
             to `True`, inputs will be passed through a `Rescaling(1/255.0)`
             layer.
-        input_shape: optional shape tuple. Defaults to `(None, None, 3)`.
+        input_shape: optional shape tuple, defaults to (None, None, 3).
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
             to use as image input for the model.
         block_type: string, one of "basic_block" or "block". The block type to
@@ -355,197 +355,3 @@ class ResNetBackbone(Backbone):
         """Dictionary of preset names and configurations that include
         weights."""
         return copy.deepcopy(backbone_presets_with_weights)
-
-
-ALIAS_DOCSTRING = """ResNetBackbone (V1) model with {num_layers} layers.
-
-    Reference:
-        - [Deep Residual Learning for Image Recognition](https://arxiv.org/abs/1512.03385)
-
-    The difference in ResNetV1 and ResNetV2 rests in the structure of their
-    individual building blocks. In ResNetV2, the batch normalization and
-    ReLU activation precede the convolution layers, as opposed to ResNetV1 where
-    the batch normalization and ReLU activation are applied after the
-    convolution layers.
-
-    For transfer learning use cases, make sure to read the
-    [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
-
-    Args:
-        include_rescaling: bool, whether to rescale the inputs. If set
-            to `True`, inputs will be passed through a `Rescaling(1/255.0)`
-            layer.
-        input_shape: optional shape tuple. Defaults to `(None, None, 3)`.
-        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
-            to use as image input for the model.
-
-    Examples:
-    ```python
-    input_data = tf.ones(shape=(8, 224, 224, 3))
-
-    # Randomly initialized backbone
-    model = ResNet{num_layers}Backbone()
-    output = model(input_data)
-    ```
-"""  # noqa: E501
-
-
-class ResNet18Backbone(ResNetBackbone):
-    def __new__(
-        cls,
-        include_rescaling=True,
-        input_shape=(None, None, 3),
-        input_tensor=None,
-        **kwargs,
-    ):
-        # Pack args in kwargs
-        kwargs.update(
-            {
-                "include_rescaling": include_rescaling,
-                "input_shape": input_shape,
-                "input_tensor": input_tensor,
-            }
-        )
-        return ResNetBackbone.from_preset("resnet18", **kwargs)
-
-    @classproperty
-    def presets(cls):
-        """Dictionary of preset names and configurations."""
-        return {}
-
-    @classproperty
-    def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include
-        weights."""
-        return {}
-
-
-class ResNet34Backbone(ResNetBackbone):
-    def __new__(
-        cls,
-        include_rescaling=True,
-        input_shape=(None, None, 3),
-        input_tensor=None,
-        **kwargs,
-    ):
-        # Pack args in kwargs
-        kwargs.update(
-            {
-                "include_rescaling": include_rescaling,
-                "input_shape": input_shape,
-                "input_tensor": input_tensor,
-            }
-        )
-        return ResNetBackbone.from_preset("resnet34", **kwargs)
-
-    @classproperty
-    def presets(cls):
-        """Dictionary of preset names and configurations."""
-        return {}
-
-    @classproperty
-    def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include
-        weights."""
-        return {}
-
-
-class ResNet50Backbone(ResNetBackbone):
-    def __new__(
-        cls,
-        include_rescaling=True,
-        input_shape=(None, None, 3),
-        input_tensor=None,
-        **kwargs,
-    ):
-        # Pack args in kwargs
-        kwargs.update(
-            {
-                "include_rescaling": include_rescaling,
-                "input_shape": input_shape,
-                "input_tensor": input_tensor,
-            }
-        )
-        return ResNetBackbone.from_preset("resnet50", **kwargs)
-
-    @classproperty
-    def presets(cls):
-        """Dictionary of preset names and configurations."""
-        return {
-            "resnet50_imagenet": copy.deepcopy(
-                backbone_presets["resnet50_imagenet"]
-            ),
-        }
-
-    @classproperty
-    def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include
-        weights."""
-        return cls.presets
-
-
-class ResNet101Backbone(ResNetBackbone):
-    def __new__(
-        cls,
-        include_rescaling=True,
-        input_shape=(None, None, 3),
-        input_tensor=None,
-        **kwargs,
-    ):
-        # Pack args in kwargs
-        kwargs.update(
-            {
-                "include_rescaling": include_rescaling,
-                "input_shape": input_shape,
-                "input_tensor": input_tensor,
-            }
-        )
-        return ResNetBackbone.from_preset("resnet101", **kwargs)
-
-    @classproperty
-    def presets(cls):
-        """Dictionary of preset names and configurations."""
-        return {}
-
-    @classproperty
-    def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include
-        weights."""
-        return {}
-
-
-class ResNet152Backbone(ResNetBackbone):
-    def __new__(
-        self,
-        include_rescaling=True,
-        input_shape=(None, None, 3),
-        input_tensor=None,
-        **kwargs,
-    ):
-        # Pack args in kwargs
-        kwargs.update(
-            {
-                "include_rescaling": include_rescaling,
-                "input_shape": input_shape,
-                "input_tensor": input_tensor,
-            }
-        )
-        return ResNetBackbone.from_preset("resnet152", **kwargs)
-
-    @classproperty
-    def presets(cls):
-        """Dictionary of preset names and configurations."""
-        return {}
-
-    @classproperty
-    def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include
-        weights."""
-        return {}
-
-
-setattr(ResNet18Backbone, "__doc__", ALIAS_DOCSTRING.format(num_layers=18))
-setattr(ResNet34Backbone, "__doc__", ALIAS_DOCSTRING.format(num_layers=34))
-setattr(ResNet50Backbone, "__doc__", ALIAS_DOCSTRING.format(num_layers=50))
-setattr(ResNet101Backbone, "__doc__", ALIAS_DOCSTRING.format(num_layers=101))
-setattr(ResNet152Backbone, "__doc__", ALIAS_DOCSTRING.format(num_layers=152))
