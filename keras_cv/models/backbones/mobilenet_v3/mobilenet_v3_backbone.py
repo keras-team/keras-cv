@@ -64,7 +64,7 @@ class MobileNetV3Backbone(Backbone):
         include_rescaling: bool, whether to rescale the inputs. If set to True,
             inputs will be passed through a `Rescaling(scale=1 / 255)`
             layer.
-        input_shape: optional shape tuple, defaults to (None, None, 3).
+        input_shape: optional shape tuple. Defaults to `(None, None, 3)`.
         input_tensor: optional Keras tensor (i.e., output of `layers.Input()`)
             to use as image input for the model.
         alpha: float, controls the width of the network. This is known as the
@@ -229,16 +229,16 @@ def adjust_channels(x, divisor=8, min_value=None):
     Args:
         x: integer, input value.
         divisor: integer, the value by which a channel number should be
-            divisible, defaults to 8.
-        min_value: float, optional minimum value for the new tensor. If None,
-            defaults to value of divisor.
+            divisible. Defaults to `8`.
+        min_value: float, optional minimum value for the new tensor. When None,
+            is `divisor`. Defaults to `None`.
 
     Returns:
         the updated input scalar.
     """
 
     if min_value is None:
-        min_value = divisor
+        min_value = float(divisor)
 
     new_x = max(min_value, int(x + divisor / 2) // divisor * divisor)
 
