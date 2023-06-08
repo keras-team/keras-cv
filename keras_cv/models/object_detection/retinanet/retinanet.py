@@ -218,7 +218,7 @@ class RetinaNet(Task):
             **kwargs,
         )
         self.label_encoder = label_encoder
-        self.anchor_generator = anchor_generator
+        self.anchor_generator = label_encoder.anchor_generator
         self.bounding_box_format = bounding_box_format
         self.num_classes = num_classes
         self.backbone = backbone
