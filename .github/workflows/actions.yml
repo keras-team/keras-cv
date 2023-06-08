@@ -8,11 +8,7 @@ on:
 jobs:
   test:
     name: Test the code
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        # Skipping windows-latest due to custom ops #1854
-        os: [ubuntu-latest] 
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python 3.7
