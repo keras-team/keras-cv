@@ -235,17 +235,11 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
 @pytest.mark.large
 class RetinaNetSmokeTest(tf.test.TestCase):
     def test_backbone_preset(self):
-        weights = [
-            "csp_darknet_tiny",
-            "efficientnetv2_s",
-            "efficientnetv2_b0",
-            "mobilenet_v3_small",
-            "resnet50",
-            "resnet50_v2",
-        ]
-        for weight in weights:
+        for preset in keras_cv.models.RetinaNet.presets:
+            if preset in keras_cv.models.RetinaNet.presets_with_weights:
+                continue
             model = keras_cv.models.RetinaNet.from_preset(
-                weight,
+                preset,
                 num_classes=20,
                 bounding_box_format="xywh",
             )
