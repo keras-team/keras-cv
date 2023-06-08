@@ -57,7 +57,7 @@ def plot_segmentation_mask_gallery(
     )
     ```
 
-    ![Example bounding box gallery](https://i.imgur.com/tJpb8hZ.png)
+    ![Example segmentation mask gallery](https://i.imgur.com/YRswGHz.png)
 
     Args:
         images: a Tensor or NumPy array containing images to show in the
