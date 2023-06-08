@@ -50,7 +50,7 @@ def plot_segmentation_mask_gallery(
         value_range=(0, 255),
         num_classes=3, # The number of classes for the oxford iiit pet dataset
         y_true=segmentation_masks,
-        y_true=segmentation_masks,
+        y_pred=segmentation_masks,
         scale=3,
         rows=2,
         cols=2,
