@@ -49,7 +49,7 @@ TEST_CONFIGURATIONS = [
         layers.RandomCutout,
         {"height_factor": 0.2, "width_factor": 0.2},
     ),
-    ("RandomFlip", layers.RandomFlip, {"mode": "horizontal"}),
+    ("RandomFlip", layers.RandomFlip, {"mode": "horizontal", "bounding_box_format":"xyxy"}),
     (
         "RandomHue",
         layers.RandomHue,
@@ -85,9 +85,9 @@ TEST_CONFIGURATIONS = [
     (
         "RandomGaussianBlur",
         layers.RandomGaussianBlur,
-        {"kernel_size": 3, "factor": (0.0, 3.0)},
+        {"kernel_size": 3, "factor": (0.0, 3.0), "dtype": "map_fn"},
     ),
-    ("RandomJpegQuality", layers.RandomJpegQuality, {"factor": (75, 100)}),
+    ("RandomJpegQuality", layers.RandomJpegQuality, {"factor": (75, 100), "dtype": "map_fn"}),
     ("RandomRotation", layers.RandomRotation, {"factor": 0.5, "bounding_box_format":"xyxy"}),
     ("RandomSaturation", layers.RandomSaturation, {"factor": 0.5}),
     (
@@ -109,7 +109,8 @@ TEST_CONFIGURATIONS = [
             "height": 224,
             "width": 224,
             "bounding_box_format":"xyxy",
-            "pad_to_aspect_ratio":True
+            "pad_to_aspect_ratio":True,
+            "dtype": "map_fn",
         },
     ),
     (
@@ -137,6 +138,7 @@ TEST_CONFIGURATIONS = [
         {
             "scale": 1,
             "offset": 0.5,
+            # "dtype": "map_fn",
         },
     ),
 ]
@@ -167,8 +169,11 @@ class WithMixedPrecisionTest(tf.test.TestCase, parameterized.TestCase):
         
         bounding_boxes = {
             "boxes": tf.convert_to_tensor(
-                [[200, 200, 400, 400], [100, 100, 300, 300], [300, 300, 500, 500]], dtype=tf.float32),
-            "classes":tf.ones((3,), dtype=tf.float32)
+            [[[200, 200, 400, 400], [250, 250, 450, 450], [300, 300, 500, 500]],  # Bounding boxes for image 1
+            [[100, 100, 300, 300], [150, 150, 350, 350], [200, 200, 400, 400]],  # Bounding boxes for image 2
+            [[300, 300, 500, 500], [350, 350, 550, 550], [400, 400, 600, 600]]],   # Bounding boxes for image 3
+            dtype=tf.float32),
+            "classes":tf.ones((3,3), dtype=tf.float32)
         }
         
         # inputs = {"images": img, "labels": labels}
