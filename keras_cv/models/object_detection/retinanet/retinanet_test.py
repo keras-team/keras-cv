@@ -25,10 +25,6 @@ from keras_cv.models.object_detection.__test_utils__ import (
     _create_bounding_box_dataset,
 )
 
-from keras_cv.models import ResNetBackbone
-from keras_cv.models import ResNetV2Backbone
-from keras_cv.models import EfficientNetV2Backbone
-from keras_cv.models import CSPDarkNetBackbone
 
 class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
     @pytest.fixture(autouse=True)
@@ -239,46 +235,17 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
 @pytest.mark.large
 class RetinaNetSmokeTest(tf.test.TestCase):
     def test_backbone_preset(self):
-        backbones = [
-            ResNetBackbone,
-            ResNetV2Backbone,
-            ResNetV2Backbone,
-            CSPDarkNetBackbone,
-            EfficientNetV2Backbone
-        ]
-        for backbone in backbones:
-            for preset in backbone.presets:
-                if preset in backbone.presets_with_weights:
-                    continue
-                model = keras_cv.models.RetinaNet.from_preset(
-                    preset,
-                    num_classes=20,
-                    bounding_box_format="xywh",
-                )
-                xs, _ = _create_bounding_box_dataset(bounding_box_format="xywh")
-                output = model(xs)
-                self.assertEqual(output["box"].shape, (xs.shape[0], 49104, 4))
-
-
-    def test_backbone_preset(self):
-        weights = [
-            "csp_darknet_tiny",
-            "efficientnetv2_s",
-            "efficientnetv2_b0",
-            "mobilenet_v3_small",
-            "resnet50",
-            "resnet50_v2",
-        ]
-        for weight in weights:
+        for preset in keras_cv.models.RetinaNet.presets:
+            if preset in keras_cv.models.RetinaNet.presets_with_weights:
+                continue
             model = keras_cv.models.RetinaNet.from_preset(
-                weight,
+                preset,
                 num_classes=20,
                 bounding_box_format="xywh",
             )
             xs, _ = _create_bounding_box_dataset(bounding_box_format="xywh")
             output = model(xs)
             self.assertEqual(output["box"].shape, (xs.shape[0], 49104, 4))
-
 
     def test_full_preset_weight_loading(self):
         model = keras_cv.models.RetinaNet.from_preset(
