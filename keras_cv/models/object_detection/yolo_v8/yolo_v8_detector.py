@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import copy
+import warnings
 
 import tensorflow as tf
 from keras import layers
@@ -19,6 +20,7 @@ from tensorflow import keras
 
 import keras_cv
 from keras_cv import bounding_box
+from keras_cv.losses.ciou_loss import CIoULoss
 from keras_cv.models.backbones.backbone_presets import backbone_presets
 from keras_cv.models.backbones.backbone_presets import (
     backbone_presets_with_weights,
@@ -27,9 +29,6 @@ from keras_cv.models.object_detection import predict_utils
 from keras_cv.models.object_detection.__internal__ import unpack_input
 from keras_cv.models.object_detection.yolo_v8.yolo_v8_detector_presets import (
     yolo_v8_detector_presets,
-)
-from keras_cv.models.object_detection.yolo_v8.yolo_v8_iou_loss import (
-    YOLOV8IoULoss,
 )
 from keras_cv.models.object_detection.yolo_v8.yolo_v8_label_encoder import (
     YOLOV8LabelEncoder,
@@ -378,7 +377,7 @@ class YOLOV8Detector(Task):
     # Train model
     model.compile(
         classification_loss='binary_crossentropy',
-        box_loss='iou',
+        box_loss='ciou',
         optimizer=tf.optimizers.SGD(global_clipnorm=10.0),
         jit_compile=False,
     )
@@ -459,7 +458,7 @@ class YOLOV8Detector(Task):
 
         Args:
             box_loss: a Keras loss to use for box offset regression. A
-                preconfigured loss is provided when the string "iou" is passed.
+                preconfigured loss is provided when the string "ciou" is passed.
             classification_loss: a Keras loss to use for box classification. A
                 preconfigured loss is provided when the string
                 "binary_crossentropy" is passed.
@@ -474,12 +473,18 @@ class YOLOV8Detector(Task):
             raise ValueError("User metrics not yet supported for YOLOV8")
 
         if isinstance(box_loss, str):
-            if box_loss == "iou":
-                box_loss = YOLOV8IoULoss(reduction="sum")
+            if box_loss == "ciou":
+                box_loss = CIoULoss(bounding_box_format="xyxy", reduction="sum")
+            elif box_loss == "iou":
+                warnings.warn(
+                    "YOLOV8 recommends using CIoU loss, but was configured to "
+                    "use standard IoU. Consider using `box_loss='ciou'` "
+                    "instead."
+                )
             else:
                 raise ValueError(
                     f"Invalid box loss for YOLOV8Detector: {box_loss}. Box "
-                    "loss should be a keras.Loss or the string 'iou'."
+                    "loss should be a keras.Loss or the string 'ciou'."
                 )
         if isinstance(classification_loss, str):
             if classification_loss == "binary_crossentropy":
