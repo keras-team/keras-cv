@@ -45,7 +45,7 @@ class YOLOV8DetectorTest(tf.test.TestCase, parameterized.TestCase):
         yolo.compile(
             optimizer="adam",
             classification_loss="binary_crossentropy",
-            box_loss="iou",
+            box_loss="ciou",
         )
         xs, ys = _create_bounding_box_dataset(bounding_box_format)
 
@@ -66,7 +66,7 @@ class YOLOV8DetectorTest(tf.test.TestCase, parameterized.TestCase):
         yolo.compile(
             optimizer="adam",
             classification_loss="binary_crossentropy",
-            box_loss="iou",
+            box_loss="ciou",
         )
         xs, ys = _create_bounding_box_dataset(bounding_box_format)
         ys = bounding_box.to_ragged(ys)
