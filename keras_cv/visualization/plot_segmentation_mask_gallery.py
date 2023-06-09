@@ -96,7 +96,7 @@ def plot_segmentation_mask_gallery(
         segmentation_masks=plotted_y_true
     )
 
-    # Interpolate the segmentation maps from the range of (0, num_classes)
+    # Interpolate the segmentation masks from the range of (0, num_classes)
     # to the value range provided.
     plotted_y_true = np.interp(plotted_y_true, (0, num_classes), value_range)
 
