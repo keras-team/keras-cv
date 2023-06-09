@@ -18,10 +18,12 @@ Reference:
     - [YoloV3 implementation](https://github.com/ultralytics/yolov3)
 """
 
-import tensorflow as tf
+import copy
+
 from tensorflow import keras
 from tensorflow.keras import layers
 
+from keras_cv.models.backbones.backbone import Backbone
 from keras_cv.models.backbones.csp_darknet.csp_darknet_utils import (
     DarknetConvBlock,
 )
@@ -31,8 +33,15 @@ from keras_cv.models.backbones.csp_darknet.csp_darknet_utils import (
 from keras_cv.models.backbones.csp_darknet.csp_darknet_utils import (
     SpatialPyramidPoolingBottleneck,
 )
+from keras_cv.models.backbones.darknet.darknet_backbone_presets import (
+    backbone_presets,
+)
+from keras_cv.models.backbones.darknet.darknet_backbone_presets import (
+    backbone_presets_with_weights,
+)
 from keras_cv.models.legacy import utils
 from keras_cv.models.legacy.weights import parse_weights
+from keras_cv.utils.python_utils import classproperty
 
 BASE_DOCSTRING = """Represents the {name} architecture.
 
@@ -75,7 +84,7 @@ BASE_DOCSTRING = """Represents the {name} architecture.
 
 
 @keras.utils.register_keras_serializable(package="keras_cv.models")
-class DarkNet(keras.Model):
+class DarkNetBackbone(Backbone):
 
     """Represents the DarkNet architecture.
 
@@ -125,29 +134,10 @@ class DarkNet(keras.Model):
         self,
         blocks,
         include_rescaling,
-        include_top,
-        num_classes=None,
-        weights=None,
         input_shape=(None, None, 3),
         input_tensor=None,
-        pooling=None,
-        classifier_activation="softmax",
-        name="DarkNet",
         **kwargs,
     ):
-        if weights and not tf.io.gfile.exists(weights):
-            raise ValueError(
-                "The `weights` argument should be either `None` or the path to "
-                "the weights file to be loaded. Weights file not found at "
-                f"location: {weights}"
-            )
-
-        if include_top and not num_classes:
-            raise ValueError(
-                "If `include_top` is True, you should specify `num_classes`. "
-                f"Received: num_classes={num_classes}"
-            )
-
         inputs = utils.parse_model_inputs(input_shape, input_tensor)
 
         x = inputs
@@ -155,6 +145,7 @@ class DarkNet(keras.Model):
             x = layers.Rescaling(1 / 255.0)(x)
 
         # stem
+        pyramid_level_inputs = {}
         x = DarknetConvBlock(
             filters=32,
             kernel_size=3,
@@ -162,9 +153,11 @@ class DarkNet(keras.Model):
             activation="leaky_relu",
             name="stem_conv",
         )(x)
+        pyramid_level_inputs[2] = x.node.layer.name
         x = ResidualBlocks(
             filters=64, num_blocks=1, name="stem_residual_block"
         )(x)
+        pyramid_level_inputs[3] = x.node.layer.name
 
         # filters for the ResidualBlock outputs
         filters = [128, 256, 512, 1024]
@@ -180,6 +173,7 @@ class DarkNet(keras.Model):
                 name=f"dark{layer_num}_residual_block",
             )(x)
             layer_num += 1
+            pyramid_level_inputs[layer_num + 1] = x.node.layer.name
 
         # remaining dark5 layers
         x = DarknetConvBlock(
@@ -189,6 +183,7 @@ class DarkNet(keras.Model):
             activation="leaky_relu",
             name="dark5_conv1",
         )(x)
+        pyramid_level_inputs[8] = x.node.layer.name
         x = DarknetConvBlock(
             filters=1024,
             kernel_size=3,
@@ -196,6 +191,7 @@ class DarkNet(keras.Model):
             activation="leaky_relu",
             name="dark5_conv2",
         )(x)
+        pyramid_level_inputs[9] = x.node.layer.name
         x = SpatialPyramidPoolingBottleneck(
             512, activation="leaky_relu", name="dark5_spp"
         )(x)
@@ -206,6 +202,7 @@ class DarkNet(keras.Model):
             activation="leaky_relu",
             name="dark5_conv3",
         )(x)
+        pyramid_level_inputs[10] = x.node.layer.name
         x = DarknetConvBlock(
             filters=512,
             kernel_size=1,
@@ -213,52 +210,39 @@ class DarkNet(keras.Model):
             activation="leaky_relu",
             name="dark5_conv4",
         )(x)
+        pyramid_level_inputs[11] = x.node.layer.name
 
-        if include_top:
-            x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-            x = layers.Dense(
-                num_classes,
-                activation=classifier_activation,
-                name="predictions",
-            )(x)
-        elif pooling == "avg":
-            x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-        elif pooling == "max":
-            x = layers.GlobalMaxPooling2D(name="max_pool")(x)
+        super().__init__(inputs=inputs, outputs=x, **kwargs)
 
-        super().__init__(inputs=inputs, outputs=x, name=name, **kwargs)
-
-        if weights is not None:
-            self.load_weights(weights)
-
+        self.pyramid_level_inputs = pyramid_level_inputs
         self.blocks = blocks
         self.include_rescaling = include_rescaling
-        self.include_top = include_top
-        self.num_classes = num_classes
         self.input_tensor = input_tensor
-        self.pooling = pooling
-        self.classifier_activation = classifier_activation
 
     def get_config(self):
-        return {
-            "blocks": self.blocks,
-            "include_rescaling": self.include_rescaling,
-            "include_top": self.include_top,
-            "num_classes": self.num_classes,
-            "input_shape": self.input_shape[1:],
-            "input_tensor": self.input_tensor,
-            "pooling": self.pooling,
-            "classifier_activation": self.classifier_activation,
-            "name": self.name,
-            "trainable": self.trainable,
-        }
+        config = super().get_config()
+        config.update(
+            {
+                "blocks": self.blocks,
+                "include_rescaling": self.include_rescaling,
+                "input_shape": self.input_shape[1:],
+                "input_tensor": self.input_tensor,
+            }
+        )
+        return config
 
-    @classmethod
-    def from_config(cls, config):
-        return cls(**config)
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return copy.deepcopy(backbone_presets)
+
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include weights."""  # noqa: E501
+        return copy.deepcopy(backbone_presets_with_weights)
 
 
-def DarkNet21(
+def DarkNet21Backbone(
     *,
     include_rescaling,
     include_top,
@@ -270,7 +254,7 @@ def DarkNet21(
     name="DarkNet21",
     **kwargs,
 ):
-    return DarkNet(
+    return DarkNetBackbone(
         [1, 2, 2, 1],
         include_rescaling=include_rescaling,
         include_top=include_top,
@@ -284,7 +268,7 @@ def DarkNet21(
     )
 
 
-def DarkNet53(
+def DarkNet53Backbone(
     *,
     include_rescaling,
     include_top,
@@ -296,7 +280,7 @@ def DarkNet53(
     name="DarkNet53",
     **kwargs,
 ):
-    return DarkNet(
+    return DarkNetBackbone(
         [2, 8, 8, 4],
         include_rescaling=include_rescaling,
         include_top=include_top,
@@ -310,5 +294,5 @@ def DarkNet53(
     )
 
 
-setattr(DarkNet21, "__doc__", BASE_DOCSTRING.format(name="DarkNet21"))
-setattr(DarkNet53, "__doc__", BASE_DOCSTRING.format(name="DarkNet53"))
+setattr(DarkNet21Backbone, "__doc__", BASE_DOCSTRING.format(name="DarkNet21"))
+setattr(DarkNet53Backbone, "__doc__", BASE_DOCSTRING.format(name="DarkNet53"))
