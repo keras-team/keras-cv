@@ -12,13 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import tensorflow as tf
-from tensorflow import keras
-from tensorflow.keras import layers
+from keras_cv.backend import keras
+from keras_cv.backend import ops
 
 
 @keras.utils.register_keras_serializable(package="keras_cv")
-class SqueezeAndExcite2D(layers.Layer):
+class SqueezeAndExcite2D(keras.layers.Layer):
     """
     Implements Squeeze and Excite block as in
     [Squeeze-and-Excitation Networks](https://arxiv.org/pdf/1709.01507.pdf).
@@ -86,13 +85,15 @@ class SqueezeAndExcite2D(layers.Layer):
         self.squeeze_activation = squeeze_activation
         self.excite_activation = excite_activation
 
-        self.global_average_pool = layers.GlobalAveragePooling2D(keepdims=True)
-        self.squeeze_conv = layers.Conv2D(
+        self.global_average_pool = keras.layers.GlobalAveragePooling2D(
+            keepdims=True
+        )
+        self.squeeze_conv = keras.layers.Conv2D(
             self.bottleneck_filters,
             (1, 1),
             activation=self.squeeze_activation,
         )
-        self.excite_conv = layers.Conv2D(
+        self.excite_conv = keras.layers.Conv2D(
             self.filters, (1, 1), activation=self.excite_activation
         )
 
@@ -100,7 +101,7 @@ class SqueezeAndExcite2D(layers.Layer):
         x = self.global_average_pool(inputs)  # x: (batch_size, 1, 1, filters)
         x = self.squeeze_conv(x)  # x: (batch_size, 1, 1, bottleneck_filters)
         x = self.excite_conv(x)  # x: (batch_size, 1, 1, filters)
-        x = tf.math.multiply(x, inputs)  # x: (batch_size, h, w, filters)
+        x = ops.multiply(x, inputs)  # x: (batch_size, h, w, filters)
         return x
 
     def get_config(self):

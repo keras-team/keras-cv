@@ -11,10 +11,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - name: Set up Python 3.7
+    - name: Set up Python 3.8
       uses: actions/setup-python@v1
       with:
-        python-version: 3.7
+        python-version: 3.8
     - name: Get pip cache dir
       id: pip-cache
       run: |
@@ -29,27 +29,70 @@ jobs:
           ${{ runner.os }}-pip-
     - name: Install dependencies
       run: |
-        pip install tensorflow-cpu==2.11.0
+        pip install tensorflow==2.12.0
         pip install -e ".[tests]" --progress-bar off --upgrade
-    - name: Build custom ops for tests
-      run: |
-        python build_deps/configure.py
-        bazel build keras_cv/custom_ops:all
-        cp bazel-bin/keras_cv/custom_ops/*.so keras_cv/custom_ops/
+        git clone https://ianstenbit:${{ secrets.PAT }}@github.com/keras-team/keras-core.git
+        pip install keras-core/
+        pip install "jax[cpu]"
+    # - name: Build custom ops for tests
+    #   run: |
+    #     python build_deps/configure.py
+    #     bazel build keras_cv/custom_ops:all
+    #     cp bazel-bin/keras_cv/custom_ops/*.so keras_cv/custom_ops/
     - name: Test with pytest
       env:
-        TEST_CUSTOM_OPS: true
+        TEST_CUSTOM_OPS: false
       run: |
         pytest keras_cv/ --ignore keras_cv/models/legacy/ --durations 0
+  multibackend:
+    name: Test the code with Keras Core + Jax
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.8
+    - name: Get pip cache dir
+      id: pip-cache
+      run: |
+        python -m pip install --upgrade pip setuptools
+        echo "::set-output name=dir::$(pip cache dir)"
+    - name: pip cache
+      uses: actions/cache@v2
+      with:
+        path: ${{ steps.pip-cache.outputs.dir }}
+        key: ${{ runner.os }}-pip-${{ hashFiles('setup.py') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    - name: Install dependencies
+      run: |
+        pip install tensorflow==2.12.0
+        git clone https://ianstenbit:${{ secrets.PAT }}@github.com/keras-team/keras-core.git
+        pip install keras-core/
+        pip install -e ".[tests]" --progress-bar off --upgrade
+        pip install "jax[cpu]"
+    - name: Test with pytest
+      env:
+        TEST_CUSTOM_OPS: false # TODO(ianstenbit): test custom ops, or figure out what our story is here
+        KERAS_CV_MULTI_BACKEND: true
+        KERAS_BACKEND: jax
+      run: |
+        pytest keras_cv/models/backbones/resnet_v1 \
+               keras_cv/models/backbones/resnet_v2 \
+               keras_cv/models/backbones/efficientnet_v2 \
+               keras_cv/models/backbones/csp_darknet \
+               keras_cv/models/classification/image_classifier_test.py \
+               --durations 0 --run_large --run_extra_large
   format:
     name: Check the code format
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - name: Set up Python 3.7
+    - name: Set up Python 3.8
       uses: actions/setup-python@v1
       with:
-        python-version: 3.7
+        python-version: 3.8
     - name: Get pip cache dir
       id: pip-cache
       run: |
@@ -75,4 +118,3 @@ jobs:
         extensions: 'h,c,cpp,hpp,cc'
         clangFormatVersion: 14
         style: google
-  

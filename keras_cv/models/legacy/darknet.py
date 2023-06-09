@@ -19,9 +19,8 @@ Reference:
 """
 
 import tensorflow as tf
-from tensorflow import keras
-from tensorflow.keras import layers
 
+from keras_cv.backend import keras
 from keras_cv.models.backbones.csp_darknet.csp_darknet_utils import (
     DarknetConvBlock,
 )
@@ -57,8 +56,8 @@ BASE_DOCSTRING = """Represents the {name} architecture.
         weights: one of `None` (random initialization), or a pretrained weight
             file path.
         input_shape: optional shape tuple, defaults to (None, None, 3).
-        input_tensor: optional Keras tensor (i.e., output of `layers.Input()`)
-            to use as image input for the model.
+        input_tensor: optional Keras tensor (i.e., output of
+            `keras.layers.Input()`) to use as image input for the model.
         pooling: optional pooling mode for feature extraction when `include_top`
             is `False`.
             - `None` means that the output of the model will be the 4D tensor
@@ -148,11 +147,11 @@ class DarkNet(keras.Model):
                 f"Received: num_classes={num_classes}"
             )
 
-        inputs = utils.parse_model_inputs(input_shape, input_tensor)
+        inputs = utils.parse_model_inputs_keras_core(input_shape, input_tensor)
 
         x = inputs
         if include_rescaling:
-            x = layers.Rescaling(1 / 255.0)(x)
+            x = keras.layers.Rescaling(1 / 255.0)(x)
 
         # stem
         x = DarknetConvBlock(
@@ -215,16 +214,16 @@ class DarkNet(keras.Model):
         )(x)
 
         if include_top:
-            x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
-            x = layers.Dense(
+            x = keras.layers.GlobalAveragePooling2D(name="avg_pool")(x)
+            x = keras.layers.Dense(
                 num_classes,
                 activation=classifier_activation,
                 name="predictions",
             )(x)
         elif pooling == "avg":
-            x = layers.GlobalAveragePooling2D(name="avg_pool")(x)
+            x = keras.layers.GlobalAveragePooling2D(name="avg_pool")(x)
         elif pooling == "max":
-            x = layers.GlobalMaxPooling2D(name="max_pool")(x)
+            x = keras.layers.GlobalMaxPooling2D(name="max_pool")(x)
 
         super().__init__(inputs=inputs, outputs=x, name=name, **kwargs)
 

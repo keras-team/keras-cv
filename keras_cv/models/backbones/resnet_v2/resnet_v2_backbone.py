@@ -19,10 +19,7 @@ Reference:
 
 import copy
 
-from tensorflow import keras
-from tensorflow.keras import backend
-from tensorflow.keras import layers
-
+from keras_cv.backend import keras
 from keras_cv.models import utils
 from keras_cv.models.backbones.backbone import Backbone
 from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone_presets import (
@@ -214,31 +211,31 @@ def apply_basic_block(
     """
 
     if name is None:
-        name = f"v2_basic_block_{backend.get_uid('v2_basic_block')}"
+        name = f"v2_basic_block_{keras.backend.get_uid('v2_basic_block')}"
 
-    use_preactivation = layers.BatchNormalization(
+    use_preactivation = keras.layers.BatchNormalization(
         axis=BN_AXIS, epsilon=BN_EPSILON, name=name + "_use_preactivation_bn"
     )(x)
 
-    use_preactivation = layers.Activation(
+    use_preactivation = keras.layers.Activation(
         "relu", name=name + "_use_preactivation_relu"
     )(use_preactivation)
 
     s = stride if dilation == 1 else 1
     if conv_shortcut:
-        shortcut = layers.Conv2D(filters, 1, strides=s, name=name + "_0_conv")(
-            use_preactivation
-        )
+        shortcut = keras.layers.Conv2D(
+            filters, 1, strides=s, name=name + "_0_conv"
+        )(use_preactivation)
     else:
         shortcut = (
-            layers.MaxPooling2D(
+            keras.layers.MaxPooling2D(
                 1, strides=stride, name=name + "_0_max_pooling"
             )(x)
             if s > 1
             else x
         )
 
-    x = layers.Conv2D(
+    x = keras.layers.Conv2D(
         filters,
         kernel_size,
         padding="SAME",
@@ -246,12 +243,12 @@ def apply_basic_block(
         use_bias=False,
         name=name + "_1_conv",
     )(use_preactivation)
-    x = layers.BatchNormalization(
+    x = keras.layers.BatchNormalization(
         axis=BN_AXIS, epsilon=BN_EPSILON, name=name + "_1_bn"
     )(x)
-    x = layers.Activation("relu", name=name + "_1_relu")(x)
+    x = keras.layers.Activation("relu", name=name + "_1_relu")(x)
 
-    x = layers.Conv2D(
+    x = keras.layers.Conv2D(
         filters,
         kernel_size,
         strides=s,
@@ -261,7 +258,7 @@ def apply_basic_block(
         name=name + "_2_conv",
     )(x)
 
-    x = layers.Add(name=name + "_out")([shortcut, x])
+    x = keras.layers.Add(name=name + "_out")([shortcut, x])
     return x
 
 
@@ -291,19 +288,19 @@ def apply_block(
       Output tensor for the residual block.
     """
     if name is None:
-        name = f"v2_block_{backend.get_uid('v2_block')}"
+        name = f"v2_block_{keras.backend.get_uid('v2_block')}"
 
-    use_preactivation = layers.BatchNormalization(
+    use_preactivation = keras.layers.BatchNormalization(
         axis=BN_AXIS, epsilon=BN_EPSILON, name=name + "_use_preactivation_bn"
     )(x)
 
-    use_preactivation = layers.Activation(
+    use_preactivation = keras.layers.Activation(
         "relu", name=name + "_use_preactivation_relu"
     )(use_preactivation)
 
     s = stride if dilation == 1 else 1
     if conv_shortcut:
-        shortcut = layers.Conv2D(
+        shortcut = keras.layers.Conv2D(
             4 * filters,
             1,
             strides=s,
@@ -311,22 +308,22 @@ def apply_block(
         )(use_preactivation)
     else:
         shortcut = (
-            layers.MaxPooling2D(
+            keras.layers.MaxPooling2D(
                 1, strides=stride, name=name + "_0_max_pooling"
             )(x)
             if s > 1
             else x
         )
 
-    x = layers.Conv2D(
+    x = keras.layers.Conv2D(
         filters, 1, strides=1, use_bias=False, name=name + "_1_conv"
     )(use_preactivation)
-    x = layers.BatchNormalization(
+    x = keras.layers.BatchNormalization(
         axis=BN_AXIS, epsilon=BN_EPSILON, name=name + "_1_bn"
     )(x)
-    x = layers.Activation("relu", name=name + "_1_relu")(x)
+    x = keras.layers.Activation("relu", name=name + "_1_relu")(x)
 
-    x = layers.Conv2D(
+    x = keras.layers.Conv2D(
         filters,
         kernel_size,
         strides=s,
@@ -335,13 +332,13 @@ def apply_block(
         dilation_rate=dilation,
         name=name + "_2_conv",
     )(x)
-    x = layers.BatchNormalization(
+    x = keras.layers.BatchNormalization(
         axis=BN_AXIS, epsilon=BN_EPSILON, name=name + "_2_bn"
     )(x)
-    x = layers.Activation("relu", name=name + "_2_relu")(x)
+    x = keras.layers.Activation("relu", name=name + "_2_relu")(x)
 
-    x = layers.Conv2D(4 * filters, 1, name=name + "_3_conv")(x)
-    x = layers.Add(name=name + "_out")([shortcut, x])
+    x = keras.layers.Conv2D(4 * filters, 1, name=name + "_3_conv")(x)
+    x = keras.layers.Add(name=name + "_out")([shortcut, x])
     return x
 
 

@@ -14,11 +14,12 @@
 
 import os
 
+import numpy as np
 import pytest
 import tensorflow as tf
 from absl.testing import parameterized
-from tensorflow import keras
 
+from keras_cv.backend import keras
 from keras_cv.models.backbones.resnet_v1.resnet_v1_aliases import (
     ResNet18Backbone,
 )
@@ -39,7 +40,7 @@ from keras_cv.utils.train import get_feature_extractor
 
 class ResNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
     def setUp(self):
-        self.input_batch = tf.ones(shape=(2, 224, 224, 3))
+        self.input_batch = np.ones(shape=(2, 224, 224, 3))
 
     def test_valid_call(self):
         model = ResNetBackbone(
@@ -63,12 +64,8 @@ class ResNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
         )
         model(self.input_batch)
 
-    @parameterized.named_parameters(
-        ("tf_format", "tf", "model"),
-        ("keras_format", "keras_v3", "model.keras"),
-    )
     @pytest.mark.large  # Saving is slow, so mark these large.
-    def test_saved_model(self, save_format, filename):
+    def test_saved_model(self):
         model = ResNetBackbone(
             stackwise_filters=[64, 128, 256, 512],
             stackwise_blocks=[2, 2, 2, 2],
@@ -76,9 +73,11 @@ class ResNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
             include_rescaling=False,
         )
         model_output = model(self.input_batch)
-        save_path = os.path.join(self.get_temp_dir(), filename)
-        model.save(save_path, save_format=save_format)
-        restored_model = keras.models.load_model(save_path)
+        save_path = os.path.join(
+            self.get_temp_dir(), "resnet_v1_backbone.keras"
+        )
+        model.save(save_path)
+        restored_model = keras.saving.load_model(save_path)
 
         # Check we got the real object back.
         self.assertIsInstance(restored_model, ResNetBackbone)
@@ -87,17 +86,15 @@ class ResNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
         restored_output = restored_model(self.input_batch)
         self.assertAllClose(model_output, restored_output)
 
-    @parameterized.named_parameters(
-        ("tf_format", "tf", "model"),
-        ("keras_format", "keras_v3", "model.keras"),
-    )
     @pytest.mark.large  # Saving is slow, so mark these large.
-    def test_saved_alias_model(self, save_format, filename):
+    def test_saved_alias_model(self):
         model = ResNet50Backbone()
         model_output = model(self.input_batch)
-        save_path = os.path.join(self.get_temp_dir(), filename)
-        model.save(save_path, save_format=save_format)
-        restored_model = keras.models.load_model(save_path)
+        save_path = os.path.join(
+            self.get_temp_dir(), "resnet_v1_alias_backbone.keras"
+        )
+        model.save(save_path)
+        restored_model = keras.saving.load_model(save_path)
 
         # Check we got the real object back.
         # Note that these aliases serialized as the base class
@@ -122,10 +119,10 @@ class ResNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
         levels = ["P2", "P3", "P4", "P5"]
         self.assertLen(outputs, 4)
         self.assertEquals(list(outputs.keys()), levels)
-        self.assertEquals(outputs["P2"].shape, [None, 64, 64, 256])
-        self.assertEquals(outputs["P3"].shape, [None, 32, 32, 512])
-        self.assertEquals(outputs["P4"].shape, [None, 16, 16, 1024])
-        self.assertEquals(outputs["P5"].shape, [None, 8, 8, 2048])
+        self.assertEquals(outputs["P2"].shape, (None, 64, 64, 256))
+        self.assertEquals(outputs["P3"].shape, (None, 32, 32, 512))
+        self.assertEquals(outputs["P4"].shape, (None, 16, 16, 1024))
+        self.assertEquals(outputs["P5"].shape, (None, 8, 8, 2048))
 
     def test_create_backbone_model_with_level_config(self):
         model = ResNetBackbone(
@@ -142,8 +139,8 @@ class ResNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
         outputs = backbone_model(inputs)
         self.assertLen(outputs, 2)
         self.assertEquals(list(outputs.keys()), levels)
-        self.assertEquals(outputs["P3"].shape, [None, 32, 32, 512])
-        self.assertEquals(outputs["P4"].shape, [None, 16, 16, 1024])
+        self.assertEquals(outputs["P3"].shape, (None, 32, 32, 512))
+        self.assertEquals(outputs["P4"].shape, (None, 16, 16, 1024))
 
     @parameterized.named_parameters(
         ("one_channel", 1),
