@@ -252,9 +252,7 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
 @pytest.mark.large
 class RetinaNetSmokeTest(tf.test.TestCase):
     def test_backbone_preset(self):
-        for preset in keras_cv.models.RetinaNet.presets:
-            if preset in keras_cv.models.RetinaNet.presets_with_weights:
-                continue
+        for preset in keras_cv.models.RetinaNet.presets_without_weights:
             model = keras_cv.models.RetinaNet.from_preset(
                 preset,
                 num_classes=20,
