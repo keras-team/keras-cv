@@ -19,6 +19,7 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 
+from keras_cv import bounding_box
 from keras_cv.bounding_box.iou import compute_ciou
 
 
@@ -38,7 +39,7 @@ def select_highest_overlaps(mask_pos, overlaps, max_num_boxes):
         )  # (b, max_num_boxes, num_anchors)
         max_overlaps_idx = tf.argmax(overlaps, axis=1)  # (b, num_anchors)
         is_max_overlaps = tf.one_hot(
-            max_overlaps_idx, max_num_boxes
+            max_overlaps_idx, tf.cast(max_num_boxes, dtype=tf.int32)
         )  # (b, num_anchors, max_num_boxes)
         is_max_overlaps = tf.cast(
             tf.transpose(is_max_overlaps, perm=(0, 2, 1)), overlaps.dtype
@@ -70,7 +71,6 @@ def select_candidates_in_gts(xy_centers, gt_bboxes, epsilon=1e-9):
         and `False` otherwise.
     """
     n_anchors = xy_centers.shape[0]
-    bs, n_boxes, _ = gt_bboxes.shape
 
     left_top, right_bottom = tf.split(
         tf.reshape(gt_bboxes, (-1, 1, 4)), 2, axis=-1
@@ -83,7 +83,7 @@ def select_candidates_in_gts(xy_centers, gt_bboxes, epsilon=1e-9):
             ],
             axis=2,
         ),
-        (-1, n_boxes, n_anchors, 4),
+        (-1, tf.shape(gt_bboxes)[1], n_anchors, 4),
     )
 
     return tf.reduce_min(bbox_deltas, axis=-1) > epsilon
@@ -163,13 +163,15 @@ class YOLOV8LabelEncoder(layers.Layer):
                     box should be excluded from both class and box losses.
         """
         if isinstance(gt_bboxes, tf.RaggedTensor):
-            raise ValueError(
-                "`YOLOV8LabelEncoder`'s `call()` method does not "
-                "support RaggedTensor inputs for the `gt_bboxes` argument. "
-                f"Received `type(gt_bboxes)={type(gt_bboxes)}`."
+            max_num_boxes = tf.reduce_max(gt_bboxes.row_lengths(axis=1))
+            dense_bounding_boxes = bounding_box.to_dense(
+                {"boxes": gt_bboxes, "classes": gt_labels},
             )
-
-        max_num_boxes = gt_bboxes.shape[1]
+            gt_bboxes = dense_bounding_boxes["boxes"]
+            gt_labels = dense_bounding_boxes["classes"]
+            mask_gt = mask_gt.to_tensor()
+        else:
+            max_num_boxes = gt_bboxes.shape[1]
 
         mask_pos, align_metric, overlaps = self.get_pos_mask(
             pd_scores,
@@ -286,10 +288,10 @@ class YOLOV8LabelEncoder(layers.Layer):
         pd_scores = tf.gather(
             pd_scores, tf.math.maximum(ind_1, 0), axis=-1, batch_dims=1
         )
-        pd_scores = tf.where(ind_1[:, tf.newaxis, :] >= 0, pd_scores, 0)
+        pd_scores = tf.where(ind_1[:, tf.newaxis, :] >= 0, pd_scores, 0.0)
         pd_scores = tf.transpose(pd_scores, perm=(0, 2, 1))
 
-        bbox_scores = tf.where(mask_gt, pd_scores, 0)
+        bbox_scores = tf.where(mask_gt, pd_scores, 0.0)
 
         pd_boxes = tf.repeat(
             tf.expand_dims(pd_bboxes, axis=1), max_num_boxes, axis=1
@@ -301,10 +303,10 @@ class YOLOV8LabelEncoder(layers.Layer):
             compute_ciou(gt_boxes, pd_boxes, bounding_box_format="xyxy"),
             axis=-1,
         )
-        iou = tf.where(iou > 0, iou, 0)
+        iou = tf.where(iou > 0, iou, 0.0)
 
         iou = tf.reshape(iou, (-1, max_num_boxes, na))
-        overlaps = tf.where(mask_gt, iou, 0)
+        overlaps = tf.where(mask_gt, iou, 0.0)
 
         align_metric = tf.math.pow(bbox_scores, self.alpha) * tf.math.pow(
             overlaps, self.beta
@@ -363,7 +365,7 @@ class YOLOV8LabelEncoder(layers.Layer):
         ]
         target_gt_idx = target_gt_idx + batch_ind * max_num_boxes
 
-        gt_bboxes = tf.reshape(gt_bboxes, (-1, gt_bboxes.shape[1], 4))
+        gt_bboxes = tf.reshape(gt_bboxes, (-1, tf.shape(gt_bboxes)[1], 4))
 
         target_labels = tf.gather(
             tf.reshape(tf.cast(gt_labels, tf.int64), (-1,)), target_gt_idx
