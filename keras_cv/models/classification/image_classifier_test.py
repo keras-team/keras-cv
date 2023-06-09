@@ -22,7 +22,7 @@ import tensorflow as tf
 from absl.testing import parameterized
 
 from keras_cv.backend import keras
-from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
+from keras_cv.models.backbones.resnet_v2.resnet_v2_aliases import (
     ResNet18V2Backbone,
 )
 from keras_cv.models.classification.image_classifier import ImageClassifier

@@ -139,29 +139,28 @@ class RetinaNet(Task):
         box_head=None,
         **kwargs,
     ):
-        if anchor_generator is not None and (
-            prediction_decoder or label_encoder
-        ):
+        if anchor_generator is not None and label_encoder is not None:
             raise ValueError(
                 "`anchor_generator` is only to be provided when "
-                "both `label_encoder` and `prediction_decoder` are both "
-                f"`None`. Received `anchor_generator={anchor_generator}` "
-                f"`label_encoder={label_encoder}`, "
-                f"`prediction_decoder={prediction_decoder}`. To customize the "
-                "behavior of the anchor_generator inside of a custom "
-                "`label_encoder` or custom `prediction_decoder` you should "
+                "`label_encoder` is `None`. Received `anchor_generator="
+                f"{anchor_generator}`, label_encoder={label_encoder}`. To "
+                "customize the behavior of the anchor_generator inside of a "
+                "custom `label_encoder` you should provide both to `RetinaNet`"
                 "provide both to `RetinaNet`, and ensure that the "
                 "`anchor_generator` provided to both is identical"
             )
-        anchor_generator = (
-            anchor_generator
-            or RetinaNet.default_anchor_generator(bounding_box_format)
-        )
-        label_encoder = label_encoder or RetinaNetLabelEncoder(
-            bounding_box_format=bounding_box_format,
-            anchor_generator=anchor_generator,
-            box_variance=BOX_VARIANCE,
-        )
+
+        if label_encoder is None:
+            anchor_generator = (
+                anchor_generator
+                or RetinaNet.default_anchor_generator(bounding_box_format)
+            )
+
+            label_encoder = RetinaNetLabelEncoder(
+                bounding_box_format=bounding_box_format,
+                anchor_generator=anchor_generator,
+                box_variance=BOX_VARIANCE,
+            )
 
         extractor_levels = ["P3", "P4", "P5"]
         extractor_layer_names = [
@@ -219,7 +218,7 @@ class RetinaNet(Task):
             **kwargs,
         )
         self.label_encoder = label_encoder
-        self.anchor_generator = anchor_generator
+        self.anchor_generator = label_encoder.anchor_generator
         self.bounding_box_format = bounding_box_format
         self.num_classes = num_classes
         self.backbone = backbone
