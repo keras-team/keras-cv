@@ -52,7 +52,7 @@ class YOLOV8DetectorTest(tf.test.TestCase, parameterized.TestCase):
         yolo.fit(x=xs, y=ys, epochs=1)
 
     @pytest.mark.large  # Fit is slow, so mark these large.
-    def test_throws_with_ragged_tensors(self):
+    def test_fit_with_ragged_tensors(self):
         bounding_box_format = "xywh"
         yolo = keras_cv.models.YOLOV8Detector(
             num_classes=2,
@@ -71,8 +71,7 @@ class YOLOV8DetectorTest(tf.test.TestCase, parameterized.TestCase):
         xs, ys = _create_bounding_box_dataset(bounding_box_format)
         ys = bounding_box.to_ragged(ys)
 
-        with self.assertRaisesRegex(ValueError, "does not support Ragged"):
-            yolo.fit(x=xs, y=ys, epochs=1)
+        yolo.fit(x=xs, y=ys, epochs=1)
 
     def test_trainable_weight_count(self):
         yolo = keras_cv.models.YOLOV8Detector(
