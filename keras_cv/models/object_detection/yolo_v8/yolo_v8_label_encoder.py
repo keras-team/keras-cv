@@ -39,7 +39,8 @@ def select_highest_overlaps(mask_pos, overlaps, max_num_boxes):
         )  # (b, max_num_boxes, num_anchors)
         max_overlaps_idx = tf.argmax(overlaps, axis=1)  # (b, num_anchors)
         is_max_overlaps = tf.one_hot(
-            max_overlaps_idx, tf.cast(max_num_boxes, dtype=tf.int32)
+            max_overlaps_idx,
+            tf.cast(max_num_boxes, dtype=tf.int32),  # tf.one_hot must use int32
         )  # (b, num_anchors, max_num_boxes)
         is_max_overlaps = tf.cast(
             tf.transpose(is_max_overlaps, perm=(0, 2, 1)), overlaps.dtype
@@ -163,13 +164,13 @@ class YOLOV8LabelEncoder(layers.Layer):
                     box should be excluded from both class and box losses.
         """
         if isinstance(gt_bboxes, tf.RaggedTensor):
-            max_num_boxes = tf.reduce_max(gt_bboxes.row_lengths(axis=1))
             dense_bounding_boxes = bounding_box.to_dense(
                 {"boxes": gt_bboxes, "classes": gt_labels},
             )
             gt_bboxes = dense_bounding_boxes["boxes"]
             gt_labels = dense_bounding_boxes["classes"]
             mask_gt = mask_gt.to_tensor()
+            max_num_boxes = tf.cast(tf.shape(gt_bboxes)[1], dtype=tf.int64)
         else:
             max_num_boxes = gt_bboxes.shape[1]
 
