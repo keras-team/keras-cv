@@ -22,9 +22,6 @@ from keras_cv.models.legacy.convnext import ConvNeXtLarge
 from keras_cv.models.legacy.convnext import ConvNeXtSmall
 from keras_cv.models.legacy.convnext import ConvNeXtTiny
 from keras_cv.models.legacy.convnext import ConvNeXtXLarge
-from keras_cv.models.legacy.densenet import DenseNet121
-from keras_cv.models.legacy.densenet import DenseNet169
-from keras_cv.models.legacy.densenet import DenseNet201
 from keras_cv.models.legacy.efficientnet_lite import EfficientNetLiteB0
 from keras_cv.models.legacy.efficientnet_lite import EfficientNetLiteB1
 from keras_cv.models.legacy.efficientnet_lite import EfficientNetLiteB2

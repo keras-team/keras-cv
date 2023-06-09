@@ -1,4 +1,4 @@
-# Copyright 2022 The KerasCV Authors
+# Copyright 2023 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,37 +19,33 @@ import tensorflow as tf
 from absl.testing import parameterized
 from tensorflow import keras
 
-from keras_cv.models.backbones.resnet_v2.resnet_v2_aliases import (
-    ResNet50V2Backbone,
+from keras_cv.models.backbones.densenet.densenet_aliases import (
+    DenseNet121Backbone,
 )
-from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
-    ResNetV2Backbone,
+from keras_cv.models.backbones.densenet.densenet_backbone import (
+    DenseNetBackbone,
 )
 from keras_cv.utils.train import get_feature_extractor
 
 
-class ResNetV2BackboneTest(tf.test.TestCase, parameterized.TestCase):
+class DenseNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
     def setUp(self):
-        self.input_batch = tf.ones(shape=(8, 224, 224, 3))
+        self.input_batch = tf.ones(shape=(2, 224, 224, 3))
 
     def test_valid_call(self):
-        model = ResNetV2Backbone(
-            stackwise_filters=[64, 128, 256, 512],
-            stackwise_blocks=[2, 2, 2, 2],
-            stackwise_strides=[1, 2, 2, 2],
+        model = DenseNetBackbone(
+            stackwise_num_repeats=[6, 12, 24, 16],
             include_rescaling=False,
         )
         model(self.input_batch)
 
     def test_valid_call_applications_model(self):
-        model = ResNet50V2Backbone()
+        model = DenseNet121Backbone()
         model(self.input_batch)
 
     def test_valid_call_with_rescaling(self):
-        model = ResNetV2Backbone(
-            stackwise_filters=[64, 128, 256, 512],
-            stackwise_blocks=[2, 2, 2, 2],
-            stackwise_strides=[1, 2, 2, 2],
+        model = DenseNetBackbone(
+            stackwise_num_repeats=[6, 12, 24, 16],
             include_rescaling=True,
         )
         model(self.input_batch)
@@ -60,10 +56,8 @@ class ResNetV2BackboneTest(tf.test.TestCase, parameterized.TestCase):
     )
     @pytest.mark.large  # Saving is slow, so mark these large.
     def test_saved_model(self, save_format, filename):
-        model = ResNetV2Backbone(
-            stackwise_filters=[64, 128, 256, 512],
-            stackwise_blocks=[2, 2, 2, 2],
-            stackwise_strides=[1, 2, 2, 2],
+        model = DenseNetBackbone(
+            stackwise_num_repeats=[6, 12, 24, 16],
             include_rescaling=False,
         )
         model_output = model(self.input_batch)
@@ -72,7 +66,7 @@ class ResNetV2BackboneTest(tf.test.TestCase, parameterized.TestCase):
         restored_model = keras.models.load_model(save_path)
 
         # Check we got the real object back.
-        self.assertIsInstance(restored_model, ResNetV2Backbone)
+        self.assertIsInstance(restored_model, DenseNetBackbone)
 
         # Check that output matches.
         restored_output = restored_model(self.input_batch)
@@ -84,7 +78,7 @@ class ResNetV2BackboneTest(tf.test.TestCase, parameterized.TestCase):
     )
     @pytest.mark.large  # Saving is slow, so mark these large.
     def test_saved_alias_model(self, save_format, filename):
-        model = ResNet50V2Backbone()
+        model = DenseNet121Backbone()
         model_output = model(self.input_batch)
         save_path = os.path.join(self.get_temp_dir(), filename)
         model.save(save_path, save_format=save_format)
@@ -92,14 +86,14 @@ class ResNetV2BackboneTest(tf.test.TestCase, parameterized.TestCase):
 
         # Check we got the real object back.
         # Note that these aliases serialized as the base class
-        self.assertIsInstance(restored_model, ResNetV2Backbone)
+        self.assertIsInstance(restored_model, DenseNetBackbone)
 
         # Check that output matches.
         restored_output = restored_model(self.input_batch)
         self.assertAllClose(model_output, restored_output)
 
     def test_create_backbone_model_from_alias_model(self):
-        model = ResNet50V2Backbone(
+        model = DenseNet121Backbone(
             include_rescaling=False,
         )
         backbone_model = get_feature_extractor(
@@ -107,49 +101,27 @@ class ResNetV2BackboneTest(tf.test.TestCase, parameterized.TestCase):
             model.pyramid_level_inputs.values(),
             model.pyramid_level_inputs.keys(),
         )
-        inputs = keras.Input(shape=[256, 256, 3])
+        inputs = tf.keras.Input(shape=[256, 256, 3])
         outputs = backbone_model(inputs)
-        # Resnet50 backbone has 4 level of features (P2 ~ P5)
-        levels = ["P2", "P3", "P4", "P5"]
-        self.assertLen(outputs, 4)
-        self.assertEquals(list(outputs.keys()), levels)
-        self.assertEquals(outputs["P2"].shape, [None, 64, 64, 256])
-        self.assertEquals(outputs["P3"].shape, [None, 32, 32, 512])
-        self.assertEquals(outputs["P4"].shape, [None, 16, 16, 1024])
-        self.assertEquals(outputs["P5"].shape, [None, 8, 8, 2048])
 
-    def test_create_backbone_model_with_level_config(self):
-        model = ResNetV2Backbone(
-            stackwise_filters=[64, 128, 256, 512],
-            stackwise_blocks=[2, 2, 2, 2],
-            stackwise_strides=[1, 2, 2, 2],
-            include_rescaling=False,
-            input_shape=[256, 256, 3],
-        )
-        levels = ["P3", "P4"]
-        layer_names = [model.pyramid_level_inputs[level] for level in levels]
-        backbone_model = get_feature_extractor(model, layer_names, levels)
-        inputs = keras.Input(shape=[256, 256, 3])
-        outputs = backbone_model(inputs)
-        self.assertLen(outputs, 2)
+        levels = ["P2", "P3", "P4"]
+        self.assertLen(outputs, 3)
         self.assertEquals(list(outputs.keys()), levels)
-        self.assertEquals(outputs["P3"].shape, [None, 32, 32, 512])
-        self.assertEquals(outputs["P4"].shape, [None, 16, 16, 1024])
+        self.assertEquals(outputs["P2"].shape, [None, 32, 32, 128])
+        self.assertEquals(outputs["P3"].shape, [None, 16, 16, 256])
+        self.assertEquals(outputs["P4"].shape, [None, 8, 8, 512])
 
     @parameterized.named_parameters(
         ("one_channel", 1),
         ("four_channels", 4),
     )
     def test_application_variable_input_channels(self, num_channels):
-        # ResNet50 model
-        model = ResNetV2Backbone(
-            stackwise_filters=[64, 128, 256, 512],
-            stackwise_blocks=[3, 4, 6, 3],
-            stackwise_strides=[1, 2, 2, 2],
+        model = DenseNetBackbone(
+            stackwise_num_repeats=[6, 12, 24, 16],
             input_shape=(None, None, num_channels),
             include_rescaling=False,
         )
-        self.assertEqual(model.output_shape, (None, None, None, 2048))
+        self.assertEqual(model.output_shape, (None, None, None, 1024))
 
 
 if __name__ == "__main__":

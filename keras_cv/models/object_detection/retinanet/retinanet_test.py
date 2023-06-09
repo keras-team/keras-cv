@@ -24,6 +24,7 @@ import keras_cv
 from keras_cv.models.object_detection.__test_utils__ import (
     _create_bounding_box_dataset,
 )
+from keras_cv.models.object_detection.retinanet import RetinaNetLabelEncoder
 
 
 class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
@@ -230,6 +231,22 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
         # Check that output matches.
         restored_output = restored_model(input_batch)
         self.assertAllClose(model_output, restored_output)
+
+    def test_call_with_custom_label_encoder(self):
+        anchor_generator = (
+            keras_cv.models.RetinaNet.default_anchor_generator("xywh"),
+        )
+        model = keras_cv.models.RetinaNet(
+            num_classes=20,
+            bounding_box_format="xywh",
+            backbone=keras_cv.models.ResNet18V2Backbone(),
+            label_encoder=RetinaNetLabelEncoder(
+                bounding_box_format="xywh",
+                anchor_generator=anchor_generator,
+                box_variance=[0.1, 0.1, 0.2, 0.2],
+            ),
+        )
+        model(tf.ones(shape=(2, 224, 224, 3)))
 
 
 @pytest.mark.large
