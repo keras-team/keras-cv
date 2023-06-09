@@ -117,8 +117,8 @@ class DarkNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
         outputs = backbone_model(inputs)
         self.assertLen(outputs, 2)
         self.assertEquals(list(outputs.keys()), [3, 4])
-        self.assertEquals(outputs[3].shape, [None, 32, 32, 512])
-        self.assertEquals(outputs[4].shape, [None, 16, 16, 1024])
+        self.assertEquals(outputs[3].shape, [None, 128, 128, 64])
+        self.assertEquals(outputs[4].shape, [None, 64, 64, 128])
 
     @parameterized.named_parameters(
         ("one_channel", 1),
@@ -130,7 +130,7 @@ class DarkNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
             input_shape=(None, None, num_channels),
             include_rescaling=False,
         )
-        self.assertEqual(model.output_shape, (None, None, None, 2048))
+        self.assertEqual(model.output_shape, (None, None, None, 512))
 
     @parameterized.named_parameters(
         ("21", DarkNet21Backbone),
