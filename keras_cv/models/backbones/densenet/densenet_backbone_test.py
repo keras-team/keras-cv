@@ -59,7 +59,7 @@ class DenseNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
         model_output = model(self.input_batch)
         save_path = os.path.join(self.get_temp_dir(), "densenet_backbone.keras")
         model.save(save_path)
-        restored_model = keras.saving.load_model(save_path)
+        restored_model = keras.models.load_model(save_path)
 
         # Check we got the real object back.
         self.assertIsInstance(restored_model, DenseNetBackbone)
@@ -76,7 +76,7 @@ class DenseNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
             self.get_temp_dir(), "densenet_alias_backbone.keras"
         )
         model.save(save_path)
-        restored_model = keras.saving.load_model(save_path)
+        restored_model = keras.models.load_model(save_path)
 
         # Check we got the real object back.
         # Note that these aliases serialized as the base class
