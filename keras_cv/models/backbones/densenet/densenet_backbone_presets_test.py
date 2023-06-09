@@ -49,7 +49,7 @@ class DenseNetPresetSmokeTest(tf.test.TestCase, parameterized.TestCase):
         # We should only update these numbers if we are updating a weights
         # file, or have found a discrepancy with the upstream source.
 
-        outputs = model(tf.ones(1, 512, 512, 3))
+        outputs = model(tf.ones(shape=(1, 512, 512, 3)))
         expected = [0.0, 0.0, 0.09920305, 0.0, 0.0]
         # Keep a high tolerance, so we are robust to different hardware.
         self.assertAllClose(
