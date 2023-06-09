@@ -19,6 +19,21 @@ from keras_cv.utils import assert_matplotlib_installed
 from keras_cv.visualization.plot_image_gallery import plot_image_gallery
 
 
+def build_compatile_segmentation_masks(segmentation_masks):
+    rank = len(segmentation_masks.shape)
+    if rank == 3:
+        # (B, H, W)
+        return segmentation_masks[..., np.newaxis]
+    elif rank == 4:
+        # (B, H, W, num_channels) OR (B, H, W, 1)
+        if segmentation_masks.shape[-1] == 1:
+            return segmentation_masks.repeat(repeats=3, axis=-1)
+        else:
+            return np.argmax(segmentation_masks, axis=-1).repeat(
+                repeats=3, axis=-1
+            )
+
+
 def plot_segmentation_mask_gallery(
     images,
     value_range,
@@ -30,6 +45,19 @@ def plot_segmentation_mask_gallery(
     **kwargs
 ):
     """Plots a gallery of images with corresponding segmentation masks.
+
+    Args:
+        images: a Tensor or NumPy array containing images to show in the
+            gallery.
+        value_range: value range of the images. Common examples include
+            `(0, 255)` and `(0, 1)`.
+        num_classes: number of segmentation classes.
+        y_true: (Optional) a Tensor or NumPy array representing the ground truth
+            segmentation masks.
+        y_pred: (Optional)  a Tensor or NumPy array representing the predicted
+            segmentation masks.
+        kwargs: keyword arguments to propagate to
+            `keras_cv.visualization.plot_image_gallery()`.
 
     Usage:
     ```python
@@ -58,39 +86,30 @@ def plot_segmentation_mask_gallery(
     ```
 
     ![Example segmentation mask gallery](https://i.imgur.com/YRswGHz.png)
-
-    Args:
-        images: a Tensor or NumPy array containing images to show in the
-            gallery.
-        value_range: value range of the images. Common examples include
-            `(0, 255)` and `(0, 1)`.
-        num_classes: number of segmentation classes.
-        y_true: (Optional) a Tensor or NumPy array representing the ground truth
-            segmentation masks.
-        y_pred: (Optional)  a Tensor or NumPy array representing the predicted
-            segmentation masks.
-        kwargs: keyword arguments to propagate to
-            `keras_cv.visualization.plot_image_gallery()`.
     """
     assert_matplotlib_installed("plot_segmentation_mask_gallery")
 
     plotted_images = utils.to_numpy(images)
 
-    # Segmentation maps are of 1 channel, here we repeat the channel 3 times
-    # to mimic a 3 channel image.
-    plotted_y_true = utils.to_numpy(y_true).repeat(repeats=3, axis=-1)
+    plotted_y_true = utils.to_numpy(y_true)
+    plotted_y_true = build_compatile_segmentation_masks(
+        segmentation_masks=plotted_y_true
+    )
 
     # Interpolate the segmentation maps from the range of (0, num_classes)
     # to the value range provided.
     plotted_y_true = np.interp(plotted_y_true, (0, num_classes), value_range)
 
     if y_pred is not None:
-        plotted_y_pred = utils.to_numpy(y_pred).repeat(repeats=3, axis=-1)
+        plotted_y_pred = utils.to_numpy(y_pred)
+        plotted_y_pred = build_compatile_segmentation_masks(
+            segmentation_masks=plotted_y_pred
+        )
         plotted_y_pred = np.interp(
             plotted_y_pred, (0, num_classes), value_range
         )
 
-        # Concatenate the image and the segmentation maps into a single image.
+        # Concatenate the images and the segmentation masks into a single image.
         plotted_images = np.concatenate(
             [plotted_images, plotted_y_true, plotted_y_pred], axis=2
         )
