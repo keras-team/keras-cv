@@ -14,11 +14,12 @@
 
 import os
 
+import numpy as np
 import pytest
 import tensorflow as tf
 from absl.testing import parameterized
-from tensorflow import keras
 
+from keras_cv.backend import keras
 from keras_cv.models.backbones.densenet.densenet_aliases import (
     DenseNet121Backbone,
 )
@@ -30,7 +31,7 @@ from keras_cv.utils.train import get_feature_extractor
 
 class DenseNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
     def setUp(self):
-        self.input_batch = tf.ones(shape=(2, 224, 224, 3))
+        self.input_batch = np.ones(shape=(2, 224, 224, 3))
 
     def test_valid_call(self):
         model = DenseNetBackbone(
@@ -50,20 +51,15 @@ class DenseNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
         )
         model(self.input_batch)
 
-    @parameterized.named_parameters(
-        ("tf_format", "tf", "model"),
-        ("keras_format", "keras_v3", "model.keras"),
-    )
-    @pytest.mark.large  # Saving is slow, so mark these large.
-    def test_saved_model(self, save_format, filename):
+    def test_saved_model(self):
         model = DenseNetBackbone(
             stackwise_num_repeats=[6, 12, 24, 16],
             include_rescaling=False,
         )
         model_output = model(self.input_batch)
-        save_path = os.path.join(self.get_temp_dir(), filename)
-        model.save(save_path, save_format=save_format)
-        restored_model = keras.models.load_model(save_path)
+        save_path = os.path.join(self.get_temp_dir(), "densenet_backbone.keras")
+        model.save(save_path)
+        restored_model = keras.saving.load_model(save_path)
 
         # Check we got the real object back.
         self.assertIsInstance(restored_model, DenseNetBackbone)
@@ -72,17 +68,15 @@ class DenseNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
         restored_output = restored_model(self.input_batch)
         self.assertAllClose(model_output, restored_output)
 
-    @parameterized.named_parameters(
-        ("tf_format", "tf", "model"),
-        ("keras_format", "keras_v3", "model.keras"),
-    )
     @pytest.mark.large  # Saving is slow, so mark these large.
-    def test_saved_alias_model(self, save_format, filename):
+    def test_saved_alias_model(self):
         model = DenseNet121Backbone()
         model_output = model(self.input_batch)
-        save_path = os.path.join(self.get_temp_dir(), filename)
-        model.save(save_path, save_format=save_format)
-        restored_model = keras.models.load_model(save_path)
+        save_path = os.path.join(
+            self.get_temp_dir(), "densenet_alias_backbone.keras"
+        )
+        model.save(save_path)
+        restored_model = keras.saving.load_model(save_path)
 
         # Check we got the real object back.
         # Note that these aliases serialized as the base class
@@ -101,15 +95,15 @@ class DenseNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
             model.pyramid_level_inputs.values(),
             model.pyramid_level_inputs.keys(),
         )
-        inputs = tf.keras.Input(shape=[256, 256, 3])
+        inputs = keras.Input(shape=[256, 256, 3])
         outputs = backbone_model(inputs)
 
         levels = ["P2", "P3", "P4"]
         self.assertLen(outputs, 3)
         self.assertEquals(list(outputs.keys()), levels)
-        self.assertEquals(outputs["P2"].shape, [None, 32, 32, 128])
-        self.assertEquals(outputs["P3"].shape, [None, 16, 16, 256])
-        self.assertEquals(outputs["P4"].shape, [None, 8, 8, 512])
+        self.assertEquals(outputs["P2"].shape, (None, 32, 32, 128))
+        self.assertEquals(outputs["P3"].shape, (None, 16, 16, 256))
+        self.assertEquals(outputs["P4"].shape, (None, 8, 8, 512))
 
     @parameterized.named_parameters(
         ("one_channel", 1),

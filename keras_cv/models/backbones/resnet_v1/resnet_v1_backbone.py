@@ -101,18 +101,18 @@ class ResNetBackbone(Backbone):
         x = inputs
 
         if include_rescaling:
-            x = layers.Rescaling(1 / 255.0)(x)
+            x = keras.layers.Rescaling(1 / 255.0)(x)
 
-        x = layers.Conv2D(
+        x = keras.layers.Conv2D(
             64, 7, strides=2, use_bias=False, padding="same", name="conv1_conv"
         )(x)
 
-        x = layers.BatchNormalization(
+        x = keras.layers.BatchNormalization(
             axis=BN_AXIS, epsilon=BN_EPSILON, name="conv1_bn"
         )(x)
-        x = layers.Activation("relu", name="conv1_relu")(x)
+        x = keras.layers.Activation("relu", name="conv1_relu")(x)
 
-        x = layers.MaxPooling2D(
+        x = keras.layers.MaxPooling2D(
             3, strides=2, padding="same", name="pool1_pool"
         )(x)
 
@@ -129,7 +129,9 @@ class ResNetBackbone(Backbone):
                 first_shortcut=(block_type == "block" or stack_index > 0),
                 name=f"v2_stack_{stack_index}",
             )
-            pyramid_level_inputs[f"P{stack_index + 2}"] = x.node.layer.name
+            pyramid_level_inputs[
+                f"P{stack_index + 2}"
+            ] = utils.get_tensor_input_name(x)
 
         # Create model.
         super().__init__(inputs=inputs, outputs=x, **kwargs)
