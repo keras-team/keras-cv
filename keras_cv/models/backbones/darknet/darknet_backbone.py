@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""DarkNet models for KerasCV.
+"""DarkNet backbone model.
 Reference:
     - [YoloV3 Paper](https://arxiv.org/abs/1804.02767)
     - [YoloV3 implementation](https://github.com/ultralytics/yolov3)
