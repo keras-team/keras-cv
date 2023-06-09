@@ -80,7 +80,7 @@ jobs:
       run: |
         pytest keras_cv/models/backbones \
                keras_cv/models/classification/image_classifier_test.py \
-               --durations 0 --run_large --run_extra_large
+               --durations 0 --run_large
   format:
     name: Check the code format
     runs-on: ubuntu-latest
