@@ -72,6 +72,7 @@ def select_candidates_in_gts(xy_centers, gt_bboxes, epsilon=1e-9):
         and `False` otherwise.
     """
     n_anchors = xy_centers.shape[0]
+    n_boxes = tf.shape(gt_bboxes)[1]
 
     left_top, right_bottom = tf.split(
         tf.reshape(gt_bboxes, (-1, 1, 4)), 2, axis=-1
@@ -84,7 +85,7 @@ def select_candidates_in_gts(xy_centers, gt_bboxes, epsilon=1e-9):
             ],
             axis=2,
         ),
-        (-1, tf.shape(gt_bboxes)[1], n_anchors, 4),
+        (-1, n_boxes, n_anchors, 4),
     )
 
     return tf.reduce_min(bbox_deltas, axis=-1) > epsilon
@@ -169,10 +170,11 @@ class YOLOV8LabelEncoder(layers.Layer):
             )
             gt_bboxes = dense_bounding_boxes["boxes"]
             gt_labels = dense_bounding_boxes["classes"]
+
+        if isinstance(mask_gt, tf.RaggedTensor):
             mask_gt = mask_gt.to_tensor()
-            max_num_boxes = tf.cast(tf.shape(gt_bboxes)[1], dtype=tf.int64)
-        else:
-            max_num_boxes = gt_bboxes.shape[1]
+
+        max_num_boxes = tf.cast(tf.shape(gt_bboxes)[1], dtype=tf.int64)
 
         mask_pos, align_metric, overlaps = self.get_pos_mask(
             pd_scores,
