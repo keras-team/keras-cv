@@ -42,45 +42,6 @@ from keras_cv.models.backbones.darknet.darknet_backbone_presets import (
 from keras_cv.models.legacy import utils
 from keras_cv.utils.python_utils import classproperty
 
-BASE_DOCSTRING = """Represents the {name} architecture.
-
-    Although the {name} architecture is commonly used for detection tasks, it is
-    possible to extract the intermediate dark2 to dark5 layers from the model
-    for creating a feature pyramid Network.
-
-    Reference:
-        - [YoloV3 Paper](https://arxiv.org/abs/1804.02767)
-        - [YoloV3 implementation](https://github.com/ultralytics/yolov3)
-
-    For transfer learning use cases, make sure to read the
-    [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
-
-    Args:
-        include_rescaling: bool, whether to rescale the inputs. If set to
-            True, inputs will be passed through a `Rescaling(1/255.0)` layer.
-        include_top: bool, whether to include the fully-connected layer at the
-            top of the network. If provided, `num_classes` must be provided.
-        num_classes: integer, optional number of classes to classify images
-            into. Only to be specified if `include_top` is True.
-        weights: one of `None` (random initialization), or a pretrained weight
-            file path.
-        input_shape: optional shape tuple, defaults to (None, None, 3).
-        input_tensor: optional Keras tensor (i.e., output of `layers.Input()`)
-            to use as image input for the model.
-        pooling: optional pooling mode for feature extraction when `include_top`
-            is `False`.
-            - `None` means that the output of the model will be the 4D tensor
-                output of the last convolutional block.
-            - `avg` means that global average pooling will be applied to the
-                output of the last convolutional block, and thus the output of
-                the model will be a 2D tensor.
-            - `max` means that global max pooling will be applied.
-        name: string, optional name to pass to the model, defaults to "{name}".
-
-    Returns:
-        A `keras.Model` instance.
-"""  # noqa: E501
-
 
 @keras.utils.register_keras_serializable(package="keras_cv.models")
 class DarkNetBackbone(Backbone):
@@ -98,40 +59,34 @@ class DarkNetBackbone(Backbone):
     [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
 
     Args:
-        blocks: integer, numbers of building blocks from the layer dark2 to
-            layer dark5.
+        stackwise_blocks: integer, numbers of building blocks from the layer
+            dark2 to layer dark5.
         include_rescaling: bool, whether to rescale the inputs. If set to True,
             inputs will be passed through a `Rescaling(1/255.0)` layer.
-        include_top: bool, whether to include the fully-connected layer at the
-            top of the network. If provided, `num_classes` must be provided.
-        num_classes: integer, optional number of classes to classify images
-            into. Only to be specified if `include_top` is True.
-        weights: one of `None` (random initialization) or a pretrained weight
-            file path.
         input_shape: optional shape tuple, defaults to (None, None, 3).
         input_tensor: optional Keras tensor (i.e., output of `layers.Input()`)
             to use as image input for the model.
-        pooling: optional pooling mode for feature extraction when `include_top`
-            is `False`.
-            - `None` means that the output of the model will be the 4D tensor
-                output of the last convolutional block.
-            - `avg` means that global average pooling will be applied to the
-                output of the last convolutional block, and thus the output of
-                the model will be a 2D tensor.
-            - `max` means that global max pooling will be applied.
-        classifier_activation: A `str` or callable. The activation function to
-            use on the "top" layer. Ignored unless `include_top=True`. Set
-            `classifier_activation=None` to return the logits of the "top"
-            layer.
-        name: string, optional name to pass to the model, defaults to "DarkNet".
 
-    Returns:
-        A `keras.Model` instance.
+    Examples:
+    ```python
+    input_data = tf.ones(shape=(8, 224, 224, 3))
+
+    # Pretrained backbone
+    model = keras_cv.models.DarkNetBackbone.from_preset("darknet53_imagenet")
+    output = model(input_data)
+
+    # Randomly initialized backbone with a custom config
+    model = DarkNetBackbone(
+        stackwise_blocks=[2, 8, 8, 4],
+        include_rescaling=False,
+    )
+    output = model(input_data)
+    ```
     """  # noqa: E501
 
     def __init__(
         self,
-        blocks,
+        stackwise_blocks,
         include_rescaling,
         input_shape=(None, None, 3),
         input_tensor=None,
@@ -165,7 +120,7 @@ class DarkNetBackbone(Backbone):
         # (starts with dark2, hence 2)
         layer_num = 2
 
-        for filter, block in zip(filters, blocks):
+        for filter, block in zip(filters, stackwise_blocks):
             x = ResidualBlocks(
                 filters=filter,
                 num_blocks=block,
@@ -214,7 +169,7 @@ class DarkNetBackbone(Backbone):
         super().__init__(inputs=inputs, outputs=x, **kwargs)
 
         self.pyramid_level_inputs = pyramid_level_inputs
-        self.blocks = blocks
+        self.stackwise_blocks = stackwise_blocks
         self.include_rescaling = include_rescaling
         self.input_tensor = input_tensor
 
@@ -222,7 +177,7 @@ class DarkNetBackbone(Backbone):
         config = super().get_config()
         config.update(
             {
-                "blocks": self.blocks,
+                "stackwise_blocks": self.stackwise_blocks,
                 "include_rescaling": self.include_rescaling,
                 "input_shape": self.input_shape[1:],
                 "input_tensor": self.input_tensor,
@@ -239,6 +194,37 @@ class DarkNetBackbone(Backbone):
     def presets_with_weights(cls):
         """Dictionary of preset names and configurations that include weights."""  # noqa: E501
         return copy.deepcopy(backbone_presets_with_weights)
+
+
+ALIAS_DOCSTRING = """DarkNet model with {num_layers} layers.
+
+    Although the DarkNet architecture is commonly used for detection tasks, it
+    is possible to extract the intermediate dark2 to dark5 layers from the model
+    for creating a feature pyramid Network.
+
+    Reference:
+        - [YoloV3 Paper](https://arxiv.org/abs/1804.02767)
+        - [YoloV3 implementation](https://github.com/ultralytics/yolov3)
+
+    For transfer learning use cases, make sure to read the
+    [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
+
+    Args:
+        include_rescaling: bool, whether to rescale the inputs. If set to
+            True, inputs will be passed through a `Rescaling(1/255.0)` layer.
+        input_shape: optional shape tuple, defaults to (None, None, 3).
+        input_tensor: optional Keras tensor (i.e., output of `layers.Input()`)
+            to use as image input for the model.
+
+    Examples:
+    ```python
+    input_data = tf.ones(shape=(8, 224, 224, 3))
+
+    # Randomly initialized backbone
+    model = DarkNet{num_layers}Backbone()
+    output = model(input_data)
+    ```
+"""  # noqa: E501
 
 
 class DarkNet21Backbone(DarkNetBackbone):
@@ -303,5 +289,5 @@ class DarkNet53Backbone(DarkNetBackbone):
         return cls.presets
 
 
-setattr(DarkNet21Backbone, "__doc__", BASE_DOCSTRING.format(name="DarkNet21"))
-setattr(DarkNet53Backbone, "__doc__", BASE_DOCSTRING.format(name="DarkNet53"))
+setattr(DarkNet21Backbone, "__doc__", ALIAS_DOCSTRING.format(num_layers=21))
+setattr(DarkNet53Backbone, "__doc__", ALIAS_DOCSTRING.format(num_layers=53))
