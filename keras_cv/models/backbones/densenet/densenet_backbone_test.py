@@ -51,6 +51,7 @@ class DenseNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
         )
         model(self.input_batch)
 
+    @pytest.mark.large  # Saving is slow, so mark these large.
     def test_saved_model(self):
         model = DenseNetBackbone(
             stackwise_num_repeats=[6, 12, 24, 16],
