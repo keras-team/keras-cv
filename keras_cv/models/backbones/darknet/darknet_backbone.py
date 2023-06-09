@@ -40,7 +40,6 @@ from keras_cv.models.backbones.darknet.darknet_backbone_presets import (
     backbone_presets_with_weights,
 )
 from keras_cv.models.legacy import utils
-from keras_cv.models.legacy.weights import parse_weights
 from keras_cv.utils.python_utils import classproperty
 
 BASE_DOCSTRING = """Represents the {name} architecture.
@@ -242,56 +241,66 @@ class DarkNetBackbone(Backbone):
         return copy.deepcopy(backbone_presets_with_weights)
 
 
-def DarkNet21Backbone(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    name="DarkNet21",
-    **kwargs,
-):
-    return DarkNetBackbone(
-        [1, 2, 2, 1],
-        include_rescaling=include_rescaling,
-        include_top=include_top,
-        num_classes=num_classes,
-        weights=parse_weights(weights, include_top, "darknet"),
-        input_shape=input_shape,
-        input_tensor=input_tensor,
-        pooling=pooling,
-        name=name,
+class DarkNet21Backbone(DarkNetBackbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return DarkNetBackbone.from_preset("darknet21", **kwargs)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
+
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include weights."""  # noqa: E501
+        return {}
 
 
-def DarkNet53Backbone(
-    *,
-    include_rescaling,
-    include_top,
-    num_classes=None,
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    name="DarkNet53",
-    **kwargs,
-):
-    return DarkNetBackbone(
-        [2, 8, 8, 4],
-        include_rescaling=include_rescaling,
-        include_top=include_top,
-        num_classes=num_classes,
-        weights=parse_weights(weights, include_top, "darknet53"),
-        input_shape=input_shape,
-        input_tensor=input_tensor,
-        pooling=pooling,
-        name=name,
+class DarkNet53Backbone(DarkNetBackbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
         **kwargs,
-    )
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return DarkNetBackbone.from_preset("darknet53", **kwargs)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {
+            "darknet53_imagenet": copy.deepcopy(
+                backbone_presets["darknet53_imagenet"]
+            ),
+        }
+
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include weights."""  # noqa: E501
+        return cls.presets
 
 
 setattr(DarkNet21Backbone, "__doc__", BASE_DOCSTRING.format(name="DarkNet21"))
