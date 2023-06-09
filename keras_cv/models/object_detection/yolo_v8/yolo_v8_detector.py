@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import copy
+import warnings
 
 import tensorflow as tf
 from keras import layers
@@ -19,6 +20,7 @@ from tensorflow import keras
 
 import keras_cv
 from keras_cv import bounding_box
+from keras_cv.losses.ciou_loss import CIoULoss
 from keras_cv.models.backbones.backbone_presets import backbone_presets
 from keras_cv.models.backbones.backbone_presets import (
     backbone_presets_with_weights,
@@ -27,9 +29,6 @@ from keras_cv.models.object_detection import predict_utils
 from keras_cv.models.object_detection.__internal__ import unpack_input
 from keras_cv.models.object_detection.yolo_v8.yolo_v8_detector_presets import (
     yolo_v8_detector_presets,
-)
-from keras_cv.models.object_detection.yolo_v8.yolo_v8_iou_loss import (
-    YOLOV8IoULoss,
 )
 from keras_cv.models.object_detection.yolo_v8.yolo_v8_label_encoder import (
     YOLOV8LabelEncoder,
@@ -324,8 +323,8 @@ class YOLOV8Detector(Task):
 
     Args:
         backbone: `keras.Model`, must implement the `pyramid_level_inputs`
-            property with keys 2, 3, and 4 and layer names as values. A
-            sensible backbone to use is the `keras_cv.models.YOLOV8Backbone`.
+            property with keys "P2", "P3", and "P4" and layer names as values.
+            A sensible backbone to use is the `keras_cv.models.YOLOV8Backbone`.
         num_classes: integer, the number of classes in your dataset excluding the
             background class. Classes should be represented by integers in the
             range [0, num_classes).
@@ -378,7 +377,7 @@ class YOLOV8Detector(Task):
     # Train model
     model.compile(
         classification_loss='binary_crossentropy',
-        box_loss='iou',
+        box_loss='ciou',
         optimizer=tf.optimizers.SGD(global_clipnorm=10.0),
         jit_compile=False,
     )
@@ -396,10 +395,9 @@ class YOLOV8Detector(Task):
         prediction_decoder=None,
         **kwargs,
     ):
-        # Using strings to keep the TF saving flow happy.
-        extractor_levels = ["3", "4", "5"]
+        extractor_levels = ["P3", "P4", "P5"]
         extractor_layer_names = [
-            backbone.pyramid_level_inputs[int(i)] for i in extractor_levels
+            backbone.pyramid_level_inputs[i] for i in extractor_levels
         ]
         feature_extractor = get_feature_extractor(
             backbone, extractor_layer_names, extractor_levels
@@ -427,7 +425,7 @@ class YOLOV8Detector(Task):
         super().__init__(inputs=images, outputs=outputs, **kwargs)
 
         self.bounding_box_format = bounding_box_format
-        self.prediction_decoder = (
+        self._prediction_decoder = (
             prediction_decoder
             or keras_cv.layers.MultiClassNonMaxSuppression(
                 bounding_box_format=bounding_box_format,
@@ -460,7 +458,7 @@ class YOLOV8Detector(Task):
 
         Args:
             box_loss: a Keras loss to use for box offset regression. A
-                preconfigured loss is provided when the string "iou" is passed.
+                preconfigured loss is provided when the string "ciou" is passed.
             classification_loss: a Keras loss to use for box classification. A
                 preconfigured loss is provided when the string
                 "binary_crossentropy" is passed.
@@ -475,12 +473,18 @@ class YOLOV8Detector(Task):
             raise ValueError("User metrics not yet supported for YOLOV8")
 
         if isinstance(box_loss, str):
-            if box_loss == "iou":
-                box_loss = YOLOV8IoULoss(reduction="sum")
+            if box_loss == "ciou":
+                box_loss = CIoULoss(bounding_box_format="xyxy", reduction="sum")
+            elif box_loss == "iou":
+                warnings.warn(
+                    "YOLOV8 recommends using CIoU loss, but was configured to "
+                    "use standard IoU. Consider using `box_loss='ciou'` "
+                    "instead."
+                )
             else:
                 raise ValueError(
                     f"Invalid box loss for YOLOV8Detector: {box_loss}. Box "
-                    "loss should be a keras.Loss or the string 'iou'."
+                    "loss should be a keras.Loss or the string 'ciou'."
                 )
         if isinstance(classification_loss, str):
             if classification_loss == "binary_crossentropy":
@@ -608,6 +612,26 @@ class YOLOV8Detector(Task):
     def make_predict_function(self, force=False):
         return predict_utils.make_predict_function(self, force=force)
 
+    @property
+    def prediction_decoder(self):
+        return self._prediction_decoder
+
+    @prediction_decoder.setter
+    def prediction_decoder(self, prediction_decoder):
+        if prediction_decoder.bounding_box_format != self.bounding_box_format:
+            raise ValueError(
+                "Expected `prediction_decoder` and YOLOV8Detector to "
+                "use the same `bounding_box_format`, but got "
+                "`prediction_decoder.bounding_box_format="
+                f"{prediction_decoder.bounding_box_format}`, and "
+                "`self.bounding_box_format="
+                f"{self.bounding_box_format}`."
+            )
+        self._prediction_decoder = prediction_decoder
+        self.make_predict_function(force=True)
+        self.make_train_function(force=True)
+        self.make_test_function(force=True)
+
     def get_config(self):
         return {
             "num_classes": self.num_classes,
@@ -615,7 +639,7 @@ class YOLOV8Detector(Task):
             "fpn_depth": self.fpn_depth,
             "backbone": keras.utils.serialize_keras_object(self.backbone),
             "label_encoder": self.label_encoder,
-            "prediction_decoder": self.prediction_decoder,
+            "prediction_decoder": self._prediction_decoder,
         }
 
     @classproperty

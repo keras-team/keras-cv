@@ -158,18 +158,18 @@ class Backbone(keras.Model):
     def pyramid_level_inputs(self):
         """Intermediate model outputs for feature extraction.
 
-        Format is a dictionary with int as key and layer name as value.
-        The int key represent the level of the feature output. A typical feature
-        pyramid has five levels corresponding to scales P3, P4, P5, P6, P7 in
-        the backbone. Scale Pn represents a feature map 2^n times smaller in
-        width and height than the input image.
+        Format is a dictionary with string as key and layer name as value.
+        The string key represents the level of the feature output. A typical
+        feature pyramid has five levels corresponding to scales "P3", "P4",
+        "P5", "P6", "P7" in the backbone. Scale Pn represents a feature map 2^n
+        times smaller in width and height than the input image.
 
         Example:
         ```python
         {
-            3: 'v2_stack_1_block4_out',
-            4: 'v2_stack_2_block6_out',
-            5: 'v2_stack_3_block3_out',
+            'P3': 'v2_stack_1_block4_out',
+            'P4': 'v2_stack_2_block6_out',
+            'P5': 'v2_stack_3_block3_out',
         }
         ```
         """

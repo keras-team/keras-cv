@@ -234,21 +234,57 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
 
 @pytest.mark.large
 class RetinaNetSmokeTest(tf.test.TestCase):
-    def test_backbone_preset_weight_loading(self):
-        # Check that backbone preset weights loaded correctly
-        # TODO(lukewood): need to forward pass test once proper weights are
-        # implemented
-        keras_cv.models.RetinaNet.from_preset(
-            "resnet50_v2_imagenet",
-            num_classes=20,
-            bounding_box_format="xywh",
-        )
+    def test_backbone_preset(self):
+        for preset in keras_cv.models.RetinaNet.presets:
+            if preset in keras_cv.models.RetinaNet.presets_with_weights:
+                continue
+            model = keras_cv.models.RetinaNet.from_preset(
+                preset,
+                num_classes=20,
+                bounding_box_format="xywh",
+            )
+            xs, _ = _create_bounding_box_dataset(bounding_box_format="xywh")
+            output = model(xs)
+            self.assertEqual(output["box"].shape, (xs.shape[0], 49104, 4))
 
     def test_full_preset_weight_loading(self):
-        # Check that backbone preset weights loaded correctly
-        # TODO(lukewood): need to forward pass test once proper weights are
-        # implemented
-        keras_cv.models.RetinaNet.from_preset(
+        model = keras_cv.models.RetinaNet.from_preset(
             "retinanet_resnet50_pascalvoc",
             bounding_box_format="xywh",
+        )
+        xs = tf.ones((1, 512, 512, 3), tf.float32)
+        output = model(xs)
+
+        expected_box = tf.constant(
+            [-1.2427993, 0.05179548, -1.9953268, 0.32456252]
+        )
+        self.assertAllClose(output["box"][0, 123, :], expected_box, atol=1e-5)
+
+        expected_class = tf.constant(
+            [
+                -8.387445,
+                -7.891776,
+                -8.14204,
+                -8.117359,
+                -7.2517176,
+                -7.906804,
+                -7.0910635,
+                -8.295824,
+                -6.5567474,
+                -7.086027,
+                -6.3826647,
+                -7.960227,
+                -7.556676,
+                -8.28963,
+                -6.526232,
+                -7.071624,
+                -6.9687414,
+                -6.6398506,
+                -8.598567,
+                -6.484198,
+            ]
+        )
+        expected_class = tf.reshape(expected_class, (20,))
+        self.assertAllClose(
+            output["classification"][0, 123], expected_class, atol=1e-5
         )

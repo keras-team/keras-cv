@@ -71,7 +71,7 @@ Incremental improvements to existing training scripts are welcome, provided that
 
 You can also open an issue to add weights for a specific model using a pre-existing script! In your issue, provide your training logs and resulting weights. Specify the arguments that were used to run the script, and provide support for those choices. If your weights beat our current weights, they'll become our default pre-trained weights for your model/task in KerasCV.models!
 
-To contribute a new script, start by opening an issue and tagging @ianjjohnson and @LukeWood to discuss the task, dataset, and/or model for which you'd like to add a script. Once they've taken a look, you can prepare a PR to introduce the new training script.
+To contribute a new script, start by opening an issue and tagging @ianstenbit to discuss the task, dataset, and/or model for which you'd like to add a script. Once they've taken a look, you can prepare a PR to introduce the new training script.
 
 See [this example script](https://github.com/keras-team/keras-cv/blob/master/examples/training/classification/imagenet/basic_training.py) for training ImageNet classification. Please follow the structure of this training script in contributing your own script. New scripts should either:
 - Train a task for which we don't have a training script already

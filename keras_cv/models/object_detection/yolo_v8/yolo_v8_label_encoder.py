@@ -19,7 +19,7 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 
-from keras_cv.models.object_detection.yolo_v8.yolo_v8_iou_loss import bbox_iou
+from keras_cv.bounding_box.iou import compute_ciou
 
 
 def select_highest_overlaps(mask_pos, overlaps, max_num_boxes):
@@ -121,7 +121,7 @@ class YOLOV8LabelEncoder(layers.Layer):
         alpha=0.5,
         beta=6.0,
         epsilon=1e-9,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(**kwargs)
         self.max_anchor_matches = max_anchor_matches
@@ -162,6 +162,13 @@ class YOLOV8LabelEncoder(layers.Layer):
                     truth box. Anchors that didn't match with a ground truth
                     box should be excluded from both class and box losses.
         """
+        if isinstance(gt_bboxes, tf.RaggedTensor):
+            raise ValueError(
+                "`YOLOV8LabelEncoder`'s `call()` method does not "
+                "support RaggedTensor inputs for the `gt_bboxes` argument. "
+                f"Received `type(gt_bboxes)={type(gt_bboxes)}`."
+            )
+
         max_num_boxes = gt_bboxes.shape[1]
 
         mask_pos, align_metric, overlaps = self.get_pos_mask(
@@ -290,7 +297,10 @@ class YOLOV8LabelEncoder(layers.Layer):
 
         gt_boxes = tf.repeat(tf.expand_dims(gt_bboxes, axis=2), na, axis=2)
 
-        iou = tf.squeeze(bbox_iou(gt_boxes, pd_boxes), axis=-1)
+        iou = tf.squeeze(
+            compute_ciou(gt_boxes, pd_boxes, bounding_box_format="xyxy"),
+            axis=-1,
+        )
         iou = tf.where(iou > 0, iou, 0)
 
         iou = tf.reshape(iou, (-1, max_num_boxes, na))
