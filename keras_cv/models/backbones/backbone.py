@@ -48,7 +48,7 @@ class Backbone(keras.Model):
 
     @classproperty
     def presets(cls):
-        """Dictionary of preset names and configurations."""
+        """Dictionary of preset names and configs."""
         return {}
 
     @classproperty

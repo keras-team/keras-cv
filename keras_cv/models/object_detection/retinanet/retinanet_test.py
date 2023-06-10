@@ -250,17 +250,19 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
 
 
 @pytest.mark.large
-class RetinaNetSmokeTest(tf.test.TestCase):
-    def test_backbone_preset(self):
-        for preset in keras_cv.models.RetinaNet.presets_without_weights:
-            model = keras_cv.models.RetinaNet.from_preset(
-                preset,
-                num_classes=20,
-                bounding_box_format="xywh",
-            )
-            xs, _ = _create_bounding_box_dataset(bounding_box_format="xywh")
-            output = model(xs)
-            self.assertEqual(output["box"].shape, (xs.shape[0], 49104, 4))
+class RetinaNetSmokeTest(tf.test.TestCase, parameterized.TestCase):
+    @parameterized.named_parameters(
+        *[(preset, preset) for preset in keras_cv.models.RetinaNet.presets_without_weights]
+    )
+    def test_backbone_preset(self, preset):
+        model = keras_cv.models.RetinaNet.from_preset(
+            preset,
+            num_classes=20,
+            bounding_box_format="xywh",
+        )
+        xs, _ = _create_bounding_box_dataset(bounding_box_format="xywh")
+        output = model(xs)
+        self.assertEqual(output["box"].shape, (xs.shape[0], 49104, 4))
 
     def test_full_preset_weight_loading(self):
         model = keras_cv.models.RetinaNet.from_preset(
