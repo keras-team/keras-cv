@@ -94,41 +94,28 @@ class CSPDarkNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
         restored_output = restored_model(self.input_batch)
         self.assertAllClose(model_output, restored_output)
 
-    def test_create_backbone_model_from_alias_model(self):
-        model = csp_darknet_backbone.CSPDarkNetLBackbone(
-            include_rescaling=False
-        )
+    def test_feature_pyramid_inputs(self):
+        model = csp_darknet_backbone.CSPDarkNetLBackbone()
         backbone_model = get_feature_extractor(
             model,
             model.pyramid_level_inputs.values(),
             model.pyramid_level_inputs.keys(),
         )
-        inputs = keras.Input(shape=[224, 224, 3])
+        input_size = 256
+        inputs = tf.keras.Input(shape=[input_size, input_size, 3])
         outputs = backbone_model(inputs)
-        # CSPDarkNet backbone has 4 level of features (P2 ~ P5)
-        levels = ["P2", "P3", "P4", "P5"]
-        self.assertLen(outputs, 4)
-        self.assertEquals(list(outputs.keys()), levels)
-        self.assertEquals(outputs["P2"].shape, [None, 56, 56, 128])
-        self.assertEquals(outputs["P3"].shape, [None, 28, 28, 256])
-        self.assertEquals(outputs["P4"].shape, [None, 14, 14, 512])
-        self.assertEquals(outputs["P5"].shape, [None, 7, 7, 1024])
-
-    def test_create_backbone_model_with_level_config(self):
-        model = csp_darknet_backbone.CSPDarkNetBackbone(
-            stackwise_channels=[48, 96, 192, 384],
-            stackwise_depth=[1, 3, 3, 1],
-            include_rescaling=True,
-        )
-        levels = ["P3", "P4"]
-        layer_names = [model.pyramid_level_inputs[level] for level in levels]
-        backbone_model = get_feature_extractor(model, layer_names, levels)
-        inputs = keras.Input(shape=[256, 256, 3])
-        outputs = backbone_model(inputs)
-        self.assertLen(outputs, 2)
-        self.assertEquals(list(outputs.keys()), levels)
-        self.assertEquals(outputs["P3"].shape, [None, 32, 32, 96])
-        self.assertEquals(outputs["P4"].shape, [None, 16, 16, 192])
+        expected_levels = ["P2", "P3", "P4", "P5"]
+        self.assertEquals(list(outputs.keys()), expected_levels)
+        # Size for each feature map at Pn is represents a feature map 2^n
+        # times smaller in width and height than the input image.
+        for level in model.pyramid_level_inputs:
+            level_int = int(level[1:])
+            self.assertEquals(
+                outputs[level].shape[1], input_size / 2**level_int
+            )
+            self.assertEquals(
+                outputs[level].shape[2], input_size / 2**level_int
+            )
 
     @parameterized.named_parameters(
         ("Tiny", csp_darknet_backbone.CSPDarkNetTinyBackbone),

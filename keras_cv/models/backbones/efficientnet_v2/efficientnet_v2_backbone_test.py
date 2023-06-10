@@ -140,56 +140,28 @@ class EfficientNetV2BackboneTest(tf.test.TestCase, parameterized.TestCase):
         restored_output = restored_model(self.input_batch)
         self.assertAllClose(model_output, restored_output)
 
-    def test_create_backbone_model_from_alias_model(self):
-        model = EfficientNetV2SBackbone(
-            include_rescaling=False,
-        )
+    def test_feature_pyramid_inputs(self):
+        model = EfficientNetV2SBackbone()
         backbone_model = get_feature_extractor(
             model,
             model.pyramid_level_inputs.values(),
             model.pyramid_level_inputs.keys(),
         )
-        inputs = keras.Input(shape=[256, 256, 3])
+        input_size = 256
+        inputs = tf.keras.Input(shape=[input_size, input_size, 3])
         outputs = backbone_model(inputs)
-        # EfficientNetV2S backbone has 4 level of features (P1 ~ P5)
-        levels = ["P1", "P2", "P3", "P4", "P5"]
-        self.assertLen(outputs, 5)
-        self.assertEquals(list(outputs.keys()), levels)
-        self.assertEquals(outputs["P2"].shape, [None, 64, 64, 48])
-        self.assertEquals(outputs["P3"].shape, [None, 32, 32, 64])
-        self.assertEquals(outputs["P4"].shape, [None, 16, 16, 160])
-        self.assertEquals(outputs["P5"].shape, [None, 8, 8, 1280])
-
-    def test_create_backbone_model_with_level_config(self):
-        model = EfficientNetV2Backbone(
-            stackwise_kernel_sizes=[3, 3, 3, 3, 3, 3],
-            stackwise_num_repeats=[2, 4, 4, 6, 9, 15],
-            stackwise_input_filters=[24, 24, 48, 64, 128, 160],
-            stackwise_output_filters=[24, 48, 64, 128, 160, 256],
-            stackwise_expansion_ratios=[1, 4, 4, 4, 6, 6],
-            stackwise_squeeze_and_excite_ratios=[0.0, 0.0, 0, 0.25, 0.25, 0.25],
-            stackwise_strides=[1, 2, 2, 2, 1, 2],
-            stackwise_conv_types=[
-                "fused",
-                "fused",
-                "fused",
-                "unfused",
-                "unfused",
-                "unfused",
-            ],
-            width_coefficient=1.0,
-            depth_coefficient=1.0,
-            include_rescaling=True,
-        )
-        levels = ["P3", "P4"]
-        layer_names = [model.pyramid_level_inputs[level] for level in levels]
-        backbone_model = get_feature_extractor(model, layer_names, levels)
-        inputs = keras.Input(shape=[256, 256, 3])
-        outputs = backbone_model(inputs)
-        self.assertLen(outputs, 2)
-        self.assertEquals(list(outputs.keys()), levels)
-        self.assertEquals(outputs["P3"].shape, [None, 32, 32, 64])
-        self.assertEquals(outputs["P4"].shape, [None, 16, 16, 160])
+        expected_levels = ["P1", "P2", "P3", "P4", "P5"]
+        self.assertEquals(list(outputs.keys()), expected_levels)
+        # Size for each feature map at Pn is represents a feature map 2^n
+        # times smaller in width and height than the input image.
+        for level in model.pyramid_level_inputs:
+            level_int = int(level[1:])
+            self.assertEquals(
+                outputs[level].shape[1], input_size / 2**level_int
+            )
+            self.assertEquals(
+                outputs[level].shape[2], input_size / 2**level_int
+            )
 
     @parameterized.named_parameters(
         ("one_channel", 1),

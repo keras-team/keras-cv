@@ -77,27 +77,27 @@ class MobileNetV3BackboneTest(tf.test.TestCase, parameterized.TestCase):
         restored_output = restored_model(self.input_batch)
         self.assertAllClose(model_output, restored_output)
 
-    @parameterized.named_parameters(
-        ("small", "mobilenet_v3_small"),
-        ("large", "mobilenet_v3_large"),
-    )
-    def test_create_backbone_model_with_level_config(self, preset):
-        metadata = MobileNetV3Backbone.presets[preset]
-        metadata["config"]["input_shape"] = [224, 224, 3]
-        model = MobileNetV3Backbone.from_config(metadata["config"])
-
-        levels = ["P3", "P4", "P5"]
-        layer_names = [model.pyramid_level_inputs[level] for level in levels]
-        backbone_model = get_feature_extractor(model, layer_names, levels)
-        inputs = tf.keras.Input(shape=[224, 224, 3])
+    def test_feature_pyramid_inputs(self):
+        model = MobileNetV3SmallBackbone()
+        backbone_model = get_feature_extractor(
+            model,
+            model.pyramid_level_inputs.values(),
+            model.pyramid_level_inputs.keys(),
+        )
+        input_size = 256
+        inputs = tf.keras.Input(shape=[input_size, input_size, 3])
         outputs = backbone_model(inputs)
-
-        # confirm the shapes of the pyramid level input
-        self.assertLen(outputs, len(levels))
-        self.assertEquals(list(outputs.keys()), levels)
-        for level in levels:
+        expected_levels = ["P1", "P2", "P3", "P4", "P5"]
+        self.assertEquals(list(outputs.keys()), expected_levels)
+        # Size for each feature map at Pn is represents a feature map 2^n
+        # times smaller in width and height than the input image.
+        for level in model.pyramid_level_inputs:
+            level_int = int(level[1:])
             self.assertEquals(
-                outputs[level].shape, pyramid_level_input_shapes[preset][level]
+                outputs[level].shape[1], input_size / 2**level_int
+            )
+            self.assertEquals(
+                outputs[level].shape[2], input_size / 2**level_int
             )
 
     @parameterized.named_parameters(

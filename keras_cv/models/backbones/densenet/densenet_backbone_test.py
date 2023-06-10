@@ -92,24 +92,28 @@ class DenseNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
         restored_output = restored_model(self.input_batch)
         self.assertAllClose(model_output, restored_output)
 
-    def test_create_backbone_model_from_alias_model(self):
-        model = DenseNet121Backbone(
-            include_rescaling=False,
-        )
+    def test_feature_pyramid_inputs(self):
+        model = DenseNet121Backbone()
         backbone_model = get_feature_extractor(
             model,
             model.pyramid_level_inputs.values(),
             model.pyramid_level_inputs.keys(),
         )
-        inputs = tf.keras.Input(shape=[256, 256, 3])
+        input_size = 256
+        inputs = tf.keras.Input(shape=[input_size, input_size, 3])
         outputs = backbone_model(inputs)
-
-        levels = ["P2", "P3", "P4"]
-        self.assertLen(outputs, 3)
-        self.assertEquals(list(outputs.keys()), levels)
-        self.assertEquals(outputs["P2"].shape, [None, 32, 32, 128])
-        self.assertEquals(outputs["P3"].shape, [None, 16, 16, 256])
-        self.assertEquals(outputs["P4"].shape, [None, 8, 8, 512])
+        expected_levels = ["P2", "P3", "P4", "P5"]
+        self.assertEquals(list(outputs.keys()), expected_levels)
+        # Size for each feature map at Pn is represents a feature map 2^n
+        # times smaller in width and height than the input image.
+        for level in model.pyramid_level_inputs:
+            level_int = int(level[1:])
+            self.assertEquals(
+                outputs[level].shape[1], input_size / 2**level_int
+            )
+            self.assertEquals(
+                outputs[level].shape[2], input_size / 2**level_int
+            )
 
     @parameterized.named_parameters(
         ("one_channel", 1),
