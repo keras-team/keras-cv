@@ -19,7 +19,7 @@ from keras_cv.utils import assert_matplotlib_installed
 from keras_cv.visualization.plot_image_gallery import plot_image_gallery
 
 
-def build_compatile_segmentation_masks(segmentation_masks):
+def reshape_masks(segmentation_masks):
     rank = len(segmentation_masks.shape)
     if rank == 3:
         # (B, H, W)
@@ -27,6 +27,8 @@ def build_compatile_segmentation_masks(segmentation_masks):
     elif rank == 4:
         # (B, H, W, num_channels) OR (B, H, W, 1)
         if segmentation_masks.shape[-1] == 1:
+            # Repeat the masks 3 times in order to build 3 channel
+            # segmentation masks.
             return segmentation_masks.repeat(repeats=3, axis=-1)
         else:
             return np.argmax(segmentation_masks, axis=-1).repeat(
@@ -48,14 +50,16 @@ def plot_segmentation_mask_gallery(
 
     Args:
         images: a Tensor or NumPy array containing images to show in the
-            gallery.
+            gallery. The images should be batched and of shape (B, H, W, C).
         value_range: value range of the images. Common examples include
             `(0, 255)` and `(0, 1)`.
         num_classes: number of segmentation classes.
         y_true: (Optional) a Tensor or NumPy array representing the ground truth
-            segmentation masks.
+            segmentation masks. The ground truth segmentation maps should be
+            batched.
         y_pred: (Optional)  a Tensor or NumPy array representing the predicted
-            segmentation masks.
+            segmentation masks. The predicted segmentation masks should be
+            batched.
         kwargs: keyword arguments to propagate to
             `keras_cv.visualization.plot_image_gallery()`.
 
@@ -78,23 +82,21 @@ def plot_segmentation_mask_gallery(
         value_range=(0, 255),
         num_classes=3, # The number of classes for the oxford iiit pet dataset
         y_true=segmentation_masks,
-        y_pred=segmentation_masks,
+        y_pred=None,
         scale=3,
         rows=2,
         cols=2,
     )
     ```
 
-    ![Example segmentation mask gallery](https://i.imgur.com/YRswGHz.png)
+    ![Example segmentation mask gallery](https://i.imgur.com/aRkmJ1Q.png)
     """
     assert_matplotlib_installed("plot_segmentation_mask_gallery")
 
     plotted_images = utils.to_numpy(images)
 
     plotted_y_true = utils.to_numpy(y_true)
-    plotted_y_true = build_compatile_segmentation_masks(
-        segmentation_masks=plotted_y_true
-    )
+    plotted_y_true = reshape_masks(segmentation_masks=plotted_y_true)
 
     # Interpolate the segmentation masks from the range of (0, num_classes)
     # to the value range provided.
@@ -102,9 +104,7 @@ def plot_segmentation_mask_gallery(
 
     if y_pred is not None:
         plotted_y_pred = utils.to_numpy(y_pred)
-        plotted_y_pred = build_compatile_segmentation_masks(
-            segmentation_masks=plotted_y_pred
-        )
+        plotted_y_pred = reshape_masks(segmentation_masks=plotted_y_pred)
         plotted_y_pred = np.interp(
             plotted_y_pred, (0, num_classes), value_range
         )
