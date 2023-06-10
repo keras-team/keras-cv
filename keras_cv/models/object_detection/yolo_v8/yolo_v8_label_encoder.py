@@ -222,7 +222,7 @@ class YOLOV8LabelEncoder(layers.Layer):
                 tf.stop_gradient(tf.cast(fg_mask, tf.bool)),
             )
 
-        # Returns zeros if no gt boxes are present
+        # return zeros if no gt boxes are present
         return tf.cond(
             max_num_boxes > 0,
             lambda: handle_call(
