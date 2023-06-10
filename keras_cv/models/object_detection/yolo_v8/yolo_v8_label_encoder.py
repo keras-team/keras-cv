@@ -176,47 +176,63 @@ class YOLOV8LabelEncoder(layers.Layer):
 
         max_num_boxes = tf.cast(tf.shape(gt_bboxes)[1], dtype=tf.int64)
 
-        mask_pos, align_metric, overlaps = self.get_pos_mask(
-            pd_scores,
-            pd_bboxes,
-            gt_labels,
-            gt_bboxes,
-            anc_points,
-            mask_gt,
-            max_num_boxes,
-        )
+        def handle_call(
+            pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt
+        ):
+            mask_pos, align_metric, overlaps = self.get_pos_mask(
+                pd_scores,
+                pd_bboxes,
+                gt_labels,
+                gt_bboxes,
+                anc_points,
+                mask_gt,
+                max_num_boxes,
+            )
 
-        target_gt_idx, fg_mask, mask_pos = select_highest_overlaps(
-            mask_pos, overlaps, max_num_boxes
-        )
+            target_gt_idx, fg_mask, mask_pos = select_highest_overlaps(
+                mask_pos, overlaps, max_num_boxes
+            )
 
-        target_bboxes, target_scores = self.get_targets(
-            gt_labels, gt_bboxes, target_gt_idx, fg_mask, max_num_boxes
-        )
+            target_bboxes, target_scores = self.get_targets(
+                gt_labels, gt_bboxes, target_gt_idx, fg_mask, max_num_boxes
+            )
 
-        align_metric *= mask_pos
-        pos_align_metrics = tf.reduce_max(
-            align_metric, axis=-1, keepdims=True
-        )  # b, max_num_boxes
-        pos_overlaps = tf.reduce_max(
-            overlaps * mask_pos, axis=-1, keepdims=True
-        )  # b, max_num_boxes
-        norm_align_metric = tf.expand_dims(
-            tf.reduce_max(
-                align_metric
-                * pos_overlaps
-                / (pos_align_metrics + self.epsilon),
-                axis=-2,
+            align_metric *= mask_pos
+            pos_align_metrics = tf.reduce_max(
+                align_metric, axis=-1, keepdims=True
+            )  # b, max_num_boxes
+            pos_overlaps = tf.reduce_max(
+                overlaps * mask_pos, axis=-1, keepdims=True
+            )  # b, max_num_boxes
+            norm_align_metric = tf.expand_dims(
+                tf.reduce_max(
+                    align_metric
+                    * pos_overlaps
+                    / (pos_align_metrics + self.epsilon),
+                    axis=-2,
+                ),
+                axis=-1,
+            )
+            target_scores = target_scores * norm_align_metric
+
+            # No need to compute gradients for these, as they're all targets
+            return (
+                tf.stop_gradient(target_bboxes),
+                tf.stop_gradient(target_scores),
+                tf.stop_gradient(tf.cast(fg_mask, tf.bool)),
+            )
+
+        # Returns zeros if no gt boxes are present
+        return tf.cond(
+            max_num_boxes > 0,
+            lambda: handle_call(
+                pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt
             ),
-            axis=-1,
-        )
-        target_scores = target_scores * norm_align_metric
-
-        # No need to compute gradients for these, as they're all targets
-        return (
-            tf.stop_gradient(target_bboxes),
-            tf.stop_gradient(target_scores),
-            tf.stop_gradient(tf.cast(fg_mask, tf.bool)),
+            lambda: (
+                tf.zeros_like(pd_bboxes),
+                tf.zeros_like(pd_scores),
+                tf.zeros_like(pd_scores[..., 0], dtype=tf.bool),
+            ),
         )
 
     def get_pos_mask(
