@@ -27,6 +27,7 @@ local unittest = base.BaseTest {
       bazel-5.4.0 build keras_cv/custom_ops:all --verbose_failures
       cp bazel-bin/keras_cv/custom_ops/*.so keras_cv/custom_ops/
       export TEST_CUSTOM_OPS=true
+      export TF_GPU_ALLOCATOR=cuda_malloc_async
 
       # Run whatever is in `command` here.
       ${@:0}
