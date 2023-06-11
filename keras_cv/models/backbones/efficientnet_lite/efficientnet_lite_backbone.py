@@ -65,6 +65,7 @@ class EfficientNetLiteBackbone(Backbone):
 
     def __init__(
         self,
+        *,
         include_rescaling,
         width_coefficient,
         depth_coefficient,
