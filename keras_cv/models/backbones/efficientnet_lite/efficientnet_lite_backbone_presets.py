@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""EfficientNetV1 model preset configurations."""
+"""EfficientNetLite model preset configurations."""
 
 backbone_presets_no_weights = {
     "efficientnetlite_b0": {
@@ -23,10 +23,10 @@ backbone_presets_no_weights = {
                 "`width_coefficient=1.0` and `depth_coefficient=1.0`."
             ),
             "params": 4050716,
-            "official_name": "EfficientNetV1",
-            "path": "efficientnetv1",
+            "official_name": "EfficientNetLite",
+            "path": "EfficientNetLite",
         },
-        "class_name": "keras_cv.models>EfficientNetV1Backbone",
+        "class_name": "keras_cv.models>EfficientNetLiteBackbone",
         "config": {
             "width_coefficient": 1.0,
             "depth_coefficient": 1.0,
@@ -53,10 +53,10 @@ backbone_presets_no_weights = {
                 "`width_coefficient=1.0` and `depth_coefficient=1.1`."
             ),
             "params": 6576704,
-            "official_name": "EfficientNetV1",
-            "path": "efficientnetv1",
+            "official_name": "EfficientNetLite",
+            "path": "EfficientNetLite",
         },
-        "class_name": "keras_cv.models>EfficientNetV1Backbone",
+        "class_name": "keras_cv.models>EfficientNetLiteBackbone",
         "config": {
             "width_coefficient": 1.0,
             "depth_coefficient": 1.1,
@@ -83,10 +83,10 @@ backbone_presets_no_weights = {
                 "`width_coefficient=1.1` and `depth_coefficient=1.2`."
             ),
             "params": 7770034,
-            "official_name": "EfficientNetV1",
-            "path": "efficientnetv1",
+            "official_name": "EfficientNetLite",
+            "path": "EfficientNetLite",
         },
-        "class_name": "keras_cv.models>EfficientNetV1Backbone",
+        "class_name": "keras_cv.models>EfficientNetLiteBackbone",
         "config": {
             "width_coefficient": 1.1,
             "depth_coefficient": 1.2,
@@ -113,10 +113,10 @@ backbone_presets_no_weights = {
                 "`width_coefficient=1.2` and `depth_coefficient=1.4`."
             ),
             "params": 10785960,
-            "official_name": "EfficientNetV1",
-            "path": "efficientnetv1",
+            "official_name": "EfficientNetLite",
+            "path": "EfficientNetLite",
         },
-        "class_name": "keras_cv.models>EfficientNetV1Backbone",
+        "class_name": "keras_cv.models>EfficientNetLiteBackbone",
         "config": {
             "width_coefficient": 1.2,
             "depth_coefficient": 1.4,
@@ -143,10 +143,10 @@ backbone_presets_no_weights = {
                 "`width_coefficient=1.4` and `depth_coefficient=1.8`."
             ),
             "params": 17676984,
-            "official_name": "EfficientNetV1",
-            "path": "efficientnetv1",
+            "official_name": "EfficientNetLite",
+            "path": "EfficientNetLite",
         },
-        "class_name": "keras_cv.models>EfficientNetV1Backbone",
+        "class_name": "keras_cv.models>EfficientNetLiteBackbone",
         "config": {
             "width_coefficient": 1.4,
             "depth_coefficient": 1.8,
