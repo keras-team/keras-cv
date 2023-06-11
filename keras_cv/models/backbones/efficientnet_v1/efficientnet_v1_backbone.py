@@ -11,15 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-"""EfficientNet V1 models for Keras.
-
-Reference:
-    - [EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks](https://arxiv.org/abs/1905.11946)
-        (ICML 2019)
-    - [Based on the original keras.applications EfficientNet](https://github.com/keras-team/keras/blob/master/keras/applications/efficientnet.py)
-"""  # noqa: E501
-
 import copy
 import math
 
@@ -37,7 +28,13 @@ from keras_cv.utils.python_utils import classproperty
 
 @keras.utils.register_keras_serializable(package="keras_cv.models")
 class EfficientNetV1Backbone(Backbone):
-    """This class represents a Keras EfficientNet architecture.
+    """Instantiates the EfficientNetV1 architecture.
+
+    Reference:
+    - [EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks](https://arxiv.org/abs/1905.11946)
+        (ICML 2019)
+    - [Based on the original keras.applications EfficientNet](https://github.com/keras-team/keras/blob/master/keras/applications/efficientnet.py)
+
     Args:
         include_rescaling: bool, whether to rescale the inputs. If set to
             True, inputs will be passed through a `Rescaling(1/255.0)` layer.
@@ -46,12 +43,11 @@ class EfficientNetV1Backbone(Backbone):
         dropout_rate: float, dropout rate before final classifier layer.
         drop_connect_rate: float, dropout rate at skip connections.
         depth_divisor: integer, a unit of network width.
-        activation: activation function.
+        activation: activation function to use between each convolutional layer.
         input_shape: optional shape tuple, it should have exactly 3 input
             channels.
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`) to
             use as image input for the model.
-        id_skip: boolean.
         stackwise_kernel_sizes:  list of ints, the kernel sizes used for each
             conv block.
         stackwise_num_repeats: list of ints, number of times to repeat each
@@ -113,7 +109,6 @@ class EfficientNetV1Backbone(Backbone):
         activation="swish",
         input_shape=(None, None, 3),
         input_tensor=None,
-        id_skip,
         stackwise_kernel_sizes,
         stackwise_num_repeats,
         stackwise_input_filters,
@@ -158,9 +153,7 @@ class EfficientNetV1Backbone(Backbone):
 
         # Build blocks
         block_id = 0
-        blocks = float(
-            sum(num_repeats for num_repeats in stackwise_num_repeats)
-        )
+        blocks = float(sum(stackwise_num_repeats))
 
         pyramid_level_inputs = []
         for i in range(len(stackwise_kernel_sizes)):
@@ -207,7 +200,6 @@ class EfficientNetV1Backbone(Backbone):
                     strides=strides,
                     expand_ratio=stackwise_expansion_ratios[i],
                     se_ratio=squeeze_and_excite_ratio,
-                    id_skip=True,
                     activation=activation,
                     drop_rate=drop_connect_rate * block_id / blocks,
                     name="block{}{}_".format(i + 1, letter_identifier),
@@ -250,9 +242,8 @@ class EfficientNetV1Backbone(Backbone):
         self.activation = activation
         self.input_tensor = input_tensor
         self.pyramid_level_inputs = {
-            i + 1: name for i, name in enumerate(pyramid_level_inputs)
+            f"P{i + 1}": name for i, name in enumerate(pyramid_level_inputs)
         }
-        self.id_skip = id_skip
         self.stackwise_kernel_sizes = stackwise_kernel_sizes
         self.stackwise_num_repeats = stackwise_num_repeats
         self.stackwise_input_filters = stackwise_input_filters
@@ -277,7 +268,6 @@ class EfficientNetV1Backbone(Backbone):
                 "input_tensor": self.input_tensor,
                 "input_shape": self.input_shape[1:],
                 "trainable": self.trainable,
-                "id_skip": self.id_skip,
                 "stackwise_kernel_sizes": self.stackwise_kernel_sizes,
                 "stackwise_num_repeats": self.stackwise_num_repeats,
                 "stackwise_input_filters": self.stackwise_input_filters,
@@ -305,9 +295,11 @@ def conv_kernel_initializer(scale=2.0):
 
 def correct_pad(inputs, kernel_size):
     """Returns a tuple for zero-padding for 2D convolution with downsampling.
+
     Args:
       inputs: Input tensor.
       kernel_size: An integer or tuple/list of 2 integers.
+
     Returns:
       A tuple.
     """
@@ -328,6 +320,7 @@ def correct_pad(inputs, kernel_size):
 
 def round_filters(filters, width_coefficient, divisor):
     """Round number of filters based on depth multiplier.
+
     Args:
         filters: int, number of filters for Conv layer
         width_coefficient: float, denotes the scaling coefficient of network
@@ -347,6 +340,7 @@ def round_filters(filters, width_coefficient, divisor):
 
 def round_repeats(repeats, depth_coefficient):
     """Round number of repeats based on depth multiplier.
+
     Args:
         repeats: int, number of repeats of efficientnet block
         depth_coefficient: float, denotes the scaling coefficient of network
@@ -367,7 +361,6 @@ def apply_efficientnet_block(
     activation="swish",
     expand_ratio=1,
     se_ratio=0.0,
-    id_skip=True,
     drop_rate=0.0,
     name="",
 ):
@@ -379,10 +372,9 @@ def apply_efficientnet_block(
         filters_out: integer, the number of output filters.
         kernel_size: integer, the dimension of the convolution window.
         strides: integer, the stride of the convolution.
-        activation: activation function.
+        activation: activation function to use between each convolutional layer.
         expand_ratio: integer, scaling coefficient for the input filters.
         se_ratio: float between 0 and 1, fraction to squeeze the input filters.
-        id_skip: boolean.
         drop_rate: float between 0 and 1, fraction of the input units to drop.
         name: string, block label.
 
@@ -390,23 +382,21 @@ def apply_efficientnet_block(
         tf.Tensor
     """
     filters = filters_in * expand_ratio
-    if expand_ratio != 1:
-        x = layers.Conv2D(
-            filters=filters,
-            kernel_size=1,
-            strides=1,
-            padding="same",
-            use_bias=False,
-            kernel_initializer=conv_kernel_initializer(),
-            name=name + "_expand_conv",
-        )(inputs)
-        x = layers.BatchNormalization(
-            axis=3,
-            name=name + "_expand_bn",
-        )(x)
-        x = layers.Activation(activation, name=name + "_expand_activation")(x)
-    else:
-        x = inputs
+    x = inputs
+    x = layers.Conv2D(
+        filters=filters,
+        kernel_size=1,
+        strides=1,
+        padding="same",
+        use_bias=False,
+        kernel_initializer=conv_kernel_initializer(),
+        name=name + "_expand_conv",
+    )(x)
+    x = layers.BatchNormalization(
+        axis=3,
+        name=name + "_expand_bn",
+    )(x)
+    x = layers.Activation(activation, name=name + "_expand_activation")(x)
 
     # Depthwise Convolution
     if strides == 2:
@@ -468,11 +458,11 @@ def apply_efficientnet_block(
     )(x)
     x = layers.BatchNormalization(
         axis=3,
-        name=name + "outout_phase_bn",
+        name=name + "output_phase_bn",
     )(x)
     x = layers.Activation(activation, name=name + "output_phase_activation")(x)
 
-    if id_skip and strides == 1 and filters_in == filters_out:
+    if strides == 1 and filters_in == filters_out:
         if drop_rate > 0:
             x = layers.Dropout(
                 drop_rate,

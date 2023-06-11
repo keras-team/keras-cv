@@ -14,17 +14,17 @@
 
 """EfficientNetV1 model preset configurations."""
 
-DESCRIPTION = "One of the many EfficientNetV1 variants.  Each variant is built"
-"based on one of the parameterizations described in the original EfficientNetV1"
-"publication.  To learn more about the parameterizations and their tradeoffs,"
-"please check keras.io.  As a starting point, we recommend starting with the"
-'"efficientnetv1_b0" architecture, and increasing in size to'
-'"efficientnetv1_b4" or "efficientnetv1_b7" if resources permit.'
-
 backbone_presets_no_weights = {
     "efficientnetv1_b0": {
         "metadata": {
-            "description": DESCRIPTION,
+            "description": (
+                "EfficientNet B-style architecture with 7 "
+                "convolutional blocks. This B-style model has "
+                "`width_coefficient=1.0` and `depth_coefficient=1.0`."
+            ),
+            "params": 4050716,
+            "official_name": "EfficientNetV1",
+            "path": "efficientnetv1",
         },
         "class_name": "keras_cv.models>EfficientNetV1Backbone",
         "config": {
@@ -37,7 +37,6 @@ backbone_presets_no_weights = {
             "include_rescaling": True,
             "input_shape": (None, None, 3),
             "input_tensor": None,
-            "id_skip": True,
             "stackwise_kernel_sizes": [3, 3, 5, 3, 5, 5, 3],
             "stackwise_num_repeats": [1, 2, 2, 3, 3, 4, 1],
             "stackwise_input_filters": [32, 16, 24, 40, 80, 112, 192],
@@ -57,7 +56,14 @@ backbone_presets_no_weights = {
     },
     "efficientnetv1_b1": {
         "metadata": {
-            "description": DESCRIPTION,
+            "description": (
+                "EfficientNet B-style architecture with 7 "
+                "convolutional blocks. This B-style model has "
+                "`width_coefficient=1.0` and `depth_coefficient=1.1`."
+            ),
+            "params": 6576704,
+            "official_name": "EfficientNetV1",
+            "path": "efficientnetv1",
         },
         "class_name": "keras_cv.models>EfficientNetV1Backbone",
         "config": {
@@ -70,7 +76,6 @@ backbone_presets_no_weights = {
             "include_rescaling": True,
             "input_shape": (None, None, 3),
             "input_tensor": None,
-            "id_skip": True,
             "stackwise_kernel_sizes": [3, 3, 5, 3, 5, 5, 3],
             "stackwise_num_repeats": [1, 2, 2, 3, 3, 4, 1],
             "stackwise_input_filters": [32, 16, 24, 40, 80, 112, 192],
@@ -90,7 +95,14 @@ backbone_presets_no_weights = {
     },
     "efficientnetv1_b2": {
         "metadata": {
-            "description": DESCRIPTION,
+            "description": (
+                "EfficientNet B-style architecture with 7 "
+                "convolutional blocks. This B-style model has "
+                "`width_coefficient=1.1` and `depth_coefficient=1.2`."
+            ),
+            "params": 7770034,
+            "official_name": "EfficientNetV1",
+            "path": "efficientnetv1",
         },
         "class_name": "keras_cv.models>EfficientNetV1Backbone",
         "config": {
@@ -103,7 +115,6 @@ backbone_presets_no_weights = {
             "include_rescaling": True,
             "input_shape": (None, None, 3),
             "input_tensor": None,
-            "id_skip": True,
             "stackwise_kernel_sizes": [3, 3, 5, 3, 5, 5, 3],
             "stackwise_num_repeats": [1, 2, 2, 3, 3, 4, 1],
             "stackwise_input_filters": [32, 16, 24, 40, 80, 112, 192],
@@ -123,7 +134,14 @@ backbone_presets_no_weights = {
     },
     "efficientnetv1_b3": {
         "metadata": {
-            "description": DESCRIPTION,
+            "description": (
+                "EfficientNet B-style architecture with 7 "
+                "convolutional blocks. This B-style model has "
+                "`width_coefficient=1.2` and `depth_coefficient=1.4`."
+            ),
+            "params": 10785960,
+            "official_name": "EfficientNetV1",
+            "path": "efficientnetv1",
         },
         "class_name": "keras_cv.models>EfficientNetV1Backbone",
         "config": {
@@ -136,7 +154,6 @@ backbone_presets_no_weights = {
             "include_rescaling": True,
             "input_shape": (None, None, 3),
             "input_tensor": None,
-            "id_skip": True,
             "stackwise_kernel_sizes": [3, 3, 5, 3, 5, 5, 3],
             "stackwise_num_repeats": [1, 2, 2, 3, 3, 4, 1],
             "stackwise_input_filters": [32, 16, 24, 40, 80, 112, 192],
@@ -156,7 +173,14 @@ backbone_presets_no_weights = {
     },
     "efficientnetv1_b4": {
         "metadata": {
-            "description": DESCRIPTION,
+            "description": (
+                "EfficientNet B-style architecture with 7 "
+                "convolutional blocks. This B-style model has "
+                "`width_coefficient=1.4` and `depth_coefficient=1.8`."
+            ),
+            "params": 17676984,
+            "official_name": "EfficientNetV1",
+            "path": "efficientnetv1",
         },
         "class_name": "keras_cv.models>EfficientNetV1Backbone",
         "config": {
@@ -169,7 +193,6 @@ backbone_presets_no_weights = {
             "include_rescaling": True,
             "input_shape": (None, None, 3),
             "input_tensor": None,
-            "id_skip": True,
             "stackwise_kernel_sizes": [3, 3, 5, 3, 5, 5, 3],
             "stackwise_num_repeats": [1, 2, 2, 3, 3, 4, 1],
             "stackwise_input_filters": [32, 16, 24, 40, 80, 112, 192],
@@ -189,7 +212,14 @@ backbone_presets_no_weights = {
     },
     "efficientnetv1_b5": {
         "metadata": {
-            "description": DESCRIPTION,
+            "description": (
+                "EfficientNet B-style architecture with 7 "
+                "convolutional blocks. This B-style model has "
+                "`width_coefficient=1.6` and `depth_coefficient=2.2`."
+            ),
+            "params": 28517360,
+            "official_name": "EfficientNetV1",
+            "path": "efficientnetv1",
         },
         "class_name": "keras_cv.models>EfficientNetV1Backbone",
         "config": {
@@ -202,7 +232,6 @@ backbone_presets_no_weights = {
             "include_rescaling": True,
             "input_shape": (None, None, 3),
             "input_tensor": None,
-            "id_skip": True,
             "stackwise_kernel_sizes": [3, 3, 5, 3, 5, 5, 3],
             "stackwise_num_repeats": [1, 2, 2, 3, 3, 4, 1],
             "stackwise_input_filters": [32, 16, 24, 40, 80, 112, 192],
@@ -222,7 +251,14 @@ backbone_presets_no_weights = {
     },
     "efficientnetv1_b6": {
         "metadata": {
-            "description": DESCRIPTION,
+            "description": (
+                "EfficientNet B-style architecture with 7 "
+                "convolutional blocks. This B-style model has "
+                "`width_coefficient=1.8` and `depth_coefficient=2.6`."
+            ),
+            "params": 40965800,
+            "official_name": "EfficientNetV1",
+            "path": "efficientnetv1",
         },
         "class_name": "keras_cv.models>EfficientNetV1Backbone",
         "config": {
@@ -235,7 +271,6 @@ backbone_presets_no_weights = {
             "include_rescaling": True,
             "input_shape": (None, None, 3),
             "input_tensor": None,
-            "id_skip": True,
             "stackwise_kernel_sizes": [3, 3, 5, 3, 5, 5, 3],
             "stackwise_num_repeats": [1, 2, 2, 3, 3, 4, 1],
             "stackwise_input_filters": [32, 16, 24, 40, 80, 112, 192],
@@ -255,7 +290,14 @@ backbone_presets_no_weights = {
     },
     "efficientnetv1_b7": {
         "metadata": {
-            "description": DESCRIPTION,
+            "description": (
+                "EfficientNet B-style architecture with 7 "
+                "convolutional blocks. This B-style model has "
+                "`width_coefficient=2.0` and `depth_coefficient=3.1`."
+            ),
+            "params": 64105488,
+            "official_name": "EfficientNetV1",
+            "path": "efficientnetv1",
         },
         "class_name": "keras_cv.models>EfficientNetV1Backbone",
         "config": {
@@ -268,7 +310,6 @@ backbone_presets_no_weights = {
             "include_rescaling": True,
             "input_shape": (None, None, 3),
             "input_tensor": None,
-            "id_skip": True,
             "stackwise_kernel_sizes": [3, 3, 5, 3, 5, 5, 3],
             "stackwise_num_repeats": [1, 2, 2, 3, 3, 4, 1],
             "stackwise_input_filters": [32, 16, 24, 40, 80, 112, 192],

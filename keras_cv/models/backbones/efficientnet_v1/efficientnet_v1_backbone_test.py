@@ -33,7 +33,6 @@ class EfficientNetV1BackboneTest(tf.test.TestCase, parameterized.TestCase):
 
     def test_valid_call(self):
         model = EfficientNetV1Backbone(
-            id_skip=True,
             stackwise_kernel_sizes=[3, 3, 5, 3, 5, 5, 3],
             stackwise_num_repeats=[1, 2, 2, 3, 3, 4, 1],
             stackwise_input_filters=[32, 16, 24, 40, 80, 112, 192],
@@ -61,7 +60,6 @@ class EfficientNetV1BackboneTest(tf.test.TestCase, parameterized.TestCase):
 
     def test_valid_call_with_rescaling(self):
         model = EfficientNetV1Backbone(
-            id_skip=True,
             stackwise_kernel_sizes=[3, 3, 5, 3, 5, 5, 3],
             stackwise_num_repeats=[1, 2, 2, 3, 3, 4, 1],
             stackwise_input_filters=[32, 16, 24, 40, 80, 112, 192],
@@ -89,7 +87,6 @@ class EfficientNetV1BackboneTest(tf.test.TestCase, parameterized.TestCase):
     )
     def test_saved_model(self, save_format, filename):
         model = EfficientNetV1Backbone(
-            id_skip=True,
             stackwise_kernel_sizes=[3, 3, 5, 3, 5, 5, 3],
             stackwise_num_repeats=[1, 2, 2, 3, 3, 4, 1],
             stackwise_input_filters=[32, 16, 24, 40, 80, 112, 192],
@@ -153,16 +150,16 @@ class EfficientNetV1BackboneTest(tf.test.TestCase, parameterized.TestCase):
         outputs = backbone_model(inputs)
 
         # EfficientNetV1B0 backbone has 4 level of features (1 ~ 5)
+        levels = ["P1", "P2", "P3", "P4", "P5"]
         self.assertLen(outputs, 5)
-        self.assertEquals(list(outputs.keys()), [1, 2, 3, 4, 5])
-        self.assertEquals(outputs[2].shape, [None, 64, 64, 24])
-        self.assertEquals(outputs[3].shape, [None, 32, 32, 40])
-        self.assertEquals(outputs[4].shape, [None, 16, 16, 112])
-        self.assertEquals(outputs[5].shape, [None, 8, 8, 1280])
+        self.assertEquals(list(outputs.keys()), levels)
+        self.assertEquals(outputs["P2"].shape, [None, 64, 64, 24])
+        self.assertEquals(outputs["P3"].shape, [None, 32, 32, 40])
+        self.assertEquals(outputs["P4"].shape, [None, 16, 16, 112])
+        self.assertEquals(outputs["P5"].shape, [None, 8, 8, 1280])
 
     def test_create_backbone_model_with_level_config(self):
         model = EfficientNetV1Backbone(
-            id_skip=True,
             stackwise_kernel_sizes=[3, 3, 5, 3, 5, 5, 3],
             stackwise_num_repeats=[1, 2, 2, 3, 3, 4, 1],
             stackwise_input_filters=[32, 16, 24, 40, 80, 112, 192],
@@ -182,15 +179,15 @@ class EfficientNetV1BackboneTest(tf.test.TestCase, parameterized.TestCase):
             depth_coefficient=1.0,
             include_rescaling=True,
         )
-        levels = [3, 4]
-        layer_names = [model.pyramid_level_inputs[level] for level in [3, 4]]
+        levels = ["P3", "P4"]
+        layer_names = [model.pyramid_level_inputs[level] for level in levels]
         backbone_model = get_feature_extractor(model, layer_names, levels)
         inputs = keras.Input(shape=[256, 256, 3])
         outputs = backbone_model(inputs)
         self.assertLen(outputs, 2)
-        self.assertEquals(list(outputs.keys()), [3, 4])
-        self.assertEquals(outputs[3].shape, [None, 32, 32, 40])
-        self.assertEquals(outputs[4].shape, [None, 16, 16, 112])
+        self.assertEquals(list(outputs.keys()), levels)
+        self.assertEquals(outputs["P3"].shape, [None, 32, 32, 40])
+        self.assertEquals(outputs["P4"].shape, [None, 16, 16, 112])
 
     @parameterized.named_parameters(
         ("one_channel", 1),
@@ -198,7 +195,6 @@ class EfficientNetV1BackboneTest(tf.test.TestCase, parameterized.TestCase):
     )
     def test_application_variable_input_channels(self, num_channels):
         model = EfficientNetV1Backbone(
-            id_skip=True,
             stackwise_kernel_sizes=[3, 3, 5, 3, 5, 5, 3],
             stackwise_num_repeats=[1, 2, 2, 3, 3, 4, 1],
             stackwise_input_filters=[32, 16, 24, 40, 80, 112, 192],

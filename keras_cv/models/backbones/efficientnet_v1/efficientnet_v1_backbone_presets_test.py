@@ -48,12 +48,12 @@ class EfficientNetV1PresetFullTest(tf.test.TestCase, parameterized.TestCase):
             include_rescaling=False,
             input_shape=[256, 256, 3],
         )
-        levels = [3, 4]
-        layer_names = [model.pyramid_level_inputs[level] for level in [3, 4]]
+        levels = ["P3", "P4"]
+        layer_names = [model.pyramid_level_inputs[level] for level in levels]
         backbone_model = get_feature_extractor(model, layer_names, levels)
         inputs = tf.keras.Input(shape=[256, 256, 3])
         outputs = backbone_model(inputs)
         self.assertLen(outputs, 2)
-        self.assertEquals(list(outputs.keys()), [3, 4])
-        self.assertEquals(outputs[3].shape[:3], [None, 32, 32])
-        self.assertEquals(outputs[4].shape[:3], [None, 16, 16])
+        self.assertEquals(list(outputs.keys()), levels)
+        self.assertEquals(outputs["P3"].shape[:3], [None, 32, 32])
+        self.assertEquals(outputs["P4"].shape[:3], [None, 16, 16])

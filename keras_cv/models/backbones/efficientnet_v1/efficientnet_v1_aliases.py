@@ -64,6 +64,12 @@ class EfficientNetV1B0Backbone(EfficientNetV1Backbone):
             ),
         }
 
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include
+        weights."""
+        return {}
+
 
 class EfficientNetV1B1Backbone(EfficientNetV1Backbone):
     def __new__(
@@ -91,6 +97,12 @@ class EfficientNetV1B1Backbone(EfficientNetV1Backbone):
                 backbone_presets["efficientnetv1_b1"]
             ),
         }
+
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include
+        weights."""
+        return {}
 
 
 class EfficientNetV1B2Backbone(EfficientNetV1Backbone):
@@ -120,6 +132,12 @@ class EfficientNetV1B2Backbone(EfficientNetV1Backbone):
             ),
         }
 
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include
+        weights."""
+        return {}
+
 
 class EfficientNetV1B3Backbone(EfficientNetV1Backbone):
     def __new__(
@@ -147,6 +165,12 @@ class EfficientNetV1B3Backbone(EfficientNetV1Backbone):
                 backbone_presets["efficientnetv1_b3"]
             ),
         }
+
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include
+        weights."""
+        return {}
 
 
 class EfficientNetV1B4Backbone(EfficientNetV1Backbone):
@@ -176,6 +200,12 @@ class EfficientNetV1B4Backbone(EfficientNetV1Backbone):
             ),
         }
 
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include
+        weights."""
+        return {}
+
 
 class EfficientNetV1B5Backbone(EfficientNetV1Backbone):
     def __new__(
@@ -203,6 +233,12 @@ class EfficientNetV1B5Backbone(EfficientNetV1Backbone):
                 backbone_presets["efficientnetv1_b5"]
             ),
         }
+
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include
+        weights."""
+        return {}
 
 
 class EfficientNetV1B6Backbone(EfficientNetV1Backbone):
@@ -232,6 +268,12 @@ class EfficientNetV1B6Backbone(EfficientNetV1Backbone):
             ),
         }
 
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include
+        weights."""
+        return {}
+
 
 class EfficientNetV1B7Backbone(EfficientNetV1Backbone):
     def __new__(
@@ -259,6 +301,12 @@ class EfficientNetV1B7Backbone(EfficientNetV1Backbone):
                 backbone_presets["efficientnetv1_b7"]
             ),
         }
+
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include
+        weights."""
+        return {}
 
 
 EfficientNetV1B0Backbone.__doc__ = ALIAS_BASE_DOCSTRING.format(
