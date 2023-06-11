@@ -93,7 +93,7 @@ class StableDiffusionBase:
         The encoding produced by this method should be used as the
         `encoded_text` parameter of `StableDiffusion.generate_image`. Encoding
         text separately from generating an image can be used to arbitrarily
-        modify the text encoding priot to image generation, e.g. for walking
+        modify the text encoding prior to image generation, e.g. for walking
         between two prompts.
 
         Args:
@@ -480,7 +480,7 @@ class StableDiffusionV2(StableDiffusionBase):
         print(
             "By using this model checkpoint, you acknowledge that its usage is "
             "subject to the terms of the CreativeML Open RAIL++-M license at "
-            "https://github.com/Stability-AI/stablediffusion/main/LICENSE-MODEL"
+            "https://github.com/Stability-AI/stablediffusion/blob/main/LICENSE-MODEL"  # noqa: E501
         )
 
     @property

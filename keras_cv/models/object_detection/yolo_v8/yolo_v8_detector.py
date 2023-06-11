@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import copy
+import warnings
 
 import tensorflow as tf
 from keras import layers
@@ -19,6 +20,7 @@ from tensorflow import keras
 
 import keras_cv
 from keras_cv import bounding_box
+from keras_cv.losses.ciou_loss import CIoULoss
 from keras_cv.models.backbones.backbone_presets import backbone_presets
 from keras_cv.models.backbones.backbone_presets import (
     backbone_presets_with_weights,
@@ -27,9 +29,6 @@ from keras_cv.models.object_detection import predict_utils
 from keras_cv.models.object_detection.__internal__ import unpack_input
 from keras_cv.models.object_detection.yolo_v8.yolo_v8_detector_presets import (
     yolo_v8_detector_presets,
-)
-from keras_cv.models.object_detection.yolo_v8.yolo_v8_iou_loss import (
-    YOLOV8IoULoss,
 )
 from keras_cv.models.object_detection.yolo_v8.yolo_v8_label_encoder import (
     YOLOV8LabelEncoder,
@@ -58,12 +57,12 @@ def get_anchors(
     matches ground truth boxes to anchors based on center points.
 
     Args:
-        image_shape: tuple or list of two integers representing the heigh and
+        image_shape: tuple or list of two integers representing the height and
             width of input images, respectively.
         strides: tuple of list of integers, the size of the strides across the
             image size that should be used to create anchors.
         base_anchors: tuple or list of two integers representing the offset from
-            (0,0) to start creating the center of anchor boxes, releative to the
+            (0,0) to start creating the center of anchor boxes, relative to the
             stride. For example, using the default (0.5, 0.5) creates the first
             anchor box for each stride such that its center is half of a stride
             from the edge of the image.
@@ -184,10 +183,10 @@ def apply_path_aggregation_fpn(features, depth=3, name="fpn"):
     return [p3p4p5, p3p4p5_d1, p3p4p5_d2]
 
 
-def apply_yolov8_head(
+def apply_yolo_v8_head(
     inputs,
     num_classes,
-    name="yolov8_head",
+    name="yolo_v8_head",
 ):
     """Applies a YOLOV8 head.
 
@@ -323,6 +322,9 @@ class YOLOV8Detector(Task):
     """Implements the YOLOV8 architecture for object detection.
 
     Args:
+        backbone: `keras.Model`, must implement the `pyramid_level_inputs`
+            property with keys "P2", "P3", and "P4" and layer names as values.
+            A sensible backbone to use is the `keras_cv.models.YOLOV8Backbone`.
         num_classes: integer, the number of classes in your dataset excluding the
             background class. Classes should be represented by integers in the
             range [0, num_classes).
@@ -330,12 +332,10 @@ class YOLOV8Detector(Task):
             Refer
             [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
             for more details on supported bounding box formats.
-        backbone: `keras.Model`, must implement the `pyramid_level_inputs`
-            property with keys 2, 3, and 4 and layer names as values. A
-            sensible backbone to use is the `keras_cv.models.YOLOV8Backbone`.
         fpn_depth: integer, a specification of the depth of the CSP blocks in
             the Feature Pyramid Network. This is usually 1, 2, or 3, depending
-            on the size of your YOLOV8Detector model.
+            on the size of your YOLOV8Detector model. We recommend using 3 for
+            "yolo_v8_l_backbone" and "yolo_v8_xl_backbone". Defaults to 2.
         label_encoder: (Optional)  A `YOLOV8LabelEncoder` that is
             responsible for transforming input boxes into trainable labels for
             YOLOV8Detector. If not provided, a default is provided.
@@ -363,7 +363,7 @@ class YOLOV8Detector(Task):
         num_classes=20,
         bounding_box_format="xywh",
         backbone=keras_cv.models.YOLOV8Backbone.from_preset(
-            "yolov8_m_coco"
+            "yolo_v8_m_coco"
         ),
         fpn_depth=2.
     )
@@ -377,7 +377,7 @@ class YOLOV8Detector(Task):
     # Train model
     model.compile(
         classification_loss='binary_crossentropy',
-        box_loss='iou',
+        box_loss='ciou',
         optimizer=tf.optimizers.SGD(global_clipnorm=10.0),
         jit_compile=False,
     )
@@ -387,15 +387,15 @@ class YOLOV8Detector(Task):
 
     def __init__(
         self,
+        backbone,
         num_classes,
         bounding_box_format,
-        backbone,
-        fpn_depth,
+        fpn_depth=2,
         label_encoder=None,
         prediction_decoder=None,
         **kwargs,
     ):
-        extractor_levels = [3, 4, 5]
+        extractor_levels = ["P3", "P4", "P5"]
         extractor_layer_names = [
             backbone.pyramid_level_inputs[i] for i in extractor_levels
         ]
@@ -410,7 +410,7 @@ class YOLOV8Detector(Task):
             features, depth=fpn_depth, name="pa_fpn"
         )
 
-        outputs = apply_yolov8_head(
+        outputs = apply_yolo_v8_head(
             fpn_features,
             num_classes,
         )
@@ -425,7 +425,7 @@ class YOLOV8Detector(Task):
         super().__init__(inputs=images, outputs=outputs, **kwargs)
 
         self.bounding_box_format = bounding_box_format
-        self.prediction_decoder = (
+        self._prediction_decoder = (
             prediction_decoder
             or keras_cv.layers.MultiClassNonMaxSuppression(
                 bounding_box_format=bounding_box_format,
@@ -458,7 +458,7 @@ class YOLOV8Detector(Task):
 
         Args:
             box_loss: a Keras loss to use for box offset regression. A
-                preconfigured loss is provided when the string "iou" is passed.
+                preconfigured loss is provided when the string "ciou" is passed.
             classification_loss: a Keras loss to use for box classification. A
                 preconfigured loss is provided when the string
                 "binary_crossentropy" is passed.
@@ -473,12 +473,18 @@ class YOLOV8Detector(Task):
             raise ValueError("User metrics not yet supported for YOLOV8")
 
         if isinstance(box_loss, str):
-            if box_loss == "iou":
-                box_loss = YOLOV8IoULoss(reduction="sum")
+            if box_loss == "ciou":
+                box_loss = CIoULoss(bounding_box_format="xyxy", reduction="sum")
+            elif box_loss == "iou":
+                warnings.warn(
+                    "YOLOV8 recommends using CIoU loss, but was configured to "
+                    "use standard IoU. Consider using `box_loss='ciou'` "
+                    "instead."
+                )
             else:
                 raise ValueError(
                     f"Invalid box loss for YOLOV8Detector: {box_loss}. Box "
-                    "loss should be a keras.Loss or the string 'iou'."
+                    "loss should be a keras.Loss or the string 'ciou'."
                 )
         if isinstance(classification_loss, str):
             if classification_loss == "binary_crossentropy":
@@ -606,6 +612,26 @@ class YOLOV8Detector(Task):
     def make_predict_function(self, force=False):
         return predict_utils.make_predict_function(self, force=force)
 
+    @property
+    def prediction_decoder(self):
+        return self._prediction_decoder
+
+    @prediction_decoder.setter
+    def prediction_decoder(self, prediction_decoder):
+        if prediction_decoder.bounding_box_format != self.bounding_box_format:
+            raise ValueError(
+                "Expected `prediction_decoder` and YOLOV8Detector to "
+                "use the same `bounding_box_format`, but got "
+                "`prediction_decoder.bounding_box_format="
+                f"{prediction_decoder.bounding_box_format}`, and "
+                "`self.bounding_box_format="
+                f"{self.bounding_box_format}`."
+            )
+        self._prediction_decoder = prediction_decoder
+        self.make_predict_function(force=True)
+        self.make_train_function(force=True)
+        self.make_test_function(force=True)
+
     def get_config(self):
         return {
             "num_classes": self.num_classes,
@@ -613,7 +639,7 @@ class YOLOV8Detector(Task):
             "fpn_depth": self.fpn_depth,
             "backbone": keras.utils.serialize_keras_object(self.backbone),
             "label_encoder": self.label_encoder,
-            "prediction_decoder": self.prediction_decoder,
+            "prediction_decoder": self._prediction_decoder,
         }
 
     @classproperty

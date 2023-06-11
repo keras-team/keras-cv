@@ -146,7 +146,7 @@ def _symlink_genrule_for_dir(
         dest_dir: directory to create symlink in.
         genrule_name: genrule name.
         src_files: list of source files instead of src_dir.
-        dest_files: list of corresonding destination files.
+        dest_files: list of corresponding destination files.
         tf_pip_dir_rename_pair: list of the pair of tf pip parent directory to
           replace. For example, in TF pip package, the source code is under
           "tensorflow_core", and we might want to replace it with

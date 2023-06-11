@@ -94,8 +94,8 @@ class RetinaNet(Task):
             [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
             for more details on supported bounding box formats.
         backbone: `keras.Model`. Must implement the `pyramid_level_inputs`
-            property with keys 3, 4, and 5 and layer names as values. A somewhat
-            sensible backbone to use in many cases is the:
+            property with keys "P3", "P4", and "P5" and layer names as values.
+            A somewhat sensible backbone to use in many cases is the:
             `keras_cv.models.ResNetBackbone.from_preset("resnet50_imagenet")`
         anchor_generator: (Optional) a `keras_cv.layers.AnchorGenerator`. If
             provided, the anchor generator will be passed to both the
@@ -139,31 +139,30 @@ class RetinaNet(Task):
         box_head=None,
         **kwargs,
     ):
-        if anchor_generator is not None and (
-            prediction_decoder or label_encoder
-        ):
+        if anchor_generator is not None and label_encoder is not None:
             raise ValueError(
                 "`anchor_generator` is only to be provided when "
-                "both `label_encoder` and `prediction_decoder` are both "
-                f"`None`. Received `anchor_generator={anchor_generator}` "
-                f"`label_encoder={label_encoder}`, "
-                f"`prediction_decoder={prediction_decoder}`. To customize the "
-                "behavior of the anchor_generator inside of a custom "
-                "`label_encoder` or custom `prediction_decoder` you should "
+                "`label_encoder` is `None`. Received `anchor_generator="
+                f"{anchor_generator}`, label_encoder={label_encoder}`. To "
+                "customize the behavior of the anchor_generator inside of a "
+                "custom `label_encoder` you should provide both to `RetinaNet`"
                 "provide both to `RetinaNet`, and ensure that the "
                 "`anchor_generator` provided to both is identical"
             )
-        anchor_generator = (
-            anchor_generator
-            or RetinaNet.default_anchor_generator(bounding_box_format)
-        )
-        label_encoder = label_encoder or RetinaNetLabelEncoder(
-            bounding_box_format=bounding_box_format,
-            anchor_generator=anchor_generator,
-            box_variance=BOX_VARIANCE,
-        )
 
-        extractor_levels = [3, 4, 5]
+        if label_encoder is None:
+            anchor_generator = (
+                anchor_generator
+                or RetinaNet.default_anchor_generator(bounding_box_format)
+            )
+
+            label_encoder = RetinaNetLabelEncoder(
+                bounding_box_format=bounding_box_format,
+                anchor_generator=anchor_generator,
+                box_variance=BOX_VARIANCE,
+            )
+
+        extractor_levels = ["P3", "P4", "P5"]
         extractor_layer_names = [
             backbone.pyramid_level_inputs[i] for i in extractor_levels
         ]
@@ -192,7 +191,9 @@ class RetinaNet(Task):
         batch_size = tf.shape(images)[0]
         cls_pred = []
         box_pred = []
-        for feature in features:
+        pyramid_levels = ["P3", "P4", "P5", "P6", "P7"]
+        for pyramid_level in pyramid_levels:
+            feature = features[pyramid_level]
             box_pred.append(tf.reshape(box_head(feature), [batch_size, -1, 4]))
             cls_pred.append(
                 tf.reshape(
@@ -217,7 +218,7 @@ class RetinaNet(Task):
             **kwargs,
         )
         self.label_encoder = label_encoder
-        self.anchor_generator = anchor_generator
+        self.anchor_generator = label_encoder.anchor_generator
         self.bounding_box_format = bounding_box_format
         self.num_classes = num_classes
         self.backbone = backbone
@@ -434,6 +435,16 @@ class RetinaNet(Task):
             "box": box_weights,
             "classification": cls_weights,
         }
+        zero_weight = {
+            "box": tf.zeros_like(box_weights),
+            "classification": tf.zeros_like(cls_weights),
+        }
+
+        sample_weights = tf.cond(
+            normalizer == 0,
+            lambda: zero_weight,
+            lambda: sample_weights,
+        )
         return super().compute_loss(
             x=x, y=y_true, y_pred=y_pred, sample_weight=sample_weights
         )
@@ -522,9 +533,23 @@ class RetinaNet(Task):
             "backbone": keras.utils.serialize_keras_object(self.backbone),
             "label_encoder": self.label_encoder,
             "prediction_decoder": self._prediction_decoder,
-            "classification_head": self.classification_head,
-            "box_head": self.box_head,
+            "classification_head": keras.utils.serialize_keras_object(
+                self.classification_head
+            ),
+            "box_head": keras.utils.serialize_keras_object(self.box_head),
         }
+
+    @classmethod
+    def from_config(cls, config):
+        if "box_head" in config and isinstance(config["box_head"], dict):
+            config["box_head"] = keras.layers.deserialize(config["box_head"])
+        if "classification_head" in config and isinstance(
+            config["classification_head"], dict
+        ):
+            config["classification_head"] = keras.layers.deserialize(
+                config["classification_head"]
+            )
+        return super().from_config(config)
 
     @classproperty
     def presets(cls):

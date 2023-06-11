@@ -14,6 +14,7 @@
 
 import os
 
+import pytest
 import tensorflow as tf
 from absl.testing import parameterized
 from tensorflow import keras
@@ -50,6 +51,7 @@ class CSPDarkNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
         ("tf_format", "tf", "model"),
         ("keras_format", "keras_v3", "model.keras"),
     )
+    @pytest.mark.large  # Saving is slow, so mark these large.
     def test_saved_model(self, save_format, filename):
         model = csp_darknet_backbone.CSPDarkNetBackbone(
             stackwise_channels=[48, 96, 192, 384],
@@ -74,6 +76,7 @@ class CSPDarkNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
         ("tf_format", "tf", "model"),
         ("keras_format", "keras_v3", "model.keras"),
     )
+    @pytest.mark.large  # Saving is slow, so mark these large.
     def test_saved_alias_model(self, save_format, filename):
         model = csp_darknet_backbone.CSPDarkNetLBackbone()
         model_output = model(self.input_batch)
@@ -102,13 +105,14 @@ class CSPDarkNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
         )
         inputs = keras.Input(shape=[224, 224, 3])
         outputs = backbone_model(inputs)
-        # CSPDarkNet backbone has 4 level of features (2 ~ 5)
+        # CSPDarkNet backbone has 4 level of features (P2 ~ P5)
+        levels = ["P2", "P3", "P4", "P5"]
         self.assertLen(outputs, 4)
-        self.assertEquals(list(outputs.keys()), [2, 3, 4, 5])
-        self.assertEquals(outputs[2].shape, [None, 56, 56, 128])
-        self.assertEquals(outputs[3].shape, [None, 28, 28, 256])
-        self.assertEquals(outputs[4].shape, [None, 14, 14, 512])
-        self.assertEquals(outputs[5].shape, [None, 7, 7, 1024])
+        self.assertEquals(list(outputs.keys()), levels)
+        self.assertEquals(outputs["P2"].shape, [None, 56, 56, 128])
+        self.assertEquals(outputs["P3"].shape, [None, 28, 28, 256])
+        self.assertEquals(outputs["P4"].shape, [None, 14, 14, 512])
+        self.assertEquals(outputs["P5"].shape, [None, 7, 7, 1024])
 
     def test_create_backbone_model_with_level_config(self):
         model = csp_darknet_backbone.CSPDarkNetBackbone(
@@ -116,15 +120,15 @@ class CSPDarkNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
             stackwise_depth=[1, 3, 3, 1],
             include_rescaling=True,
         )
-        levels = [3, 4]
-        layer_names = [model.pyramid_level_inputs[level] for level in [3, 4]]
+        levels = ["P3", "P4"]
+        layer_names = [model.pyramid_level_inputs[level] for level in levels]
         backbone_model = get_feature_extractor(model, layer_names, levels)
         inputs = keras.Input(shape=[256, 256, 3])
         outputs = backbone_model(inputs)
         self.assertLen(outputs, 2)
-        self.assertEquals(list(outputs.keys()), [3, 4])
-        self.assertEquals(outputs[3].shape, [None, 32, 32, 96])
-        self.assertEquals(outputs[4].shape, [None, 16, 16, 192])
+        self.assertEquals(list(outputs.keys()), levels)
+        self.assertEquals(outputs["P3"].shape, [None, 32, 32, 96])
+        self.assertEquals(outputs["P4"].shape, [None, 16, 16, 192])
 
     @parameterized.named_parameters(
         ("Tiny", csp_darknet_backbone.CSPDarkNetTinyBackbone),
@@ -136,6 +140,18 @@ class CSPDarkNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
     def test_specific_arch_forward_pass(self, arch_class):
         backbone = arch_class()
         backbone(tf.random.uniform(shape=[2, 256, 256, 3]))
+
+    @parameterized.named_parameters(
+        ("Tiny", csp_darknet_backbone.CSPDarkNetTinyBackbone),
+        ("S", csp_darknet_backbone.CSPDarkNetSBackbone),
+        ("M", csp_darknet_backbone.CSPDarkNetMBackbone),
+        ("L", csp_darknet_backbone.CSPDarkNetLBackbone),
+        ("XL", csp_darknet_backbone.CSPDarkNetXLBackbone),
+    )
+    def test_specific_arch_presets(self, arch_class):
+        self.assertDictEqual(
+            arch_class.presets, arch_class.presets_with_weights
+        )
 
 
 if __name__ == "__main__":

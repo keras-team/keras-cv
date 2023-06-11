@@ -35,7 +35,7 @@ class FrustumRandomPointFeatureNoise(
     of a frustum then generate a frustum based on r_distance, theta_width, and
     phi_width. Uniformly sampled features noise from [1-max_noise_level,
     1+max_noise_level] will be multiplied to points inside the selected frustum.
-    Here, we perturbe point features other than (x, y, z, class). The
+    Here, we perturb point features other than (x, y, z, class). The
     point_clouds tensor shape must be specific and cannot be dynamic. During
     inference time, the output will be identical to input. Call the layer with
     `training=True` to add noise to the input points.

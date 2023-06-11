@@ -14,7 +14,7 @@
 """MobileNetV3 model preset configurations."""
 
 backbone_presets_no_weights = {
-    "mobilenetv3small": {
+    "mobilenet_v3_small": {
         "metadata": {
             "description": (
                 "MobileNetV3 model with 14 layers where the batch "
@@ -75,7 +75,7 @@ backbone_presets_no_weights = {
             "alpha": 1.0,
         },
     },
-    "mobilenetv3large": {
+    "mobilenet_v3_large": {
         "metadata": {
             "description": (
                 "MobileNetV3 model with 28 layers where the batch "
@@ -182,7 +182,25 @@ backbone_presets_no_weights = {
     },
 }
 
-backbone_presets_with_weights = {}
+backbone_presets_with_weights = {
+    "mobilenet_v3_large_imagenet": {
+        "metadata": {
+            "description": (
+                "MobileNetV3 model with 28 layers where the batch "
+                "normalization and hard-swish activation are applied after the "
+                "convolution layers. "
+                "Pre-trained on the ImageNet 2012 classification task."
+            ),
+            "params": 2_994_518,
+            "official_name": "MobileNetV3",
+            "path": "mobilenetv3",
+        },
+        "class_name": "keras_cv.models>MobileNetV3Backbone",
+        "config": backbone_presets_no_weights["mobilenet_v3_large"]["config"],
+        "weights_url": "https://storage.googleapis.com/keras-cv/models/mobilenetv3/mobilenetv3_large_imagenet_backbone.h5",  # noqa: E501
+        "weights_hash": "ec55ea2f4f4ee9a2ddf3ee8e2dd784e9d5732690c1fc5afc7e1b2a66703f3337",  # noqa: E501
+    },
+}
 
 backbone_presets = {
     **backbone_presets_no_weights,

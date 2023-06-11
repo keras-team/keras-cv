@@ -10,6 +10,8 @@ KerasCV is a library of modular computer vision oriented Keras components.
 These components include models, layers, metrics, losses, callbacks, and utility
 functions.
 
+<img style="width: 440px; max-width: 90%;" src="https://storage.googleapis.com/keras-cv/guides/keras-cv-augmentations.gif">
+
 KerasCV's primary goal is to provide a coherent, elegant, and pleasant API to train state of the art computer vision models.
 Users should be able to train state of the art models using only `Keras`, `KerasCV`, and TensorFlow core (i.e. `tf.data`) components.
 
@@ -116,7 +118,7 @@ process for how to contribute to this repository:
 
 1) Contributors are always welcome to help us fix an issue, add tests, better documentation. 
 2) If contributors would like to create a backbone, we usually require a pre-trained weight set
-with the model for one dataset as the first PR, and a training script as a follow-up. The training script will preferrably help us reproduce the results claimed from paper. The backbone should be generic but the training script can contain paper specific parameters such as learning rate schedules and weight decays. The training script will be used to produce leaderboard results. 
+with the model for one dataset as the first PR, and a training script as a follow-up. The training script will preferably help us reproduce the results claimed from paper. The backbone should be generic but the training script can contain paper specific parameters such as learning rate schedules and weight decays. The training script will be used to produce leaderboard results. 
 Exceptions apply to large transformer-based models which are difficult to train. If this is the case,
 contributors should let us know so the team can help in training the model or providing GCP resources.
 3) If contributors would like to create a meta arch, please try to be aligned with our roadmap and create a PR for design review to make sure the meta arch is modular.

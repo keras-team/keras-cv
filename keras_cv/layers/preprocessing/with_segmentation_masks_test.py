@@ -82,6 +82,7 @@ TEST_CONFIGURATIONS = [
         {"factor": 0.5, "value_range": (0, 255)},
     ),
     ("Solarization", preprocessing.Solarization, {"value_range": (0, 255)}),
+    ("Resizing", preprocessing.Resizing, {"height": 512, "width": 512}),
 ]
 
 

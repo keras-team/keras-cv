@@ -83,7 +83,7 @@ class WaymoEvaluationCallback(Callback):
         gt, preds = self._eval_dataset(self.val_data)
         self.evaluator.update_state(gt, preds)
 
-        metrics = self.evaluator.evaluate()
+        metrics = self.evaluator.result()
 
         metrics_dict = {
             "average_precision_vehicle_l1": metrics.average_precision[0],

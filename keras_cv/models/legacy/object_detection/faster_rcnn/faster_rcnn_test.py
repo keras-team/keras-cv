@@ -12,15 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-
 import pytest
 import tensorflow as tf
 from absl.testing import parameterized
 from tensorflow import keras
 from tensorflow.keras import optimizers
 
-import keras_cv
 from keras_cv.models import ResNet50V2Backbone
 from keras_cv.models.legacy.object_detection.faster_rcnn.faster_rcnn import (
     FasterRCNN,
@@ -79,14 +76,9 @@ class FasterRCNNTest(tf.test.TestCase, parameterized.TestCase):
                 )
             )
 
-    @pytest.mark.skipif(
-        "INTEGRATION" not in os.environ or os.environ["INTEGRATION"] != "true",
-        reason="Takes a long time to run, only runs when INTEGRATION "
-        "environment variable is set. To run the test please run: \n"
-        "`INTEGRATION=true pytest keras_cv/",
-    )
+    @pytest.mark.large  # Fit is slow, so mark these large.
     def test_faster_rcnn_with_dictionary_input_format(self):
-        faster_rcnn = keras_cv.models.FasterRCNN(
+        faster_rcnn = FasterRCNN(
             num_classes=20,
             bounding_box_format="xywh",
             backbone=ResNet50V2Backbone(),

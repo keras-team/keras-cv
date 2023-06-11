@@ -90,6 +90,11 @@ CONSISTENT_OUTPUT_TEST_CONFIGURATIONS = [
         {"height_factor": 0.2, "width_factor": 0.5},
     ),
     ("Solarization", layers.Solarization, {"value_range": (0, 255)}),
+    (
+        "RandomBrightness",
+        layers.RandomBrightness,
+        {"factor": (1, 1), "value_range": (0, 1)},
+    ),
 ]
 
 DENSE_OUTPUT_TEST_CONFIGURATIONS = [
@@ -113,16 +118,6 @@ DENSE_OUTPUT_TEST_CONFIGURATIONS = [
         {
             "target_size": (224, 224),
             "crop_area_factor": (0.8, 1.0),
-            "aspect_ratio_factor": (3 / 4, 4 / 3),
-        },
-    ),
-    (
-        "RandomlyZoomedCrop",
-        layers.RandomlyZoomedCrop,
-        {
-            "height": 224,
-            "width": 224,
-            "zoom_factor": (0.8, 1.0),
             "aspect_ratio_factor": (3 / 4, 4 / 3),
         },
     ),

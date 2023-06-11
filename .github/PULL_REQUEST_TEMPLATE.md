@@ -30,7 +30,7 @@ Anyone in the community is free to review the PR once the tests have passed. Fee
 members/contributors who may be interested in your PR.
 
 <!-- 
-Feel free to tag @LukeWood and @tanzhenyu in your reviews.
+Feel free to tag @ianstenbit and @jbischof in your reviews.
 -->
 
 <!--

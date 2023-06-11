@@ -15,7 +15,7 @@
 from keras_cv.models.object_detection.yolo_v8 import yolo_v8_backbone_presets
 
 yolo_v8_detector_presets = {
-    "yolov8_m_pascalvoc": {
+    "yolo_v8_m_pascalvoc": {
         "metadata": {
             "description": (
                 "YOLOV8-M pretrained on PascalVOC 2012 object detection task, "
@@ -24,16 +24,16 @@ yolo_v8_detector_presets = {
             ),
             "params": 25901004,
             "official_name": "YOLOV8Detector",
-            "path": "yolov8_detector",
+            "path": "yolo_v8_detector",
         },
         "config": {
             "backbone": yolo_v8_backbone_presets.backbone_presets[
-                "yolov8_m_backbone"
+                "yolo_v8_m_backbone"
             ],
             "num_classes": 20,
             "fpn_depth": 2,
         },
-        "weights_url": "https://storage.googleapis.com/keras-cv/models/yolov8/pascal_voc/yolov8_m.h5",  # noqa: E501
-        "weights_hash": "e641690aec205a3ca1ea730ea362ddc36c8b4a5abcebb6a23b18cbc9c091316d",  # noqa: E501
+        "weights_url": "https://storage.googleapis.com/keras-cv/models/yolov8/pascal_voc/yolov8_m_v1.h5",  # noqa: E501
+        "weights_hash": "2891fbd66f71e0b9da0cb02ef3afbccb819e1b8f18204157f643f4ec058a71a8",  # noqa: E501
     },
 }

@@ -14,6 +14,7 @@
 
 import os
 
+import pytest
 import tensorflow as tf
 from absl.testing import parameterized
 from tensorflow import keras
@@ -85,6 +86,7 @@ class EfficientNetV2BackboneTest(tf.test.TestCase, parameterized.TestCase):
         ("tf_format", "tf", "model"),
         ("keras_format", "keras_v3", "model.keras"),
     )
+    @pytest.mark.large  # Saving is slow, so mark these large.
     def test_saved_model(self, save_format, filename):
         model = EfficientNetV2Backbone(
             stackwise_kernel_sizes=[3, 3, 3, 3, 3, 3],
@@ -122,6 +124,7 @@ class EfficientNetV2BackboneTest(tf.test.TestCase, parameterized.TestCase):
         ("tf_format", "tf", "model"),
         ("keras_format", "keras_v3", "model.keras"),
     )
+    @pytest.mark.large  # Saving is slow, so mark these large.
     def test_saved_alias_model(self, save_format, filename):
         model = EfficientNetV2SBackbone()
         model_output = model(self.input_batch)
@@ -148,13 +151,14 @@ class EfficientNetV2BackboneTest(tf.test.TestCase, parameterized.TestCase):
         )
         inputs = keras.Input(shape=[256, 256, 3])
         outputs = backbone_model(inputs)
-        # EfficientNetV2S backbone has 4 level of features (1 ~ 5)
+        # EfficientNetV2S backbone has 4 level of features (P1 ~ P5)
+        levels = ["P1", "P2", "P3", "P4", "P5"]
         self.assertLen(outputs, 5)
-        self.assertEquals(list(outputs.keys()), [1, 2, 3, 4, 5])
-        self.assertEquals(outputs[2].shape, [None, 64, 64, 48])
-        self.assertEquals(outputs[3].shape, [None, 32, 32, 64])
-        self.assertEquals(outputs[4].shape, [None, 16, 16, 160])
-        self.assertEquals(outputs[5].shape, [None, 8, 8, 1280])
+        self.assertEquals(list(outputs.keys()), levels)
+        self.assertEquals(outputs["P2"].shape, [None, 64, 64, 48])
+        self.assertEquals(outputs["P3"].shape, [None, 32, 32, 64])
+        self.assertEquals(outputs["P4"].shape, [None, 16, 16, 160])
+        self.assertEquals(outputs["P5"].shape, [None, 8, 8, 1280])
 
     def test_create_backbone_model_with_level_config(self):
         model = EfficientNetV2Backbone(
@@ -177,15 +181,15 @@ class EfficientNetV2BackboneTest(tf.test.TestCase, parameterized.TestCase):
             depth_coefficient=1.0,
             include_rescaling=True,
         )
-        levels = [3, 4]
-        layer_names = [model.pyramid_level_inputs[level] for level in [3, 4]]
+        levels = ["P3", "P4"]
+        layer_names = [model.pyramid_level_inputs[level] for level in levels]
         backbone_model = get_feature_extractor(model, layer_names, levels)
         inputs = keras.Input(shape=[256, 256, 3])
         outputs = backbone_model(inputs)
         self.assertLen(outputs, 2)
-        self.assertEquals(list(outputs.keys()), [3, 4])
-        self.assertEquals(outputs[3].shape, [None, 32, 32, 64])
-        self.assertEquals(outputs[4].shape, [None, 16, 16, 160])
+        self.assertEquals(list(outputs.keys()), levels)
+        self.assertEquals(outputs["P3"].shape, [None, 32, 32, 64])
+        self.assertEquals(outputs["P4"].shape, [None, 16, 16, 160])
 
     @parameterized.named_parameters(
         ("one_channel", 1),

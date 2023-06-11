@@ -27,14 +27,13 @@ local unittest = base.BaseTest {
       bazel-5.4.0 build keras_cv/custom_ops:all --verbose_failures
       cp bazel-bin/keras_cv/custom_ops/*.so keras_cv/custom_ops/
       export TEST_CUSTOM_OPS=true
-      export INTEGRATION=true
 
       # Run whatever is in `command` here.
       ${@:0}
     |||
   ],
   command: [
-    'pytest --ignore keras_cv/models/legacy/',
+    'pytest --run_large --durations 0',
     'keras_cv',
   ],
 };
