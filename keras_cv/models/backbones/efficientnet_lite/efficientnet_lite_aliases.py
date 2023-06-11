@@ -13,7 +13,7 @@
 # limitations under the License.
 import copy
 
-from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_backbone import (
+from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_backbone import (  # noqa: E501
     EfficientNetLiteBackbone,
 )
 from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_backbone_presets import (  # noqa: E501
@@ -53,7 +53,9 @@ class EfficientNetLiteB0Backbone(EfficientNetLiteBackbone):
                 "input_tensor": input_tensor,
             }
         )
-        return EfficientNetLiteBackbone.from_preset("efficientnetlite_b0", **kwargs)
+        return EfficientNetLiteBackbone.from_preset(
+            "efficientnetlite_b0", **kwargs
+        )
 
     @classproperty
     def presets(cls):
@@ -87,7 +89,9 @@ class EfficientNetLiteB1Backbone(EfficientNetLiteBackbone):
                 "input_tensor": input_tensor,
             }
         )
-        return EfficientNetLiteBackbone.from_preset("efficientnetv1_b1", **kwargs)
+        return EfficientNetLiteBackbone.from_preset(
+            "efficientnetv1_b1", **kwargs
+        )
 
     @classproperty
     def presets(cls):
@@ -121,7 +125,9 @@ class EfficientNetLiteB2Backbone(EfficientNetLiteBackbone):
                 "input_tensor": input_tensor,
             }
         )
-        return EfficientNetLiteBackbone.from_preset("efficientnetlite_b2", **kwargs)
+        return EfficientNetLiteBackbone.from_preset(
+            "efficientnetlite_b2", **kwargs
+        )
 
     @classproperty
     def presets(cls):
@@ -155,7 +161,9 @@ class EfficientNetLiteB3Backbone(EfficientNetLiteBackbone):
                 "input_tensor": input_tensor,
             }
         )
-        return EfficientNetLiteBackbone.from_preset("efficientnetlite_b3", **kwargs)
+        return EfficientNetLiteBackbone.from_preset(
+            "efficientnetlite_b3", **kwargs
+        )
 
     @classproperty
     def presets(cls):
@@ -189,7 +197,9 @@ class EfficientNetLiteB4Backbone(EfficientNetLiteBackbone):
                 "input_tensor": input_tensor,
             }
         )
-        return EfficientNetLiteBackbone.from_preset("efficientnetlite_b4", **kwargs)
+        return EfficientNetLiteBackbone.from_preset(
+            "efficientnetlite_b4", **kwargs
+        )
 
     @classproperty
     def presets(cls):
@@ -205,7 +215,8 @@ class EfficientNetLiteB4Backbone(EfficientNetLiteBackbone):
         """Dictionary of preset names and configurations that include
         weights."""
         return {}
-    
+
+
 EfficientNetLiteB0Backbone.__doc__ = ALIAS_BASE_DOCSTRING.format(
     name="EfficientNetLiteB0"
 )

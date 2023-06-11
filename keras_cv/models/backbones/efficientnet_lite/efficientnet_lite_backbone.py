@@ -24,16 +24,17 @@ Reference:
 import copy
 import math
 
-import tensorflow as tf
 from keras import backend
 from keras import layers
 from tensorflow import keras
 
+from keras_cv.models.backbones.backbone import Backbone
+from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_backbone_presets import (  # noqa: E501
+    backbone_presets,
+)
 from keras_cv.models.legacy import utils
 from keras_cv.models.utils import correct_pad_downsample
 from keras_cv.utils.python_utils import classproperty
-from keras_cv.models.backbones.backbone import Backbone
-from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_backbone_presets import backbone_presets
 
 
 @keras.utils.register_keras_serializable(package="keras_cv.models")
@@ -83,7 +84,6 @@ class EfficientNetLiteBackbone(Backbone):
         stackwise_strides,
         **kwargs,
     ):
-
         img_input = utils.parse_model_inputs(input_shape, input_tensor)
 
         # Build stem
@@ -198,7 +198,7 @@ class EfficientNetLiteBackbone(Backbone):
         self.stackwise_output_filters = stackwise_output_filters
         self.stackwise_expansion_ratios = stackwise_expansion_ratios
         self.stackwise_strides = stackwise_strides
-       
+
     def get_config(self):
         config = super().get_config()
         config.update(
@@ -227,12 +227,14 @@ class EfficientNetLiteBackbone(Backbone):
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return copy.deepcopy(backbone_presets)
-    
+
+
 def conv_kernel_initializer(scale=2.0):
     return keras.initializers.VarianceScaling(
         scale=scale, mode="fan_out", distribution="truncated_normal"
     )
-    
+
+
 def round_filters(filters, depth_divisor, width_coefficient):
     """Round number of filters based on depth multiplier."""
     filters *= width_coefficient
@@ -295,7 +297,6 @@ def apply_efficient_net_lite_block(
     )(inputs)
     x = layers.BatchNormalization(axis=3, name=name + "expand_bn")(x)
     x = layers.Activation(activation, name=name + "expand_activation")(x)
-   
 
     # Depthwise Convolution
     if strides == 2:

@@ -13,24 +13,6 @@
 # limitations under the License.
 
 from keras_cv.models import legacy
-from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_backbone import (
-    EfficientNetLiteBackbone,
-)
-from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_aliases import (
-    EfficientNetLiteB0Backbone
-)
-from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_aliases import (
-    EfficientNetLiteB1Backbone
-)
-from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_aliases import (
-    EfficientNetLiteB2Backbone
-)
-from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_aliases import (
-    EfficientNetLiteB3Backbone
-)
-from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_aliases import (
-    EfficientNetLiteB4Backbone
-)
 from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
     CSPDarkNetBackbone,
 )
@@ -60,6 +42,24 @@ from keras_cv.models.backbones.densenet.densenet_aliases import (
 )
 from keras_cv.models.backbones.densenet.densenet_backbone import (
     DenseNetBackbone,
+)
+from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_aliases import (  # noqa: E501
+    EfficientNetLiteB0Backbone,
+)
+from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_aliases import (  # noqa: E501
+    EfficientNetLiteB1Backbone,
+)
+from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_aliases import (  # noqa: E501
+    EfficientNetLiteB2Backbone,
+)
+from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_aliases import (  # noqa: E501
+    EfficientNetLiteB3Backbone,
+)
+from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_aliases import (  # noqa: E501
+    EfficientNetLiteB4Backbone,
+)
+from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_backbone import (  # noqa: E501
+    EfficientNetLiteBackbone,
 )
 from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_aliases import (
     EfficientNetV2B0Backbone,
