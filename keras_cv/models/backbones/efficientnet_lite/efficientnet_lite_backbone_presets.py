@@ -22,7 +22,7 @@ backbone_presets_no_weights = {
                 "convolutional blocks. This B-style model has "
                 "`width_coefficient=1.0` and `depth_coefficient=1.0`."
             ),
-            "params": 4050716,
+            "params": 3414176,
             "official_name": "EfficientNetLite",
             "path": "EfficientNetLite",
         },
@@ -52,7 +52,7 @@ backbone_presets_no_weights = {
                 "convolutional blocks. This B-style model has "
                 "`width_coefficient=1.0` and `depth_coefficient=1.1`."
             ),
-            "params": 6576704,
+            "params": 4190496,
             "official_name": "EfficientNetLite",
             "path": "EfficientNetLite",
         },
@@ -82,7 +82,7 @@ backbone_presets_no_weights = {
                 "convolutional blocks. This B-style model has "
                 "`width_coefficient=1.1` and `depth_coefficient=1.2`."
             ),
-            "params": 7770034,
+            "params": 4870320,
             "official_name": "EfficientNetLite",
             "path": "EfficientNetLite",
         },
@@ -112,7 +112,7 @@ backbone_presets_no_weights = {
                 "convolutional blocks. This B-style model has "
                 "`width_coefficient=1.2` and `depth_coefficient=1.4`."
             ),
-            "params": 10785960,
+            "params": 6994504,
             "official_name": "EfficientNetLite",
             "path": "EfficientNetLite",
         },
@@ -142,7 +142,7 @@ backbone_presets_no_weights = {
                 "convolutional blocks. This B-style model has "
                 "`width_coefficient=1.4` and `depth_coefficient=1.8`."
             ),
-            "params": 17676984,
+            "params": 11840256,
             "official_name": "EfficientNetLite",
             "path": "EfficientNetLite",
         },
