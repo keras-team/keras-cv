@@ -31,119 +31,207 @@ from tensorflow import keras
 
 from keras_cv.models.legacy import utils
 from keras_cv.models.utils import correct_pad_downsample
+from keras_cv.utils.python_utils import classproperty
+from keras_cv.models.backbones.backbone import Backbone
+from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_backbone_presets import backbone_presets
 
-DEFAULT_BLOCKS_ARGS = [
-    {
-        "kernel_size": 3,
-        "repeats": 1,
-        "filters_in": 32,
-        "filters_out": 16,
-        "expand_ratio": 1,
-        "id_skip": True,
-        "strides": 1,
-    },
-    {
-        "kernel_size": 3,
-        "repeats": 2,
-        "filters_in": 16,
-        "filters_out": 24,
-        "expand_ratio": 6,
-        "id_skip": True,
-        "strides": 2,
-    },
-    {
-        "kernel_size": 5,
-        "repeats": 2,
-        "filters_in": 24,
-        "filters_out": 40,
-        "expand_ratio": 6,
-        "id_skip": True,
-        "strides": 2,
-    },
-    {
-        "kernel_size": 3,
-        "repeats": 3,
-        "filters_in": 40,
-        "filters_out": 80,
-        "expand_ratio": 6,
-        "id_skip": True,
-        "strides": 2,
-    },
-    {
-        "kernel_size": 5,
-        "repeats": 3,
-        "filters_in": 80,
-        "filters_out": 112,
-        "expand_ratio": 6,
-        "id_skip": True,
-        "strides": 1,
-    },
-    {
-        "kernel_size": 5,
-        "repeats": 4,
-        "filters_in": 112,
-        "filters_out": 192,
-        "expand_ratio": 6,
-        "id_skip": True,
-        "strides": 2,
-    },
-    {
-        "kernel_size": 3,
-        "repeats": 1,
-        "filters_in": 192,
-        "filters_out": 320,
-        "expand_ratio": 6,
-        "id_skip": True,
-        "strides": 1,
-    },
-]
-CONV_KERNEL_INITIALIZER = {
-    "class_name": "VarianceScaling",
-    "config": {
-        "scale": 2.0,
-        "mode": "fan_out",
-        "distribution": "truncated_normal",
-    },
-}
 
-DENSE_KERNEL_INITIALIZER = {
-    "class_name": "VarianceScaling",
-    "config": {
-        "scale": 1.0 / 3.0,
-        "mode": "fan_out",
-        "distribution": "uniform",
-    },
-}
-
-BASE_DOCSTRING = """Instantiates the {name} architecture.
+@keras.utils.register_keras_serializable(package="keras_cv.models")
+class EfficientNetLiteBackbone(Backbone):
+    """Instantiates the EfficientNetLite architecture using given scaling
+    coefficients.
 
     Reference:
     - [EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks](https://arxiv.org/abs/1905.11946)
         (ICML 2019)
-
-    This function returns a Keras {name} model.
-
-    For image classification use cases, see [this page for detailed examples](https://keras.io/api/applications/#usage-examples-for-image-classification-models).
-
-    For transfer learning use cases, make sure to read the
-    [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
+    - [Based on the original EfficientNet Lite's](https://github.com/tensorflow/tpu/tree/master/models/official/efficientnet/lite)
 
     Args:
-        include_rescaling: bool, whether to rescale the inputs. If set
-            to `True`, inputs will be passed through a `Rescaling(1/255.0)`
-            layer.
-        input_shape: optional shape tuple, defaults to (None, None, 3).
+        include_rescaling: whether to rescale the inputs. If set to True,
+            inputs will be passed through a `Rescaling(1/255.0)` layer.
+        width_coefficient: float, scaling coefficient for network width.
+        depth_coefficient: float, scaling coefficient for network depth.
+        dropout_rate: float, dropout rate before final classifier layer.
+        drop_connect_rate: float, dropout rate at skip connections.
+        depth_divisor: integer, a unit of network width.
+        activation: activation function.
+        blocks_args: list of dicts, parameters to construct block modules.
+        model_name: string, model name.
+        input_shape: optional shape tuple,
+            It should have exactly 3 inputs channels.
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
             to use as image input for the model.
-        name: (Optional) name to pass to the model, defaults to "{name}".
+    """  # noqa: E501
 
-    Returns:
-        A `keras.Model` instance.
-"""  # noqa: E501
+    def __init__(
+        self,
+        include_rescaling,
+        width_coefficient,
+        depth_coefficient,
+        dropout_rate=0.2,
+        drop_connect_rate=0.2,
+        depth_divisor=8,
+        activation="relu6",
+        input_shape=(None, None, 3),
+        input_tensor=None,
+        stackwise_kernel_sizes,
+        stackwise_num_repeats,
+        stackwise_input_filters,
+        stackwise_output_filters,
+        stackwise_expansion_ratios,
+        stackwise_strides,
+        **kwargs,
+    ):
 
-BN_AXIS = 3
+        img_input = utils.parse_model_inputs(input_shape, input_tensor)
 
+        # Build stem
+        x = img_input
 
+        if include_rescaling:
+            # Use common rescaling strategy across keras_cv
+            x = layers.Rescaling(1.0 / 255.0)(x)
+
+        x = layers.ZeroPadding2D(
+            padding=correct_pad_downsample(x, 3), name="stem_conv_pad"
+        )(x)
+        x = layers.Conv2D(
+            32,
+            3,
+            strides=2,
+            padding="valid",
+            use_bias=False,
+            kernel_initializer=conv_kernel_initializer(),
+            name="stem_conv",
+        )(x)
+        x = layers.BatchNormalization(axis=3, name="stem_bn")(x)
+        x = layers.Activation(activation, name="stem_activation")(x)
+
+        # Build blocks
+        block_id = 0
+        blocks = float(sum(stackwise_num_repeats))
+
+        pyramid_level_inputs = []
+
+        for i in range(len(stackwise_kernel_sizes)):
+            num_repeats = stackwise_num_repeats[i]
+            input_filters = stackwise_input_filters[i]
+            output_filters = stackwise_output_filters[i]
+            # Update block input and output filters based on depth multiplier.
+            input_filters = round_filters(
+                filters=input_filters,
+                width_coefficient=width_coefficient,
+                depth_divisor=depth_divisor,
+            )
+            output_filters = round_filters(
+                filters=output_filters,
+                width_coefficient=width_coefficient,
+                depth_divisor=depth_divisor,
+            )
+
+            if i == 0 or i == 6:
+                repeats = num_repeats
+            else:
+                repeats = round_repeats(
+                    repeats=num_repeats,
+                    depth_coefficient=depth_coefficient,
+                )
+            strides = stackwise_strides[i]
+
+            for j in range(repeats):
+                # The first block needs to take care of stride and filter size
+                # increase.
+                if j > 0:
+                    strides = 1
+                    input_filters = output_filters
+
+                if strides != 1:
+                    pyramid_level_inputs.append(x.node.layer.name)
+
+                # 97 is the start of the lowercase alphabet.
+                letter_identifier = chr(j + 97)
+                x = apply_efficient_net_lite_block(
+                    inputs=x,
+                    filters_in=input_filters,
+                    filters_out=output_filters,
+                    kernel_size=stackwise_kernel_sizes[i],
+                    strides=strides,
+                    expand_ratio=stackwise_expansion_ratios[i],
+                    activation=activation,
+                    drop_rate=drop_connect_rate * block_id / blocks,
+                    name="block{}{}_".format(i + 1, letter_identifier),
+                )
+                block_id += 1
+
+        # Build top
+        x = layers.Conv2D(
+            1280,
+            1,
+            padding="same",
+            use_bias=False,
+            kernel_initializer=conv_kernel_initializer(),
+            name="top_conv",
+        )(x)
+        x = layers.BatchNormalization(axis=3, name="top_bn")(x)
+        x = layers.Activation(activation, name="top_activation")(x)
+
+        pyramid_level_inputs.append(x.node.layer.name)
+
+        # Create model.
+        super().__init__(inputs=img_input, outputs=x, **kwargs)
+
+        self.include_rescaling = include_rescaling
+        self.width_coefficient = width_coefficient
+        self.depth_coefficient = depth_coefficient
+        self.dropout_rate = dropout_rate
+        self.drop_connect_rate = drop_connect_rate
+        self.depth_divisor = depth_divisor
+        self.activation = activation
+        self.input_tensor = input_tensor
+        self.pyramid_level_inputs = {
+            f"P{i + 1}": name for i, name in enumerate(pyramid_level_inputs)
+        }
+        self.stackwise_kernel_sizes = stackwise_kernel_sizes
+        self.stackwise_num_repeats = stackwise_num_repeats
+        self.stackwise_input_filters = stackwise_input_filters
+        self.stackwise_output_filters = stackwise_output_filters
+        self.stackwise_expansion_ratios = stackwise_expansion_ratios
+        self.stackwise_strides = stackwise_strides
+       
+    def get_config(self):
+        config = super().get_config()
+        config.update(
+            {
+                "include_rescaling": self.include_rescaling,
+                "width_coefficient": self.width_coefficient,
+                "depth_coefficient": self.depth_coefficient,
+                "dropout_rate": self.dropout_rate,
+                "drop_connect_rate": self.drop_connect_rate,
+                "depth_divisor": self.depth_divisor,
+                "activation": self.activation,
+                "input_tensor": self.input_tensor,
+                "input_shape": self.input_shape[1:],
+                "trainable": self.trainable,
+                "stackwise_kernel_sizes": self.stackwise_kernel_sizes,
+                "stackwise_num_repeats": self.stackwise_num_repeats,
+                "stackwise_input_filters": self.stackwise_input_filters,
+                "stackwise_output_filters": self.stackwise_output_filters,
+                "stackwise_expansion_ratios": self.stackwise_expansion_ratios,
+                "stackwise_strides": self.stackwise_strides,
+            }
+        )
+        return config
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return copy.deepcopy(backbone_presets)
+    
+def conv_kernel_initializer(scale=2.0):
+    return keras.initializers.VarianceScaling(
+        scale=scale, mode="fan_out", distribution="truncated_normal"
+    )
+    
 def round_filters(filters, depth_divisor, width_coefficient):
     """Round number of filters based on depth multiplier."""
     filters *= width_coefficient
@@ -172,7 +260,6 @@ def apply_efficient_net_lite_block(
     kernel_size=3,
     strides=1,
     expand_ratio=1,
-    id_skip=True,
 ):
     """An inverted residual block, without SE phase.
 
@@ -196,19 +283,18 @@ def apply_efficient_net_lite_block(
 
     # Expansion phase
     filters = filters_in * expand_ratio
-    if expand_ratio != 1:
-        x = layers.Conv2D(
-            filters,
-            1,
-            padding="same",
-            use_bias=False,
-            kernel_initializer=CONV_KERNEL_INITIALIZER,
-            name=name + "expand_conv",
-        )(inputs)
-        x = layers.BatchNormalization(axis=BN_AXIS, name=name + "expand_bn")(x)
-        x = layers.Activation(activation, name=name + "expand_activation")(x)
-    else:
-        x = inputs
+    x = inputs
+    x = layers.Conv2D(
+        filters,
+        1,
+        padding="same",
+        use_bias=False,
+        kernel_initializer=conv_kernel_initializer(),
+        name=name + "expand_conv",
+    )(inputs)
+    x = layers.BatchNormalization(axis=3, name=name + "expand_bn")(x)
+    x = layers.Activation(activation, name=name + "expand_activation")(x)
+   
 
     # Depthwise Convolution
     if strides == 2:
@@ -224,10 +310,10 @@ def apply_efficient_net_lite_block(
         strides=strides,
         padding=conv_pad,
         use_bias=False,
-        depthwise_initializer=CONV_KERNEL_INITIALIZER,
+        depthwise_initializer=conv_kernel_initializer(),
         name=name + "dwconv",
     )(x)
-    x = layers.BatchNormalization(axis=BN_AXIS, name=name + "bn")(x)
+    x = layers.BatchNormalization(axis=3, name=name + "bn")(x)
     x = layers.Activation(activation, name=name + "activation")(x)
 
     # Skip SE block
@@ -237,290 +323,14 @@ def apply_efficient_net_lite_block(
         1,
         padding="same",
         use_bias=False,
-        kernel_initializer=CONV_KERNEL_INITIALIZER,
+        kernel_initializer=conv_kernel_initializer(),
         name=name + "project_conv",
     )(x)
-    x = layers.BatchNormalization(axis=BN_AXIS, name=name + "project_bn")(x)
-    if id_skip and strides == 1 and filters_in == filters_out:
+    x = layers.BatchNormalization(axis=3, name=name + "project_bn")(x)
+    if strides == 1 and filters_in == filters_out:
         if drop_rate > 0:
             x = layers.Dropout(
                 drop_rate, noise_shape=(None, 1, 1, 1), name=name + "drop"
             )(x)
         x = layers.add([x, inputs], name=name + "add")
     return x
-
-
-@keras.utils.register_keras_serializable(package="keras_cv.models")
-class EfficientNetLite(keras.Model):
-    """Instantiates the EfficientNetLite architecture using given scaling
-    coefficients.
-
-    Args:
-        include_rescaling: whether to rescale the inputs. If set to True,
-            inputs will be passed through a `Rescaling(1/255.0)` layer.
-        width_coefficient: float, scaling coefficient for network width.
-        depth_coefficient: float, scaling coefficient for network depth.
-        default_size: integer, default input image size.
-        dropout_rate: float, dropout rate before final classifier layer.
-        drop_connect_rate: float, dropout rate at skip connections.
-        depth_divisor: integer, a unit of network width.
-        activation: activation function.
-        blocks_args: list of dicts, parameters to construct block modules.
-        model_name: string, model name.
-        input_shape: optional shape tuple,
-            It should have exactly 3 inputs channels.
-        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
-            to use as image input for the model.
-    """
-
-    def __init__(
-        self,
-        include_rescaling,
-        width_coefficient,
-        depth_coefficient,
-        default_size,
-        dropout_rate=0.2,
-        drop_connect_rate=0.2,
-        depth_divisor=8,
-        activation="relu6",
-        blocks_args=None,
-        input_shape=(None, None, 3),
-        input_tensor=None,
-        **kwargs,
-    ):
-        if blocks_args is None:
-            blocks_args = DEFAULT_BLOCKS_ARGS
-        if not isinstance(blocks_args, list):
-            raise ValueError(
-                "The `blocks_args` argument should be either `None` or valid"
-                "list of dicts for building blocks. "
-                f"Received: blocks_args={blocks_args}"
-            )
-        intact_blocks_args = copy.deepcopy(blocks_args)  # for configs
-        blocks_args = copy.deepcopy(blocks_args)
-
-      
-
-        img_input = utils.parse_model_inputs(input_shape, input_tensor)
-
-        # Build stem
-        x = img_input
-
-        if include_rescaling:
-            # Use common rescaling strategy across keras_cv
-            x = layers.Rescaling(1.0 / 255.0)(x)
-
-        x = layers.ZeroPadding2D(
-            padding=correct_pad_downsample(x, 3), name="stem_conv_pad"
-        )(x)
-        x = layers.Conv2D(
-            32,
-            3,
-            strides=2,
-            padding="valid",
-            use_bias=False,
-            kernel_initializer=CONV_KERNEL_INITIALIZER,
-            name="stem_conv",
-        )(x)
-        x = layers.BatchNormalization(axis=BN_AXIS, name="stem_bn")(x)
-        x = layers.Activation(activation, name="stem_activation")(x)
-
-        # Build blocks
-        b = 0
-        blocks = float(sum(args["repeats"] for args in blocks_args))
-
-        for i, args in enumerate(blocks_args):
-            assert args["repeats"] > 0
-            # Update block input and output filters based on depth multiplier.
-            args["filters_in"] = round_filters(
-                filters=args["filters_in"],
-                width_coefficient=width_coefficient,
-                depth_divisor=depth_divisor,
-            )
-            args["filters_out"] = round_filters(
-                filters=args["filters_out"],
-                width_coefficient=width_coefficient,
-                depth_divisor=depth_divisor,
-            )
-
-            if i == 0 or i == (len(blocks_args) - 1):
-                repeats = args.pop("repeats")
-            else:
-                repeats = round_repeats(
-                    repeats=args.pop("repeats"),
-                    depth_coefficient=depth_coefficient,
-                )
-
-            for j in range(repeats):
-                # The first block needs to take care of stride and filter size
-                # increase.
-                if j > 0:
-                    args["strides"] = 1
-                    args["filters_in"] = args["filters_out"]
-                x = apply_efficient_net_lite_block(
-                    x,
-                    activation=activation,
-                    drop_rate=drop_connect_rate * b / blocks,
-                    name="block{}{}_".format(i + 1, chr(j + 97)),
-                    **args,
-                )
-
-                b += 1
-
-        # Build top
-        x = layers.Conv2D(
-            1280,
-            1,
-            padding="same",
-            use_bias=False,
-            kernel_initializer=CONV_KERNEL_INITIALIZER,
-            name="top_conv",
-        )(x)
-        x = layers.BatchNormalization(axis=BN_AXIS, name="top_bn")(x)
-        x = layers.Activation(activation, name="top_activation")(x)
-
-        inputs = img_input
-
-        # Create model.
-        super().__init__(inputs=inputs, outputs=x, **kwargs)
-
-
-        self.include_rescaling = include_rescaling
-        self.width_coefficient = width_coefficient
-        self.depth_coefficient = depth_coefficient
-        self.default_size = default_size
-        self.dropout_rate = dropout_rate
-        self.drop_connect_rate = drop_connect_rate
-        self.depth_divisor = depth_divisor
-        self.activation = activation
-        self.blocks_args = intact_blocks_args
-        self.input_tensor = input_tensor
-
-    def get_config(self):
-        return {
-            "include_rescaling": self.include_rescaling,
-            "width_coefficient": self.width_coefficient,
-            "depth_coefficient": self.depth_coefficient,
-            "default_size": self.default_size,
-            "dropout_rate": self.dropout_rate,
-            "drop_connect_rate": self.drop_connect_rate,
-            "depth_divisor": self.depth_divisor,
-            "activation": self.activation,
-            "blocks_args": self.blocks_args,
-            # Remove batch dimension from `input_shape`
-            "input_shape": self.input_shape[1:],
-            "input_tensor": self.input_tensor,
-            "name": self.name,
-            "trainable": self.trainable,
-        }
-
-    @classmethod
-    def from_config(cls, config):
-        return cls(**config)
-
-
-def EfficientNetLiteB0(
-    *,
-    include_rescaling,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    **kwargs,
-):
-    return EfficientNetLite(
-        include_rescaling,
-        width_coefficient=1.0,
-        depth_coefficient=1.0,
-        default_size=224,
-        dropout_rate=0.2,
-        name="efficientnetliteb0",
-        input_shape=input_shape,
-        input_tensor=input_tensor,
-        **kwargs,
-    )
-
-
-def EfficientNetLiteB1(
-    *,
-    include_rescaling,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    **kwargs,
-):
-    return EfficientNetLite(
-        include_rescaling,
-        width_coefficient=1.0,
-        depth_coefficient=1.1,
-        default_size=240,
-        dropout_rate=0.2,
-        name="efficientnetliteb1",
-        input_shape=input_shape,
-        input_tensor=input_tensor,
-        **kwargs,
-    )
-
-
-def EfficientNetLiteB2(
-    *,
-    include_rescaling,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    **kwargs,
-):
-    return EfficientNetLite(
-        include_rescaling,
-        width_coefficient=1.1,
-        depth_coefficient=1.2,
-        default_size=260,
-        dropout_rate=0.3,
-        name="efficientnetliteb2",
-        input_shape=input_shape,
-        input_tensor=input_tensor,
-        **kwargs,
-    )
-
-
-def EfficientNetLiteB3(
-    *,
-    include_rescaling,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    **kwargs,
-):
-    return EfficientNetLite(
-        include_rescaling,
-        width_coefficient=1.2,
-        depth_coefficient=1.4,
-        default_size=280,
-        dropout_rate=0.3,
-        name="efficientnetliteb3",
-        input_shape=input_shape,
-        input_tensor=input_tensor,
-        **kwargs,
-    )
-
-
-def EfficientNetLiteB4(
-    *,
-    include_rescaling,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    **kwargs,
-):
-    return EfficientNetLite(
-        include_rescaling,
-        width_coefficient=1.4,
-        depth_coefficient=1.8,
-        default_size=300,
-        dropout_rate=0.3,
-        name="efficientnetliteb4",
-        input_shape=input_shape,
-        input_tensor=input_tensor,
-        **kwargs,
-    )
-
-
-EfficientNetLiteB0.__doc__ = BASE_DOCSTRING.format(name="EfficientNetLiteB0")
-EfficientNetLiteB1.__doc__ = BASE_DOCSTRING.format(name="EfficientNetLiteB1")
-EfficientNetLiteB2.__doc__ = BASE_DOCSTRING.format(name="EfficientNetLiteB2")
-EfficientNetLiteB3.__doc__ = BASE_DOCSTRING.format(name="EfficientNetLiteB3")
-EfficientNetLiteB4.__doc__ = BASE_DOCSTRING.format(name="EfficientNetLiteB4")
