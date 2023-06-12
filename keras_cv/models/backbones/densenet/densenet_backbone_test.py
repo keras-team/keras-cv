@@ -106,7 +106,7 @@ class DenseNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
         self.assertEquals(list(outputs.keys()), levels)
         self.assertEquals(
             outputs["P2"].shape,
-            [None, input_size // 2**1, input_size // 2**1, 256],
+            [None, input_size // 2**2, input_size // 2**2, 256],
         )
         self.assertEquals(
             outputs["P3"].shape,
