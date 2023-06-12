@@ -36,6 +36,19 @@ def reshape_masks(segmentation_masks):
             )
 
 
+def transform_segmentation_masks(segmentation_masks, num_classes, value_range):
+    segmentation_masks = utils.to_numpy(segmentation_masks)
+    segmentation_masks = reshape_masks(segmentation_masks=segmentation_masks)
+
+    # Interpolate the segmentation masks from the range of (0, num_classes)
+    # to the value range provided.
+    segmentation_masks = np.interp(
+        segmentation_masks, (0, num_classes), value_range
+    )
+
+    return segmentation_masks
+
+
 def plot_segmentation_mask_gallery(
     images,
     value_range,
@@ -95,28 +108,27 @@ def plot_segmentation_mask_gallery(
 
     plotted_images = utils.to_numpy(images)
 
-    plotted_y_true = utils.to_numpy(y_true)
-    plotted_y_true = reshape_masks(segmentation_masks=plotted_y_true)
+    # Initialize a list to collect the segmentation masks that will be
+    # concatenated to the images for visualization.
+    masks_to_contatenate = [plotted_images]
 
-    # Interpolate the segmentation masks from the range of (0, num_classes)
-    # to the value range provided.
-    plotted_y_true = np.interp(plotted_y_true, (0, num_classes), value_range)
-
+    if y_true is not None:
+        plotted_y_true = transform_segmentation_masks(
+            segmentation_masks=y_true,
+            num_classes=num_classes,
+            value_range=value_range,
+        )
+        masks_to_contatenate.append(plotted_y_true)
     if y_pred is not None:
-        plotted_y_pred = utils.to_numpy(y_pred)
-        plotted_y_pred = reshape_masks(segmentation_masks=plotted_y_pred)
-        plotted_y_pred = np.interp(
-            plotted_y_pred, (0, num_classes), value_range
+        plotted_y_pred = transform_segmentation_masks(
+            segmentation_masks=y_pred,
+            num_classes=num_classes,
+            value_range=value_range,
         )
+        masks_to_contatenate.append(plotted_y_pred)
 
-        # Concatenate the images and the segmentation masks into a single image.
-        plotted_images = np.concatenate(
-            [plotted_images, plotted_y_true, plotted_y_pred], axis=2
-        )
-    else:
-        plotted_images = np.concatenate(
-            [plotted_images, plotted_y_true], axis=2
-        )
+    # Concatenate the images and the masks together.
+    plotted_images = np.concatenate(masks_to_contatenate, axis=2)
 
     plot_image_gallery(
         plotted_images, value_range, rows=rows, cols=cols, **kwargs
