@@ -62,8 +62,8 @@ class Task(keras.Model):
     @classproperty
     def presets_with_weights(cls):
         """Dictionary of preset names and configs that include weights."""
-        return {}    
-    
+        return {}
+
     @classproperty
     def presets_without_weights(cls):
         """Dictionary of preset names and configs that don't include weights."""
