@@ -16,7 +16,7 @@ References:
     - [Designing Network Design Spaces](https://arxiv.org/abs/2003.13678)
     (CVPR 2020)
     - [Based on the Original keras.applications RegNet](https://github.com/keras-team/keras/blob/master/keras/applications/regnet.py)
-"""
+"""  # noqa: E501
 
 import copy
 
@@ -60,7 +60,7 @@ BASE_DOCSTRING = """This class represents the {name} architecture.
         to use as image input for the model.
     input_shape: Optional shape tuple, defaults to (None, None, 3).
         It should have exactly 3 inputs channels.
-"""
+"""  # noqa: E501
 
 
 def apply_conv2d_bn(
@@ -472,7 +472,7 @@ class RegNetBackBone(Backbone):
             to use as image input for the model.
         input_shape: Optional shape tuple, defaults to (None, None, 3).
             It should have exactly 3 inputs channels.
-    """
+    """  # noqa: E501
 
     def __init__(
         self,
