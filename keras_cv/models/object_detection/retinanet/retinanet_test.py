@@ -21,6 +21,9 @@ from tensorflow import keras
 from tensorflow.keras import optimizers
 
 import keras_cv
+from keras_cv.models.backbones.test_backbone_presets import (
+    test_backbone_presets,
+)
 from keras_cv.models.object_detection.__test_utils__ import (
     _create_bounding_box_dataset,
 )
@@ -252,10 +255,7 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
 @pytest.mark.large
 class RetinaNetSmokeTest(tf.test.TestCase, parameterized.TestCase):
     @parameterized.named_parameters(
-        *[
-            (preset, preset)
-            for preset in keras_cv.models.RetinaNet.presets_without_weights
-        ]
+        *[(preset, preset) for preset in test_backbone_presets]
     )
     def test_backbone_preset(self, preset):
         model = keras_cv.models.RetinaNet.from_preset(
