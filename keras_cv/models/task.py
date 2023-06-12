@@ -61,12 +61,14 @@ class Task(keras.Model):
 
     @classproperty
     def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include weights."""
+        """Dictionary of preset names and configurations that include
+        weights."""
         return {}
 
     @classproperty
     def backbone_presets(cls):
-        """Dictionary of preset names and configurations for compatible backbones."""
+        """Dictionary of preset names and configurations for compatible
+        backbones."""
         return {}
 
     @classmethod
@@ -76,7 +78,8 @@ class Task(keras.Model):
         load_weights=None,
         **kwargs,
     ):
-        """Instantiate {{model_name}} model from preset architecture and weights.
+        """Instantiate {{model_name}} model from preset architecture and
+        weights.
 
         Args:
             preset: string. Must be one of "{{preset_names}}".
@@ -135,8 +138,12 @@ class Task(keras.Model):
         if preset not in cls.presets_with_weights or load_weights is False:
             return model
 
+        local_weights_path = "model.h5"
+        if metadata["weights_url"].endswith(".weights.h5"):
+            local_weights_path = "model.weights.h5"
+
         weights = keras.utils.get_file(
-            "model.h5",
+            local_weights_path,
             metadata["weights_url"],
             cache_subdir=os.path.join("models", preset),
             file_hash=metadata["weights_hash"],
@@ -145,12 +152,26 @@ class Task(keras.Model):
         model.load_weights(weights)
         return model
 
+    @property
+    def layers(self):
+        # Some of our task models don't use the Backbone directly, but create
+        # a feature extractor from it. In these cases, we don't want to count
+        # the `backbone` as a layer, because it will be included in the model
+        # summary and saves weights despite not being part of the model graph.
+        layers = super().layers
+        if hasattr(self, "_backbone") and self.backbone in layers:
+            # We know that the backbone is not part of the graph if it has no
+            # inbound nodes.
+            if len(self.backbone._inbound_nodes) == 0:
+                layers.remove(self.backbone)
+        return layers
+
     def __init_subclass__(cls, **kwargs):
-        # Use __init_subclass__ to setup a correct docstring for from_preset.
+        # Use __init_subclass__ to set up a correct docstring for from_preset.
         super().__init_subclass__(**kwargs)
 
         # If the subclass does not define from_preset, assign a wrapper so that
-        # each class can have an distinct docstring.
+        # each class can have a distinct docstring.
         if "from_preset" not in cls.__dict__:
 
             def from_preset(calling_cls, *args, **kwargs):

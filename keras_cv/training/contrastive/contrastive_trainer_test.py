@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
@@ -20,10 +21,13 @@ from tensorflow.keras import optimizers
 
 from keras_cv.layers import preprocessing
 from keras_cv.losses import SimCLRLoss
-from keras_cv.models import DenseNet121
+from keras_cv.models import DenseNet121Backbone
 from keras_cv.training import ContrastiveTrainer
 
 
+# TODO(jbischof): revisit "extra_large" tag once development resumes.
+# These tests are currently some of the slowest in our repo.
+@pytest.mark.extra_large
 class ContrastiveTrainerTest(tf.test.TestCase):
     def test_probe_requires_probe_optimizer(self):
         trainer = ContrastiveTrainer(
@@ -129,7 +133,7 @@ class ContrastiveTrainerTest(tf.test.TestCase):
         with self.assertRaises(ValueError):
             _ = ContrastiveTrainer(
                 # A DenseNet without pooling does not have a flat output
-                encoder=DenseNet121(include_rescaling=False, include_top=False),
+                encoder=DenseNet121Backbone(include_rescaling=False),
                 augmenter=self.build_augmenter(),
                 projector=self.build_projector(),
                 probe=None,
@@ -164,8 +168,11 @@ class ContrastiveTrainerTest(tf.test.TestCase):
         return preprocessing.RandomFlip("horizontal")
 
     def build_encoder(self):
-        return DenseNet121(
-            include_rescaling=False, include_top=False, pooling="avg"
+        return keras.Sequential(
+            [
+                DenseNet121Backbone(include_rescaling=False),
+                layers.GlobalAveragePooling2D(name="avg_pool"),
+            ],
         )
 
     def build_projector(self):

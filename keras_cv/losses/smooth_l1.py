@@ -20,13 +20,14 @@ from tensorflow import keras
 class SmoothL1Loss(keras.losses.Loss):
     """Implements Smooth L1 loss.
 
-    SmoothL1Loss implements the SmoothL1 function, where values less than `l1_cutoff`
-    contribute to the overall loss based on their squared difference, and values greater
-    than l1_cutoff contribute based on their raw difference.
+    SmoothL1Loss implements the SmoothL1 function, where values less than
+    `l1_cutoff` contribute to the overall loss based on their squared
+    difference, and values greater than l1_cutoff contribute based on their raw
+    difference.
 
     Args:
-        l1_cutoff: differences between y_true and y_pred that are larger than `l1_cutoff` are
-            treated as `L1` values
+        l1_cutoff: differences between y_true and y_pred that are larger than
+            `l1_cutoff` are treated as `L1` values
     """
 
     def __init__(self, l1_cutoff=1.0, **kwargs):

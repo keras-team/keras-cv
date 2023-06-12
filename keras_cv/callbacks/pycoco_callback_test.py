@@ -31,6 +31,7 @@ class PyCOCOCallbackTest(tf.test.TestCase):
         yield
         keras.backend.clear_session()
 
+    @pytest.mark.large  # Fit is slow, so mark these large.
     def test_model_fit_retinanet(self):
         model = keras_cv.models.RetinaNet(
             num_classes=10,
@@ -61,9 +62,9 @@ class PyCOCOCallbackTest(tf.test.TestCase):
         )
 
     @pytest.mark.skip(
-        reason="Causing OOMs on GitHub actions.  This is not a "
-        "user facing API and will be replaced in a matter of weeks, so we "
-        "shouldn't invest engineering resources into working around the OOMs here."
+        reason="Causing OOMs on GitHub actions. This is not a user facing API "
+        "and will be replaced in a matter of weeks, so we shouldn't "
+        "invest engineering resources into working around the OOMs here."
     )
     def test_model_fit_rcnn(self):
         model = keras_cv.models.FasterRCNN(

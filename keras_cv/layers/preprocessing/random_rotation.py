@@ -17,30 +17,26 @@ import tensorflow as tf
 from tensorflow import keras
 
 from keras_cv import bounding_box
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     VectorizedBaseImageAugmentationLayer,
 )
 from keras_cv.utils import preprocessing as preprocessing_utils
 
 # In order to support both unbatched and batched inputs, the horizontal
-# and verticle axis is reverse indexed
+# and vertical axis is reverse indexed
 H_AXIS = -3
 W_AXIS = -2
 
 
 @keras.utils.register_keras_serializable(package="keras_cv")
 class RandomRotation(VectorizedBaseImageAugmentationLayer):
-    """A preprocessing layer which randomly rotates images during training.
+    """A preprocessing layer which randomly rotates images.
 
     This layer will apply random rotations to each image, filling empty space
     according to `fill_mode`.
 
-    By default, random rotations are only applied during training.
-    At inference time, the layer does nothing. If you need to apply random
-    rotations at inference time, set `training` to True when calling the layer.
-
     Input pixel values can be of any range (e.g. `[0., 1.)` or `[0, 255]`) and
-    of interger or floating point dtype. By default, the layer will output
+    of integer or floating point dtype. By default, the layer will output
     floats.
 
     Input shape:
@@ -185,7 +181,7 @@ class RandomRotation(VectorizedBaseImageAugmentationLayer):
         # point_x : x coordinates of all corners of the bounding box
         point_xs = tf.gather(points, [0], axis=3)
         point_x_offsets = tf.cast((point_xs - origin_x), dtype=tf.float32)
-        # point_y : y cordinates of all corners of the bounding box
+        # point_y : y coordinates of all corners of the bounding box
         point_ys = tf.gather(points, [1], axis=3)
         point_y_offsets = tf.cast((point_ys - origin_y), dtype=tf.float32)
         # rotated bounding box coordinates
@@ -205,9 +201,9 @@ class RandomRotation(VectorizedBaseImageAugmentationLayer):
         out = tf.concat([new_x, new_y], axis=3)
         # find readjusted coordinates of bounding box to represent it in corners
         # format
-        min_cordinates = tf.math.reduce_min(out, axis=2)
-        max_cordinates = tf.math.reduce_max(out, axis=2)
-        boxes = tf.concat([min_cordinates, max_cordinates], axis=2)
+        min_coordinates = tf.math.reduce_min(out, axis=2)
+        max_coordinates = tf.math.reduce_max(out, axis=2)
+        boxes = tf.concat([min_coordinates, max_coordinates], axis=2)
 
         bounding_boxes = bounding_boxes.copy()
         bounding_boxes["boxes"] = boxes
@@ -216,7 +212,7 @@ class RandomRotation(VectorizedBaseImageAugmentationLayer):
             bounding_box_format="xyxy",
             images=raw_images,
         )
-        # cordinates cannot be float values, it is casted to int32
+        # coordinates cannot be float values, it is cast to int32
         bounding_boxes = bounding_box.convert_format(
             bounding_boxes,
             source="xyxy",
@@ -255,7 +251,7 @@ class RandomRotation(VectorizedBaseImageAugmentationLayer):
                 segmentation_masks, transformations
             )
             # Round because we are in one-hot encoding, and we may have
-            # pixels with ambugious value due to floating point math for
+            # pixels with ambiguous value due to floating point math for
             # rotation.
             return tf.round(rotated_mask)
 

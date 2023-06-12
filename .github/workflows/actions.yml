@@ -8,10 +8,7 @@ on:
 jobs:
   test:
     name: Test the code
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [windows-latest, ubuntu-latest]
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python 3.7
@@ -43,7 +40,7 @@ jobs:
       env:
         TEST_CUSTOM_OPS: true
       run: |
-        pytest keras_cv/ --ignore keras_cv/models
+        pytest keras_cv/ --ignore keras_cv/models/legacy/ --durations 0
   format:
     name: Check the code format
     runs-on: ubuntu-latest

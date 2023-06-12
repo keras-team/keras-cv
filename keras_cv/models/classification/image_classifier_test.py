@@ -21,7 +21,7 @@ import tensorflow as tf
 from absl.testing import parameterized
 from tensorflow import keras
 
-from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
+from keras_cv.models.backbones.resnet_v2.resnet_v2_aliases import (
     ResNet18V2Backbone,
 )
 from keras_cv.models.classification.image_classifier import ImageClassifier
@@ -44,6 +44,7 @@ class ImageClassifierTest(tf.test.TestCase, parameterized.TestCase):
     @parameterized.named_parameters(
         ("jit_compile_false", False), ("jit_compile_true", True)
     )
+    @pytest.mark.large  # Fit is slow, so mark these large.
     def test_classifier_fit(self, jit_compile):
         model = ImageClassifier(
             backbone=ResNet18V2Backbone(),
@@ -80,6 +81,7 @@ class ImageClassifierTest(tf.test.TestCase, parameterized.TestCase):
         ("tf_format", "tf", "model"),
         ("keras_format", "keras_v3", "model.keras"),
     )
+    @pytest.mark.large  # Saving is slow, so mark these large.
     def test_saved_model(self, save_format, filename):
         model = ImageClassifier(
             backbone=ResNet18V2Backbone(),
@@ -108,6 +110,28 @@ class ImageClassifierPresetSmokeTest(tf.test.TestCase, parameterized.TestCase):
 
     def setUp(self):
         self.input_batch = tf.ones(shape=(2, 224, 224, 3))
+
+    @parameterized.named_parameters(
+        (
+            "efficientnetv2_b0_imagenet_classifier",
+            "efficientnetv2_b0_imagenet_classifier",
+            [-0.278459, -0.278462, -0.159786, -0.277514, 0.537921],
+        )
+    )
+    def test_efficientnet_v2_preset(self, preset, expected):
+        model = ImageClassifier.from_preset(
+            preset,
+        )
+        model(self.input_batch)
+        # The forward pass from a preset should be stable!
+        # This test should catch cases where we unintentionally change our
+        # network code in a way that would invalidate our preset weights.
+        # We should only update these numbers if we are updating a weights
+        # file, or have found a discrepancy with the upstream source.
+        outputs = model.backbone(self.input_batch)
+        outputs = outputs[0, 0, 0, :5]
+        # Keep a high tolerance, so we are robust to different hardware.
+        self.assertAllClose(outputs, expected, atol=0.01, rtol=0.01)
 
     @parameterized.named_parameters(
         ("preset_with_weights", "resnet50_v2_imagenet"),

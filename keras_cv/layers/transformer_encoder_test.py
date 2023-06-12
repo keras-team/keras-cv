@@ -34,7 +34,8 @@ class TransformerEncoderTest(tf.test.TestCase):
         inputs = tf.random.normal([1, 197, 256])
         with self.assertRaisesRegexp(
             ValueError,
-            "The input and output dimensionality must be the same, but the TransformerEncoder was provided with 256 and 128",
+            "The input and output dimensionality must be the same, but the "
+            "TransformerEncoder was provided with 256 and 128",
         ):
             layer(inputs, training=True)
 
@@ -45,6 +46,7 @@ class TransformerEncoderTest(tf.test.TestCase):
         inputs = tf.random.normal([1, 197, 128])
         with self.assertRaisesRegexp(
             ValueError,
-            "The input and output dimensionality must be the same, but the TransformerEncoder was provided with 128 and 256",
+            "The input and output dimensionality must be the same, but the "
+            "TransformerEncoder was provided with 128 and 256",
         ):
             layer(inputs, training=True)

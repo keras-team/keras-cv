@@ -35,12 +35,13 @@ class AttentionBlock(keras.layers.Layer):
         q, k, v = self.q(x), self.k(x), self.v(x)
 
         # Compute attention
-        _, h, w, c = q.shape
+        shape = tf.shape(q)
+        h, w, c = shape[1], shape[2], shape[3]
         q = tf.reshape(q, (-1, h * w, c))  # b, hw, c
         k = tf.transpose(k, (0, 3, 1, 2))
         k = tf.reshape(k, (-1, c, h * w))  # b, c, hw
         y = q @ k
-        y = y * (c**-0.5)
+        y = y * 1 / tf.sqrt(tf.cast(c, self.compute_dtype))
         y = keras.activations.softmax(y)
 
         # Attend to values

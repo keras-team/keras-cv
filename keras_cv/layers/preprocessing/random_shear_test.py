@@ -161,7 +161,8 @@ class RandomShearTest(tf.test.TestCase):
         self.assertNotAllClose(xs, 2.0)
 
     def test_no_augmentation(self):
-        """test for no image and bbox augmenation when x_factor,y_factor is 0,0"""
+        """test for no image and bbox augmentation when x_factor,y_factor is
+        0,0"""
         xs = tf.cast(
             tf.stack(
                 [2 * tf.ones((4, 4, 3)), tf.ones((4, 4, 3))],

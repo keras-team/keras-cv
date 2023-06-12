@@ -31,16 +31,6 @@ TEST_CONFIGURATIONS = [
             "aspect_ratio_factor": (3 / 4, 4 / 3),
         },
     ),
-    (
-        "RandomlyZoomedCrop",
-        layers.RandomlyZoomedCrop,
-        {
-            "height": 224,
-            "width": 224,
-            "zoom_factor": (0.8, 1.0),
-            "aspect_ratio_factor": (3 / 4, 4 / 3),
-        },
-    ),
     ("Grayscale", layers.Grayscale, {}),
     ("GridMask", layers.GridMask, {}),
     (
@@ -59,6 +49,7 @@ TEST_CONFIGURATIONS = [
         layers.RandomCutout,
         {"height_factor": 0.2, "width_factor": 0.2},
     ),
+    ("RandomFlip", layers.RandomFlip, {"mode": "horizontal"}),
     (
         "RandomHue",
         layers.RandomHue,
@@ -160,9 +151,9 @@ class WithMixedPrecisionTest(tf.test.TestCase, parameterized.TestCase):
         if not tf.config.list_physical_devices("GPU"):
             if layer_cls in NO_CPU_FP16_KERNEL_LAYERS:
                 self.skipTest(
-                    "There is currently no float16 CPU kernel registered for operations"
-                    " `tf.image.adjust_saturation`, and `tf.image.adjust_hue`. "
-                    "Skipping."
+                    "There is currently no float16 CPU kernel registered for "
+                    "operations `tf.image.adjust_saturation`, and "
+                    "`tf.image.adjust_hue`. Skipping."
                 )
 
         keras.mixed_precision.set_global_policy("mixed_float16")

@@ -55,14 +55,14 @@ def transform_value_range(
 ):
     """transforms values in input tensor from original_range to target_range.
     This function is intended to be used in preprocessing layers that
-    rely upon color values.  This allows us to assume internally that
+    rely upon color values. This allows us to assume internally that
     the input tensor is always in the range [0, 255].
 
     Args:
-        images: the set of images to transform to the target range range.
+        images: the set of images to transform to the target range.
         original_range: the value range to transform from.
         target_range: the value range to transform to.
-        dtype: the dtype to compute the conversion with.  Defaults to tf.float32.
+        dtype: the dtype to compute the conversion with, defaults to tf.float32.
 
     Returns:
         a new Tensor with values in the target range.
@@ -117,10 +117,10 @@ def _unwrap_value_range(value_range, dtype=tf.float32):
 def blend(image1: tf.Tensor, image2: tf.Tensor, factor: float) -> tf.Tensor:
     """Blend image1 and image2 using 'factor'.
 
-    FactorSampler should be in the range [0, 1].  A value of 0.0 means only image1
-    is used. A value of 1.0 means only image2 is used.  A value between 0.0
-    and 1.0 means we linearly interpolate the pixel values between the two
-    images.  A value greater than 1.0 "extrapolates" the difference
+    FactorSampler should be in the range [0, 1]. A value of 0.0 means only
+    image1 is used. A value of 1.0 means only image2 is used. A value between
+    0.0 and 1.0 means we linearly interpolate the pixel values between the two
+    images. A value greater than 1.0 "extrapolates" the difference
     between the two pixel values, and we clip the results to values
     between 0 and 255.
     Args:
@@ -153,15 +153,15 @@ def parse_factor(
 
     if param[0] > param[1]:
         raise ValueError(
-            f"`{param_name}[0] > {param_name}[1]`, `{param_name}[0]` must be <= "
-            f"`{param_name}[1]`.  Got `{param_name}={param}`"
+            f"`{param_name}[0] > {param_name}[1]`, `{param_name}[0]` must be "
+            f"<= `{param_name}[1]`. Got `{param_name}={param}`"
         )
     if (min_value is not None and param[0] < min_value) or (
         max_value is not None and param[1] > max_value
     ):
         raise ValueError(
-            f"`{param_name}` should be inside of range [{min_value}, {max_value}]. "
-            f"Got {param_name}={param}"
+            f"`{param_name}` should be inside of range "
+            f"[{min_value}, {max_value}]. Got {param_name}={param}"
         )
 
     if param[0] == param[1]:
@@ -176,11 +176,12 @@ def random_inversion(random_generator):
     This can be used by KPLs to randomly invert sampled values.
 
     Args:
-        random_generator: a Keras random number generator.  An instance can be passed
-        from the `self._random_generator` attribute of a `BaseImageAugmentationLayer`.
+        random_generator: a Keras random number generator. An instance can be
+            passed from the `self._random_generator` attribute of
+            a `BaseImageAugmentationLayer`.
 
     Returns:
-        either -1, or -1.
+      either -1, or -1.
     """
     negate = random_generator.random_uniform((), 0, 1, dtype=tf.float32) > 0.5
     negate = tf.cond(negate, lambda: -1.0, lambda: 1.0)
@@ -199,19 +200,19 @@ def batch_random_inversion(random_generator, batch_size):
 def get_rotation_matrix(angles, image_height, image_width, name=None):
     """Returns projective transform(s) for the given angle(s).
     Args:
-      angles: A scalar angle to rotate all images by, or (for batches of images) a
-        vector with an angle to rotate each image in the batch. The rank must be
-        statically known (the shape is not `TensorShape(None)`).
+      angles: A scalar angle to rotate all images by, or (for batches of images)
+        a vector with an angle to rotate each image in the batch. The rank
+        must be statically known (the shape is not `TensorShape(None)`).
       image_height: Height of the image(s) to be transformed.
       image_width: Width of the image(s) to be transformed.
       name: The name of the op.
     Returns:
-      A tensor of shape (num_images, 8). Projective transforms which can be given
-        to operation `image_projective_transform_v2`. If one row of transforms is
-         [a0, a1, a2, b0, b1, b2, c0, c1], then it maps the *output* point
-         `(x, y)` to a transformed *input* point
-         `(x', y') = ((a0 x + a1 y + a2) / k, (b0 x + b1 y + b2) / k)`,
-         where `k = c0 x + c1 y + 1`.
+      A tensor of shape (num_images, 8). Projective transforms which can be
+        given to operation `image_projective_transform_v2`. If one row of
+        transforms is [a0, a1, a2, b0, b1, b2, c0, c1], then it maps the
+        *output* point `(x, y)` to a transformed *input* point
+        `(x', y') = ((a0 x + a1 y + a2) / k, (b0 x + b1 y + b2) / k)`,
+        where `k = c0 x + c1 y + 1`.
     """
     with backend.name_scope(name or "rotation_matrix"):
         x_offset = (
@@ -250,8 +251,8 @@ def get_translation_matrix(translations, name=None):
         to translate for each image (for a batch of images).
       name: The name of the op.
     Returns:
-      A tensor of shape `(num_images, 8)` projective transforms which can be given
-        to `transform`.
+      A tensor of shape `(num_images, 8)` projective transforms which can be
+        given to `transform`.
     """
     with backend.name_scope(name or "translation_matrix"):
         num_translations = tf.shape(translations)[0]
@@ -288,19 +289,20 @@ def transform(
 
     Args:
       images: A tensor of shape
-        `(num_images, num_rows, num_columns, num_channels)` (NHWC). The rank must
-        be statically known (the shape is not `TensorShape(None)`).
+        `(num_images, num_rows, num_columns, num_channels)` (NHWC). The rank
+        must be statically known (the shape is not `TensorShape(None)`).
       transforms: Projective transform matrix/matrices. A vector of length 8 or
-        tensor of size N x 8. If one row of transforms is [a0, a1, a2, b0, b1, b2,
-        c0, c1], then it maps the *output* point `(x, y)` to a transformed *input*
-        point `(x', y') = ((a0 x + a1 y + a2) / k, (b0 x + b1 y + b2) / k)`, where
+        tensor of size N x 8. If one row of transforms is
+        [a0, a1, a2, b0, b1, b2, c0, c1], then it maps the *output* point
+        `(x, y)` to a transformed *input* point
+        `(x', y') = ((a0 x + a1 y + a2) / k, (b0 x + b1 y + b2) / k)`, where
         `k = c0 x + c1 y + 1`. The transforms are *inverted* compared to the
         transform mapping input points to output points. Note that gradients are
         not backpropagated into transformation parameters.
       fill_mode: Points outside the boundaries of the input are filled according
         to the given mode (one of `{"constant", "reflect", "wrap", "nearest"}`).
-      fill_value: a float represents the value to be filled outside the boundaries
-        when `fill_mode="constant"`.
+      fill_value: a float represents the value to be filled outside the
+        boundaries when `fill_mode="constant"`.
       interpolation: Interpolation mode. Supported values: `"nearest"`,
         `"bilinear"`.
       output_shape: Output dimension after the transform, `[height, width]`.

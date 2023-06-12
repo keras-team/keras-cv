@@ -27,9 +27,9 @@ class CutMix(BaseImageAugmentationLayer):
 
     Args:
         alpha: Float between 0 and 1. Inverse scale parameter for the gamma
-            distribution. This controls the shape of the distribution from which the
-            smoothing values are sampled. Defaults to 1.0, which is a recommended value
-            when training an imagenet1k classification model.
+            distribution. This controls the shape of the distribution from which
+            the smoothing values are sampled. Defaults to 1.0, which is a
+            recommended value when training an imagenet1k classification model.
         seed: Integer. Used to create a random seed.
     References:
        - [CutMix paper]( https://arxiv.org/abs/1905.04899).

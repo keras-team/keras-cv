@@ -1,4 +1,4 @@
-# Copyright 2022 The KerasCV Authors
+# Copyright 2023 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -36,102 +36,116 @@ from keras_cv.models.backbones.regnet.regnet_backbone import RegNetY080Backbone
 from keras_cv.models.backbones.regnet.regnet_backbone import RegNetY120Backbone
 from keras_cv.models.backbones.regnet.regnet_backbone import RegNetY160Backbone
 from keras_cv.models.backbones.regnet.regnet_backbone import RegNetY320Backbone
-from keras_cv.models.backbones.resnet_v1.resnet_v1_backbone import (
+from keras_cv.models import legacy
+from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
+    CSPDarkNetBackbone,
+)
+from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
+    CSPDarkNetLBackbone,
+)
+from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
+    CSPDarkNetMBackbone,
+)
+from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
+    CSPDarkNetSBackbone,
+)
+from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
+    CSPDarkNetTinyBackbone,
+)
+from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
+    CSPDarkNetXLBackbone,
+)
+from keras_cv.models.backbones.densenet.densenet_aliases import (
+    DenseNet121Backbone,
+)
+from keras_cv.models.backbones.densenet.densenet_aliases import (
+    DenseNet169Backbone,
+)
+from keras_cv.models.backbones.densenet.densenet_aliases import (
+    DenseNet201Backbone,
+)
+from keras_cv.models.backbones.densenet.densenet_backbone import (
+    DenseNetBackbone,
+)
+from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_aliases import (
+    EfficientNetV2B0Backbone,
+)
+from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_aliases import (
+    EfficientNetV2B1Backbone,
+)
+from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_aliases import (
+    EfficientNetV2B2Backbone,
+)
+from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_aliases import (
+    EfficientNetV2B3Backbone,
+)
+from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_aliases import (
+    EfficientNetV2Backbone,
+)
+from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_aliases import (
+    EfficientNetV2LBackbone,
+)
+from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_aliases import (
+    EfficientNetV2MBackbone,
+)
+from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_aliases import (
+    EfficientNetV2SBackbone,
+)
+from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_aliases import (
+    MobileNetV3LargeBackbone,
+)
+from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_aliases import (
+    MobileNetV3SmallBackbone,
+)
+from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_backbone import (
+    MobileNetV3Backbone,
+)
+from keras_cv.models.backbones.resnet_v1.resnet_v1_aliases import (
     ResNet18Backbone,
 )
-from keras_cv.models.backbones.resnet_v1.resnet_v1_backbone import (
+from keras_cv.models.backbones.resnet_v1.resnet_v1_aliases import (
     ResNet34Backbone,
 )
-from keras_cv.models.backbones.resnet_v1.resnet_v1_backbone import (
+from keras_cv.models.backbones.resnet_v1.resnet_v1_aliases import (
     ResNet50Backbone,
 )
-from keras_cv.models.backbones.resnet_v1.resnet_v1_backbone import (
+from keras_cv.models.backbones.resnet_v1.resnet_v1_aliases import (
     ResNet101Backbone,
 )
-from keras_cv.models.backbones.resnet_v1.resnet_v1_backbone import (
+from keras_cv.models.backbones.resnet_v1.resnet_v1_aliases import (
     ResNet152Backbone,
 )
-from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
+from keras_cv.models.backbones.resnet_v1.resnet_v1_backbone import (
+    ResNetBackbone,
+)
+from keras_cv.models.backbones.resnet_v2.resnet_v2_aliases import (
     ResNet18V2Backbone,
 )
-from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
+from keras_cv.models.backbones.resnet_v2.resnet_v2_aliases import (
     ResNet34V2Backbone,
 )
-from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
+from keras_cv.models.backbones.resnet_v2.resnet_v2_aliases import (
     ResNet50V2Backbone,
 )
-from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
+from keras_cv.models.backbones.resnet_v2.resnet_v2_aliases import (
     ResNet101V2Backbone,
 )
-from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
+from keras_cv.models.backbones.resnet_v2.resnet_v2_aliases import (
     ResNet152V2Backbone,
 )
 from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
     ResNetV2Backbone,
 )
 from keras_cv.models.classification.image_classifier import ImageClassifier
-from keras_cv.models.convmixer import ConvMixer_512_16
-from keras_cv.models.convmixer import ConvMixer_768_32
-from keras_cv.models.convmixer import ConvMixer_1024_16
-from keras_cv.models.convmixer import ConvMixer_1536_20
-from keras_cv.models.convmixer import ConvMixer_1536_24
-from keras_cv.models.convnext import ConvNeXtBase
-from keras_cv.models.convnext import ConvNeXtLarge
-from keras_cv.models.convnext import ConvNeXtSmall
-from keras_cv.models.convnext import ConvNeXtTiny
-from keras_cv.models.convnext import ConvNeXtXLarge
-from keras_cv.models.csp_darknet import CSPDarkNetL
-from keras_cv.models.csp_darknet import CSPDarkNetM
-from keras_cv.models.csp_darknet import CSPDarkNetS
-from keras_cv.models.csp_darknet import CSPDarkNetTiny
-from keras_cv.models.csp_darknet import CSPDarkNetX
-from keras_cv.models.darknet import DarkNet21
-from keras_cv.models.darknet import DarkNet53
-from keras_cv.models.densenet import DenseNet121
-from keras_cv.models.densenet import DenseNet169
-from keras_cv.models.densenet import DenseNet201
-from keras_cv.models.efficientnet_lite import EfficientNetLiteB0
-from keras_cv.models.efficientnet_lite import EfficientNetLiteB1
-from keras_cv.models.efficientnet_lite import EfficientNetLiteB2
-from keras_cv.models.efficientnet_lite import EfficientNetLiteB3
-from keras_cv.models.efficientnet_lite import EfficientNetLiteB4
-from keras_cv.models.efficientnet_v1 import EfficientNetB0
-from keras_cv.models.efficientnet_v1 import EfficientNetB1
-from keras_cv.models.efficientnet_v1 import EfficientNetB2
-from keras_cv.models.efficientnet_v1 import EfficientNetB3
-from keras_cv.models.efficientnet_v1 import EfficientNetB4
-from keras_cv.models.efficientnet_v1 import EfficientNetB5
-from keras_cv.models.efficientnet_v1 import EfficientNetB6
-from keras_cv.models.efficientnet_v1 import EfficientNetB7
-from keras_cv.models.efficientnet_v2 import EfficientNetV2B0
-from keras_cv.models.efficientnet_v2 import EfficientNetV2B1
-from keras_cv.models.efficientnet_v2 import EfficientNetV2B2
-from keras_cv.models.efficientnet_v2 import EfficientNetV2B3
-from keras_cv.models.efficientnet_v2 import EfficientNetV2L
-from keras_cv.models.efficientnet_v2 import EfficientNetV2M
-from keras_cv.models.efficientnet_v2 import EfficientNetV2S
-from keras_cv.models.mlp_mixer import MLPMixerB16
-from keras_cv.models.mlp_mixer import MLPMixerB32
-from keras_cv.models.mlp_mixer import MLPMixerL16
-from keras_cv.models.mobilenet_v3 import MobileNetV3Large
-from keras_cv.models.mobilenet_v3 import MobileNetV3Small
-from keras_cv.models.object_detection.faster_rcnn.faster_rcnn import FasterRCNN
-from keras_cv.models.object_detection.retina_net.retina_net import RetinaNet
+from keras_cv.models.object_detection.retinanet.retinanet import RetinaNet
+from keras_cv.models.object_detection.yolo_v8.yolo_v8_backbone import (
+    YOLOV8Backbone,
+)
+from keras_cv.models.object_detection.yolo_v8.yolo_v8_detector import (
+    YOLOV8Detector,
+)
 from keras_cv.models.object_detection_3d.center_pillar import (
     MultiHeadCenterPillar,
 )
-from keras_cv.models.segmentation.deeplab import DeepLabV3
 from keras_cv.models.stable_diffusion import StableDiffusion
 from keras_cv.models.stable_diffusion import StableDiffusionV2
-from keras_cv.models.vgg16 import VGG16
-from keras_cv.models.vgg19 import VGG19
-from keras_cv.models.vit import ViTB16
-from keras_cv.models.vit import ViTB32
-from keras_cv.models.vit import ViTH16
-from keras_cv.models.vit import ViTH32
-from keras_cv.models.vit import ViTL16
-from keras_cv.models.vit import ViTL32
-from keras_cv.models.vit import ViTS16
-from keras_cv.models.vit import ViTS32
-from keras_cv.models.vit import ViTTiny16
-from keras_cv.models.vit import ViTTiny32

@@ -24,6 +24,9 @@ from keras_cv.layers.object_detection.box_matcher import BoxMatcher
 from keras_cv.layers.object_detection.multi_class_non_max_suppression import (
     MultiClassNonMaxSuppression,
 )
+from keras_cv.layers.object_detection_3d.centernet_label_encoder import (
+    CenterNetLabelEncoder,
+)
 from keras_cv.layers.object_detection_3d.voxelization import DynamicVoxelization
 from keras_cv.layers.preprocessing.aug_mix import AugMix
 from keras_cv.layers.preprocessing.auto_contrast import AutoContrast
@@ -37,11 +40,11 @@ from keras_cv.layers.preprocessing.fourier_mix import FourierMix
 from keras_cv.layers.preprocessing.grayscale import Grayscale
 from keras_cv.layers.preprocessing.grid_mask import GridMask
 from keras_cv.layers.preprocessing.jittered_resize import JitteredResize
-from keras_cv.layers.preprocessing.maybe_apply import MaybeApply
 from keras_cv.layers.preprocessing.mix_up import MixUp
 from keras_cv.layers.preprocessing.mosaic import Mosaic
 from keras_cv.layers.preprocessing.posterization import Posterization
 from keras_cv.layers.preprocessing.rand_augment import RandAugment
+from keras_cv.layers.preprocessing.random_apply import RandomApply
 from keras_cv.layers.preprocessing.random_aspect_ratio import RandomAspectRatio
 from keras_cv.layers.preprocessing.random_augmentation_pipeline import (
     RandomAugmentationPipeline,
@@ -73,22 +76,19 @@ from keras_cv.layers.preprocessing.random_sharpness import RandomSharpness
 from keras_cv.layers.preprocessing.random_shear import RandomShear
 from keras_cv.layers.preprocessing.random_translation import RandomTranslation
 from keras_cv.layers.preprocessing.random_zoom import RandomZoom
-from keras_cv.layers.preprocessing.randomly_zoomed_crop import (
-    RandomlyZoomedCrop,
-)
 from keras_cv.layers.preprocessing.repeated_augmentation import (
     RepeatedAugmentation,
 )
 from keras_cv.layers.preprocessing.rescaling import Rescaling
 from keras_cv.layers.preprocessing.resizing import Resizing
 from keras_cv.layers.preprocessing.solarization import Solarization
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     VectorizedBaseImageAugmentationLayer,
 )
 from keras_cv.layers.preprocessing_3d.frustum_random_dropping_points import (
     FrustumRandomDroppingPoints,
 )
-from keras_cv.layers.preprocessing_3d.frustum_random_point_feature_noise import (
+from keras_cv.layers.preprocessing_3d.frustum_random_point_feature_noise import (  # noqa: E501
     FrustumRandomPointFeatureNoise,
 )
 from keras_cv.layers.preprocessing_3d.global_random_dropping_points import (

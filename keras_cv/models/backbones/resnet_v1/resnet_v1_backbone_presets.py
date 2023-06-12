@@ -21,6 +21,9 @@ backbone_presets_no_weights = {
                 "and ReLU activation are applied after the convolution layers "
                 "(v1 style)."
             ),
+            "params": 11186112,
+            "official_name": "ResNetV1",
+            "path": "resnet_v1",
         },
         "class_name": "keras_cv.models>ResNetBackbone",
         "config": {
@@ -40,6 +43,9 @@ backbone_presets_no_weights = {
                 "and ReLU activation are applied after the convolution layers "
                 "(v1 style)."
             ),
+            "params": 21301696,
+            "official_name": "ResNetV1",
+            "path": "resnet_v1",
         },
         "class_name": "keras_cv.models>ResNetBackbone",
         "config": {
@@ -59,6 +65,9 @@ backbone_presets_no_weights = {
                 "and ReLU activation are applied after the convolution layers "
                 "(v1 style)."
             ),
+            "params": 23561152,
+            "official_name": "ResNetV1",
+            "path": "resnet_v1",
         },
         "class_name": "keras_cv.models>ResNetBackbone",
         "config": {
@@ -78,6 +87,9 @@ backbone_presets_no_weights = {
                 "and ReLU activation are applied after the convolution layers "
                 "(v1 style)."
             ),
+            "params": 42605504,
+            "official_name": "ResNetV1",
+            "path": "resnet_v1",
         },
         "class_name": "keras_cv.models>ResNetBackbone",
         "config": {
@@ -97,6 +109,9 @@ backbone_presets_no_weights = {
                 "and ReLU activation are applied after the convolution layers "
                 "(v1 style)."
             ),
+            "params": 58295232,
+            "official_name": "ResNetV1",
+            "path": "resnet_v1",
         },
         "class_name": "keras_cv.models>ResNetBackbone",
         "config": {
@@ -120,11 +135,14 @@ backbone_presets_with_weights = {
                 "(v1 style). "
                 "Trained on Imagenet 2012 classification task."
             ),
+            "params": 23561152,
+            "official_name": "ResNetV1",
+            "path": "resnet_v1",
         },
         "class_name": "keras_cv.models>ResNetBackbone",
         "config": backbone_presets_no_weights["resnet50"]["config"],
-        "weights_url": "https://storage.googleapis.com/keras-cv/models/resnet50/imagenet/classification-v0-notop.h5",
-        "weights_hash": "dc5f6d8f929c78d0fc192afecc67b11ac2166e9d8b9ef945742368ae254c07af",
+        "weights_url": "https://storage.googleapis.com/keras-cv/models/resnet50/imagenet/classification-v0-notop.h5",  # noqa: E501
+        "weights_hash": "dc5f6d8f929c78d0fc192afecc67b11ac2166e9d8b9ef945742368ae254c07af",  # noqa: E501
     },
 }
 

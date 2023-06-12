@@ -14,8 +14,9 @@
 # ==============================================================================
 """Utility functions for models"""
 
+from keras import backend
+from keras import layers
 from tensorflow import keras
-from tensorflow.keras import layers
 
 
 def parse_model_inputs(input_shape, input_tensor):
@@ -28,57 +29,26 @@ def parse_model_inputs(input_shape, input_tensor):
             return input_tensor
 
 
-def as_backbone(self, min_level=None, max_level=None):
-    """Convert the application model into a model backbone for other tasks.
-    The backbone model will usually take same inputs as the original application
-    model, but produce multiple outputs, one for each feature level. Those outputs
-    can be feed to network downstream, like FPN and RPN.
-    The output of the backbone model will be a dict with int as key and tensor as
-    value. The int key represent the level of the feature output.
-    A typical feature pyramid has five levels corresponding to scales P3, P4, P5,
-    P6, P7 in the backbone. Scale Pn represents a feature map 2n times smaller in
-    width and height than the input image.
+def correct_pad_downsample(inputs, kernel_size):
+    """Returns a tuple for zero-padding for 2D convolution with downsampling.
+
     Args:
-        min_level: optional int, the lowest level of feature to be included in the
-            output. Default to model's lowest feature level (based on the model structure).
-        max_level: optional int, the highest level of feature to be included in the
-            output. Default to model's highest feature level (based on the model structure).
+        inputs: Input tensor.
+        kernel_size: An integer or tuple/list of 2 integers.
+
     Returns:
-        a `keras.Model` which has dict as outputs.
-    Raises:
-        ValueError: When the model is lack of information for feature level, and can't
-        be converted to backbone model, or the min_level/max_level param is out of
-        range based on the model structure.
+        A tuple.
     """
-    if hasattr(self, "_backbone_level_outputs"):
-        backbone_level_outputs = self._backbone_level_outputs
-        model_levels = list(sorted(backbone_level_outputs.keys()))
-        if min_level is not None:
-            if min_level < model_levels[0]:
-                raise ValueError(
-                    f"The min_level provided: {min_level} should be in "
-                    f"the range of {model_levels}"
-                )
-        else:
-            min_level = model_levels[0]
-
-        if max_level is not None:
-            if max_level > model_levels[-1]:
-                raise ValueError(
-                    f"The max_level provided: {max_level} should be in "
-                    f"the range of {model_levels}"
-                )
-        else:
-            max_level = model_levels[-1]
-
-        outputs = {}
-        for level in range(min_level, max_level + 1):
-            outputs[level] = backbone_level_outputs[level]
-
-        return keras.Model(inputs=self.inputs, outputs=outputs)
-
+    img_dim = 1
+    input_size = backend.int_shape(inputs)[img_dim : (img_dim + 2)]
+    if isinstance(kernel_size, int):
+        kernel_size = (kernel_size, kernel_size)
+    if input_size[0] is None:
+        adjust = (1, 1)
     else:
-        raise ValueError(
-            "The current model doesn't have any feature level "
-            "information and can't be convert to backbone model."
-        )
+        adjust = (1 - input_size[0] % 2, 1 - input_size[1] % 2)
+    correct = (kernel_size[0] // 2, kernel_size[1] // 2)
+    return (
+        (correct[0] - adjust[0], correct[0]),
+        (correct[1] - adjust[1], correct[1]),
+    )

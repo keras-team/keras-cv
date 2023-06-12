@@ -15,7 +15,7 @@ import numpy as np
 import tensorflow as tf
 
 from keras_cv import bounding_box
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     VectorizedBaseImageAugmentationLayer,
 )
 
@@ -516,3 +516,35 @@ class VectorizedBaseImageAugmentationLayerTest(tf.test.TestCase):
         )
 
         # assertion is at VectorizedAssertionLayer's methods
+
+    def test_converts_ragged_to_dense_images(self):
+        images = tf.ragged.stack(
+            [
+                np.random.random(size=(8, 8, 3)).astype("float32"),
+                np.random.random(size=(16, 8, 3)).astype("float32"),
+            ]
+        )
+        add_layer = VectorizedRandomAddLayer(fixed_value=0.5)
+        add_layer.force_output_dense_images = True
+        result = add_layer(images)
+        self.assertTrue(isinstance(result, tf.Tensor))
+
+    def test_converts_ragged_to_dense_segmentation_masks(self):
+        images = tf.ragged.stack(
+            [
+                np.random.random(size=(8, 8, 3)).astype("float32"),
+                np.random.random(size=(16, 8, 3)).astype("float32"),
+            ]
+        )
+        segmentation_masks = tf.ragged.stack(
+            [
+                np.random.randint(0, 10, size=(8, 8, 1)).astype("float32"),
+                np.random.randint(0, 10, size=(16, 8, 1)).astype("float32"),
+            ]
+        )
+        add_layer = VectorizedRandomAddLayer(fixed_value=0.5)
+        add_layer.force_output_dense_segmentation_masks = True
+        result = add_layer(
+            {"images": images, "segmentation_masks": segmentation_masks}
+        )
+        self.assertTrue(isinstance(result["segmentation_masks"], tf.Tensor))

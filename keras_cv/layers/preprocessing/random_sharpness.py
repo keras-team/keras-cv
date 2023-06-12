@@ -15,7 +15,7 @@
 import tensorflow as tf
 from tensorflow import keras
 
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     VectorizedBaseImageAugmentationLayer,
 )
 from keras_cv.utils import preprocessing
@@ -25,29 +25,30 @@ from keras_cv.utils import preprocessing
 class RandomSharpness(VectorizedBaseImageAugmentationLayer):
     """Randomly performs the sharpness operation on given images.
 
-    The sharpness operation first performs a blur operation, then blends between the
-    original image and the blurred image.  This operation makes the edges of an image
-    less sharp than they were in the original image.
+    The sharpness operation first performs a blur operation, then blends between
+    the original image and the blurred image. This operation makes the edges of
+    an image less sharp than they were in the original image.
 
     References:
         - [PIL](https://pillow.readthedocs.io/en/stable/reference/ImageEnhance.html)
 
     Args:
-        factor: A tuple of two floats, a single float or `keras_cv.FactorSampler`.
-            `factor` controls the extent to which the image sharpness is impacted.
-            `factor=0.0` makes this layer perform a no-op operation, while a value of
-            1.0 uses the sharpened result entirely.  Values between 0 and 1 result in
-            linear interpolation between the original image and the sharpened image.
-            Values should be between `0.0` and `1.0`.  If a tuple is used, a `factor` is
-            sampled between the two values for every image augmented.  If a single float
-            is used, a value between `0.0` and the passed float is sampled.  In order to
-            ensure the value is always the same, please pass a tuple with two identical
-            floats: `(0.5, 0.5)`.
+        factor: A tuple of two floats, a single float or
+            `keras_cv.FactorSampler`. `factor` controls the extent to which the
+            image sharpness is impacted. `factor=0.0` makes this layer perform a
+            no-op operation, while a value of 1.0 uses the sharpened result
+            entirely. Values between 0 and 1 result in linear interpolation
+            between the original image and the sharpened image. Values should be
+            between `0.0` and `1.0`. If a tuple is used, a `factor` is sampled
+            between the two values for every image augmented. If a single float
+            is used, a value between `0.0` and the passed float is sampled. In
+            order to ensure the value is always the same, please pass a tuple
+            with two identical floats: `(0.5, 0.5)`.
         value_range: the range of values the incoming images will have.
             Represented as a two number tuple written [low, high].
             This is typically either `[0, 1]` or `[0, 255]` depending
-            on how your preprocessing pipeline is setup.
-    """
+            on how your preprocessing pipeline is set up.
+    """  # noqa: E501
 
     def __init__(
         self,

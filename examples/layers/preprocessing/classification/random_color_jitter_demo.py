@@ -14,7 +14,7 @@
 
 """color_jitter_demo.py shows how to use the ColorJitter preprocessing layer.
 
-Operates on the oxford_flowers102 dataset.  In this script the flowers
+Operates on the oxford_flowers102 dataset. In this script the flowers
 are loaded, then are passed through the preprocessing layers.
 Finally, they are shown using matplotlib.
 """

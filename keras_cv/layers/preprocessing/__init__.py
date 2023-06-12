@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Also export the image KPLs from core keras, so that user can import all the image
-# KPLs from one place.
+# Also export the image KPLs from core keras, so that user can import all the
+# image KPLs from one place.
 
 from tensorflow.keras.layers import CenterCrop
 from tensorflow.keras.layers import RandomHeight
@@ -31,11 +31,11 @@ from keras_cv.layers.preprocessing.fourier_mix import FourierMix
 from keras_cv.layers.preprocessing.grayscale import Grayscale
 from keras_cv.layers.preprocessing.grid_mask import GridMask
 from keras_cv.layers.preprocessing.jittered_resize import JitteredResize
-from keras_cv.layers.preprocessing.maybe_apply import MaybeApply
 from keras_cv.layers.preprocessing.mix_up import MixUp
 from keras_cv.layers.preprocessing.mosaic import Mosaic
 from keras_cv.layers.preprocessing.posterization import Posterization
 from keras_cv.layers.preprocessing.rand_augment import RandAugment
+from keras_cv.layers.preprocessing.random_apply import RandomApply
 from keras_cv.layers.preprocessing.random_aspect_ratio import RandomAspectRatio
 from keras_cv.layers.preprocessing.random_augmentation_pipeline import (
     RandomAugmentationPipeline,
@@ -67,15 +67,12 @@ from keras_cv.layers.preprocessing.random_sharpness import RandomSharpness
 from keras_cv.layers.preprocessing.random_shear import RandomShear
 from keras_cv.layers.preprocessing.random_translation import RandomTranslation
 from keras_cv.layers.preprocessing.random_zoom import RandomZoom
-from keras_cv.layers.preprocessing.randomly_zoomed_crop import (
-    RandomlyZoomedCrop,
-)
 from keras_cv.layers.preprocessing.repeated_augmentation import (
     RepeatedAugmentation,
 )
 from keras_cv.layers.preprocessing.rescaling import Rescaling
 from keras_cv.layers.preprocessing.resizing import Resizing
 from keras_cv.layers.preprocessing.solarization import Solarization
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     VectorizedBaseImageAugmentationLayer,
 )

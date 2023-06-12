@@ -25,7 +25,7 @@ class Backbone(keras.Model):
     """Base class for Backbone models.
 
     Backbones are reusable layers of models trained on a standard task such as
-    Imagenet classifcation that can be reused in other tasks.
+    Imagenet classification that can be reused in other tasks.
     """
 
     def __init__(self, *args, **kwargs):
@@ -53,7 +53,8 @@ class Backbone(keras.Model):
 
     @classproperty
     def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include weights."""
+        """Dictionary of preset names and configurations that include
+        weights."""
         return {}
 
     @classmethod
@@ -63,7 +64,8 @@ class Backbone(keras.Model):
         load_weights=None,
         **kwargs,
     ):
-        """Instantiate {{model_name}} model from preset architecture and weights.
+        """Instantiate {{model_name}} model from preset architecture and
+        weights.
 
         Args:
             preset: string. Must be one of "{{preset_names}}".
@@ -124,11 +126,11 @@ class Backbone(keras.Model):
         return model
 
     def __init_subclass__(cls, **kwargs):
-        # Use __init_subclass__ to setup a correct docstring for from_preset.
+        # Use __init_subclass__ to set up a correct docstring for from_preset.
         super().__init_subclass__(**kwargs)
 
         # If the subclass does not define from_preset, assign a wrapper so that
-        # each class can have an distinct docstring.
+        # each class can have a distinct docstring.
         if "from_preset" not in cls.__dict__:
 
             def from_preset(calling_cls, *args, **kwargs):
@@ -156,18 +158,18 @@ class Backbone(keras.Model):
     def pyramid_level_inputs(self):
         """Intermediate model outputs for feature extraction.
 
-        Format is a dictionary with int as key and layer name as value.
-        The int key represent the level of the feature output. A typical feature
-        pyramid has five levels corresponding to scales P3, P4, P5, P6, P7 in
-        the backbone. Scale Pn represents a feature map 2^n times smaller in
-        width and height than the input image.
+        Format is a dictionary with string as key and layer name as value.
+        The string key represents the level of the feature output. A typical
+        feature pyramid has five levels corresponding to scales "P3", "P4",
+        "P5", "P6", "P7" in the backbone. Scale Pn represents a feature map 2^n
+        times smaller in width and height than the input image.
 
         Example:
         ```python
         {
-            3: 'v2_stack_1_block4_out',
-            4: 'v2_stack_2_block6_out',
-            5: 'v2_stack_3_block3_out',
+            'P3': 'v2_stack_1_block4_out',
+            'P4': 'v2_stack_2_block6_out',
+            'P5': 'v2_stack_3_block3_out',
         }
         ```
         """

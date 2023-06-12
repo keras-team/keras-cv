@@ -15,7 +15,7 @@
 import tensorflow as tf
 from tensorflow import keras
 
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     VectorizedBaseImageAugmentationLayer,
 )
 from keras_cv.utils import preprocessing as preprocessing_utils
@@ -23,15 +23,13 @@ from keras_cv.utils import preprocessing as preprocessing_utils
 
 @keras.utils.register_keras_serializable(package="keras_cv")
 class RandomBrightness(VectorizedBaseImageAugmentationLayer):
-    """A preprocessing layer which randomly adjusts brightness during training.
+    """A preprocessing layer which randomly adjusts brightness.
+
     This layer will randomly increase/reduce the brightness for the input RGB
     images.
 
-    At inference time, the output will be identical to the input.
-    Call the layer with `training=True` to adjust the brightness of the input.
-
     Note that different brightness adjustment factors
-    will be apply to each the images in the batch.
+    will be applied to each the images in the batch.
 
     Args:
       factor: Float or a list/tuple of 2 floats between -1.0 and 1.0. The
@@ -42,9 +40,9 @@ class RandomBrightness(VectorizedBaseImageAugmentationLayer):
         is provided, eg, 0.2, then -0.2 will be used for lower bound and 0.2
         will be used for upper bound.
       value_range: Optional list/tuple of 2 floats for the lower and upper limit
-        of the values of the input data. Defaults to [0.0, 255.0]. Can be
+        of the values of the input data, defaults to [0.0, 255.0]. Can be
         changed to e.g. [0.0, 1.0] if the image input has been scaled before
-        this layer.  The brightness adjustment will be scaled to this range, and
+        this layer. The brightness adjustment will be scaled to this range, and
         the output values will be clipped to this range.
       seed: optional integer, for fixed RNG behavior.
     Inputs: 3D (HWC) or 4D (NHWC) tensor, with float or int dtype. Input pixel
@@ -81,9 +79,12 @@ class RandomBrightness(VectorizedBaseImageAugmentationLayer):
         return random_rgb_deltas
 
     def augment_ragged_image(self, image, transformation, **kwargs):
-        return self.augment_images(
+        image = tf.expand_dims(image, axis=0)
+        transformation = tf.expand_dims(transformation, axis=0)
+        image = self.augment_images(
             images=image, transformations=transformation, **kwargs
         )
+        return tf.squeeze(image, axis=0)
 
     def augment_images(self, images, transformations, **kwargs):
         rank = images.shape.rank

@@ -29,7 +29,7 @@ def format_docstring(**replacements):
 
     The decorator will replace any double bracketed variable with a kwargs
     value passed to the decorator itself. For example
-    `@format_docstring(name="foo")` will replace any occurance of `{{name}}` in
+    `@format_docstring(name="foo")` will replace any occurrence of `{{name}}` in
     the docstring with the string literal `foo`.
     """
 
