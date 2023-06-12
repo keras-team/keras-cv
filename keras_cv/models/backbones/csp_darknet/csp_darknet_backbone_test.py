@@ -104,18 +104,24 @@ class CSPDarkNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
         input_size = 256
         inputs = tf.keras.Input(shape=[input_size, input_size, 3])
         outputs = backbone_model(inputs)
-        expected_levels = ["P2", "P3", "P4", "P5"]
-        self.assertEquals(list(outputs.keys()), expected_levels)
-        # Size for each feature map at Pn is represents a feature map 2^n
-        # times smaller in width and height than the input image.
-        for level in model.pyramid_level_inputs:
-            level_int = int(level[1:])
-            self.assertEquals(
-                outputs[level].shape[1], input_size / 2**level_int
-            )
-            self.assertEquals(
-                outputs[level].shape[2], input_size / 2**level_int
-            )
+        levels = ["P2", "P3", "P4", "P5"]
+        self.assertEquals(list(outputs.keys()), levels)
+        self.assertEquals(
+            outputs["P2"].shape,
+            [None, input_size // 2**2, input_size // 2**2, 128],
+        )
+        self.assertEquals(
+            outputs["P3"].shape,
+            [None, input_size // 2**3, input_size // 2**3, 256],
+        )
+        self.assertEquals(
+            outputs["P4"].shape,
+            [None, input_size // 2**4, input_size // 2**4, 512],
+        )
+        self.assertEquals(
+            outputs["P5"].shape,
+            [None, input_size // 2**5, input_size // 2**5, 1024],
+        )
 
     @parameterized.named_parameters(
         ("Tiny", csp_darknet_backbone.CSPDarkNetTinyBackbone),

@@ -27,20 +27,6 @@ from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_backbone import (
 )
 from keras_cv.utils.train import get_feature_extractor
 
-# from https://arxiv.org/pdf/1905.02244.pdf
-pyramid_level_input_shapes = {
-    "mobilenet_v3_small": {
-        "P3": [None, 28, 28, 24],
-        "P4": [None, 14, 14, 48],
-        "P5": [None, 7, 7, 96],
-    },
-    "mobilenet_v3_large": {
-        "P3": [None, 28, 28, 40],
-        "P4": [None, 14, 14, 112],
-        "P5": [None, 7, 7, 160],
-    },
-}
-
 
 class MobileNetV3BackboneTest(tf.test.TestCase, parameterized.TestCase):
     def setUp(self):
@@ -87,18 +73,28 @@ class MobileNetV3BackboneTest(tf.test.TestCase, parameterized.TestCase):
         input_size = 256
         inputs = tf.keras.Input(shape=[input_size, input_size, 3])
         outputs = backbone_model(inputs)
-        expected_levels = ["P1", "P2", "P3", "P4", "P5"]
-        self.assertEquals(list(outputs.keys()), expected_levels)
-        # Size for each feature map at Pn is represents a feature map 2^n
-        # times smaller in width and height than the input image.
-        for level in model.pyramid_level_inputs:
-            level_int = int(level[1:])
-            self.assertEquals(
-                outputs[level].shape[1], input_size / 2**level_int
-            )
-            self.assertEquals(
-                outputs[level].shape[2], input_size / 2**level_int
-            )
+        levels = ["P1", "P2", "P3", "P4", "P5"]
+        self.assertEquals(list(outputs.keys()), levels)
+        self.assertEquals(
+            outputs["P1"].shape,
+            [None, input_size // 2**1, input_size // 2**1, 16],
+        )
+        self.assertEquals(
+            outputs["P2"].shape,
+            [None, input_size // 2**2, input_size // 2**2, 16],
+        )
+        self.assertEquals(
+            outputs["P3"].shape,
+            [None, input_size // 2**3, input_size // 2**3, 24],
+        )
+        self.assertEquals(
+            outputs["P4"].shape,
+            [None, input_size // 2**4, input_size // 2**4, 48],
+        )
+        self.assertEquals(
+            outputs["P5"].shape,
+            [None, input_size // 2**5, input_size // 2**5, 96],
+        )
 
     @parameterized.named_parameters(
         ("one_channel", 1),
