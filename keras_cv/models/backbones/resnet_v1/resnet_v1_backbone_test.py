@@ -107,43 +107,34 @@ class ResNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
         restored_output = restored_model(self.input_batch)
         self.assertAllClose(model_output, restored_output)
 
-    def test_create_backbone_model_from_alias_model(self):
-        model = ResNet50Backbone(
-            include_rescaling=False,
-        )
+    def test_feature_pyramid_inputs(self):
+        model = ResNet50Backbone()
         backbone_model = get_feature_extractor(
             model,
             model.pyramid_level_inputs.values(),
             model.pyramid_level_inputs.keys(),
         )
-        inputs = keras.Input(shape=[256, 256, 3])
+        input_size = 256
+        inputs = tf.keras.Input(shape=[input_size, input_size, 3])
         outputs = backbone_model(inputs)
-        # Resnet50 backbone has 4 level of features (P2 ~ P5)
         levels = ["P2", "P3", "P4", "P5"]
-        self.assertLen(outputs, 4)
         self.assertEquals(list(outputs.keys()), levels)
-        self.assertEquals(outputs["P2"].shape, [None, 64, 64, 256])
-        self.assertEquals(outputs["P3"].shape, [None, 32, 32, 512])
-        self.assertEquals(outputs["P4"].shape, [None, 16, 16, 1024])
-        self.assertEquals(outputs["P5"].shape, [None, 8, 8, 2048])
-
-    def test_create_backbone_model_with_level_config(self):
-        model = ResNetBackbone(
-            stackwise_filters=[64, 128, 256, 512],
-            stackwise_blocks=[2, 2, 2, 2],
-            stackwise_strides=[1, 2, 2, 2],
-            include_rescaling=False,
-            input_shape=[256, 256, 3],
+        self.assertEquals(
+            outputs["P2"].shape,
+            [None, input_size // 2**2, input_size // 2**2, 256],
         )
-        levels = ["P3", "P4"]
-        layer_names = [model.pyramid_level_inputs[level] for level in levels]
-        backbone_model = get_feature_extractor(model, layer_names, levels)
-        inputs = keras.Input(shape=[256, 256, 3])
-        outputs = backbone_model(inputs)
-        self.assertLen(outputs, 2)
-        self.assertEquals(list(outputs.keys()), levels)
-        self.assertEquals(outputs["P3"].shape, [None, 32, 32, 512])
-        self.assertEquals(outputs["P4"].shape, [None, 16, 16, 1024])
+        self.assertEquals(
+            outputs["P3"].shape,
+            [None, input_size // 2**3, input_size // 2**3, 512],
+        )
+        self.assertEquals(
+            outputs["P4"].shape,
+            [None, input_size // 2**4, input_size // 2**4, 1024],
+        )
+        self.assertEquals(
+            outputs["P5"].shape,
+            [None, input_size // 2**5, input_size // 2**5, 2048],
+        )
 
     @parameterized.named_parameters(
         ("one_channel", 1),

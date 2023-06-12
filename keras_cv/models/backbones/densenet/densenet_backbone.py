@@ -107,10 +107,10 @@ class DenseNetBackbone(Backbone):
                 growth_rate,
                 name=f"conv{index}",
             )
+            pyramid_level_inputs[f"P{index}"] = x.node.layer.name
             x = apply_transition_block(
                 x, compression_ratio, name=f"pool{index}"
             )
-            pyramid_level_inputs[f"P{index}"] = x.node.layer.name
 
         x = apply_dense_block(
             x,
@@ -118,6 +118,10 @@ class DenseNetBackbone(Backbone):
             growth_rate,
             name=f"conv{len(stackwise_num_repeats) + 1}",
         )
+        pyramid_level_inputs[
+            f"P{len(stackwise_num_repeats) + 1}"
+        ] = x.node.layer.name
+
         x = layers.BatchNormalization(
             axis=BN_AXIS, epsilon=BN_EPSILON, name="bn"
         )(x)
