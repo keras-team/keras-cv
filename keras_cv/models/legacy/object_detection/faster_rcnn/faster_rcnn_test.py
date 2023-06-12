@@ -18,7 +18,7 @@ from absl.testing import parameterized
 from tensorflow import keras
 from tensorflow.keras import optimizers
 
-from keras_cv.models import ResNet50V2Backbone
+from keras_cv.models import ResNet18V2Backbone
 from keras_cv.models.legacy.object_detection.faster_rcnn.faster_rcnn import (
     FasterRCNN,
 )
@@ -37,7 +37,7 @@ class FasterRCNNTest(tf.test.TestCase, parameterized.TestCase):
         model = FasterRCNN(
             num_classes=80,
             bounding_box_format="xyxy",
-            backbone=ResNet50V2Backbone(),
+            backbone=ResNet18V2Backbone(),
         )
         images = tf.random.normal(batch_shape)
         outputs = model(images, training=False)
@@ -54,7 +54,7 @@ class FasterRCNNTest(tf.test.TestCase, parameterized.TestCase):
         model = FasterRCNN(
             num_classes=80,
             bounding_box_format="xyxy",
-            backbone=ResNet50V2Backbone(),
+            backbone=ResNet18V2Backbone(),
         )
         images = tf.random.normal(batch_shape)
         outputs = model(images, training=True)
@@ -65,7 +65,7 @@ class FasterRCNNTest(tf.test.TestCase, parameterized.TestCase):
         model = FasterRCNN(
             num_classes=80,
             bounding_box_format="yxyx",
-            backbone=ResNet50V2Backbone(),
+            backbone=ResNet18V2Backbone(),
         )
         with self.assertRaisesRegex(ValueError, "only accepts"):
             model.compile(rpn_box_loss="binary_crossentropy")
@@ -81,7 +81,7 @@ class FasterRCNNTest(tf.test.TestCase, parameterized.TestCase):
         faster_rcnn = FasterRCNN(
             num_classes=20,
             bounding_box_format="xywh",
-            backbone=ResNet50V2Backbone(),
+            backbone=ResNet18V2Backbone(),
         )
 
         images, boxes = _create_bounding_box_dataset("xywh")
