@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import math
-
 import tensorflow as tf
 from tensorflow import keras
 
@@ -265,13 +263,13 @@ class _SingleAnchorGenerator:
         # `stride`, also for sizes where `image_width % stride != 0`.
         # [W]
         cx = tf.range(
-            0.5 * stride, math.ceil(image_width / stride) * stride, stride
+            0.5 * stride, tf.math.ceil(image_width / stride) * stride, stride
         )
         # make sure range of `cy` is within limit of `image_height` with
         # `stride`, also for sizes where `image_height % stride != 0`.
         # [H]
         cy = tf.range(
-            0.5 * stride, math.ceil(image_height / stride) * stride, stride
+            0.5 * stride, tf.math.ceil(image_height / stride) * stride, stride
         )
         # [H, W]
         cx_grid, cy_grid = tf.meshgrid(cx, cy)
