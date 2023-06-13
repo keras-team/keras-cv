@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
 import tensorflow as tf
 from absl.testing import parameterized
 
@@ -25,6 +26,8 @@ MODEL_LIST = [
 
 
 class VGG19Test(ModelsTest, tf.test.TestCase, parameterized.TestCase):
+    # VGG19 has 143M parameters and likes to OOM on our GCB instance.
+    @pytest.mark.extra_large
     @parameterized.parameters(*MODEL_LIST)
     def test_application_base(self, app, _, args):
         super()._test_application_base(app, _, args)
