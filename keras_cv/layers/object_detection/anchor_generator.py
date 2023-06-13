@@ -294,12 +294,6 @@ class _SingleAnchorGenerator:
             x_min = tf.maximum(tf.minimum(x_min, image_width), 0.0)
             x_max = tf.maximum(tf.minimum(x_max, image_width), 0.0)
 
-        boxes = tf.cast(
+        return = tf.cast(
             tf.concat([y_min, x_min, y_max, x_max], axis=-1), self.dtype
         )
-
-        # If we clipped boxes, there may be some with an area of 0 which we
-        # should remove
-        areas = (y_max - y_min) * (x_max - x_min)
-        return boxes
-        return tf.boolean_mask(boxes, tf.squeeze(areas > 0))
