@@ -42,10 +42,11 @@ def transform_segmentation_masks(segmentation_masks, num_classes, value_range):
 
     # Interpolate the segmentation masks from the range of (0, num_classes)
     # to the value range provided.
-    segmentation_masks = np.interp(
-        segmentation_masks, (0, num_classes), value_range
+    segmentation_masks = utils.transform_value_range(
+        segmentation_masks,
+        original_range=(0, num_classes),
+        target_range=value_range,
     )
-
     return segmentation_masks
 
 
