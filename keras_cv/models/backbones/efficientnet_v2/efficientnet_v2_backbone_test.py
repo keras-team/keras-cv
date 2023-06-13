@@ -151,23 +151,23 @@ class EfficientNetV2BackboneTest(tf.test.TestCase, parameterized.TestCase):
         self.assertEquals(list(outputs.keys()), levels)
         self.assertEquals(
             outputs["P1"].shape,
-            [None, input_size // 2**1, input_size // 2**1, 24],
+            (None, input_size // 2**1, input_size // 2**1, 24),
         )
         self.assertEquals(
             outputs["P2"].shape,
-            [None, input_size // 2**2, input_size // 2**2, 48],
+            (None, input_size // 2**2, input_size // 2**2, 48),
         )
         self.assertEquals(
             outputs["P3"].shape,
-            [None, input_size // 2**3, input_size // 2**3, 64],
+            (None, input_size // 2**3, input_size // 2**3, 64),
         )
         self.assertEquals(
             outputs["P4"].shape,
-            [None, input_size // 2**4, input_size // 2**4, 160],
+            (None, input_size // 2**4, input_size // 2**4, 160),
         )
         self.assertEquals(
             outputs["P5"].shape,
-            [None, input_size // 2**5, input_size // 2**5, 1280],
+            (None, input_size // 2**5, input_size // 2**5, 1280),
         )
 
     @parameterized.named_parameters(

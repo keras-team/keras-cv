@@ -105,19 +105,19 @@ class CSPDarkNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
         self.assertEquals(list(outputs.keys()), levels)
         self.assertEquals(
             outputs["P2"].shape,
-            [None, input_size // 2**2, input_size // 2**2, 128],
+            (None, input_size // 2**2, input_size // 2**2, 128),
         )
         self.assertEquals(
             outputs["P3"].shape,
-            [None, input_size // 2**3, input_size // 2**3, 256],
+            (None, input_size // 2**3, input_size // 2**3, 256),
         )
         self.assertEquals(
             outputs["P4"].shape,
-            [None, input_size // 2**4, input_size // 2**4, 512],
+            (None, input_size // 2**4, input_size // 2**4, 512),
         )
         self.assertEquals(
             outputs["P5"].shape,
-            [None, input_size // 2**5, input_size // 2**5, 1024],
+            (None, input_size // 2**5, input_size // 2**5, 1024),
         )
 
     @parameterized.named_parameters(
