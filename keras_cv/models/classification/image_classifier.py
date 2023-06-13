@@ -15,9 +15,7 @@
 
 import copy
 
-from keras import layers
-from tensorflow import keras
-
+from keras_cv.backend import keras
 from keras_cv.models.backbones.backbone_presets import backbone_presets
 from keras_cv.models.backbones.backbone_presets import (
     backbone_presets_with_weights,
@@ -81,9 +79,9 @@ class ImageClassifier(Task):
         **kwargs,
     ):
         if pooling == "avg":
-            pooling_layer = layers.GlobalAveragePooling2D(name="avg_pool")
+            pooling_layer = keras.layers.GlobalAveragePooling2D(name="avg_pool")
         elif pooling == "max":
-            pooling_layer = layers.GlobalMaxPooling2D(name="max_pool")
+            pooling_layer = keras.layers.GlobalMaxPooling2D(name="max_pool")
         else:
             raise ValueError(
                 f'`pooling` must be one of "avg", "max". Received: {pooling}.'
@@ -91,7 +89,7 @@ class ImageClassifier(Task):
         inputs = backbone.input
         x = backbone(inputs)
         x = pooling_layer(x)
-        outputs = layers.Dense(
+        outputs = keras.layers.Dense(
             num_classes,
             activation=activation,
             name="predictions",

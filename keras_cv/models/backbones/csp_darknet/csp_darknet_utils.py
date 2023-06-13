@@ -18,10 +18,7 @@ Reference:
   - [YoloV3 implementation](https://github.com/ultralytics/yolov3)
 """
 
-import tensorflow as tf
-from tensorflow import keras
-from tensorflow.keras import backend
-from tensorflow.keras import layers
+from keras_cv.backend import keras
 
 
 def DarknetConvBlock(
@@ -46,10 +43,10 @@ def DarknetConvBlock(
     """
 
     if name is None:
-        name = f"conv_block{backend.get_uid('conv_block')}"
+        name = f"conv_block{keras.backend.get_uid('conv_block')}"
 
     model_layers = [
-        layers.Conv2D(
+        keras.layers.Conv2D(
             filters,
             kernel_size,
             strides,
@@ -57,17 +54,19 @@ def DarknetConvBlock(
             use_bias=use_bias,
             name=name + "_conv",
         ),
-        layers.BatchNormalization(name=name + "_bn"),
+        keras.layers.BatchNormalization(name=name + "_bn"),
     ]
 
     if activation == "silu":
-        model_layers.append(layers.Lambda(lambda x: keras.activations.swish(x)))
+        model_layers.append(
+            keras.layers.Lambda(lambda x: keras.activations.silu(x))
+        )
     elif activation == "relu":
-        model_layers.append(layers.ReLU())
+        model_layers.append(keras.layers.ReLU())
     elif activation == "leaky_relu":
-        model_layers.append(layers.LeakyReLU(0.1))
+        model_layers.append(keras.layers.LeakyReLU(0.1))
 
-    return keras.Sequential(model_layers, name=None)
+    return keras.Sequential(model_layers, name=name)
 
 
 def ResidualBlocks(filters, num_blocks, name=None):
@@ -84,7 +83,7 @@ def ResidualBlocks(filters, num_blocks, name=None):
     """
 
     if name is None:
-        name = f"residual_block{backend.get_uid('residual_block')}"
+        name = f"residual_block{keras.backend.get_uid('residual_block')}"
 
     def apply(x):
         x = DarknetConvBlock(
@@ -114,9 +113,9 @@ def ResidualBlocks(filters, num_blocks, name=None):
             )(x)
 
             if i == num_blocks:
-                x = layers.Add(name=f"{name}_out")([residual, x])
+                x = keras.layers.Add(name=f"{name}_out")([residual, x])
             else:
-                x = layers.Add(name=f"{name}_add_{i}")([residual, x])
+                x = keras.layers.Add(name=f"{name}_add_{i}")([residual, x])
 
         return x
 
@@ -149,7 +148,7 @@ def SpatialPyramidPoolingBottleneck(
         SpatialPyramidPoolingBottleneck.
     """
     if name is None:
-        name = f"spp{backend.get_uid('spp')}"
+        name = f"spp{keras.backend.get_uid('spp')}"
 
     if hidden_filters is None:
         hidden_filters = filters
@@ -166,7 +165,7 @@ def SpatialPyramidPoolingBottleneck(
 
         for kernel_size in kernel_sizes:
             x.append(
-                layers.MaxPooling2D(
+                keras.layers.MaxPooling2D(
                     kernel_size,
                     strides=1,
                     padding="same",
@@ -174,7 +173,7 @@ def SpatialPyramidPoolingBottleneck(
                 )(x[0])
             )
 
-        x = layers.Concatenate(name=f"{name}_concat")(x)
+        x = keras.layers.Concatenate(name=f"{name}_concat")(x)
         x = DarknetConvBlock(
             filters,
             kernel_size=1,
@@ -209,21 +208,23 @@ def DarknetConvBlockDepthwise(
     """
 
     if name is None:
-        name = f"conv_block{backend.get_uid('conv_block')}"
+        name = f"conv_block{keras.backend.get_uid('conv_block')}"
 
     model_layers = [
-        layers.DepthwiseConv2D(
+        keras.layers.DepthwiseConv2D(
             kernel_size, strides, padding="same", use_bias=False
         ),
-        layers.BatchNormalization(),
+        keras.layers.BatchNormalization(),
     ]
 
     if activation == "silu":
-        model_layers.append(layers.Lambda(lambda x: keras.activations.swish(x)))
+        model_layers.append(
+            keras.layers.Lambda(lambda x: keras.activations.swish(x))
+        )
     elif activation == "relu":
-        model_layers.append(layers.ReLU())
+        model_layers.append(keras.layers.ReLU())
     elif activation == "leaky_relu":
-        model_layers.append(layers.LeakyReLU(0.1))
+        model_layers.append(keras.layers.LeakyReLU(0.1))
 
     model_layers.append(
         DarknetConvBlock(
@@ -235,7 +236,7 @@ def DarknetConvBlockDepthwise(
 
 
 @keras.utils.register_keras_serializable(package="keras_cv")
-class CrossStagePartial(layers.Layer):
+class CrossStagePartial(keras.layers.Layer):
     """A block used in Cross Stage Partial Darknet.
 
     Args:
@@ -309,8 +310,8 @@ class CrossStagePartial(layers.Layer):
                 )
             )
 
-        self.add = layers.Add()
-        self.concatenate = layers.Concatenate()
+        self.add = keras.layers.Add()
+        self.concatenate = keras.layers.Concatenate()
 
         self.darknet_conv3 = DarknetConvBlock(
             filters, kernel_size=1, strides=1, activation=activation
@@ -360,17 +361,13 @@ def Focus(name=None):
     """  # noqa: E501
 
     def apply(x):
-        return layers.Lambda(
-            lambda x: tf.concat(
-                [
-                    x[..., ::2, ::2, :],
-                    x[..., 1::2, ::2, :],
-                    x[..., ::2, 1::2, :],
-                    x[..., 1::2, 1::2, :],
-                ],
-                axis=-1,
-            ),
-            name=name,
-        )(x)
+        return keras.layers.Concatenate(name=name)(
+            [
+                x[..., ::2, ::2, :],
+                x[..., 1::2, ::2, :],
+                x[..., ::2, 1::2, :],
+                x[..., 1::2, 1::2, :],
+            ],
+        )
 
     return apply
