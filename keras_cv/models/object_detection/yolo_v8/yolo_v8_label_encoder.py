@@ -176,7 +176,7 @@ class YOLOV8LabelEncoder(layers.Layer):
 
         max_num_boxes = tf.cast(tf.shape(gt_bboxes)[1], dtype=tf.int64)
 
-        def handle_call(
+        def encode_to_targets(
             pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt
         ):
             mask_pos, align_metric, overlaps = self.get_pos_mask(
@@ -225,7 +225,7 @@ class YOLOV8LabelEncoder(layers.Layer):
         # return zeros if no gt boxes are present
         return tf.cond(
             max_num_boxes > 0,
-            lambda: handle_call(
+            lambda: encode_to_targets(
                 pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt
             ),
             lambda: (
