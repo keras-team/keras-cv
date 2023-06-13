@@ -46,14 +46,21 @@ class Backbone(keras.Model):
 
     @classproperty
     def presets(cls):
-        """Dictionary of preset names and configurations."""
+        """Dictionary of preset names and configs."""
         return {}
 
     @classproperty
     def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include
-        weights."""
+        """Dictionary of preset names and configs that include weights."""
         return {}
+
+    @classproperty
+    def presets_without_weights(cls):
+        """Dictionary of preset names and configs that don't include weights."""
+        return {
+            preset: cls.presets[preset]
+            for preset in set(cls.presets) - set(cls.presets_with_weights)
+        }
 
     @classmethod
     def from_preset(
@@ -62,8 +69,7 @@ class Backbone(keras.Model):
         load_weights=None,
         **kwargs,
     ):
-        """Instantiate {{model_name}} model from preset architecture and
-        weights.
+        """Instantiate {{model_name}} model from preset config and weights.
 
         Args:
             preset: string. Must be one of "{{preset_names}}".
