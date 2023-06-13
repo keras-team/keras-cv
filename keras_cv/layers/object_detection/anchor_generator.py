@@ -294,6 +294,6 @@ class _SingleAnchorGenerator:
             x_min = tf.maximum(tf.minimum(x_min, image_width), 0.0)
             x_max = tf.maximum(tf.minimum(x_max, image_width), 0.0)
 
-        return = tf.cast(
+        return tf.cast(
             tf.concat([y_min, x_min, y_max, x_max], axis=-1), self.dtype
         )
