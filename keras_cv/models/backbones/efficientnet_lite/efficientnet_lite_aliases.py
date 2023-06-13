@@ -40,7 +40,7 @@ ALIAS_DOCSTRING = """Instantiates the {name} architecture.
 
     # Randomly initialized backbone
     model = {name}Backbone()
-    output = model.predict(input_data)
+    output = model(input_data)
     ```
 """  # noqa: E501
 
