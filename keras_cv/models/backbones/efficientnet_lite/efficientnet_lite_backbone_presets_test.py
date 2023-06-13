@@ -30,7 +30,7 @@ from keras_cv.utils.train import get_feature_extractor
 class EfficientNetLitePresetFullTest(tf.test.TestCase, parameterized.TestCase):
     """
     Test the full enumeration of our preset.
-    This every presets for EfficientNetLite and is only run manually.
+    This tests every preset for EfficientNetLite and is only run manually.
     Run with:
     `pytest keras_cv/models/backbones/efficientnet_lite/efficientnet_lite_backbone_presets_test.py --run_extra_large`
     """  # noqa: E501
@@ -38,12 +38,12 @@ class EfficientNetLitePresetFullTest(tf.test.TestCase, parameterized.TestCase):
     @parameterized.named_parameters(
         *[(preset, preset) for preset in EfficientNetLiteBackbone.presets]
     )
-    def test_load_efficientnet(self, preset):
+    def test_load_efficientnetlite(self, preset):
         input_data = tf.ones(shape=(2, 224, 224, 3))
         model = EfficientNetLiteBackbone.from_preset(preset)
         model(input_data)
 
-    def test_efficientnet_feature_extractor(self):
+    def test_efficientnetlite_feature_extractor(self):
         model = EfficientNetLiteB0Backbone(
             include_rescaling=False,
             input_shape=[256, 256, 3],

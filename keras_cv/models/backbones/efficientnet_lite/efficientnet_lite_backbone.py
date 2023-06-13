@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-"""EfficientNet Lite models for Keras.
+"""EfficientNet Lite backbone model.
 
 Reference:
     - [EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks](https://arxiv.org/abs/1905.11946)
@@ -36,6 +36,8 @@ from keras_cv.models.legacy import utils
 from keras_cv.models.utils import correct_pad_downsample
 from keras_cv.utils.python_utils import classproperty
 
+BN_AXIS = 3
+
 
 @keras.utils.register_keras_serializable(package="keras_cv.models")
 class EfficientNetLiteBackbone(Backbone):
@@ -56,12 +58,35 @@ class EfficientNetLiteBackbone(Backbone):
         drop_connect_rate: float, dropout rate at skip connections.
         depth_divisor: integer, a unit of network width.
         activation: activation function.
-        blocks_args: list of dicts, parameters to construct block modules.
-        model_name: string, model name.
         input_shape: optional shape tuple,
             It should have exactly 3 inputs channels.
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
             to use as image input for the model.
+
+    Usage:
+    ```python
+    # Construct an EfficientNetLite from a preset:
+    efficientnet = models.EfficientNetLiteBackbone.from_preset(
+        "efficientnetlite_b0"
+    )
+    images = tf.ones((1, 256, 256, 3))
+    outputs = efficientnet.predict(images)
+
+    # Alternatively, you can also customize the EfficientNetLite architecture:
+    model = EfficientNetLiteBackbone(
+        stackwise_kernel_sizes= [3, 3, 5, 3, 5, 5, 3],
+        stackwise_num_repeats= [1, 2, 2, 3, 3, 4, 1],
+        stackwise_input_filters= [32, 16, 24, 40, 80, 112, 192],
+        stackwise_output_filters= [16, 24, 40, 80, 112, 192, 320],
+        stackwise_expansion_ratios= [1, 6, 6, 6, 6, 6, 6],
+        stackwise_strides= [1, 2, 2, 2, 1, 2, 1],
+        width_coefficient=1.0,
+        depth_coefficient=1.0,
+        include_rescaling=False,
+    )
+    images = tf.ones((1, 256, 256, 3))
+    outputs = model.predict(images)
+    ```
     """  # noqa: E501
 
     def __init__(
@@ -70,18 +95,18 @@ class EfficientNetLiteBackbone(Backbone):
         include_rescaling,
         width_coefficient,
         depth_coefficient,
-        dropout_rate=0.2,
-        drop_connect_rate=0.2,
-        depth_divisor=8,
-        activation="relu6",
-        input_shape=(None, None, 3),
-        input_tensor=None,
         stackwise_kernel_sizes,
         stackwise_num_repeats,
         stackwise_input_filters,
         stackwise_output_filters,
         stackwise_expansion_ratios,
         stackwise_strides,
+        dropout_rate=0.2,
+        drop_connect_rate=0.2,
+        depth_divisor=8,
+        input_shape=(None, None, 3),
+        input_tensor=None,
+        activation="relu6",
         **kwargs,
     ):
         img_input = utils.parse_model_inputs(input_shape, input_tensor)
@@ -105,7 +130,7 @@ class EfficientNetLiteBackbone(Backbone):
             kernel_initializer=conv_kernel_initializer(),
             name="stem_conv",
         )(x)
-        x = layers.BatchNormalization(axis=3, name="stem_bn")(x)
+        x = layers.BatchNormalization(axis=BN_AXIS, name="stem_bn")(x)
         x = layers.Activation(activation, name="stem_activation")(x)
 
         # Build blocks
@@ -130,7 +155,7 @@ class EfficientNetLiteBackbone(Backbone):
                 depth_divisor=depth_divisor,
             )
 
-            if i == 0 or i == 6:
+            if i == 0 or i == (len(stackwise_kernel_sizes) - 1):
                 repeats = num_repeats
             else:
                 repeats = round_repeats(
@@ -173,7 +198,7 @@ class EfficientNetLiteBackbone(Backbone):
             kernel_initializer=conv_kernel_initializer(),
             name="top_conv",
         )(x)
-        x = layers.BatchNormalization(axis=3, name="top_bn")(x)
+        x = layers.BatchNormalization(axis=BN_AXIS, name="top_bn")(x)
         x = layers.Activation(activation, name="top_activation")(x)
 
         pyramid_level_inputs.append(x.node.layer.name)
@@ -212,7 +237,6 @@ class EfficientNetLiteBackbone(Backbone):
                 "activation": self.activation,
                 "input_tensor": self.input_tensor,
                 "input_shape": self.input_shape[1:],
-                "trainable": self.trainable,
                 "stackwise_kernel_sizes": self.stackwise_kernel_sizes,
                 "stackwise_num_repeats": self.stackwise_num_repeats,
                 "stackwise_input_filters": self.stackwise_input_filters,
@@ -295,7 +319,7 @@ def apply_efficient_net_lite_block(
         kernel_initializer=conv_kernel_initializer(),
         name=name + "expand_conv",
     )(inputs)
-    x = layers.BatchNormalization(axis=3, name=name + "expand_bn")(x)
+    x = layers.BatchNormalization(axis=BN_AXIS, name=name + "expand_bn")(x)
     x = layers.Activation(activation, name=name + "expand_activation")(x)
 
     # Depthwise Convolution
@@ -315,7 +339,7 @@ def apply_efficient_net_lite_block(
         depthwise_initializer=conv_kernel_initializer(),
         name=name + "dwconv",
     )(x)
-    x = layers.BatchNormalization(axis=3, name=name + "bn")(x)
+    x = layers.BatchNormalization(axis=BN_AXIS, name=name + "bn")(x)
     x = layers.Activation(activation, name=name + "activation")(x)
 
     # Skip SE block
@@ -328,7 +352,7 @@ def apply_efficient_net_lite_block(
         kernel_initializer=conv_kernel_initializer(),
         name=name + "project_conv",
     )(x)
-    x = layers.BatchNormalization(axis=3, name=name + "project_bn")(x)
+    x = layers.BatchNormalization(axis=BN_AXIS, name=name + "project_bn")(x)
     if strides == 1 and filters_in == filters_out:
         if drop_rate > 0:
             x = layers.Dropout(

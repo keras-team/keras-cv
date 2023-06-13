@@ -21,7 +21,7 @@ from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_backbone_pres
 )
 from keras_cv.utils.python_utils import classproperty
 
-ALIAS_BASE_DOCSTRING = """Instantiates the {name} architecture.
+ALIAS_DOCSTRING = """Instantiates the {name} architecture.
 
     Reference:
     - [EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks](https://arxiv.org/abs/1905.11946)
@@ -34,6 +34,14 @@ ALIAS_BASE_DOCSTRING = """Instantiates the {name} architecture.
         input_shape: optional shape tuple, defaults to (None, None, 3).
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
             to use as image input for the model.
+    Usage:
+    ```python
+    input_data = tf.ones(shape=(8, 224, 224, 3))
+
+    # Randomly initialized backbone
+    model = {name}Backbone()
+    output = model.predict(input_data)
+    ```
 """  # noqa: E501
 
 
@@ -90,7 +98,7 @@ class EfficientNetLiteB1Backbone(EfficientNetLiteBackbone):
             }
         )
         return EfficientNetLiteBackbone.from_preset(
-            "efficientnetv1_b1", **kwargs
+            "efficientnetlite_b1", **kwargs
         )
 
     @classproperty
@@ -217,18 +225,28 @@ class EfficientNetLiteB4Backbone(EfficientNetLiteBackbone):
         return {}
 
 
-EfficientNetLiteB0Backbone.__doc__ = ALIAS_BASE_DOCSTRING.format(
-    name="EfficientNetLiteB0"
+setattr(
+    EfficientNetLiteB0Backbone,
+    "__doc__",
+    ALIAS_DOCSTRING.format(name="EfficientNetLiteB0"),
 )
-EfficientNetLiteB1Backbone.__doc__ = ALIAS_BASE_DOCSTRING.format(
-    name="EfficientNetLiteB1"
+setattr(
+    EfficientNetLiteB1Backbone,
+    "__doc__",
+    ALIAS_DOCSTRING.format(name="EfficientNetLiteB1"),
 )
-EfficientNetLiteB2Backbone.__doc__ = ALIAS_BASE_DOCSTRING.format(
-    name="EfficientNetLiteB2"
+setattr(
+    EfficientNetLiteB2Backbone,
+    "__doc__",
+    ALIAS_DOCSTRING.format(name="EfficientNetLiteB2"),
 )
-EfficientNetLiteB3Backbone.__doc__ = ALIAS_BASE_DOCSTRING.format(
-    name="EfficientNetLiteB3"
+setattr(
+    EfficientNetLiteB3Backbone,
+    "__doc__",
+    ALIAS_DOCSTRING.format(name="EfficientNetLiteB3"),
 )
-EfficientNetLiteB4Backbone.__doc__ = ALIAS_BASE_DOCSTRING.format(
-    name="EfficientNetLiteB4"
+setattr(
+    EfficientNetLiteB4Backbone,
+    "__doc__",
+    ALIAS_DOCSTRING.format(name="EfficientNetLiteB4"),
 )
