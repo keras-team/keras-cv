@@ -15,6 +15,7 @@
 """All Backbone presets"""
 
 from keras_cv.models.backbones.csp_darknet import csp_darknet_backbone_presets
+from keras_cv.models.backbones.darknet import darknet_backbone_presets
 from keras_cv.models.backbones.densenet import densenet_backbone_presets
 from keras_cv.models.backbones.efficientnet_v2 import (
     efficientnet_v2_backbone_presets,
@@ -30,6 +31,7 @@ backbone_presets_no_weights = {
     **csp_darknet_backbone_presets.backbone_presets_no_weights,
     **efficientnet_v2_backbone_presets.backbone_presets_no_weights,
     **densenet_backbone_presets.backbone_presets_no_weights,
+    **darknet_backbone_presets.backbone_presets_no_weights,
 }
 
 backbone_presets_with_weights = {
@@ -39,6 +41,7 @@ backbone_presets_with_weights = {
     **csp_darknet_backbone_presets.backbone_presets_with_weights,
     **efficientnet_v2_backbone_presets.backbone_presets_with_weights,
     **densenet_backbone_presets.backbone_presets_with_weights,
+    **darknet_backbone_presets.backbone_presets_with_weights,
 }
 
 backbone_presets = {

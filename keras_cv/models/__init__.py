@@ -31,6 +31,9 @@ from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
 from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
     CSPDarkNetXLBackbone,
 )
+from keras_cv.models.backbones.darknet.darknet_backbone import DarkNet21Backbone
+from keras_cv.models.backbones.darknet.darknet_backbone import DarkNet53Backbone
+from keras_cv.models.backbones.darknet.darknet_backbone import DarkNetBackbone
 from keras_cv.models.backbones.densenet.densenet_aliases import (
     DenseNet121Backbone,
 )
