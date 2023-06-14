@@ -310,17 +310,19 @@ def apply_efficient_net_lite_block(
 
     # Expansion phase
     filters = filters_in * expand_ratio
-    x = inputs
-    x = layers.Conv2D(
-        filters,
-        1,
-        padding="same",
-        use_bias=False,
-        kernel_initializer=conv_kernel_initializer(),
-        name=name + "expand_conv",
-    )(inputs)
-    x = layers.BatchNormalization(axis=BN_AXIS, name=name + "expand_bn")(x)
-    x = layers.Activation(activation, name=name + "expand_activation")(x)
+    if expand_ratio != 1:
+        x = layers.Conv2D(
+            filters,
+            1,
+            padding="same",
+            use_bias=False,
+            kernel_initializer=conv_kernel_initializer(),
+            name=name + "expand_conv",
+        )(inputs)
+        x = layers.BatchNormalization(axis=BN_AXIS, name=name + "expand_bn")(x)
+        x = layers.Activation(activation, name=name + "expand_activation")(x)
+    else:
+        x = inputs
 
     # Depthwise Convolution
     if strides == 2:
