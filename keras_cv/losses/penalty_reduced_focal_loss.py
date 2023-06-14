@@ -62,7 +62,7 @@ class BinaryPenaltyReducedFocalCrossEntropy(keras.losses.Loss):
         positive_threshold=0.99,
         positive_weight=1.0,
         negative_weight=1.0,
-        reduction="auto",
+        reduction="sum_over_batch_size",
         name="binary_penalty_reduced_focal_cross_entropy",
     ):
         super().__init__(reduction=reduction, name=name)
