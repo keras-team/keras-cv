@@ -71,11 +71,12 @@ class AnchorGeneratorTest(tf.test.TestCase, parameterized.TestCase):
         boxes = anchor_generator(image=image)
         boxes = tf.concat(list(boxes.values()), axis=0)
 
-        expected_box_shapes = (
-            (image_shape[0] // tf.constant(strides))
-            * (image_shape[1] // tf.constant(strides))
+        expected_box_shapes = tf.cast(
+            tf.math.ceil(image_shape[0] / tf.constant(strides))
+            * tf.math.ceil(image_shape[1] / tf.constant(strides))
             * len(scales)
-            * len(aspect_ratios)
+            * len(aspect_ratios),
+            tf.int32,
         )
 
         sum_expected_shape = (expected_box_shapes.numpy().sum(), 4)
@@ -102,11 +103,12 @@ class AnchorGeneratorTest(tf.test.TestCase, parameterized.TestCase):
         boxes = anchor_generator(image_shape=image_shape)
         boxes = tf.concat(list(boxes.values()), axis=0)
 
-        expected_box_shapes = (
-            (image_shape[0] // tf.constant(strides))
-            * (image_shape[1] // tf.constant(strides))
+        expected_box_shapes = tf.cast(
+            tf.math.ceil(image_shape[0] / tf.constant(strides))
+            * tf.math.ceil(image_shape[1] / tf.constant(strides))
             * len(scales)
-            * len(aspect_ratios)
+            * len(aspect_ratios),
+            tf.int32,
         )
 
         sum_expected_shape = (expected_box_shapes.numpy().sum(), 4)
