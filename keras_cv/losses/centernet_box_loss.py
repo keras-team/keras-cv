@@ -120,8 +120,6 @@ class CenterNetBoxLoss(keras.losses.Loss):
         return position_loss + heading_loss + size_loss
 
     def call(self, y_true, y_pred):
-        print(y_true.shape)
-        print(y_pred.shape)
         return ops.vectorized_map(
             lambda y_true_and_pred: self.regression_loss(
                 y_true_and_pred[0], y_true_and_pred[1]
