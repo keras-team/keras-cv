@@ -397,7 +397,7 @@ def apply_efficientnet_block(
             name=name + "expand_bn",
         )(x)
         x = layers.Activation(activation, name=name + "expand_activation")(x)
-    else: 
+    else:
         x = inputs
 
     # Depthwise Convolution
