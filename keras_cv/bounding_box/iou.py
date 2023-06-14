@@ -14,9 +14,8 @@
 """Contains functions to compute ious of bounding boxes."""
 import math
 
-import tensorflow as tf
-
 from keras_cv import bounding_box
+from keras_cv.backend import keras
 from keras_cv.backend import ops
 
 
@@ -148,10 +147,10 @@ def compute_iou(
     boxes2_area = _compute_area(boxes2)
     boxes2_area_rank = len(boxes2_area.shape)
     boxes2_axis = 1 if (boxes2_area_rank == 2) else 0
-    boxes1_area = tf.expand_dims(boxes1_area, axis=-1)
-    boxes2_area = tf.expand_dims(boxes2_area, axis=boxes2_axis)
+    boxes1_area = ops.expand_dims(boxes1_area, axis=-1)
+    boxes2_area = ops.expand_dims(boxes2_area, axis=boxes2_axis)
     union_area = boxes1_area + boxes2_area - intersect_area
-    res = tf.math.divide_no_nan(intersect_area, union_area)
+    res = ops.divide(intersect_area, union_area + keras.backend.epsilon())
 
     if boxes1_rank == 2:
         perm = [1, 0]
@@ -161,13 +160,13 @@ def compute_iou(
     if not use_masking:
         return res
 
-    mask_val_t = tf.cast(mask_val, res.dtype) * tf.ones_like(res)
-    boxes1_mask = tf.less(tf.reduce_max(boxes1, axis=-1, keepdims=True), 0.0)
-    boxes2_mask = tf.less(tf.reduce_max(boxes2, axis=-1, keepdims=True), 0.0)
-    background_mask = tf.logical_or(
-        boxes1_mask, tf.transpose(boxes2_mask, perm)
+    mask_val_t = ops.cast(mask_val, res.dtype) * ops.ones_like(res)
+    boxes1_mask = ops.less(ops.max(boxes1, axis=-1, keepdims=True), 0.0)
+    boxes2_mask = ops.less(ops.max(boxes2, axis=-1, keepdims=True), 0.0)
+    background_mask = ops.logical_or(
+        boxes1_mask, ops.transpose(boxes2_mask, perm)
     )
-    iou_lookup_table = tf.where(background_mask, mask_val_t, res)
+    iou_lookup_table = ops.where(background_mask, mask_val_t, res)
     return iou_lookup_table
 
 
