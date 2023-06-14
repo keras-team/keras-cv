@@ -43,30 +43,6 @@ from keras_cv.models.legacy.mlp_mixer import MLPMixerL16
 from keras_cv.models.legacy.object_detection.faster_rcnn.faster_rcnn import (
     FasterRCNN,
 )
-from keras_cv.models.legacy.regnet import RegNetX002
-from keras_cv.models.legacy.regnet import RegNetX004
-from keras_cv.models.legacy.regnet import RegNetX006
-from keras_cv.models.legacy.regnet import RegNetX008
-from keras_cv.models.legacy.regnet import RegNetX016
-from keras_cv.models.legacy.regnet import RegNetX032
-from keras_cv.models.legacy.regnet import RegNetX040
-from keras_cv.models.legacy.regnet import RegNetX064
-from keras_cv.models.legacy.regnet import RegNetX080
-from keras_cv.models.legacy.regnet import RegNetX120
-from keras_cv.models.legacy.regnet import RegNetX160
-from keras_cv.models.legacy.regnet import RegNetX320
-from keras_cv.models.legacy.regnet import RegNetY002
-from keras_cv.models.legacy.regnet import RegNetY004
-from keras_cv.models.legacy.regnet import RegNetY006
-from keras_cv.models.legacy.regnet import RegNetY008
-from keras_cv.models.legacy.regnet import RegNetY016
-from keras_cv.models.legacy.regnet import RegNetY032
-from keras_cv.models.legacy.regnet import RegNetY040
-from keras_cv.models.legacy.regnet import RegNetY064
-from keras_cv.models.legacy.regnet import RegNetY080
-from keras_cv.models.legacy.regnet import RegNetY120
-from keras_cv.models.legacy.regnet import RegNetY160
-from keras_cv.models.legacy.regnet import RegNetY320
 from keras_cv.models.legacy.segmentation.deeplab import DeepLabV3
 from keras_cv.models.legacy.vgg16 import VGG16
 from keras_cv.models.legacy.vgg19 import VGG19
