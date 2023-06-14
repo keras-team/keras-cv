@@ -78,7 +78,8 @@ jobs:
         KERAS_CV_MULTI_BACKEND: true
         KERAS_BACKEND: jax
       run: |
-        pytest keras_cv/models/backbones \
+        pytest keras_cv/losses \
+               keras_cv/models/backbones \
                keras_cv/models/classification/image_classifier_test.py \
                --durations 0 --run_large
   format:
