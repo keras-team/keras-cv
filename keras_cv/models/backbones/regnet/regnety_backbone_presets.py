@@ -19,7 +19,12 @@
 backbone_presets_no_weights = {
     "regnety002": {
         "metadata": {
-            "description": ("RegNet Model"),
+            "description": (
+                "Regnet Model"
+            ),
+            "params": 3414176,
+            "official_name": "Regnet",
+            "path": "Regnet",
         },
         "class_name": "keras_cv.models>RegNetBackbone",
         "config": {
@@ -35,7 +40,12 @@ backbone_presets_no_weights = {
     },
     "regnety004": {
         "metadata": {
-            "description": ("RegNet Model"),
+            "description": (
+                "Regnet Model"
+            ),
+            "params": 3414176,
+            "official_name": "Regnet",
+            "path": "Regnet",
         },
         "class_name": "keras_cv.models>RegNetBackbone",
         "config": {
@@ -51,7 +61,12 @@ backbone_presets_no_weights = {
     },
     "regnety006": {
         "metadata": {
-            "description": ("RegNet Model"),
+            "description": (
+                "Regnet Model"
+            ),
+            "params": 3414176,
+            "official_name": "Regnet",
+            "path": "Regnet",
         },
         "class_name": "keras_cv.models>RegNetBackbone",
         "config": {
@@ -67,7 +82,12 @@ backbone_presets_no_weights = {
     },
     "regnety008": {
         "metadata": {
-            "description": ("RegNet Model"),
+            "description": (
+                "Regnet Model"
+            ),
+            "params": 3414176,
+            "official_name": "Regnet",
+            "path": "Regnet",
         },
         "class_name": "keras_cv.models>RegNetBackbone",
         "config": {
@@ -83,7 +103,12 @@ backbone_presets_no_weights = {
     },
     "regnety016": {
         "metadata": {
-            "description": ("RegNet Model"),
+            "description": (
+                "Regnet Model"
+            ),
+            "params": 3414176,
+            "official_name": "Regnet",
+            "path": "Regnet",
         },
         "class_name": "keras_cv.models>RegNetBackbone",
         "config": {
@@ -99,7 +124,12 @@ backbone_presets_no_weights = {
     },
     "regnety032": {
         "metadata": {
-            "description": ("RegNet Model"),
+            "description": (
+                "Regnet Model"
+            ),
+            "params": 3414176,
+            "official_name": "Regnet",
+            "path": "Regnet",
         },
         "class_name": "keras_cv.models>RegNetBackbone",
         "config": {
@@ -115,7 +145,12 @@ backbone_presets_no_weights = {
     },
     "regnety040": {
         "metadata": {
-            "description": ("RegNet Model"),
+            "description": (
+                "Regnet Model"
+            ),
+            "params": 3414176,
+            "official_name": "Regnet",
+            "path": "Regnet",
         },
         "class_name": "keras_cv.models>RegNetBackbone",
         "config": {
@@ -131,7 +166,12 @@ backbone_presets_no_weights = {
     },
     "regnety064": {
         "metadata": {
-            "description": ("RegNet Model"),
+            "description": (
+                "Regnet Model"
+            ),
+            "params": 3414176,
+            "official_name": "Regnet",
+            "path": "Regnet",
         },
         "class_name": "keras_cv.models>RegNetBackbone",
         "config": {
@@ -147,7 +187,12 @@ backbone_presets_no_weights = {
     },
     "regnety080": {
         "metadata": {
-            "description": ("RegNet Model"),
+            "description": (
+                "Regnet Model"
+            ),
+            "params": 3414176,
+            "official_name": "Regnet",
+            "path": "Regnet",
         },
         "class_name": "keras_cv.models>RegNetBackbone",
         "config": {
@@ -163,7 +208,12 @@ backbone_presets_no_weights = {
     },
     "regnety120": {
         "metadata": {
-            "description": ("RegNet Model"),
+            "description": (
+                "Regnet Model"
+            ),
+            "params": 3414176,
+            "official_name": "Regnet",
+            "path": "Regnet",
         },
         "class_name": "keras_cv.models>RegNetBackbone",
         "config": {
@@ -179,7 +229,12 @@ backbone_presets_no_weights = {
     },
     "regnety160": {
         "metadata": {
-            "description": ("RegNet Model"),
+            "description": (
+                "Regnet Model"
+            ),
+            "params": 3414176,
+            "official_name": "Regnet",
+            "path": "Regnet",
         },
         "class_name": "keras_cv.models>RegNetBackbone",
         "config": {
@@ -195,7 +250,12 @@ backbone_presets_no_weights = {
     },
     "regnety320": {
         "metadata": {
-            "description": ("RegNet Model"),
+            "description": (
+                "Regnet Model"
+            ),
+            "params": 3414176,
+            "official_name": "Regnet",
+            "path": "Regnet",
         },
         "class_name": "keras_cv.models>RegNetBackbone",
         "config": {
