@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import tensorflow as tf
-from tensorflow import keras
+from keras_cv.backend import keras
+from keras_cv.backend import ops
 
 
 # TODO(tanzhenyu): consider inherit from LossFunctionWrapper to
@@ -62,7 +62,7 @@ class BinaryPenaltyReducedFocalCrossEntropy(keras.losses.Loss):
         positive_threshold=0.99,
         positive_weight=1.0,
         negative_weight=1.0,
-        reduction=keras.losses.Reduction.AUTO,
+        reduction="auto",
         name="binary_penalty_reduced_focal_cross_entropy",
     ):
         super().__init__(reduction=reduction, name=name)
@@ -74,27 +74,27 @@ class BinaryPenaltyReducedFocalCrossEntropy(keras.losses.Loss):
         self.negative_weight = negative_weight
 
     def call(self, y_true, y_pred):
-        y_pred = tf.convert_to_tensor(y_pred)
-        y_true = tf.cast(y_true, y_pred.dtype)
+        y_pred = ops.convert_to_tensor(y_pred)
+        y_true = ops.cast(y_true, y_pred.dtype)
 
         if self.from_logits:
-            y_pred = tf.nn.sigmoid(y_pred)
+            y_pred = ops.sigmoid(y_pred)
 
         # TODO(tanzhenyu): Evaluate whether we need clipping after model is
         #  trained.
-        y_pred = tf.clip_by_value(y_pred, 1e-4, 0.9999)
-        y_true = tf.clip_by_value(y_true, 0.0, 1.0)
+        y_pred = ops.clip(y_pred, 1e-4, 0.9999)
+        y_true = ops.clip(y_true, 0.0, 1.0)
 
-        pos_loss = tf.math.pow(1.0 - y_pred, self.alpha) * tf.math.log(y_pred)
+        pos_loss = ops.power(1.0 - y_pred, self.alpha) * ops.log(y_pred)
         neg_loss = (
-            tf.math.pow(1.0 - y_true, self.beta)
-            * tf.math.pow(y_pred, self.alpha)
-            * tf.math.log(1.0 - y_pred)
+            ops.power(1.0 - y_true, self.beta)
+            * ops.power(y_pred, self.alpha)
+            * ops.log(1.0 - y_pred)
         )
 
         positive_mask = y_true > self.positive_threshold
 
-        loss = tf.where(
+        loss = ops.where(
             positive_mask,
             self.positive_weight * pos_loss,
             self.negative_weight * neg_loss,
