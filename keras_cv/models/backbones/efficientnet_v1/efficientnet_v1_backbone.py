@@ -382,21 +382,23 @@ def apply_efficientnet_block(
         tf.Tensor
     """
     filters = filters_in * expand_ratio
-    x = inputs
-    x = layers.Conv2D(
-        filters=filters,
-        kernel_size=1,
-        strides=1,
-        padding="same",
-        use_bias=False,
-        kernel_initializer=conv_kernel_initializer(),
-        name=name + "expand_conv",
-    )(x)
-    x = layers.BatchNormalization(
-        axis=3,
-        name=name + "expand_bn",
-    )(x)
-    x = layers.Activation(activation, name=name + "expand_activation")(x)
+    if expand_ratio != 1:
+        x = layers.Conv2D(
+            filters=filters,
+            kernel_size=1,
+            strides=1,
+            padding="same",
+            use_bias=False,
+            kernel_initializer=conv_kernel_initializer(),
+            name=name + "expand_conv",
+        )(x)
+        x = layers.BatchNormalization(
+            axis=3,
+            name=name + "expand_bn",
+        )(x)
+        x = layers.Activation(activation, name=name + "expand_activation")(x)
+    else: 
+        x = inputs
 
     # Depthwise Convolution
     if strides == 2:
@@ -454,13 +456,13 @@ def apply_efficientnet_block(
         padding="same",
         use_bias=False,
         kernel_initializer=conv_kernel_initializer(),
-        name=name + "output_phase",
+        name=name + "project",
     )(x)
     x = layers.BatchNormalization(
         axis=3,
-        name=name + "output_phase_bn",
+        name=name + "project_bn",
     )(x)
-    x = layers.Activation(activation, name=name + "output_phase_activation")(x)
+    x = layers.Activation(activation, name=name + "project_activation")(x)
 
     if strides == 1 and filters_in == filters_out:
         if drop_rate > 0:
