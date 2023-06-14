@@ -29,10 +29,8 @@ def _compute_area(box):
     Returns:
       a float Tensor of [N] or [batch_size, N]
     """
-    y_min, x_min, y_max, x_max = tf.split(
-        box[..., :4], num_or_size_splits=4, axis=-1
-    )
-    return tf.squeeze((y_max - y_min) * (x_max - x_min), axis=-1)
+    y_min, x_min, y_max, x_max = ops.split(box[..., :4], 4, axis=-1)
+    return ops.squeeze((y_max - y_min) * (x_max - x_min), axis=-1)
 
 
 def _compute_intersection(boxes1, boxes2):
@@ -44,25 +42,21 @@ def _compute_intersection(boxes1, boxes2):
     Returns:
       a [N, M] or [batch_size, N, M] float Tensor.
     """
-    y_min1, x_min1, y_max1, x_max1 = tf.split(
-        boxes1[..., :4], num_or_size_splits=4, axis=-1
-    )
-    y_min2, x_min2, y_max2, x_max2 = tf.split(
-        boxes2[..., :4], num_or_size_splits=4, axis=-1
-    )
+    y_min1, x_min1, y_max1, x_max1 = ops.split(boxes1[..., :4], 4, axis=-1)
+    y_min2, x_min2, y_max2, x_max2 = ops.split(boxes2[..., :4], 4, axis=-1)
     boxes2_rank = len(boxes2.shape)
     perm = [1, 0] if boxes2_rank == 2 else [0, 2, 1]
     # [N, M] or [batch_size, N, M]
-    intersect_ymax = tf.minimum(y_max1, tf.transpose(y_max2, perm))
-    intersect_ymin = tf.maximum(y_min1, tf.transpose(y_min2, perm))
-    intersect_xmax = tf.minimum(x_max1, tf.transpose(x_max2, perm))
-    intersect_xmin = tf.maximum(x_min1, tf.transpose(x_min2, perm))
+    intersect_ymax = ops.minimum(y_max1, ops.transpose(y_max2, perm))
+    intersect_ymin = ops.maximum(y_min1, ops.transpose(y_min2, perm))
+    intersect_xmax = ops.minimum(x_max1, ops.transpose(x_max2, perm))
+    intersect_xmin = ops.maximum(x_min1, ops.transpose(x_min2, perm))
 
     intersect_height = intersect_ymax - intersect_ymin
     intersect_width = intersect_xmax - intersect_xmin
-    zeros_t = tf.cast(0, intersect_height.dtype)
-    intersect_height = tf.maximum(zeros_t, intersect_height)
-    intersect_width = tf.maximum(zeros_t, intersect_width)
+    zeros_t = ops.cast(0, intersect_height.dtype)
+    intersect_height = ops.maximum(zeros_t, intersect_height)
+    intersect_width = ops.maximum(zeros_t, intersect_width)
 
     return intersect_height * intersect_width
 
