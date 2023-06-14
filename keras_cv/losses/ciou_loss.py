@@ -13,9 +13,8 @@
 # limitations under the License.
 
 
-import tensorflow as tf
-from tensorflow import keras
-
+from keras_cv.backend import keras
+from keras_cv.backend import ops
 from keras_cv.bounding_box.iou import compute_ciou
 
 
@@ -41,16 +40,14 @@ class CIoULoss(keras.losses.Loss):
 
     Sample Usage:
     ```python
-    y_true = tf.random.uniform(
-        (5, 10, 5),
-        minval=0,
-        maxval=10,
-        dtype=tf.dtypes.int32)
-    y_pred = tf.random.uniform(
+    y_true = np.random.uniform(
+        size=(5, 10, 5),
+        low=0,
+        high=10)
+    y_pred = np.random.uniform(
         (5, 10, 4),
-        minval=0,
-        maxval=10,
-        dtype=tf.dtypes.int32)
+        low=0,
+        high=10)
     loss = keras_cv.losses.CIoULoss()
     loss(y_true, y_pred).numpy()
     ```
@@ -67,8 +64,8 @@ class CIoULoss(keras.losses.Loss):
         self.bounding_box_format = bounding_box_format
 
     def call(self, y_true, y_pred):
-        y_pred = tf.convert_to_tensor(y_pred)
-        y_true = tf.cast(y_true, y_pred.dtype)
+        y_pred = ops.convert_to_tensor(y_pred)
+        y_true = ops.cast(y_true, y_pred.dtype)
 
         if y_pred.shape[-1] != 4:
             raise ValueError(
@@ -90,7 +87,7 @@ class CIoULoss(keras.losses.Loss):
                 f"y_pred={y_pred.shape[-2]}."
             )
 
-        ciou = tf.squeeze(
+        ciou = ops.squeeze(
             compute_ciou(y_true, y_pred, self.bounding_box_format), axis=-1
         )
         return 1 - ciou
