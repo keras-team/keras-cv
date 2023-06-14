@@ -14,6 +14,7 @@
 from keras_cv.backend.config import multi_backend
 
 if multi_backend():
+    from keras_core.backend import vectorized_map  # noqa: F403, F401
     from keras_core.operations import *  # noqa: F403, F401
 else:
     from keras_core.backend.tensorflow import *  # noqa: F403, F401
