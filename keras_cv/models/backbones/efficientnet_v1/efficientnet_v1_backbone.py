@@ -391,7 +391,7 @@ def apply_efficientnet_block(
             use_bias=False,
             kernel_initializer=conv_kernel_initializer(),
             name=name + "expand_conv",
-        )(x)
+        )(inputs)
         x = layers.BatchNormalization(
             axis=3,
             name=name + "expand_bn",
