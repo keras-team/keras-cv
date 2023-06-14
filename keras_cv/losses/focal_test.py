@@ -12,33 +12,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numpy as np
 import tensorflow as tf
 
+from keras_cv.backend import ops
 from keras_cv.losses import FocalLoss
 
 
 class FocalTest(tf.test.TestCase):
     def test_output_shape(self):
-        y_true = tf.cast(
-            tf.random.uniform(shape=[2, 5], minval=0, maxval=2, dtype=tf.int32),
-            tf.float32,
-        )
-        y_pred = tf.random.uniform(
-            shape=[2, 5], minval=0, maxval=1, dtype=tf.float32
-        )
+        y_true = np.random.uniform(size=[2, 5], low=0, high=2)
+        y_pred = np.random.uniform(size=[2, 5], low=0, high=1)
 
         focal_loss = FocalLoss(reduction="sum")
 
         self.assertAllEqual(focal_loss(y_true, y_pred).shape, [])
 
     def test_output_shape_reduction_none(self):
-        y_true = tf.cast(
-            tf.random.uniform(shape=[2, 5], minval=0, maxval=2, dtype=tf.int32),
-            tf.float32,
-        )
-        y_pred = tf.random.uniform(
-            shape=[2, 5], minval=0, maxval=1, dtype=tf.float32
-        )
+        y_true = np.random.uniform(size=[2, 5], low=0, high=2)
+        y_pred = np.random.uniform(size=[2, 5], low=0, high=1)
 
         focal_loss = FocalLoss(reduction="none")
 
@@ -50,13 +42,8 @@ class FocalTest(tf.test.TestCase):
         )
 
     def test_output_shape_from_logits(self):
-        y_true = tf.cast(
-            tf.random.uniform(shape=[2, 5], minval=0, maxval=2, dtype=tf.int32),
-            tf.float32,
-        )
-        y_pred = tf.random.uniform(
-            shape=[2, 5], minval=-10, maxval=10, dtype=tf.float32
-        )
+        y_true = np.random.uniform(size=[2, 5], low=0, high=2)
+        y_pred = np.random.uniform(size=[2, 5], low=-10, high=10)
 
         focal_loss = FocalLoss(reduction="none", from_logits=True)
 
@@ -68,13 +55,15 @@ class FocalTest(tf.test.TestCase):
         )
 
     def test_from_logits_argument(self):
-        y_true = tf.random.uniform((2, 8, 10))
-        y_logits = tf.random.uniform((2, 8, 10), minval=-1000, maxval=1000)
-        y_pred = tf.nn.sigmoid(y_logits)
+        np.random.seed(1337)
+        y_true = np.random.uniform(size=(2, 8, 10))
+        y_logits = np.random.uniform(size=(2, 8, 10), low=-1000, high=1000)
+        y_pred = ops.sigmoid(y_logits)
 
         focal_loss_on_logits = FocalLoss(from_logits=True)
         focal_loss = FocalLoss()
 
+        # Both with and without logits, we match a golden value.
         self.assertAllClose(
             focal_loss_on_logits(y_true, y_logits), focal_loss(y_true, y_pred)
         )
