@@ -11,10 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import numpy as np
 import tensorflow as tf
 from absl.testing import parameterized
 
 from keras_cv import layers as cv_layers
+from keras_cv.backend import ops
 
 
 class AnchorGeneratorTest(tf.test.TestCase, parameterized.TestCase):
@@ -45,7 +47,7 @@ class AnchorGeneratorTest(tf.test.TestCase, parameterized.TestCase):
             strides=strides,
         )
 
-        image = tf.random.uniform((4, 8, 8, 3))
+        image = np.random.uniform(size=(4, 8, 8, 3))
         with self.assertRaisesRegex(ValueError, "rank"):
             _ = anchor_generator(image=image)
 
@@ -60,7 +62,7 @@ class AnchorGeneratorTest(tf.test.TestCase, parameterized.TestCase):
         sizes = [x**2 for x in [32.0, 64.0, 128.0, 256.0, 512.0]]
         aspect_ratios = [0.5, 1.0, 2.0]
 
-        image = tf.random.uniform(image_shape)
+        image = np.random.uniform(size=image_shape)
         anchor_generator = cv_layers.AnchorGenerator(
             bounding_box_format="yxyx",
             sizes=sizes,
@@ -69,17 +71,17 @@ class AnchorGeneratorTest(tf.test.TestCase, parameterized.TestCase):
             strides=strides,
         )
         boxes = anchor_generator(image=image)
-        boxes = tf.concat(list(boxes.values()), axis=0)
+        boxes = ops.concatenate(list(boxes.values()), axis=0)
 
-        expected_box_shapes = tf.cast(
-            tf.math.ceil(image_shape[0] / tf.constant(strides))
-            * tf.math.ceil(image_shape[1] / tf.constant(strides))
+        expected_box_shapes = ops.cast(
+            ops.ceil(image_shape[0] / ops.array(strides))
+            * ops.ceil(image_shape[1] / ops.array(strides))
             * len(scales)
             * len(aspect_ratios),
-            tf.int32,
+            "int32",
         )
 
-        sum_expected_shape = (expected_box_shapes.numpy().sum(), 4)
+        sum_expected_shape = (ops.sum(expected_box_shapes), 4)
         self.assertEqual(boxes.shape, sum_expected_shape)
 
     @parameterized.parameters(
@@ -101,17 +103,17 @@ class AnchorGeneratorTest(tf.test.TestCase, parameterized.TestCase):
             strides=strides,
         )
         boxes = anchor_generator(image_shape=image_shape)
-        boxes = tf.concat(list(boxes.values()), axis=0)
+        boxes = ops.concatenate(list(boxes.values()), axis=0)
 
-        expected_box_shapes = tf.cast(
-            tf.math.ceil(image_shape[0] / tf.constant(strides))
-            * tf.math.ceil(image_shape[1] / tf.constant(strides))
+        expected_box_shapes = ops.cast(
+            ops.ceil(image_shape[0] / ops.array(strides))
+            * ops.ceil(image_shape[1] / ops.array(strides))
             * len(scales)
             * len(aspect_ratios),
-            tf.int32,
+            "int32",
         )
 
-        sum_expected_shape = (expected_box_shapes.numpy().sum(), 4)
+        sum_expected_shape = (ops.sum(expected_box_shapes), 4)
         self.assertEqual(boxes.shape, sum_expected_shape)
 
     def test_hand_crafted_aspect_ratios(self):
@@ -127,14 +129,14 @@ class AnchorGeneratorTest(tf.test.TestCase, parameterized.TestCase):
             strides=strides,
         )
 
-        image = tf.random.uniform((8, 8, 3))
+        image = np.random.uniform(size=(8, 8, 3))
         boxes = anchor_generator(image=image)
         level_0 = boxes[0]
 
         # width/4 * height/4 * aspect_ratios =
         self.assertAllEqual(level_0.shape, [12, 4])
 
-        image = tf.random.uniform((4, 4, 3))
+        image = np.random.uniform(size=(4, 4, 3))
         boxes = anchor_generator(image=image)
         level_0 = boxes[0]
 
@@ -158,7 +160,7 @@ class AnchorGeneratorTest(tf.test.TestCase, parameterized.TestCase):
             strides=strides,
         )
 
-        image = tf.random.uniform((8, 8, 3))
+        image = np.random.uniform(size=(8, 8, 3))
         boxes = anchor_generator(image=image)
         level_0 = boxes[0]
         expected_boxes = [
@@ -177,7 +179,7 @@ class AnchorGeneratorTest(tf.test.TestCase, parameterized.TestCase):
         sizes = [32.0, 64.0, 128.0]
         aspect_ratios = [0.5, 1.0, 2.0]
 
-        image = tf.random.uniform((512, 512, 3))
+        image = np.random.uniform(size=(512, 512, 3))
         anchor_generator = cv_layers.AnchorGenerator(
             bounding_box_format="rel_yxyx",
             sizes=sizes,
@@ -187,6 +189,6 @@ class AnchorGeneratorTest(tf.test.TestCase, parameterized.TestCase):
             clip_boxes=False,
         )
         boxes = anchor_generator(image=image)
-        boxes = tf.concat(list(boxes.values()), axis=0)
+        boxes = np.concatenate(list(boxes.values()), axis=0)
         self.assertAllLessEqual(boxes, 1.5)
         self.assertAllGreaterEqual(boxes, -0.50)
