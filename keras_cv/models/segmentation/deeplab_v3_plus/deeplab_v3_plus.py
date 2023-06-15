@@ -89,7 +89,6 @@ class DeepLabV3Plus(Task):
         projection_filters=48,
         spatial_pyramid_pooling=None,
         segmentation_head=None,
-        dropout=0.0,
         **kwargs,
     ):
         if not isinstance(backbone, keras.layers.Layer) or not isinstance(
