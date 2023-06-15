@@ -100,7 +100,7 @@ from keras_cv.models.backbones.regnet.regnet_aliases import RegNetY080Backbone
 from keras_cv.models.backbones.regnet.regnet_aliases import RegNetY120Backbone
 from keras_cv.models.backbones.regnet.regnet_aliases import RegNetY160Backbone
 from keras_cv.models.backbones.regnet.regnet_aliases import RegNetY320Backbone
-from keras_cv.models.backbones.regnet.regnet_backbone import RegNetBackBone
+from keras_cv.models.backbones.regnet.regnet_backbone import RegNetBackbone
 from keras_cv.models.backbones.resnet_v1.resnet_v1_aliases import (
     ResNet18Backbone,
 )

@@ -425,7 +425,7 @@ def apply_stage(
 
 
 @keras.utils.register_keras_serializable(package="keras_cv.models")
-class RegNetBackBone(Backbone):
+class RegNetBackbone(Backbone):
     """
     This class represents the architecture of RegNet
 

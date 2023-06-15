@@ -14,7 +14,7 @@
 import copy
 
 from keras_cv.models.backbones.regnet.regnet_backbone import (  # noqa: E501
-    RegNetBackBone,
+    RegNetBackbone,
 )
 from keras_cv.models.backbones.regnet.regnetx_backbone_presets import (  # noqa: E501
     backbone_presets_x,
@@ -51,7 +51,7 @@ ALIAS_DOCSTRING = """This class represents the {name} architecture.
 
 
 # Instantiating variants
-class RegNetX002Backbone(RegNetBackBone):
+class RegNetX002Backbone(RegNetBackbone):
     def __new__(
         cls,
         include_rescaling=True,
@@ -67,7 +67,7 @@ class RegNetX002Backbone(RegNetBackBone):
                 "input_shape": input_shape,
             }
         )
-        return RegNetBackBone.from_preset("regnetx002", **kwargs)
+        return RegNetBackbone.from_preset("regnetx002", **kwargs)
 
     @classproperty
     def presets(cls):
@@ -83,7 +83,7 @@ class RegNetX002Backbone(RegNetBackBone):
         return {}
 
 
-class RegNetX004Backbone(RegNetBackBone):
+class RegNetX004Backbone(RegNetBackbone):
     def __new__(
         cls,
         include_rescaling=True,
@@ -99,7 +99,7 @@ class RegNetX004Backbone(RegNetBackBone):
                 "input_shape": input_shape,
             }
         )
-        return RegNetBackBone.from_preset("regnetx004", **kwargs)
+        return RegNetBackbone.from_preset("regnetx004", **kwargs)
 
     @classproperty
     def presets(cls):
@@ -115,7 +115,7 @@ class RegNetX004Backbone(RegNetBackBone):
         return {}
 
 
-class RegNetX006Backbone(RegNetBackBone):
+class RegNetX006Backbone(RegNetBackbone):
     def __new__(
         cls,
         include_rescaling=True,
@@ -131,7 +131,7 @@ class RegNetX006Backbone(RegNetBackBone):
                 "input_shape": input_shape,
             }
         )
-        return RegNetBackBone.from_preset("regnetx006", **kwargs)
+        return RegNetBackbone.from_preset("regnetx006", **kwargs)
 
     @classproperty
     def presets(cls):
@@ -147,7 +147,7 @@ class RegNetX006Backbone(RegNetBackBone):
         return {}
 
 
-class RegNetX008Backbone(RegNetBackBone):
+class RegNetX008Backbone(RegNetBackbone):
     def __new__(
         cls,
         include_rescaling=True,
@@ -163,7 +163,7 @@ class RegNetX008Backbone(RegNetBackBone):
                 "input_shape": input_shape,
             }
         )
-        return RegNetBackBone.from_preset("regnetx008", **kwargs)
+        return RegNetBackbone.from_preset("regnetx008", **kwargs)
 
     @classproperty
     def presets(cls):
@@ -179,7 +179,7 @@ class RegNetX008Backbone(RegNetBackBone):
         return {}
 
 
-class RegNetX016Backbone(RegNetBackBone):
+class RegNetX016Backbone(RegNetBackbone):
     def __new__(
         cls,
         include_rescaling=True,
@@ -195,7 +195,7 @@ class RegNetX016Backbone(RegNetBackBone):
                 "input_shape": input_shape,
             }
         )
-        return RegNetBackBone.from_preset("regnetx016", **kwargs)
+        return RegNetBackbone.from_preset("regnetx016", **kwargs)
 
     @classproperty
     def presets(cls):
@@ -211,7 +211,7 @@ class RegNetX016Backbone(RegNetBackBone):
         return {}
 
 
-class RegNetX032Backbone(RegNetBackBone):
+class RegNetX032Backbone(RegNetBackbone):
     def __new__(
         cls,
         include_rescaling=True,
@@ -227,7 +227,7 @@ class RegNetX032Backbone(RegNetBackBone):
                 "input_shape": input_shape,
             }
         )
-        return RegNetBackBone.from_preset("regnetx032", **kwargs)
+        return RegNetBackbone.from_preset("regnetx032", **kwargs)
 
     @classproperty
     def presets(cls):
@@ -243,7 +243,7 @@ class RegNetX032Backbone(RegNetBackBone):
         return {}
 
 
-class RegNetX040Backbone(RegNetBackBone):
+class RegNetX040Backbone(RegNetBackbone):
     def __new__(
         cls,
         include_rescaling=True,
@@ -259,7 +259,7 @@ class RegNetX040Backbone(RegNetBackBone):
                 "input_shape": input_shape,
             }
         )
-        return RegNetBackBone.from_preset("regnetx040", **kwargs)
+        return RegNetBackbone.from_preset("regnetx040", **kwargs)
 
     @classproperty
     def presets(cls):
@@ -275,7 +275,7 @@ class RegNetX040Backbone(RegNetBackBone):
         return {}
 
 
-class RegNetX064Backbone(RegNetBackBone):
+class RegNetX064Backbone(RegNetBackbone):
     def __new__(
         cls,
         include_rescaling=True,
@@ -291,7 +291,7 @@ class RegNetX064Backbone(RegNetBackBone):
                 "input_shape": input_shape,
             }
         )
-        return RegNetBackBone.from_preset("regnetx064", **kwargs)
+        return RegNetBackbone.from_preset("regnetx064", **kwargs)
 
     @classproperty
     def presets(cls):
@@ -307,7 +307,7 @@ class RegNetX064Backbone(RegNetBackBone):
         return {}
 
 
-class RegNetX080Backbone(RegNetBackBone):
+class RegNetX080Backbone(RegNetBackbone):
     def __new__(
         cls,
         include_rescaling=True,
@@ -323,7 +323,7 @@ class RegNetX080Backbone(RegNetBackBone):
                 "input_shape": input_shape,
             }
         )
-        return RegNetBackBone.from_preset("regnetx080", **kwargs)
+        return RegNetBackbone.from_preset("regnetx080", **kwargs)
 
     @classproperty
     def presets(cls):
@@ -339,7 +339,7 @@ class RegNetX080Backbone(RegNetBackBone):
         return {}
 
 
-class RegNetX120Backbone(RegNetBackBone):
+class RegNetX120Backbone(RegNetBackbone):
     def __new__(
         cls,
         include_rescaling=True,
@@ -355,7 +355,7 @@ class RegNetX120Backbone(RegNetBackBone):
                 "input_shape": input_shape,
             }
         )
-        return RegNetBackBone.from_preset("regnetx120", **kwargs)
+        return RegNetBackbone.from_preset("regnetx120", **kwargs)
 
     @classproperty
     def presets(cls):
@@ -371,7 +371,7 @@ class RegNetX120Backbone(RegNetBackBone):
         return {}
 
 
-class RegNetX160Backbone(RegNetBackBone):
+class RegNetX160Backbone(RegNetBackbone):
     def __new__(
         cls,
         include_rescaling=True,
@@ -387,7 +387,7 @@ class RegNetX160Backbone(RegNetBackBone):
                 "input_shape": input_shape,
             }
         )
-        return RegNetBackBone.from_preset("regnetx160", **kwargs)
+        return RegNetBackbone.from_preset("regnetx160", **kwargs)
 
     @classproperty
     def presets(cls):
@@ -403,7 +403,7 @@ class RegNetX160Backbone(RegNetBackBone):
         return {}
 
 
-class RegNetX320Backbone(RegNetBackBone):
+class RegNetX320Backbone(RegNetBackbone):
     def __new__(
         cls,
         include_rescaling=True,
@@ -419,7 +419,7 @@ class RegNetX320Backbone(RegNetBackBone):
                 "input_shape": input_shape,
             }
         )
-        return RegNetBackBone.from_preset("regnetx320", **kwargs)
+        return RegNetBackbone.from_preset("regnetx320", **kwargs)
 
     @classproperty
     def presets(cls):
@@ -435,7 +435,7 @@ class RegNetX320Backbone(RegNetBackBone):
         return {}
 
 
-class RegNetY002Backbone(RegNetBackBone):
+class RegNetY002Backbone(RegNetBackbone):
     def __new__(
         cls,
         include_rescaling=True,
@@ -451,7 +451,7 @@ class RegNetY002Backbone(RegNetBackBone):
                 "input_shape": input_shape,
             }
         )
-        return RegNetBackBone.from_preset("regnety002", **kwargs)
+        return RegNetBackbone.from_preset("regnety002", **kwargs)
 
     @classproperty
     def presets(cls):
@@ -467,7 +467,7 @@ class RegNetY002Backbone(RegNetBackBone):
         return {}
 
 
-class RegNetY004Backbone(RegNetBackBone):
+class RegNetY004Backbone(RegNetBackbone):
     def __new__(
         cls,
         include_rescaling=True,
@@ -483,7 +483,7 @@ class RegNetY004Backbone(RegNetBackBone):
                 "input_shape": input_shape,
             }
         )
-        return RegNetBackBone.from_preset("regnety004", **kwargs)
+        return RegNetBackbone.from_preset("regnety004", **kwargs)
 
     @classproperty
     def presets(cls):
@@ -499,7 +499,7 @@ class RegNetY004Backbone(RegNetBackBone):
         return {}
 
 
-class RegNetY006Backbone(RegNetBackBone):
+class RegNetY006Backbone(RegNetBackbone):
     def __new__(
         cls,
         include_rescaling=True,
@@ -515,7 +515,7 @@ class RegNetY006Backbone(RegNetBackBone):
                 "input_shape": input_shape,
             }
         )
-        return RegNetBackBone.from_preset("regnety006", **kwargs)
+        return RegNetBackbone.from_preset("regnety006", **kwargs)
 
     @classproperty
     def presets(cls):
@@ -531,7 +531,7 @@ class RegNetY006Backbone(RegNetBackBone):
         return {}
 
 
-class RegNetY008Backbone(RegNetBackBone):
+class RegNetY008Backbone(RegNetBackbone):
     def __new__(
         cls,
         include_rescaling=True,
@@ -547,7 +547,7 @@ class RegNetY008Backbone(RegNetBackBone):
                 "input_shape": input_shape,
             }
         )
-        return RegNetBackBone.from_preset("regnety008", **kwargs)
+        return RegNetBackbone.from_preset("regnety008", **kwargs)
 
     @classproperty
     def presets(cls):
@@ -563,7 +563,7 @@ class RegNetY008Backbone(RegNetBackBone):
         return {}
 
 
-class RegNetY016Backbone(RegNetBackBone):
+class RegNetY016Backbone(RegNetBackbone):
     def __new__(
         cls,
         include_rescaling=True,
@@ -579,7 +579,7 @@ class RegNetY016Backbone(RegNetBackBone):
                 "input_shape": input_shape,
             }
         )
-        return RegNetBackBone.from_preset("regnety016", **kwargs)
+        return RegNetBackbone.from_preset("regnety016", **kwargs)
 
     @classproperty
     def presets(cls):
@@ -595,7 +595,7 @@ class RegNetY016Backbone(RegNetBackBone):
         return {}
 
 
-class RegNetY032Backbone(RegNetBackBone):
+class RegNetY032Backbone(RegNetBackbone):
     def __new__(
         cls,
         include_rescaling=True,
@@ -611,7 +611,7 @@ class RegNetY032Backbone(RegNetBackBone):
                 "input_shape": input_shape,
             }
         )
-        return RegNetBackBone.from_preset("regnety032", **kwargs)
+        return RegNetBackbone.from_preset("regnety032", **kwargs)
 
     @classproperty
     def presets(cls):
@@ -627,7 +627,7 @@ class RegNetY032Backbone(RegNetBackBone):
         return {}
 
 
-class RegNetY040Backbone(RegNetBackBone):
+class RegNetY040Backbone(RegNetBackbone):
     def __new__(
         cls,
         include_rescaling=True,
@@ -643,7 +643,7 @@ class RegNetY040Backbone(RegNetBackBone):
                 "input_shape": input_shape,
             }
         )
-        return RegNetBackBone.from_preset("regnety040", **kwargs)
+        return RegNetBackbone.from_preset("regnety040", **kwargs)
 
     @classproperty
     def presets(cls):
@@ -659,7 +659,7 @@ class RegNetY040Backbone(RegNetBackBone):
         return {}
 
 
-class RegNetY064Backbone(RegNetBackBone):
+class RegNetY064Backbone(RegNetBackbone):
     def __new__(
         cls,
         include_rescaling=True,
@@ -675,7 +675,7 @@ class RegNetY064Backbone(RegNetBackBone):
                 "input_shape": input_shape,
             }
         )
-        return RegNetBackBone.from_preset("regnety064", **kwargs)
+        return RegNetBackbone.from_preset("regnety064", **kwargs)
 
     @classproperty
     def presets(cls):
@@ -691,7 +691,7 @@ class RegNetY064Backbone(RegNetBackBone):
         return {}
 
 
-class RegNetY080Backbone(RegNetBackBone):
+class RegNetY080Backbone(RegNetBackbone):
     def __new__(
         cls,
         include_rescaling=True,
@@ -707,7 +707,7 @@ class RegNetY080Backbone(RegNetBackBone):
                 "input_shape": input_shape,
             }
         )
-        return RegNetBackBone.from_preset("regnety080", **kwargs)
+        return RegNetBackbone.from_preset("regnety080", **kwargs)
 
     @classproperty
     def presets(cls):
@@ -723,7 +723,7 @@ class RegNetY080Backbone(RegNetBackBone):
         return {}
 
 
-class RegNetY120Backbone(RegNetBackBone):
+class RegNetY120Backbone(RegNetBackbone):
     def __new__(
         cls,
         include_rescaling=True,
@@ -739,7 +739,7 @@ class RegNetY120Backbone(RegNetBackBone):
                 "input_shape": input_shape,
             }
         )
-        return RegNetBackBone.from_preset("regnety120", **kwargs)
+        return RegNetBackbone.from_preset("regnety120", **kwargs)
 
     @classproperty
     def presets(cls):
@@ -755,7 +755,7 @@ class RegNetY120Backbone(RegNetBackBone):
         return {}
 
 
-class RegNetY160Backbone(RegNetBackBone):
+class RegNetY160Backbone(RegNetBackbone):
     def __new__(
         cls,
         include_rescaling=True,
@@ -771,7 +771,7 @@ class RegNetY160Backbone(RegNetBackBone):
                 "input_shape": input_shape,
             }
         )
-        return RegNetBackBone.from_preset("regnety160", **kwargs)
+        return RegNetBackbone.from_preset("regnety160", **kwargs)
 
     @classproperty
     def presets(cls):
@@ -787,7 +787,7 @@ class RegNetY160Backbone(RegNetBackBone):
         return {}
 
 
-class RegNetY320Backbone(RegNetBackBone):
+class RegNetY320Backbone(RegNetBackbone):
     def __new__(
         cls,
         include_rescaling=True,
@@ -803,7 +803,7 @@ class RegNetY320Backbone(RegNetBackBone):
                 "input_shape": input_shape,
             }
         )
-        return RegNetBackBone.from_preset("regnety320", **kwargs)
+        return RegNetBackbone.from_preset("regnety320", **kwargs)
 
     @classproperty
     def presets(cls):
