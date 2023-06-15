@@ -64,10 +64,9 @@ def mask_invalid_detections(bounding_boxes, output_ragged=False):
     num_detections = bounding_boxes.get("num_detections")
 
     # Create a mask to select only the first N boxes from each batch
-    mask = ops.repeat(
-        ops.expand_dims(ops.arange(ops.shape(boxes)[1]), axis=0),
-        repeats=ops.shape(boxes)[0],
-        axis=0,
+    mask = ops.cast(
+        ops.expand_dims(ops.arange(boxes.shape[1]), axis=0),
+        num_detections.dtype,
     )
     mask = mask < num_detections[:, None]
 
