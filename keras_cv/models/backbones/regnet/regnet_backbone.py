@@ -210,6 +210,7 @@ def apply_y_block(
         )
 
     groups = filters_out // group_width
+    se_filters = int(filters_in * squeeze_excite_ratio)
 
     if stride != 1:
         skip = apply_conv2d_bn(
@@ -244,9 +245,9 @@ def apply_y_block(
     )
 
     # Squeeze-Excitation block
-    x = SqueezeAndExcite2D(filters_out, ratio=squeeze_excite_ratio, name=name)(
-        x
-    )
+    x = SqueezeAndExcite2D(
+        filters_out, bottleneck_filters=se_filters, name=name
+    )(x)
 
     # conv_1x1_2
     x = apply_conv2d_bn(
@@ -300,6 +301,7 @@ def apply_z_block(
         )
 
     groups = filters_out // group_width
+    se_filters = int(filters_in * squeeze_excite_ratio)
 
     inv_btlneck_filters = int(filters_out / bottleneck_ratio)
 
@@ -327,7 +329,7 @@ def apply_z_block(
 
     # Squeeze-Excitation block
     x = SqueezeAndExcite2D(
-        inv_btlneck_filters, ratio=squeeze_excite_ratio, name=name
+        inv_btlneck_filters, bottleneck_filters=se_filters, name=name
     )(x)
 
     # conv_1x1_2
