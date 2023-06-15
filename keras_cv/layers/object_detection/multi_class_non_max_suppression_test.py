@@ -12,9 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
 import tensorflow as tf
 
 from keras_cv import layers as cv_layers
+from keras_cv.backend import keras
+from keras_cv.backend.config import multi_backend
 
 
 def decode_predictions_output_shapes():
@@ -42,8 +45,20 @@ def decode_predictions_output_shapes():
 
 
 class NmsPredictionDecoderTest(tf.test.TestCase):
+    @pytest.mark.skipif(
+        multi_backend() and keras.backend.config.backend() != "tensorflow",
+        reason="Only TensorFlow supports MultiClassNMS",
+    )
     def test_decode_predictions_output_shapes(self):
         result = decode_predictions_output_shapes()
         self.assertEqual(result["boxes"].shape, [8, None, 4])
         self.assertEqual(result["classes"].shape, [8, None])
         self.assertEqual(result["confidence"].shape, [8, None])
+
+    @pytest.mark.skipif(
+        not multi_backend() or keras.backend.config.backend() == "tensorflow",
+        reason="Only TensorFlow supports MultiClassNMS",
+    )
+    def test_throws_with_invalid_backend(self):
+        with self.assertRaisesRegex(NotImplementedError, "non-TensorFlow"):
+            decode_predictions_output_shapes()
