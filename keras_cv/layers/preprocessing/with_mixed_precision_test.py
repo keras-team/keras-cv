@@ -29,6 +29,7 @@ TEST_CONFIGURATIONS = [
             "target_size": (224, 224),
             "crop_area_factor": (0.8, 1.0),
             "aspect_ratio_factor": (3 / 4, 4 / 3),
+            "bounding_box_format": "xywh",
         },
     ),
     ("Grayscale", layers.Grayscale, {}),
@@ -119,7 +120,7 @@ TEST_CONFIGURATIONS = [
     ),
     # ("RandomShear", layers.RandomShear, {"x_factor": 0.3, "x_factor": 0.3}),
     ("Solarization", layers.Solarization, {"value_range": (0, 255)}),
-    ("Mosaic", layers.Mosaic, {}),
+    ("Mosaic", layers.Mosaic, {"bounding_box_format": "xyxy"}, ),
     ("CutMix", layers.CutMix, {}),
     ("MixUp", layers.MixUp, {}),
     (
