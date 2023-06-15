@@ -66,15 +66,15 @@ class DeepLabV3PlusTest(tf.test.TestCase, parameterized.TestCase):
 
     @pytest.mark.large
     def test_weights_change(self):
-        target_size = [512, 512]
+        target_size = [512, 512, 3]
 
-        images = tf.ones(shape=[1] + target_size + [3])
-        labels = tf.zeros(shape=[1] + target_size + [3])
+        images = tf.ones(shape=[1] + target_size)
+        labels = tf.zeros(shape=[1] + target_size)
         ds = tf.data.Dataset.from_tensor_slices((images, labels))
         ds = ds.repeat(2)
         ds = ds.batch(2)
 
-        backbone = ResNet18V2Backbone(input_shape=target_size + [3])
+        backbone = ResNet18V2Backbone(input_shape=target_size)
         model = DeepLabV3Plus(backbone=backbone, num_classes=1)
 
         model.compile(
@@ -97,12 +97,12 @@ class DeepLabV3PlusTest(tf.test.TestCase, parameterized.TestCase):
     )
     @pytest.mark.large  # Saving is slow, so mark these large.
     def test_saved_model(self, save_format, filename):
-        target_size = [512, 512]
+        target_size = [512, 512, 3]
 
-        backbone = ResNet18V2Backbone(input_shape=target_size + [3])
+        backbone = ResNet18V2Backbone(input_shape=target_size)
         model = DeepLabV3Plus(backbone=backbone, num_classes=1)
 
-        input_batch = tf.ones(shape=[2] + target_size + [3])
+        input_batch = tf.ones(shape=[2] + target_size)
         model_output = model(input_batch)
 
         save_path = os.path.join(self.get_temp_dir(), filename)
