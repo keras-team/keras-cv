@@ -32,17 +32,19 @@ class DeepLabV3Plus(Task):
 
     Args:
         backbone: `keras.Model`. The backbone network for the model that is
-            used as a feature extractor for the DeepLabV3 Encoder. Should be a
-            `keras_cv.models.backbones.backbone.Backbone`. A somewhat sensible
-            backbone to use in many cases is the:
+            used as a feature extractor for the DeepLabV3+ Encoder. Should
+            either be a `keras_cv.models.backbones.backbone.Backbone` or a
+            `tf.keras.Model` that implements the `pyramid_level_inputs`
+            property with keys "P2", "P3", "P4", and "P5" and layer names as
+            values. A somewhat sensible backbone to use in many cases is the:
             `keras_cv.models.ResNet50V2Backbone.from_preset("resnet50_v2_imagenet")`.
         num_classes: int, the number of classes for the detection model. Note
             that the `num_classes` doesn't contain the background class, and the
             classes from the data should be represented by integers with range
             [0, `num_classes`).
-        projection_filters: int, number of filters in the
-            convolution layer projecting low-level features from the `backbone`.
-            The default value is set to `48`, as per the
+        projection_filters: int, number of filters in the convolution layer
+            projecting low-level features from the `backbone`. The default
+            value is set to `48`, as per the
             [TensorFlow implementation of DeepLab](https://github.com/tensorflow/models/blob/master/research/deeplab/model.py#L676).
         spatial_pyramid_pooling: (Optional) a `keras.layers.Layer`. Also known
             as Atrous Spatial Pyramid Pooling (ASPP). Performs spatial pooling
@@ -54,10 +56,6 @@ class DeepLabV3Plus(Task):
             outputs of the DeepLabV3 encoder is passed to this layer and it
             should predict the segmentation mask based on feature from backbone
             and feature from decoder, otherwise a similar architecture is used.
-        dropout (Optional) float, The dropout rate applied to the outputs of the
-            decoder in the `segmentation_head`. This parameter is only relevant if
-            `segmentation_head` is `None`, i.e, the default segmentation head is
-            being used.
 
     Examples:
     ```python
@@ -105,15 +103,7 @@ class DeepLabV3Plus(Task):
 
         inputs = backbone.input
 
-        final_backbone_pyramid_output = backbone.get_layer(
-            list(backbone.pyramid_level_inputs.values())[-1]
-        ).output
-        feature_extractor = keras.Model(
-            inputs=backbone.input,
-            outputs=final_backbone_pyramid_output,
-            name="feature-extractor",
-        )
-        backbone_outputs = feature_extractor(inputs)
+        backbone_outputs = backbone(inputs)
 
         if spatial_pyramid_pooling is None:
             spatial_pyramid_pooling = SpatialPyramidPooling(
@@ -177,30 +167,20 @@ class DeepLabV3Plus(Task):
                     keras.layers.UpSampling2D(
                         size=(4, 4), interpolation="bilinear"
                     ),
-                ]
-            )
-
-            if dropout:
-                segmentation_head.add(
-                    keras.layers.Dropout(
-                        dropout, name="segmentation_head_dropout"
+                    # Classification layer
+                    keras.layers.Conv2D(
+                        name="segmentation_output",
+                        filters=num_classes,
+                        kernel_size=1,
+                        use_bias=False,
+                        padding="same",
+                        activation="softmax",
+                        # Force the dtype of the classification layer to float32
+                        # to avoid the NAN loss issue when used with mixed
+                        # precision API.
+                        dtype=tf.float32,
                     )
-                )
-
-            # Classification layer
-            segmentation_head.add(
-                keras.layers.Conv2D(
-                    name="segmentation_output",
-                    filters=num_classes,
-                    kernel_size=1,
-                    use_bias=False,
-                    padding="same",
-                    activation="softmax",
-                    # Force the dtype of the classification layer to float32
-                    # to avoid the NAN loss issue when used with mixed
-                    # precision API.
-                    dtype=tf.float32,
-                )
+                ]
             )
 
         outputs = segmentation_head(combined_encoder_outputs)
