@@ -12,11 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
 import tensorflow as tf
 
+from keras_cv.backend.config import multi_backend
 from keras_cv.layers.object_detection.roi_generator import ROIGenerator
 
 
+@pytest.mark.skipif(
+    multi_backend(),
+    reason="RCNN layers not yet ported to Keras Core",
+)
 class ROIGeneratorTest(tf.test.TestCase):
     def test_single_tensor(self):
         roi_generator = ROIGenerator("xyxy", nms_iou_threshold_train=0.96)
