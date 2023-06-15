@@ -19,8 +19,8 @@ from keras_cv.models.backbones.regnet.regnet_backbone import (  # noqa: E501
 from keras_cv.models.backbones.regnet.regnetx_backbone_presets import (  # noqa: E501
     backbone_presets_x,
 )
-from keras_cv.models.backbones.regnet.regnety_backbone_presets import ( # noqa: E501
-    backbone_presets_y
+from keras_cv.models.backbones.regnet.regnety_backbone_presets import (  # noqa: E501
+    backbone_presets_y,
 )
 from keras_cv.utils.python_utils import classproperty
 
@@ -49,6 +49,7 @@ ALIAS_DOCSTRING = """This class represents the {name} architecture.
         It should have exactly 3 inputs channels.
 """  # noqa: E501
 
+
 # Instantiating variants
 class RegNetX002Backbone(RegNetBackBone):
     def __new__(
@@ -72,9 +73,7 @@ class RegNetX002Backbone(RegNetBackBone):
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return {
-            "regnetx002": copy.deepcopy(
-                backbone_presets_x["regnetx002"]
-            ),
+            "regnetx002": copy.deepcopy(backbone_presets_x["regnetx002"]),
         }
 
     @classproperty
@@ -106,9 +105,7 @@ class RegNetX004Backbone(RegNetBackBone):
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return {
-            "regnetx004": copy.deepcopy(
-                backbone_presets_x["regnetx004"]
-            ),
+            "regnetx004": copy.deepcopy(backbone_presets_x["regnetx004"]),
         }
 
     @classproperty
@@ -140,9 +137,7 @@ class RegNetX006Backbone(RegNetBackBone):
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return {
-            "regnetx006": copy.deepcopy(
-                backbone_presets_x["regnetx006"]
-            ),
+            "regnetx006": copy.deepcopy(backbone_presets_x["regnetx006"]),
         }
 
     @classproperty
@@ -174,9 +169,7 @@ class RegNetX008Backbone(RegNetBackBone):
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return {
-            "regnetx008": copy.deepcopy(
-                backbone_presets_x["regnetx008"]
-            ),
+            "regnetx008": copy.deepcopy(backbone_presets_x["regnetx008"]),
         }
 
     @classproperty
@@ -208,9 +201,7 @@ class RegNetX016Backbone(RegNetBackBone):
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return {
-            "regnetx016": copy.deepcopy(
-                backbone_presets_x["regnetx016"]
-            ),
+            "regnetx016": copy.deepcopy(backbone_presets_x["regnetx016"]),
         }
 
     @classproperty
@@ -242,9 +233,7 @@ class RegNetX032Backbone(RegNetBackBone):
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return {
-            "regnetx032": copy.deepcopy(
-                backbone_presets_x["regnetx032"]
-            ),
+            "regnetx032": copy.deepcopy(backbone_presets_x["regnetx032"]),
         }
 
     @classproperty
@@ -276,9 +265,7 @@ class RegNetX040Backbone(RegNetBackBone):
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return {
-            "regnetx040": copy.deepcopy(
-                backbone_presets_x["regnetx040"]
-            ),
+            "regnetx040": copy.deepcopy(backbone_presets_x["regnetx040"]),
         }
 
     @classproperty
@@ -310,9 +297,7 @@ class RegNetX064Backbone(RegNetBackBone):
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return {
-            "regnetx064": copy.deepcopy(
-                backbone_presets_x["regnetx064"]
-            ),
+            "regnetx064": copy.deepcopy(backbone_presets_x["regnetx064"]),
         }
 
     @classproperty
@@ -344,9 +329,7 @@ class RegNetX080Backbone(RegNetBackBone):
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return {
-            "regnetx080": copy.deepcopy(
-                backbone_presets_x["regnetx080"]
-            ),
+            "regnetx080": copy.deepcopy(backbone_presets_x["regnetx080"]),
         }
 
     @classproperty
@@ -378,9 +361,7 @@ class RegNetX120Backbone(RegNetBackBone):
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return {
-            "regnetx120": copy.deepcopy(
-                backbone_presets_x["regnetx120"]
-            ),
+            "regnetx120": copy.deepcopy(backbone_presets_x["regnetx120"]),
         }
 
     @classproperty
@@ -412,9 +393,7 @@ class RegNetX160Backbone(RegNetBackBone):
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return {
-            "regnetx160": copy.deepcopy(
-                backbone_presets_x["regnetx160"]
-            ),
+            "regnetx160": copy.deepcopy(backbone_presets_x["regnetx160"]),
         }
 
     @classproperty
@@ -446,9 +425,7 @@ class RegNetX320Backbone(RegNetBackBone):
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return {
-            "regnetx320": copy.deepcopy(
-                backbone_presets_x["regnetx320"]
-            ),
+            "regnetx320": copy.deepcopy(backbone_presets_x["regnetx320"]),
         }
 
     @classproperty
@@ -480,9 +457,7 @@ class RegNetY002Backbone(RegNetBackBone):
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return {
-            "regnety002": copy.deepcopy(
-                backbone_presets_y["regnety002"]
-            ),
+            "regnety002": copy.deepcopy(backbone_presets_y["regnety002"]),
         }
 
     @classproperty
@@ -514,9 +489,7 @@ class RegNetY004Backbone(RegNetBackBone):
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return {
-            "regnety004": copy.deepcopy(
-                backbone_presets_y["regnety004"]
-            ),
+            "regnety004": copy.deepcopy(backbone_presets_y["regnety004"]),
         }
 
     @classproperty
@@ -548,9 +521,7 @@ class RegNetY006Backbone(RegNetBackBone):
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return {
-            "regnety006": copy.deepcopy(
-                backbone_presets_y["regnety006"]
-            ),
+            "regnety006": copy.deepcopy(backbone_presets_y["regnety006"]),
         }
 
     @classproperty
@@ -582,9 +553,7 @@ class RegNetY008Backbone(RegNetBackBone):
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return {
-            "regnety008": copy.deepcopy(
-                backbone_presets_y["regnety008"]
-            ),
+            "regnety008": copy.deepcopy(backbone_presets_y["regnety008"]),
         }
 
     @classproperty
@@ -616,9 +585,7 @@ class RegNetY016Backbone(RegNetBackBone):
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return {
-            "regnety016": copy.deepcopy(
-                backbone_presets_y["regnety016"]
-            ),
+            "regnety016": copy.deepcopy(backbone_presets_y["regnety016"]),
         }
 
     @classproperty
@@ -650,9 +617,7 @@ class RegNetY032Backbone(RegNetBackBone):
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return {
-            "regnety032": copy.deepcopy(
-                backbone_presets_y["regnety032"]
-            ),
+            "regnety032": copy.deepcopy(backbone_presets_y["regnety032"]),
         }
 
     @classproperty
@@ -684,9 +649,7 @@ class RegNetY040Backbone(RegNetBackBone):
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return {
-            "regnety040": copy.deepcopy(
-                backbone_presets_y["regnety040"]
-            ),
+            "regnety040": copy.deepcopy(backbone_presets_y["regnety040"]),
         }
 
     @classproperty
@@ -718,9 +681,7 @@ class RegNetY064Backbone(RegNetBackBone):
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return {
-            "regnety064": copy.deepcopy(
-                backbone_presets_y["regnety064"]
-            ),
+            "regnety064": copy.deepcopy(backbone_presets_y["regnety064"]),
         }
 
     @classproperty
@@ -752,9 +713,7 @@ class RegNetY080Backbone(RegNetBackBone):
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return {
-            "regnety080": copy.deepcopy(
-                backbone_presets_y["regnety080"]
-            ),
+            "regnety080": copy.deepcopy(backbone_presets_y["regnety080"]),
         }
 
     @classproperty
@@ -786,9 +745,7 @@ class RegNetY120Backbone(RegNetBackBone):
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return {
-            "regnety120": copy.deepcopy(
-                backbone_presets_y["regnety120"]
-            ),
+            "regnety120": copy.deepcopy(backbone_presets_y["regnety120"]),
         }
 
     @classproperty
@@ -820,9 +777,7 @@ class RegNetY160Backbone(RegNetBackBone):
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return {
-            "regnety160": copy.deepcopy(
-                backbone_presets_y["regnety160"]
-            ),
+            "regnety160": copy.deepcopy(backbone_presets_y["regnety160"]),
         }
 
     @classproperty
@@ -854,9 +809,7 @@ class RegNetY320Backbone(RegNetBackBone):
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return {
-            "regnety320": copy.deepcopy(
-                backbone_presets_y["regnety320"]
-            ),
+            "regnety320": copy.deepcopy(backbone_presets_y["regnety320"]),
         }
 
     @classproperty

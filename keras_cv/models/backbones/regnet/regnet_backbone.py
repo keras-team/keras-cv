@@ -428,6 +428,7 @@ def apply_stage(
 class RegNetBackBone(Backbone):
     """
     This class represents the architecture of RegNet
+
     Args:
         depths: iterable, Contains depths for each individual stages.
         widths: iterable, Contains output channel width of each individual
@@ -510,6 +511,7 @@ class RegNetBackBone(Backbone):
                 "input_shape": self.input_shape[1:],
             }
         )
+        return config
 
     @classproperty
     def presetsx(cls):
