@@ -11,8 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import tensorflow as tf
 
+from keras_cv.backend import ops
+from keras_cv.backend import supports_ragged
 from keras_cv.bounding_box.to_ragged import to_ragged
 from keras_cv.bounding_box.validate_format import validate_format
 
@@ -20,11 +21,10 @@ from keras_cv.bounding_box.validate_format import validate_format
 def mask_invalid_detections(bounding_boxes, output_ragged=False):
     """masks out invalid detections with -1s.
 
-    This utility is mainly used on the output of
-    `tf.image.combined_non_max_suppression` operations. The output of
-    `tf.image.combined_non_max_suppression` contains all the detections, even
-    invalid ones. Users are expected to use `num_detections` to determine how
-    many boxes are in each image.
+    This utility is mainly used on the output of non-max supression operations.
+    The output of non-max-supression contains all the detections, even invalid
+    ones. Users are expected to use `num_detections` to determine how many boxes
+    are in each image.
 
     In contrast, KerasCV expects all bounding boxes to be padded with -1s.
     This function uses the value of `num_detections` to mask out
@@ -38,11 +38,10 @@ def mask_invalid_detections(bounding_boxes, output_ragged=False):
             boxes.
     Returns:
         bounding boxes with proper masking of the boxes according to
-        `num_detections`. This allows proper interop with
-        `tf.image.combined_non_max_suppression`. Returned boxes match the
-        specification fed to the function, so if the bounding box tensor uses
-        `tf.RaggedTensor` to represent boxes the returned value will also return
-        `tf.RaggedTensor` representations.
+        `num_detections`. This allows proper interop with non-max supression.
+        Returned boxes match the specification fed to the function, so if the
+        bounding box tensor uses `tf.RaggedTensor` to represent boxes the
+        returned value will also return `tf.RaggedTensor` representations.
     """
     # ensure we are complying with KerasCV bounding box format.
     info = validate_format(bounding_boxes)
@@ -65,22 +64,22 @@ def mask_invalid_detections(bounding_boxes, output_ragged=False):
     num_detections = bounding_boxes.get("num_detections")
 
     # Create a mask to select only the first N boxes from each batch
-    mask = tf.repeat(
-        tf.expand_dims(tf.range(tf.shape(boxes)[1]), axis=0),
-        repeats=tf.shape(boxes)[0],
+    mask = ops.repeat(
+        ops.expand_dims(ops.arange(ops.shape(boxes)[1]), axis=0),
+        repeats=ops.shape(boxes)[0],
         axis=0,
     )
     mask = mask < num_detections[:, None]
 
-    classes = tf.where(mask, classes, -tf.ones_like(classes))
+    classes = ops.where(mask, classes, -ops.ones_like(classes))
 
     if confidence is not None:
-        confidence = tf.where(mask, confidence, -tf.ones_like(confidence))
+        confidence = ops.where(mask, confidence, -ops.ones_like(confidence))
 
     # reuse mask for boxes
-    mask = tf.expand_dims(mask, axis=-1)
-    mask = tf.repeat(mask, repeats=boxes.shape[-1], axis=-1)
-    boxes = tf.where(mask, boxes, -tf.ones_like(boxes))
+    mask = ops.expand_dims(mask, axis=-1)
+    mask = ops.repeat(mask, repeats=boxes.shape[-1], axis=-1)
+    boxes = ops.where(mask, boxes, -ops.ones_like(boxes))
 
     result = bounding_boxes.copy()
 
@@ -89,7 +88,7 @@ def mask_invalid_detections(bounding_boxes, output_ragged=False):
     if confidence is not None:
         result["confidence"] = confidence
 
-    if output_ragged:
+    if output_ragged and supports_ragged():
         return to_ragged(result)
 
     return result
