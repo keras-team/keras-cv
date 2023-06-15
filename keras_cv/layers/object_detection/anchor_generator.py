@@ -169,7 +169,7 @@ class AnchorGenerator(keras.layers.Layer):
                     "Expected `image` to be a Tensor of rank 3. Got "
                     f"image.shape.rank={len(image.shape)}"
                 )
-            image_shape = ops.shape(image)
+            image_shape = image.shape
 
         results = {}
         for key, generator in self.anchor_generators.items():
