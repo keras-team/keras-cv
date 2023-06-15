@@ -12,26 +12,37 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 import os
 
 import tensorflow as tf
 from absl.testing import parameterized
 from tensorflow import keras
 
+from keras_cv.models.backbones.regnet.regnet_aliases import RegNetX002Backbone
+from keras_cv.models.backbones.regnet.regnet_aliases import RegNetX004Backbone
+from keras_cv.models.backbones.regnet.regnet_aliases import RegNetX006Backbone
+from keras_cv.models.backbones.regnet.regnet_aliases import RegNetX008Backbone
+from keras_cv.models.backbones.regnet.regnet_aliases import RegNetX016Backbone
+from keras_cv.models.backbones.regnet.regnet_aliases import RegNetX032Backbone
+from keras_cv.models.backbones.regnet.regnet_aliases import RegNetX040Backbone
+from keras_cv.models.backbones.regnet.regnet_aliases import RegNetX064Backbone
+from keras_cv.models.backbones.regnet.regnet_aliases import RegNetX080Backbone
+from keras_cv.models.backbones.regnet.regnet_aliases import RegNetX120Backbone
+from keras_cv.models.backbones.regnet.regnet_aliases import RegNetX160Backbone
+from keras_cv.models.backbones.regnet.regnet_aliases import RegNetX320Backbone
+from keras_cv.models.backbones.regnet.regnet_aliases import RegNetY002Backbone
+from keras_cv.models.backbones.regnet.regnet_aliases import RegNetY004Backbone
+from keras_cv.models.backbones.regnet.regnet_aliases import RegNetY006Backbone
+from keras_cv.models.backbones.regnet.regnet_aliases import RegNetY008Backbone
+from keras_cv.models.backbones.regnet.regnet_aliases import RegNetY016Backbone
+from keras_cv.models.backbones.regnet.regnet_aliases import RegNetY032Backbone
+from keras_cv.models.backbones.regnet.regnet_aliases import RegNetY040Backbone
+from keras_cv.models.backbones.regnet.regnet_aliases import RegNetY064Backbone
+from keras_cv.models.backbones.regnet.regnet_aliases import RegNetY080Backbone
+from keras_cv.models.backbones.regnet.regnet_aliases import RegNetY120Backbone
+from keras_cv.models.backbones.regnet.regnet_aliases import RegNetY160Backbone
+from keras_cv.models.backbones.regnet.regnet_aliases import RegNetY320Backbone
 from keras_cv.models.backbones.regnet.regnet_backbone import RegNetBackBone
-from keras_cv.models.backbones.regnet.regnet_backbone import RegNetY002Backbone
-from keras_cv.models.backbones.regnet.regnet_backbone import RegNetY004Backbone
-from keras_cv.models.backbones.regnet.regnet_backbone import RegNetY006Backbone
-from keras_cv.models.backbones.regnet.regnet_backbone import RegNetY008Backbone
-from keras_cv.models.backbones.regnet.regnet_backbone import RegNetY016Backbone
-from keras_cv.models.backbones.regnet.regnet_backbone import RegNetY032Backbone
-from keras_cv.models.backbones.regnet.regnet_backbone import RegNetY040Backbone
-from keras_cv.models.backbones.regnet.regnet_backbone import RegNetY064Backbone
-from keras_cv.models.backbones.regnet.regnet_backbone import RegNetY080Backbone
-from keras_cv.models.backbones.regnet.regnet_backbone import RegNetY120Backbone
-from keras_cv.models.backbones.regnet.regnet_backbone import RegNetY160Backbone
-from keras_cv.models.backbones.regnet.regnet_backbone import RegNetY320Backbone
 
 
 class RegNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
@@ -49,7 +60,7 @@ class RegNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
         model(self.input_batch)
 
     def test_valid_call_applications_model(self):
-        model = RegNetY002Backbone()
+        model = RegNetX002Backbone()
         model(self.input_batch)
 
     def test_valid_call_with_rescaling(self):
@@ -91,7 +102,7 @@ class RegNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
         ("keras_format", "keras_v3", "model.keras"),
     )
     def test_saved_alias_model(self, save_format, filename):
-        model = RegNetY002Backbone()
+        model = RegNetX002Backbone()
         model_output = model(self.input_batch)
         save_path = os.path.join(self.get_temp_dir(), filename)
         model.save(save_path, save_format=save_format)
@@ -132,7 +143,7 @@ class RegNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
         ("four_channels", 4),
     )
     def test_application_variable_input_channels(self, num_channels):
-        # RegNetY002 model
+        # RegNetX002 model
         model = RegNetBackBone(
             depths=[1, 1, 4, 7],
             widths=[24, 56, 152, 368],
@@ -144,6 +155,18 @@ class RegNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
         self.assertEqual(model.output_shape, (None, None, None, 2048))
 
     @parameterized.named_parameters(
+        ("x002", RegNetX002Backbone),
+        ("x004", RegNetX004Backbone),
+        ("x006", RegNetX006Backbone),
+        ("x008", RegNetX008Backbone),
+        ("x016", RegNetX016Backbone),
+        ("x032", RegNetX032Backbone),
+        ("x040", RegNetX040Backbone),
+        ("x064", RegNetX064Backbone),
+        ("x080", RegNetX080Backbone),
+        ("x120", RegNetX120Backbone),
+        ("x160", RegNetX160Backbone),
+        ("x320", RegNetX320Backbone),
         ("y002", RegNetY002Backbone),
         ("y004", RegNetY004Backbone),
         ("y006", RegNetY006Backbone),
