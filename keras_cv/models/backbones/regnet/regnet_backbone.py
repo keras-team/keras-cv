@@ -1,4 +1,4 @@
-# Copyright 2022 The KerasCV Authors
+# Copyright 2023 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -438,7 +438,6 @@ class RegNetBackbone(Backbone):
         block_type: Must be one of `{"X", "Y", "Z"}`. For more details see the
             papers "Designing network design spaces" and "Fast and Accurate
             Model Scaling"
-        default_size: tuple (or) list, Default input image size.
         model_name: str, An optional name for the model.
         include_rescaling: bool, whether or not to Rescale the inputs.If set to True,
             inputs will be passed through a `Rescaling(1/255.0)` layer.

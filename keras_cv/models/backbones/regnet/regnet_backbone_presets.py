@@ -20,7 +20,7 @@ backbone_presets_no_weights = {
     "regnetx002": {
         "metadata": {
             "description": ("Regnet Model"),
-            "params": 3414176,
+            "params": 2336640,
             "official_name": "Regnet",
             "path": "Regnet",
         },
@@ -38,7 +38,7 @@ backbone_presets_no_weights = {
     "regnetx004": {
         "metadata": {
             "description": ("Regnet Model"),
-            "params": 3414176,
+            "params": 4809184,
             "official_name": "Regnet",
             "path": "Regnet",
         },
@@ -56,7 +56,7 @@ backbone_presets_no_weights = {
     "regnetx006": {
         "metadata": {
             "description": ("Regnet Model"),
-            "params": 3414176,
+            "params": 5700320,
             "official_name": "Regnet",
             "path": "Regnet",
         },
@@ -74,7 +74,7 @@ backbone_presets_no_weights = {
     "regnetx008": {
         "metadata": {
             "description": ("Regnet Model"),
-            "params": 3414176,
+            "params": 6623968,
             "official_name": "Regnet",
             "path": "Regnet",
         },
@@ -92,7 +92,7 @@ backbone_presets_no_weights = {
     "regnetx016": {
         "metadata": {
             "description": ("Regnet Model"),
-            "params": 3414176,
+            "params": 8320640,
             "official_name": "Regnet",
             "path": "Regnet",
         },
@@ -110,7 +110,7 @@ backbone_presets_no_weights = {
     "regnetx032": {
         "metadata": {
             "description": ("Regnet Model"),
-            "params": 3414176,
+            "params": 14350112,
             "official_name": "Regnet",
             "path": "Regnet",
         },
@@ -128,7 +128,7 @@ backbone_presets_no_weights = {
     "regnetx040": {
         "metadata": {
             "description": ("Regnet Model"),
-            "params": 3414176,
+            "params": 20833312,
             "official_name": "Regnet",
             "path": "Regnet",
         },
@@ -146,7 +146,7 @@ backbone_presets_no_weights = {
     "regnetx064": {
         "metadata": {
             "description": ("Regnet Model"),
-            "params": 3414176,
+            "params": 24658464,
             "official_name": "Regnet",
             "path": "Regnet",
         },
@@ -164,7 +164,7 @@ backbone_presets_no_weights = {
     "regnetx080": {
         "metadata": {
             "description": ("Regnet Model"),
-            "params": 3414176,
+            "params": 37742112,
             "official_name": "Regnet",
             "path": "Regnet",
         },
@@ -182,7 +182,7 @@ backbone_presets_no_weights = {
     "regnetx120": {
         "metadata": {
             "description": ("Regnet Model"),
-            "params": 3414176,
+            "params": 43961440,
             "official_name": "Regnet",
             "path": "Regnet",
         },
@@ -200,7 +200,7 @@ backbone_presets_no_weights = {
     "regnetx160": {
         "metadata": {
             "description": ("Regnet Model"),
-            "params": 3414176,
+            "params": 52340704,
             "official_name": "Regnet",
             "path": "Regnet",
         },
@@ -218,7 +218,7 @@ backbone_presets_no_weights = {
     "regnetx320": {
         "metadata": {
             "description": ("Regnet Model"),
-            "params": 3414176,
+            "params": 105452576,
             "official_name": "Regnet",
             "path": "Regnet",
         },
