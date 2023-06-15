@@ -119,6 +119,10 @@ class RetinaNet(Task):
             default `prediction_decoder` layer is a
             `keras_cv.layers.MultiClassNonMaxSuppression` layer, which uses
             a Non-Max Suppression for box pruning.
+        feature_pyramid: (Optional) A `keras.layers.Layer` that is
+            responsible for extracting features from intermediate backbone
+            layers. If not provided, the reference implementation from
+            the paper will be used.
         classification_head: (Optional) A `keras.Layer` that performs
             classification of the bounding boxes. If not provided, a simple
             ConvNet with 3 layers will be used.
@@ -135,6 +139,7 @@ class RetinaNet(Task):
         anchor_generator=None,
         label_encoder=None,
         prediction_decoder=None,
+        feature_pyramid=None,
         classification_head=None,
         box_head=None,
         **kwargs,
@@ -169,7 +174,7 @@ class RetinaNet(Task):
         feature_extractor = get_feature_extractor(
             backbone, extractor_layer_names, extractor_levels
         )
-        feature_pyramid = FeaturePyramid()
+        feature_pyramid = feature_pyramid or FeaturePyramid()
 
         prior_probability = keras.initializers.Constant(
             -np.log((1 - 0.01) / 0.01)
