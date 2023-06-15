@@ -471,11 +471,11 @@ class RegNetBackbone(Backbone):
 
         in_channels = x.shape[-1]  # Output from Stem
 
-        NUM_STAGES = 4
+        pyramid_level_inputs = []
 
-        for stage_index in range(NUM_STAGES):
-            depth = depths[stage_index]
-            out_channels = widths[stage_index]
+        for i in range(len(depths)):
+            depth = depths[i]
+            out_channels = widths[i]
 
             x = apply_stage(
                 x,
@@ -484,9 +484,11 @@ class RegNetBackbone(Backbone):
                 group_width,
                 in_channels,
                 out_channels,
-                name=model_name + "_Stage_" + str(stage_index),
+                name=model_name + "_Stage_" + str(i),
             )
             in_channels = out_channels
+        
+        pyramid_level_inputs.append(x.node.layer.name)
 
         super().__init__(inputs=img_input, outputs=x, name=model_name, **kwargs)
 
@@ -497,6 +499,9 @@ class RegNetBackbone(Backbone):
         self.include_rescaling = include_rescaling
         self.model_name = model_name
         self.input_tensor = input_tensor
+        self.pyramid_level_inputs = {
+            f"P{i + 1}": name for i, name in enumerate(pyramid_level_inputs)
+        }
 
     def get_config(self):
         config = super().get_config()
