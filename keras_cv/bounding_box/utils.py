@@ -13,9 +13,8 @@
 # limitations under the License.
 """Utility functions for working with bounding boxes."""
 
-import tensorflow as tf
-
 from keras_cv import bounding_box
+from keras_cv.backend import ops
 from keras_cv.bounding_box.formats import XYWH
 
 
@@ -57,8 +56,8 @@ def _relative_area(boxes, bounding_box_format):
     widths = boxes[..., XYWH.WIDTH]
     heights = boxes[..., XYWH.HEIGHT]
     # handle corner case where shear performs a full inversion.
-    return tf.where(
-        tf.math.logical_and(widths > 0, heights > 0), widths * heights, 0.0
+    return ops.where(
+        ops.logical_and(widths > 0, heights > 0), widths * heights, 0.0
     )
 
 
@@ -92,13 +91,13 @@ def clip_to_image(
         image_shape=image_shape,
     )
     boxes, classes, images, squeeze = _format_inputs(boxes, classes, images)
-    x1, y1, x2, y2 = tf.split(boxes, [1, 1, 1, 1], axis=-1)
-    clipped_bounding_boxes = tf.concat(
+    x1, y1, x2, y2 = ops.split(boxes, 4, axis=-1)
+    clipped_bounding_boxes = ops.concatenate(
         [
-            tf.clip_by_value(x1, clip_value_min=0, clip_value_max=1),
-            tf.clip_by_value(y1, clip_value_min=0, clip_value_max=1),
-            tf.clip_by_value(x2, clip_value_min=0, clip_value_max=1),
-            tf.clip_by_value(y2, clip_value_min=0, clip_value_max=1),
+            ops.clip(x1, 0, 1),
+            ops.clip(y1, 0, 1),
+            ops.clip(x2, 0, 1),
+            ops.clip(y2, 0, 1),
         ],
         axis=-1,
     )
@@ -112,14 +111,12 @@ def clip_to_image(
         images=images,
         image_shape=image_shape,
     )
-    clipped_bounding_boxes = tf.where(
-        tf.expand_dims(areas > 0.0, axis=-1), clipped_bounding_boxes, -1.0
+    clipped_bounding_boxes = ops.where(
+        ops.expand_dims(areas > 0.0, axis=-1), clipped_bounding_boxes, -1.0
     )
-    classes = tf.where(areas > 0.0, classes, tf.constant(-1, classes.dtype))
-    nan_indices = tf.math.reduce_any(
-        tf.math.is_nan(clipped_bounding_boxes), axis=-1
-    )
-    classes = tf.where(nan_indices, tf.constant(-1, classes.dtype), classes)
+    classes = ops.where(areas > 0.0, classes, -1)
+    nan_indices = ops.any(ops.isnan(clipped_bounding_boxes), axis=-1)
+    classes = ops.where(nan_indices, -1, classes)
 
     # TODO update dict and return
     clipped_bounding_boxes, classes = _format_outputs(
@@ -144,11 +141,11 @@ def _clip_boxes(boxes, box_format, image_shape):
         height, width, _ = image_shape
         max_length = [height, width, height, width]
     else:
-        image_shape = tf.cast(image_shape, dtype=boxes.dtype)
-        height, width, _ = tf.unstack(image_shape, axis=-1)
-        max_length = tf.stack([height, width, height, width], axis=-1)
+        image_shape = ops.cast(image_shape, dtype=boxes.dtype)
+        height, width, _ = ops.unstack(image_shape, axis=-1)
+        max_length = ops.stack([height, width, height, width], axis=-1)
 
-    clipped_boxes = tf.math.maximum(tf.math.minimum(boxes, max_length), 0.0)
+    clipped_boxes = ops.maximum(ops.minimum(boxes, max_length), 0.0)
     return clipped_boxes
 
 
@@ -179,12 +176,12 @@ def _format_inputs(boxes, classes, images):
                 "len(boxes.shape)=3 AND len(images.shape)=4."
             )
         if not images_include_batch:
-            images = tf.expand_dims(images, axis=0)
+            images = ops.expand_dims(images, axis=0)
 
     if not boxes_includes_batch:
         return (
-            tf.expand_dims(boxes, axis=0),
-            tf.expand_dims(classes, axis=0),
+            ops.expand_dims(boxes, axis=0),
+            ops.expand_dims(classes, axis=0),
             images,
             True,
         )
@@ -193,5 +190,5 @@ def _format_inputs(boxes, classes, images):
 
 def _format_outputs(boxes, classes, squeeze):
     if squeeze:
-        return tf.squeeze(boxes, axis=0), tf.squeeze(classes, axis=0)
+        return ops.squeeze(boxes, axis=0), ops.squeeze(classes, axis=0)
     return boxes, classes

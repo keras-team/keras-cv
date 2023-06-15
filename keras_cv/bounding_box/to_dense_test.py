@@ -11,12 +11,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import pytest
 import tensorflow as tf
 
 from keras_cv import bounding_box
+from keras_cv.backend import supports_ragged
 
 
 class ToDenseTest(tf.test.TestCase):
+    @pytest.mark.skipif(
+        supports_ragged() is False,
+        reason="Only TensorFlow supports raggeds",
+    )
     def test_converts_to_dense(self):
         bounding_boxes = {
             "boxes": tf.ragged.constant(
