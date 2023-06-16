@@ -41,7 +41,7 @@ class PredictionHead(keras.layers.Layer):
                 256,
                 kernel_size=3,
                 padding="same",
-                kernel_initializer=keras.initializers.OrthogonalInitializer(),
+                kernel_initializer="orthogonal",
                 activation="relu",
             )
             for _ in range(num_conv_layers)
@@ -51,7 +51,7 @@ class PredictionHead(keras.layers.Layer):
             kernel_size=3,
             strides=1,
             padding="same",
-            kernel_initializer=keras.initializers.OrthogonalInitializer(),
+            kernel_initializer="orthogonal",
             bias_initializer=self.bias_initializer,
         )
 
