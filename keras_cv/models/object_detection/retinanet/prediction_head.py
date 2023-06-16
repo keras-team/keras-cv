@@ -12,12 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from tensorflow import keras
-from tensorflow.keras import layers
+from keras_cv.backend import keras
 
 
 @keras.utils.register_keras_serializable(package="keras_cv")
-class PredictionHead(layers.Layer):
+class PredictionHead(keras.layers.Layer):
     """The class/box predictions head.
 
     Arguments:
@@ -38,21 +37,21 @@ class PredictionHead(layers.Layer):
         self.num_conv_layers = num_conv_layers
 
         self.conv_layers = [
-            layers.Conv2D(
+            keras.layers.Conv2D(
                 256,
                 kernel_size=3,
                 padding="same",
-                kernel_initializer=keras.initializers.Orthogonal(),
+                kernel_initializer=keras.initializers.OrthogonalInitializer(),
                 activation="relu",
             )
             for _ in range(num_conv_layers)
         ]
-        self.prediction_layer = layers.Conv2D(
+        self.prediction_layer = keras.layers.Conv2D(
             self.output_filters,
             kernel_size=3,
             strides=1,
             padding="same",
-            kernel_initializer=keras.initializers.Orthogonal(),
+            kernel_initializer=keras.initializers.OrthogonalInitializer(),
             bias_initializer=self.bias_initializer,
         )
 
@@ -61,6 +60,9 @@ class PredictionHead(layers.Layer):
             x = layer(x, training=training)
         x = self.prediction_layer(x, training=training)
         return x
+
+    def compute_output_shape(self, input_shape):
+        return input_shape[:-1] + (self.output_filters,)
 
     def get_config(self):
         config = {

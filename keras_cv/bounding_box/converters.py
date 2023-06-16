@@ -82,7 +82,7 @@ def _decode_deltas_to_boxes(
     """Converts bounding_boxes from delta format to `center_yxhw`."""
     if variance is not None:
         if ops.is_tensor(variance):
-            var_len = variance.get_shape().as_list()[-1]
+            var_len = variance.shape[-1]
         else:
             var_len = len(variance)
         if var_len != 4:

@@ -64,7 +64,7 @@ class RetinaNetLabelEncoder(layers.Layer):
         super().__init__(**kwargs)
         self.bounding_box_format = bounding_box_format
         self.anchor_generator = anchor_generator
-        self.box_variance = tf.convert_to_tensor(box_variance, dtype=self.dtype)
+        self.box_variance = tf.cast(box_variance, dtype=self.dtype)
         self.background_class = background_class
         self.ignore_class = ignore_class
         self.matched_boxes_metric = keras.metrics.BinaryAccuracy(

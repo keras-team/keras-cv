@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import tensorflow as tf
-from tensorflow import keras
+from keras_cv.backend import keras
+from keras_cv.backend import ops
 
 
 @keras.utils.register_keras_serializable(package="keras_cv")
@@ -31,6 +31,7 @@ class FeaturePyramid(keras.layers.Layer):
         self.conv_c6_3x3 = keras.layers.Conv2D(256, 3, 2, "same")
         self.conv_c7_3x3 = keras.layers.Conv2D(256, 3, 2, "same")
         self.upsample_2x = keras.layers.UpSampling2D(2)
+        # self.built = True
 
     def call(self, inputs, training=False):
         if isinstance(inputs, dict):
@@ -48,11 +49,37 @@ class FeaturePyramid(keras.layers.Layer):
         p4_output = self.conv_c4_3x3(p4_output, training=training)
         p5_output = self.conv_c5_3x3(p5_output, training=training)
         p6_output = self.conv_c6_3x3(c5_output, training=training)
-        p7_output = self.conv_c7_3x3(tf.nn.relu(p6_output), training=training)
+        p7_output = self.conv_c7_3x3(ops.relu(p6_output), training=training)
         return {
             "P3": p3_output,
             "P4": p4_output,
             "P5": p5_output,
             "P6": p6_output,
             "P7": p7_output,
+        }
+
+    def build(self, input_shape):
+        p3_channels = input_shape["P3"][-1]
+        p4_channels = input_shape["P4"][-1]
+        p5_channels = input_shape["P5"][-1]
+        self.conv_c3_1x1.build((None, None, None, p3_channels))
+        self.conv_c4_1x1.build((None, None, None, p4_channels))
+        self.conv_c5_1x1.build((None, None, None, p5_channels))
+        self.conv_c3_3x3.build((None, None, None, 256))
+        self.conv_c4_3x3.build((None, None, None, 256))
+        self.conv_c5_3x3.build((None, None, None, 256))
+        self.conv_c6_3x3.build((None, None, None, p5_channels))
+        self.conv_c7_3x3.build((None, None, None, 256))
+        self.built = True
+
+    def compute_output_shape(self, input_shape):
+        p3_shape = input_shape["P3"][:-1]
+        p4_shape = input_shape["P4"][:-1]
+        p5_shape = input_shape["P5"][:-1]
+        return {
+            "P3": p3_shape + (256,),
+            "P4": p4_shape + (256,),
+            "P5": p5_shape + (256,),
+            "P6": p5_shape + (256,),
+            "P7": p5_shape + (256,),
         }

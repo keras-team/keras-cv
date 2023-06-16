@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import math
+
 from keras_cv import bounding_box
 from keras_cv.backend import keras
 from keras_cv.backend import ops
@@ -232,8 +234,8 @@ class _SingleAnchorGenerator:
         self.dtype = dtype
 
     def __call__(self, image_size):
-        image_height = ops.cast(image_size[0], "float32")
-        image_width = ops.cast(image_size[1], "float32")
+        image_height = image_size[0]
+        image_width = image_size[1]
 
         aspect_ratios = ops.cast(self.aspect_ratios, "float32")
         aspect_ratios_sqrt = ops.cast(ops.sqrt(aspect_ratios), dtype="float32")
@@ -253,18 +255,24 @@ class _SingleAnchorGenerator:
         half_anchor_heights = ops.reshape(0.5 * anchor_heights, [1, 1, -1])
         half_anchor_widths = ops.reshape(0.5 * anchor_widths, [1, 1, -1])
 
-        stride = ops.cast(self.stride, "float32")
+        stride = self.stride
         # make sure range of `cx` is within limit of `image_width` with
         # `stride`, also for sizes where `image_width % stride != 0`.
         # [W]
-        cx = ops.arange(
-            0.5 * stride, ops.ceil(image_width / stride) * stride, stride
+        cx = ops.cast(
+            ops.arange(
+                0.5 * stride, math.ceil(image_width / stride) * stride, stride
+            ),
+            "float32",
         )
         # make sure range of `cy` is within limit of `image_height` with
         # `stride`, also for sizes where `image_height % stride != 0`.
         # [H]
-        cy = ops.arange(
-            0.5 * stride, ops.ceil(image_height / stride) * stride, stride
+        cy = ops.cast(
+            ops.arange(
+                0.5 * stride, math.ceil(image_height / stride) * stride, stride
+            ),
+            "float32",
         )
         # [H, W]
         cx_grid, cy_grid = ops.meshgrid(cx, cy)

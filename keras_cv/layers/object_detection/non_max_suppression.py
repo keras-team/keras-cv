@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import math
+
 from keras_cv import bounding_box
 from keras_cv.backend import keras
 from keras_cv.backend import ops
@@ -119,7 +121,7 @@ class NonMaxSuppression(keras.layers.Layer):
 
         # this is required to comply with KerasCV bounding box format.
         return bounding_box.mask_invalid_detections(
-            bounding_boxes, output_ragged=True
+            bounding_boxes, output_ragged=False
         )
 
     def get_config(self):
@@ -205,10 +207,10 @@ def non_max_suppression(
         return sorted_scores, sorted_boxes, sorted_scores_indices
 
     batch_dims = ops.shape(boxes)[:-2]
-    num_boxes = ops.shape(boxes)[-2]
+    num_boxes = boxes.shape[-2]
     boxes = ops.reshape(boxes, [-1, num_boxes, 4])
     scores = ops.reshape(scores, [-1, num_boxes])
-    batch_size = ops.shape(boxes)[0]
+    batch_size = boxes.shape[0]
     if score_threshold != float("-inf"):
         with ops.name_scope("filter_by_score"):
             score_mask = ops.cast(scores > score_threshold, scores.dtype)
@@ -219,14 +221,7 @@ def non_max_suppression(
     scores, boxes, sorted_indices = _sort_scores_and_boxes(scores, boxes)
 
     pad = (
-        ops.cast(
-            ops.ceil(
-                ops.cast(ops.maximum(num_boxes, max_output_size), "float32")
-                / ops.cast(tile_size, "float32")
-            ),
-            "int32",
-        )
-        * tile_size
+        math.ceil(max(num_boxes, max_output_size) / tile_size) * tile_size
         - num_boxes
     )
     boxes = ops.pad(ops.cast(boxes, "float32"), [[0, 0], [0, pad], [0, 0]])
@@ -258,7 +253,7 @@ def non_max_suppression(
     num_valid = ops.minimum(output_size, max_output_size)
     idx = num_boxes_after_padding - ops.cast(
         ops.top_k(
-            ops.cast(ops.any(selected_boxes > 0, [2]), "int32")
+            ops.cast(ops.any(selected_boxes > 0, [2]), "int64")
             * ops.expand_dims(ops.arange(num_boxes_after_padding, 0, -1), 0),
             max_output_size,
         )[0],
@@ -266,7 +261,7 @@ def non_max_suppression(
     )
     idx = ops.minimum(idx, num_boxes - 1)
 
-    index_offsets = ops.arange(batch_size) * num_boxes
+    index_offsets = ops.cast(ops.arange(batch_size) * num_boxes, "int32")
     take_along_axis_idx = ops.reshape(
         idx + ops.expand_dims(index_offsets, 1), [-1]
     )
@@ -311,15 +306,10 @@ def _bbox_overlap(boxes_a, boxes_b):
     with ops.name_scope("bbox_overlap"):
         if len(boxes_a.shape) == 4:
             boxes_a = ops.squeeze(boxes_a, axis=0)
-        print(boxes_a)
-        print(boxes_b)
         a_y_min, a_x_min, a_y_max, a_x_max = ops.split(boxes_a, 4, axis=2)
         b_y_min, b_x_min, b_y_max, b_x_max = ops.split(boxes_b, 4, axis=2)
 
         # Calculates the intersection area.
-        print(a_x_min)
-        print(b_x_min)
-        print(ops.transpose(b_x_min, [0, 2, 1]))
         i_xmin = ops.maximum(a_x_min, ops.transpose(b_x_min, [0, 2, 1]))
         i_xmax = ops.minimum(a_x_max, ops.transpose(b_x_max, [0, 2, 1]))
         i_ymin = ops.maximum(a_y_min, ops.transpose(b_y_min, [0, 2, 1]))
@@ -454,8 +444,8 @@ def _suppression_loop_body(boxes, iou_threshold, output_size, idx, tile_size):
       idx: the updated induction variable.
     """  # noqa: E501
     with ops.name_scope("suppression_loop_body"):
-        num_tiles = ops.shape(boxes)[1] // tile_size
-        batch_size = ops.shape(boxes)[0]
+        num_tiles = boxes.shape[1] // tile_size
+        batch_size = boxes.shape[0]
 
         def cross_suppression_func(boxes, box_slice, iou_threshold, inner_idx):
             return _cross_suppression(
