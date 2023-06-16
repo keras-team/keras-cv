@@ -32,16 +32,6 @@ from keras_cv.models.object_detection.retinanet import RetinaNetLabelEncoder
 
 
 class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
-    # @pytest.fixture(autouse=True)
-    # def cleanup_global_session(self):
-    #     # Code before yield runs before the test
-    #     tf.config.set_soft_device_placement(False)
-    #     yield
-    #     # Reset soft device placement to not interfere with other unit test
-    #     # files
-    #     tf.config.set_soft_device_placement(True)
-    #     keras.backend.clear_session()
-
     def test_retinanet_construction(self):
         retinanet = keras_cv.models.RetinaNet(
             num_classes=20,
@@ -53,10 +43,6 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
             box_loss="smoothl1",
             optimizer="adam",
         )
-
-        # TODO(lukewood) uncomment when using keras_cv.models.ResNet18
-        # self.assertIsNotNone(retinanet.backbone.get_layer(name="rescaling"))
-        # TODO(lukewood): test compile with the FocalLoss class
 
     @pytest.mark.large  # Fit is slow, so mark these large.
     def test_retinanet_call(self):
@@ -208,12 +194,8 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
         for w1, w2 in zip(original_fpn_weights, fpn_after_fit):
             self.assertNotAllClose(w1, w2)
 
-    @parameterized.named_parameters(
-        ("tf_format", "tf", "model"),
-        ("keras_format", "keras_v3", "model.keras"),
-    )
     @pytest.mark.large  # Saving is slow, so mark these large.
-    def test_saved_model(self, save_format, filename):
+    def test_saved_model(self):
         model = keras_cv.models.RetinaNet(
             num_classes=20,
             bounding_box_format="xywh",
@@ -221,8 +203,8 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
         )
         input_batch = ops.ones(shape=(2, 224, 224, 3))
         model_output = model(input_batch)
-        save_path = os.path.join(self.get_temp_dir(), filename)
-        model.save(save_path, save_format=save_format)
+        save_path = os.path.join(self.get_temp_dir(), "retinanet.keras")
+        model.save(save_path)
         restored_model = keras.models.load_model(save_path)
 
         # Check we got the real object back.

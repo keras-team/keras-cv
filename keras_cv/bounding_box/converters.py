@@ -39,10 +39,9 @@ def _encode_box_to_deltas(
 ):
     """Converts bounding_boxes from `center_yxhw` to delta format."""
     if variance is not None:
-        if ops.is_tensor(variance):
-            var_len = variance.get_shape().as_list()[-1]
-        else:
-            var_len = len(variance)
+        variance = ops.array(variance, "float32")
+        var_len = variance.shape[-1]
+
         if var_len != 4:
             raise ValueError(f"`variance` must be length 4, got {variance}")
     encoded_anchors = convert_format(
@@ -81,10 +80,9 @@ def _decode_deltas_to_boxes(
 ):
     """Converts bounding_boxes from delta format to `center_yxhw`."""
     if variance is not None:
-        if ops.is_tensor(variance):
-            var_len = variance.shape[-1]
-        else:
-            var_len = len(variance)
+        variance = ops.array(variance, "float32")
+        var_len = variance.shape[-1]
+
         if var_len != 4:
             raise ValueError(f"`variance` must be length 4, got {variance}")
 

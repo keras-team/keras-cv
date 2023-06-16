@@ -85,3 +85,13 @@ class PredictionHead(keras.layers.Layer):
             }
         )
         return super().from_config(config)
+
+    def build(self, input_shape):
+        self.conv_layers[0].build(input_shape)
+
+        intermediate_shape = tuple(input_shape[:-1]) + (256,)
+        for conv_layer in self.conv_layers[1:]:
+            conv_layer.build(intermediate_shape)
+
+        self.prediction_layer.build(intermediate_shape)
+        self.built = True

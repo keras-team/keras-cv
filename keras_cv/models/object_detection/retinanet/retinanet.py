@@ -37,7 +37,7 @@ from keras_cv.models.task import Task
 from keras_cv.utils.python_utils import classproperty
 from keras_cv.utils.train import get_feature_extractor
 
-BOX_VARIANCE = ops.array([0.1, 0.1, 0.2, 0.2], "float32")
+BOX_VARIANCE = [0.1, 0.1, 0.2, 0.2]
 
 
 # TODO(jbischof): Generalize `FeaturePyramid` class to allow for any P-levels
@@ -384,13 +384,11 @@ class RetinaNet(Task):
         self._user_metrics = metrics
         super().compile(loss=losses, **kwargs)
 
-    def compute_loss(
-        self, x, y, y_pred
-    ):  # box_pred, cls_pred, boxes, classes):
-        box_pred = y["box"]
-        cls_pred = y["classification"]
-        boxes = y_pred["box"]
-        classes = y_pred["classification"]
+    def compute_loss(self, x, y, y_pred, sample_weight):
+        box_pred = y_pred["box"]
+        cls_pred = y_pred["classification"]
+        boxes = y["box"]
+        classes = y["classification"]
         if boxes.shape[-1] != 4:
             raise ValueError(
                 "boxes should have shape (None, None, 4). Got "
@@ -414,7 +412,7 @@ class RetinaNet(Task):
 
         cls_labels = ops.one_hot(
             ops.cast(classes, dtype="int32"),
-            depth=self.num_classes,
+            self.num_classes,
             dtype="float32",
         )
 
@@ -426,10 +424,6 @@ class RetinaNet(Task):
         y_true = {
             "box": boxes,
             "classification": cls_labels,
-        }
-        y_pred = {
-            "box": box_pred,
-            "classification": cls_pred,
         }
         sample_weights = {
             "box": box_weights,
@@ -445,11 +439,18 @@ class RetinaNet(Task):
             lambda: zero_weight,
             lambda: sample_weights,
         )
+        import tensorflow as tf
+        print(type(x))
+        print(x)
+        print(y_true)
+        print(y_pred)
+        print("weight:", sample_weights)
         return super().compute_loss(
             x=x, y=y_true, y_pred=y_pred, sample_weight=sample_weights
         )
 
-    def train_step(self, data):
+    def train_step(self, *args):
+        data = args[-1]
         x, y = unpack_input(data)
 
         y_for_label_encoder = bounding_box.convert_format(
@@ -458,11 +459,14 @@ class RetinaNet(Task):
             target=self.label_encoder.bounding_box_format,
             images=x,
         )
-        boxes, classes = self.label_encoder(x, y_for_label_encoder)
 
-        return super().train_step(
-            (x, {"box": boxes, "classification": classes, "enencoded": y})
-        )
+        boxes, classes = self.label_encoder(x, y_for_label_encoder)
+        super_args = args[:-1] + ((
+            x,
+            {"box": boxes, "classification": classes, "enencoded": y},
+        ),)
+
+        return super().train_step(*super_args)
         # y_for_label_encoder = bounding_box.convert_format(
         #     y,
         #     source=self.bounding_box_format,
@@ -489,7 +493,8 @@ class RetinaNet(Task):
         # y_pred = self.decode_predictions(outputs, x)
         # return self.compute_metrics(x, y, y_pred, sample_weight=None)
 
-    def test_step(self, data):
+    def test_step(self, *args):
+        data = args[-1]
         x, y = unpack_input(data)
         y_for_label_encoder = bounding_box.convert_format(
             y,
@@ -505,9 +510,12 @@ class RetinaNet(Task):
             images=x,
         )
 
-        return super().test_step(
-            (x, {"box": boxes, "classification": classes, "enencoded": y})
-        )
+        super_args = args[:-1] + [(
+            x,
+            {"box": boxes, "classification": classes, "enencoded": y},
+        )]
+
+        return super().test_step(*super_args)
 
         # outputs = self(x, training=False)
         # box_pred, cls_pred = outputs["box"], outputs["classification"]
@@ -547,7 +555,7 @@ class RetinaNet(Task):
             "num_classes": self.num_classes,
             "bounding_box_format": self.bounding_box_format,
             "backbone": keras.utils.serialize_keras_object(self.backbone),
-            "label_encoder": self.label_encoder,
+            "label_encoder": keras.utils.serialize_keras_object(self.label_encoder),
             "prediction_decoder": self._prediction_decoder,
             "classification_head": keras.utils.serialize_keras_object(
                 self.classification_head
@@ -564,6 +572,12 @@ class RetinaNet(Task):
         ):
             config["classification_head"] = keras.layers.deserialize(
                 config["classification_head"]
+            )
+        if "label_encoder" in config and isinstance(
+            config["label_encoder"], dict
+        ):
+            config["label_encoder"] = keras.layers.deserialize(
+                config["label_encoder"]
             )
         return super().from_config(config)
 
