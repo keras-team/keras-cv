@@ -12,12 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
 import tensorflow as tf
 
+from keras_cv.backend.config import multi_backend
 from keras_cv.layers.object_detection.box_matcher import BoxMatcher
 from keras_cv.layers.object_detection.roi_sampler import _ROISampler
 
 
+@pytest.mark.skipif(
+    multi_backend(),
+    reason="RCNN layers not yet ported to Keras Core",
+)
 class ROISamplerTest(tf.test.TestCase):
     def test_roi_sampler(self):
         box_matcher = BoxMatcher(thresholds=[0.3], match_values=[-1, 1])

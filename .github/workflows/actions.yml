@@ -79,6 +79,7 @@ jobs:
         KERAS_BACKEND: jax
       run: |
         pytest keras_cv/bounding_box \
+               keras_cv/layers/object_detection \
                keras_cv/losses \
                keras_cv/models/backbones \
                keras_cv/models/classification/image_classifier_test.py \
