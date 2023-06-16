@@ -17,10 +17,9 @@ from tensorflow import keras
 from tensorflow.keras import layers
 
 from keras_cv import bounding_box
+from keras_cv.backend import ops
 from keras_cv.layers.object_detection import box_matcher
 from keras_cv.utils import target_gather
-
-from keras_cv.backend import ops
 
 
 @keras.utils.register_keras_serializable(package="keras_cv")
@@ -125,8 +124,6 @@ class RetinaNetLabelEncoder(layers.Layer):
             gt_boxes, matched_gt_idx
         )
 
-        print(gt_boxes)
-        print(matched_gt_boxes)
         box_target = bounding_box._encode_box_to_deltas(
             anchors=anchor_boxes,
             boxes=matched_gt_boxes,
@@ -146,7 +143,9 @@ class RetinaNetLabelEncoder(layers.Layer):
         cls_target = ops.where(
             ops.equal(ignore_mask, 1.0), self.ignore_class, cls_target
         )
-        label = ops.concatenate([box_target, ops.cast(cls_target, box_target.dtype)], axis=-1)
+        label = ops.concatenate(
+            [box_target, ops.cast(cls_target, box_target.dtype)], axis=-1
+        )
 
         # In the case that a box in the corner of an image matches with an all
         # -1 box that is outside the image, we should assign the box to the
@@ -154,9 +153,7 @@ class RetinaNetLabelEncoder(layers.Layer):
         # resulting in a NaN during training. The unit test passing all -1s to
         # the label encoder ensures that we properly handle this edge-case.
         label = ops.where(
-            ops.expand_dims(
-                ops.any(ops.isnan(label), axis=-1), axis=-1
-            ),
+            ops.expand_dims(ops.any(ops.isnan(label), axis=-1), axis=-1),
             self.ignore_class,
             label,
         )
@@ -200,7 +197,9 @@ class RetinaNetLabelEncoder(layers.Layer):
         image_shape = tuple(images[0].shape)
         box_labels = bounding_box.to_dense(box_labels)
         if len(box_labels["classes"].shape) == 2:
-            box_labels["classes"] = ops.expand_dims(box_labels["classes"], axis=-1)
+            box_labels["classes"] = ops.expand_dims(
+                box_labels["classes"], axis=-1
+            )
         anchor_boxes = self.anchor_generator(image_shape=image_shape)
         anchor_boxes = ops.concatenate(list(anchor_boxes.values()), axis=0)
         anchor_boxes = bounding_box.convert_format(

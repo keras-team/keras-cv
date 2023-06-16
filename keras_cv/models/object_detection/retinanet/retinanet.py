@@ -278,7 +278,7 @@ class RetinaNet(Task):
         # box_pred is on "center_yxhw" format, convert to target format.
         image_shape = tuple(images[0].shape)
         anchors = self.anchor_generator(image_shape=image_shape)
-        anchors = ops.concatenate([a for a in anchors.values()])
+        anchors = ops.concatenate([a for a in anchors.values()], axis=0)
 
         box_pred = _decode_deltas_to_boxes(
             anchors=anchors,
@@ -439,12 +439,6 @@ class RetinaNet(Task):
             lambda: zero_weight,
             lambda: sample_weights,
         )
-        import tensorflow as tf
-        print(type(x))
-        print(x)
-        print(y_true)
-        print(y_pred)
-        print("weight:", sample_weights)
         return super().compute_loss(
             x=x, y=y_true, y_pred=y_pred, sample_weight=sample_weights
         )
@@ -461,10 +455,12 @@ class RetinaNet(Task):
         )
 
         boxes, classes = self.label_encoder(x, y_for_label_encoder)
-        super_args = args[:-1] + ((
-            x,
-            {"box": boxes, "classification": classes, "enencoded": y},
-        ),)
+        super_args = args[:-1] + (
+            (
+                x,
+                {"box": boxes, "classification": classes, "enencoded": y},
+            ),
+        )
 
         return super().train_step(*super_args)
         # y_for_label_encoder = bounding_box.convert_format(
@@ -510,10 +506,12 @@ class RetinaNet(Task):
             images=x,
         )
 
-        super_args = args[:-1] + [(
-            x,
-            {"box": boxes, "classification": classes, "enencoded": y},
-        )]
+        super_args = args[:-1] + [
+            (
+                x,
+                {"box": boxes, "classification": classes, "enencoded": y},
+            )
+        ]
 
         return super().test_step(*super_args)
 
@@ -555,7 +553,9 @@ class RetinaNet(Task):
             "num_classes": self.num_classes,
             "bounding_box_format": self.bounding_box_format,
             "backbone": keras.utils.serialize_keras_object(self.backbone),
-            "label_encoder": keras.utils.serialize_keras_object(self.label_encoder),
+            "label_encoder": keras.utils.serialize_keras_object(
+                self.label_encoder
+            ),
             "prediction_decoder": self._prediction_decoder,
             "classification_head": keras.utils.serialize_keras_object(
                 self.classification_head

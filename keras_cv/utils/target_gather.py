@@ -13,7 +13,9 @@
 # limitations under the License.
 
 import tensorflow as tf
+
 from keras_cv.backend import ops
+
 
 def _target_gather(
     targets,
@@ -71,9 +73,9 @@ def _target_gather(
             if mask is None:
                 return targets
             else:
-                masked_targets = ops.cast(mask_val, labels.dtype) * ops.ones_like(
-                    mask, dtype=labels.dtype
-                )
+                masked_targets = ops.cast(
+                    mask_val, labels.dtype
+                ) * ops.ones_like(mask, dtype=labels.dtype)
                 return ops.where(mask, masked_targets, targets)
 
         return ops.cond(
@@ -102,10 +104,10 @@ def _target_gather(
                 )
             return ops.expand_dims(result, axis=0)
         else:
-            indices_shape = ops.shape(match_indices)
+            # indices_shape = ops.shape(match_indices)
             # print(indices)
             # print(indices_shape)
-            indices_dtype = match_indices.dtype
+            # indices_dtype = match_indices.dtype
             batch_indices = ops.cumsum(ops.ones_like(match_indices), axis=0) - 1
             # batch_indices = ops.expand_dims(
             #     ops.arange(indices_shape[0], dtype=indices_dtype), axis=-1
@@ -115,16 +117,16 @@ def _target_gather(
             )
             # print(labels)
             # print(gather_nd_indices)
-            #targets = ops.take_along_axis(labels, gather_nd_indices, axis=0)
+            # targets = ops.take_along_axis(labels, gather_nd_indices, axis=0)
             targets = tf.gather_nd(labels, gather_nd_indices)
 
             # print(targets)
             if mask is None:
                 return targets
             else:
-                masked_targets = ops.cast(mask_val, labels.dtype) * ops.ones_like(
-                    mask, dtype=labels.dtype
-                )
+                masked_targets = ops.cast(
+                    mask_val, labels.dtype
+                ) * ops.ones_like(mask, dtype=labels.dtype)
                 return ops.where(mask, masked_targets, targets)
 
     if len(targets_shape) <= 2:

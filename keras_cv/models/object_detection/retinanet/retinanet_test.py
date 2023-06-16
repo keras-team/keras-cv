@@ -131,10 +131,10 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
         )
 
         # only a -1 box
-        xs = ops.ones((1, 512, 512, 3))
+        xs = ops.ones((1, 512, 512, 3), "float32")
         ys = {
-            "classes": ops.array([[-1]]),
-            "boxes": ops.array([[[0, 0, 0, 0]]]),
+            "classes": ops.array([[-1]], "float32"),
+            "boxes": ops.array([[[0, 0, 0, 0]]], "float32"),
         }
         ds = tf.data.Dataset.from_tensor_slices((xs, ys))
         ds = ds.repeat(2)
