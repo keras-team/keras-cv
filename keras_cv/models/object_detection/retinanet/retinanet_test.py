@@ -157,10 +157,10 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
         retinanet.compile(
             optimizer=keras.optimizers.Adam(),
             classification_loss=keras_cv.losses.FocalLoss(
-                from_logits=True, reduction="none"
+                from_logits=True, reduction="sum"
             ),
             box_loss=keras_cv.losses.SmoothL1Loss(
-                l1_cutoff=1.0, reduction="none"
+                l1_cutoff=1.0, reduction="sum"
             ),
         )
         xs, ys = _create_bounding_box_dataset(bounding_box_format)

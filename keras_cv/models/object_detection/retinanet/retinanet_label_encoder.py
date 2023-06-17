@@ -13,17 +13,16 @@
 # limitations under the License.
 
 import tensorflow as tf
-from tensorflow import keras
-from tensorflow.keras import layers
 
 from keras_cv import bounding_box
+from keras_cv.backend import keras
 from keras_cv.backend import ops
 from keras_cv.layers.object_detection import box_matcher
 from keras_cv.utils import target_gather
 
 
 @keras.utils.register_keras_serializable(package="keras_cv")
-class RetinaNetLabelEncoder(layers.Layer):
+class RetinaNetLabelEncoder(keras.layers.Layer):
     """Transforms the raw labels into targets for training.
 
     This class has operations to generate targets for a batch of samples which
@@ -123,6 +122,9 @@ class RetinaNetLabelEncoder(layers.Layer):
         matched_gt_boxes = target_gather._target_gather(
             gt_boxes, matched_gt_idx
         )
+        matched_gt_boxes = ops.reshape(
+            matched_gt_boxes, (-1, matched_gt_boxes.shape[1], 4)
+        )
 
         box_target = bounding_box._encode_box_to_deltas(
             anchors=anchor_boxes,
@@ -211,6 +213,9 @@ class RetinaNetLabelEncoder(layers.Layer):
 
         result = self._encode_sample(box_labels, anchor_boxes, image_shape)
         encoded_box_targets = result["boxes"]
+        encoded_box_targets = ops.reshape(
+            encoded_box_targets, (-1, encoded_box_targets.shape[1], 4)
+        )
         class_targets = result["classes"]
         return encoded_box_targets, class_targets
 
