@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import math
+import tensorflow as tf
 
 from keras_cv import bounding_box
 from keras_cv.backend import keras
@@ -84,13 +85,27 @@ class NonMaxSuppression(keras.layers.Layer):
 
         confidence_prediction = ops.max(class_prediction, axis=-1)
 
-        idx, valid_det = non_max_suppression(
-            box_prediction,
-            confidence_prediction,
-            max_output_size=self.max_detections,
-            iou_threshold=self.iou_threshold,
-            score_threshold=self.confidence_threshold,
-        )
+        if multi_backend():
+            idx, valid_det = non_max_suppression(
+                box_prediction,
+                confidence_prediction,
+                max_output_size=self.max_detections,
+                iou_threshold=self.iou_threshold,
+                score_threshold=self.confidence_threshold,
+            )
+        else:
+            # For non-multibackend, our NMS fails during graph tracing due to
+            # the lack of a defined batch size, so we just fall back to the
+            # original implementation that this is ported from.
+            idx, valid_det = tf.image.non_max_suppression_padded(
+                box_prediction,
+                confidence_prediction,
+                max_output_size=self.max_detections,
+                iou_threshold=self.iou_threshold,
+                score_threshold=self.confidence_threshold,
+                pad_to_max_output_size=True,
+                sorted_input=False,
+            )
 
         box_prediction = ops.take_along_axis(
             box_prediction, ops.expand_dims(idx, axis=-1), axis=1
@@ -220,7 +235,11 @@ def non_max_suppression(
     scores, boxes, sorted_indices = _sort_scores_and_boxes(scores, boxes)
 
     pad = (
-        math.ceil(max(num_boxes, max_output_size) / tile_size) * tile_size
+        math.ceil(
+            max(num_boxes, max_output_size)
+            / tile_size
+        )
+        * tile_size
         - num_boxes
     )
     boxes = ops.pad(ops.cast(boxes, "float32"), [[0, 0], [0, pad], [0, 0]])
@@ -253,10 +272,7 @@ def non_max_suppression(
     idx = num_boxes_after_padding - ops.cast(
         ops.top_k(
             ops.cast(ops.any(selected_boxes > 0, [2]), "int32")
-            * ops.cast(
-                ops.expand_dims(ops.arange(num_boxes_after_padding, 0, -1), 0),
-                "int32",
-            ),
+            * ops.cast(ops.expand_dims(ops.arange(num_boxes_after_padding, 0, -1), 0), "int32"),
             max_output_size,
         )[0],
         "int32",
