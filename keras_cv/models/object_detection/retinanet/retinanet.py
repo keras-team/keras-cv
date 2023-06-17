@@ -510,7 +510,7 @@ class RetinaNet(Task):
             (
                 x,
                 {"box": boxes, "classification": classes, "enencoded": y},
-            )
+            ),
         )
 
         return super().test_step(*super_args)
