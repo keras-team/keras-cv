@@ -376,11 +376,11 @@ def convert_format(
         )
         return boxes
 
-    if boxes.shape[-1] != 4:
-        raise ValueError(
-            "Expected `boxes` to be a Tensor with a final dimension of "
-            f"`4`. Instead, got `boxes.shape={boxes.shape}`."
-        )
+    # if boxes.shape[-1] != 4:
+    #     raise ValueError(
+    #         "Expected `boxes` to be a Tensor with a final dimension of "
+    #         f"`4`. Instead, got `boxes.shape={boxes.shape}`."
+    #     )
     if images is not None and image_shape is not None:
         raise ValueError(
             "convert_format() expects either `images` or `image_shape`, but "
