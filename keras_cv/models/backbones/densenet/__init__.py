@@ -11,11 +11,3 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-from keras_cv.visualization.plot_bounding_box_gallery import (
-    plot_bounding_box_gallery,
-)
-from keras_cv.visualization.plot_image_gallery import plot_image_gallery
-from keras_cv.visualization.plot_segmentation_mask_gallery import (
-    plot_segmentation_mask_gallery,
-)
