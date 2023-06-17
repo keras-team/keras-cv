@@ -506,12 +506,12 @@ class RetinaNet(Task):
             images=x,
         )
 
-        super_args = args[:-1] + [
+        super_args = args[:-1] + (
             (
                 x,
                 {"box": boxes, "classification": classes, "enencoded": y},
             )
-        ]
+        )
 
         return super().test_step(*super_args)
 
