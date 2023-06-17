@@ -93,9 +93,10 @@ class RetinaNet(Task):
             Refer
             [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
             for more details on supported bounding box formats.
-        backbone: `keras.Model`. Must implement the `pyramid_level_inputs`
-            property with keys "P3", "P4", and "P5" and layer names as values.
-            A somewhat sensible backbone to use in many cases is the:
+        backbone: `keras.Model`. If the default `feature_pyramid` is used, 
+            must implement the `pyramid_level_inputs` property with keys "P3", "P4", 
+            and "P5" and layer names as values. A somewhat sensible backbone
+            to use in many cases is the:
             `keras_cv.models.ResNetBackbone.from_preset("resnet50_imagenet")`
         anchor_generator: (Optional) a `keras_cv.layers.AnchorGenerator`. If
             provided, the anchor generator will be passed to both the
@@ -119,10 +120,10 @@ class RetinaNet(Task):
             default `prediction_decoder` layer is a
             `keras_cv.layers.MultiClassNonMaxSuppression` layer, which uses
             a Non-Max Suppression for box pruning.
-        feature_pyramid: (Optional) A `keras.layers.Layer` that is
-            responsible for extracting features from intermediate backbone
-            layers. If not provided, the reference implementation from
-            the paper will be used.
+        feature_pyramid: (Optional) A `keras.layers.Layer` that produces
+            a list of 4D feature maps (batch dimension included)
+            when called on the `backbone`. If not provided, the reference 
+            implementation from the paper will be used.
         classification_head: (Optional) A `keras.Layer` that performs
             classification of the bounding boxes. If not provided, a simple
             ConvNet with 3 layers will be used.
@@ -196,9 +197,7 @@ class RetinaNet(Task):
         batch_size = tf.shape(images)[0]
         cls_pred = []
         box_pred = []
-        pyramid_levels = ["P3", "P4", "P5", "P6", "P7"]
-        for pyramid_level in pyramid_levels:
-            feature = features[pyramid_level]
+        for feature in features:
             box_pred.append(tf.reshape(box_head(feature), [batch_size, -1, 4]))
             cls_pred.append(
                 tf.reshape(
