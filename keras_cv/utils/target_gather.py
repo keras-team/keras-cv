@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import tensorflow as tf
-
 from keras_cv.backend import ops
 
 
@@ -57,7 +55,7 @@ def _target_gather(
 
     def _gather_unbatched(labels, match_indices, mask, mask_val):
         """Gather based on unbatched labels and boxes."""
-        num_gt_boxes = ops.shape(labels)[0]
+        num_gt_boxes = labels.shape[0]
 
         def _assign_when_rows_empty():
             if len(labels.shape) > 1:
@@ -69,7 +67,7 @@ def _target_gather(
             )
 
         def _assign_when_rows_not_empty():
-            targets = ops.take_along_axis(labels, match_indices)
+            targets = ops.take(labels, match_indices, axis=0)
             if mask is None:
                 return targets
             else:
@@ -78,11 +76,15 @@ def _target_gather(
                 ) * ops.ones_like(mask, dtype=labels.dtype)
                 return ops.where(mask, masked_targets, targets)
 
-        return ops.cond(
-            ops.greater(num_gt_boxes, 0),
-            _assign_when_rows_not_empty,
-            _assign_when_rows_empty,
-        )
+        if num_gt_boxes > 0:
+            return _assign_when_rows_not_empty()
+        else:
+            return _assign_when_rows_empty()
+        # return ops.cond(
+        #     ops.greater(num_gt_boxes, 0),
+        #     _assign_when_rows_not_empty,
+        #     _assign_when_rows_empty,
+        # )
 
     def _gather_batched(labels, match_indices, mask, mask_val):
         """Gather based on batched labels."""
@@ -104,23 +106,10 @@ def _target_gather(
                 )
             return ops.expand_dims(result, axis=0)
         else:
-            # indices_shape = ops.shape(match_indices)
-            # print(indices)
-            # print(indices_shape)
-            # indices_dtype = match_indices.dtype
-            batch_indices = ops.cumsum(ops.ones_like(match_indices), axis=0) - 1
-            # batch_indices = ops.expand_dims(
-            #     ops.arange(indices_shape[0], dtype=indices_dtype), axis=-1
-            # ) * ops.ones([1, indices_shape[-1]], dtype=indices_dtype)
-            gather_nd_indices = ops.stack(
-                [batch_indices, match_indices], axis=-1
+            targets = ops.take_along_axis(
+                labels, ops.expand_dims(match_indices, axis=-1), axis=1
             )
-            # print(labels)
-            # print(gather_nd_indices)
-            # targets = ops.take_along_axis(labels, gather_nd_indices, axis=0)
-            targets = tf.gather_nd(labels, gather_nd_indices)
 
-            # print(targets)
             if mask is None:
                 return targets
             else:
