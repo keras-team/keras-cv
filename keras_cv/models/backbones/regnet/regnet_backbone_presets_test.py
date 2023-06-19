@@ -16,20 +16,42 @@ import pytest
 import tensorflow as tf
 from absl.testing import parameterized
 
-from keras_cv.models.backbones.regnet.regnet_backbone import RegNetBackBone
+from keras_cv.models.backbones.regnet.regnet_aliases import (  # noqa: E501
+    RegNetX002Backbone,
+)
+from keras_cv.models.backbones.regnet.regnet_backbone import (  # noqa: E501
+    RegNetBackbone,
+)
+from keras_cv.utils.train import get_feature_extractor
 
 
 @pytest.mark.extra_large
 class RegNetPresetFullTest(tf.test.TestCase, parameterized.TestCase):
     """
     Test the full enumeration of our preset.
-    This every presets for RegNet and is only run manually.
+    This tests every preset for EfficientNetLite and is only run manually.
     Run with:
-    `pytest keras_cv/models/backbones/regnet/regnetx_backbone_presets_test.py --run_extra_large`
+    `pytest keras_cv/models/backbones/regnet/regnet_backbone_presets_test.py --run_extra_large`
     """  # noqa: E501
 
-    def test_load_regnet(self):
+    @parameterized.named_parameters(
+        *[(preset, preset) for preset in RegNetBackbone.presets]
+    )
+    def test_load_efficientnetlite(self, preset):
         input_data = tf.ones(shape=(2, 224, 224, 3))
-        for preset in RegNetBackBone.presetsx:
-            model = RegNetBackBone.from_preset(preset)
-            model(input_data)
+        model = RegNetBackbone.from_preset(preset)
+        model(input_data)
+
+    def test_efficientnetlite_feature_extractor(self):
+        model = RegNetX002Backbone(
+            include_rescaling=False,
+            input_shape=[256, 256, 3],
+        )
+        levels = ["P1"]
+        layer_names = [model.pyramid_level_inputs[level] for level in levels]
+        backbone_model = get_feature_extractor(model, layer_names, levels)
+        inputs = tf.keras.Input(shape=[256, 256, 3])
+        outputs = backbone_model(inputs)
+        self.assertLen(outputs, 1)
+        self.assertEquals(list(outputs.keys()), levels)
+        self.assertEquals(outputs["P1"].shape[:3], [None, 8, 8])
