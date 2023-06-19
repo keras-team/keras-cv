@@ -487,7 +487,7 @@ class RegNetBackbone(Backbone):
                 name=model_name + "_Stage_" + str(i),
             )
             in_channels = out_channels
-        
+
         pyramid_level_inputs.append(x.node.layer.name)
 
         super().__init__(inputs=img_input, outputs=x, name=model_name, **kwargs)
