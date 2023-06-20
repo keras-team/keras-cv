@@ -109,6 +109,10 @@ class ContrastiveTrainer(keras.Model):
             augmenter if type(augmenter) is tuple else (augmenter, augmenter)
         )
         self.encoder = encoder
+        # Check to see if the projector is being shared or are distinct.
+        self._is_shared_projector = (
+            True if not isinstance(projector, tuple) else False
+        )
         self.projectors = (
             projector if type(projector) is tuple else (projector, projector)
         )
@@ -230,19 +234,23 @@ class ContrastiveTrainer(keras.Model):
                 regularization_losses=self.encoder.losses,
             )
 
+        # If the projector is shared, then take the trainable weights of just
+        # one of the projectors in the tuple. If not, use both the projectors.
+        projector_weights = (
+            self.projectors[0].trainable_weights
+            if self._is_shared_projector
+            else self.projectors[0].trainable_weights
+            + self.projectors[1].trainable_weights
+        )
         gradients = tape.gradient(
             loss,
-            self.encoder.trainable_weights
-            + self.projectors[0].trainable_weights
-            + self.projectors[1].trainable_weights,
+            self.encoder.trainable_weights + projector_weights,
         )
 
         self.optimizer.apply_gradients(
             zip(
                 gradients,
-                self.encoder.trainable_weights
-                + self.projectors[0].trainable_weights
-                + self.projectors[1].trainable_weights,
+                self.encoder.trainable_weights + projector_weights,
             )
         )
         self.loss_metric.update_state(loss)
