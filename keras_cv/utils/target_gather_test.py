@@ -14,12 +14,9 @@
 
 import numpy as np
 import tensorflow as tf
-from tensorflow.python.ops.numpy_ops import np_config
 
 from keras_cv.backend import ops
 from keras_cv.utils.target_gather import _target_gather
-
-np_config.enable_numpy_behavior()
 
 
 class TargetGatherTest(tf.test.TestCase):
