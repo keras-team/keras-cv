@@ -36,7 +36,7 @@ USE_TARGETS = "use_targets"
 
 
 @keras.utils.register_keras_serializable(package="keras_cv")
-class BaseImageAugmentationLayer(keras.layers.Layer):
+class BaseImageAugmentationLayer(keras.layers.preprocessing.tf_data_layer.TFDataLayer):
     """Abstract base layer for image augmentation.
 
     This layer contains base functionalities for preprocessing layers which

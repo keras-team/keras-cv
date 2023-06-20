@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import math
-
 import tensorflow as tf
 
 from keras_cv import bounding_box
@@ -236,7 +235,11 @@ def non_max_suppression(
     scores, boxes, sorted_indices = _sort_scores_and_boxes(scores, boxes)
 
     pad = (
-        math.ceil(max(num_boxes, max_output_size) / tile_size) * tile_size
+        math.ceil(
+            max(num_boxes, max_output_size)
+            / tile_size
+        )
+        * tile_size
         - num_boxes
     )
     boxes = ops.pad(ops.cast(boxes, "float32"), [[0, 0], [0, pad], [0, 0]])
@@ -269,10 +272,7 @@ def non_max_suppression(
     idx = num_boxes_after_padding - ops.cast(
         ops.top_k(
             ops.cast(ops.any(selected_boxes > 0, [2]), "int32")
-            * ops.cast(
-                ops.expand_dims(ops.arange(num_boxes_after_padding, 0, -1), 0),
-                "int32",
-            ),
+            * ops.cast(ops.expand_dims(ops.arange(num_boxes_after_padding, 0, -1), 0), "int32"),
             max_output_size,
         )[0],
         "int32",
@@ -519,7 +519,7 @@ def _suppression_loop_body(boxes, iou_threshold, output_size, idx, tile_size):
             [1, -1, 1, 1],
         )
         boxes = ops.tile(
-            ops.expand_dims(box_slice, [1]), [1, num_tiles, 1, 1]
+            ops.expand_dims(box_slice, 1), [1, num_tiles, 1, 1]
         ) * mask + ops.reshape(boxes, [batch_size, num_tiles, tile_size, 4]) * (
             1 - mask
         )

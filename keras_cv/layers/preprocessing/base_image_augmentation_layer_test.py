@@ -232,10 +232,6 @@ class BaseImageAugmentationLayerTest(tf.test.TestCase):
             segmentation_mask_diff[0], segmentation_mask_diff[1]
         )
 
-    @pytest.mark.skipif(
-        multi_backend() and keras.backend.config.backend() != "tensorflow",
-        reason="Only TF supports in-graph preprocessing layers",
-    )
     def test_augment_all_data_in_tf_function(self):
         add_layer = RandomAddLayer()
         images = np.random.random(size=(2, 8, 8, 3)).astype("float32")
