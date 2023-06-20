@@ -31,7 +31,6 @@ class FeaturePyramid(keras.layers.Layer):
         self.conv_c6_3x3 = keras.layers.Conv2D(256, 3, 2, "same")
         self.conv_c7_3x3 = keras.layers.Conv2D(256, 3, 2, "same")
         self.upsample_2x = keras.layers.UpSampling2D(2)
-        # self.built = True
 
     def call(self, inputs, training=False):
         if isinstance(inputs, dict):

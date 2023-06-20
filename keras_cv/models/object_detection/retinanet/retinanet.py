@@ -463,31 +463,6 @@ class RetinaNet(Task):
         )
 
         return super().train_step(*super_args)
-        # y_for_label_encoder = bounding_box.convert_format(
-        #     y,
-        #     source=self.bounding_box_format,
-        #     target=self.label_encoder.bounding_box_format,
-        #     images=x,
-        # )
-        # boxes, classes = self.label_encoder(x, y_for_label_encoder)
-        # # boxes are now in `center_yxhw`. This is always the case in training
-        # with tf.GradientTape() as tape:
-        #     outputs = self(x, training=True)
-        #     box_pred, cls_pred = outputs["box"], outputs["classification"]
-        #     total_loss = self.compute_loss(
-        #         x, box_pred, cls_pred, boxes, classes
-        #     )
-        #
-        # # Training specific code
-        # trainable_vars = self.trainable_variables
-        # gradients = tape.gradient(total_loss, trainable_vars)
-        # self.optimizer.apply_gradients(zip(gradients, trainable_vars))
-        #
-        # if not self._has_user_metrics:
-        #     return super().compute_metrics(x, {}, {}, sample_weight={})
-        #
-        # y_pred = self.decode_predictions(outputs, x)
-        # return self.compute_metrics(x, y, y_pred, sample_weight=None)
 
     def test_step(self, *args):
         data = args[-1]
@@ -514,15 +489,6 @@ class RetinaNet(Task):
         )
 
         return super().test_step(*super_args)
-
-        # outputs = self(x, training=False)
-        # box_pred, cls_pred = outputs["box"], outputs["classification"]
-        # _ = self.compute_loss(x, box_pred, cls_pred, boxes, classes)
-        #
-        # if not self._has_user_metrics:
-        #     return super().compute_metrics(x, {}, {}, sample_weight={})
-        # y_pred = self.decode_predictions(outputs, x)
-        # return self.compute_metrics(x, y, y_pred, sample_weight=None)
 
     def compute_metrics(self, x, y, y_pred, sample_weight):
         metrics = {}
