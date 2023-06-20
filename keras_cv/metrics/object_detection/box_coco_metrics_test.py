@@ -204,7 +204,7 @@ class BoxCOCOMetricsTest(tf.test.TestCase):
             # truth values are completely different.
             self.assertNotEqual(metrics[metric], 1.0)
 
-    def test_coco_metric_suite_ragged_inputs(self):
+    def test_coco_metric_suite_ragged_labels(self):
         suite = BoxCOCOMetrics(bounding_box_format="xyxy", evaluate_freq=1)
         ragged_bounding_boxes = {
             # shape: (2, (2, 1), 4)
