@@ -22,7 +22,10 @@ class NonMaxSupressionTest(tf.test.TestCase):
     def test_confidence_threshold(self):
         boxes = np.random.uniform(low=0, high=1, size=(2, 5, 4))
         classes = ops.expand_dims(
-            np.array([[0.1, 0.1, 0.4, 0.9, 0.5], [0.7, 0.5, 0.3, 0.0, 0.0]]),
+            np.array(
+                [[0.1, 0.1, 0.4, 0.9, 0.5], [0.7, 0.5, 0.3, 0.0, 0.0]],
+                "float32",
+            ),
             axis=-1,
         )
 
@@ -45,7 +48,10 @@ class NonMaxSupressionTest(tf.test.TestCase):
     def test_max_detections(self):
         boxes = np.random.uniform(low=0, high=1, size=(2, 5, 4))
         classes = ops.expand_dims(
-            np.array([[0.1, 0.1, 0.4, 0.5, 0.9], [0.7, 0.5, 0.3, 0.0, 0.0]]),
+            np.array(
+                [[0.1, 0.1, 0.4, 0.5, 0.9], [0.7, 0.5, 0.3, 0.0, 0.0]],
+                "float32",
+            ),
             axis=-1,
         )
 
