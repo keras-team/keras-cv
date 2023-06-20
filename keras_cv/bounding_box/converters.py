@@ -39,7 +39,7 @@ def _encode_box_to_deltas(
 ):
     """Converts bounding_boxes from `center_yxhw` to delta format."""
     if variance is not None:
-        variance = ops.array(variance, "float32")
+        variance = ops.convert_to_tensor(variance, "float32")
         var_len = variance.shape[-1]
 
         if var_len != 4:
@@ -80,7 +80,7 @@ def _decode_deltas_to_boxes(
 ):
     """Converts bounding_boxes from delta format to `center_yxhw`."""
     if variance is not None:
-        variance = ops.array(variance, "float32")
+        variance = ops.convert_to_tensor(variance, "float32")
         var_len = variance.shape[-1]
 
         if var_len != 4:
@@ -376,11 +376,11 @@ def convert_format(
         )
         return boxes
 
-    # if boxes.shape[-1] != 4:
-    #     raise ValueError(
-    #         "Expected `boxes` to be a Tensor with a final dimension of "
-    #         f"`4`. Instead, got `boxes.shape={boxes.shape}`."
-    #     )
+    if boxes.shape[-1] is not None and boxes.shape[-1] != 4:
+        raise ValueError(
+            "Expected `boxes` to be a Tensor with a final dimension of "
+            f"`4`. Instead, got `boxes.shape={boxes.shape}`."
+        )
     if images is not None and image_shape is not None:
         raise ValueError(
             "convert_format() expects either `images` or `image_shape`, but "
