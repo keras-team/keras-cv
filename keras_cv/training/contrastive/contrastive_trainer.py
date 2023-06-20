@@ -110,7 +110,9 @@ class ContrastiveTrainer(keras.Model):
         )
         self.encoder = encoder
         # Check to see if the projector is being shared or are distinct.
-        self._is_shared_projector = False if type(projector) is tuple else True
+        self._is_shared_projector = (
+            True if not isinstance(projector, tuple) else False
+        )
         self.projectors = (
             projector if type(projector) is tuple else (projector, projector)
         )
@@ -233,7 +235,7 @@ class ContrastiveTrainer(keras.Model):
             )
 
         # If the projector is shared, then take the trainable weights of just
-        # one of the projector in the tuple. If not, use both the projectors.
+        # one of the projectors in the tuple. If not, use both the projectors.
         projector_weights = (
             self.projectors[0].trainable_weights
             if self._is_shared_projector
