@@ -458,7 +458,7 @@ class RetinaNet(Task):
         super_args = args[:-1] + (
             (
                 x,
-                {"box": boxes, "classification": classes, "enencoded": y},
+                {"box": boxes, "classification": classes, "unencoded": y},
             ),
         )
 
@@ -484,7 +484,7 @@ class RetinaNet(Task):
         super_args = args[:-1] + (
             (
                 x,
-                {"box": boxes, "classification": classes, "enencoded": y},
+                {"box": boxes, "classification": classes, "unencoded": y},
             ),
         )
 
@@ -499,7 +499,7 @@ class RetinaNet(Task):
 
         # For computing non-loss metrics, we don't care about the encoded
         # boxes and classes, just the raw input boxes.
-        y = y["enencoded"]
+        y = y["unencoded"]
 
         y_pred = self.decode_predictions(y_pred, x)
 
