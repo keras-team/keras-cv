@@ -230,7 +230,7 @@ class BoxMatcher(keras.layers.Layer):
                         matched_values,
                     )
 
-                return matched_columns, matched_values
+                return ops.cast(matched_columns, "int32"), matched_values
 
         num_boxes = (
             similarity_matrix.shape[-1] or ops.shape(similarity_matrix)[-1]

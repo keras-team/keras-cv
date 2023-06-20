@@ -7,7 +7,7 @@ on:
     types: [created]
 jobs:
   test:
-    name: Test the code
+    name: Test the code with tf.keras
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -83,6 +83,7 @@ jobs:
                keras_cv/losses \
                keras_cv/models/backbones \
                keras_cv/models/classification/image_classifier_test.py \
+               keras_cv/models/object_detection/retinanet \
                --durations 0 --run_large
   format:
     name: Check the code format

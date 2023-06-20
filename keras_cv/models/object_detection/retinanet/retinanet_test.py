@@ -14,13 +14,14 @@
 
 import os
 
+import numpy as np
 import pytest
 import tensorflow as tf
 from absl.testing import parameterized
-from tensorflow import keras
-from tensorflow.keras import optimizers
 
 import keras_cv
+from keras_cv.backend import keras
+from keras_cv.backend import ops
 from keras_cv.models.backbones.test_backbone_presets import (
     test_backbone_presets,
 )
@@ -31,16 +32,6 @@ from keras_cv.models.object_detection.retinanet import RetinaNetLabelEncoder
 
 
 class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
-    @pytest.fixture(autouse=True)
-    def cleanup_global_session(self):
-        # Code before yield runs before the test
-        tf.config.set_soft_device_placement(False)
-        yield
-        # Reset soft device placement to not interfere with other unit test
-        # files
-        tf.config.set_soft_device_placement(True)
-        keras.backend.clear_session()
-
     def test_retinanet_construction(self):
         retinanet = keras_cv.models.RetinaNet(
             num_classes=20,
@@ -53,10 +44,6 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
             optimizer="adam",
         )
 
-        # TODO(lukewood) uncomment when using keras_cv.models.ResNet18
-        # self.assertIsNotNone(retinanet.backbone.get_layer(name="rescaling"))
-        # TODO(lukewood): test compile with the FocalLoss class
-
     @pytest.mark.large  # Fit is slow, so mark these large.
     def test_retinanet_call(self):
         retinanet = keras_cv.models.RetinaNet(
@@ -64,7 +51,7 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
             bounding_box_format="xywh",
             backbone=keras_cv.models.ResNet18V2Backbone(),
         )
-        images = tf.random.uniform((2, 512, 512, 3))
+        images = np.random.uniform(size=(2, 512, 512, 3))
         _ = retinanet(images)
         _ = retinanet.predict(images)
 
@@ -80,7 +67,7 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
             "from_logits",
         ):
             retinanet.compile(
-                optimizer=optimizers.SGD(learning_rate=0.25),
+                optimizer=keras.optimizers.SGD(learning_rate=0.25),
                 classification_loss=keras_cv.losses.FocalLoss(
                     from_logits=False, reduction="none"
                 ),
@@ -97,7 +84,7 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
         )
 
         retinanet.compile(
-            optimizer=optimizers.SGD(learning_rate=0.25),
+            optimizer=keras.optimizers.SGD(learning_rate=0.25),
             classification_loss=keras_cv.losses.FocalLoss(
                 from_logits=True, reduction="none"
             ),
@@ -115,7 +102,7 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
         )
         retinanet.backbone.trainable = False
         retinanet.compile(
-            optimizer=optimizers.Adam(),
+            optimizer=keras.optimizers.Adam(),
             classification_loss=keras_cv.losses.FocalLoss(
                 from_logits=True, reduction="none"
             ),
@@ -127,11 +114,7 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
 
         # call once
         _ = retinanet(xs)
-        variable_names = [x.name for x in retinanet.trainable_variables]
-        # classification_head
-        self.assertIn("prediction_head/conv2d_8/kernel:0", variable_names)
-        # box_head
-        self.assertIn("prediction_head_1/conv2d_12/kernel:0", variable_names)
+        self.assertEqual(len(retinanet.trainable_variables), 32)
 
     @pytest.mark.large  # Fit is slow, so mark these large.
     def test_no_nans(self):
@@ -142,16 +125,16 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
         )
 
         retina_net.compile(
-            optimizer=optimizers.Adam(),
+            optimizer=keras.optimizers.Adam(),
             classification_loss="focal",
             box_loss="smoothl1",
         )
 
         # only a -1 box
-        xs = tf.ones((1, 512, 512, 3), tf.float32)
+        xs = ops.ones((1, 512, 512, 3), "float32")
         ys = {
-            "classes": tf.constant([[-1]], tf.float32),
-            "boxes": tf.constant([[[0, 0, 0, 0]]], tf.float32),
+            "classes": ops.array([[-1]], "float32"),
+            "boxes": ops.array([[[0, 0, 0, 0]]], "float32"),
         }
         ds = tf.data.Dataset.from_tensor_slices((xs, ys))
         ds = ds.repeat(2)
@@ -160,7 +143,7 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
 
         weights = retina_net.get_weights()
         for weight in weights:
-            self.assertFalse(tf.math.reduce_any(tf.math.is_nan(weight)))
+            self.assertFalse(ops.any(ops.isnan(weight)))
 
     @pytest.mark.large  # Fit is slow, so mark these large.
     def test_weights_change(self):
@@ -172,12 +155,12 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
         )
 
         retinanet.compile(
-            optimizer=optimizers.Adam(),
+            optimizer=keras.optimizers.Adam(),
             classification_loss=keras_cv.losses.FocalLoss(
-                from_logits=True, reduction="none"
+                from_logits=True, reduction="sum"
             ),
             box_loss=keras_cv.losses.SmoothL1Loss(
-                l1_cutoff=1.0, reduction="none"
+                l1_cutoff=1.0, reduction="sum"
             ),
         )
         xs, ys = _create_bounding_box_dataset(bounding_box_format)
@@ -211,21 +194,17 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
         for w1, w2 in zip(original_fpn_weights, fpn_after_fit):
             self.assertNotAllClose(w1, w2)
 
-    @parameterized.named_parameters(
-        ("tf_format", "tf", "model"),
-        ("keras_format", "keras_v3", "model.keras"),
-    )
     @pytest.mark.large  # Saving is slow, so mark these large.
-    def test_saved_model(self, save_format, filename):
+    def test_saved_model(self):
         model = keras_cv.models.RetinaNet(
             num_classes=20,
             bounding_box_format="xywh",
             backbone=keras_cv.models.ResNet18V2Backbone(),
         )
-        input_batch = tf.ones(shape=(2, 224, 224, 3))
+        input_batch = ops.ones(shape=(2, 224, 224, 3))
         model_output = model(input_batch)
-        save_path = os.path.join(self.get_temp_dir(), filename)
-        model.save(save_path, save_format=save_format)
+        save_path = os.path.join(self.get_temp_dir(), "retinanet.keras")
+        model.save(save_path)
         restored_model = keras.models.load_model(save_path)
 
         # Check we got the real object back.
@@ -236,8 +215,8 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
         self.assertAllClose(model_output, restored_output)
 
     def test_call_with_custom_label_encoder(self):
-        anchor_generator = (
-            keras_cv.models.RetinaNet.default_anchor_generator("xywh"),
+        anchor_generator = keras_cv.models.RetinaNet.default_anchor_generator(
+            "xywh"
         )
         model = keras_cv.models.RetinaNet(
             num_classes=20,
@@ -249,7 +228,7 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
                 box_variance=[0.1, 0.1, 0.2, 0.2],
             ),
         )
-        model(tf.ones(shape=(2, 224, 224, 3)))
+        model(ops.ones(shape=(2, 224, 224, 3)))
 
 
 @pytest.mark.large
@@ -272,15 +251,15 @@ class RetinaNetSmokeTest(tf.test.TestCase, parameterized.TestCase):
             "retinanet_resnet50_pascalvoc",
             bounding_box_format="xywh",
         )
-        xs = tf.ones((1, 512, 512, 3), tf.float32)
+        xs = ops.ones((1, 512, 512, 3))
         output = model(xs)
 
-        expected_box = tf.constant(
+        expected_box = ops.array(
             [-1.2427993, 0.05179548, -1.9953268, 0.32456252]
         )
         self.assertAllClose(output["box"][0, 123, :], expected_box, atol=1e-5)
 
-        expected_class = tf.constant(
+        expected_class = ops.array(
             [
                 -8.387445,
                 -7.891776,
@@ -304,7 +283,7 @@ class RetinaNetSmokeTest(tf.test.TestCase, parameterized.TestCase):
                 -6.484198,
             ]
         )
-        expected_class = tf.reshape(expected_class, (20,))
+        expected_class = ops.reshape(expected_class, (20,))
         self.assertAllClose(
             output["classification"][0, 123], expected_class, atol=1e-5
         )
