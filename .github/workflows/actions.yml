@@ -7,7 +7,7 @@ on:
     types: [created]
 jobs:
   test:
-    name: Test the code
+    name: Test the code with tf.keras
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
