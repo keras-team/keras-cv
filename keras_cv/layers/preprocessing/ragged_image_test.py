@@ -11,9 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import pytest
 import tensorflow as tf
 from absl.testing import parameterized
 
+from keras_cv import backend
 from keras_cv import layers
 
 CONSISTENT_OUTPUT_TEST_CONFIGURATIONS = [
@@ -136,6 +138,10 @@ RAGGED_OUTPUT_TEST_CONFIGURATIONS = [
 ]
 
 
+@pytest.mark.skipif(
+    backend.supports_ragged() is False,
+    reason="Only TensorFlow supports raggeds",
+)
 class RaggedImageTest(tf.test.TestCase, parameterized.TestCase):
     @parameterized.named_parameters(*CONSISTENT_OUTPUT_TEST_CONFIGURATIONS)
     def test_preserves_ragged_status(self, layer_cls, init_args):

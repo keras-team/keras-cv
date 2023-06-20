@@ -65,6 +65,7 @@ else:
     keras.activations.silu = keras.activations.swish
 
 from keras_cv.backend import ops  # noqa: E402
+from keras_cv.backend import tf_ops  # noqa: E402
 
 
 def supports_ragged():

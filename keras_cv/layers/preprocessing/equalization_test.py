@@ -12,10 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
 import tensorflow as tf
 from absl.testing import parameterized
-from tensorflow import keras
 
+from keras_cv.backend import keras
+from keras_cv.backend.config import multi_backend
 from keras_cv.layers.preprocessing.equalization import Equalization
 
 
@@ -28,6 +30,10 @@ class EqualizationTest(tf.test.TestCase, parameterized.TestCase):
         self.assertEqual(xs.shape, [2, 512, 512, 3])
         self.assertAllEqual(xs, 255 * tf.ones((2, 512, 512, 3)))
 
+    @pytest.mark.skipif(
+        multi_backend() and keras.backend.config.backend() != "tensorflow",
+        reason="Only TF supports in-graph preprocessing layers",
+    )
     def test_return_shapes_inside_model(self):
         layer = Equalization(value_range=(0, 255))
         inp = keras.layers.Input(shape=[512, 512, 5])

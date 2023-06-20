@@ -15,13 +15,13 @@ import numpy as np
 import pytest
 import tensorflow as tf
 
+from keras_cv import backend
 from keras_cv import bounding_box
-from keras_cv.backend import supports_ragged
 
 
 class ToRaggedTest(tf.test.TestCase):
     @pytest.mark.skipif(
-        supports_ragged() is False,
+        backend.supports_ragged() is False,
         reason="Only TensorFlow supports raggeds",
     )
     def test_converts_to_ragged(self):
@@ -53,7 +53,7 @@ class ToRaggedTest(tf.test.TestCase):
         )
 
     @pytest.mark.skipif(
-        supports_ragged() is False,
+        backend.supports_ragged() is False,
         reason="Only TensorFlow supports raggeds",
     )
     def test_round_trip(self):
@@ -83,7 +83,7 @@ class ToRaggedTest(tf.test.TestCase):
         )
 
     @pytest.mark.skipif(
-        supports_ragged() is True,
+        backend.supports_ragged() is True,
         reason="Only applies to backends which don't support raggeds",
     )
     def test_backend_without_raggeds_throws(self):

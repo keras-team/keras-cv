@@ -13,9 +13,11 @@
 # limitations under the License.
 
 import tensorflow as tf
-from tensorflow import keras
+from keras import backend as keras_backend
 
 from keras_cv import bounding_box
+from keras_cv.backend import keras
+from keras_cv.backend import scope
 from keras_cv.utils import preprocessing
 
 H_AXIS = -3
@@ -34,9 +36,7 @@ USE_TARGETS = "use_targets"
 
 
 @keras.utils.register_keras_serializable(package="keras_cv")
-class VectorizedBaseImageAugmentationLayer(
-    keras.__internal__.layers.BaseRandomLayer
-):
+class VectorizedBaseImageAugmentationLayer(keras.layers.Layer):
     """Abstract base layer for vectorized image augmentation.
 
     This layer contains base functionalities for preprocessing layers which
@@ -95,7 +95,11 @@ class VectorizedBaseImageAugmentationLayer(
     """
 
     def __init__(self, seed=None, **kwargs):
-        super().__init__(seed=seed, **kwargs)
+        force_generator = kwargs.pop("force_generator", False)
+        self._random_generator = keras_backend.RandomGenerator(
+            seed=seed, force_generator=force_generator
+        )
+        super().__init__(**kwargs)
 
     @property
     def force_output_dense_images(self):
@@ -402,17 +406,21 @@ class VectorizedBaseImageAugmentationLayer(
         return result
 
     def call(self, inputs):
-        inputs = self._ensure_inputs_are_compute_dtype(inputs)
-        inputs, metadata = self._format_inputs(inputs)
-        images = inputs[IMAGES]
-        if images.shape.rank == 3 or images.shape.rank == 4:
-            return self._format_output(self._batch_augment(inputs), metadata)
-        else:
-            raise ValueError(
-                "Image augmentation layers are expecting inputs to be "
-                "rank 3 (HWC) or 4D (NHWC) tensors. Got shape: "
-                f"{images.shape}"
-            )
+        with scope.TFDataScope():
+            inputs = self._ensure_inputs_are_compute_dtype(inputs)
+            inputs, metadata = self._format_inputs(inputs)
+            images = inputs[IMAGES]
+            if images.shape.rank == 3 or images.shape.rank == 4:
+                outputs = self._format_output(
+                    self._batch_augment(inputs), metadata
+                )
+            else:
+                raise ValueError(
+                    "Image augmentation layers are expecting inputs to be "
+                    "rank 3 (HWC) or 4D (NHWC) tensors. Got shape: "
+                    f"{images.shape}"
+                )
+            return outputs
 
     def _format_inputs(self, inputs):
         metadata = {IS_DICT: True, USE_TARGETS: False}

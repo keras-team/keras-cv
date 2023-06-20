@@ -16,9 +16,9 @@ import numpy as np
 import pytest
 import tensorflow as tf
 
+from keras_cv import backend
 from keras_cv import layers as cv_layers
 from keras_cv.backend import ops
-from keras_cv.backend import supports_ragged
 from keras_cv.models.object_detection.retinanet import RetinaNetLabelEncoder
 
 
@@ -86,7 +86,7 @@ class RetinaNetLabelEncoderTest(tf.test.TestCase):
         self.assertFalse(ops.any(ops.isnan(class_targets)))
 
     @pytest.mark.skipif(
-        supports_ragged() is False,
+        backend.supports_ragged() is False,
         reason="Only TensorFlow supports raggeds",
     )
     def test_ragged_encoding(self):

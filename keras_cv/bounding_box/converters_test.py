@@ -19,8 +19,8 @@ import pytest
 import tensorflow as tf
 from absl.testing import parameterized
 
+from keras_cv import backend
 from keras_cv import bounding_box
-from keras_cv.backend import supports_ragged
 
 xyxy_box = np.array([[[10, 20, 110, 120], [20, 30, 120, 130]]], dtype="float32")
 yxyx_box = np.array([[[20, 10, 120, 110], [30, 20, 130, 120]]], dtype="float32")
@@ -104,7 +104,7 @@ class ConvertersTestCase(tf.test.TestCase, parameterized.TestCase):
 
     @parameterized.named_parameters(*test_image_ragged)
     @pytest.mark.skipif(
-        supports_ragged() is False,
+        backend.supports_ragged() is False,
         reason="Only TensorFlow supports raggeds",
     )
     def test_converters_ragged_images(self, source, target):
@@ -158,7 +158,7 @@ class ConvertersTestCase(tf.test.TestCase, parameterized.TestCase):
 
     @parameterized.named_parameters(*test_cases)
     @pytest.mark.skipif(
-        supports_ragged() is False,
+        backend.supports_ragged() is False,
         reason="Only TensorFlow supports raggeds",
     )
     def test_ragged_bounding_box(self, source, target):
@@ -173,7 +173,7 @@ class ConvertersTestCase(tf.test.TestCase, parameterized.TestCase):
 
     @parameterized.named_parameters(*test_image_ragged)
     @pytest.mark.skipif(
-        supports_ragged() is False,
+        backend.supports_ragged() is False,
         reason="Only TensorFlow supports raggeds",
     )
     def test_ragged_bounding_box_ragged_images(self, source, target):
@@ -188,7 +188,7 @@ class ConvertersTestCase(tf.test.TestCase, parameterized.TestCase):
 
     @parameterized.named_parameters(*test_cases)
     @pytest.mark.skipif(
-        supports_ragged() is False,
+        backend.supports_ragged() is False,
         reason="Only TensorFlow supports raggeds",
     )
     def test_ragged_bounding_box_with_image_shape(self, source, target):
@@ -206,7 +206,7 @@ class ConvertersTestCase(tf.test.TestCase, parameterized.TestCase):
 
     @parameterized.named_parameters(*test_image_ragged)
     @pytest.mark.skipif(
-        supports_ragged() is False,
+        backend.supports_ragged() is False,
         reason="Only TensorFlow supports raggeds",
     )
     def test_dense_bounding_box_with_ragged_images(self, source, target):

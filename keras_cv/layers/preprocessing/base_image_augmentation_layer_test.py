@@ -12,9 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import numpy as np
+import pytest
 import tensorflow as tf
 
+from keras_cv import backend
 from keras_cv import bounding_box
+from keras_cv.backend import keras
+from keras_cv.backend.config import multi_backend
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
@@ -130,6 +134,10 @@ class BaseImageAugmentationLayerTest(tf.test.TestCase):
         inputs = {"images": images, "filenames": filenames}
         _ = add_layer(inputs)
 
+    @pytest.mark.skipif(
+        backend.supports_ragged() is False,
+        reason="Only TensorFlow supports raggeds",
+    )
     def test_augment_ragged_images(self):
         images = tf.ragged.stack(
             [
@@ -224,32 +232,10 @@ class BaseImageAugmentationLayerTest(tf.test.TestCase):
             segmentation_mask_diff[0], segmentation_mask_diff[1]
         )
 
-        @tf.function
-        def in_tf_function(inputs):
-            return add_layer(inputs)
-
-        output = in_tf_function(
-            {
-                "images": images,
-                "bounding_boxes": bounding_boxes,
-                "keypoints": keypoints,
-                "segmentation_masks": segmentation_masks,
-            }
-        )
-
-        bounding_boxes_diff = (
-            output["bounding_boxes"]["boxes"] - bounding_boxes["boxes"]
-        )
-        keypoints_diff = output["keypoints"] - keypoints
-        segmentation_mask_diff = (
-            output["segmentation_masks"] - segmentation_masks
-        )
-        self.assertNotAllClose(bounding_boxes_diff[0], bounding_boxes_diff[1])
-        self.assertNotAllClose(keypoints_diff[0], keypoints_diff[1])
-        self.assertNotAllClose(
-            segmentation_mask_diff[0], segmentation_mask_diff[1]
-        )
-
+    @pytest.mark.skipif(
+        multi_backend() and keras.backend.config.backend() != "tensorflow",
+        reason="Only TF supports in-graph preprocessing layers",
+    )
     def test_augment_all_data_in_tf_function(self):
         add_layer = RandomAddLayer()
         images = np.random.random(size=(2, 8, 8, 3)).astype("float32")

@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from keras_cv import backend
 from keras_cv.backend import ops
-from keras_cv.backend import supports_ragged
 from keras_cv.bounding_box.to_ragged import to_ragged
 from keras_cv.bounding_box.validate_format import validate_format
 
@@ -87,7 +87,7 @@ def mask_invalid_detections(bounding_boxes, output_ragged=False):
     if confidence is not None:
         result["confidence"] = confidence
 
-    if output_ragged and supports_ragged():
+    if output_ragged and backend.supports_ragged():
         return to_ragged(result)
 
     return result

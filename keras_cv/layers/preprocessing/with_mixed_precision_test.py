@@ -12,11 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
 import tensorflow as tf
 from absl.testing import parameterized
-from tensorflow import keras
 
 from keras_cv import layers
+from keras_cv.backend import keras
+from keras_cv.backend.config import multi_backend
 
 TEST_CONFIGURATIONS = [
     ("AutoContrast", layers.AutoContrast, {"value_range": (0, 255)}),
@@ -145,6 +147,10 @@ NO_CPU_FP16_KERNEL_LAYERS = [
 ]
 
 
+@pytest.mark.skipif(
+    multi_backend(),
+    reason="Multi-backend Keras doesn't yet support mixed precision",
+)
 class WithMixedPrecisionTest(tf.test.TestCase, parameterized.TestCase):
     @parameterized.named_parameters(*TEST_CONFIGURATIONS)
     def test_can_run_in_mixed_precision(self, layer_cls, init_args):
