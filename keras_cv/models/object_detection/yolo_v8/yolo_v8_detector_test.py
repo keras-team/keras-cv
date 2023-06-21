@@ -212,9 +212,15 @@ class YOLOV8SmokeTest(tf.test.TestCase, parameterized.TestCase):
         output = model(xs)
         self.assertEqual(output["boxes"].shape, (xs.shape[0], 5376, 64))
 
-    def test_full_preset_weight_loading(self):
+
+@pytest.mark.extra_large
+class YOLOV8DetectorPresetFullTest(tf.test.TestCase, parameterized.TestCase):
+    @parameterized.named_parameters(
+        *[(preset, preset) for preset in yolo_v8_detector_presets]
+    )
+    def test_full_preset_weight_loading(self, preset):
         model = keras_cv.models.YOLOV8Detector.from_preset(
-            "yolo_v8_m_pascalvoc",
+            preset,
             bounding_box_format="xywh",
         )
 
