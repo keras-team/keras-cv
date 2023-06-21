@@ -198,29 +198,11 @@ class YOLOV8DetectorTest(tf.test.TestCase, parameterized.TestCase):
 
 
 @pytest.mark.large
-class YOLOV8SmokeTest(tf.test.TestCase, parameterized.TestCase):
-    @parameterized.named_parameters(
-        *[(preset, preset) for preset in test_backbone_presets]
-    )
-    def test_backbone_preset(self, preset):
+class YOLOV8DetectorSmokeTest(tf.test.TestCase, parameterized.TestCase):
+    # TODO(ianstenbit): Update this test to use a KerasCV-trained preset.
+    def test_preset_with_forward_pass(self):
         model = keras_cv.models.YOLOV8Detector.from_preset(
-            preset,
-            num_classes=20,
-            bounding_box_format="xywh",
-        )
-        xs, _ = _create_bounding_box_dataset(bounding_box_format="xywh")
-        output = model(xs)
-        self.assertEqual(output["boxes"].shape, (xs.shape[0], 5376, 64))
-
-
-@pytest.mark.extra_large
-class YOLOV8DetectorPresetFullTest(tf.test.TestCase, parameterized.TestCase):
-    @parameterized.named_parameters(
-        *[(preset, preset) for preset in yolo_v8_detector_presets]
-    )
-    def test_full_preset_weight_loading(self, preset):
-        model = keras_cv.models.YOLOV8Detector.from_preset(
-            preset,
+            "yolo_v8_m_pascalvoc",
             bounding_box_format="xywh",
         )
 
@@ -241,3 +223,34 @@ class YOLOV8DetectorPresetFullTest(tf.test.TestCase, parameterized.TestCase):
                 2.5051115e-06,
             ],
         )
+
+    @parameterized.named_parameters(
+        *[(preset, preset) for preset in test_backbone_presets]
+    )
+    def test_backbone_preset(self, preset):
+        model = keras_cv.models.YOLOV8Detector.from_preset(
+            preset,
+            num_classes=20,
+            bounding_box_format="xywh",
+        )
+        xs, _ = _create_bounding_box_dataset(bounding_box_format="xywh")
+        output = model(xs)
+        self.assertEqual(output["boxes"].shape, (xs.shape[0], 5376, 64))
+
+
+@pytest.mark.extra_large
+class YOLOV8DetectorPresetFullTest(tf.test.TestCase):
+    """
+    Test the full enumeration of our presets.
+    This every presets for YOLOV8Detector and is only run manually.
+    Run with:
+    `pytest keras_cv/models/object_detection/yolo_v8/yolo_v8_detector_test.py --run_extra_large`
+    """  # noqa: E501
+
+    def test_load_yolo_v8_detector(self):
+        input_data = tf.ones(shape=(2, 224, 224, 3))
+        for preset in yolo_v8_detector_presets:
+            model = keras_cv.models.YOLOV8Detector.from_preset(
+                preset, bounding_box_format="xywh"
+            )
+            model(input_data)
