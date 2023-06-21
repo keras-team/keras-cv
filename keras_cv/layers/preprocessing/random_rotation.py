@@ -231,7 +231,7 @@ class RandomRotation(VectorizedBaseImageAugmentationLayer):
         # mask sparse again using tf.argmax.
         if self.segmentation_classes:
             one_hot_mask = tf.one_hot(
-                tf.squeeze(segmentation_masks, axis=-1),
+                tf.squeeze(tf.cast(segmentation_masks, tf.int32), axis=-1),
                 self.segmentation_classes,
             )
             rotated_one_hot_mask = self._rotate_images(

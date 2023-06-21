@@ -18,6 +18,7 @@ from keras import backend as keras_backend
 from keras_cv import bounding_box
 from keras_cv.backend import keras
 from keras_cv.backend import scope
+from keras_cv.backend.config import multi_backend
 from keras_cv.utils import preprocessing
 
 # In order to support both unbatched and batched inputs, the horizontal
@@ -35,8 +36,15 @@ IS_DICT = "is_dict"
 USE_TARGETS = "use_targets"
 
 
+base_class = (
+    keras.layers.preprocessing.tf_data_layer.TFDataLayer
+    if multi_backend()
+    else keras.layers.Layer
+)
+
+
 @keras.utils.register_keras_serializable(package="keras_cv")
-class BaseImageAugmentationLayer(keras.layers.preprocessing.tf_data_layer.TFDataLayer):
+class BaseImageAugmentationLayer(base_class):
     """Abstract base layer for image augmentation.
 
     This layer contains base functionalities for preprocessing layers which
@@ -121,6 +129,7 @@ class BaseImageAugmentationLayer(keras.layers.preprocessing.tf_data_layer.TFData
             seed=seed, force_generator=force_generator
         )
         super().__init__(**kwargs)
+        self._convert_input_args = False
 
     @property
     def force_output_ragged_images(self):

@@ -18,6 +18,7 @@ from keras import backend as keras_backend
 from keras_cv import bounding_box
 from keras_cv.backend import keras
 from keras_cv.backend import scope
+from keras_cv.backend.config import multi_backend
 from keras_cv.utils import preprocessing
 
 H_AXIS = -3
@@ -35,8 +36,15 @@ BATCHED = "batched"
 USE_TARGETS = "use_targets"
 
 
+base_class = (
+    keras.layers.preprocessing.tf_data_layer.TFDataLayer
+    if multi_backend()
+    else keras.layers.Layer
+)
+
+
 @keras.utils.register_keras_serializable(package="keras_cv")
-class VectorizedBaseImageAugmentationLayer(keras.layers.Layer):
+class VectorizedBaseImageAugmentationLayer(base_class):
     """Abstract base layer for vectorized image augmentation.
 
     This layer contains base functionalities for preprocessing layers which
@@ -100,6 +108,7 @@ class VectorizedBaseImageAugmentationLayer(keras.layers.Layer):
             seed=seed, force_generator=force_generator
         )
         super().__init__(**kwargs)
+        self._convert_input_args = False
 
     @property
     def force_output_dense_images(self):
@@ -492,6 +501,21 @@ class VectorizedBaseImageAugmentationLayer(keras.layers.Layer):
             inputs[IMAGES],
             self.compute_dtype,
         )
+        if LABELS in inputs:
+            inputs[LABELS] = preprocessing.ensure_tensor(
+                inputs[LABELS],
+                self.compute_dtype,
+            )
+        if KEYPOINTS in inputs:
+            inputs[KEYPOINTS] = preprocessing.ensure_tensor(
+                inputs[KEYPOINTS],
+                self.compute_dtype,
+            )
+        if SEGMENTATION_MASKS in inputs:
+            inputs[SEGMENTATION_MASKS] = preprocessing.ensure_tensor(
+                inputs[SEGMENTATION_MASKS],
+                self.compute_dtype,
+            )
         if BOUNDING_BOXES in inputs:
             inputs[BOUNDING_BOXES]["boxes"] = preprocessing.ensure_tensor(
                 inputs[BOUNDING_BOXES]["boxes"],

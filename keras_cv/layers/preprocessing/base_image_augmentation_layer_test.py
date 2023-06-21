@@ -12,13 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import numpy as np
-import pytest
 import tensorflow as tf
 
-from keras_cv import backend
 from keras_cv import bounding_box
-from keras_cv.backend import keras
-from keras_cv.backend.config import multi_backend
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
@@ -130,14 +126,10 @@ class BaseImageAugmentationLayerTest(tf.test.TestCase):
     def test_augment_leaves_extra_dict_entries_unmodified(self):
         add_layer = RandomAddLayer(fixed_value=0.5)
         images = np.random.random(size=(8, 8, 3)).astype("float32")
-        filenames = tf.constant("/path/to/first.jpg")
-        inputs = {"images": images, "filenames": filenames}
+        image_timestamp = tf.constant(123123123)
+        inputs = {"images": images, "image_timestamp": image_timestamp}
         _ = add_layer(inputs)
 
-    @pytest.mark.skipif(
-        backend.supports_ragged() is False,
-        reason="Only TensorFlow supports raggeds",
-    )
     def test_augment_ragged_images(self):
         images = tf.ragged.stack(
             [
