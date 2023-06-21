@@ -199,7 +199,19 @@ class YOLOV8DetectorTest(tf.test.TestCase, parameterized.TestCase):
 
 @pytest.mark.large
 class YOLOV8DetectorSmokeTest(tf.test.TestCase, parameterized.TestCase):
-    # TODO(ianstenbit): Update this test to use a KerasCV-trained preset.
+    @parameterized.named_parameters(
+        *[(preset, preset) for preset in test_backbone_presets]
+    )
+    def test_backbone_preset(self, preset):
+        model = keras_cv.models.YOLOV8Detector.from_preset(
+            preset,
+            num_classes=20,
+            bounding_box_format="xywh",
+        )
+        xs, _ = _create_bounding_box_dataset(bounding_box_format="xywh")
+        output = model(xs)
+        self.assertEqual(output["boxes"].shape, (xs.shape[0], 5376, 64))
+
     def test_preset_with_forward_pass(self):
         model = keras_cv.models.YOLOV8Detector.from_preset(
             "yolo_v8_m_pascalvoc",
@@ -223,19 +235,6 @@ class YOLOV8DetectorSmokeTest(tf.test.TestCase, parameterized.TestCase):
                 2.5051115e-06,
             ],
         )
-
-    @parameterized.named_parameters(
-        *[(preset, preset) for preset in test_backbone_presets]
-    )
-    def test_backbone_preset(self, preset):
-        model = keras_cv.models.YOLOV8Detector.from_preset(
-            preset,
-            num_classes=20,
-            bounding_box_format="xywh",
-        )
-        xs, _ = _create_bounding_box_dataset(bounding_box_format="xywh")
-        output = model(xs)
-        self.assertEqual(output["boxes"].shape, (xs.shape[0], 5376, 64))
 
 
 @pytest.mark.extra_large
