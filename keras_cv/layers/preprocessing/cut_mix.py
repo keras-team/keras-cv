@@ -64,15 +64,35 @@ class CutMix(BaseImageAugmentationLayer):
         images = inputs.get("images", None)
         labels = inputs.get("labels", None)
 
-        if images is None or labels is None:
-            raise ValueError(
-                "CutMix expects inputs in a dictionary with format "
-                '{"images": images, "labels": labels}.'
-                f"Got: inputs = {inputs}"
+        segmentation_masks = inputs.get("segmentation_masks", None)
+
+        (
+            images,
+            lambda_sample,
+            permutation_order,
+            random_center_height,
+            random_center_width,
+            cut_width,
+            cut_height,
+        ) = self._cutmix(images)
+
+        if labels is not None:
+            labels = self._update_labels(
+                labels, lambda_sample, permutation_order
             )
-        images, labels = self._update_labels(*self._cutmix(images, labels))
-        inputs["images"] = images
-        inputs["labels"] = labels
+            inputs["labels"] = labels
+
+        if segmentation_masks is not None:
+            segmentation_masks = self._update_segmentation_masks(
+                segmentation_masks,
+                permutation_order,
+                random_center_height,
+                random_center_width,
+                cut_width,
+                cut_height,
+            )
+            inputs["segmentation_masks"] = segmentation_masks
+
         return inputs
 
     def _augment(self, inputs):
@@ -82,7 +102,7 @@ class CutMix(BaseImageAugmentationLayer):
             "expected. Please call the layer with 2 or more samples."
         )
 
-    def _cutmix(self, images, labels):
+    def _cutmix(self, images):
         """Apply cutmix."""
         input_shape = tf.shape(images)
         batch_size, image_height, image_width = (
@@ -127,31 +147,73 @@ class CutMix(BaseImageAugmentationLayer):
             tf.gather(images, permutation_order),
         )
 
-        return images, labels, lambda_sample, permutation_order
+        return (
+            images,
+            lambda_sample,
+            permutation_order,
+            random_center_height,
+            random_center_width,
+            cut_width,
+            cut_height,
+        )
 
-    def _update_labels(self, images, labels, lambda_sample, permutation_order):
+    def _update_labels(self, labels, lambda_sample, permutation_order):
         cutout_labels = tf.gather(labels, permutation_order)
 
         lambda_sample = tf.reshape(lambda_sample, [-1, 1])
         labels = lambda_sample * labels + (1.0 - lambda_sample) * cutout_labels
-        return images, labels
+        return labels
+
+    def _update_segmentation_masks(
+        self,
+        segmentation_masks,
+        permutation_order,
+        random_center_width,
+        random_center_height,
+        cut_width,
+        cut_height,
+    ):
+        segmentation_masks_for_cutmix = tf.gather(
+            segmentation_masks, permutation_order
+        )
+
+        segmentation_masks = fill_utils.fill_rectangle(
+            segmentation_masks,
+            random_center_width,
+            random_center_height,
+            cut_width,
+            cut_height,
+            segmentation_masks_for_cutmix,
+        )
+
+        return segmentation_masks
 
     def _validate_inputs(self, inputs):
+        images = inputs.get("images", None)
         labels = inputs.get("labels", None)
-        if labels is None:
+        segmentation_masks = inputs.get("segmentation_masks", None)
+
+        if images is None or (labels is None and segmentation_masks is None):
             raise ValueError(
-                "CutMix expects 'labels' to be present in its inputs. "
-                "CutMix relies on both images an labels. "
-                "Please pass a dictionary with keys 'images' "
-                "containing the image Tensor, and 'labels' containing "
-                "the classification labels. "
-                "For example, `cut_mix({'images': images, 'labels': labels})`."
+                "CutMix expects inputs in a dictionary with format "
+                '{"images": images, "labels": labels}. or'
+                '{"images": images, "segmentation_masks": segmentation_masks}. '
+                f"Got: inputs = {inputs}."
             )
-        if not labels.dtype.is_floating:
+
+        if labels is not None and not labels.dtype.is_floating:
             raise ValueError(
                 f"CutMix received labels with type {labels.dtype}. "
                 "Labels must be of type float."
             )
+
+        if segmentation_masks is not None:
+            if len(segmentation_masks.shape) != 4:
+                raise ValueError(
+                    "CutMix expects shape of segmentation_masks as "
+                    "[batch, h, w, num_classes]. "
+                    f"Got: shape = {segmentation_masks.shape}. "
+                )
 
     def get_config(self):
         config = {
