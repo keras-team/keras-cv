@@ -28,9 +28,14 @@ local unittest = base.BaseTest {
       cp bazel-bin/keras_cv/custom_ops/*.so keras_cv/custom_ops/
       export TEST_CUSTOM_OPS=true
 
-      # Run whatever is in `command` here.
       pytest --run_large --durations 0 -k "not tf_format" keras_cv
+
+      # Run whatever is in `command` here.
+      ${@:0}
     |||
+  ],
+  command: [
+    'ls'
   ],
 };
 
