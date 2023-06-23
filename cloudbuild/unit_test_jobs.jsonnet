@@ -33,8 +33,7 @@ local unittest = base.BaseTest {
     |||
   ],
   command: [
-    'pytest --run_large -k "not tf_saving" --durations 0',
-    'keras_cv',
+    'pytest keras_cv/ --run_large --durations 0 -k "not tf_format"',
   ],
 };
 
