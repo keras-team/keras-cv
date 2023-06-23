@@ -29,12 +29,7 @@ local unittest = base.BaseTest {
       export TEST_CUSTOM_OPS=true
 
       # Run whatever is in `command` here.
-      ${@:0}
-    |||
-  ],
-  command: [
-    |||
-    pytest --run_large --durations 0 -k "not tf_format" keras_cv
+      pytest --run_large --durations 0 -k "not tf_format" keras_cv
     |||
   ],
 };
