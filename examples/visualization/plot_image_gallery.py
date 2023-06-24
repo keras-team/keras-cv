@@ -1,8 +1,8 @@
 """
 Title: Plot an image gallery
-Author: [lukewood](https://lukewood.xyz)
+Author: [lukewood](https://lukewood.xyz), updated by [Suvaditya Mukherjee](https://twitter.com/halcyonrayes)
 Date created: 2022/10/16
-Last modified: 2022/05/31
+Last modified: 2022/06/24
 Description: Visualize ground truth and predicted bounding boxes for a given
              dataset.
 """
@@ -22,8 +22,6 @@ train_ds = tfds.load(
     shuffle_files=True,
 )
 
-train_ds = train_ds.ragged_batch(16)
-
 keras_cv.visualization.plot_image_gallery(
     train_ds,
     value_range=(0, 255),
@@ -34,13 +32,9 @@ keras_cv.visualization.plot_image_gallery(
 If you want to use plain NumPy arrays, you can do that too:
 """
 
-# Prepare some NumPy arrays from random noise
+# Prepare some sample NumPy arrays from random noise
 
-samples = []
-for sample in train_ds.take(20):
-    samples.append(sample["image"].numpy())
-
-samples = np.array(samples, dtype="object")
+samples = np.random.randint(0, 255, (20, 224, 224, 3))
 
 keras_cv.visualization.plot_image_gallery(
     samples, value_range=(0, 255), scale=3, rows=4, cols=5

@@ -14,6 +14,7 @@
 
 import math
 import keras_cv
+import numpy as np
 import tensorflow as tf
 from keras_cv import utils
 from keras_cv.utils import assert_matplotlib_installed
@@ -22,6 +23,36 @@ try:
     import matplotlib.pyplot as plt
 except:
     plt = None
+
+
+def _extract_image_batch(images, num_images, batch_size):
+    def unpack_images(inputs):
+        return inputs["image"]
+
+    num_batches_required = math.ceil(num_images / batch_size)
+
+    if isinstance(images, tf.data.Dataset):
+        images = images.map(unpack_images)
+
+        if batch_size == 1:
+            images = images.ragged_batch(num_batches_required)
+            sample = next(iter(images.take(1)))
+        else:
+            sample = next(iter(images.take(num_batches_required)))
+
+        return sample
+
+    else:
+        if len(images.shape) != 4:
+            raise ValueError(
+                "`plot_images_gallery()` requires you to batch your `np.array` samples together."
+            )
+        else:
+            num_samples = (
+                num_images if num_images <= batch_size else num_batches_required
+            )
+            sample = images[:num_samples, ...]
+    return sample
 
 
 def plot_image_gallery(
@@ -58,7 +89,8 @@ def plot_image_gallery(
 
     Args:
         images: a Tensor, `tf.data.Dataset` or NumPy array containing images to show in the
-            gallery.
+            gallery. Note: If using a `tf.data.Dataset`, images should be
+            present in the `FeaturesDict` under the key `image`.
         value_range: value range of the images. Common examples include
             `(0, 255)` and `(0, 1)`.
         scale: how large to scale the images in the gallery
@@ -74,9 +106,6 @@ def plot_image_gallery(
             I.e. passing: `[patches.Patch(color='red', label='mylabel')]` will
             produce a legend with a single red patch and the label 'mylabel'.
 
-    Note:
-        If using a `tf.data.Dataset`, it is important that the images present in
-        the `FeaturesDict` should have the key `image`.
     """
     assert_matplotlib_installed("plot_bounding_box_gallery")
 
@@ -89,71 +118,38 @@ def plot_image_gallery(
             "to be true."
         )
 
-    def unpack_images(inputs):
-        return inputs["image"]
-
-    # Calculate appropriate number of rows and columns
-    if rows is None or cols is None:
-        if isinstance(images, tf.data.Dataset):
-            sample = next(iter(images.take(1)))
-            sample_shape = sample["image"].shape
-            if len(sample_shape) == 4:
-                batch_size = sample_shape[0]
-            else:
-                raise ValueError(
-                    "Passed `tf.data.Dataset` does not appear to be batched. Please batch using the `.batch().`"
-                )
-
-            images = images.map(unpack_images)
-            images = images.take(batch_size)
-            images = next(iter(images))
-        else:
-            sample_shape = images.shape
-            if len(sample_shape) == 4:
-                batch_size = sample_shape[0]
-            else:
-                raise ValueError(
-                    f"`plot_image_gallery` received unbatched images and `cols` and `rows` "
-                    "were both `None`. Either images should be batched, or `cols` and `rows` should be specified."
-                )
-
-    elif rows is not None and cols is not None:
-        if isinstance(images, tf.data.Dataset):
-            batch_size = rows * cols
-
-            sample = next(iter(images.take(1)))
-            sample_shape = sample["image"].shape
-
-            if len(sample_shape) == 4:
-                images = images.unbatch()
-
-            images = images.ragged_batch(batch_size=batch_size)
-
-            images = images.map(unpack_images)
-            images = images.take(batch_size)
-            images = next(iter(images))
-        else:
-            batch_size = rows * cols
-            images = images[:batch_size, ...]
+    if isinstance(images, tf.data.Dataset):
+        sample = next(iter(images.take(1)))
+        batch_size = (
+            sample["image"].shape[0] if len(sample["image"].shape) == 4 else 1
+        )  # batch_size from within passed `tf.data.Dataset`
     else:
-        raise ValueError(
-            "plot_image_gallery() expects `tf.data.Dataset` to be batched if rows or cols are not specified."
-        )
+        batch_size = (
+            images.shape[0] if len(images.shape) == 4 else 1
+        )  # batch_size from np.array or single image
 
-    rows = int(math.ceil(batch_size**0.5))
-    cols = int(math.ceil(batch_size // rows))
+    rows = rows or int(math.ceil(math.sqrt(batch_size)))
+    cols = cols or int(math.ceil(batch_size // rows))
+
+    num_images = rows * cols
+    images = _extract_image_batch(images, num_images, batch_size)
 
     # Generate subplots
     fig, axes = plt.subplots(
         nrows=rows,
         ncols=cols,
         figsize=(cols * scale, rows * scale),
+        frameon=False,
         layout="tight",
         squeeze=True,
         sharex="row",
         sharey="col",
     )
     fig.subplots_adjust(wspace=0, hspace=0)
+
+    if isinstance(axes, np.ndarray) and len(axes.shape) == 1:
+        expand_axis = 0 if rows == 1 else -1
+        axes = np.expand_dims(axes, expand_axis)
 
     if legend_handles is not None:
         fig.legend(handles=legend_handles, loc="lower center")
@@ -167,7 +163,9 @@ def plot_image_gallery(
     for row in range(rows):
         for col in range(cols):
             index = row * cols + col
-            current_axis = axes[row, col]
+            current_axis = (
+                axes[row, col] if isinstance(axes, np.ndarray) else axes
+            )
             current_axis.imshow(images[index].astype("uint8"))
             current_axis.margins(x=0, y=0)
             current_axis.axis("off")
