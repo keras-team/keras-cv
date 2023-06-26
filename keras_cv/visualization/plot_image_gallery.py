@@ -47,7 +47,8 @@ def _extract_image_batch(images, num_images, batch_size):
     else:
         if len(images.shape) != 4:
             raise ValueError(
-                "`plot_images_gallery()` requires you to batch your `np.array` samples together."
+                "`plot_images_gallery()` requires you to "
+                "batch your `np.array` samples together."
             )
         else:
             num_samples = (
@@ -90,14 +91,17 @@ def plot_image_gallery(
     ![example gallery](https://i.imgur.com/r0ndse0.png)
 
     Args:
-        images: a Tensor, `tf.data.Dataset` or NumPy array containing images to show in the
-            gallery. Note: If using a `tf.data.Dataset`, images should be
-            present in the `FeaturesDict` under the key `image`.
+        images: a Tensor, `tf.data.Dataset` or NumPy array containing images
+            to show in the gallery. Note: If using a `tf.data.Dataset`,
+            images should be present in the `FeaturesDict` under
+            the key `image`.
         value_range: value range of the images. Common examples include
             `(0, 255)` and `(0, 1)`.
         scale: how large to scale the images in the gallery
-        rows: (Optional) number of rows in the gallery to show. Required if inputs are unbatched.
-        cols: (Optional) number of columns in the gallery to show. Required if inputs are unbatched.
+        rows: (Optional) number of rows in the gallery to show.
+            Required if inputs are unbatched.
+        cols: (Optional) number of columns in the gallery to show.
+            Required if inputs are unbatched.
         path: (Optional) path to save the resulting gallery to.
         show: (Optional) whether to show the gallery of images.
         transparent: (Optional) whether to give the image a transparent

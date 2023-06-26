@@ -1,6 +1,7 @@
 """
 Title: Plot an image gallery
-Author: [lukewood](https://lukewood.xyz), updated by [Suvaditya Mukherjee](https://twitter.com/halcyonrayes)
+Author: [lukewood](https://lukewood.xyz), updated by
+[Suvaditya Mukherjee](https://twitter.com/halcyonrayes)
 Date created: 2022/10/16
 Last modified: 2022/06/24
 Description: Visualize ground truth and predicted bounding boxes for a given
