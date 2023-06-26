@@ -46,6 +46,7 @@ def pytest_collection_modifyitems(config, items):
     run_extra_large_tests = config.getoption("--run_extra_large")
     # Run large tests for --run_extra_large or --run_large.
     run_large_tests = config.getoption("--run_large") or run_extra_large_tests
+    run_tf_saving_tests = config.getoption("--run_tf_saving")
 
     # Run Keras saving tests on 2.12 stable, nightlies and later releases.
     skip_keras_saving_test = pytest.mark.skipif(
@@ -61,6 +62,8 @@ def pytest_collection_modifyitems(config, items):
     for item in items:
         if "keras_format" in item.name:
             item.add_marker(skip_keras_saving_test)
+        if "tf_format" in item.name:
+            item.add_marker(skip_extra_large)
         if "large" in item.keywords:
             item.add_marker(skip_large)
         if "extra_large" in item.keywords:
