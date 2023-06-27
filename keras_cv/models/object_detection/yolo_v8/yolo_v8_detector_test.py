@@ -210,6 +210,9 @@ class YOLOV8DetectorSmokeTest(tf.test.TestCase, parameterized.TestCase):
         )
         xs, _ = _create_bounding_box_dataset(bounding_box_format="xywh")
         output = model(xs)
+
+        # 64 represents number of parameters in a box
+        # 5376 is the number of anchors for a 512x512 image
         self.assertEqual(output["boxes"].shape, (xs.shape[0], 5376, 64))
 
     def test_preset_with_forward_pass(self):

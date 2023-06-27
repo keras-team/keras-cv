@@ -265,6 +265,9 @@ class RetinaNetSmokeTest(tf.test.TestCase, parameterized.TestCase):
         )
         xs, _ = _create_bounding_box_dataset(bounding_box_format="xywh")
         output = model(xs)
+
+        # 4 represents number of parameters in a box
+        # 49104 is the number of anchors for a 512x512 image
         self.assertEqual(output["box"].shape, (xs.shape[0], 49104, 4))
 
     def test_full_preset_weight_loading(self):
