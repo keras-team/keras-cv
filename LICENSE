@@ -209,5 +209,4 @@ folder is licensed under terms appearing below.
 # The following applies only to the code appearing in
 # keras_cv/layers/preprocessing_3d/waymo
 
-License:
-Patent Disclosure: https://github.com/waymo-research/waymo-open-dataset/blob/master/src/waymo_open_dataset/wdl_limited/camera/PATENTS
+License: https://github.com/keras-team/keras-cv/blob/master/keras_cv/layers/preprocessing_3d/waymo/LICENSE
