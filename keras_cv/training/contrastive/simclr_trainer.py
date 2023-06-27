@@ -74,11 +74,11 @@ class SimCLRAugmenter(keras.Sequential):
                     crop_area_factor=crop_area_factor,
                     aspect_ratio_factor=aspect_ratio_factor,
                 ),
-                preprocessing.MaybeApply(
+                preprocessing.RandomApply(
                     preprocessing.Grayscale(output_channels=3),
                     rate=grayscale_rate,
                 ),
-                preprocessing.MaybeApply(
+                preprocessing.RandomApply(
                     preprocessing.RandomColorJitter(
                         value_range=value_range,
                         brightness_factor=brightness_factor,

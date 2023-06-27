@@ -15,13 +15,13 @@
 from keras_cv.layers.preprocessing_3d.base_augmentation_layer_3d import (
     BaseAugmentationLayer3D,
 )
-from keras_cv.layers.preprocessing_3d.waymo.frustum_random_dropping_points import (
+from keras_cv.layers.preprocessing_3d.waymo.frustum_random_dropping_points import (  # noqa: E501
     FrustumRandomDroppingPoints,
 )
-from keras_cv.layers.preprocessing_3d.waymo.frustum_random_point_feature_noise import (
+from keras_cv.layers.preprocessing_3d.waymo.frustum_random_point_feature_noise import (  # noqa: E501
     FrustumRandomPointFeatureNoise,
 )
-from keras_cv.layers.preprocessing_3d.waymo.global_random_dropping_points import (
+from keras_cv.layers.preprocessing_3d.waymo.global_random_dropping_points import (  # noqa: E501
     GlobalRandomDroppingPoints,
 )
 from keras_cv.layers.preprocessing_3d.waymo.global_random_flip import (
@@ -36,7 +36,7 @@ from keras_cv.layers.preprocessing_3d.waymo.global_random_scaling import (
 from keras_cv.layers.preprocessing_3d.waymo.global_random_translation import (
     GlobalRandomTranslation,
 )
-from keras_cv.layers.preprocessing_3d.waymo.group_points_by_bounding_boxes import (
+from keras_cv.layers.preprocessing_3d.waymo.group_points_by_bounding_boxes import (  # noqa: E501
     GroupPointsByBoundingBoxes,
 )
 from keras_cv.layers.preprocessing_3d.waymo.random_copy_paste import (

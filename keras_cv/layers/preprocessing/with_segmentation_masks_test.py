@@ -70,6 +70,11 @@ TEST_CONFIGURATIONS = [
         preprocessing.RandomJpegQuality,
         {"factor": (75, 100)},
     ),
+    (
+        "RandomRotation",
+        preprocessing.RandomRotation,
+        {"factor": 0.0, "segmentation_classes": 10},
+    ),
     ("RandomSaturation", preprocessing.RandomSaturation, {"factor": 0.5}),
     (
         "RandomSharpness",
@@ -77,6 +82,7 @@ TEST_CONFIGURATIONS = [
         {"factor": 0.5, "value_range": (0, 255)},
     ),
     ("Solarization", preprocessing.Solarization, {"value_range": (0, 255)}),
+    ("Resizing", preprocessing.Resizing, {"height": 512, "width": 512}),
 ]
 
 

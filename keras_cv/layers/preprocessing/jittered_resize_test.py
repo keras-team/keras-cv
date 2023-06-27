@@ -1,4 +1,4 @@
-# Copyright 2022 The KerasCV Authors
+# Copyright 2023 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,10 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import numpy as np
 import tensorflow as tf
 from absl.testing import parameterized
 
 from keras_cv import bounding_box
+from keras_cv import core
 from keras_cv import layers
 
 
@@ -164,31 +166,52 @@ class JitteredResizeTest(tf.test.TestCase, parameterized.TestCase):
             expected_output["classes"], output["bounding_boxes"]["classes"]
         )
 
-    def test_augment_inference_mode(self):
-        image = tf.zeros([20, 20, 3])
-        boxes = {
-            "boxes": tf.convert_to_tensor([[0, 0, 1, 1]], dtype=tf.float32),
-            "classes": tf.convert_to_tensor([0], dtype=tf.float32),
-        }
-        input = {"images": image, "bounding_boxes": boxes}
-
+    def test_independence_of_jittered_resize_on_batched_images(self):
+        image = tf.random.uniform((100, 100, 3))
+        batched_images = tf.stack((image, image), axis=0)
         layer = layers.JitteredResize(
             target_size=self.target_size,
             scale_factor=(3 / 4, 4 / 3),
-            bounding_box_format="rel_xywh",
             seed=self.seed,
         )
-        output = layer(input, training=False)
-        expected_output = layer._inference_resizing(output)
-        self.assertAllClose(
-            expected_output["bounding_boxes"]["boxes"],
-            output["bounding_boxes"]["boxes"],
+
+        results = layer(batched_images)
+
+        self.assertNotAllClose(results[0], results[1])
+
+    def test_config_with_custom_name(self):
+        layer = layers.JitteredResize(
+            target_size=self.target_size,
+            scale_factor=(3 / 4, 4 / 3),
+            name="image_preproc",
         )
-        self.assertAllClose(
-            expected_output["bounding_boxes"]["classes"],
-            output["bounding_boxes"]["classes"],
+        config = layer.get_config()
+        layer_1 = layers.JitteredResize.from_config(config)
+        self.assertEqual(layer_1.name, layer.name)
+
+    def test_output_dtypes(self):
+        inputs = np.array([[[1], [2]], [[3], [4]]], dtype="float64")
+        layer = layers.JitteredResize(
+            target_size=self.target_size,
+            scale_factor=(3 / 4, 4 / 3),
         )
-        self.assertAllClose(
-            expected_output["images"],
-            output["images"],
+        self.assertAllEqual(layer(inputs).dtype, "float32")
+        layer = layers.JitteredResize(
+            target_size=self.target_size,
+            scale_factor=(3 / 4, 4 / 3),
+            dtype="uint8",
         )
+        self.assertAllEqual(layer(inputs).dtype, "uint8")
+
+    def test_config(self):
+        layer = layers.JitteredResize(
+            target_size=self.target_size,
+            scale_factor=(3 / 4, 4 / 3),
+            bounding_box_format="xyxy",
+        )
+        config = layer.get_config()
+        self.assertEqual(config["target_size"], self.target_size)
+        self.assertTrue(
+            isinstance(config["scale_factor"], core.UniformFactorSampler)
+        )
+        self.assertEqual(config["bounding_box_format"], "xyxy")

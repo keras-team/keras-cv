@@ -85,18 +85,18 @@ class BoxCOCOMetrics(keras.metrics.Metric):
         bounding_box_format: the bounding box format for inputs.
         evaluate_freq: the number of steps to run before each evaluation.
             Due to the high computational cost of metric evaluation the final
-            results are only updated once every `evaluate_freq` steps.  Higher
+            results are only updated once every `evaluate_freq` steps. Higher
             values will allow for faster training times, while lower numbers
             allow for higher numerical precision in metric reporting.
 
     Usage:
     `BoxCOCOMetrics()` can be used like any standard metric with any
-    KerasCV object detection model.  Inputs to `y_true` must be KerasCV bounding
+    KerasCV object detection model. Inputs to `y_true` must be KerasCV bounding
     box dictionaries, `{"classes": classes, "boxes": boxes}`, and `y_pred` must
     follow the same format with an additional `confidence` key.
 
     Unfortunately, at the moment `BoxCOCOMetrics()` are not TPU compatible with
-    the `fit()` API.  If you wish to evaluate `BoxCOCOMetrics()` for a model
+    the `fit()` API. If you wish to evaluate `BoxCOCOMetrics()` for a model
     trained on TPU, we recommend using the `model.predict()` API and manually
     updating the metric state with the results.
 
@@ -173,7 +173,7 @@ class BoxCOCOMetrics(keras.metrics.Metric):
             y_true_classes = y_true["classes"]
             y_pred_boxes = y_pred["boxes"]
             y_pred_classes = y_pred["classes"]
-            y_pred_confidence = y_pred["classes"]
+            y_pred_confidence = y_pred["confidence"]
             eager_inputs = [
                 y_true_boxes,
                 y_true_classes,
@@ -192,17 +192,17 @@ class BoxCOCOMetrics(keras.metrics.Metric):
         # Wrap the result function in a py_function and scope it to /cpu:0
         obj_result = obj.result
 
-        def result_on_host_cpu():
+        def result_on_host_cpu(force):
             with tf.device("/cpu:0"):
                 # Without the call to `constant` `tf.py_function` selects the
                 # first index automatically and just returns obj_result()[0]
-                return tf.constant(obj_result(), obj.dtype)
+                return tf.constant(obj_result(force), obj.dtype)
 
         obj.result_on_host_cpu = result_on_host_cpu
 
-        def result_fn(self):
+        def result_fn(self, force=False):
             py_func_result = tf.py_function(
-                self.result_on_host_cpu, inp=[], Tout=obj.dtype
+                self.result_on_host_cpu, inp=[force], Tout=obj.dtype
             )
             result = {}
             for i, key in enumerate(METRIC_NAMES):
@@ -223,12 +223,19 @@ class BoxCOCOMetrics(keras.metrics.Metric):
     def update_state(self, y_true, y_pred, sample_weight=None):
         self._eval_step_count += 1
 
+        if isinstance(y_true["boxes"], tf.RaggedTensor) != isinstance(
+            y_pred["boxes"], tf.RaggedTensor
+        ):
+            # Make sure we have same ragged/dense status for y_true and y_pred
+            y_true = bounding_box.to_dense(y_true)
+            y_pred = bounding_box.to_dense(y_pred)
+
         self.ground_truths.append(y_true)
         self.predictions.append(y_pred)
 
-        # compute on first step so we don't have an inconsistent list of metrics
-        # in our train_step() results.  This will just populate the metrics with
-        # `0.0` until we get to `evaluate_freq`.
+        # Compute on first step, so we don't have an inconsistent list of
+        # metrics in our train_step() results. This will just populate the
+        # metrics with `0.0` until we get to `evaluate_freq`.
         if self._eval_step_count % self.evaluate_freq == 0:
             self._cached_result = self._compute_result()
 

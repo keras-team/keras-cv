@@ -10,6 +10,8 @@ KerasCV is a library of modular computer vision oriented Keras components.
 These components include models, layers, metrics, losses, callbacks, and utility
 functions.
 
+<img style="width: 440px; max-width: 90%;" src="https://storage.googleapis.com/keras-cv/guides/keras-cv-augmentations.gif">
+
 KerasCV's primary goal is to provide a coherent, elegant, and pleasant API to train state of the art computer vision models.
 Users should be able to train state of the art models using only `Keras`, `KerasCV`, and TensorFlow core (i.e. `tf.data`) components.
 
@@ -22,13 +24,11 @@ Applied computer vision engineers can leverage KerasCV to quickly assemble produ
 In addition to API consistency, KerasCV components aim to be mixed-precision compatible, QAT compatible, XLA compilable, and TPU compatible.
 We also aim to provide generic model optimization tools for deployment on devices such as onboard GPUs, mobile, and edge chips.
 
-
-To learn more about the future project direction, please check the [roadmap](.github/ROADMAP.md).
-
 ## Quick Links
+- [List of available models and presets](https://keras.io/api/keras_cv/models/)
+- [Developer Guides](https://keras.io/guides/keras_cv/)
 - [Contributing Guide](.github/CONTRIBUTING.md)
 - [Call for Contributions](https://github.com/keras-team/keras-cv/issues?q=is%3Aopen+is%3Aissue+label%3Acontribution-welcome)
-- [Roadmap](.github/ROADMAP.md)
 - [API Design Guidelines](.github/API_DESIGN.md)
 
 ## Installation
@@ -49,55 +49,62 @@ pip install git+https://github.com/keras-team/keras-cv.git tensorflow --upgrade
 ## Quickstart
 
 ```python
-import keras_cv
 import tensorflow as tf
 from tensorflow import keras
+import keras_cv
 import tensorflow_datasets as tfds
 
-# Create a preprocessing pipeline
+# Create a preprocessing pipeline with augmentations
+BATCH_SIZE = 16
+NUM_CLASSES = 3
 augmenter = keras.Sequential(
-    layers=[
+    [
         keras_cv.layers.RandomFlip(),
         keras_cv.layers.RandAugment(value_range=(0, 255)),
         keras_cv.layers.CutMix(),
-        keras_cv.layers.MixUp()
     ]
 )
 
 def preprocess_data(images, labels, augment=False):
-    labels = tf.one_hot(labels, 3)
+    labels = tf.one_hot(labels, NUM_CLASSES)
     inputs = {"images": images, "labels": labels}
     outputs = augmenter(inputs) if augment else inputs
     return outputs['images'], outputs['labels']
 
-# Augment a `tf.data.Dataset`
 train_dataset, test_dataset = tfds.load(
     'rock_paper_scissors',
     as_supervised=True,
     split=['train', 'test'],
 )
-train_dataset = train_dataset.batch(16).map(
+train_dataset = train_dataset.batch(BATCH_SIZE).map(
     lambda x, y: preprocess_data(x, y, augment=True),
         num_parallel_calls=tf.data.AUTOTUNE).prefetch(
             tf.data.AUTOTUNE)
-test_dataset = test_dataset.batch(16).map(
+test_dataset = test_dataset.batch(BATCH_SIZE).map(
     preprocess_data, num_parallel_calls=tf.data.AUTOTUNE).prefetch(
         tf.data.AUTOTUNE)
 
-# Create a model
-densenet = keras_cv.models.DenseNet121(
-    include_rescaling=True,
-    include_top=True,
-    num_classes=3
+# Create a model using a pretrained backbone
+backbone = keras_cv.models.EfficientNetV2Backbone.from_preset(
+    "efficientnetv2_b0_imagenet"
 )
-densenet.compile(
+model = keras_cv.models.ImageClassifier(
+    backbone=backbone,
+    num_classes=NUM_CLASSES,
+    activation="softmax",
+)
+model.compile(
     loss='categorical_crossentropy',
-    optimizer='adam',
+    optimizer=keras.optimizers.Adam(learning_rate=1e-5),
     metrics=['accuracy']
 )
 
 # Train your model
-densenet.fit(train_dataset, validation_data=test_dataset)
+model.fit(
+    train_dataset,
+    validation_data=test_dataset,
+    epochs=8,
+)
 ```
 
 ## Contributors
@@ -109,9 +116,9 @@ We would like to leverage/outsource the Keras community not only for bug reporti
 but also for active development for feature delivery. To achieve this, here is the predefined
 process for how to contribute to this repository:
 
-1) Contributors are always welcome to help us fix an issue, add tests, better documentation.  
+1) Contributors are always welcome to help us fix an issue, add tests, better documentation. 
 2) If contributors would like to create a backbone, we usually require a pre-trained weight set
-with the model for one dataset as the first PR, and a training script as a follow-up. The training script will preferrably help us reproduce the results claimed from paper. The backbone should be generic but the training script can contain paper specific parameters such as learning rate schedules and weight decays. The training script will be used to produce leaderboard results.  
+with the model for one dataset as the first PR, and a training script as a follow-up. The training script will preferably help us reproduce the results claimed from paper. The backbone should be generic but the training script can contain paper specific parameters such as learning rate schedules and weight decays. The training script will be used to produce leaderboard results. 
 Exceptions apply to large transformer-based models which are difficult to train. If this is the case,
 contributors should let us know so the team can help in training the model or providing GCP resources.
 3) If contributors would like to create a meta arch, please try to be aligned with our roadmap and create a PR for design review to make sure the meta arch is modular.
@@ -137,7 +144,7 @@ An example of this can be found in the ImageNet classification training
 All results are reproducible using the training scripts in this repository.
 
 Historically, many models have been trained on image datasets rescaled via manually
-crafted normalization schemes.  
+crafted normalization schemes. 
 The most common variant of manually crafted normalization scheme is subtraction of the
 imagenet mean pixel followed by standard deviation normalization based on the imagenet
 pixel standard deviation.
@@ -158,7 +165,7 @@ instructions below.
 ### Installing KerasCV with Custom Ops from Source
 
 Installing custom ops from source requires the [Bazel](https://bazel.build/) build
-system (version >= 5.4.0).  Steps to install Bazel can be [found here](https://github.com/keras-team/keras/blob/v2.11.0/.devcontainer/Dockerfile#L21-L23).
+system (version >= 5.4.0). Steps to install Bazel can be [found here](https://github.com/keras-team/keras/blob/v2.11.0/.devcontainer/Dockerfile#L21-L23).
 
 ```
 git clone https://github.com/keras-team/keras-cv.git
@@ -195,7 +202,7 @@ Here is the BibTeX entry:
 ```bibtex
 @misc{wood2022kerascv,
   title={KerasCV},
-  author={Wood, Luke and Tan, Zhenyu and Stenbit, Ian and Zhu, Scott and Chollet, Fran\c{c}ois and others},
+  author={Wood, Luke and Tan, Zhenyu and Stenbit, Ian and Bischof, Jonathan and Zhu, Scott and Chollet, Fran\c{c}ois and others},
   year={2022},
   howpublished={\url{https://github.com/keras-team/keras-cv}},
 }

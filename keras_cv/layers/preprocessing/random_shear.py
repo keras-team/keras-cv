@@ -19,7 +19,7 @@ from tensorflow import keras
 
 import keras_cv
 from keras_cv import bounding_box
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     VectorizedBaseImageAugmentationLayer,
 )
 from keras_cv.utils import preprocessing
@@ -27,14 +27,13 @@ from keras_cv.utils import preprocessing
 
 @keras.utils.register_keras_serializable(package="keras_cv")
 class RandomShear(VectorizedBaseImageAugmentationLayer):
-    """A preprocessing layer which randomly shears images during training.
+    """A preprocessing layer which randomly shears images.
 
     This layer will apply random shearings to each image, filling empty space
     according to `fill_mode`.
-    By default, random shears are only applied during training.
-    At inference time, the layer does nothing. If you need to apply random
-    shear at inference time, set `training` to True when calling the layer.
+
     Input pixel values can be of any range and any data type.
+
     Input shape:
       3D (unbatched) or 4D (batched) tensor with shape:
       `(..., height, width, channels)`, in `"channels_last"` format
@@ -44,33 +43,32 @@ class RandomShear(VectorizedBaseImageAugmentationLayer):
 
     Args:
         x_factor: A tuple of two floats, a single float or a
-            `keras_cv.FactorSampler`. For each augmented image a value is sampled
-            from the provided range. If a float is passed, the range is interpreted as
-            `(0, x_factor)`.  Values represent a percentage of the image to shear over.
-             For example, 0.3 shears pixels up to 30% of the way across the image.
-             All provided values should be positive.  If `None` is passed, no shear
-             occurs on the X axis.
-             Defaults to `None`.
+            `keras_cv.FactorSampler`. For each augmented image a value is
+            sampled from the provided range. If a float is passed, the range is
+            interpreted as `(0, x_factor)`. Values represent a percentage of the
+            image to shear over. For example, 0.3 shears pixels up to 30% of the
+            way across the image. All provided values should be positive. If
+            `None` is passed, no shear occurs on the X axis. Defaults to `None`.
         y_factor: A tuple of two floats, a single float or a
-            `keras_cv.FactorSampler`. For each augmented image a value is sampled
-            from the provided range. If a float is passed, the range is interpreted as
-            `(0, y_factor)`. Values represent a percentage of the image to shear over.
-            For example, 0.3 shears pixels up to 30% of the way across the image.
-            All provided values should be positive.  If `None` is passed, no shear
-            occurs on the Y axis.
-            Defaults to `None`.
-        interpolation: interpolation method used in the `ImageProjectiveTransformV3` op.
-             Supported values are `"nearest"` and `"bilinear"`.
-             Defaults to `"bilinear"`.
-        fill_mode: fill_mode in the `ImageProjectiveTransformV3` op.
-             Supported values are `"reflect"`, `"wrap"`, `"constant"`, and `"nearest"`.
-             Defaults to `"reflect"`.
-        fill_value: fill_value in the `ImageProjectiveTransformV3` op.
-             A `Tensor` of type `float32`. The value to be filled when fill_mode is
-             constant".  Defaults to `0.0`.
-        bounding_box_format: The format of bounding boxes of input dataset. Refer to
-             https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box/converters.py
-             for more details on supported bounding box formats.
+            `keras_cv.FactorSampler`. For each augmented image a value is
+            sampled from the provided range. If a float is passed, the range is
+            interpreted as `(0, y_factor)`. Values represent a percentage of the
+            image to shear over. For example, 0.3 shears pixels up to 30% of the
+            way across the image. All provided values should be positive. If
+            `None` is passed, no shear occurs on the Y axis. Defaults to `None`.
+        interpolation: interpolation method used in the
+            `ImageProjectiveTransformV3` op. Supported values are `"nearest"`
+            and `"bilinear"`, defaults to `"bilinear"`.
+        fill_mode: fill_mode in the `ImageProjectiveTransformV3` op. Supported
+            values are `"reflect"`, `"wrap"`, `"constant"`, and `"nearest"`.
+            Defaults to `"reflect"`.
+        fill_value: fill_value in the `ImageProjectiveTransformV3` op. A
+            `Tensor` of type `float32`. The value to be filled when fill_mode is
+            constant". Defaults to `0.0`.
+        bounding_box_format: The format of bounding boxes of input dataset.
+            Refer to
+            https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box/converters.py
+            for more details on supported bounding box formats.
         seed: Integer. Used to create a random seed.
     """
 
@@ -320,6 +318,11 @@ class RandomShear(VectorizedBaseImageAugmentationLayer):
             dtype=self.compute_dtype,
         )
         return bounding_boxes
+
+    @staticmethod
+    def _format_transform(transform):
+        transform = tf.convert_to_tensor(transform, dtype=tf.float32)
+        return transform[tf.newaxis]
 
     def get_config(self):
         config = super().get_config()

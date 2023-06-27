@@ -25,11 +25,10 @@ NUM_BOXES = 2
 BOX_FEATURES = 7
 
 METRIC_KEYS = [
-    "average_precision",
-    "average_precision_ha_weighted",
-    "precision_recall",
-    "precision_recall_ha_weighted",
-    "breakdown",
+    "average_precision_vehicle_l1",
+    "average_precision_vehicle_l2",
+    "average_precision_ped_l1",
+    "average_precision_ped_l2",
 ]
 
 
@@ -86,7 +85,7 @@ class WaymoEvaluationCallbackTest(tf.test.TestCase):
             lambda x: {
                 "3d_boxes": {
                     "boxes": x[:, :, :7],
-                    "classes": tf.cast(x[:, :, 7], tf.uint8),
+                    "classes": tf.abs(x[:, :, 7]),
                     "confidence": x[:, :, 8],
                 }
             }

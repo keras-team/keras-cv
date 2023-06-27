@@ -146,9 +146,9 @@ RotatedBox2D::RotatedBox2D(const double cx, const double cy, const double w,
                            const double h, const double heading)
     : cx_(cx), cy_(cy), w_(w), h_(h), heading_(heading) {
   // Compute loose bounds on dimensions of box that doesn't require computing
-  // full intersection.  We can do this by trying to compute the largest circle
-  // swept by rotating the box around its center.  The radius of that circle
-  // is the length of the ray from the center to the box corner.  The upper
+  // full intersection. We can do this by trying to compute the largest circle
+  // swept by rotating the box around its center. The radius of that circle
+  // is the length of the ray from the center to the box corner. The upper
   // bound for this value is the length of the longer dimension divided by two
   // and then multiplied by root(2) (worst-case being a square box); we choose
   // 1.5 as slightly higher than root(2), and then use these extrema to do
@@ -240,7 +240,7 @@ bool RotatedBox2D::MaybeIntersects(const RotatedBox2D& other) const {
 
 double RotatedBox2D::Intersection(const RotatedBox2D& other) const {
   // Do a fast intersection check - if the boxes are not near each other
-  // then we can return early.  If they are close enough to maybe overlap,
+  // then we can return early. If they are close enough to maybe overlap,
   // we do the full check.
   if (!MaybeIntersects(other)) {
     return 0.0;
@@ -417,7 +417,7 @@ bool Upright3DBox::WithinBox3D(const Vertex& point) const {
 }
 
 double Upright3DBox::IoU(const Upright3DBox& other) const {
-  // Check that both boxes are non-zero and valid.  Otherwise,
+  // Check that both boxes are non-zero and valid. Otherwise,
   // return 0.
   if (!NonZeroAndValid() || !other.NonZeroAndValid()) {
     return 0;
@@ -443,7 +443,7 @@ double Upright3DBox::IoU(const Upright3DBox& other) const {
 }
 
 double Upright3DBox::Overlap(const Upright3DBox& other) const {
-  // Check that both boxes are non-zero and valid.  Otherwise,
+  // Check that both boxes are non-zero and valid. Otherwise,
   // return 0.
   if (!NonZeroAndValid() || !other.NonZeroAndValid()) {
     return 0;

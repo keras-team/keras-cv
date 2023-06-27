@@ -71,7 +71,7 @@ class CenterPillarTest(tf.test.TestCase):
         # dimensions computed from voxel_net
         unet = self.build_centerpillar_unet([400, 400, 20])
         decoder = MultiClassHeatmapDecoder(
-            num_class=2,
+            num_classes=2,
             num_head_bin=[2, 2],
             anchor_size=[[1.0, 1.0, 1.0], [1.0, 1.0, 1.0]],
             max_pool_size=[3, 3],
@@ -81,14 +81,13 @@ class CenterPillarTest(tf.test.TestCase):
             spatial_size=voxel_net._spatial_size,
         )
         multiclass_head = MultiClassDetectionHead(
-            num_class=2,
+            num_classes=2,
             num_head_bin=[2, 2],
         )
         model = MultiHeadCenterPillar(
             backbone=unet,
             voxel_net=voxel_net,
             multiclass_head=multiclass_head,
-            label_encoder=None,
             prediction_decoder=decoder,
         )
         point_xyz = tf.random.normal([2, 1000, 3])
@@ -114,7 +113,7 @@ class CenterPillarTest(tf.test.TestCase):
         # dimensions computed from voxel_net
         unet = self.build_centerpillar_unet([400, 400, 20])
         decoder = MultiClassHeatmapDecoder(
-            num_class=2,
+            num_classes=2,
             num_head_bin=[2, 2],
             anchor_size=[[1.0, 1.0, 1.0], [1.0, 1.0, 1.0]],
             max_pool_size=[3, 3],
@@ -124,14 +123,13 @@ class CenterPillarTest(tf.test.TestCase):
             spatial_size=voxel_net._spatial_size,
         )
         multiclass_head = MultiClassDetectionHead(
-            num_class=2,
+            num_classes=2,
             num_head_bin=[2, 2],
         )
         model = MultiHeadCenterPillar(
             backbone=unet,
             voxel_net=voxel_net,
             multiclass_head=multiclass_head,
-            label_encoder=None,
             prediction_decoder=decoder,
         )
         point_xyz = tf.random.normal([2, 1000, 3])

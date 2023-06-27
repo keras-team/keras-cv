@@ -154,16 +154,6 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             },
         ),
         (
-            "RandomlyZoomedCrop",
-            cv_layers.RandomlyZoomedCrop,
-            {
-                "height": 224,
-                "width": 224,
-                "zoom_factor": (0.8, 1.0),
-                "aspect_ratio_factor": (3 / 4, 4 / 3),
-            },
-        ),
-        (
             "DropBlock2D",
             cv_layers.DropBlock2D,
             {"rate": 0.1, "block_size": (7, 7), "seed": 1234},
@@ -178,7 +168,7 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             cv_layers.SqueezeAndExcite2D,
             {
                 "filters": 16,
-                "ratio": 0.25,
+                "bottleneck_filters": 4,
                 "squeeze_activation": keras.layers.ReLU(),
                 "excite_activation": keras.activations.relu,
             },
@@ -191,8 +181,8 @@ class SerializationTest(tf.test.TestCase, parameterized.TestCase):
             },
         ),
         (
-            "MaybeApply",
-            cv_layers.MaybeApply,
+            "RandomApply",
+            cv_layers.RandomApply,
             {
                 "rate": 0.5,
                 "layer": None,

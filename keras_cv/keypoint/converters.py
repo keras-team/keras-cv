@@ -63,16 +63,16 @@ def convert_format(keypoints, source, target, images=None, dtype=None):
 
     Supported formats are:
     - `"xy"`, absolute pixel positions.
-    - `"rel_xyxy"`.  relative pixel positions.
+    - `"rel_xyxy"`. relative pixel positions.
 
-    Formats are case insensitive.  It is recommended that you
+    Formats are case-insensitive. It is recommended that you
     capitalize width and height to maximize the visual difference
     between `"xyWH"` and `"xyxy"`.
 
     Relative formats, abbreviated `rel`, make use of the shapes of the
-    `images` passsed.  In these formats, the coordinates, widths, and
+    `images` passed. In these formats, the coordinates, widths, and
     heights are all specified as percentages of the host image.
-    `images` may be a ragged Tensor.  Note that using a ragged Tensor
+    `images` may be a ragged Tensor. Note that using a ragged Tensor
     for images may cause a substantial performance loss, as each image
     will need to be processed separately due to the mismatching image
     shapes.
@@ -93,18 +93,18 @@ def convert_format(keypoints, source, target, images=None, dtype=None):
         keypoints: tf.Tensor or tf.RaggedTensor representing keypoints
             in the format specified in the `source` parameter.
             `keypoints` can optionally have extra dimensions stacked
-            on the final axis to store metadata.  keypoints should
+            on the final axis to store metadata. keypoints should
             have a rank between 2 and 4, with the shape
             `[num_boxes,*]`, `[batch_size, num_boxes, *]` or
             `[batch_size, num_groups, num_keypoints,*]`.
         source: One of {" ".join([f'"{f}"' for f in
-            TO_XY_CONVERTERS.keys()])}.  Used to specify the original
+            TO_XY_CONVERTERS.keys()])}. Used to specify the original
             format of the `boxes` parameter.
         target: One of {" ".join([f'"{f}"' for f in
-            TO_XY_CONVERTERS.keys()])}.  Used to specify the
+            TO_XY_CONVERTERS.keys()])}. Used to specify the
             destination format of the `boxes` parameter.
         images: (Optional) a batch of images aligned with `boxes` on
-            the first axis.  Should be rank 3 (`HWC` format) or 4
+            the first axis. Should be rank 3 (`HWC` format) or 4
             (`BHWC` format). Used in some converters to compute
             relative pixel values of the bounding box dimensions.
             Required when transforming from a rel format to a non-rel
@@ -169,8 +169,9 @@ def _format_inputs(keypoints, images):
         images_include_batch = images_rank == 4
         if keypoints_includes_batch != images_include_batch:
             raise ValueError(
-                "convert_format() expects both `keypoints` and `images` to be batched "
-                f"or both unbatched. Received len(keypoints.shape)={keypoints_rank}, "
+                "convert_format() expects both `keypoints` and `images` to be "
+                "batched or both unbatched. Received "
+                f"len(keypoints.shape)={keypoints_rank}, "
                 f"len(images.shape)={images_rank}. Expected either "
                 "len(keypoints.shape)=2 and len(images.shape)=3, or "
                 "len(keypoints.shape)>=3 and len(images.shape)=4."

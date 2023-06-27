@@ -27,7 +27,8 @@ class ROIPoolTest(tf.test.TestCase):
         )
         rois = tf.reshape(tf.constant([0.0, 0.0, 1.0, 1.0]), [1, 1, 4])
         pooled_feature_map = roi_pooler(feature_map, rois)
-        # the maximum value would be at bottom-right at each block, roi sharded into 2x2 blocks
+        # the maximum value would be at bottom-right at each block, roi sharded
+        # into 2x2 blocks
         # | 0, 1, 2, 3          | 4, 5, 6, 7            |
         # | 8, 9, 10, 11        | 12, 13, 14, 15        |
         # | 16, 17, 18, 19      | 20, 21, 22, 23        |
@@ -52,7 +53,8 @@ class ROIPoolTest(tf.test.TestCase):
         )
         rois = tf.reshape(tf.constant([0.0, 0.0, 224, 220]), [1, 1, 4])
         pooled_feature_map = roi_pooler(feature_map, rois)
-        # the maximum value would be at bottom-right at each block, roi sharded into 2x2 blocks
+        # the maximum value would be at bottom-right at each block, roi sharded
+        # into 2x2 blocks
         # | 0, 1, 2             | 3, 4, 5, 6            | 7 (removed)
         # | 8, 9, 10            | 11, 12, 13, 14        | 15 (removed)
         # | 16, 17, 18          | 19, 20, 21, 22        | 23 (removed)
@@ -77,7 +79,8 @@ class ROIPoolTest(tf.test.TestCase):
         )
         rois = tf.reshape(tf.constant([0.0, 0.0, 220, 224]), [1, 1, 4])
         pooled_feature_map = roi_pooler(feature_map, rois)
-        # the maximum value would be at bottom-right at each block, roi sharded into 2x2 blocks
+        # the maximum value would be at bottom-right at each block, roi sharded
+        # into 2x2 blocks
         # | 0, 1, 2, 3          | 4, 5, 6, 7            |
         # | 8, 9, 10, 11        | 12, 13, 14, 15        |
         # | 16, 17, 18, 19(max) | 20, 21, 22, 23(max)   |
@@ -101,7 +104,8 @@ class ROIPoolTest(tf.test.TestCase):
         )
         rois = tf.reshape(tf.constant([0.0, 0.0, 224, 224]), [1, 1, 4])
         pooled_feature_map = roi_pooler(feature_map, rois)
-        # the maximum value would be at bottom-right at each block, roi sharded into 3x2 blocks
+        # the maximum value would be at bottom-right at each block, roi sharded
+        # into 3x2 blocks
         # | 0, 1, 2, 3          | 4, 5, 6, 7            |
         # | 8, 9, 10, 11(max)   | 12, 13, 14, 15(max)   |
         # --------------------------------------------
@@ -127,7 +131,8 @@ class ROIPoolTest(tf.test.TestCase):
         )
         rois = tf.reshape(tf.constant([0.0, 0.0, 224, 224]), [1, 1, 4])
         pooled_feature_map = roi_pooler(feature_map, rois)
-        # the maximum value would be at bottom-right at each block, roi sharded into 2x3 blocks
+        # the maximum value would be at bottom-right at each block, roi sharded
+        # into 2x3 blocks
         # | 0, 1        | 2, 3, 4           | 5, 6, 7           |
         # | 8, 9        | 10, 11, 12        | 13, 14, 15        |
         # | 16, 17      | 18, 19, 20        | 21, 22, 23        |

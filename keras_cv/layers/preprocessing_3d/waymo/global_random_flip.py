@@ -1,6 +1,6 @@
 # Copyright 2022 Waymo LLC.
 #
-# Licensed under the terms in https://github.com/keras-team/keras-cv/blob/master/keras_cv/layers/preprocessing_3d/waymo/LICENSE
+# Licensed under the terms in https://github.com/keras-team/keras-cv/blob/master/keras_cv/layers/preprocessing_3d/waymo/LICENSE  # noqa: E501
 
 import tensorflow as tf
 from tensorflow import keras
@@ -15,11 +15,11 @@ BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
 
 @keras.utils.register_keras_serializable(package="keras_cv")
 class GlobalRandomFlip(base_augmentation_layer_3d.BaseAugmentationLayer3D):
-    """A preprocessing layer which flips point clouds and bounding boxes with respect to the specified axis during training.
+    """A preprocessing layer which flips point clouds and bounding boxes with
+    respect to the specified axis during training.
 
     This layer will flip the whole scene with respect to the specified axes.
     Note that this layer currently only supports flipping over the Y axis.
-    During inference time, the output will be identical to input. Call the layer with `training=True` to flip the input.
 
     Input shape:
       point_clouds: 3D (multi frames) float32 Tensor with shape
@@ -35,16 +35,17 @@ class GlobalRandomFlip(base_augmentation_layer_3d.BaseAugmentationLayer3D):
       A dictionary of Tensors with the same shape as input Tensors.
 
     Args:
-      flip_x: Whether or not to flip over the X axis. Defaults to False.
-      flip_y: Whether or not to flip over the Y axis. Defaults to True.
-      flip_z: Whether or not to flip over the Z axis. Defaults to False.
+      flip_x: whether to flip over the X axis, defaults to False.
+      flip_y: whether to flip over the Y axis, defaults to True.
+      flip_z: whether to flip over the Z axis, defaults to False.
     """
 
     def __init__(self, flip_x=False, flip_y=True, flip_z=False, **kwargs):
         if flip_x or flip_z:
             raise ValueError(
                 "GlobalRandomFlip currently only supports flipping over the Y "
-                f"axis. Received flip_x={flip_x}, flip_y={flip_y}, flip_z={flip_z}."
+                f"axis. Received flip_x={flip_x}, flip_y={flip_y}, "
+                f"flip_z={flip_z}."
             )
 
         if not (flip_x or flip_y or flip_z):

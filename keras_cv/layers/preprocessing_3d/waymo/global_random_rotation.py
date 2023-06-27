@@ -1,6 +1,6 @@
 # Copyright 2022 Waymo LLC.
 #
-# Licensed under the terms in https://github.com/keras-team/keras-cv/blob/master/keras_cv/layers/preprocessing_3d/waymo/LICENSE
+# Licensed under the terms in https://github.com/keras-team/keras-cv/blob/master/keras_cv/layers/preprocessing_3d/waymo/LICENSE  # noqa: E501
 
 import tensorflow as tf
 from tensorflow import keras
@@ -16,12 +16,14 @@ BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
 
 @keras.utils.register_keras_serializable(package="keras_cv")
 class GlobalRandomRotation(base_augmentation_layer_3d.BaseAugmentationLayer3D):
-    """A preprocessing layer which randomly rotates point clouds and bounding boxes along
-    X, Y and Z axes during training.
+    """A preprocessing layer which randomly rotates point clouds and bounding
+    boxes along X, Y and Z axes during training.
 
-    This layer will randomly rotate the whole scene along the X, Y and Z axes based on a randomly sampled
-    rotation angle between [-max_rotation_angle, max_rotation_angle] (in radians) following a uniform distribution.
-    During inference time, the output will be identical to input. Call the layer with `training=True` to rotate the input.
+    This layer will randomly rotate the whole scene along the X, Y and Z axes
+    based on a randomly sampled rotation angle between [-max_rotation_angle,
+    max_rotation_angle] (in radians) following a uniform distribution. During
+    inference time, the output will be identical to input. Call the layer with
+    `training=True` to rotate the input.
 
     Input shape:
       point_clouds: 3D (multi frames) float32 Tensor with shape
@@ -37,9 +39,12 @@ class GlobalRandomRotation(base_augmentation_layer_3d.BaseAugmentationLayer3D):
       A dictionary of Tensors with the same shape as input Tensors.
 
     Arguments:
-      max_rotation_angle_x: A float scalar sets the maximum rotation angle (in radians) along X axis.
-      max_rotation_angle_y: A float scalar sets the maximum rotation angle (in radians) along Y axis.
-      max_rotation_angle_z: A float scalar sets the maximum rotation angle (in radians) along Z axis.
+      max_rotation_angle_x: A float scalar sets the maximum rotation angle (in
+        radians) along X axis.
+      max_rotation_angle_y: A float scalar sets the maximum rotation angle (in
+        radians) along Y axis.
+      max_rotation_angle_z: A float scalar sets the maximum rotation angle (in
+        radians) along Z axis.
 
     """
 

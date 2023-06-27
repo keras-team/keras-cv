@@ -15,8 +15,15 @@ import copy
 
 import numpy as np
 import tensorflow as tf
-from pycocotools.coco import COCO
-from pycocotools.cocoeval import COCOeval
+
+try:
+    from pycocotools.coco import COCO
+    from pycocotools.cocoeval import COCOeval
+except ImportError:
+    COCO = object
+    COCOeval = None
+
+from keras_cv.utils.conditional_imports import assert_pycocotools_installed
 
 METRIC_NAMES = [
     "AP",
@@ -49,11 +56,11 @@ class PyCOCOWrapper(COCO):
         """Instantiates a COCO-style API object.
         Args:
           eval_type: either 'box' or 'mask'.
-          annotation_file: a JSON file that stores annotations of the eval dataset.
-            This is required if `gt_dataset` is not provided.
-          gt_dataset: the groundtruth eval datatset in COCO API format.
+          annotation_file: a JSON file that stores annotations of the eval
+            dataset. This is required if `gt_dataset` is not provided.
+          gt_dataset: the groundtruth eval dataset in COCO API format.
         """
-
+        assert_pycocotools_installed("PyCOCOWrapper")
         COCO.__init__(self, annotation_file=None)
         self._eval_type = "box"
         if gt_dataset:
@@ -63,14 +70,14 @@ class PyCOCOWrapper(COCO):
     def loadRes(self, predictions):
         """Loads result file and return a result api object.
         Args:
-          predictions: a list of dictionary each representing an annotation in COCO
-            format. The required fields are `image_id`, `category_id`, `score`,
-            `bbox`, `segmentation`.
+          predictions: a list of dictionary each representing an annotation in
+            COCO format. The required fields are `image_id`, `category_id`,
+            `score`, `bbox`, `segmentation`.
         Returns:
           res: result COCO api object.
         Raises:
-          ValueError: if the set of image id from predictions is not the subset of
-            the set of image id of the groundtruth dataset.
+          ValueError: if the set of image id from predictions is not the subset
+            of the set of image id of the groundtruth dataset.
         """
         res = COCO()
         res.dataset["images"] = copy.deepcopy(self.dataset["images"])
@@ -118,18 +125,18 @@ def _convert_predictions_to_coco_annotations(predictions):
     coco_predictions = []
     num_batches = len(predictions["source_id"])
     for i in range(num_batches):
-        predictions["detection_boxes"][i] = _yxyx_to_xywh(
-            predictions["detection_boxes"][i]
-        )
         batch_size = predictions["source_id"][i].shape[0]
         for j in range(batch_size):
             max_num_detections = predictions["num_detections"][i][j]
+            predictions["detection_boxes"][i][j] = _yxyx_to_xywh(
+                predictions["detection_boxes"][i][j]
+            )
             for k in range(max_num_detections):
                 ann = {}
                 ann["image_id"] = predictions["source_id"][i][j]
-                ann["category_id"] = predictions["detection_classes"][i][j, k]
-                ann["bbox"] = predictions["detection_boxes"][i][j, k]
-                ann["score"] = predictions["detection_scores"][i][j, k]
+                ann["category_id"] = predictions["detection_classes"][i][j][k]
+                ann["bbox"] = predictions["detection_boxes"][i][j][k]
+                ann["score"] = predictions["detection_scores"][i][j][k]
                 coco_predictions.append(ann)
 
     for i, ann in enumerate(coco_predictions):
@@ -145,7 +152,7 @@ def _convert_groundtruths_to_coco_dataset(groundtruths, label_map=None):
     gt_annotations = []
     num_batches = len(groundtruths["source_id"])
     for i in range(num_batches):
-        max_num_instances = groundtruths["classes"][i].shape[1]
+        max_num_instances = max(x.shape[0] for x in groundtruths["classes"][i])
         batch_size = groundtruths["source_id"][i].shape[0]
         for j in range(batch_size):
             num_instances = groundtruths["num_detections"][i][j]
@@ -155,17 +162,17 @@ def _convert_groundtruths_to_coco_dataset(groundtruths, label_map=None):
                 ann = {}
                 ann["image_id"] = groundtruths["source_id"][i][j]
                 ann["iscrowd"] = 0
-                ann["category_id"] = int(groundtruths["classes"][i][j, k])
+                ann["category_id"] = int(groundtruths["classes"][i][j][k])
                 boxes = groundtruths["boxes"][i]
                 ann["bbox"] = [
-                    float(boxes[j, k, 1]),
-                    float(boxes[j, k, 0]),
-                    float(boxes[j, k, 3] - boxes[j, k, 1]),
-                    float(boxes[j, k, 2] - boxes[j, k, 0]),
+                    float(boxes[j][k][1]),
+                    float(boxes[j][k][0]),
+                    float(boxes[j][k][3] - boxes[j][k][1]),
+                    float(boxes[j][k][2] - boxes[j][k][0]),
                 ]
                 ann["area"] = float(
-                    (boxes[j, k, 3] - boxes[j, k, 1])
-                    * (boxes[j, k, 2] - boxes[j, k, 0])
+                    (boxes[j][k][3] - boxes[j][k][1])
+                    * (boxes[j][k][2] - boxes[j][k][0])
                 )
                 gt_annotations.append(ann)
 
@@ -211,6 +218,8 @@ def _convert_to_numpy(groundtruths, predictions):
 
 
 def compute_pycoco_metrics(groundtruths, predictions):
+    assert_pycocotools_installed("compute_pycoco_metrics")
+
     groundtruths, predictions = _convert_to_numpy(groundtruths, predictions)
 
     gt_dataset = _convert_groundtruths_to_coco_dataset(groundtruths)

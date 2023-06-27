@@ -32,49 +32,59 @@ CONV_KERNEL_INITIALIZER = {
 @keras.utils.register_keras_serializable(package="keras_cv")
 class FusedMBConvBlock(layers.Layer):
     """
-    Implementation of the FusedMBConv block (Fused Mobile Inverted Residual Bottleneck) from:
-        (EfficientNet-EdgeTPU: Creating Accelerator-Optimized Neural Networks with AutoML)[https://ai.googleblog.com/2019/08/efficientnet-edgetpu-creating.html]
-        (EfficientNetV2: Smaller Models and Faster Training)[https://arxiv.org/abs/2104.00298v3].
+    Implementation of the FusedMBConv block (Fused Mobile Inverted Residual
+    Bottleneck) from:
+        [EfficientNet-EdgeTPU: Creating Accelerator-Optimized Neural Networks with AutoML](https://ai.googleblog.com/2019/08/efficientnet-edgetpu-creating.html)
+        [EfficientNetV2: Smaller Models and Faster Training](https://arxiv.org/abs/2104.00298v3).
 
-    FusedMBConv blocks are based on MBConv blocks, and replace the depthwise and 1x1 output convolution
-    blocks with a single 3x3 convolution block, fusing them together - hence the name "FusedMBConv".
-    Alongside MBConv blocks, they can be used in mobile-oriented and efficient architectures,
-    and are present in architectures EfficientNet.
+    FusedMBConv blocks are based on MBConv blocks, and replace the depthwise and
+    1x1 output convolution blocks with a single 3x3 convolution block, fusing
+    them together - hence the name "FusedMBConv". Alongside MBConv blocks, they
+    can be used in mobile-oriented and efficient architectures, and are present
+    in architectures EfficientNet.
 
-    FusedMBConv blocks follow a narrow-wide-narrow structure - expanding a 1x1 convolution, performing
-    Squeeze-Excitation and then applying a 3x3 convolution, which is a more efficient operation than
-    conventional wide-narrow-wide structures.
+    FusedMBConv blocks follow a narrow-wide-narrow structure - expanding a 1x1
+    convolution, performing Squeeze-Excitation and then applying a 3x3
+    convolution, which is a more efficient operation than conventional
+    wide-narrow-wide structures.
 
-    As they're frequently used for models to be deployed to edge devices, they're
-    implemented as a layer for ease of use and re-use.
+    As they're frequently used for models to be deployed to edge devices,
+    they're implemented as a layer for ease of use and re-use.
 
     Args:
         input_filters: int, the number of input filters
         output_filters: int, the number of output filters
-        expand_ratio: default 1, the ratio by which input_filters are multiplied to expand
-            the structure in the middle expansion phase
-        kernel_size: default 3, the kernel_size to apply to the expansion phase convolutions
-        strides: default 1, the strides to apply to the expansion phase convolutions
-        se_ratio: default 0.0, The filters used in the Squeeze-Excitation phase, and are chosen as
-            the maximum between 1 and input_filters*se_ratio
+        expand_ratio: default 1, the ratio by which input_filters are multiplied
+            to expand the structure in the middle expansion phase
+        kernel_size: default 3, the kernel_size to apply to the expansion phase
+            convolutions
+        strides: default 1, the strides to apply to the expansion phase
+            convolutions
+        se_ratio: default 0.0, The filters used in the Squeeze-Excitation phase,
+            and are chosen as the maximum between 1 and input_filters*se_ratio
         bn_momentum: default 0.9, the BatchNormalization momentum
-        activation: default "swish", the activation function used between convolution operations
-        survival_probability: float, default 0.8, the optional dropout rate to apply before the output
-            convolution
+        activation: default "swish", the activation function used between
+            convolution operations
+        survival_probability: float, the optional dropout rate to apply before
+            the output convolution, defaults to 0.8
 
     Returns:
-        A `tf.Tensor` representing a feature map, passed through the FusedMBConv block
+        A `tf.Tensor` representing a feature map, passed through the FusedMBConv
+        block
 
 
     Example usage:
 
     ```
     inputs = tf.random.normal(shape=(1, 64, 64, 32), dtype=tf.float32)
-    layer = keras_cv.layers.FusedMBConvBlock(input_filters=32, output_filters=32)
+    layer = keras_cv.layers.FusedMBConvBlock(
+        input_filters=32,
+        output_filters=32
+    )
     output = layer(inputs)
     output.shape # TensorShape([1, 224, 224, 48])
     ```
-    """
+    """  # noqa: E501
 
     def __init__(
         self,

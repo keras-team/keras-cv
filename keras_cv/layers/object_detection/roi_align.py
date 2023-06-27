@@ -39,8 +39,8 @@ def _feature_bilinear_interpolation(
     kernel_x = [hx, lx]
 
     Args:
-      features: The features are in shape of [batch_size, num_boxes, output_size *
-        2, output_size * 2, num_filters].
+      features: The features are in shape of [batch_size, num_boxes,
+        output_size * 2, output_size * 2, num_filters].
       kernel_y: Tensor of size [batch_size, boxes, output_size, 2, 1].
       kernel_x: Tensor of size [batch_size, boxes, output_size, 2, 1].
 
@@ -92,13 +92,14 @@ def _compute_grid_positions(
         information of each box w.r.t. the corresponding feature map.
         boxes[:, :, 0:2] are the grid position in (y, x) (float) of the top-left
         corner of each box. boxes[:, :, 2:4] are the box sizes in (h, w) (float)
-          in terms of the number of pixels of the corresponding feature map size.
+          in terms of the number of pixels of the corresponding feature map
+          size.
       boundaries: a 3-D tensor of shape [batch_size, num_boxes, 2] representing
         the boundary (in (y, x)) of the corresponding feature map for each box.
-        Any resampled grid points that go beyond the bounary will be clipped.
+        Any resampled grid points that go beyond the boundary will be clipped.
       output_size: a scalar indicating the output crop size.
-      sample_offset: a float number in [0, 1] indicates the subpixel sample offset
-        from grid point.
+      sample_offset: a float number in [0, 1] indicates the subpixel sample
+        offset from grid point.
 
     Returns:
       kernel_y: Tensor of size [batch_size, boxes, output_size, 2, 1].
@@ -173,16 +174,19 @@ def multilevel_crop_and_resize(
 
     Generate the (output_size, output_size) set of pixels for each input box
     by first locating the box into the correct feature level, and then cropping
-    and resizing it using the correspoding feature map of that level.
+    and resizing it using the corresponding feature map of that level.
 
     Args:
-      features: A dictionary with key as pyramid level and value as features. The
-        features are in shape of [batch_size, height_l, width_l, num_filters].
-      boxes: A 3-D Tensor of shape [batch_size, num_boxes, 4]. Each row represents
-        a box with [y1, x1, y2, x2] in un-normalized coordinates.
+      features: A dictionary with key as pyramid level and value as features.
+        The pyramid level keys need to be represented by strings like so:
+        "P2", "P3", "P4", and so on.
+        The features are in shape of [batch_size, height_l, width_l,
+        num_filters].
+      boxes: A 3-D Tensor of shape [batch_size, num_boxes, 4]. Each row
+        represents a box with [y1, x1, y2, x2] in un-normalized coordinates.
       output_size: A scalar to indicate the output crop size.
-      sample_offset: a float number in [0, 1] indicates the subpixel sample offset
-        from grid point.
+      sample_offset: a float number in [0, 1] indicates the subpixel sample
+        offset from grid point.
 
     Returns:
       A 5-D tensor representing feature crop of shape
@@ -190,10 +194,14 @@ def multilevel_crop_and_resize(
     """
 
     with tf.name_scope("multilevel_crop_and_resize"):
-        levels = list(features.keys())
-        min_level = int(min(levels))
-        max_level = int(max(levels))
-        features_shape = tf.shape(features[min_level])
+        levels_str = list(features.keys())
+        # Levels are represented by strings with a prefix "P" to represent
+        # pyramid levels. The integer level can be obtained by looking at
+        # the value that follows the "P".
+        levels = [int(level_str[1:]) for level_str in levels_str]
+        min_level = min(levels)
+        max_level = max(levels)
+        features_shape = tf.shape(features[f"P{min_level}"])
         batch_size, max_feature_height, max_feature_width, num_filters = (
             features_shape[0],
             features_shape[1],
@@ -209,13 +217,13 @@ def multilevel_crop_and_resize(
         feature_heights = []
         feature_widths = []
         for level in range(min_level, max_level + 1):
-            shape = features[level].get_shape().as_list()
+            shape = features[f"P{level}"].get_shape().as_list()
             feature_heights.append(shape[1])
             feature_widths.append(shape[2])
-            # Concat tensor of [batch_size, height_l * width_l, num_filters] for each
-            # levels.
+            # Concat tensor of [batch_size, height_l * width_l, num_filters] for
+            # each level.
             features_all.append(
-                tf.reshape(features[level], [batch_size, -1, num_filters])
+                tf.reshape(features[f"P{level}"], [batch_size, -1, num_filters])
             )
         features_r2 = tf.reshape(tf.concat(features_all, 1), [-1, num_filters])
 
@@ -343,8 +351,8 @@ def multilevel_crop_and_resize(
             [-1],
         )
 
-        # TODO(tanzhenyu): replace tf.gather with tf.gather_nd and try to get similar
-        # performance.
+        # TODO(tanzhenyu): replace tf.gather with tf.gather_nd and try to get
+        #  similar performance.
         features_per_box = tf.reshape(
             tf.gather(features_r2, indices),
             [
@@ -363,9 +371,9 @@ def multilevel_crop_and_resize(
         return features_per_box
 
 
-# TODO(tanzhenyu): Remove this implementation once roi_pool has better performance.
-# as this is mostly a duplicate of
-# https://github.com/tensorflow/models/blob/master/official/legacy/detection/ops/spatial_transform_ops.py#L324
+# TODO(tanzhenyu): Remove this implementation once roi_pool has better
+#  performance as this is mostly a duplicate of
+#  https://github.com/tensorflow/models/blob/master/official/legacy/detection/ops/spatial_transform_ops.py#L324
 @keras.utils.register_keras_serializable(package="keras_cv")
 class _ROIAligner(keras.layers.Layer):
     """Performs ROIAlign for the second stage processing."""
@@ -375,7 +383,7 @@ class _ROIAligner(keras.layers.Layer):
         bounding_box_format,
         target_size=7,
         sample_offset: float = 0.5,
-        **kwargs
+        **kwargs,
     ):
         """
         Generates ROI Aligner.
@@ -402,8 +410,8 @@ class _ROIAligner(keras.layers.Layer):
         """
 
         Args:
-          features: A dictionary with key as pyramid level and value as features.
-            The features are in shape of
+          features: A dictionary with key as pyramid level and value as
+            features. The features are in shape of
             [batch_size, height_l, width_l, num_filters].
           boxes: A 3-D `tf.Tensor` of shape [batch_size, num_boxes, 4]. Each row
             represents a box with [y1, x1, y2, x2] in un-normalized coordinates.

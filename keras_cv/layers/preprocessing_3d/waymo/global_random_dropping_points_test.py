@@ -1,12 +1,12 @@
 # Copyright 2022 Waymo LLC.
 #
-# Licensed under the terms in https://github.com/keras-team/keras-cv/blob/master/keras_cv/layers/preprocessing_3d/waymo/LICENSE
+# Licensed under the terms in https://github.com/keras-team/keras-cv/blob/master/keras_cv/layers/preprocessing_3d/waymo/LICENSE  # noqa: E501
 
 import numpy as np
 import tensorflow as tf
 
 from keras_cv.layers.preprocessing_3d import base_augmentation_layer_3d
-from keras_cv.layers.preprocessing_3d.waymo.global_random_dropping_points import (
+from keras_cv.layers.preprocessing_3d.waymo.global_random_dropping_points import (  # noqa: E501
     GlobalRandomDroppingPoints,
 )
 
@@ -33,8 +33,8 @@ class GlobalDropPointsTest(tf.test.TestCase):
         inputs = {POINT_CLOUDS: point_clouds, BOUNDING_BOXES: bounding_boxes}
         outputs = add_layer(inputs)
         self.assertNotAllClose(inputs, outputs)
-        # The augmented point clouds in the first frame should be the same as the
-        # augmented point clouds in the second frame.
+        # The augmented point clouds in the first frame should be the same as
+        # the augmented point clouds in the second frame.
         self.assertAllClose(outputs[POINT_CLOUDS][0], outputs[POINT_CLOUDS][1])
 
     def test_not_augment_point_clouds_and_bounding_boxes(self):

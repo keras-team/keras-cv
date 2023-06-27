@@ -1,6 +1,6 @@
 # Copyright 2022 Waymo LLC.
 #
-# Licensed under the terms in https://github.com/keras-team/keras-cv/blob/master/keras_cv/layers/preprocessing_3d/waymo/LICENSE
+# Licensed under the terms in https://github.com/keras-team/keras-cv/blob/master/keras_cv/layers/preprocessing_3d/waymo/LICENSE  # noqa: E501
 
 import tensorflow as tf
 from tensorflow import keras
@@ -17,12 +17,13 @@ BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
 class GlobalRandomTranslation(
     base_augmentation_layer_3d.BaseAugmentationLayer3D
 ):
-    """A preprocessing layer which randomly translates point clouds and bounding boxes along
-    X, Y, and Z axes during training.
+    """A preprocessing layer which randomly translates point clouds and bounding
+    boxes along X, Y, and Z axes during training.
 
-    This layer will randomly translate the whole scene along the X, Y,and Z axes based on three randomly sampled
-    translation factors following three normal distributions centered at 0 with standard deviation  [x_stddev, y_stddev, z_stddev].
-    During inference time, the output will be identical to input. Call the layer with `training=True` to translate the input.
+    This layer will randomly translate the whole scene along the X, Y,and Z axes
+    based on three randomly sampled translation factors following three normal
+    distributions centered at 0 with standard deviation [x_stddev, y_stddev,
+    z_stddev].
 
     Input shape:
       point_clouds: 3D (multi frames) float32 Tensor with shape
@@ -38,9 +39,12 @@ class GlobalRandomTranslation(
       A dictionary of Tensors with the same shape as input Tensors.
 
     Arguments:
-      x_stddev: A float scalar sets the translation noise standard deviation along the X axis.
-      y_stddev: A float scalar sets the translation noise standard deviation along the Y axis.
-      z_stddev: A float scalar sets the translation noise standard deviation along the Z axis.
+      x_stddev: A float scalar sets the translation noise standard deviation
+        along the X axis.
+      y_stddev: A float scalar sets the translation noise standard deviation
+        along the Y axis.
+      z_stddev: A float scalar sets the translation noise standard deviation
+        along the Z axis.
     """
 
     def __init__(self, x_stddev=None, y_stddev=None, z_stddev=None, **kwargs):

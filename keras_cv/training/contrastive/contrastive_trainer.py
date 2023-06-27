@@ -25,12 +25,13 @@ class ContrastiveTrainer(keras.Model):
     Args:
         encoder: a `keras.Model` to be pre-trained. In most cases, this encoder
             should not include a top dense layer.
-        augmenter: a preprocessing layer to randomly augment input images for contrastive learning,
-            or a tuple of two separate augmenters for the two sides of the contrastive pipeline.
-        projector: a projection model for contrastive training, or a tuple of two separate
-            projectors for the two sides of the contrastive pipeline. This shrinks
-            the feature map produced by the encoder, and is usually a 1 or
-            2-layer dense MLP.
+        augmenter: a preprocessing layer to randomly augment input images for
+            contrastive learning, or a tuple of two separate augmenters for the
+            two sides of the contrastive pipeline.
+        projector: a projection model for contrastive training, or a tuple of
+            two separate projectors for the two sides of the contrastive
+            pipeline. This shrinks the feature map produced by the encoder, and
+            is usually a 1 or 2-layer dense MLP.
         probe: An optional Keras layer or model which will be trained against
             class labels at train-time using the encoder output as input.
             Note that this should be specified iff training with labeled images.
@@ -43,7 +44,12 @@ class ContrastiveTrainer(keras.Model):
 
     Usage:
     ```python
-    encoder = keras_cv.models.DenseNet121(include_rescaling=True, include_top=False, pooling="avg")
+    encoder = keras.Sequential(
+        [
+            DenseNet121Backbone(include_rescaling=False),
+            layers.GlobalAveragePooling2D(name="avg_pool"),
+        ],
+    )
     augmenter = keras_cv.layers.preprocessing.RandomFlip()
     projector = keras.layers.Dense(64)
     probe = keras_cv.training.ContrastiveTrainer.linear_probe(num_classes=10)
@@ -82,23 +88,31 @@ class ContrastiveTrainer(keras.Model):
 
         if encoder.output.shape.rank != 2:
             raise ValueError(
-                f"`encoder` must have a flattened output.  Expected rank(encoder.output.shape)=2, got encoder.output.shape={encoder.output.shape}"
+                f"`encoder` must have a flattened output. Expected "
+                f"rank(encoder.output.shape)=2, got "
+                f"encoder.output.shape={encoder.output.shape}"
             )
 
         if type(augmenter) is tuple and len(augmenter) != 2:
             raise ValueError(
-                "`augmenter` must be either a single augmenter or a tuple of exactly 2 augmenters."
+                "`augmenter` must be either a single augmenter or a tuple of "
+                "exactly 2 augmenters."
             )
 
         if type(projector) is tuple and len(projector) != 2:
             raise ValueError(
-                "`projector` must be either a single augmenter or a tuple of exactly 2 augmenters."
+                "`projector` must be either a single augmenter or a tuple of "
+                "exactly 2 augmenters."
             )
 
         self.augmenters = (
             augmenter if type(augmenter) is tuple else (augmenter, augmenter)
         )
         self.encoder = encoder
+        # Check to see if the projector is being shared or are distinct.
+        self._is_shared_projector = (
+            True if not isinstance(projector, tuple) else False
+        )
         self.projectors = (
             projector if type(projector) is tuple else (projector, projector)
         )
@@ -139,17 +153,22 @@ class ContrastiveTrainer(keras.Model):
 
         if "loss" in kwargs:
             raise ValueError(
-                "`loss` parameter in ContrastiveTrainer.compile is ambiguous. Please specify `encoder_loss` or `probe_loss`."
+                "`loss` parameter in ContrastiveTrainer.compile is ambiguous. "
+                "Please specify `encoder_loss` or `probe_loss`."
             )
 
         if "optimizer" in kwargs:
             raise ValueError(
-                "`optimizer` parameter in ContrastiveTrainer.compile is ambiguous. Please specify `encoder_optimizer` or `probe_optimizer`."
+                "`optimizer` parameter in ContrastiveTrainer.compile is "
+                "ambiguous. Please specify `encoder_optimizer` or "
+                "`probe_optimizer`."
             )
 
         if "metrics" in kwargs:
             raise ValueError(
-                "`metrics` parameter in ContrastiveTrainer.compile is ambiguous. Please specify `encoder_metrics` or `probe_metrics`."
+                "`metrics` parameter in ContrastiveTrainer.compile is "
+                "ambiguous. Please specify `encoder_metrics` or "
+                "`probe_metrics`."
             )
 
         if self.probe:
@@ -215,19 +234,23 @@ class ContrastiveTrainer(keras.Model):
                 regularization_losses=self.encoder.losses,
             )
 
+        # If the projector is shared, then take the trainable weights of just
+        # one of the projectors in the tuple. If not, use both the projectors.
+        projector_weights = (
+            self.projectors[0].trainable_weights
+            if self._is_shared_projector
+            else self.projectors[0].trainable_weights
+            + self.projectors[1].trainable_weights
+        )
         gradients = tape.gradient(
             loss,
-            self.encoder.trainable_weights
-            + self.projectors[0].trainable_weights
-            + self.projectors[1].trainable_weights,
+            self.encoder.trainable_weights + projector_weights,
         )
 
         self.optimizer.apply_gradients(
             zip(
                 gradients,
-                self.encoder.trainable_weights
-                + self.projectors[0].trainable_weights
-                + self.projectors[1].trainable_weights,
+                self.encoder.trainable_weights + projector_weights,
             )
         )
         self.loss_metric.update_state(loss)
@@ -255,7 +278,8 @@ class ContrastiveTrainer(keras.Model):
 
     def call(self, inputs):
         raise NotImplementedError(
-            "ContrastiveTrainer.call() is not implemented - please call your model directly."
+            "ContrastiveTrainer.call() is not implemented - "
+            "please call your model directly."
         )
 
     @staticmethod

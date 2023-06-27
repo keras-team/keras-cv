@@ -22,13 +22,13 @@ from keras_cv import bounding_box
 class AnchorGenerator(keras.layers.Layer):
     """AnchorGenerator generates anchors for multiple feature maps.
 
-    AnchorGenerator takes multiple scales and generates anchor boxes based on the anchor
-    sizes, scales, aspect ratios, and strides provided.  To invoke AnchorGenerator, call
-    it on the image that needs anchor boxes.
+    AnchorGenerator takes multiple scales and generates anchor boxes based on
+    the anchor sizes, scales, aspect ratios, and strides provided. To invoke
+    AnchorGenerator, call it on the image that needs anchor boxes.
 
-    `sizes` and `strides` must match structurally - they are pairs.  Scales and
-    aspect ratios can either be a list, that is then used for all of the sizes
-    (aka levels), or a dictionary from `{'level_{number}': [parameters at scale...]}`.
+    `sizes` and `strides` must match structurally - they are pairs. Scales and
+    aspect ratios can either be a list, that is then used for all the sizes (aka
+    levels), or a dictionary from `{'level_{number}': [parameters at scale...]}`
 
     Args:
       bounding_box_format: The format of bounding boxes to generate. Refer
@@ -36,16 +36,18 @@ class AnchorGenerator(keras.layers.Layer):
         for more details on supported bounding box formats.
       sizes: A list of integers that represent the anchor sizes for each level,
         or a dictionary of integer lists with each key representing a level.
-        For each anchor size, anchor height will be `anchor_size / sqrt(aspect_ratio)`,
-        and anchor width will be `anchor_size * sqrt(aspect_ratio)`.  This is repeated
-        for each scale and aspect ratio.
+        For each anchor size, anchor height will be
+        `anchor_size / sqrt(aspect_ratio)`, and anchor width will be
+        `anchor_size * sqrt(aspect_ratio)`. This is repeated for each scale and
+        aspect ratio.
       scales: A list of floats corresponding to multipliers that will be
         multiplied by each `anchor_size` to generate a level.
-      aspect_ratios: A list of floats representing the ratio of anchor width to height.
+      aspect_ratios: A list of floats representing the ratio of anchor width to
+        height.
       strides: iterable of ints that represent the anchor stride size between
         center of anchors at each scale.
-      clip_boxes: Whether or not to clip generated anchor boxes to the image size.
-        Defaults to `False`.
+      clip_boxes: whether to clip generated anchor boxes to the image
+        size, defaults to `False`.
 
     Usage:
     ```python
@@ -69,10 +71,10 @@ class AnchorGenerator(keras.layers.Layer):
     ```
 
     Input shape: an image with shape `[H, W, C]`
-    Output: a dictionary with integer keys corresponding to each level of the feature
-        pyramid.  The size of the anchors at each level will be
+    Output: a dictionary with integer keys corresponding to each level of the
+        feature pyramid. The size of the anchors at each level will be
         `(H/strides[i] * W/strides[i] * len(scales) * len(aspect_ratios), 4)`.
-    """
+    """  # noqa: E501
 
     def __init__(
         self,
@@ -118,7 +120,7 @@ class AnchorGenerator(keras.layers.Layer):
         if sorted(result_strides.keys()) != sorted(result_sizes.keys()):
             raise ValueError(
                 "Expected sizes and strides to be either lists of"
-                "the same length, or dictionaries with the same keys.  Received "
+                "the same length, or dictionaries with the same keys. Received "
                 f"sizes={sizes}, strides={strides}"
             )
 
@@ -167,7 +169,7 @@ class AnchorGenerator(keras.layers.Layer):
         if image is not None:
             if image.shape.rank != 3:
                 raise ValueError(
-                    "Expected `image` to be a Tensor of rank 3.  Got "
+                    "Expected `image` to be a Tensor of rank 3. Got "
                     f"image.shape.rank={image.shape.rank}"
                 )
             image_shape = tf.shape(image)
@@ -187,7 +189,8 @@ class AnchorGenerator(keras.layers.Layer):
 
 # TODO(tanzheny): consider having customized anchor offset.
 class _SingleAnchorGenerator:
-    """Internal utility to generate anchors for a single feature map in `yxyx` format.
+    """Internal utility to generate anchors for a single feature map in `yxyx`
+    format.
 
     Example:
     ```python
@@ -210,8 +213,8 @@ class _SingleAnchorGenerator:
       stride: A single int represents the anchor stride size between center of
         each anchor.
       clip_boxes: Boolean to represent whether the anchor coordinates should be
-        clipped to the image size. Defaults to `False`.
-      dtype: (Optional) The data type to use for the output anchors.  Defaults to
+        clipped to the image size, defaults to `False`.
+      dtype: (Optional) The data type to use for the output anchors, defaults to
         'float32'.
 
     """
@@ -256,14 +259,18 @@ class _SingleAnchorGenerator:
         half_anchor_widths = tf.reshape(0.5 * anchor_widths, [1, 1, -1])
 
         stride = tf.cast(self.stride, tf.float32)
-        # make sure range of `cx` is within limit of `image_width` with `stride`,
-        # also for sizes where `image_width % stride != 0`.
+        # make sure range of `cx` is within limit of `image_width` with
+        # `stride`, also for sizes where `image_width % stride != 0`.
         # [W]
-        cx = tf.range(0.5 * stride, (image_width // stride) * stride, stride)
-        # make sure range of `cy` is within limit of `image_height` with `stride`,
-        # also for sizes where `image_height % stride != 0`.
+        cx = tf.range(
+            0.5 * stride, tf.math.ceil(image_width / stride) * stride, stride
+        )
+        # make sure range of `cy` is within limit of `image_height` with
+        # `stride`, also for sizes where `image_height % stride != 0`.
         # [H]
-        cy = tf.range(0.5 * stride, (image_height // stride) * stride, stride)
+        cy = tf.range(
+            0.5 * stride, tf.math.ceil(image_height / stride) * stride, stride
+        )
         # [H, W]
         cx_grid, cy_grid = tf.meshgrid(cx, cy)
         # [H, W, 1]

@@ -37,16 +37,6 @@ TEST_CONFIGURATIONS = [
             "width": 224,
         },
     ),
-    (
-        "RandomlyZoomedCrop",
-        layers.RandomlyZoomedCrop,
-        {
-            "height": 224,
-            "width": 224,
-            "zoom_factor": (0.8, 1.0),
-            "aspect_ratio_factor": (3 / 4, 4 / 3),
-        },
-    ),
     ("Grayscale", layers.Grayscale, {}),
     ("GridMask", layers.GridMask, {}),
     (
@@ -92,12 +82,14 @@ TEST_CONFIGURATIONS = [
         layers.RandomContrast,
         {"value_range": (0, 255), "factor": 0.5},
     ),
+    ("RandomFlip", layers.RandomFlip, {"mode": "horizontal"}),
     (
         "RandomGaussianBlur",
         layers.RandomGaussianBlur,
         {"kernel_size": 3, "factor": (0.0, 3.0)},
     ),
     ("RandomJpegQuality", layers.RandomJpegQuality, {"factor": (75, 100)}),
+    ("RandomRotation", layers.RandomRotation, {"factor": 0.5}),
     ("RandomSaturation", layers.RandomSaturation, {"factor": 0.5}),
     (
         "RandomSharpness",

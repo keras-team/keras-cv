@@ -53,6 +53,26 @@ class RandomAugmentationPipelineTest(tf.test.TestCase, parameterized.TestCase):
 
         self.assertAllClose(xs + 1, os)
 
+    def test_batchwise(self):
+        layer = AddOneToInputs()
+        pipeline = layers.RandomChoice(layers=[layer], batchwise=True)
+        xs = tf.random.uniform((4, 5, 5, 3), 0, 100, dtype=tf.float32)
+        os = pipeline(xs)
+
+        self.assertAllClose(xs + 1, os)
+        # Ensure the layer is only called once for the entire batch
+        self.assertEqual(layer.call_counter, 1)
+
+    def test_works_with_cutmix_mixup(self):
+        pipeline = layers.RandomChoice(
+            layers=[layers.CutMix(), layers.MixUp()], batchwise=True
+        )
+        xs = {
+            "images": tf.random.uniform((4, 5, 5, 3), 0, 100, dtype=tf.float32),
+            "labels": tf.random.uniform((4, 10), 0, 1, dtype=tf.float32),
+        }
+        pipeline(xs)
+
     def test_calls_layer_augmentation_single_image(self):
         layer = AddOneToInputs()
         pipeline = layers.RandomChoice(layers=[layer])

@@ -19,7 +19,9 @@ import tensorflow as tf
 from keras_cv import bounding_box
 from keras_cv.metrics import BoxCOCOMetrics
 
-SAMPLE_FILE = os.path.dirname(os.path.abspath(__file__)) + "/sample_boxes.npz"
+SAMPLE_FILE = (
+    os.path.dirname(os.path.abspath(__file__)) + "/test_data/sample_boxes.npz"
+)
 
 
 def load_samples(fname):
@@ -47,14 +49,14 @@ def load_samples(fname):
 
 
 golden_metrics = {
-    "MaP": 0.6194297,
+    "MaP": 0.61690974,
     "MaP@[IoU=50]": 1.0,
-    "MaP@[IoU=75]": 0.7079766,
-    "MaP@[area=small]": 0.6045385,
-    "MaP@[area=medium]": 0.6283987,
-    "MaP@[area=large]": 0.6143586,
-    "Recall@[max_detections=1]": 0.47537246,
-    "Recall@[max_detections=10]": 0.6450954,
+    "MaP@[IoU=75]": 0.70687747,
+    "MaP@[area=small]": 0.6041764,
+    "MaP@[area=medium]": 0.6262922,
+    "MaP@[area=large]": 0.61016285,
+    "Recall@[max_detections=1]": 0.47804594,
+    "Recall@[max_detections=10]": 0.6451851,
     "Recall@[max_detections=100]": 0.6484465,
     "Recall@[area=small]": 0.62842655,
     "Recall@[area=medium]": 0.65336424,
@@ -88,6 +90,41 @@ class BoxCOCOMetricsTest(tf.test.TestCase):
             # passed which actually modifies the final area under curve value.
             self.assertNotEqual(metrics[metric], 0.0)
 
+    def test_coco_metric_graph_mode(self):
+        suite = BoxCOCOMetrics(bounding_box_format="xyxy", evaluate_freq=1)
+        y_true, y_pred, categories = load_samples(SAMPLE_FILE)
+
+        @tf.function()
+        def update_state(y_true, y_pred):
+            suite.update_state(y_true, y_pred)
+
+        @tf.function()
+        def result():
+            return suite.result()
+
+        metrics = result()
+        self.assertAllEqual(metrics, {key: 0 for key in golden_metrics})
+
+        update_state(y_true, y_pred)
+        metrics = result()
+        for metric in metrics:
+            self.assertNotEqual(metrics[metric], 0.0)
+
+    def test_coco_metric_suite_force_eval(self):
+        suite = BoxCOCOMetrics(bounding_box_format="xyxy", evaluate_freq=512)
+        y_true, y_pred, categories = load_samples(SAMPLE_FILE)
+
+        suite.update_state(y_true, y_pred)
+        metrics = suite.result()
+        self.assertAllEqual(metrics, {key: 0 for key in golden_metrics})
+
+        suite.update_state(y_true, y_pred)
+        metrics = suite.result(force=True)
+        for metric in metrics:
+            # The metrics do not match golden metrics because two batches were
+            # passed which actually modifies the final area under curve value.
+            self.assertNotEqual(metrics[metric], 0.0)
+
     def test_name_parameter(self):
         suite = BoxCOCOMetrics(
             bounding_box_format="xyxy", evaluate_freq=1, name="coco_metrics"
@@ -100,3 +137,131 @@ class BoxCOCOMetricsTest(tf.test.TestCase):
             self.assertAlmostEqual(
                 metrics["coco_metrics_" + metric], golden_metrics[metric]
             )
+
+    def test_coco_metric_suite_ragged_prediction(self):
+        suite = BoxCOCOMetrics(bounding_box_format="xyxy", evaluate_freq=1)
+        ragged_bounding_boxes = {
+            # shape: (2, (2, 1), 4)
+            "boxes": tf.ragged.constant(
+                [
+                    [[10, 10, 20, 20], [100, 100, 150, 150]],  # small, medium
+                    [[200, 200, 400, 400]],  # large
+                ],
+                ragged_rank=1,
+                dtype=tf.float32,
+            ),
+            "classes": tf.ragged.constant(
+                [[0, 1], [2]],
+                ragged_rank=1,
+                dtype=tf.float32,
+            ),
+            "confidence": tf.ragged.constant(
+                [[0.7, 0.8], [0.9]],
+                ragged_rank=1,
+                dtype=tf.float32,
+            ),
+        }
+        different_ragged_bounding_boxes = {
+            # shape: (2, (2, 3), 4)
+            "boxes": tf.ragged.constant(
+                [
+                    [[10, 10, 25, 25], [100, 105, 155, 155]],
+                    [[200, 200, 450, 450], [1, 1, 5, 5], [50, 50, 300, 300]],
+                ],
+                ragged_rank=1,
+                dtype=tf.float32,
+            ),
+            "classes": tf.ragged.constant(
+                [[0, 1], [2, 3, 3]],
+                ragged_rank=1,
+                dtype=tf.float32,
+            ),
+            "confidence": tf.ragged.constant(
+                [[0.7, 0.8], [0.9, 0.7, 0.7]],
+                ragged_rank=1,
+                dtype=tf.float32,
+            ),
+        }
+
+        suite.update_state(
+            ragged_bounding_boxes,
+            bounding_box.to_dense(ragged_bounding_boxes),
+        )
+        metrics = suite.result()
+        for metric in metrics:
+            # The metrics will be all 1.0 because the predictions and ground
+            # truth values are identical.
+            self.assertEqual(metrics[metric], 1.0)
+
+        suite.reset_state()
+        suite.update_state(
+            ragged_bounding_boxes,
+            bounding_box.to_dense(different_ragged_bounding_boxes),
+        )
+        metrics = suite.result()
+        for metric in metrics:
+            # The metrics will not be 1.0 because the predictions and ground
+            # truth values are completely different.
+            self.assertNotEqual(metrics[metric], 1.0)
+
+    def test_coco_metric_suite_ragged_labels(self):
+        suite = BoxCOCOMetrics(bounding_box_format="xyxy", evaluate_freq=1)
+        ragged_bounding_boxes = {
+            # shape: (2, (2, 1), 4)
+            "boxes": tf.ragged.constant(
+                [
+                    [[10, 10, 20, 20], [100, 100, 150, 150]],  # small, medium
+                    [[200, 200, 400, 400]],  # large
+                ],
+                ragged_rank=1,
+                dtype=tf.float32,
+            ),
+            "classes": tf.ragged.constant(
+                [[0, 1], [2]],
+                ragged_rank=1,
+                dtype=tf.float32,
+            ),
+            "confidence": tf.ragged.constant(
+                [[0.7, 0.8], [0.9]],
+                ragged_rank=1,
+                dtype=tf.float32,
+            ),
+        }
+        different_ragged_bounding_boxes = {
+            # shape: (2, (2, 3), 4)
+            "boxes": tf.ragged.constant(
+                [
+                    [[10, 10, 25, 25], [100, 105, 155, 155]],
+                    [[200, 200, 450, 450], [1, 1, 5, 5], [50, 50, 300, 300]],
+                ],
+                ragged_rank=1,
+                dtype=tf.float32,
+            ),
+            "classes": tf.ragged.constant(
+                [[0, 1], [2, 3, 3]],
+                ragged_rank=1,
+                dtype=tf.float32,
+            ),
+            "confidence": tf.ragged.constant(
+                [[0.7, 0.8], [0.9, 0.7, 0.7]],
+                ragged_rank=1,
+                dtype=tf.float32,
+            ),
+        }
+
+        suite.update_state(ragged_bounding_boxes, ragged_bounding_boxes)
+        metrics = suite.result()
+        for metric in metrics:
+            # The metrics will be all 1.0 because the predictions and ground
+            # truth values are identical.
+            self.assertEqual(metrics[metric], 1.0)
+
+        suite.reset_state()
+        suite.update_state(
+            ragged_bounding_boxes, different_ragged_bounding_boxes
+        )
+        metrics = suite.result()
+        for metric in metrics:
+            # The metrics will not be 1.0 because the predictions and ground
+            # truth values are completely different.
+            self.assertNotEqual(metrics[metric], 1.0)

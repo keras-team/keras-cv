@@ -1,6 +1,6 @@
 # Copyright 2022 Waymo LLC.
 #
-# Licensed under the terms in https://github.com/keras-team/keras-cv/blob/master/keras_cv/layers/preprocessing_3d/waymo/LICENSE
+# Licensed under the terms in https://github.com/keras-team/keras-cv/blob/master/keras_cv/layers/preprocessing_3d/waymo/LICENSE  # noqa: E501
 
 import tensorflow as tf
 from tensorflow import keras
@@ -20,10 +20,11 @@ OBJECT_BOUNDING_BOXES = base_augmentation_layer_3d.OBJECT_BOUNDING_BOXES
 class GroupPointsByBoundingBoxes(
     base_augmentation_layer_3d.BaseAugmentationLayer3D
 ):
-    """A preprocessing layer which groups point clouds based on bounding boxes during training.
+    """A preprocessing layer which groups point clouds based on bounding boxes
+    during training.
 
-    This layer will group point clouds based on bounding boxes and generate OBJECT_POINT_CLOUDS and OBJECT_BOUNDING_BOXES tensors.
-    During inference time, the output will be identical to input. Call the layer with `training=True` to group point clouds based on bounding boxes.
+    This layer will group point clouds based on bounding boxes and generate
+    OBJECT_POINT_CLOUDS and OBJECT_BOUNDING_BOXES tensors.
 
     Input shape:
       point_clouds: 3D (multi frames) float32 Tensor with shape
@@ -35,18 +36,25 @@ class GroupPointsByBoundingBoxes(
         https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box_3d/formats.py
 
     Output shape:
-      A dictionary of Tensors with the same shape as input Tensors and two additional items for
-        OBJECT_POINT_CLOUDS (shape [num of frames, num of valid boxes, max num of points, num of point features])
-        and OBJECT_BOUNDING_BOXES (shape [num of frames, num of valid boxes, num of box features]).
+      A dictionary of Tensors with the same shape as input Tensors and two
+      additional items for OBJECT_POINT_CLOUDS (shape [num of frames, num of
+      valid boxes, max num of points, num of point features]) and
+      OBJECT_BOUNDING_BOXES (shape [num of frames, num of valid boxes, num of
+      box features]).
 
     Arguments:
       label_index: An optional int scalar sets the target object index.
-        Bounding boxes and corresponding point clouds with box class == label_index will be saved as OBJECT_BOUNDING_BOXES and OBJECT_POINT_CLOUDS.
-        If label index is None, all valid bounding boxes (box class !=0) are used.
-      min_points_per_bounding_boxes: A int scalar sets the min number of points in a bounding box.
-        If a bounding box contains less than min_points_per_bounding_boxes, the bounding box is filtered out.
-      max_points_per_bounding_boxes: A int scalar sets the max number of points in a bounding box.
-        All the object point clouds will be padded or trimmed to the same shape, where the number of points dimension is max_points_per_bounding_boxes.
+        Bounding boxes and corresponding point clouds with box class ==
+        label_index will be saved as OBJECT_BOUNDING_BOXES and
+        OBJECT_POINT_CLOUDS. If label index is None, all valid bounding boxes
+        (box class !=0) are used.
+      min_points_per_bounding_boxes: A int scalar sets the min number of points
+        in a bounding box. If a bounding box contains less than
+        min_points_per_bounding_boxes, the bounding box is filtered out.
+      max_points_per_bounding_boxes: A int scalar sets the max number of points
+        in a bounding box. All the object point clouds will be padded or trimmed
+        to the same shape, where the number of points dimension is
+        max_points_per_bounding_boxes.
     """
 
     def __init__(
@@ -66,7 +74,8 @@ class GroupPointsByBoundingBoxes(
             raise ValueError("max_points_per_bounding_boxes must be >=0.")
         if min_points_per_bounding_boxes > max_points_per_bounding_boxes:
             raise ValueError(
-                "max_paste_bounding_boxes must be >= min_points_per_bounding_boxes."
+                "max_paste_bounding_boxes must be >= "
+                "min_points_per_bounding_boxes."
             )
 
         self._label_index = label_index
@@ -77,8 +86,8 @@ class GroupPointsByBoundingBoxes(
     def get_config(self):
         return {
             "label_index": self._label_index,
-            "min_points_per_bounding_boxes": self._min_points_per_bounding_boxes,
-            "max_points_per_bounding_boxes": self._max_points_per_bounding_boxes,
+            "min_points_per_bounding_boxes": self._min_points_per_bounding_boxes,  # noqa: E501
+            "max_points_per_bounding_boxes": self._max_points_per_bounding_boxes,  # noqa: E501
         }
 
     def augment_point_clouds_bounding_boxes(
@@ -130,7 +139,8 @@ class GroupPointsByBoundingBoxes(
         sort_valid_mask = tf.gather(
             points_in_bounding_boxes, sort_valid_index, axis=2, batch_dims=2
         )[:, :, : self._max_points_per_bounding_boxes]
-        # [num of frames, num of boxes, self._max_points_per_bounding_boxes, num of point features].
+        # [num of frames, num of boxes, self._max_points_per_bounding_boxes, num
+        # of point features].
         object_point_clouds = point_clouds[:, tf.newaxis, :, :]
         num_valid_bounding_boxes = tf.shape(object_bounding_boxes)[1]
         object_point_clouds = tf.tile(
@@ -188,7 +198,8 @@ class GroupPointsByBoundingBoxes(
             points_in_bounding_boxes, min_points_filter
         )
         # point_clouds: [frames, num_points, point_feature]
-        # object_point_clouds: [frames, num_valid_boxes, ragged_points, point_feature]
+        # object_point_clouds: [frames, num_valid_boxes, ragged_points,
+        #   point_feature]
         object_point_clouds = tf.gather(
             point_clouds, points_in_bounding_boxes, axis=1, batch_dims=1
         )
@@ -221,42 +232,42 @@ class GroupPointsByBoundingBoxes(
         )
         return result
 
-    def call(self, inputs, training=True):
-        if training:
-            point_clouds = inputs[POINT_CLOUDS]
-            bounding_boxes = inputs[BOUNDING_BOXES]
-            if point_clouds.shape.rank == 3 and bounding_boxes.shape.rank == 3:
-                return self._augment(inputs)
-            elif (
-                point_clouds.shape.rank == 4 and bounding_boxes.shape.rank == 4
-            ):
-                batch = point_clouds.get_shape().as_list()[0]
-                object_point_clouds_list = []
-                object_bounding_boxes_list = []
-                for i in range(batch):
-                    (
-                        object_point_clouds,
-                        object_bounding_boxes,
-                    ) = self.augment_point_clouds_bounding_boxes(
-                        inputs[POINT_CLOUDS][i], inputs[BOUNDING_BOXES][i]
-                    )
-                    object_point_clouds_list += [object_point_clouds]
-                    object_bounding_boxes_list += [object_bounding_boxes]
-                # object_point_clouds shape [num of frames, num of valid boxes, max num of points, num of point features].
-                inputs[OBJECT_POINT_CLOUDS] = tf.concat(
-                    object_point_clouds_list, axis=-3
+    def call(self, inputs):
+        # TODO(ianstenbit): Support the model input format.
+        point_clouds = inputs[POINT_CLOUDS]
+        bounding_boxes = inputs[BOUNDING_BOXES]
+        if point_clouds.shape.rank == 3 and bounding_boxes.shape.rank == 3:
+            return self._augment(inputs)
+        elif point_clouds.shape.rank == 4 and bounding_boxes.shape.rank == 4:
+            batch = point_clouds.get_shape().as_list()[0]
+            object_point_clouds_list = []
+            object_bounding_boxes_list = []
+            for i in range(batch):
+                (
+                    object_point_clouds,
+                    object_bounding_boxes,
+                ) = self.augment_point_clouds_bounding_boxes(
+                    inputs[POINT_CLOUDS][i], inputs[BOUNDING_BOXES][i]
                 )
-                # object_bounding_boxes shape [num of frames, num of valid boxes, num of box features].
-                inputs[OBJECT_BOUNDING_BOXES] = tf.concat(
-                    object_bounding_boxes_list, axis=-2
-                )
-                return inputs
-            else:
-                raise ValueError(
-                    "Point clouds augmentation layers are expecting inputs point clouds and bounding boxes to "
-                    "be rank 3D (Frame, Point, Feature) or 4D (Batch, Frame, Point, Feature) tensors. Got shape: {} and {}".format(
-                        point_clouds.shape, bounding_boxes.shape
-                    )
-                )
-        else:
+                object_point_clouds_list += [object_point_clouds]
+                object_bounding_boxes_list += [object_bounding_boxes]
+            # object_point_clouds shape [num of frames, num of valid boxes,
+            # max num of points, num of point features].
+            inputs[OBJECT_POINT_CLOUDS] = tf.concat(
+                object_point_clouds_list, axis=-3
+            )
+            # object_bounding_boxes shape [num of frames, num of valid
+            # boxes, num of box features].
+            inputs[OBJECT_BOUNDING_BOXES] = tf.concat(
+                object_bounding_boxes_list, axis=-2
+            )
             return inputs
+        else:
+            raise ValueError(
+                "Point clouds augmentation layers are expecting inputs "
+                "point clouds and bounding boxes to be rank 3D (Frame, "
+                "Point, Feature) or 4D (Batch, Frame, Point, Feature) "
+                "tensors. Got shape: {} and {}".format(
+                    point_clouds.shape, bounding_boxes.shape
+                )
+            )

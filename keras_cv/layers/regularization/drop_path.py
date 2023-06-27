@@ -18,11 +18,11 @@ from tensorflow import keras
 @keras.utils.register_keras_serializable(package="keras_cv")
 class DropPath(keras.__internal__.layers.BaseRandomLayer):
     """
-    Implements the DropPath layer. DropPath randomly drops samples during training
-     with a probability of `rate`. Note that this layer drops individual samples
-    within a batch and not the entire batch. DropPath randomly drops some of the
-    individual samples from a batch, whereas StachasticDepth randomly drops the
-    entire batch.
+    Implements the DropPath layer. DropPath randomly drops samples during
+    training with a probability of `rate`. Note that this layer drops individual
+    samples within a batch and not the entire batch. DropPath randomly drops
+    some individual samples from a batch, whereas StochasticDepth
+    randomly drops the entire batch.
 
     References:
         - [FractalNet](https://arxiv.org/abs/1605.07648v4).
@@ -30,7 +30,7 @@ class DropPath(keras.__internal__.layers.BaseRandomLayer):
 
     Args:
         rate: float, the probability of the residual branch being dropped.
-        seed: (Optional) Integer. Used to create a random seed.
+        seed: (Optional) integer. Used to create a random seed.
 
     Usage:
     `DropPath` can be used in any network as follows:
@@ -42,7 +42,7 @@ class DropPath(keras.__internal__.layers.BaseRandomLayer):
     output = keras_cv.layers.DropPath()(input)
     # (...)
     ```
-    """
+    """  # noqa: E501
 
     def __init__(self, rate=0.5, seed=None, **kwargs):
         super().__init__(seed=seed, **kwargs)

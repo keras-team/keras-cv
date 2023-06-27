@@ -22,7 +22,7 @@ class SqueezeAndExcite2DTest(tf.test.TestCase):
         input_shape = (1, 4, 4, 8)
         inputs = tf.random.uniform(input_shape)
 
-        layer = SqueezeAndExcite2D(8, ratio=0.25)
+        layer = SqueezeAndExcite2D(8, 2)
         outputs = layer(inputs)
         self.assertEquals(inputs.shape, outputs.shape)
 
@@ -35,7 +35,7 @@ class SqueezeAndExcite2DTest(tf.test.TestCase):
 
         layer = SqueezeAndExcite2D(
             8,
-            ratio=0.25,
+            2,
             squeeze_activation=custom_activation,
             excite_activation=custom_activation,
         )
@@ -45,9 +45,9 @@ class SqueezeAndExcite2DTest(tf.test.TestCase):
     def test_raises_invalid_ratio_error(self):
         with self.assertRaisesRegex(
             ValueError,
-            "`ratio` should be a float" " between 0 and 1. Got (.*?)",
+            "`bottleneck_filters` should be smaller than `filters`",
         ):
-            _ = SqueezeAndExcite2D(8, ratio=1.1)
+            _ = SqueezeAndExcite2D(8, 9)
 
     def test_raises_invalid_filters_error(self):
         with self.assertRaisesRegex(

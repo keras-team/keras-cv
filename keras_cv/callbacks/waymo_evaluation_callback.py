@@ -17,9 +17,12 @@ from keras.callbacks import Callback
 from keras_cv.utils import assert_waymo_open_dataset_installed
 
 try:
+    from waymo_open_dataset import label_pb2
     from waymo_open_dataset.metrics.python.wod_detection_evaluator import (
         WODDetectionEvaluator,
     )
+    from waymo_open_dataset.protos import breakdown_pb2
+    from waymo_open_dataset.protos import metrics_pb2
 except ImportError:
     WODDetectionEvaluator = None
 
@@ -32,9 +35,10 @@ class WaymoEvaluationCallback(Callback):
         validation dataset.
 
         Args:
-            validation_data: a tf.data.Dataset containing validation data. Entries
-                should have the form `(point_clouds, {"bounding_boxes": bounding_boxes}`.
-                Padded bounding box should have a class of -1 to be correctly filtered out.
+            validation_data: a tf.data.Dataset containing validation data.
+                Entries should have the form `(point_clouds, {"bounding_boxes":
+                bounding_boxes}`. Padded bounding box should have a class of -1
+                to be correctly filtered out.
             config: an optional `metrics_pb2.Config` object from WOD to specify
                 what metrics should be evaluated.
         """
@@ -43,8 +47,35 @@ class WaymoEvaluationCallback(Callback):
         )
         self.model = None
         self.val_data = validation_data
-        self.evaluator = WODDetectionEvaluator(config=config)
+        self.evaluator = WODDetectionEvaluator(
+            config=config or self._get_default_config()
+        )
         super().__init__(**kwargs)
+
+    def _get_default_config(self):
+        """Returns the default Config proto for detection."""
+        config = metrics_pb2.Config()
+
+        config.breakdown_generator_ids.append(
+            breakdown_pb2.Breakdown.OBJECT_TYPE
+        )
+        difficulty = config.difficulties.add()
+        difficulty.levels.append(label_pb2.Label.LEVEL_1)
+        difficulty.levels.append(label_pb2.Label.LEVEL_2)
+
+        config.matcher_type = metrics_pb2.MatcherProto.TYPE_HUNGARIAN
+        config.iou_thresholds.append(0.0)  # Unknown
+        config.iou_thresholds.append(0.7)  # Vehicle
+        config.iou_thresholds.append(0.5)  # Pedestrian
+        config.iou_thresholds.append(0.5)  # Sign
+        config.iou_thresholds.append(0.5)  # Cyclist
+        config.box_type = label_pb2.Label.Box.TYPE_3D
+
+        for i in range(100):
+            config.score_cutoffs.append(i * 0.01)
+        config.score_cutoffs.append(1.0)
+
+        return config
 
     def on_epoch_end(self, epoch, logs=None):
         logs = logs or {}
@@ -52,14 +83,13 @@ class WaymoEvaluationCallback(Callback):
         gt, preds = self._eval_dataset(self.val_data)
         self.evaluator.update_state(gt, preds)
 
-        metrics = self.evaluator.evaluate()
+        metrics = self.evaluator.result()
 
         metrics_dict = {
-            "average_precision": metrics.average_precision,
-            "average_precision_ha_weighted": metrics.average_precision_ha_weighted,
-            "precision_recall": metrics.precision_recall,
-            "precision_recall_ha_weighted": metrics.precision_recall_ha_weighted,
-            "breakdown": metrics.breakdown,
+            "average_precision_vehicle_l1": metrics.average_precision[0],
+            "average_precision_vehicle_l2": metrics.average_precision[1],
+            "average_precision_ped_l1": metrics.average_precision[2],
+            "average_precision_ped_l2": metrics.average_precision[3],
         }
 
         logs.update(metrics_dict)
@@ -109,47 +139,47 @@ class WaymoEvaluationCallback(Callback):
 
         frame_ids = tf.cast(tf.linspace(1, num_frames, num_frames), tf.int64)
 
-        ground_truth = {}
-        ground_truth["ground_truth_frame_id"] = tf.boolean_mask(
-            tf.repeat(frame_ids, boxes_per_gt_frame), gt_real_boxes
-        )
-        ground_truth["ground_truth_bbox"] = gt_boxes[
-            :, : CENTER_XYZ_DXDYDZ_PHI.PHI + 1
-        ]
-        ground_truth["ground_truth_type"] = tf.cast(
-            gt_boxes[:, CENTER_XYZ_DXDYDZ_PHI.CLASS], tf.uint8
-        )
-        ground_truth["ground_truth_difficulty"] = tf.cast(
-            gt_boxes[:, CENTER_XYZ_DXDYDZ_PHI.CLASS + 1], tf.uint8
-        )
+        ground_truth = {
+            "ground_truth_frame_id": tf.boolean_mask(
+                tf.repeat(frame_ids, boxes_per_gt_frame), gt_real_boxes
+            ),
+            "ground_truth_bbox": gt_boxes[:, : CENTER_XYZ_DXDYDZ_PHI.PHI + 1],
+            "ground_truth_type": tf.cast(
+                gt_boxes[:, CENTER_XYZ_DXDYDZ_PHI.CLASS], tf.uint8
+            ),
+            "ground_truth_difficulty": tf.cast(
+                gt_boxes[:, CENTER_XYZ_DXDYDZ_PHI.CLASS + 1], tf.uint8
+            ),
+        }
 
         boxes_per_pred_frame = model_outputs["boxes"].shape[1]
         total_predicted_boxes = boxes_per_pred_frame * num_frames
         predicted_boxes = tf.reshape(
             model_outputs["boxes"], (total_predicted_boxes, 7)
         )
-        predicted_classes = tf.reshape(
-            model_outputs["classes"], (total_predicted_boxes, 1)
+        predicted_classes = tf.cast(
+            tf.reshape(model_outputs["classes"], (total_predicted_boxes, 1)),
+            tf.uint8,
         )
         prediction_scores = tf.reshape(
             model_outputs["confidence"], (total_predicted_boxes, 1)
         )
-        # Remove boxes with class of -1 (these are non-boxes that may come from padding)
-        pred_real_boxes = tf.reduce_all(predicted_classes != -1, axis=[-1])
+        # Remove boxes that come from padding
+        pred_real_boxes = tf.squeeze(prediction_scores > 0)
         predicted_boxes = tf.boolean_mask(predicted_boxes, pred_real_boxes)
         predicted_classes = tf.boolean_mask(predicted_classes, pred_real_boxes)
         prediction_scores = tf.boolean_mask(prediction_scores, pred_real_boxes)
 
-        predictions = {}
-
-        predictions["prediction_frame_id"] = tf.boolean_mask(
-            tf.repeat(frame_ids, boxes_per_pred_frame), pred_real_boxes
-        )
-        predictions["prediction_bbox"] = predicted_boxes
-        predictions["prediction_type"] = tf.squeeze(predicted_classes)
-        predictions["prediction_score"] = tf.squeeze(prediction_scores)
-        predictions["prediction_overlap_nlz"] = tf.cast(
-            tf.zeros(predicted_boxes.shape[0]), tf.bool
-        )
+        predictions = {
+            "prediction_frame_id": tf.boolean_mask(
+                tf.repeat(frame_ids, boxes_per_pred_frame), pred_real_boxes
+            ),
+            "prediction_bbox": predicted_boxes,
+            "prediction_type": tf.squeeze(predicted_classes),
+            "prediction_score": tf.squeeze(prediction_scores),
+            "prediction_overlap_nlz": tf.cast(
+                tf.zeros(predicted_boxes.shape[0]), tf.bool
+            ),
+        }
 
         return ground_truth, predictions
