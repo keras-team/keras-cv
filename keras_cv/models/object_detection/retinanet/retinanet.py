@@ -122,8 +122,8 @@ class RetinaNet(Task):
             a Non-Max Suppression for box pruning.
         feature_pyramid: (Optional) A `keras.layers.Layer` that produces
             a list of 4D feature maps (batch dimension included)
-            when called on the `backbone`. If not provided, the reference
-            implementation from the paper will be used.
+            when called on the pyramid-level outputs of the `backbone`.
+            If not provided, the reference implementation from the paper will be used.
         classification_head: (Optional) A `keras.Layer` that performs
             classification of the bounding boxes. If not provided, a simple
             ConvNet with 3 layers will be used.
