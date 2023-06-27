@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from tensorflow import keras
-
+from keras_cv.backend import keras
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
@@ -110,6 +109,7 @@ class RandomApply(BaseImageAugmentationLayer):
         self.auto_vectorize = auto_vectorize
         self.batchwise = batchwise
         self.seed = seed
+        self.built = True
 
     def _should_augment(self):
         return (

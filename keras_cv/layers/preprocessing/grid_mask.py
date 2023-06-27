@@ -13,10 +13,9 @@
 # limitations under the License.
 
 import tensorflow as tf
-from tensorflow import keras
-from tensorflow.keras import layers
 
 from keras_cv import core
+from keras_cv.backend import keras
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
@@ -118,7 +117,7 @@ class GridMask(BaseImageAugmentationLayer):
         self.fill_mode = fill_mode
         self.fill_value = fill_value
         self.rotation_factor = rotation_factor
-        self.random_rotate = layers.RandomRotation(
+        self.random_rotate = keras.layers.RandomRotation(
             factor=rotation_factor,
             fill_mode="constant",
             fill_value=0.0,

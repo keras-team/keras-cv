@@ -14,9 +14,9 @@
 
 import numpy as np
 import tensorflow as tf
-from tensorflow import keras
 
 from keras_cv import bounding_box
+from keras_cv.backend import keras
 from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     VectorizedBaseImageAugmentationLayer,
 )
@@ -231,7 +231,7 @@ class RandomRotation(VectorizedBaseImageAugmentationLayer):
         # mask sparse again using tf.argmax.
         if self.segmentation_classes:
             one_hot_mask = tf.one_hot(
-                tf.squeeze(segmentation_masks, axis=-1),
+                tf.squeeze(tf.cast(segmentation_masks, tf.int32), axis=-1),
                 self.segmentation_classes,
             )
             rotated_one_hot_mask = self._rotate_images(

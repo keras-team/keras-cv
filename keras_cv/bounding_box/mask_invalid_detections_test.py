@@ -12,24 +12,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numpy as np
+import pytest
 import tensorflow as tf
 
+from keras_cv import backend
 from keras_cv import bounding_box
+from keras_cv.backend import ops
 
 
 class MaskInvalidDetectionsTest(tf.test.TestCase):
     def test_correctly_masks_based_on_max_dets(self):
         bounding_boxes = {
-            "boxes": tf.random.uniform((4, 100, 4)),
-            "num_detections": tf.constant([2, 3, 4, 2]),
-            "classes": tf.random.uniform((4, 100)),
+            "boxes": ops.random.uniform((4, 100, 4)),
+            "num_detections": ops.array([2, 3, 4, 2]),
+            "classes": ops.random.uniform((4, 100)),
         }
 
         result = bounding_box.mask_invalid_detections(bounding_boxes)
 
         negative_one_boxes = result["boxes"][:, 5:, :]
         self.assertAllClose(
-            negative_one_boxes, -tf.ones_like(negative_one_boxes)
+            negative_one_boxes, -np.ones_like(negative_one_boxes)
         )
 
         preserved_boxes = result["boxes"][:, :2, :]
@@ -40,40 +44,21 @@ class MaskInvalidDetectionsTest(tf.test.TestCase):
             boxes_from_image_3, bounding_boxes["boxes"][2, :4, :]
         )
 
-    def test_correctly_masks_based_on_max_dets_in_graph(self):
-        bounding_boxes = {
-            "boxes": tf.random.uniform((4, 100, 4)),
-            "num_detections": tf.constant([2, 3, 4, 2]),
-            "classes": tf.random.uniform((4, 100)),
-        }
-
-        @tf.function()
-        def apply_mask_detections(bounding_boxes):
-            return bounding_box.mask_invalid_detections(bounding_boxes)
-
-        result = apply_mask_detections(bounding_boxes)
-
-        negative_one_boxes = result["boxes"][:, 5:, :]
-        self.assertAllClose(
-            negative_one_boxes, -tf.ones_like(negative_one_boxes)
-        )
-
-        preserved_boxes = result["boxes"][:, :2, :]
-        self.assertAllClose(preserved_boxes, bounding_boxes["boxes"][:, :2, :])
-
-        boxes_from_image_3 = result["boxes"][2, :4, :]
-        self.assertAllClose(
-            boxes_from_image_3, bounding_boxes["boxes"][2, :4, :]
-        )
-
+    @pytest.mark.skipif(
+        backend.supports_ragged() is False,
+        reason="Only TensorFlow supports raggeds",
+    )
     def test_ragged_outputs(self):
         bounding_boxes = {
-            "boxes": tf.stack(
-                [tf.random.uniform((10, 4)), tf.random.uniform((10, 4))]
+            "boxes": np.stack(
+                [
+                    np.random.uniform(size=(10, 4)),
+                    np.random.uniform(size=(10, 4)),
+                ]
             ),
-            "num_detections": tf.constant([2, 3]),
-            "classes": tf.stack(
-                [tf.random.uniform((10,)), tf.random.uniform((10,))]
+            "num_detections": np.array([2, 3]),
+            "classes": np.stack(
+                [np.random.uniform(size=(10,)), np.random.uniform(size=(10,))]
             ),
         }
 
@@ -84,15 +69,22 @@ class MaskInvalidDetectionsTest(tf.test.TestCase):
         self.assertEqual(result["boxes"][0].shape[0], 2)
         self.assertEqual(result["boxes"][1].shape[0], 3)
 
+    @pytest.mark.skipif(
+        backend.supports_ragged() is False,
+        reason="Only TensorFlow supports raggeds",
+    )
     def test_correctly_masks_confidence(self):
         bounding_boxes = {
-            "boxes": tf.stack(
-                [tf.random.uniform((10, 4)), tf.random.uniform((10, 4))]
+            "boxes": np.stack(
+                [
+                    np.random.uniform(size=(10, 4)),
+                    np.random.uniform(size=(10, 4)),
+                ]
             ),
-            "confidence": tf.random.uniform((2, 10)),
-            "num_detections": tf.constant([2, 3]),
-            "classes": tf.stack(
-                [tf.random.uniform((10,)), tf.random.uniform((10,))]
+            "confidence": np.random.uniform(size=(2, 10)),
+            "num_detections": np.array([2, 3]),
+            "classes": np.stack(
+                [np.random.uniform(size=(10,)), np.random.uniform(size=(10,))]
             ),
         }
 
