@@ -31,11 +31,11 @@ ALL_AXES = 4
 
 
 def _encode_box_to_deltas(
-    anchors: any,
-    boxes: any,
+    anchors,
+    boxes,
     anchor_format: str,
     box_format: str,
-    variance: any = None,
+    variance=None,
     image_shape=None,
 ):
     """Converts bounding_boxes from `center_yxhw` to delta format."""
@@ -72,11 +72,11 @@ def _encode_box_to_deltas(
 
 
 def _decode_deltas_to_boxes(
-    anchors: any,
-    boxes_delta: any,
+    anchors,
+    boxes_delta,
     anchor_format: str,
     box_format: str,
-    variance: any = None,
+    variance=None,
     image_shape=None,
 ):
     """Converts bounding_boxes from delta format to `center_yxhw`."""
