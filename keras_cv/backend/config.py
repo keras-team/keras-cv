@@ -61,6 +61,13 @@ if "KERAS_CV_MULTI_BACKEND" in os.environ:
     if os.environ["KERAS_CV_MULTI_BACKEND"]:
         _MULTI_BACKEND = True
 
+if "KERAS_BACKEND" in os.environ and os.environ["KERAS_BACKEND"] in [
+    "jax",
+    "torch",
+    "tensorflow",
+]:
+    _MULTI_BACKEND = True
+
 
 def multi_backend():
     return _MULTI_BACKEND

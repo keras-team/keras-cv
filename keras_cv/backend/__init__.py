@@ -24,10 +24,6 @@ _KERAS_CORE_ALIASES = {
         "get_registered_object",
     ],
     "utils.file_utils->utils": ["get_file"],
-    "saving->layers": [
-        ("serialize_keras_object", "serialize"),
-        ("deserialize_keras_object", "deserialize"),
-    ],
     "saving->models": ["load_model"],
     "utils.naming->backend": ["get_uid"],
 }
