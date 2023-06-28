@@ -78,6 +78,7 @@ jobs:
         TEST_CUSTOM_OPS: false # TODO(ianstenbit): test custom ops, or figure out what our story is here
         KERAS_CV_MULTI_BACKEND: true
         KERAS_BACKEND: ${{ matrix.backend }}
+        JAX_ENABLE_X64: true
       run: |
         pytest --run_large keras_cv/bounding_box \
                keras_cv/layers/preprocessing \
