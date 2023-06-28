@@ -23,6 +23,9 @@ from keras_cv.backend.config import multi_backend
 _ORIGINAL_OPS = copy.copy(backend.ops.__dict__)
 _ORIGINAL_SUPPORTS_RAGGED = backend.supports_ragged
 
+# A counter for potentially nested TF data scopes
+_IN_TF_DATA_SCOPE = 0
+
 
 def tf_data(function):
     @functools.wraps(function)
@@ -38,12 +41,19 @@ def tf_data(function):
 
 class TFDataScope:
     def __enter__(self):
-        for k, v in ops.__dict__.items():
-            if k in tf_ops.__dict__:
-                setattr(ops, k, getattr(tf_ops, k))
-        backend.supports_ragged = lambda: True
+        global _IN_TF_DATA_SCOPE
+        if _IN_TF_DATA_SCOPE == 0:
+            for k, v in ops.__dict__.items():
+                if k in tf_ops.__dict__:
+                    setattr(ops, k, getattr(tf_ops, k))
+            backend.supports_ragged = lambda: True
+        _IN_TF_DATA_SCOPE += 1
 
     def __exit__(self, exc_type, exc_value, exc_tb):
-        for k, v in ops.__dict__.items():
-            setattr(ops, k, _ORIGINAL_OPS[k])
-        backend.supports_ragged = _ORIGINAL_SUPPORTS_RAGGED
+        global _IN_TF_DATA_SCOPE
+        _IN_TF_DATA_SCOPE -= 1
+        if _IN_TF_DATA_SCOPE == 0:
+            for k, v in ops.__dict__.items():
+                setattr(ops, k, _ORIGINAL_OPS[k])
+            backend.supports_ragged = _ORIGINAL_SUPPORTS_RAGGED
+            _IN_TF_DATA_SCOPE = False
