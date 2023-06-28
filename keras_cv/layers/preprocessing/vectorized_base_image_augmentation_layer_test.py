@@ -435,13 +435,7 @@ class VectorizedBaseImageAugmentationLayerTest(tf.test.TestCase):
             "segmentation_masks": segmentation_masks,
         }
 
-        print(input)
-        print(input["bounding_boxes"]["boxes"].shape)
-
         output = add_layer(input, training=True)
-
-        print(output)
-        print(input["bounding_boxes"]["boxes"].shape)
 
         self.assertAllClose(output["images"], images + 2.0)
         self.assertAllClose(output["keypoints"], keypoints + 2.0)
