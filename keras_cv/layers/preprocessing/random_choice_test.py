@@ -18,7 +18,6 @@ from absl.testing import parameterized
 
 from keras_cv import layers
 from keras_cv.backend import keras
-from keras_cv.backend.config import multi_backend
 
 
 class AddOneToInputs(keras.layers.Layer):
@@ -42,10 +41,7 @@ class RandomAugmentationPipelineTest(tf.test.TestCase, parameterized.TestCase):
 
         self.assertAllClose(xs + 1, os)
 
-    @pytest.mark.skipif(
-        multi_backend() and keras.backend.config.backend() != "tensorflow",
-        reason="Only TF supports in-graph preprocessing layers",
-    )
+    @pytest.mark.tf_only
     def test_calls_layer_augmentation_in_graph(self):
         layer = AddOneToInputs()
         pipeline = layers.RandomChoice(layers=[layer])
