@@ -27,12 +27,11 @@ jobs:
         key: ${{ runner.os }}-pip-${{ hashFiles('setup.py') }}
         restore-keys: |
           ${{ runner.os }}-pip-
+        ssh-key: ${{ secrets.KERAS_CORE }}
     - name: Install dependencies
       run: |
         pip install tensorflow==2.12.0
         pip install -e ".[tests]" --progress-bar off --upgrade
-        eval `ssh-agent -s`
-        ssh-add - <<< '${{ secrets.KERAS_CORE }}'
         git clone git@github.com:keras-team/keras-core.git
         pip install keras-core/
         pip install "jax[cpu]"
@@ -66,11 +65,10 @@ jobs:
         key: ${{ runner.os }}-pip-${{ hashFiles('setup.py') }}
         restore-keys: |
           ${{ runner.os }}-pip-
+        ssh-key: ${{ secrets.KERAS_CORE }}
     - name: Install dependencies
       run: |
         pip install tensorflow==2.12.0
-        eval `ssh-agent -s`
-        ssh-add - <<< '${{ secrets.KERAS_CORE }}'
         git clone git@github.com:keras-team/keras-core.git
         pip install keras-core/
         pip install -e ".[tests]" --progress-bar off --upgrade
