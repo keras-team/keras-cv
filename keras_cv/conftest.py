@@ -66,8 +66,8 @@ def pytest_collection_modifyitems(config, items):
         not run_extra_large_tests, reason="need --run_extra_large option to run"
     )
     skip_tf_only = pytest.mark.skipif(
-        multi_backend() and keras.backend.config.backend() != "tensorflow",
-        reason="Only TF supports in-graph preprocessing layers",
+        multi_backend(),
+        reason="This test is only supported on tf.keras",
     )
     for item in items:
         if "keras_format" in item.name:
