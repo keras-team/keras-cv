@@ -20,10 +20,7 @@ from keras_cv import bounding_box
 
 
 class ToRaggedTest(tf.test.TestCase):
-    @pytest.mark.skipif(
-        backend.supports_ragged() is False,
-        reason="Only TensorFlow supports raggeds",
-    )
+    @pytest.mark.tf_only
     def test_converts_to_ragged(self):
         bounding_boxes = {
             "boxes": np.array(
@@ -52,10 +49,7 @@ class ToRaggedTest(tf.test.TestCase):
             ],
         )
 
-    @pytest.mark.skipif(
-        backend.supports_ragged() is False,
-        reason="Only TensorFlow supports raggeds",
-    )
+    @pytest.mark.tf_only
     def test_round_trip(self):
         original = {
             "boxes": np.array(

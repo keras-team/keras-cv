@@ -16,7 +16,6 @@ import numpy as np
 import pytest
 import tensorflow as tf
 
-from keras_cv import backend
 from keras_cv import bounding_box
 from keras_cv.backend import ops
 
@@ -44,10 +43,7 @@ class MaskInvalidDetectionsTest(tf.test.TestCase):
             boxes_from_image_3, bounding_boxes["boxes"][2, :4, :]
         )
 
-    @pytest.mark.skipif(
-        backend.supports_ragged() is False,
-        reason="Only TensorFlow supports raggeds",
-    )
+    @pytest.mark.tf_only
     def test_ragged_outputs(self):
         bounding_boxes = {
             "boxes": np.stack(
@@ -69,10 +65,7 @@ class MaskInvalidDetectionsTest(tf.test.TestCase):
         self.assertEqual(result["boxes"][0].shape[0], 2)
         self.assertEqual(result["boxes"][1].shape[0], 3)
 
-    @pytest.mark.skipif(
-        backend.supports_ragged() is False,
-        reason="Only TensorFlow supports raggeds",
-    )
+    @pytest.mark.tf_only
     def test_correctly_masks_confidence(self):
         bounding_boxes = {
             "boxes": np.stack(

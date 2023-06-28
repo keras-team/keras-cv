@@ -14,15 +14,11 @@
 import pytest
 import tensorflow as tf
 
-from keras_cv import backend
 from keras_cv import bounding_box
 
 
 class ToDenseTest(tf.test.TestCase):
-    @pytest.mark.skipif(
-        backend.supports_ragged() is False,
-        reason="Only TensorFlow supports raggeds",
-    )
+    @pytest.mark.tf_only
     def test_converts_to_dense(self):
         bounding_boxes = {
             "boxes": tf.ragged.constant(

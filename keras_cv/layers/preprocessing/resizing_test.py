@@ -16,10 +16,7 @@ import pytest
 import tensorflow as tf
 from absl.testing import parameterized
 
-from keras_cv import backend
 from keras_cv import layers as cv_layers
-from keras_cv.backend import keras
-from keras_cv.backend.config import multi_backend
 
 
 class ResizingTest(tf.test.TestCase, parameterized.TestCase):
@@ -153,10 +150,7 @@ class ResizingTest(tf.test.TestCase, parameterized.TestCase):
         ("crop_to_aspect_ratio_false", False),
         ("crop_to_aspect_ratio_true", True),
     )
-    @pytest.mark.skipif(
-        backend.supports_ragged() is False,
-        reason="Only TensorFlow supports raggeds",
-    )
+    @pytest.mark.tf_only
     def test_ragged_image(self, crop_to_aspect_ratio):
         inputs = tf.ragged.constant(
             [
@@ -199,10 +193,6 @@ class ResizingTest(tf.test.TestCase, parameterized.TestCase):
         ("batch_pad_to_aspect_ratio", False, True, True),
         ("single_sample_pad_to_aspect_ratio", False, True, False),
     )
-    @pytest.mark.skipif(
-        multi_backend() and keras.backend.config.backend() != "tensorflow",
-        reason="Only TF supports in-graph preprocessing layers",
-    )
     def test_static_shape_inference(
         self, crop_to_aspect_ratio, pad_to_aspect_ratio, batch
     ):
@@ -238,10 +228,7 @@ class ResizingTest(tf.test.TestCase, parameterized.TestCase):
         img_data = np.random.random(size=input_shape).astype("float32")
         tf_function(img_data)
 
-    @pytest.mark.skipif(
-        backend.supports_ragged() is False,
-        reason="Only TensorFlow supports raggeds",
-    )
+    @pytest.mark.tf_only
     def test_pad_to_size_with_bounding_boxes_ragged_images(self):
         images = tf.ragged.constant(
             [
@@ -280,10 +267,7 @@ class ResizingTest(tf.test.TestCase, parameterized.TestCase):
             outputs["images"].shape.as_list(),
         )
 
-    @pytest.mark.skipif(
-        backend.supports_ragged() is False,
-        reason="Only TensorFlow supports raggeds",
-    )
+    @pytest.mark.tf_only
     def test_pad_to_size_with_bounding_boxes_ragged_images_upsample(self):
         images = tf.ragged.constant(
             [
