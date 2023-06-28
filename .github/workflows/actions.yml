@@ -31,7 +31,7 @@ jobs:
       run: |
         pip install tensorflow==2.12.0
         pip install -e ".[tests]" --progress-bar off --upgrade
-        git clone https://ianstenbit:${{ secrets.PAT }}@github.com/keras-team/keras-core.git
+        git clone https://${{ secrets.PAT }}@github.com/keras-team/keras-core.git
         pip install keras-core/
         pip install "jax[cpu]"
     - name: Test with pytest
@@ -67,7 +67,7 @@ jobs:
     - name: Install dependencies
       run: |
         pip install tensorflow==2.12.0
-        git clone https://ianstenbit:${{ secrets.PAT }}@github.com/keras-team/keras-core.git
+        git clone https://${{ secrets.PAT }}@github.com/keras-team/keras-core.git
         pip install keras-core/
         pip install -e ".[tests]" --progress-bar off --upgrade
         pip install "jax[cpu]"
