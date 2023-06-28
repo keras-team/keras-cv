@@ -16,7 +16,6 @@ import pytest
 import tensorflow as tf
 from packaging import version
 
-from keras_cv.backend import keras
 from keras_cv.backend.config import multi_backend
 
 
