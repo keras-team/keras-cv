@@ -80,11 +80,6 @@ def _target_gather(
             return _assign_when_rows_not_empty()
         else:
             return _assign_when_rows_empty()
-        # return ops.cond(
-        #     ops.greater(num_gt_boxes, 0),
-        #     _assign_when_rows_not_empty,
-        #     _assign_when_rows_empty,
-        # )
 
     def _gather_batched(labels, match_indices, mask, mask_val):
         """Gather based on batched labels."""
