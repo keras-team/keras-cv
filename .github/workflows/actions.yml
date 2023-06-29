@@ -38,6 +38,7 @@ jobs:
           SSH_AUTH_SOCK: /tmp/ssh_agent.sock
       run: |
         pip install tensorflow==2.12.0
+        pip install torch>=2.0.1+cpu
         pip install "jax[cpu]"
         pip install -e ".[tests]" --progress-bar off --upgrade
         git clone git@github.com:keras-team/keras-core.git
@@ -88,8 +89,8 @@ jobs:
         pip install torch>=2.0.1+cpu
         pip install torchvision>=0.15.1
         git clone git@github.com:keras-team/keras-core.git
-        python keras-core/pip_build.py --install
         pip install namex
+        python keras-core/pip_build.py --install
         pip install -e ".[tests]" --progress-bar off --upgrade
     - name: Test with pytest
       env:
