@@ -40,7 +40,7 @@ jobs:
         pip install tensorflow==2.12.0
         pip install -e ".[tests]" --progress-bar off --upgrade
         git clone git@github.com:keras-team/keras-core.git
-        pip install keras-core/
+        python keras_core/pip_build.py --install
         pip install "jax[cpu]"
     - name: Test with pytest
       env:
@@ -84,7 +84,7 @@ jobs:
       run: |
         pip install tensorflow==2.12.0
         git clone git@github.com:keras-team/keras-core.git
-        pip install keras-core/
+        python keras_core/pip_build.py --install
         pip install -e ".[tests]" --progress-bar off --upgrade
         pip install "jax[cpu]"
         pip install torch>=2.0.1+cpu
