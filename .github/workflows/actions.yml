@@ -43,7 +43,7 @@ jobs:
         pip install -e ".[tests]" --progress-bar off --upgrade
         git clone git@github.com:keras-team/keras-core.git
         pip install -r keras-core/requirements.txt
-        python keras-core/pip_build.py --install
+        pip install keras-core/
     - name: Test with pytest
       env:
         TEST_CUSTOM_OPS: false
@@ -90,7 +90,7 @@ jobs:
         pip install torchvision>=0.15.1
         git clone git@github.com:keras-team/keras-core.git
         pip install -r keras-core/requirements.txt
-        python keras-core/pip_build.py --install
+        pip install keras-core/
         pip install -e ".[tests]" --progress-bar off --upgrade
     - name: Test with pytest
       env:
