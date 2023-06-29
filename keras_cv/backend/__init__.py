@@ -11,6 +11,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""
+Keras backend module.
+This module adds a temporarily Keras API surface that is fully under KerasCV
+control. This allows us to switch between `keras_core` and `tf.keras`, as well
+as add shims to support older version of `tf.keras`.
+- `config`: check which backend is being run.
+- `keras`: The full `keras` API (via `keras_core` or `tf.keras`).
+- `ops`: `keras_core.ops`, always tf-backed if using `tf.keras`.
+"""
+
 from keras_cv.backend.config import multi_backend
 
 # Keys are of the form: "module.where.attr.exists->module.where.to.alias"
@@ -58,6 +68,7 @@ else:
     # TF Keras doesn't have this rename.
     keras.activations.silu = keras.activations.swish
 
+from keras_cv.backend import config  # noqa: E402
 from keras_cv.backend import ops  # noqa: E402
 from keras_cv.backend import tf_ops  # noqa: E402
 
