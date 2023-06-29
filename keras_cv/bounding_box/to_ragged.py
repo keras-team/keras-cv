@@ -55,7 +55,7 @@ def to_ragged(bounding_boxes, sentinel=-1, dtype=tf.float32):
         raise NotImplementedError(
             "`bounding_box.to_ragged` was called using a backend which does "
             "not support ragged tensors. "
-            f"Current backend: {keras.config.backend()}."
+            f"Current backend: {keras.backend.config.backend()}."
         )
 
     info = validate_format.validate_format(bounding_boxes)
