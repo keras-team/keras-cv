@@ -38,10 +38,11 @@ jobs:
           SSH_AUTH_SOCK: /tmp/ssh_agent.sock
       run: |
         pip install tensorflow==2.12.0
+        pip install "jax[cpu]"
         pip install -e ".[tests]" --progress-bar off --upgrade
         git clone git@github.com:keras-team/keras-core.git
+        pip install namex
         python keras-core/pip_build.py --install
-        pip install "jax[cpu]"
     - name: Test with pytest
       env:
         TEST_CUSTOM_OPS: false
@@ -83,12 +84,13 @@ jobs:
           SSH_AUTH_SOCK: /tmp/ssh_agent.sock
       run: |
         pip install tensorflow==2.12.0
-        git clone git@github.com:keras-team/keras-core.git
-        python keras-core/pip_build.py --install
-        pip install -e ".[tests]" --progress-bar off --upgrade
         pip install "jax[cpu]"
         pip install torch>=2.0.1+cpu
         pip install torchvision>=0.15.1
+        git clone git@github.com:keras-team/keras-core.git
+        python keras-core/pip_build.py --install
+        pip install namex
+        pip install -e ".[tests]" --progress-bar off --upgrade
     - name: Test with pytest
       env:
         TEST_CUSTOM_OPS: false # TODO(ianstenbit): test custom ops, or figure out what our story is here
