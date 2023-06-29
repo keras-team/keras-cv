@@ -18,7 +18,7 @@ from keras_cv import bounding_box
 
 
 class ToDenseTest(tf.test.TestCase):
-    @pytest.mark.tf_only
+    @pytest.mark.tf_keras_only
     def test_converts_to_dense(self):
         bounding_boxes = {
             "boxes": tf.ragged.constant(

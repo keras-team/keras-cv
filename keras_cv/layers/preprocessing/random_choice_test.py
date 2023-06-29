@@ -41,7 +41,7 @@ class RandomAugmentationPipelineTest(tf.test.TestCase, parameterized.TestCase):
 
         self.assertAllClose(xs + 1, os)
 
-    @pytest.mark.tf_only
+    @pytest.mark.tf_keras_only
     def test_calls_layer_augmentation_in_graph(self):
         layer = AddOneToInputs()
         pipeline = layers.RandomChoice(layers=[layer])

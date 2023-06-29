@@ -44,7 +44,7 @@ def pytest_configure(config):
     )
     config.addinivalue_line(
         "markers",
-        "tf_only: mark test as a tf only test",
+        "tf_keras_only: mark test as a tf only test",
     )
 
 
@@ -64,7 +64,7 @@ def pytest_collection_modifyitems(config, items):
     skip_extra_large = pytest.mark.skipif(
         not run_extra_large_tests, reason="need --run_extra_large option to run"
     )
-    skip_tf_only = pytest.mark.skipif(
+    skip_tf_keras_only = pytest.mark.skipif(
         multi_backend(),
         reason="This test is only supported on tf.keras",
     )
@@ -77,5 +77,5 @@ def pytest_collection_modifyitems(config, items):
             item.add_marker(skip_large)
         if "extra_large" in item.keywords:
             item.add_marker(skip_extra_large)
-        if "tf_only" in item.keywords:
-            item.add_marker(skip_tf_only)
+        if "tf_keras_only" in item.keywords:
+            item.add_marker(skip_tf_keras_only)

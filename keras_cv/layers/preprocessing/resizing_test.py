@@ -150,7 +150,7 @@ class ResizingTest(tf.test.TestCase, parameterized.TestCase):
         ("crop_to_aspect_ratio_false", False),
         ("crop_to_aspect_ratio_true", True),
     )
-    @pytest.mark.tf_only
+    @pytest.mark.tf_keras_only
     def test_ragged_image(self, crop_to_aspect_ratio):
         inputs = tf.ragged.constant(
             [
@@ -228,7 +228,7 @@ class ResizingTest(tf.test.TestCase, parameterized.TestCase):
         img_data = np.random.random(size=input_shape).astype("float32")
         tf_function(img_data)
 
-    @pytest.mark.tf_only
+    @pytest.mark.tf_keras_only
     def test_pad_to_size_with_bounding_boxes_ragged_images(self):
         images = tf.ragged.constant(
             [
@@ -267,7 +267,7 @@ class ResizingTest(tf.test.TestCase, parameterized.TestCase):
             outputs["images"].shape.as_list(),
         )
 
-    @pytest.mark.tf_only
+    @pytest.mark.tf_keras_only
     def test_pad_to_size_with_bounding_boxes_ragged_images_upsample(self):
         images = tf.ragged.constant(
             [
