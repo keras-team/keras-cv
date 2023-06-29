@@ -20,7 +20,7 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 )
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+@keras.saving.register_keras_serializable(package="keras_cv")
 class FourierMix(BaseImageAugmentationLayer):
     """FourierMix implements the FMix data augmentation technique.
 

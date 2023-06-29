@@ -20,7 +20,7 @@ from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer impo
 )
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+@keras.saving.register_keras_serializable(package="keras_cv")
 class Grayscale(VectorizedBaseImageAugmentationLayer):
     """Grayscale is a preprocessing layer that transforms RGB images to
     Grayscale images.

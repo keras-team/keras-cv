@@ -22,7 +22,7 @@ from keras_cv.utils import fill_utils
 from keras_cv.utils import preprocessing
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+@keras.saving.register_keras_serializable(package="keras_cv")
 class RandomCutout(BaseImageAugmentationLayer):
     """Randomly cut out rectangles from images and fill them.
 

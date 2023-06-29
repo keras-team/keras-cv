@@ -29,7 +29,7 @@ H_AXIS = -3
 W_AXIS = -2
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+@keras.saving.register_keras_serializable(package="keras_cv")
 class JitteredResize(VectorizedBaseImageAugmentationLayer):
     """JitteredResize implements resize with scale distortion.
 

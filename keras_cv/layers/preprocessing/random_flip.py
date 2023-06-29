@@ -31,7 +31,7 @@ VERTICAL = "vertical"
 HORIZONTAL_AND_VERTICAL = "horizontal_and_vertical"
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+@keras.saving.register_keras_serializable(package="keras_cv")
 class RandomFlip(VectorizedBaseImageAugmentationLayer):
     """A preprocessing layer which randomly flips images.
 

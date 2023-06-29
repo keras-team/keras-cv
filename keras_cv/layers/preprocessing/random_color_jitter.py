@@ -20,7 +20,7 @@ from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer impo
 from keras_cv.utils import preprocessing as preprocessing_utils
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+@keras.saving.register_keras_serializable(package="keras_cv")
 class RandomColorJitter(VectorizedBaseImageAugmentationLayer):
     """RandomColorJitter class randomly apply brightness, contrast, saturation
     and hue image processing operation sequentially and randomly on the

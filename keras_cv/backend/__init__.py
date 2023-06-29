@@ -17,18 +17,20 @@ from keras_cv.backend.config import multi_backend
 # Value are of the form: ["attr1", "attr2", ...] or
 #                        [("attr1_original_name", "attr1_alias_name")]
 _KERAS_CORE_ALIASES = {
-    "saving->utils": [
+    "utils->saving": [
         "register_keras_serializable",
         "deserialize_keras_object",
         "serialize_keras_object",
         "get_registered_object",
     ],
-    "saving->models": ["load_model"],
+    "models->saving": ["load_model"],
 }
 
 
 if multi_backend():
     import keras_core as keras
+else:
+    from tensorflow import keras
 
     # add aliases
     for key, value in _KERAS_CORE_ALIASES.items():
@@ -52,8 +54,6 @@ if multi_backend():
                 src_attr, dst_attr = attr, attr
             attr_val = getattr(src_mod, src_attr)
             setattr(dst_mod, dst_attr, attr_val)
-else:
-    from tensorflow import keras
 
     # TF Keras doesn't have this rename.
     keras.activations.silu = keras.activations.swish

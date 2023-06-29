@@ -21,7 +21,7 @@ from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer impo
 from keras_cv.utils import preprocessing
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+@keras.saving.register_keras_serializable(package="keras_cv")
 class Solarization(VectorizedBaseImageAugmentationLayer):
     """Applies (max_value - pixel + min_value) for each pixel in the image.
 

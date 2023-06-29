@@ -21,7 +21,7 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 from keras_cv.utils import preprocessing
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+@keras.saving.register_keras_serializable(package="keras_cv")
 class RandomGaussianBlur(BaseImageAugmentationLayer):
     """Applies a Gaussian Blur with random strength to an image.
 

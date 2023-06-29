@@ -43,7 +43,7 @@ base_class = (
 )
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+@keras.saving.register_keras_serializable(package="keras_cv")
 class VectorizedBaseImageAugmentationLayer(base_class):
     """Abstract base layer for vectorized image augmentation.
 

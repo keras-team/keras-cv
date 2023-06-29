@@ -33,7 +33,7 @@ def _center_crop(mask, width, height):
     return tf.image.crop_to_bounding_box(mask, h_start, w_start, height, width)
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+@keras.saving.register_keras_serializable(package="keras_cv")
 class GridMask(BaseImageAugmentationLayer):
     """GridMask class for grid-mask augmentation.
 

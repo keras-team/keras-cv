@@ -23,7 +23,7 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 from keras_cv.utils import preprocessing
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+@keras.saving.register_keras_serializable(package="keras_cv")
 class RandomCropAndResize(BaseImageAugmentationLayer):
     """Randomly crops a part of an image and resizes it to provided size.
 
