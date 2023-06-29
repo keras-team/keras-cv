@@ -11,11 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from keras_core.backend.tensorflow import *  # noqa: F403, F401
-from keras_core.backend.tensorflow.core import *  # noqa: F403, F401
-from keras_core.backend.tensorflow.math import *  # noqa: F403, F401
-from keras_core.backend.tensorflow.nn import *  # noqa: F403, F401
-from keras_core.backend.tensorflow.numpy import *  # noqa: F403, F401
+from keras_core.src.backend.tensorflow import *  # noqa: F403, F401
+from keras_core.src.backend.tensorflow import (  # noqa: F403, F401
+    convert_to_numpy,
+)
+from keras_core.src.backend.tensorflow.core import *  # noqa: F403, F401
+from keras_core.src.backend.tensorflow.math import *  # noqa: F403, F401
+from keras_core.src.backend.tensorflow.nn import *  # noqa: F403, F401
+from keras_core.src.backend.tensorflow.numpy import *  # noqa: F403, F401
 
 # Some TF APIs where the numpy API doesn't support raggeds that we need
 from tensorflow import concat as concatenate  # noqa: F403, F401
@@ -26,5 +29,3 @@ from tensorflow import split  # noqa: F403, F401
 from tensorflow.keras.preprocessing.image import (  # noqa: F403, F401
     smart_resize,
 )
-
-convert_to_numpy = lambda x: x.numpy() if is_tensor(x) else x  # noqa: F405

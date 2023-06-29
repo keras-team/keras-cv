@@ -14,9 +14,10 @@
 from keras_cv.backend.config import multi_backend
 
 if multi_backend():
-    from keras_core.backend import convert_to_numpy  # noqa: F403, F401
-    from keras_core.backend import vectorized_map  # noqa: F403, F401
-    from keras_core.ops import *  # noqa: F403, F401
-    from keras_core.utils.image_utils import smart_resize  # noqa: F403, F401
+    from keras_core.src.backend import vectorized_map  # noqa: F403, F401
+    from keras_core.src.ops import *  # noqa: F403, F401
+    from keras_core.src.utils.image_utils import (  # noqa: F403, F401
+        smart_resize,
+    )
 else:
     from keras_cv.backend.tf_ops import *  # noqa: F403, F401

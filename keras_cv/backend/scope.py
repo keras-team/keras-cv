@@ -30,7 +30,7 @@ _IN_TF_DATA_SCOPE = 0
 def tf_data(function):
     @functools.wraps(function)
     def wrapper(*args, **kwargs):
-        if multi_backend() and keras.utils.backend_utils.in_tf_graph():
+        if multi_backend() and keras.src.utils.backend_utils.in_tf_graph():
             with TFDataScope():
                 return function(*args, **kwargs)
         else:

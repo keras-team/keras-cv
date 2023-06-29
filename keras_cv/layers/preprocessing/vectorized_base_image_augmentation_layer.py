@@ -37,7 +37,7 @@ USE_TARGETS = "use_targets"
 
 
 base_class = (
-    keras.layers.preprocessing.tf_data_layer.TFDataLayer
+    keras.src.layers.preprocessing.tf_data_layer.TFDataLayer
     if multi_backend()
     else keras.layers.Layer
 )
