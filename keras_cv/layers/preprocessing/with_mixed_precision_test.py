@@ -12,13 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pytest
 import tensorflow as tf
 from absl.testing import parameterized
 
 from keras_cv import layers
 from keras_cv.backend import keras
-from keras_cv.backend.config import multi_backend
 
 TEST_CONFIGURATIONS = [
     ("AutoContrast", layers.AutoContrast, {"value_range": (0, 255)}),
@@ -147,10 +145,6 @@ NO_CPU_FP16_KERNEL_LAYERS = [
 ]
 
 
-@pytest.mark.skipif(
-    multi_backend(),
-    reason="Multi-backend Keras doesn't yet support mixed precision",
-)
 class WithMixedPrecisionTest(tf.test.TestCase, parameterized.TestCase):
     @parameterized.named_parameters(*TEST_CONFIGURATIONS)
     def test_can_run_in_mixed_precision(self, layer_cls, init_args):
@@ -162,12 +156,12 @@ class WithMixedPrecisionTest(tf.test.TestCase, parameterized.TestCase):
                     "`tf.image.adjust_hue`. Skipping."
                 )
 
-        keras.mixed_precision.set_global_policy("mixed_float16")
+        keras.mixed_precision.set_dtype_policy("mixed_float16")
 
         img = tf.random.uniform(
             shape=(3, 512, 512, 3), minval=0, maxval=255, dtype=tf.float32
         )
-        labels = tf.ones((3,), dtype=tf.float32)
+        labels = tf.ones((3,), dtype=tf.float16)
         inputs = {"images": img, "labels": labels}
 
         layer = layer_cls(**init_args)
@@ -176,7 +170,7 @@ class WithMixedPrecisionTest(tf.test.TestCase, parameterized.TestCase):
     @classmethod
     def tearDownClass(cls) -> None:
         # Do not affect other tests
-        keras.mixed_precision.set_global_policy("float32")
+        keras.mixed_precision.set_dtype_policy("float32")
 
 
 if __name__ == "__main__":

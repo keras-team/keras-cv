@@ -127,7 +127,12 @@ class CutMix(BaseImageAugmentationLayer):
             tf.gather(images, permutation_order),
         )
 
-        return images, labels, lambda_sample, permutation_order
+        return (
+            images,
+            tf.cast(labels, dtype=self.compute_dtype),
+            lambda_sample,
+            permutation_order,
+        )
 
     def _update_labels(self, images, labels, lambda_sample, permutation_order):
         cutout_labels = tf.gather(labels, permutation_order)

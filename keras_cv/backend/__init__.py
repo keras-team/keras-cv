@@ -59,6 +59,9 @@ else:
 
     # TF Keras doesn't have this rename.
     keras.activations.silu = keras.activations.swish
+    keras.mixed_precision.set_dtype_policy = (
+        keras.mixed_precision.set_global_policy
+    )
 
 from keras_cv.backend import ops  # noqa: E402
 from keras_cv.backend import tf_ops  # noqa: E402

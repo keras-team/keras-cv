@@ -73,7 +73,9 @@ class MixUp(BaseImageAugmentationLayer):
         images, lambda_sample, permutation_order = self._mixup(images)
         if labels is not None:
             labels = self._update_labels(
-                labels, lambda_sample, permutation_order
+                tf.cast(labels, dtype=self.compute_dtype),
+                lambda_sample,
+                permutation_order,
             )
             inputs["labels"] = labels
         if bounding_boxes is not None:
