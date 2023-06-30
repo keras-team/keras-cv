@@ -39,7 +39,7 @@ BN_EPSILON = 1e-3
 BN_MOMENTUM = 0.999
 
 
-@keras.utils.register_keras_serializable(package="keras_cv.models")
+@keras.saving.register_keras_serializable(package="keras_cv.models")
 class MobileNetV3Backbone(Backbone):
     """Instantiates the MobileNetV3 architecture.
 

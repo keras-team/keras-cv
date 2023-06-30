@@ -35,7 +35,7 @@ BN_AXIS = 3
 BN_EPSILON = 1.001e-5
 
 
-@keras.utils.register_keras_serializable(package="keras_cv.models")
+@keras.saving.register_keras_serializable(package="keras_cv.models")
 class ResNetBackbone(Backbone):
     """Instantiates the ResNet architecture.
 
