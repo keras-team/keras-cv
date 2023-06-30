@@ -17,6 +17,7 @@ import pytest
 import tensorflow as tf
 from absl.testing import parameterized
 
+from keras_cv.backend import ops
 from keras_cv.models.backbones.csp_darknet import csp_darknet_backbone
 
 
@@ -52,7 +53,10 @@ class CSPDarkNetPresetSmokeTest(tf.test.TestCase, parameterized.TestCase):
         expected = [-0.16216235, 0.7333651, 0.4312072, 0.738807, -0.2515305]
         # Keep a high tolerance, so we are robust to different hardware.
         self.assertAllClose(
-            outputs[0, 0, 0, :5], expected, atol=0.01, rtol=0.01
+            ops.convert_to_numpy(outputs[0, 0, 0, :5]),
+            expected,
+            atol=0.01,
+            rtol=0.01,
         )
 
     def test_applications_model_output(self):

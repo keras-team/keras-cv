@@ -20,10 +20,7 @@ Reference:
 
 import copy
 
-from tensorflow import keras
-from tensorflow.keras import backend
-from tensorflow.keras import layers
-
+from keras_cv.backend import keras
 from keras_cv.models import utils
 from keras_cv.models.backbones.backbone import Backbone
 from keras_cv.models.backbones.resnet_v1.resnet_v1_backbone_presets import (
@@ -104,18 +101,18 @@ class ResNetBackbone(Backbone):
         x = inputs
 
         if include_rescaling:
-            x = layers.Rescaling(1 / 255.0)(x)
+            x = keras.layers.Rescaling(1 / 255.0)(x)
 
-        x = layers.Conv2D(
+        x = keras.layers.Conv2D(
             64, 7, strides=2, use_bias=False, padding="same", name="conv1_conv"
         )(x)
 
-        x = layers.BatchNormalization(
+        x = keras.layers.BatchNormalization(
             axis=BN_AXIS, epsilon=BN_EPSILON, name="conv1_bn"
         )(x)
-        x = layers.Activation("relu", name="conv1_relu")(x)
+        x = keras.layers.Activation("relu", name="conv1_relu")(x)
 
-        x = layers.MaxPooling2D(
+        x = keras.layers.MaxPooling2D(
             3, strides=2, padding="same", name="pool1_pool"
         )(x)
 
@@ -132,7 +129,9 @@ class ResNetBackbone(Backbone):
                 first_shortcut=(block_type == "block" or stack_index > 0),
                 name=f"v2_stack_{stack_index}",
             )
-            pyramid_level_inputs[f"P{stack_index + 2}"] = x.node.layer.name
+            pyramid_level_inputs[
+                f"P{stack_index + 2}"
+            ] = utils.get_tensor_input_name(x)
 
         # Create model.
         super().__init__(inputs=inputs, outputs=x, **kwargs)
@@ -193,23 +192,23 @@ def apply_basic_block(
     """
 
     if name is None:
-        name = f"v1_basic_block_{backend.get_uid('v1_basic_block_')}"
+        name = f"v1_basic_block_{keras.backend.get_uid('v1_basic_block_')}"
 
     if conv_shortcut:
-        shortcut = layers.Conv2D(
+        shortcut = keras.layers.Conv2D(
             filters,
             1,
             strides=stride,
             use_bias=False,
             name=name + "_0_conv",
         )(x)
-        shortcut = layers.BatchNormalization(
+        shortcut = keras.layers.BatchNormalization(
             axis=BN_AXIS, epsilon=BN_EPSILON, name=name + "_0_bn"
         )(shortcut)
     else:
         shortcut = x
 
-    x = layers.Conv2D(
+    x = keras.layers.Conv2D(
         filters,
         kernel_size,
         padding="SAME",
@@ -217,24 +216,24 @@ def apply_basic_block(
         use_bias=False,
         name=name + "_1_conv",
     )(x)
-    x = layers.BatchNormalization(
+    x = keras.layers.BatchNormalization(
         axis=BN_AXIS, epsilon=BN_EPSILON, name=name + "_1_bn"
     )(x)
-    x = layers.Activation("relu", name=name + "_1_relu")(x)
+    x = keras.layers.Activation("relu", name=name + "_1_relu")(x)
 
-    x = layers.Conv2D(
+    x = keras.layers.Conv2D(
         filters,
         kernel_size,
         padding="SAME",
         use_bias=False,
         name=name + "_2_conv",
     )(x)
-    x = layers.BatchNormalization(
+    x = keras.layers.BatchNormalization(
         axis=BN_AXIS, epsilon=BN_EPSILON, name=name + "_2_bn"
     )(x)
 
-    x = layers.Add(name=name + "_add")([shortcut, x])
-    x = layers.Activation("relu", name=name + "_out")(x)
+    x = keras.layers.Add(name=name + "_add")([shortcut, x])
+    x = keras.layers.Activation("relu", name=name + "_out")(x)
     return x
 
 
@@ -257,49 +256,51 @@ def apply_block(
     """
 
     if name is None:
-        name = f"v1_block_{backend.get_uid('v1_block')}"
+        name = f"v1_block_{keras.backend.get_uid('v1_block')}"
 
     if conv_shortcut:
-        shortcut = layers.Conv2D(
+        shortcut = keras.layers.Conv2D(
             4 * filters,
             1,
             strides=stride,
             use_bias=False,
             name=name + "_0_conv",
         )(x)
-        shortcut = layers.BatchNormalization(
+        shortcut = keras.layers.BatchNormalization(
             axis=BN_AXIS, epsilon=BN_EPSILON, name=name + "_0_bn"
         )(shortcut)
     else:
         shortcut = x
 
-    x = layers.Conv2D(
+    x = keras.layers.Conv2D(
         filters, 1, strides=stride, use_bias=False, name=name + "_1_conv"
     )(x)
-    x = layers.BatchNormalization(
+    x = keras.layers.BatchNormalization(
         axis=BN_AXIS, epsilon=BN_EPSILON, name=name + "_1_bn"
     )(x)
-    x = layers.Activation("relu", name=name + "_1_relu")(x)
+    x = keras.layers.Activation("relu", name=name + "_1_relu")(x)
 
-    x = layers.Conv2D(
+    x = keras.layers.Conv2D(
         filters,
         kernel_size,
         padding="SAME",
         use_bias=False,
         name=name + "_2_conv",
     )(x)
-    x = layers.BatchNormalization(
+    x = keras.layers.BatchNormalization(
         axis=BN_AXIS, epsilon=BN_EPSILON, name=name + "_2_bn"
     )(x)
-    x = layers.Activation("relu", name=name + "_2_relu")(x)
+    x = keras.layers.Activation("relu", name=name + "_2_relu")(x)
 
-    x = layers.Conv2D(4 * filters, 1, use_bias=False, name=name + "_3_conv")(x)
-    x = layers.BatchNormalization(
+    x = keras.layers.Conv2D(
+        4 * filters, 1, use_bias=False, name=name + "_3_conv"
+    )(x)
+    x = keras.layers.BatchNormalization(
         axis=BN_AXIS, epsilon=BN_EPSILON, name=name + "_3_bn"
     )(x)
 
-    x = layers.Add(name=name + "_add")([shortcut, x])
-    x = layers.Activation("relu", name=name + "_out")(x)
+    x = keras.layers.Add(name=name + "_add")([shortcut, x])
+    x = keras.layers.Activation("relu", name=name + "_out")(x)
     return x
 
 

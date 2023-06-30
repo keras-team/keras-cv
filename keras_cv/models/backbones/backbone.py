@@ -15,8 +15,7 @@
 
 import os
 
-from tensorflow import keras
-
+from keras_cv.backend import keras
 from keras_cv.utils.python_utils import classproperty
 from keras_cv.utils.python_utils import format_docstring
 
@@ -37,7 +36,6 @@ class Backbone(keras.Model):
         # models is nested and cannot be passed to our Backbone constructors.
         return {
             "name": self.name,
-            "trainable": self.trainable,
         }
 
     @classmethod

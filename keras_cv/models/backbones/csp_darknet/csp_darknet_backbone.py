@@ -15,9 +15,7 @@
 """CSPDarkNet models for KerasCV. """
 import copy
 
-from tensorflow import keras
-from tensorflow.keras import layers
-
+from keras_cv.backend import keras
 from keras_cv.models import utils
 from keras_cv.models.backbones.backbone import Backbone
 from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone_presets import (
@@ -64,8 +62,8 @@ class CSPDarkNetBackbone(Backbone):
         use_depthwise: bool, whether a `DarknetConvBlockDepthwise` should be
             used over a `DarknetConvBlock`, defaults to False.
         input_shape: optional shape tuple, defaults to (None, None, 3).
-        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
-            to use as image input for the model.
+        input_tensor: optional Keras tensor (i.e. output of
+            `keras.layers.Input()`) to use as image input for the model.
 
     Returns:
         A `keras.Model` instance.
@@ -111,7 +109,7 @@ class CSPDarkNetBackbone(Backbone):
 
         x = inputs
         if include_rescaling:
-            x = layers.Rescaling(1 / 255.0)(x)
+            x = keras.layers.Rescaling(1 / 255.0)(x)
 
         # stem
         x = Focus(name="stem_focus")(x)
@@ -144,7 +142,9 @@ class CSPDarkNetBackbone(Backbone):
                 residual=(index != len(stackwise_depth) - 1),
                 name=f"dark{index + 2}_csp",
             )(x)
-            pyramid_level_inputs[f"P{index + 2}"] = x.node.layer.name
+            pyramid_level_inputs[f"P{index + 2}"] = utils.get_tensor_input_name(
+                x
+            )
 
         super().__init__(inputs=inputs, outputs=x, **kwargs)
         self.pyramid_level_inputs = pyramid_level_inputs
@@ -195,8 +195,8 @@ ALIAS_DOCSTRING = """CSPDarkNetBackbone model with {stackwise_channels} channels
     Args:
         include_rescaling: bool, whether or not to rescale the inputs. If set to
             True, inputs will be passed through a `Rescaling(1/255.0)` layer.
-        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
-            to use as image input for the model.
+        input_tensor: optional Keras tensor (i.e. output of
+            `keras.layers.Input()`) to use as image input for the model.
         input_shape: optional shape tuple, defaults to (None, None, 3).
 
     Examples:
