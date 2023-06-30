@@ -36,6 +36,7 @@ class Backbone(keras.Model):
         # models is nested and cannot be passed to our Backbone constructors.
         return {
             "name": self.name,
+            "trainable": self.trainable,
         }
 
     @classmethod
