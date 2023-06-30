@@ -60,7 +60,7 @@ class CenterNetBoxLoss(keras.losses.Loss):
     def __init__(self, num_heading_bins, anchor_size, **kwargs):
         super().__init__(**kwargs)
         self.num_heading_bins = num_heading_bins
-        self.anchor_size = ops.convert_to_tensor(anchor_size)
+        self.anchor_size = anchor_size
 
     def heading_regression_loss(self, heading_true, heading_pred):
         # Set the heading to within 0 -> 2pi
