@@ -26,7 +26,16 @@ class Task(keras.Model):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.backbone = None
+        self._backbone = None
+
+    @property
+    def backbone(self):
+        """A `keras.Model` instance providing the backbone submodel."""
+        return self._backbone
+
+    @backbone.setter
+    def backbone(self, value):
+        self._backbone = value
 
     def get_config(self):
         # Don't chain to super here. The default `get_config()` for functional
