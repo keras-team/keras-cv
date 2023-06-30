@@ -15,13 +15,12 @@
 
 import os
 
-from tensorflow import keras
-
+from keras_cv.backend import keras
 from keras_cv.utils.python_utils import classproperty
 from keras_cv.utils.python_utils import format_docstring
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+@keras.saving.register_keras_serializable(package="keras_cv")
 class Task(keras.Model):
     """Base class for Task models."""
 
@@ -130,7 +129,7 @@ class Task(keras.Model):
         metadata = cls.presets[preset]
         # Check if preset is backbone-only model
         if preset in cls.backbone_presets:
-            backbone_cls = keras.utils.get_registered_object(
+            backbone_cls = keras.saving.get_registered_object(
                 metadata["class_name"]
             )
             backbone = backbone_cls.from_preset(preset, load_weights)
@@ -164,7 +163,7 @@ class Task(keras.Model):
         # the `backbone` as a layer, because it will be included in the model
         # summary and saves weights despite not being part of the model graph.
         layers = super().layers
-        if hasattr(self, "_backbone") and self.backbone in layers:
+        if hasattr(self, "backbone") and self.backbone in layers:
             # We know that the backbone is not part of the graph if it has no
             # inbound nodes.
             if len(self.backbone._inbound_nodes) == 0:
