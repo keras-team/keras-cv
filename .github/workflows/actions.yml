@@ -101,6 +101,7 @@ jobs:
       run: |
         pytest --run_large keras_cv/bounding_box \
                keras_cv/losses \
+               keras_cv/layers/object_detection \
                keras_cv/layers/preprocessing \
                keras_cv/models/backbones \
                --durations 0
