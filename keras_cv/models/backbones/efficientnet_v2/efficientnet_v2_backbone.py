@@ -28,7 +28,7 @@ from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone_presets 
 from keras_cv.utils.python_utils import classproperty
 
 
-@keras.saving.register_keras_serializable(package="keras_cv.models")
+@keras.utils.register_keras_serializable(package="keras_cv.models")
 class EfficientNetV2Backbone(Backbone):
     """Instantiates the EfficientNetV2 architecture.
 
