@@ -14,9 +14,9 @@
 
 import tensorflow as tf
 from absl.testing import parameterized
-from tensorflow import keras
 
 from keras_cv import layers
+from keras_cv.backend import keras
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )

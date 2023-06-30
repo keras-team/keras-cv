@@ -14,9 +14,9 @@
 
 import tensorflow as tf
 from absl.testing import parameterized
-from tensorflow import keras
 
 from keras_cv import layers
+from keras_cv.backend import keras
 
 TEST_CONFIGURATIONS = [
     ("AutoContrast", layers.AutoContrast, {"value_range": (0, 255)}),
@@ -161,7 +161,7 @@ class WithMixedPrecisionTest(tf.test.TestCase, parameterized.TestCase):
         img = tf.random.uniform(
             shape=(3, 512, 512, 3), minval=0, maxval=255, dtype=tf.float32
         )
-        labels = tf.ones((3,), dtype=tf.float32)
+        labels = tf.ones((3,), dtype=tf.float16)
         inputs = {"images": img, "labels": labels}
 
         layer = layer_cls(**init_args)

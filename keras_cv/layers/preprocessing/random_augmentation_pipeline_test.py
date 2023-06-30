@@ -12,11 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
 import tensorflow as tf
 from absl.testing import parameterized
-from tensorflow import keras
 
 from keras_cv import layers
+from keras_cv.backend import keras
 
 
 class AddOneToInputs(keras.layers.Layer):
@@ -54,6 +55,7 @@ class RandomAugmentationPipelineTest(tf.test.TestCase, parameterized.TestCase):
 
         self.assertAllClose(xs, os)
 
+    @pytest.mark.tf_keras_only
     def test_calls_layers_augmentations_in_graph(self):
         layer = AddOneToInputs()
         pipeline = layers.RandomAugmentationPipeline(
