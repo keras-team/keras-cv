@@ -21,24 +21,16 @@ from keras_cv.losses.ciou_loss import CIoULoss
 
 class CIoUTest(tf.test.TestCase, parameterized.TestCase):
     def test_output_shape(self):
-        y_true = tf.random.uniform(
-            shape=(2, 2, 4), minval=0, maxval=10, dtype=tf.int32
-        )
-        y_pred = tf.random.uniform(
-            shape=(2, 2, 4), minval=0, maxval=20, dtype=tf.int32
-        )
+        y_true = np.random.uniform(size=(2, 2, 4), low=0, high=10)
+        y_pred = np.random.uniform(size=(2, 2, 4), low=0, high=20)
 
         ciou_loss = CIoULoss(bounding_box_format="xywh")
 
         self.assertAllEqual(ciou_loss(y_true, y_pred).shape, ())
 
     def test_output_shape_reduction_none(self):
-        y_true = tf.random.uniform(
-            shape=(2, 2, 4), minval=0, maxval=10, dtype=tf.int32
-        )
-        y_pred = tf.random.uniform(
-            shape=(2, 2, 4), minval=0, maxval=20, dtype=tf.int32
-        )
+        y_true = np.random.uniform(size=(2, 2, 4), low=0, high=10)
+        y_pred = np.random.uniform(size=(2, 2, 4), low=0, high=20)
 
         ciou_loss = CIoULoss(bounding_box_format="xyxy", reduction="none")
 
@@ -88,11 +80,8 @@ class CIoUTest(tf.test.TestCase, parameterized.TestCase):
         ciou_loss = CIoULoss(bounding_box_format="xyxy")
         if name == "rel_xyxy":
             scale_factor = 1 / 640.0
-            y_true_scaled = np.array(y_true) * scale_factor
-            y_pred_scaled = np.array(y_pred) * scale_factor
-
-            y_true = tf.constant(y_true_scaled, dtype=tf.float32)
-            y_pred = tf.constant(y_pred_scaled, dtype=tf.float32)
+            y_true = np.array(y_true) * scale_factor
+            y_pred = np.array(y_pred) * scale_factor
 
         self.assertAllClose(
             ciou_loss(y_true, y_pred), expected_loss, atol=0.0001

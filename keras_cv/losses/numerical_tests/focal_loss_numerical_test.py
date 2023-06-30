@@ -59,7 +59,7 @@ class FocalLossModelGardenComparisonTest(
     )
     def test_model_garden_implementation_has_same_outputs(self, reduction):
         focal_loss = FocalLoss(
-            alpha=0.25, gamma=2.0, from_logits=True, reduction=reduction
+            alpha=0.25, gamma=2.0, from_logits=False, reduction=reduction
         )
         model_garden_focal_loss = ModelGardenFocalLoss(
             alpha=0.25, gamma=2.0, reduction=reduction
@@ -71,6 +71,6 @@ class FocalLossModelGardenComparisonTest(
             y_true = tf.cast(y_true, tf.float32)
             y_pred = tf.random.uniform((200, 10), dtype=tf.float32)
             self.assertAllClose(
-                focal_loss(y_true, y_pred),
+                focal_loss(y_true, tf.sigmoid(y_pred)),
                 model_garden_focal_loss(y_true, y_pred),
             )
