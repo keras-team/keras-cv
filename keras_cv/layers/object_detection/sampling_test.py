@@ -15,14 +15,10 @@
 import pytest
 import tensorflow as tf
 
-from keras_cv.backend.config import multi_backend
 from keras_cv.layers.object_detection.sampling import balanced_sample
 
 
-@pytest.mark.skipif(
-    multi_backend(),
-    reason="RCNN layers not yet ported to Keras Core",
-)
+@pytest.mark.tf_keras_only
 class BalancedSamplingTest(tf.test.TestCase):
     def test_balanced_sampling(self):
         positive_matches = tf.constant(

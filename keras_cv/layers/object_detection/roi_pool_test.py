@@ -15,14 +15,10 @@
 import pytest
 import tensorflow as tf
 
-from keras_cv.backend.config import multi_backend
 from keras_cv.layers.object_detection.roi_pool import ROIPooler
 
 
-@pytest.mark.skipif(
-    multi_backend(),
-    reason="RCNN layers not yet ported to Keras Core",
-)
+@pytest.mark.tf_keras_only
 class ROIPoolTest(tf.test.TestCase):
     def test_no_quantize(self):
         roi_pooler = ROIPooler(
