@@ -103,6 +103,7 @@ jobs:
                keras_cv/losses \
                keras_cv/layers/preprocessing \
                keras_cv/models/backbones \
+               keras_cv/models/classification \
                --durations 0
   format:
     name: Check the code format
