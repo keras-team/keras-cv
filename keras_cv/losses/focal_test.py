@@ -73,8 +73,7 @@ class FocalTest(tf.test.TestCase):
         # TF backend somehow has different numerics.
         expected_loss = (
             31.11176
-            if multi_backend()
-            and keras.backend.config.backend() != "tensorflow"
+            if multi_backend() and keras.backend.backend() != "tensorflow"
             else 925.28081
         )
         self.assertAllClose(
