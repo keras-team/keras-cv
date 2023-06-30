@@ -14,9 +14,9 @@
 
 
 import tensorflow as tf
-from tensorflow import keras
 
 from keras_cv import bounding_box
+from keras_cv.backend import keras
 from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     VectorizedBaseImageAugmentationLayer,
 )
@@ -27,7 +27,7 @@ H_AXIS = -3
 W_AXIS = -2
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+@keras.saving.register_keras_serializable(package="keras_cv")
 class RandomCrop(VectorizedBaseImageAugmentationLayer):
     """A preprocessing layer which randomly crops images.
 

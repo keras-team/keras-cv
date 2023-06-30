@@ -12,6 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+try:
+    # When using torch and tensorflow, torch needs to be imported first,
+    # otherwise it will segfault upon import.
+    import torch
+
+    del torch
+except ImportError:
+    pass
+
 # isort:off
 from keras_cv import version_check
 
