@@ -21,6 +21,9 @@ from tensorflow import keras
 
 import keras_cv
 from keras_cv import bounding_box
+from keras_cv.models.backbones.test_backbone_presets import (
+    test_backbone_presets,
+)
 from keras_cv.models.object_detection.__test_utils__ import (
     _create_bounding_box_dataset,
 )
@@ -195,8 +198,23 @@ class YOLOV8DetectorTest(tf.test.TestCase, parameterized.TestCase):
 
 
 @pytest.mark.large
-class YOLOV8DetectorSmokeTest(tf.test.TestCase):
-    # TODO(ianstenbit): Update this test to use a KerasCV-trained preset.
+class YOLOV8DetectorSmokeTest(tf.test.TestCase, parameterized.TestCase):
+    @parameterized.named_parameters(
+        *[(preset, preset) for preset in test_backbone_presets]
+    )
+    def test_backbone_preset(self, preset):
+        model = keras_cv.models.YOLOV8Detector.from_preset(
+            preset,
+            num_classes=20,
+            bounding_box_format="xywh",
+        )
+        xs, _ = _create_bounding_box_dataset(bounding_box_format="xywh")
+        output = model(xs)
+
+        # 64 represents number of parameters in a box
+        # 5376 is the number of anchors for a 512x512 image
+        self.assertEqual(output["boxes"].shape, (xs.shape[0], 5376, 64))
+
     def test_preset_with_forward_pass(self):
         model = keras_cv.models.YOLOV8Detector.from_preset(
             "yolo_v8_m_pascalvoc",

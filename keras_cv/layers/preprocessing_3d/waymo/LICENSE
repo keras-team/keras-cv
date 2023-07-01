@@ -1,0 +1,51 @@
+Copyright (c) 2023 Waymo LLC. All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+1. 	Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+2. 	Redistributions in binary form must reproduce the above
+copyright notice, this list of conditions and the following disclaimer
+in the documentation and/or other materials provided with the
+distribution.
+3. 	Neither the name of the copyright holder nor the names of its
+contributors may be used to endorse or promote products derived
+from this software without specific prior written permission.
+
+Additional IP Rights Grant (Patents)
+"Works" means the code located at keras_cv/layers/preprocessing_3d/waymo
+licensed from Waymo LLC ("Waymo") for inclusion in the KerasCV project at
+github.com/keras-team/keras-cv. “Patents" means the pending U.S. Patent App.
+No. 63/418,259 and any issued patents arising therefrom. Subject to the terms
+and conditions of this license, Waymo hereby grants to you a limited worldwide,
+non-exclusive, royalty-free, personal patent license to make, have made, use,
+and import the Works, where such license applies only to those Patent claims
+that are necessarily infringed by the Works executing the ”preprocessing_3d”
+augmentation library on 3D perception tasks using the
+“lidaraugment_keraspolicy.py” file. This grant does not include claims that
+would be infringed by combining the Works with other works, utilizing the Works
+on other tasks, or as a consequence of further modification of the Works. If
+you or your agent or exclusive licensee institute or order or agree to the
+institution of patent litigation or any other patent enforcement activity
+against any entity (including a cross-claim or counterclaim in a lawsuit)
+alleging that the Works or any activity using the Works to execute functions for
+3D perception tasks constitutes direct or contributory patent infringement, or
+inducement of patent infringement, then any patent rights granted to you under
+this license for the Works shall terminate as of the date such litigation is
+filed.
+
+DISCLAIMER
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
