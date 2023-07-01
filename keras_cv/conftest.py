@@ -61,6 +61,8 @@ def pytest_collection_modifyitems(config, items):
     for item in items:
         if "keras_format" in item.name:
             item.add_marker(skip_keras_saving_test)
+        if "tf_format" in item.name:
+            item.add_marker(skip_extra_large)
         if "large" in item.keywords:
             item.add_marker(skip_large)
         if "extra_large" in item.keywords:

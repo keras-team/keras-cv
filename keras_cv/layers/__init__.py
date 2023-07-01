@@ -85,31 +85,37 @@ from keras_cv.layers.preprocessing.solarization import Solarization
 from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     VectorizedBaseImageAugmentationLayer,
 )
-from keras_cv.layers.preprocessing_3d.frustum_random_dropping_points import (
+from keras_cv.layers.preprocessing_3d.waymo.frustum_random_dropping_points import (  # noqa: E501
     FrustumRandomDroppingPoints,
 )
-from keras_cv.layers.preprocessing_3d.frustum_random_point_feature_noise import (  # noqa: E501
+from keras_cv.layers.preprocessing_3d.waymo.frustum_random_point_feature_noise import (  # noqa: E501
     FrustumRandomPointFeatureNoise,
 )
-from keras_cv.layers.preprocessing_3d.global_random_dropping_points import (
+from keras_cv.layers.preprocessing_3d.waymo.global_random_dropping_points import (  # noqa: E501
     GlobalRandomDroppingPoints,
 )
-from keras_cv.layers.preprocessing_3d.global_random_flip import GlobalRandomFlip
-from keras_cv.layers.preprocessing_3d.global_random_rotation import (
+from keras_cv.layers.preprocessing_3d.waymo.global_random_flip import (
+    GlobalRandomFlip,
+)
+from keras_cv.layers.preprocessing_3d.waymo.global_random_rotation import (
     GlobalRandomRotation,
 )
-from keras_cv.layers.preprocessing_3d.global_random_scaling import (
+from keras_cv.layers.preprocessing_3d.waymo.global_random_scaling import (
     GlobalRandomScaling,
 )
-from keras_cv.layers.preprocessing_3d.global_random_translation import (
+from keras_cv.layers.preprocessing_3d.waymo.global_random_translation import (
     GlobalRandomTranslation,
 )
-from keras_cv.layers.preprocessing_3d.group_points_by_bounding_boxes import (
+from keras_cv.layers.preprocessing_3d.waymo.group_points_by_bounding_boxes import (  # noqa: E501
     GroupPointsByBoundingBoxes,
 )
-from keras_cv.layers.preprocessing_3d.random_copy_paste import RandomCopyPaste
-from keras_cv.layers.preprocessing_3d.random_drop_box import RandomDropBox
-from keras_cv.layers.preprocessing_3d.swap_background import SwapBackground
+from keras_cv.layers.preprocessing_3d.waymo.random_copy_paste import (
+    RandomCopyPaste,
+)
+from keras_cv.layers.preprocessing_3d.waymo.random_drop_box import RandomDropBox
+from keras_cv.layers.preprocessing_3d.waymo.swap_background import (
+    SwapBackground,
+)
 from keras_cv.layers.regularization.drop_path import DropPath
 from keras_cv.layers.regularization.dropblock_2d import DropBlock2D
 from keras_cv.layers.regularization.squeeze_excite import SqueezeAndExcite2D
