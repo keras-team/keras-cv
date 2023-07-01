@@ -12,10 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from keras_cv.visualization.plot_bounding_box_gallery import (
-    plot_bounding_box_gallery,
-)
-from keras_cv.visualization.plot_image_gallery import plot_image_gallery
-from keras_cv.visualization.plot_segmentation_mask_gallery import (
-    plot_segmentation_mask_gallery,
-)
+"""Backbone presets for tests. Includes smallest preset for each backbone."""
+
+test_backbone_presets = [
+    "csp_darknet_tiny",
+    "densenet121",
+    "efficientnetv2_b0",
+    "mobilenet_v3_small",
+    "resnet18",
+    "resnet18_v2",
+]
