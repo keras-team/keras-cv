@@ -55,8 +55,10 @@ class EfficientNetLiteBackbone(Backbone):
         width_coefficient: float, scaling coefficient for network width.
         depth_coefficient: float, scaling coefficient for network depth.
         dropout_rate: float, dropout rate before final classifier layer.
-        drop_connect_rate: float, dropout rate at skip connections.
-        depth_divisor: integer, a unit of network width.
+        drop_connect_rate: float, dropout rate at skip connections. The
+            default value is set to 0.2.
+        depth_divisor: integer, a unit of network width. The default value
+            is set to 8.
         activation: activation function.
         input_shape: optional shape tuple,
             It should have exactly 3 inputs channels.
@@ -184,7 +186,7 @@ class EfficientNetLiteBackbone(Backbone):
                     strides=strides,
                     expand_ratio=stackwise_expansion_ratios[i],
                     activation=activation,
-                    drop_rate=drop_connect_rate * block_id / blocks,
+                    dropout_rate=drop_connect_rate * block_id / blocks,
                     name="block{}{}_".format(i + 1, letter_identifier),
                 )
                 block_id += 1
@@ -280,7 +282,7 @@ def round_repeats(repeats, depth_coefficient):
 def apply_efficient_net_lite_block(
     inputs,
     activation="relu6",
-    drop_rate=0.0,
+    dropout_rate=0.0,
     name=None,
     filters_in=32,
     filters_out=16,
@@ -293,7 +295,7 @@ def apply_efficient_net_lite_block(
     Args:
         inputs: input tensor.
         activation: activation function.
-        drop_rate: float between 0 and 1, fraction of the input units to drop.
+        dropout_rate: float between 0 and 1, fraction of the input units to drop.
         name: string, block label.
         filters_in: integer, the number of input filters.
         filters_out: integer, the number of output filters.
@@ -304,7 +306,7 @@ def apply_efficient_net_lite_block(
 
     Returns:
         output tensor for the block.
-    """
+    """  # noqa: E501
     if name is None:
         name = f"block_{backend.get_uid('block_')}_"
 
@@ -356,9 +358,9 @@ def apply_efficient_net_lite_block(
     )(x)
     x = layers.BatchNormalization(axis=BN_AXIS, name=name + "project_bn")(x)
     if strides == 1 and filters_in == filters_out:
-        if drop_rate > 0:
+        if dropout_rate > 0:
             x = layers.Dropout(
-                drop_rate, noise_shape=(None, 1, 1, 1), name=name + "drop"
+                dropout_rate, noise_shape=(None, 1, 1, 1), name=name + "drop"
             )(x)
         x = layers.add([x, inputs], name=name + "add")
     return x
