@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numpy as np
 import tensorflow as tf
 
+from keras_cv.backend import ops
 from keras_cv.layers.object_detection.box_matcher import BoxMatcher
 
 
@@ -41,9 +43,7 @@ class BoxMatcherTest(tf.test.TestCase):
             )
 
     def test_box_matcher_unbatched(self):
-        sim_matrix = tf.constant(
-            [[0.04, 0, 0, 0], [0, 0, 1.0, 0]], dtype=tf.float32
-        )
+        sim_matrix = np.array([[0.04, 0, 0, 0], [0, 0, 1.0, 0]])
 
         fg_threshold = 0.5
         bg_thresh_hi = 0.2
@@ -54,18 +54,16 @@ class BoxMatcherTest(tf.test.TestCase):
             match_values=[-3, -2, -1, 1],
         )
         match_indices, matched_values = matcher(sim_matrix)
-        positive_matches = tf.greater_equal(matched_values, 0)
-        negative_matches = tf.equal(matched_values, -2)
+        positive_matches = ops.greater_equal(matched_values, 0)
+        negative_matches = ops.equal(matched_values, -2)
 
-        self.assertAllEqual(positive_matches.numpy(), [False, True])
-        self.assertAllEqual(negative_matches.numpy(), [True, False])
-        self.assertAllEqual(match_indices.numpy(), [0, 2])
-        self.assertAllEqual(matched_values.numpy(), [-2, 1])
+        self.assertAllEqual(positive_matches, [False, True])
+        self.assertAllEqual(negative_matches, [True, False])
+        self.assertAllEqual(match_indices, [0, 2])
+        self.assertAllEqual(matched_values, [-2, 1])
 
     def test_box_matcher_batched(self):
-        sim_matrix = tf.constant(
-            [[[0.04, 0, 0, 0], [0, 0, 1.0, 0]]], dtype=tf.float32
-        )
+        sim_matrix = np.array([[[0.04, 0, 0, 0], [0, 0, 1.0, 0]]])
 
         fg_threshold = 0.5
         bg_thresh_hi = 0.2
@@ -76,18 +74,17 @@ class BoxMatcherTest(tf.test.TestCase):
             match_values=[-3, -2, -1, 1],
         )
         match_indices, matched_values = matcher(sim_matrix)
-        positive_matches = tf.greater_equal(matched_values, 0)
-        negative_matches = tf.equal(matched_values, -2)
+        positive_matches = ops.greater_equal(matched_values, 0)
+        negative_matches = ops.equal(matched_values, -2)
 
-        self.assertAllEqual(positive_matches.numpy(), [[False, True]])
-        self.assertAllEqual(negative_matches.numpy(), [[True, False]])
-        self.assertAllEqual(match_indices.numpy(), [[0, 2]])
-        self.assertAllEqual(matched_values.numpy(), [[-2, 1]])
+        self.assertAllEqual(positive_matches, [[False, True]])
+        self.assertAllEqual(negative_matches, [[True, False]])
+        self.assertAllEqual(match_indices, [[0, 2]])
+        self.assertAllEqual(matched_values, [[-2, 1]])
 
     def test_box_matcher_force_match(self):
-        sim_matrix = tf.constant(
+        sim_matrix = np.array(
             [[0, 0.04, 0, 0.1], [0, 0, 1.0, 0], [0.1, 0, 0, 0], [0, 0, 0, 0.6]],
-            dtype=tf.float32,
         )
 
         fg_threshold = 0.5
@@ -100,20 +97,18 @@ class BoxMatcherTest(tf.test.TestCase):
             force_match_for_each_col=True,
         )
         match_indices, matched_values = matcher(sim_matrix)
-        positive_matches = tf.greater_equal(matched_values, 0)
-        negative_matches = tf.equal(matched_values, -2)
+        positive_matches = ops.greater_equal(matched_values, 0)
+        negative_matches = ops.equal(matched_values, -2)
 
-        self.assertAllEqual(positive_matches.numpy(), [True, True, True, True])
-        self.assertAllEqual(
-            negative_matches.numpy(), [False, False, False, False]
-        )
+        self.assertAllEqual(positive_matches, [True, True, True, True])
+        self.assertAllEqual(negative_matches, [False, False, False, False])
         # the first anchor cannot be matched to 4th gt box given that is matched
         # to the last anchor.
-        self.assertAllEqual(match_indices.numpy(), [1, 2, 0, 3])
-        self.assertAllEqual(matched_values.numpy(), [1, 1, 1, 1])
+        self.assertAllEqual(match_indices, [1, 2, 0, 3])
+        self.assertAllEqual(matched_values, [1, 1, 1, 1])
 
     def test_box_matcher_empty_gt_boxes(self):
-        sim_matrix = tf.constant([[], []], dtype=tf.float32)
+        sim_matrix = np.array([[], []])
 
         fg_threshold = 0.5
         bg_thresh_hi = 0.2
@@ -124,10 +119,10 @@ class BoxMatcherTest(tf.test.TestCase):
             match_values=[-3, -2, -1, 1],
         )
         match_indices, matched_values = matcher(sim_matrix)
-        positive_matches = tf.greater_equal(matched_values, 0)
-        ignore_matches = tf.equal(matched_values, -1)
+        positive_matches = ops.greater_equal(matched_values, 0)
+        ignore_matches = ops.equal(matched_values, -1)
 
-        self.assertAllEqual(positive_matches.numpy(), [False, False])
-        self.assertAllEqual(ignore_matches.numpy(), [True, True])
-        self.assertAllEqual(match_indices.numpy(), [0, 0])
-        self.assertAllEqual(matched_values.numpy(), [-1, -1])
+        self.assertAllEqual(positive_matches, [False, False])
+        self.assertAllEqual(ignore_matches, [True, True])
+        self.assertAllEqual(match_indices, [0, 0])
+        self.assertAllEqual(matched_values, [-1, -1])
