@@ -158,7 +158,7 @@ class BoxMatcher(keras.layers.Layer):
                     negative or ignored match).
             """
             with ops.name_scope("non_empty_boxes"):
-                # Jax traces this function even when running eagerly and the`
+                # Jax traces this function even when running eagerly and the
                 # columns are non-empty. Therefore, we need to handle the case
                 # where the similarity matrix is empty. We do this by padding
                 # some -1s to the end. -1s are guaranteed to not affect argmax

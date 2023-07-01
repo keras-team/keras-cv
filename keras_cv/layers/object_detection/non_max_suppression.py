@@ -21,12 +21,14 @@ from keras_cv.backend import keras
 from keras_cv.backend import ops
 from keras_cv.backend.config import multi_backend
 
+EPSILON = 1e-8
+
 
 @keras.saving.register_keras_serializable(package="keras_cv")
 class NonMaxSuppression(keras.layers.Layer):
     """A Keras layer that decodes predictions of an object detection model.
 
-    Arguments:
+    Args:
       bounding_box_format: The format of bounding boxes of input dataset. Refer
         [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
         for more details on supported bounding box
@@ -180,6 +182,7 @@ def non_max_suppression(
         the maximum number of boxes per image that can be used to suppress other
         boxes in parallel; larger tile_size means larger parallelism and
         potentially more redundant work.
+
     Returns:
       idx: a tensor with a shape of [..., num_boxes] representing the
         indices selected by non-max suppression. The leading dimensions
@@ -199,6 +202,7 @@ def non_max_suppression(
             the scores of boxes.
           boxes: a tensor with a shape of [batch_size, num_boxes, 4] representing
             the boxes.
+
         Returns:
           sorted_scores: a tensor with a shape of [batch_size, num_boxes]
             representing the sorted scores.
@@ -318,6 +322,7 @@ def _bbox_overlap(boxes_a, boxes_b):
       boxes_b: a tensor with a shape of [batch_size, M, 4]. M is the number of
         boxes. The last dimension is the pixel coordinates in
         [ymin, xmin, ymax, xmax] form.
+
     Returns:
       intersection_over_union: a tensor with as a shape of [batch_size, N, M],
       representing the ratio of intersection area over union area (IoU) between
@@ -341,11 +346,10 @@ def _bbox_overlap(boxes_a, boxes_b):
         # Calculates the union area.
         a_area = (a_y_max - a_y_min) * (a_x_max - a_x_min)
         b_area = (b_y_max - b_y_min) * (b_x_max - b_x_min)
-        EPSILON = 1e-8
+
         # Adds a small epsilon to avoid divide-by-zero.
         u_area = a_area + ops.transpose(b_area, [0, 2, 1]) - i_area + EPSILON
 
-        # Calculates IoU.
         intersection_over_union = i_area / u_area
 
         return intersection_over_union
@@ -354,8 +358,8 @@ def _bbox_overlap(boxes_a, boxes_b):
 def _self_suppression(iou, _, iou_sum, iou_threshold):
     """Suppress boxes in the same tile.
 
-       Compute boxes that cannot be suppressed by others (i.e.,
-       can_suppress_others), and then use them to suppress boxes in the same tile.
+    Compute boxes that cannot be suppressed by others (i.e.,
+    can_suppress_others), and then use them to suppress boxes in the same tile.
 
     Args:
       iou: a tensor of shape [batch_size, num_boxes_with_padding] representing
