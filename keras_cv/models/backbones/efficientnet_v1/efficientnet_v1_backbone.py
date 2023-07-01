@@ -41,8 +41,10 @@ class EfficientNetV1Backbone(Backbone):
         width_coefficient: float, scaling coefficient for network width.
         depth_coefficient: float, scaling coefficient for network depth.
         dropout_rate: float, dropout rate before final classifier layer.
-        drop_connect_rate: float, dropout rate at skip connections.
-        depth_divisor: integer, a unit of network width.
+        drop_connect_rate: float, dropout rate at skip connections. The default
+            value is set to 0.2.
+        depth_divisor: integer, a unit of network width. The default value is
+            set to 8.
         activation: activation function to use between each convolutional layer.
         input_shape: optional shape tuple, it should have exactly 3 input
             channels.
@@ -103,12 +105,6 @@ class EfficientNetV1Backbone(Backbone):
         include_rescaling,
         width_coefficient,
         depth_coefficient,
-        dropout_rate=0.2,
-        drop_connect_rate=0.2,
-        depth_divisor=8,
-        activation="swish",
-        input_shape=(None, None, 3),
-        input_tensor=None,
         stackwise_kernel_sizes,
         stackwise_num_repeats,
         stackwise_input_filters,
@@ -116,6 +112,12 @@ class EfficientNetV1Backbone(Backbone):
         stackwise_expansion_ratios,
         stackwise_strides,
         stackwise_squeeze_and_excite_ratios,
+        dropout_rate=0.2,
+        drop_connect_rate=0.2,
+        depth_divisor=8,
+        input_shape=(None, None, 3),
+        input_tensor=None,
+        activation="swish",
         **kwargs,
     ):
         img_input = utils.parse_model_inputs(input_shape, input_tensor)
@@ -201,7 +203,7 @@ class EfficientNetV1Backbone(Backbone):
                     expand_ratio=stackwise_expansion_ratios[i],
                     se_ratio=squeeze_and_excite_ratio,
                     activation=activation,
-                    drop_rate=drop_connect_rate * block_id / blocks,
+                    dropout_rate=drop_connect_rate * block_id / blocks,
                     name="block{}{}_".format(i + 1, letter_identifier),
                 )
                 block_id += 1
@@ -361,7 +363,7 @@ def apply_efficientnet_block(
     activation="swish",
     expand_ratio=1,
     se_ratio=0.0,
-    drop_rate=0.0,
+    dropout_rate=0.0,
     name="",
 ):
     """An inverted residual block.
@@ -375,12 +377,12 @@ def apply_efficientnet_block(
         activation: activation function to use between each convolutional layer.
         expand_ratio: integer, scaling coefficient for the input filters.
         se_ratio: float between 0 and 1, fraction to squeeze the input filters.
-        drop_rate: float between 0 and 1, fraction of the input units to drop.
+        dropout_rate: float between 0 and 1, fraction of the input units to drop.
         name: string, block label.
 
     Returns:
         tf.Tensor
-    """
+    """  # noqa: E501
     filters = filters_in * expand_ratio
     if expand_ratio != 1:
         x = layers.Conv2D(
@@ -465,9 +467,9 @@ def apply_efficientnet_block(
     x = layers.Activation(activation, name=name + "project_activation")(x)
 
     if strides == 1 and filters_in == filters_out:
-        if drop_rate > 0:
+        if dropout_rate > 0:
             x = layers.Dropout(
-                drop_rate,
+                dropout_rate,
                 noise_shape=(None, 1, 1, 1),
                 name=name + "drop",
             )(x)
