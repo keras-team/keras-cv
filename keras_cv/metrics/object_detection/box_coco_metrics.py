@@ -223,6 +223,13 @@ class BoxCOCOMetrics(keras.metrics.Metric):
     def update_state(self, y_true, y_pred, sample_weight=None):
         self._eval_step_count += 1
 
+        if isinstance(y_true["boxes"], tf.RaggedTensor) != isinstance(
+            y_pred["boxes"], tf.RaggedTensor
+        ):
+            # Make sure we have same ragged/dense status for y_true and y_pred
+            y_true = bounding_box.to_dense(y_true)
+            y_pred = bounding_box.to_dense(y_pred)
+
         self.ground_truths.append(y_true)
         self.predictions.append(y_pred)
 

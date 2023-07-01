@@ -57,6 +57,32 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
         # self.assertIsNotNone(retinanet.backbone.get_layer(name="rescaling"))
         # TODO(lukewood): test compile with the FocalLoss class
 
+    def test_retinanet_recompilation_without_metrics(self):
+        retinanet = keras_cv.models.RetinaNet(
+            num_classes=20,
+            bounding_box_format="xywh",
+            backbone=keras_cv.models.ResNet18V2Backbone(),
+        )
+        retinanet.compile(
+            classification_loss="focal",
+            box_loss="smoothl1",
+            optimizer="adam",
+            metrics=[
+                keras_cv.metrics.BoxCOCOMetrics(
+                    bounding_box_format="center_xywh", evaluate_freq=20
+                )
+            ],
+        )
+        self.assertIsNotNone(retinanet._user_metrics)
+        retinanet.compile(
+            classification_loss="focal",
+            box_loss="smoothl1",
+            optimizer="adam",
+            metrics=None,
+        )
+
+        self.assertIsNone(retinanet._user_metrics)
+
     @pytest.mark.large  # Fit is slow, so mark these large.
     def test_retinanet_call(self):
         retinanet = keras_cv.models.RetinaNet(
@@ -88,23 +114,6 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
                     l1_cutoff=1.0, reduction="none"
                 ),
             )
-
-    def test_no_metrics(self):
-        retinanet = keras_cv.models.RetinaNet(
-            num_classes=2,
-            bounding_box_format="xywh",
-            backbone=keras_cv.models.ResNet18V2Backbone(),
-        )
-
-        retinanet.compile(
-            optimizer=optimizers.SGD(learning_rate=0.25),
-            classification_loss=keras_cv.losses.FocalLoss(
-                from_logits=True, reduction="none"
-            ),
-            box_loss=keras_cv.losses.SmoothL1Loss(
-                l1_cutoff=1.0, reduction="none"
-            ),
-        )
 
     def test_weights_contained_in_trainable_variables(self):
         bounding_box_format = "xywh"
@@ -265,6 +274,9 @@ class RetinaNetSmokeTest(tf.test.TestCase, parameterized.TestCase):
         )
         xs, _ = _create_bounding_box_dataset(bounding_box_format="xywh")
         output = model(xs)
+
+        # 4 represents number of parameters in a box
+        # 49104 is the number of anchors for a 512x512 image
         self.assertEqual(output["box"].shape, (xs.shape[0], 49104, 4))
 
     def test_full_preset_weight_loading(self):

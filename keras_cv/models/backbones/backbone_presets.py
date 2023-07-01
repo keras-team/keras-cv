@@ -25,6 +25,7 @@ from keras_cv.models.backbones.efficientnet_v2 import (
 from keras_cv.models.backbones.mobilenet_v3 import mobilenet_v3_backbone_presets
 from keras_cv.models.backbones.resnet_v1 import resnet_v1_backbone_presets
 from keras_cv.models.backbones.resnet_v2 import resnet_v2_backbone_presets
+from keras_cv.models.object_detection.yolo_v8 import yolo_v8_backbone_presets
 
 backbone_presets_no_weights = {
     **resnet_v1_backbone_presets.backbone_presets_no_weights,
@@ -34,6 +35,7 @@ backbone_presets_no_weights = {
     **efficientnet_v1_backbone_presets.backbone_presets_no_weights,
     **efficientnet_v2_backbone_presets.backbone_presets_no_weights,
     **densenet_backbone_presets.backbone_presets_no_weights,
+    **yolo_v8_backbone_presets.backbone_presets_no_weights,
 }
 
 backbone_presets_with_weights = {
@@ -44,6 +46,7 @@ backbone_presets_with_weights = {
     **efficientnet_v1_backbone_presets.backbone_presets_with_weights,
     **efficientnet_v2_backbone_presets.backbone_presets_with_weights,
     **densenet_backbone_presets.backbone_presets_with_weights,
+    **yolo_v8_backbone_presets.backbone_presets_with_weights,
 }
 
 backbone_presets = {
