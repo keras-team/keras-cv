@@ -106,7 +106,7 @@ class CutMix(BaseImageAugmentationLayer):
             "expected. Please call the layer with 2 or more samples."
         )
 
-    def _cutmix(self, images, segmentation_masks):
+    def _cutmix(self, images, targets):
         """Apply cutmix."""
         input_shape = tf.shape(images)
         batch_size, image_height, image_width = (
@@ -151,15 +151,19 @@ class CutMix(BaseImageAugmentationLayer):
             tf.gather(images, permutation_order),
         )
 
-        return (
-            images,
-            segmentation_masks,
-            permutation_order,
-            random_center_height,
-            random_center_width,
-            cut_width,
-            cut_height,
-        )
+        if self.apply_to_labels:
+            return images, targets, lambda_sample, permutation_order
+
+        if self.apply_to_segmentation_masks:
+            return (
+                images,
+                targets,
+                permutation_order,
+                random_center_height,
+                random_center_width,
+                cut_width,
+                cut_height,
+            )
 
     def _update_labels(self, images, labels, lambda_sample, permutation_order):
         cutout_labels = tf.gather(labels, permutation_order)
