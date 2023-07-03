@@ -31,18 +31,13 @@ class CutMix(BaseImageAugmentationLayer):
             the smoothing values are sampled. Defaults to 1.0, which is a
             recommended value when training an imagenet1k classification model.
         seed: Integer. Used to create a random seed.
+        apply_to_labels: Boolean. Cutmix applies to labels with images.
+        apply_to_segmentation_masks: Boolean. Cutmix applies to
+            segmentation_masks with images.
+
     References:
        - [CutMix paper]( https://arxiv.org/abs/1905.04899).
 
-    Sample usage:
-    ```python
-    (images, labels), _ = keras.datasets.cifar10.load_data()
-    labels = tf.one_hot(labels.squeeze(), 10)
-
-    cutmix = keras_cv.layers.preprocessing.cut_mix.CutMix(10)
-    output = cutmix({"images": images[:32], "labels": labels[:32]})
-    # output == {'images': updated_images, 'labels': updated_labels}
-    ```
     """
 
     def __init__(
