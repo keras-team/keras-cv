@@ -221,6 +221,13 @@ class CutMix(BaseImageAugmentationLayer):
                     "the classification segmentation_masks. "
                     "For example, `cut_mix({'images': images, 'segmentation_masks': segmentation_masks})`."  # noqa: E501
                 )
+            if segmentation_masks is not None:
+                if len(segmentation_masks.shape) != 4:
+                    raise ValueError(
+                        "CutMix expects shape of segmentation_masks as "
+                        "[batch, h, w, num_classes]. "
+                        f"Got: shape = {segmentation_masks.shape}. "
+                    )
 
         # Ensure that one of the arguments is always set to True
         if not self.apply_to_labels and not self.apply_to_segmentation_masks:
