@@ -62,7 +62,7 @@ class PredictionHead(keras.layers.Layer):
         return x
 
     def compute_output_shape(self, input_shape):
-        return input_shape[:-1] + (self.output_filters,)
+        return tuple(input_shape[:-1]) + (self.output_filters,)
 
     def get_config(self):
         config = {

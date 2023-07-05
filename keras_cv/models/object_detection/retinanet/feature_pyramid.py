@@ -70,9 +70,9 @@ class FeaturePyramid(keras.layers.Layer):
         p4_shape = input_shape["P4"][:-1]
         p5_shape = input_shape["P5"][:-1]
         return (
-            (p3_shape + (256,)),
-            (p4_shape + (256,)),
-            (p5_shape + (256,)),
-            (p5_shape + (256,)),
-            (p5_shape + (256,)),
+            (tuple(p3_shape) + (256,)),
+            (tuple(p4_shape) + (256,)),
+            (tuple(p5_shape) + (256,)),
+            (tuple(p5_shape) + (256,)),
+            (tuple(p5_shape) + (256,)),
         )
