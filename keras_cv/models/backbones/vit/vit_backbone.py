@@ -21,7 +21,6 @@ Reference:
 
 import copy
 
-import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 
@@ -33,99 +32,6 @@ from keras_cv.layers import TransformerEncoder
 from keras_cv.layers.vit_layers import PatchingAndEmbedding
 from keras_cv.models.legacy import utils
 from keras_cv.models.legacy.weights import parse_weights
-
-MODEL_CONFIGS = {
-    "ViTTiny16": {
-        "patch_size": 16,
-        "transformer_layer_num": 12,
-        "project_dim": 192,
-        "mlp_dim": 768,
-        "num_heads": 3,
-        "mlp_dropout": 0.0,
-        "attention_dropout": 0.0,
-    },
-    "ViTS16": {
-        "patch_size": 16,
-        "transformer_layer_num": 12,
-        "project_dim": 384,
-        "mlp_dim": 1536,
-        "num_heads": 6,
-        "mlp_dropout": 0.0,
-        "attention_dropout": 0.0,
-    },
-    "ViTB16": {
-        "patch_size": 16,
-        "transformer_layer_num": 12,
-        "project_dim": 768,
-        "mlp_dim": 3072,
-        "num_heads": 12,
-        "mlp_dropout": 0.0,
-        "attention_dropout": 0.0,
-    },
-    "ViTL16": {
-        "patch_size": 16,
-        "transformer_layer_num": 24,
-        "project_dim": 1024,
-        "mlp_dim": 4096,
-        "num_heads": 16,
-        "mlp_dropout": 0.1,
-        "attention_dropout": 0.0,
-    },
-    "ViTH16": {
-        "patch_size": 16,
-        "transformer_layer_num": 32,
-        "project_dim": 1280,
-        "mlp_dim": 5120,
-        "num_heads": 16,
-        "mlp_dropout": 0.1,
-        "attention_dropout": 0.0,
-    },
-    "ViTTiny32": {
-        "patch_size": 32,
-        "transformer_layer_num": 12,
-        "project_dim": 192,
-        "mlp_dim": 768,
-        "num_heads": 3,
-        "mlp_dropout": 0.0,
-        "attention_dropout": 0.0,
-    },
-    "ViTS32": {
-        "patch_size": 32,
-        "transformer_layer_num": 12,
-        "project_dim": 384,
-        "mlp_dim": 1536,
-        "num_heads": 6,
-        "mlp_dropout": 0.0,
-        "attention_dropout": 0.0,
-    },
-    "ViTB32": {
-        "patch_size": 32,
-        "transformer_layer_num": 12,
-        "project_dim": 768,
-        "mlp_dim": 3072,
-        "num_heads": 12,
-        "mlp_dropout": 0.0,
-        "attention_dropout": 0.0,
-    },
-    "ViTL32": {
-        "patch_size": 32,
-        "transformer_layer_num": 24,
-        "project_dim": 1024,
-        "mlp_dim": 4096,
-        "num_heads": 16,
-        "mlp_dropout": 0.1,
-        "attention_dropout": 0.0,
-    },
-    "ViTH32": {
-        "patch_size": 32,
-        "transformer_layer_num": 32,
-        "project_dim": 1280,
-        "mlp_dim": 5120,
-        "num_heads": 16,
-        "mlp_dropout": 0.1,
-        "attention_dropout": 0.0,
-    },
-}
 
 BASE_DOCSTRING = """Instantiates the {name} architecture.
     Reference:
@@ -244,6 +150,7 @@ class ViTBackbone(Backbone):
 
     def __init__(
         self,
+        *,
         include_rescaling,
         input_shape=(None, None, 3),
         input_tensor=None,
@@ -329,389 +236,279 @@ class ViTBackbone(Backbone):
         """Dictionary of preset names and configurations that include weights."""
         return copy.deepcopy(backbone_presets_with_weights)
 
+class ViTTiny16Backbone(ViTBackbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
+        **kwargs
+    ):
+        kwargs.update(
+            {
+                "include_rescaling":include_rescaling,
+                "input_shape":input_shape,
+                "input_tensor":input_tensor
+            }
+        )
+        return ViTBackbone.from_preset("vittiny16", **kwargs)
 
-def ViTTiny16Backbone(
-    *,
-    include_rescaling,
-    include_top,
-    name="ViTTiny16Backbone",
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    num_classes=None,
-    activation=keras.activations.gelu,
-    classifier_activation="softmax",
-    **kwargs,
-):
-    """Instantiates the ViTTiny16 architecture."""
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
+    
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include weights."""
+        return {}
 
-    return ViTBackbone(
-        include_rescaling,
-        include_top,
-        name=name,
-        weights=parse_weights(weights, include_top, "vittiny16"),
-        input_shape=input_shape,
-        input_tensor=input_tensor,
-        pooling=pooling,
-        num_classes=num_classes,
-        patch_size=MODEL_CONFIGS["ViTTiny16"]["patch_size"],
-        transformer_layer_num=MODEL_CONFIGS["ViTTiny16"][
-            "transformer_layer_num"
-        ],
-        project_dim=MODEL_CONFIGS["ViTTiny16"]["project_dim"],
-        mlp_dim=MODEL_CONFIGS["ViTTiny16"]["mlp_dim"],
-        num_heads=MODEL_CONFIGS["ViTTiny16"]["num_heads"],
-        mlp_dropout=MODEL_CONFIGS["ViTTiny16"]["mlp_dropout"],
-        attention_dropout=MODEL_CONFIGS["ViTTiny16"]["attention_dropout"],
-        activation=activation,
-        classifier_activation=classifier_activation,
-        **kwargs,
-    )
+class ViTS16Backbone(ViTBackbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
+        **kwargs
+    ):
+        kwargs.update(
+            {
+                "include_rescaling":include_rescaling,
+                "input_shape":input_shape,
+                "input_tensor":input_tensor
+            }
+        )
+        return ViTBackbone.from_preset("vits16", **kwargs)
 
-
-def ViTS16Backbone(
-    *,
-    include_rescaling,
-    include_top,
-    name="ViTS16Backbone",
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    num_classes=None,
-    activation=keras.activations.gelu,
-    classifier_activation="softmax",
-    **kwargs,
-):
-    """Instantiates the ViTS16 architecture."""
-
-    return ViTBackbone(
-        include_rescaling,
-        include_top,
-        name=name,
-        weights=parse_weights(weights, include_top, "vits16"),
-        input_shape=input_shape,
-        input_tensor=input_tensor,
-        pooling=pooling,
-        num_classes=num_classes,
-        patch_size=MODEL_CONFIGS["ViTS16"]["patch_size"],
-        transformer_layer_num=MODEL_CONFIGS["ViTB32"]["transformer_layer_num"],
-        project_dim=MODEL_CONFIGS["ViTS16"]["project_dim"],
-        mlp_dim=MODEL_CONFIGS["ViTS16"]["mlp_dim"],
-        num_heads=MODEL_CONFIGS["ViTS16"]["num_heads"],
-        mlp_dropout=MODEL_CONFIGS["ViTS16"]["mlp_dropout"],
-        attention_dropout=MODEL_CONFIGS["ViTS16"]["attention_dropout"],
-        activation=activation,
-        classifier_activation=classifier_activation,
-        **kwargs,
-    )
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
+    
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include weights."""
+        return {}
 
 
-def ViTB16Backbone(
-    *,
-    include_rescaling,
-    include_top,
-    name="ViTB16Backbone",
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    num_classes=None,
-    activation=keras.activations.gelu,
-    classifier_activation="softmax",
-    **kwargs,
-):
-    """Instantiates the ViTB16 architecture."""
+class ViTB16Backbone(ViTBackbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
+        **kwargs
+    ):
+        kwargs.update(
+            {
+                "include_rescaling":include_rescaling,
+                "input_shape":input_shape,
+                "input_tensor":input_tensor
+            }
+        )
+        return ViTBackbone.from_preset("vitb16", **kwargs)
 
-    return ViTBackbone(
-        include_rescaling,
-        include_top,
-        name=name,
-        weights=parse_weights(weights, include_top, "vitb16"),
-        input_shape=input_shape,
-        input_tensor=input_tensor,
-        pooling=pooling,
-        num_classes=num_classes,
-        patch_size=MODEL_CONFIGS["ViTB16"]["patch_size"],
-        transformer_layer_num=MODEL_CONFIGS["ViTB16"]["transformer_layer_num"],
-        project_dim=MODEL_CONFIGS["ViTB16"]["project_dim"],
-        mlp_dim=MODEL_CONFIGS["ViTB16"]["mlp_dim"],
-        num_heads=MODEL_CONFIGS["ViTB16"]["num_heads"],
-        mlp_dropout=MODEL_CONFIGS["ViTB16"]["mlp_dropout"],
-        attention_dropout=MODEL_CONFIGS["ViTB16"]["attention_dropout"],
-        activation=activation,
-        classifier_activation=classifier_activation,
-        **kwargs,
-    )
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
+    
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include weights."""
+        return {}
 
+class ViTL16Backbone(ViTBackbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
+        **kwargs
+    ):
+        kwargs.update(
+            {
+                "include_rescaling":include_rescaling,
+                "input_shape":input_shape,
+                "input_tensor":input_tensor
+            }
+        )
+        return ViTBackbone.from_preset("vitl16", **kwargs)
 
-def ViTL16Backbone(
-    *,
-    include_rescaling,
-    include_top,
-    name="ViTL16Backbone",
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    num_classes=None,
-    activation=keras.activations.gelu,
-    classifier_activation="softmax",
-    **kwargs,
-):
-    """Instantiates the ViTL16 architecture."""
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
+    
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include weights."""
+        return {}
 
-    return ViTBackbone(
-        include_rescaling,
-        include_top=include_top,
-        name=name,
-        weights=parse_weights(weights, include_top, "vitl16"),
-        input_shape=input_shape,
-        input_tensor=input_tensor,
-        pooling=pooling,
-        num_classes=num_classes,
-        patch_size=MODEL_CONFIGS["ViTL16"]["patch_size"],
-        transformer_layer_num=MODEL_CONFIGS["ViTL16"]["transformer_layer_num"],
-        project_dim=MODEL_CONFIGS["ViTL16"]["project_dim"],
-        mlp_dim=MODEL_CONFIGS["ViTL16"]["mlp_dim"],
-        num_heads=MODEL_CONFIGS["ViTL16"]["num_heads"],
-        mlp_dropout=MODEL_CONFIGS["ViTL16"]["mlp_dropout"],
-        attention_dropout=MODEL_CONFIGS["ViTL16"]["attention_dropout"],
-        activation=activation,
-        classifier_activation=classifier_activation,
-        **kwargs,
-    )
+class ViTH16Backbone(ViTBackbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
+        **kwargs
+    ):
+        kwargs.update(
+            {
+                "include_rescaling":include_rescaling,
+                "input_shape":input_shape,
+                "input_tensor":input_tensor
+            }
+        )
+        return ViTBackbone.from_preset("vith16", **kwargs)
 
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
+    
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include weights."""
+        return {}
 
-def ViTH16Backbone(
-    *,
-    include_rescaling,
-    include_top,
-    name="ViTH16Backbone",
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    num_classes=None,
-    activation=keras.activations.gelu,
-    classifier_activation="softmax",
-    **kwargs,
-):
-    """Instantiates the ViTH16 architecture."""
+class ViTTiny32Backbone(ViTBackbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
+        **kwargs
+    ):
+        kwargs.update(
+            {
+                "include_rescaling":include_rescaling,
+                "input_shape":input_shape,
+                "input_tensor":input_tensor
+            }
+        )
+        return ViTBackbone.from_preset("vittiny32", **kwargs)
 
-    return ViTBackbone(
-        include_rescaling,
-        include_top,
-        name=name,
-        weights=weights,
-        input_shape=input_shape,
-        input_tensor=input_tensor,
-        pooling=pooling,
-        num_classes=num_classes,
-        patch_size=MODEL_CONFIGS["ViTH16"]["patch_size"],
-        transformer_layer_num=MODEL_CONFIGS["ViTH16"]["transformer_layer_num"],
-        project_dim=MODEL_CONFIGS["ViTH16"]["project_dim"],
-        mlp_dim=MODEL_CONFIGS["ViTH16"]["mlp_dim"],
-        num_heads=MODEL_CONFIGS["ViTH16"]["num_heads"],
-        mlp_dropout=MODEL_CONFIGS["ViTH16"]["mlp_dropout"],
-        attention_dropout=MODEL_CONFIGS["ViTH16"]["attention_dropout"],
-        activation=activation,
-        classifier_activation=classifier_activation,
-        **kwargs,
-    )
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
+    
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include weights."""
+        return {}
 
 
-def ViTTiny32Backbone(
-    *,
-    include_rescaling,
-    include_top,
-    name="ViTTiny32Backbone",
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    num_classes=None,
-    activation=keras.activations.gelu,
-    classifier_activation="softmax",
-    **kwargs,
-):
-    """Instantiates the ViTTiny32 architecture."""
+class ViTS32Backbone(ViTBackbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
+        **kwargs
+    ):
+        kwargs.update(
+            {
+                "include_rescaling":include_rescaling,
+                "input_shape":input_shape,
+                "input_tensor":input_tensor
+            }
+        )
+        return ViTBackbone.from_preset("vits32", **kwargs)
 
-    return ViTBackbone(
-        include_rescaling,
-        include_top,
-        name=name,
-        weights=weights,
-        input_shape=input_shape,
-        input_tensor=input_tensor,
-        pooling=pooling,
-        num_classes=num_classes,
-        patch_size=MODEL_CONFIGS["ViTTiny32"]["patch_size"],
-        transformer_layer_num=MODEL_CONFIGS["ViTTiny32"][
-            "transformer_layer_num"
-        ],
-        project_dim=MODEL_CONFIGS["ViTTiny32"]["project_dim"],
-        mlp_dim=MODEL_CONFIGS["ViTTiny32"]["mlp_dim"],
-        num_heads=MODEL_CONFIGS["ViTTiny32"]["num_heads"],
-        mlp_dropout=MODEL_CONFIGS["ViTTiny32"]["mlp_dropout"],
-        attention_dropout=MODEL_CONFIGS["ViTTiny32"]["attention_dropout"],
-        activation=activation,
-        classifier_activation=classifier_activation,
-        **kwargs,
-    )
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
+    
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include weights."""
+        return {}
 
+class ViTB32Backbone(ViTBackbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
+        **kwargs
+    ):
+        kwargs.update(
+            {
+                "include_rescaling":include_rescaling,
+                "input_shape":input_shape,
+                "input_tensor":input_tensor
+            }
+        )
+        return ViTBackbone.from_preset("vitb32", **kwargs)
 
-def ViTS32Backbone(
-    *,
-    include_rescaling,
-    include_top,
-    name="ViTS32Backbone",
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    num_classes=None,
-    activation=keras.activations.gelu,
-    classifier_activation="softmax",
-    **kwargs,
-):
-    """Instantiates the ViTS32 architecture."""
-
-    return ViTBackbone(
-        include_rescaling,
-        include_top,
-        name=name,
-        weights=parse_weights(weights, include_top, "vits32"),
-        input_shape=input_shape,
-        input_tensor=input_tensor,
-        pooling=pooling,
-        num_classes=num_classes,
-        patch_size=MODEL_CONFIGS["ViTS32"]["patch_size"],
-        transformer_layer_num=MODEL_CONFIGS["ViTS32"]["transformer_layer_num"],
-        project_dim=MODEL_CONFIGS["ViTS32"]["project_dim"],
-        mlp_dim=MODEL_CONFIGS["ViTS32"]["mlp_dim"],
-        num_heads=MODEL_CONFIGS["ViTS32"]["num_heads"],
-        mlp_dropout=MODEL_CONFIGS["ViTS32"]["mlp_dropout"],
-        attention_dropout=MODEL_CONFIGS["ViTS32"]["attention_dropout"],
-        activation=activation,
-        classifier_activation=classifier_activation,
-        **kwargs,
-    )
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
+    
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include weights."""
+        return {}
 
 
-def ViTB32Backbone(
-    *,
-    include_rescaling,
-    include_top,
-    name="ViTB32Backbone",
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    num_classes=None,
-    activation=keras.activations.gelu,
-    classifier_activation="softmax",
-    **kwargs,
-):
-    """Instantiates the ViTB32 architecture."""
+class ViTL32Backbone(ViTBackbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
+        **kwargs
+    ):
+        kwargs.update(
+            {
+                "include_rescaling":include_rescaling,
+                "input_shape":input_shape,
+                "input_tensor":input_tensor
+            }
+        )
+        return ViTBackbone.from_preset("vitl32", **kwargs)
 
-    return ViTBackbone(
-        include_rescaling,
-        include_top,
-        name=name,
-        weights=parse_weights(weights, include_top, "vitb32"),
-        input_shape=input_shape,
-        input_tensor=input_tensor,
-        pooling=pooling,
-        num_classes=num_classes,
-        patch_size=MODEL_CONFIGS["ViTB32"]["patch_size"],
-        transformer_layer_num=MODEL_CONFIGS["ViTB32"]["transformer_layer_num"],
-        project_dim=MODEL_CONFIGS["ViTB32"]["project_dim"],
-        mlp_dim=MODEL_CONFIGS["ViTB32"]["mlp_dim"],
-        num_heads=MODEL_CONFIGS["ViTB32"]["num_heads"],
-        mlp_dropout=MODEL_CONFIGS["ViTB32"]["mlp_dropout"],
-        attention_dropout=MODEL_CONFIGS["ViTB32"]["attention_dropout"],
-        activation=activation,
-        classifier_activation=classifier_activation,
-        **kwargs,
-    )
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
+    
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include weights."""
+        return {}
 
 
-def ViTL32Backbone(
-    *,
-    include_rescaling,
-    include_top,
-    name="ViTL32Backbone",
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    num_classes=None,
-    activation=keras.activations.gelu,
-    classifier_activation="softmax",
-    **kwargs,
-):
-    """Instantiates the ViTL32 architecture."""
+class ViTH32Backbone(ViTBackbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
+        **kwargs
+    ):
+        kwargs.update(
+            {
+                "include_rescaling":include_rescaling,
+                "input_shape":input_shape,
+                "input_tensor":input_tensor
+            }
+        )
+        return ViTBackbone.from_preset("vith32", **kwargs)
 
-    return ViTBackbone(
-        include_rescaling,
-        include_top,
-        name=name,
-        weights=weights,
-        input_shape=input_shape,
-        input_tensor=input_tensor,
-        pooling=pooling,
-        num_classes=num_classes,
-        patch_size=MODEL_CONFIGS["ViTL32"]["patch_size"],
-        transformer_layer_num=MODEL_CONFIGS["ViTL32"]["transformer_layer_num"],
-        project_dim=MODEL_CONFIGS["ViTL32"]["project_dim"],
-        mlp_dim=MODEL_CONFIGS["ViTL32"]["mlp_dim"],
-        num_heads=MODEL_CONFIGS["ViTL32"]["num_heads"],
-        mlp_dropout=MODEL_CONFIGS["ViTL32"]["mlp_dropout"],
-        attention_dropout=MODEL_CONFIGS["ViTL32"]["attention_dropout"],
-        activation=activation,
-        classifier_activation=classifier_activation,
-        **kwargs,
-    )
-
-
-def ViTH32Backbone(
-    *,
-    include_rescaling,
-    include_top,
-    name="ViTH32Backbone",
-    weights=None,
-    input_shape=(None, None, 3),
-    input_tensor=None,
-    pooling=None,
-    num_classes=None,
-    activation=keras.activations.gelu,
-    classifier_activation="softmax",
-    **kwargs,
-):
-    """Instantiates the ViTH32 architecture."""
-
-    return ViTBackbone(
-        include_rescaling,
-        include_top,
-        name=name,
-        weights=weights,
-        input_shape=input_shape,
-        input_tensor=input_tensor,
-        pooling=pooling,
-        num_classes=num_classes,
-        patch_size=MODEL_CONFIGS["ViTH32"]["patch_size"],
-        transformer_layer_num=MODEL_CONFIGS["ViTH32"]["transformer_layer_num"],
-        project_dim=MODEL_CONFIGS["ViTH32"]["project_dim"],
-        mlp_dim=MODEL_CONFIGS["ViTH32"]["mlp_dim"],
-        num_heads=MODEL_CONFIGS["ViTH32"]["num_heads"],
-        mlp_dropout=MODEL_CONFIGS["ViTH32"]["mlp_dropout"],
-        attention_dropout=MODEL_CONFIGS["ViTH32"]["attention_dropout"],
-        activation=activation,
-        classifier_activation=classifier_activation,
-        **kwargs,
-    )
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
+    
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include weights."""
+        return {}
 
 
 setattr(ViTTiny16Backbone, "__doc__", BASE_DOCSTRING.format(name="ViTTiny16"))
