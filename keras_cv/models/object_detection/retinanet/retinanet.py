@@ -419,7 +419,9 @@ class RetinaNet(Task):
                 "parameter?"
             )
 
-        cls_labels = ops.one_hot(classes, self.num_classes, dtype="float32")
+        cls_labels = ops.one_hot(
+            ops.cast(classes, "int32"), self.num_classes, dtype="float32"
+        )
         positive_mask = ops.cast(ops.greater(classes, -1.0), dtype="float32")
         normalizer = ops.sum(positive_mask)
         cls_weights = ops.cast(ops.not_equal(classes, -2.0), dtype="float32")
