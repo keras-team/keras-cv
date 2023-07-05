@@ -419,18 +419,7 @@ class RetinaNet(Task):
                 "parameter?"
             )
 
-        # Torch one_hot doesn't support negative inputs, so we get rid of
-        # them using max. The output will have some invalid results, so we
-        # set them back to 0 using ops.where afterwards
-        cls_labels = ops.one_hot(
-            ops.maximum(ops.cast(classes, dtype="int32"), 0),
-            self.num_classes,
-            dtype="float32",
-        )
-        cls_labels = ops.where(
-            ops.expand_dims(classes >= 0, axis=-1), cls_labels, 0
-        )
-
+        cls_labels = ops.one_hot(classes, self.num_classes, dtype="float32")
         positive_mask = ops.cast(ops.greater(classes, -1.0), dtype="float32")
         normalizer = ops.sum(positive_mask)
         cls_weights = ops.cast(ops.not_equal(classes, -2.0), dtype="float32")
