@@ -105,6 +105,7 @@ jobs:
                keras_cv/layers/preprocessing \
                keras_cv/models/backbones \
                keras_cv/models/classification \
+               keras_cv/models/object_detection/retinanet \
                --durations 0
   format:
     name: Check the code format
