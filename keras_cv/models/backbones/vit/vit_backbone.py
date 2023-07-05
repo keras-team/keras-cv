@@ -33,7 +33,11 @@ from keras_cv.layers.vit_layers import PatchingAndEmbedding
 from keras_cv.models.legacy import utils
 from keras_cv.models.legacy.weights import parse_weights
 
-BASE_DOCSTRING = """Instantiates the {name} architecture.
+
+@keras.utils.register_keras_serializable(package="keras_cv.models")
+class ViTBackbone(Backbone):
+    """Instantiates the ViT architecture.
+
     Reference:
         - [An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale](https://arxiv.org/abs/2010.11929v2)
         (ICLR 2021)
@@ -54,49 +58,6 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
 
     For transfer learning use cases, make sure to read the
     [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
-    Args:
-        include_rescaling: bool, whether to rescale the inputs. If set to
-            True, inputs will be passed through a `Rescaling(scale=1./255.0)`
-            layer. Note that ViTs expect an input range of `[0..1]` if rescaling
-            isn't used. Regardless of whether you supply `[0..1]` or the input
-            is rescaled to `[0..1]`, the inputs will further be rescaled to
-            `[-1..1]`.
-        include_top: bool, whether to include the fully-connected layer at the
-            top of the network. If provided, num_classes must be provided.
-        num_classes: optional int, number of classes to classify images into,
-            only to be specified if `include_top` is True.
-        weights: one of `None` (random initialization), a pretrained weight file
-            path, or a reference to pre-trained weights
-            (e.g. 'imagenet/classification') (see available pre-trained weights
-            in weights.py). Note that the 'imagenet' weights only work on an
-            input shape of (224, 224, 3) due to the input shape dependent
-            patching and flattening logic.
-        input_shape: optional shape tuple, defaults to (None, None, 3).
-        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
-            to use as image input for the model.
-        pooling: optional pooling mode for feature extraction
-            when `include_top` is `False`.
-            - `None` means that the output of the model will be the 4D tensor
-                output of the last convolutional block.
-            - `avg` means that global average pooling will be applied to the
-                output of the last convolutional block, and thus the output of
-                the model will be a 2D tensor.
-            - `max` means that global max pooling will be applied.
-            - `token_pooling`, default, means that the token at the start of the
-                sequences is used instead of regular pooling.
-        name: (Optional) name to pass to the model, defaults to "{name}".
-        classifier_activation: A `str` or callable. The activation function to
-            use on the "top" layer. Ignored unless `include_top=True`. Set
-            `classifier_activation=None` to return the logits of the "top"
-            layer.
-    Returns:
-      A `keras.Model` instance.
-"""  # noqa: E501
-
-
-@keras.utils.register_keras_serializable(package="keras_cv.models")
-class ViTBackbone(Backbone):
-    """Instantiates the ViT architecture.
 
     Args:
         mlp_dim: the dimensionality of the hidden Dense layer in the transformer
@@ -104,29 +65,9 @@ class ViTBackbone(Backbone):
         include_rescaling: bool, whether to rescale the inputs. If set to
             True, inputs will be passed through a `Rescaling(1/255.0)` layer.
         name: string, model name.
-        include_top: bool, whether to include the fully-connected
-            layer at the top of the network.
-        weights: one of `None` (random initialization),
-            or the path to the weights file to be loaded.
         input_shape: optional shape tuple, defaults to (None, None, 3).
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
             to use as image input for the model.
-        pooling: optional pooling mode for feature extraction
-            when `include_top` is `False`.
-            - `None` means that the output of the model will be
-                the 4D tensor output of the
-                last convolutional layer.
-            - `avg` means that global average pooling
-                will be applied to the output of the
-                last convolutional layer, and thus
-                the output of the model will be a 2D tensor.
-            - `max` means that global max pooling will
-                be applied.
-            - `token_pooling`, default, means that the token at the start of the
-                sequences is used instead of regular pooling.
-        num_classes: optional number of classes to classify images
-            into, only to be specified if `include_top` is True.
-                    mlp_dim:
         project_dim: the latent dimensionality to be projected into in the
             output of each stacked transformer encoder
         activation: the activation function to use in the first `layers.Dense`
@@ -141,10 +82,6 @@ class ViTBackbone(Backbone):
             in the Vision Transformer
         patch_size: the patch size to be supplied to the Patching layer to turn
             input images into a flattened sequence of patches
-        classifier_activation: A `str` or callable. The activation function to
-            use on the "top" layer. Ignored unless `include_top=True`. Set
-            `classifier_activation=None` to return the logits of the "top"
-            layer.
         **kwargs: Pass-through keyword arguments to `keras.Model`.
     """
 
@@ -510,14 +447,46 @@ class ViTH32Backbone(ViTBackbone):
         """Dictionary of preset names and configurations that include weights."""
         return {}
 
+ALIAS_DOCSTRING = """ViTBackbone Model with the {name} configuration for {patch_size} patch size.
+    Reference:
+        - [An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale](https://arxiv.org/abs/2010.11929v2)
+        (ICLR 2021)
+    This function returns a Keras {name} model.
 
-setattr(ViTTiny16Backbone, "__doc__", BASE_DOCSTRING.format(name="ViTTiny16"))
-setattr(ViTS16Backbone, "__doc__", BASE_DOCSTRING.format(name="ViTS16"))
-setattr(ViTB16Backbone, "__doc__", BASE_DOCSTRING.format(name="ViTB16"))
-setattr(ViTL16Backbone, "__doc__", BASE_DOCSTRING.format(name="ViTL16"))
-setattr(ViTH16Backbone, "__doc__", BASE_DOCSTRING.format(name="ViTH16"))
-setattr(ViTTiny32Backbone, "__doc__", BASE_DOCSTRING.format(name="ViTTiny32"))
-setattr(ViTS32Backbone, "__doc__", BASE_DOCSTRING.format(name="ViTS32"))
-setattr(ViTB32Backbone, "__doc__", BASE_DOCSTRING.format(name="ViTB32"))
-setattr(ViTL32Backbone, "__doc__", BASE_DOCSTRING.format(name="ViTL32"))
-setattr(ViTH32Backbone, "__doc__", BASE_DOCSTRING.format(name="ViTH32"))
+    The naming convention of ViT models follows: ViTSize_Patch-size
+        (i.e. ViTS16).
+    The following sizes were released in the original paper:
+        - S (Small)
+        - B (Base)
+        - L (Large)
+    But subsequent work from the same authors introduced:
+        - Ti (Tiny)
+        - H (Huge)
+
+    The parameter configurations for all of these sizes, at patch sizes 16 and
+    32 are made available, following the naming convention laid out above.
+
+    For transfer learning use cases, make sure to read the
+    [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
+    Args:
+        include_rescaling: bool, whether to rescale the inputs. If set to
+            True, inputs will be passed through a `Rescaling(scale=1./255.0)`
+            layer. Note that ViTs expect an input range of `[0..1]` if rescaling
+            isn't used. Regardless of whether you supply `[0..1]` or the input
+            is rescaled to `[0..1]`, the inputs will further be rescaled to
+            `[-1..1]`.
+        input_shape: optional shape tuple, defaults to (None, None, 3).
+        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
+            to use as image input for the model.
+"""  # noqa: E501
+
+setattr(ViTTiny16Backbone, "__doc__", ALIAS_DOCSTRING.format(name="ViTTiny16", patch_size=16))
+setattr(ViTS16Backbone, "__doc__", ALIAS_DOCSTRING.format(name="ViTS16", patch_size=16))
+setattr(ViTB16Backbone, "__doc__", ALIAS_DOCSTRING.format(name="ViTB16", patch_size=16))
+setattr(ViTL16Backbone, "__doc__", ALIAS_DOCSTRING.format(name="ViTL16", patch_size=16))
+setattr(ViTH16Backbone, "__doc__", ALIAS_DOCSTRING.format(name="ViTH16", patch_size=16))
+setattr(ViTTiny32Backbone, "__doc__", ALIAS_DOCSTRING.format(name="ViTTiny32", patch_size=32))
+setattr(ViTS32Backbone, "__doc__", ALIAS_DOCSTRING.format(name="ViTS32", patch_size=32))
+setattr(ViTB32Backbone, "__doc__", ALIAS_DOCSTRING.format(name="ViTB32", patch_size=32))
+setattr(ViTL32Backbone, "__doc__", ALIAS_DOCSTRING.format(name="ViTL32", patch_size=32))
+setattr(ViTH32Backbone, "__doc__", ALIAS_DOCSTRING.format(name="ViTH32", patch_size=32))
