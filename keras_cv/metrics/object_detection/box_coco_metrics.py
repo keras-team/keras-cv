@@ -15,11 +15,13 @@ import os
 import sys
 import types
 
+import numpy as np
 import tensorflow as tf
 import tensorflow.keras as keras
 
 import keras_cv
 from keras_cv import bounding_box
+from keras_cv.backend import ops
 
 
 class HidePrints:
@@ -267,6 +269,9 @@ class BoxCOCOMetrics(keras.metrics.Metric):
 
 
 def compute_pycocotools_metric(y_true, y_pred, bounding_box_format):
+    y_true = bounding_box.to_dense(y_true)
+    y_pred = bounding_box.to_dense(y_pred)
+
     box_pred = y_pred["boxes"]
     cls_pred = y_pred["classes"]
     confidence_pred = y_pred["confidence"]
@@ -283,26 +288,24 @@ def compute_pycocotools_metric(y_true, y_pred, bounding_box_format):
 
     total_images = gt_boxes.shape[0]
 
-    source_ids = tf.strings.as_string(
-        tf.linspace(1, total_images, total_images), precision=0
-    )
+    source_ids = np.char.mod("%d", np.linspace(1, total_images, total_images))
 
     ground_truth = {}
     ground_truth["source_id"] = [source_ids]
 
     ground_truth["num_detections"] = [
-        tf.math.reduce_sum(tf.cast(y_true["classes"] != -1, tf.int32), axis=-1)
+        ops.sum(ops.cast(y_true["classes"] >= 0, "int32"), axis=-1)
     ]
-    ground_truth["boxes"] = [gt_boxes]
-    ground_truth["classes"] = [gt_classes]
+    ground_truth["boxes"] = [ops.convert_to_numpy(gt_boxes)]
+    ground_truth["classes"] = [ops.convert_to_numpy(gt_classes)]
 
     predictions = {}
     predictions["source_id"] = [source_ids]
-    predictions["detection_boxes"] = [box_pred]
-    predictions["detection_classes"] = [cls_pred]
-    predictions["detection_scores"] = [confidence_pred]
+    predictions["detection_boxes"] = [ops.convert_to_numpy(box_pred)]
+    predictions["detection_classes"] = [ops.convert_to_numpy(cls_pred)]
+    predictions["detection_scores"] = [ops.convert_to_numpy(confidence_pred)]
     predictions["num_detections"] = [
-        tf.math.reduce_sum(tf.cast(y_pred["classes"] != -1, tf.int32), axis=-1)
+        ops.sum(ops.cast(confidence_pred > 0, "int32"), axis=-1)
     ]
 
     return keras_cv.metrics.coco.compute_pycoco_metrics(
