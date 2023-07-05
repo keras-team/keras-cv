@@ -102,7 +102,7 @@ class ImageClassifier(Task):
             **kwargs,
         )
         # All references to `self` below this line
-        self._backbone = backbone
+        self.backbone = backbone
         self.num_classes = num_classes
         self.pooling = pooling
         self.activation = activation

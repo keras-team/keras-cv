@@ -170,6 +170,13 @@ class Task(keras.Model):
                 layers.remove(self.backbone)
         return layers
 
+    def __setattr__(self, name, value):
+        # Work around torch setattr for properties.
+        if name in ["backbone"]:
+            object.__setattr__(self, name, value)
+        else:
+            super().__setattr__(name, value)
+
     def __init_subclass__(cls, **kwargs):
         # Use __init_subclass__ to set up a correct docstring for from_preset.
         super().__init_subclass__(**kwargs)
