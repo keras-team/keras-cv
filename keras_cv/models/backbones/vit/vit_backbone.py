@@ -19,14 +19,113 @@ Reference:
     (CoRR 2021)
 """  # noqa: E501
 
+import copy
+
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 
+from keras_cv.models.backbones.backbone import Backbone
+from keras_cv.models.backbones.vit.vit_backbone_presets import (backbone_presets,)
+from keras_cv.models.backbones.vit.vit_backbone_presets import (backbone_presets_with_weights,)
+from keras_cv.utils.python_utils import classproperty
 from keras_cv.layers import TransformerEncoder
 from keras_cv.layers.vit_layers import PatchingAndEmbedding
 from keras_cv.models.legacy import utils
 from keras_cv.models.legacy.weights import parse_weights
+
+MODEL_CONFIGS = {
+    "ViTTiny16": {
+        "patch_size": 16,
+        "transformer_layer_num": 12,
+        "project_dim": 192,
+        "mlp_dim": 768,
+        "num_heads": 3,
+        "mlp_dropout": 0.0,
+        "attention_dropout": 0.0,
+    },
+    "ViTS16": {
+        "patch_size": 16,
+        "transformer_layer_num": 12,
+        "project_dim": 384,
+        "mlp_dim": 1536,
+        "num_heads": 6,
+        "mlp_dropout": 0.0,
+        "attention_dropout": 0.0,
+    },
+    "ViTB16": {
+        "patch_size": 16,
+        "transformer_layer_num": 12,
+        "project_dim": 768,
+        "mlp_dim": 3072,
+        "num_heads": 12,
+        "mlp_dropout": 0.0,
+        "attention_dropout": 0.0,
+    },
+    "ViTL16": {
+        "patch_size": 16,
+        "transformer_layer_num": 24,
+        "project_dim": 1024,
+        "mlp_dim": 4096,
+        "num_heads": 16,
+        "mlp_dropout": 0.1,
+        "attention_dropout": 0.0,
+    },
+    "ViTH16": {
+        "patch_size": 16,
+        "transformer_layer_num": 32,
+        "project_dim": 1280,
+        "mlp_dim": 5120,
+        "num_heads": 16,
+        "mlp_dropout": 0.1,
+        "attention_dropout": 0.0,
+    },
+    "ViTTiny32": {
+        "patch_size": 32,
+        "transformer_layer_num": 12,
+        "project_dim": 192,
+        "mlp_dim": 768,
+        "num_heads": 3,
+        "mlp_dropout": 0.0,
+        "attention_dropout": 0.0,
+    },
+    "ViTS32": {
+        "patch_size": 32,
+        "transformer_layer_num": 12,
+        "project_dim": 384,
+        "mlp_dim": 1536,
+        "num_heads": 6,
+        "mlp_dropout": 0.0,
+        "attention_dropout": 0.0,
+    },
+    "ViTB32": {
+        "patch_size": 32,
+        "transformer_layer_num": 12,
+        "project_dim": 768,
+        "mlp_dim": 3072,
+        "num_heads": 12,
+        "mlp_dropout": 0.0,
+        "attention_dropout": 0.0,
+    },
+    "ViTL32": {
+        "patch_size": 32,
+        "transformer_layer_num": 24,
+        "project_dim": 1024,
+        "mlp_dim": 4096,
+        "num_heads": 16,
+        "mlp_dropout": 0.1,
+        "attention_dropout": 0.0,
+    },
+    "ViTH32": {
+        "patch_size": 32,
+        "transformer_layer_num": 32,
+        "project_dim": 1280,
+        "mlp_dim": 5120,
+        "num_heads": 16,
+        "mlp_dropout": 0.1,
+        "attention_dropout": 0.0,
+    },
+}
 
 BASE_DOCSTRING = """Instantiates the {name} architecture.
     Reference:
@@ -90,7 +189,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
 
 
 @keras.utils.register_keras_serializable(package="keras_cv.models")
-class ViT(keras.Model):
+class ViTBackbone(Backbone):
     """Instantiates the ViT architecture.
 
     Args:
@@ -146,12 +245,8 @@ class ViT(keras.Model):
     def __init__(
         self,
         include_rescaling,
-        include_top,
-        weights=None,
         input_shape=(None, None, 3),
         input_tensor=None,
-        pooling=None,
-        num_classes=None,
         patch_size=None,
         transformer_layer_num=None,
         num_heads=None,
@@ -160,27 +255,8 @@ class ViT(keras.Model):
         activation=None,
         project_dim=None,
         mlp_dim=None,
-        classifier_activation="softmax",
         **kwargs,
     ):
-        if weights and not tf.io.gfile.exists(weights):
-            raise ValueError(
-                "The `weights` argument should be either `None` or the path "
-                "to the weights file to be loaded. Weights file not found at "
-                "location: {weights}"
-            )
-
-        if include_top and not num_classes:
-            raise ValueError(
-                "If `include_top` is True, you should specify `num_classes`. "
-                f"Received: num_classes={num_classes}"
-            )
-
-        if include_top and pooling:
-            raise ValueError(
-                f"`pooling` must be `None` when `include_top=True`."
-                f"Received pooling={pooling} and include_top={include_top}. "
-            )
 
         inputs = utils.parse_model_inputs(input_shape, input_tensor)
         x = inputs
@@ -209,28 +285,11 @@ class ViT(keras.Model):
 
         output = layers.LayerNormalization(epsilon=1e-6)(encoded_patches)
 
-        if include_top:
-            output = output[:, 0]
-            output = layers.Dense(
-                num_classes, activation=classifier_activation
-            )(output)
-
-        elif pooling == "token_pooling":
-            output = output[:, 0]
-        elif pooling == "avg":
-            output = layers.GlobalAveragePooling1D()(output)
-
         # Create model.
         super().__init__(inputs=inputs, outputs=output, **kwargs)
 
-        if weights is not None:
-            self.load_weights(weights)
-
         self.include_rescaling = include_rescaling
-        self.include_top = include_top
         self.input_tensor = input_tensor
-        self.pooling = pooling
-        self.num_classes = num_classes
         self.patch_size = patch_size
         self.transformer_layer_num = transformer_layer_num
         self.num_heads = num_heads
@@ -239,39 +298,43 @@ class ViT(keras.Model):
         self.activation = activation
         self.project_dim = project_dim
         self.mlp_dim = mlp_dim
-        self.classifier_activation = classifier_activation
 
     def get_config(self):
-        return {
-            "include_rescaling": self.include_rescaling,
-            "include_top": self.include_top,
-            "name": self.name,
-            "input_shape": self.input_shape[1:],
-            "input_tensor": self.input_tensor,
-            "pooling": self.pooling,
-            "num_classes": self.num_classes,
-            "patch_size": self.patch_size,
-            "transformer_layer_num": self.transformer_layer_num,
-            "num_heads": self.num_heads,
-            "mlp_dropout": self.mlp_dropout,
-            "attention_dropout": self.attention_dropout,
-            "activation": self.activation,
-            "project_dim": self.project_dim,
-            "mlp_dim": self.mlp_dim,
-            "classifier_activation": self.classifier_activation,
-            "trainable": self.trainable,
-        }
+        config = super().get_config()
+        config.update(
+            {
+                "include_rescaling": self.include_rescaling,
+                "input_shape": self.input_shape[1:],
+                "input_tensor": self.input_tensor,
+                "patch_size": self.patch_size,
+                "transformer_layer_num": self.transformer_layer_num,
+                "num_heads": self.num_heads,
+                "mlp_dropout": self.mlp_dropout,
+                "attention_dropout": self.attention_dropout,
+                "activation": self.activation,
+                "project_dim": self.project_dim,
+                "mlp_dim": self.mlp_dim,
+                "trainable": self.trainable,
+            }
+        )
+        return config
+    
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return copy.deepcopy(backbone_presets)
+    
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include weights."""
+        return copy.deepcopy(backbone_presets_with_weights)
 
-    @classmethod
-    def from_config(cls, config):
-        return cls(**config)
 
-
-def ViTTiny16(
+def ViTTiny16Backbone(
     *,
     include_rescaling,
     include_top,
-    name="ViTTiny16",
+    name="ViTTiny16Backbone",
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -283,7 +346,7 @@ def ViTTiny16(
 ):
     """Instantiates the ViTTiny16 architecture."""
 
-    return ViT(
+    return ViTBackbone(
         include_rescaling,
         include_top,
         name=name,
@@ -307,11 +370,11 @@ def ViTTiny16(
     )
 
 
-def ViTS16(
+def ViTS16Backbone(
     *,
     include_rescaling,
     include_top,
-    name="ViTS16",
+    name="ViTS16Backbone",
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -323,7 +386,7 @@ def ViTS16(
 ):
     """Instantiates the ViTS16 architecture."""
 
-    return ViT(
+    return ViTBackbone(
         include_rescaling,
         include_top,
         name=name,
@@ -345,11 +408,11 @@ def ViTS16(
     )
 
 
-def ViTB16(
+def ViTB16Backbone(
     *,
     include_rescaling,
     include_top,
-    name="ViTB16",
+    name="ViTB16Backbone",
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -361,7 +424,7 @@ def ViTB16(
 ):
     """Instantiates the ViTB16 architecture."""
 
-    return ViT(
+    return ViTBackbone(
         include_rescaling,
         include_top,
         name=name,
@@ -383,11 +446,11 @@ def ViTB16(
     )
 
 
-def ViTL16(
+def ViTL16Backbone(
     *,
     include_rescaling,
     include_top,
-    name="ViTL16",
+    name="ViTL16Backbone",
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -399,9 +462,9 @@ def ViTL16(
 ):
     """Instantiates the ViTL16 architecture."""
 
-    return ViT(
+    return ViTBackbone(
         include_rescaling,
-        include_top,
+        include_top=include_top,
         name=name,
         weights=parse_weights(weights, include_top, "vitl16"),
         input_shape=input_shape,
@@ -421,11 +484,11 @@ def ViTL16(
     )
 
 
-def ViTH16(
+def ViTH16Backbone(
     *,
     include_rescaling,
     include_top,
-    name="ViTH16",
+    name="ViTH16Backbone",
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -437,7 +500,7 @@ def ViTH16(
 ):
     """Instantiates the ViTH16 architecture."""
 
-    return ViT(
+    return ViTBackbone(
         include_rescaling,
         include_top,
         name=name,
@@ -459,11 +522,11 @@ def ViTH16(
     )
 
 
-def ViTTiny32(
+def ViTTiny32Backbone(
     *,
     include_rescaling,
     include_top,
-    name="ViTTiny32",
+    name="ViTTiny32Backbone",
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -475,7 +538,7 @@ def ViTTiny32(
 ):
     """Instantiates the ViTTiny32 architecture."""
 
-    return ViT(
+    return ViTBackbone(
         include_rescaling,
         include_top,
         name=name,
@@ -499,11 +562,11 @@ def ViTTiny32(
     )
 
 
-def ViTS32(
+def ViTS32Backbone(
     *,
     include_rescaling,
     include_top,
-    name="ViTS32",
+    name="ViTS32Backbone",
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -515,7 +578,7 @@ def ViTS32(
 ):
     """Instantiates the ViTS32 architecture."""
 
-    return ViT(
+    return ViTBackbone(
         include_rescaling,
         include_top,
         name=name,
@@ -537,11 +600,11 @@ def ViTS32(
     )
 
 
-def ViTB32(
+def ViTB32Backbone(
     *,
     include_rescaling,
     include_top,
-    name="ViTB32",
+    name="ViTB32Backbone",
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -553,7 +616,7 @@ def ViTB32(
 ):
     """Instantiates the ViTB32 architecture."""
 
-    return ViT(
+    return ViTBackbone(
         include_rescaling,
         include_top,
         name=name,
@@ -575,11 +638,11 @@ def ViTB32(
     )
 
 
-def ViTL32(
+def ViTL32Backbone(
     *,
     include_rescaling,
     include_top,
-    name="ViTL32",
+    name="ViTL32Backbone",
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -591,7 +654,7 @@ def ViTL32(
 ):
     """Instantiates the ViTL32 architecture."""
 
-    return ViT(
+    return ViTBackbone(
         include_rescaling,
         include_top,
         name=name,
@@ -613,11 +676,11 @@ def ViTL32(
     )
 
 
-def ViTH32(
+def ViTH32Backbone(
     *,
     include_rescaling,
     include_top,
-    name="ViTH32",
+    name="ViTH32Backbone",
     weights=None,
     input_shape=(None, None, 3),
     input_tensor=None,
@@ -629,7 +692,7 @@ def ViTH32(
 ):
     """Instantiates the ViTH32 architecture."""
 
-    return ViT(
+    return ViTBackbone(
         include_rescaling,
         include_top,
         name=name,
@@ -651,13 +714,13 @@ def ViTH32(
     )
 
 
-setattr(ViTTiny16, "__doc__", BASE_DOCSTRING.format(name="ViTTiny16"))
-setattr(ViTS16, "__doc__", BASE_DOCSTRING.format(name="ViTS16"))
-setattr(ViTB16, "__doc__", BASE_DOCSTRING.format(name="ViTB16"))
-setattr(ViTL16, "__doc__", BASE_DOCSTRING.format(name="ViTL16"))
-setattr(ViTH16, "__doc__", BASE_DOCSTRING.format(name="ViTH16"))
-setattr(ViTTiny32, "__doc__", BASE_DOCSTRING.format(name="ViTTiny32"))
-setattr(ViTS32, "__doc__", BASE_DOCSTRING.format(name="ViTS32"))
-setattr(ViTB32, "__doc__", BASE_DOCSTRING.format(name="ViTB32"))
-setattr(ViTL32, "__doc__", BASE_DOCSTRING.format(name="ViTL32"))
-setattr(ViTH32, "__doc__", BASE_DOCSTRING.format(name="ViTH32"))
+setattr(ViTTiny16Backbone, "__doc__", BASE_DOCSTRING.format(name="ViTTiny16"))
+setattr(ViTS16Backbone, "__doc__", BASE_DOCSTRING.format(name="ViTS16"))
+setattr(ViTB16Backbone, "__doc__", BASE_DOCSTRING.format(name="ViTB16"))
+setattr(ViTL16Backbone, "__doc__", BASE_DOCSTRING.format(name="ViTL16"))
+setattr(ViTH16Backbone, "__doc__", BASE_DOCSTRING.format(name="ViTH16"))
+setattr(ViTTiny32Backbone, "__doc__", BASE_DOCSTRING.format(name="ViTTiny32"))
+setattr(ViTS32Backbone, "__doc__", BASE_DOCSTRING.format(name="ViTS32"))
+setattr(ViTB32Backbone, "__doc__", BASE_DOCSTRING.format(name="ViTB32"))
+setattr(ViTL32Backbone, "__doc__", BASE_DOCSTRING.format(name="ViTL32"))
+setattr(ViTH32Backbone, "__doc__", BASE_DOCSTRING.format(name="ViTH32"))

@@ -14,7 +14,7 @@
 """ViT model preset configurations"""
 
 backbone_presets_no_weights = {
-    "vit_tiny16":{
+    "vittiny16":{
         "metadata":{
             "description":(
                 "Vision Transformer Model with patch size of 16x16,"
@@ -32,7 +32,7 @@ backbone_presets_no_weights = {
             "attention_dropout": 0.0,
         },
     },
-    "vit_s16":{
+    "vits16":{
         "metadata":{
             "description":(
                 "Vision Transformer Model with patch size of 16x16,"
@@ -50,7 +50,7 @@ backbone_presets_no_weights = {
             "attention_dropout": 0.0,
         },
     },
-    "vit_b16":{
+    "vitb16":{
         "metadata":{
             "description":(
                 "Vision Transformer Model with patch size of 16x16,"
@@ -68,7 +68,7 @@ backbone_presets_no_weights = {
             "attention_dropout": 0.0,
         },
     },
-    "vit_l16":{
+    "vitl16":{
         "metadata":{
             "description":(
                 "Vision Transformer Model with patch size of 16x16,"
@@ -86,7 +86,7 @@ backbone_presets_no_weights = {
             "attention_dropout": 0.0,
         },
     },
-    "vit_h16":{
+    "vith16":{
         "metadata":{
             "description":(
                 "Vision Transformer Model with patch size of 16x16,"
@@ -104,7 +104,7 @@ backbone_presets_no_weights = {
             "attention_dropout": 0.0,
         },
     },
-    "vit_tiny32":{
+    "vittiny32":{
         "metadata":{
             "description":(
                 "Vision Transformer Model with patch size of 32x32,"
@@ -122,7 +122,7 @@ backbone_presets_no_weights = {
             "attention_dropout": 0.0,
         },
     },
-    "vit_s32":{
+    "vits32":{
         "metadata":{
             "description":(
                 "Vision Transformer Model with patch size of 32x32,"
@@ -140,7 +140,7 @@ backbone_presets_no_weights = {
             "attention_dropout": 0.0,
         },
     },
-    "vit_b32":{
+    "vitb32":{
         "metadata":{
             "description":(
                 "Vision Transformer Model with patch size of 32x32,"
@@ -158,7 +158,7 @@ backbone_presets_no_weights = {
             "attention_dropout": 0.0,
         },
     },
-    "vit_l32":{
+    "vitl32":{
         "metadata":{
             "description":(
                 "Vision Transformer Model with patch size of 32x32,"
@@ -176,7 +176,7 @@ backbone_presets_no_weights = {
             "attention_dropout": 0.
         },
     },
-    "vit_h32":{
+    "vith32":{
         "metadata":{
             "description":(
                 "Vision Transformer Model with patch size of 32x32,"
@@ -197,7 +197,7 @@ backbone_presets_no_weights = {
 }
 
 backbone_presets_with_weights = {
-    "vit_tiny16_imagenet":{
+    "vittiny16_imagenet":{
         "metadata":{
             "description":(
                 "Vision Transformer Model with patch size of 16x16,"
@@ -210,7 +210,7 @@ backbone_presets_with_weights = {
         "weights_url":"https://storage.googleapis.com/keras-cv/models/vittiny16/imagenet/classification-v0-notop.h5",
         "weights_hash":"aa4d727e3c6bd30b20f49d3fa294fb4bbef97365c7dcb5cee9c527e4e83c8f5b"
     },
-    "vit_s16_imagenet":{
+    "vits16_imagenet":{
         "metadata":{
             "description":(
                 "Vision Transformer Model with patch size of 16x16,"
@@ -223,7 +223,7 @@ backbone_presets_with_weights = {
         "weights_url":"https://storage.googleapis.com/keras-cv/models/vits16/imagenet/classification-v0-notop.h5",
         "weights_hash":"8d0111eda6692096676a5453abfec5d04c79e2de184b04627b295f10b1949745"
     },
-    "vit_b16_imagenet":{
+    "vitb16_imagenet":{
         "metadata":{
             "description":(
                 "Vision Transformer Model with patch size of 16x16,"
@@ -236,7 +236,7 @@ backbone_presets_with_weights = {
         "weights_url":"https://storage.googleapis.com/keras-cv/models/vitb16/imagenet/classification-v0-notop.h5",
         "weights_hash":"4a1bdd32889298471cb4f30882632e5744fd519bf1a1525b1fa312fe4ea775ed"
     },
-    "vit_l16_imagenet":{
+    "vitl16_imagenet":{
         "metadata":{
             "description":(
                 "Vision Transformer Model with patch size of 16x16,"
@@ -249,7 +249,7 @@ backbone_presets_with_weights = {
         "weights_url":"https://storage.googleapis.com/keras-cv/models/vitl16/imagenet/classification-v0-notop.h5",
         "weights_hash":"40d237c44f14d20337266fce6192c00c2f9b890a463fd7f4cb17e8e35b3f5448"
     },
-    "vit_s32":{
+    "vits32":{
         "metadata":{
             "description":(
                 "Vision Transformer Model with patch size of 32x32,"
@@ -262,7 +262,7 @@ backbone_presets_with_weights = {
         "weights_url":"https://storage.googleapis.com/keras-cv/models/vits32/imagenet/classification-v0-notop.h5",
         "weights_hash":"f3907845eff780a4d29c1c56e0ae053411f02fff6fdce1147c4c3bb2124698cd"
     },
-    "vit_b32":{
+    "vitb32":{
         "metadata":{
             "description":(
                 "Vision Transformer Model with patch size of 32x32,"
