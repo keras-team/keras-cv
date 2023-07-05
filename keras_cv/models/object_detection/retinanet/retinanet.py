@@ -15,18 +15,17 @@
 import copy
 
 import numpy as np
-import tensorflow as tf
-from tensorflow import keras
 
 import keras_cv
 from keras_cv import bounding_box
 from keras_cv import layers as cv_layers
+from keras_cv.backend import keras
+from keras_cv.backend import ops
 from keras_cv.bounding_box.converters import _decode_deltas_to_boxes
 from keras_cv.models.backbones.backbone_presets import backbone_presets
 from keras_cv.models.backbones.backbone_presets import (
     backbone_presets_with_weights,
 )
-from keras_cv.models.object_detection import predict_utils
 from keras_cv.models.object_detection.__internal__ import unpack_input
 from keras_cv.models.object_detection.retinanet import FeaturePyramid
 from keras_cv.models.object_detection.retinanet import PredictionHead
@@ -43,7 +42,7 @@ BOX_VARIANCE = [0.1, 0.1, 0.2, 0.2]
 
 # TODO(jbischof): Generalize `FeaturePyramid` class to allow for any P-levels
 #  and add `feature_pyramid_levels` param.
-@keras.utils.register_keras_serializable(package="keras_cv")
+@keras.saving.register_keras_serializable(package="keras_cv")
 class RetinaNet(Task):
     """A Keras model implementing the RetinaNet meta-architecture.
 
@@ -53,7 +52,7 @@ class RetinaNet(Task):
 
     Examples:
     ```python
-    images = tf.ones(shape=(1, 512, 512, 3))
+    images = np.ones((1, 512, 512, 3))
     labels = {
         "boxes": [
             [
@@ -79,7 +78,7 @@ class RetinaNet(Task):
     model.compile(
         classification_loss='focal',
         box_loss='smoothl1',
-        optimizer=tf.optimizers.SGD(global_clipnorm=10.0),
+        optimizer=keras.optimizers.SGD(global_clipnorm=10.0),
         jit_compile=False,
     )
     model.fit(images, labels)
@@ -189,20 +188,20 @@ class RetinaNet(Task):
         )
 
         # Begin construction of forward pass
-        images = keras.layers.Input(feature_extractor.input_shape[1:])
+        images = keras.layers.Input(
+            feature_extractor.input_shape[1:], name="images"
+        )
 
         backbone_outputs = feature_extractor(images)
         features = feature_pyramid(backbone_outputs)
 
-        batch_size = tf.shape(images)[0]
         cls_pred = []
         box_pred = []
         for feature in features:
-            box_pred.append(tf.reshape(box_head(feature), [batch_size, -1, 4]))
+            box_pred.append(keras.layers.Reshape((-1, 4))(box_head(feature)))
             cls_pred.append(
-                tf.reshape(
-                    classification_head(feature),
-                    [batch_size, -1, num_classes],
+                keras.layers.Reshape((-1, num_classes))(
+                    classification_head(feature)
                 )
             )
 
@@ -213,7 +212,7 @@ class RetinaNet(Task):
         # box_pred is always in "center_yxhw" delta-encoded no matter what
         # format you pass in.
 
-        inputs = images
+        inputs = {"images": images}
         outputs = {"box": box_pred, "classification": cls_pred}
 
         super().__init__(
@@ -230,7 +229,7 @@ class RetinaNet(Task):
         self.feature_extractor = feature_extractor
         self._prediction_decoder = (
             prediction_decoder
-            or cv_layers.MultiClassNonMaxSuppression(
+            or cv_layers.NonMaxSuppression(
                 bounding_box_format=bounding_box_format,
                 from_logits=True,
             )
@@ -241,8 +240,12 @@ class RetinaNet(Task):
         self.box_head = box_head
         self.build(backbone.input_shape)
 
-    def make_predict_function(self, force=False):
-        return predict_utils.make_predict_function(self, force=force)
+    def predict_step(self, *args):
+        outputs = super().predict_step(*args)
+        if type(outputs) is tuple:
+            return self.decode_predictions(outputs[0], args[-1]), outputs[1]
+        else:
+            return self.decode_predictions(outputs, args[-1])
 
     @property
     def prediction_decoder(self):
@@ -282,9 +285,9 @@ class RetinaNet(Task):
     def decode_predictions(self, predictions, images):
         box_pred, cls_pred = predictions["box"], predictions["classification"]
         # box_pred is on "center_yxhw" format, convert to target format.
-        image_shape = tf.shape(images[0])
+        image_shape = tuple(images[0].shape)
         anchors = self.anchor_generator(image_shape=image_shape)
-        anchors = tf.concat(tf.nest.flatten(anchors), axis=0)
+        anchors = ops.concatenate([a for a in anchors.values()], axis=0)
 
         box_pred = _decode_deltas_to_boxes(
             anchors=anchors,
@@ -316,7 +319,6 @@ class RetinaNet(Task):
         self,
         box_loss=None,
         classification_loss=None,
-        weight_decay=0.0001,
         loss=None,
         metrics=None,
         **kwargs,
@@ -383,7 +385,6 @@ class RetinaNet(Task):
 
         self.box_loss = box_loss
         self.classification_loss = classification_loss
-        self.weight_decay = weight_decay
         losses = {
             "box": self.box_loss,
             "classification": self.classification_loss,
@@ -392,7 +393,11 @@ class RetinaNet(Task):
         self._user_metrics = metrics
         super().compile(loss=losses, **kwargs)
 
-    def compute_loss(self, x, box_pred, cls_pred, boxes, classes):
+    def compute_loss(self, x, y, y_pred, sample_weight, **kwargs):
+        box_pred = y_pred["box"]
+        cls_pred = y_pred["classification"]
+        boxes = y["box"]
+        classes = y["classification"]
         if boxes.shape[-1] != 4:
             raise ValueError(
                 "boxes should have shape (None, None, 4). Got "
@@ -414,37 +419,37 @@ class RetinaNet(Task):
                 "parameter?"
             )
 
-        cls_labels = tf.one_hot(
-            tf.cast(classes, dtype=tf.int32),
-            depth=self.num_classes,
-            dtype=tf.float32,
+        # Torch one_hot doesn't support negative inputs, so we get rid of
+        # them using max. The output will have some invalid results, so we
+        # set them back to 0 using ops.where afterwards
+        cls_labels = ops.one_hot(
+            ops.maximum(ops.cast(classes, dtype="int32"), 0),
+            self.num_classes,
+            dtype="float32",
+        )
+        cls_labels = ops.where(
+            ops.expand_dims(classes >= 0, axis=-1), cls_labels, 0
         )
 
-        positive_mask = tf.cast(tf.greater(classes, -1.0), dtype=tf.float32)
-        normalizer = tf.reduce_sum(positive_mask)
-        cls_weights = tf.cast(
-            tf.math.not_equal(classes, -2.0), dtype=tf.float32
-        )
+        positive_mask = ops.cast(ops.greater(classes, -1.0), dtype="float32")
+        normalizer = ops.sum(positive_mask)
+        cls_weights = ops.cast(ops.not_equal(classes, -2.0), dtype="float32")
         cls_weights /= normalizer
         box_weights = positive_mask / normalizer
         y_true = {
             "box": boxes,
             "classification": cls_labels,
         }
-        y_pred = {
-            "box": box_pred,
-            "classification": cls_pred,
-        }
         sample_weights = {
             "box": box_weights,
             "classification": cls_weights,
         }
         zero_weight = {
-            "box": tf.zeros_like(box_weights),
-            "classification": tf.zeros_like(cls_weights),
+            "box": ops.zeros_like(box_weights),
+            "classification": ops.zeros_like(cls_weights),
         }
 
-        sample_weights = tf.cond(
+        sample_weights = ops.cond(
             normalizer == 0,
             lambda: zero_weight,
             lambda: sample_weights,
@@ -453,44 +458,29 @@ class RetinaNet(Task):
             x=x, y=y_true, y_pred=y_pred, sample_weight=sample_weights
         )
 
-    def train_step(self, data):
+    def train_step(self, *args):
+        data = args[-1]
         x, y = unpack_input(data)
+
         y_for_label_encoder = bounding_box.convert_format(
             y,
             source=self.bounding_box_format,
             target=self.label_encoder.bounding_box_format,
             images=x,
         )
+
         boxes, classes = self.label_encoder(x, y_for_label_encoder)
-        # boxes are now in `center_yxhw`. This is always the case in training
-        with tf.GradientTape() as tape:
-            outputs = self(x, training=True)
-            box_pred, cls_pred = outputs["box"], outputs["classification"]
-            total_loss = self.compute_loss(
-                x, box_pred, cls_pred, boxes, classes
-            )
+        super_args = args[:-1] + (
+            (
+                x,
+                {"box": boxes, "classification": classes, "unencoded": y},
+            ),
+        )
 
-            reg_losses = []
-            if self.weight_decay:
-                for var in self.trainable_variables:
-                    if "bn" not in var.name:
-                        reg_losses.append(
-                            self.weight_decay * tf.nn.l2_loss(var)
-                        )
-                l2_loss = tf.math.add_n(reg_losses)
-            total_loss += l2_loss
-        # Training specific code
-        trainable_vars = self.trainable_variables
-        gradients = tape.gradient(total_loss, trainable_vars)
-        self.optimizer.apply_gradients(zip(gradients, trainable_vars))
+        return super().train_step(*super_args)
 
-        if not self._has_user_metrics:
-            return super().compute_metrics(x, {}, {}, sample_weight={})
-
-        y_pred = self.decode_predictions(outputs, x)
-        return self.compute_metrics(x, y, y_pred, sample_weight=None)
-
-    def test_step(self, data):
+    def test_step(self, *args):
+        data = args[-1]
         x, y = unpack_input(data)
         y_for_label_encoder = bounding_box.convert_format(
             y,
@@ -506,18 +496,27 @@ class RetinaNet(Task):
             images=x,
         )
 
-        outputs = self(x, training=False)
-        box_pred, cls_pred = outputs["box"], outputs["classification"]
-        _ = self.compute_loss(x, box_pred, cls_pred, boxes, classes)
+        super_args = args[:-1] + (
+            (
+                x,
+                {"box": boxes, "classification": classes, "unencoded": y},
+            ),
+        )
 
-        if not self._has_user_metrics:
-            return super().compute_metrics(x, {}, {}, sample_weight={})
-        y_pred = self.decode_predictions(outputs, x)
-        return self.compute_metrics(x, y, y_pred, sample_weight=None)
+        return super().test_step(*super_args)
 
     def compute_metrics(self, x, y, y_pred, sample_weight):
         metrics = {}
         metrics.update(super().compute_metrics(x, {}, {}, sample_weight={}))
+
+        if not self._has_user_metrics:
+            return metrics
+
+        # For computing non-loss metrics, we don't care about the encoded
+        # boxes and classes, just the raw input boxes.
+        y = y["unencoded"]
+
+        y_pred = self.decode_predictions(y_pred, x)
 
         for metric in self._user_metrics:
             metric.update_state(y, y_pred, sample_weight=sample_weight)
@@ -534,13 +533,15 @@ class RetinaNet(Task):
         return {
             "num_classes": self.num_classes,
             "bounding_box_format": self.bounding_box_format,
-            "backbone": keras.utils.serialize_keras_object(self.backbone),
-            "label_encoder": self.label_encoder,
+            "backbone": keras.saving.serialize_keras_object(self.backbone),
+            "label_encoder": keras.saving.serialize_keras_object(
+                self.label_encoder
+            ),
             "prediction_decoder": self._prediction_decoder,
-            "classification_head": keras.utils.serialize_keras_object(
+            "classification_head": keras.saving.serialize_keras_object(
                 self.classification_head
             ),
-            "box_head": keras.utils.serialize_keras_object(self.box_head),
+            "box_head": keras.saving.serialize_keras_object(self.box_head),
         }
 
     @classmethod
@@ -552,6 +553,12 @@ class RetinaNet(Task):
         ):
             config["classification_head"] = keras.layers.deserialize(
                 config["classification_head"]
+            )
+        if "label_encoder" in config and isinstance(
+            config["label_encoder"], dict
+        ):
+            config["label_encoder"] = keras.layers.deserialize(
+                config["label_encoder"]
             )
         return super().from_config(config)
 
@@ -582,11 +589,9 @@ def _parse_box_loss(loss):
 
     # case insensitive comparison
     if loss.lower() == "smoothl1":
-        return keras_cv.losses.SmoothL1Loss(
-            l1_cutoff=1.0, reduction=keras.losses.Reduction.SUM
-        )
+        return keras_cv.losses.SmoothL1Loss(l1_cutoff=1.0, reduction="sum")
     if loss.lower() == "huber":
-        return keras.losses.Huber(reduction=keras.losses.Reduction.SUM)
+        return keras.losses.Huber(reduction="sum")
 
     raise ValueError(
         "Expected `box_loss` to be either a Keras Loss, "
@@ -601,9 +606,7 @@ def _parse_classification_loss(loss):
 
     # case insensitive comparison
     if loss.lower() == "focal":
-        return keras_cv.losses.FocalLoss(
-            from_logits=True, reduction=keras.losses.Reduction.SUM
-        )
+        return keras_cv.losses.FocalLoss(from_logits=True, reduction="sum")
 
     raise ValueError(
         "Expected `classification_loss` to be either a Keras Loss, "
