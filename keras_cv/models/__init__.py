@@ -112,6 +112,7 @@ from keras_cv.models.backbones.resnet_v2.resnet_v2_aliases import (
 from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
     ResNetV2Backbone,
 )
+from keras_cv.models.backbones.vit.vit_backbone import ViTBackbone
 from keras_cv.models.classification.image_classifier import ImageClassifier
 from keras_cv.models.object_detection.retinanet.retinanet import RetinaNet
 from keras_cv.models.object_detection.yolo_v8.yolo_v8_backbone import (
