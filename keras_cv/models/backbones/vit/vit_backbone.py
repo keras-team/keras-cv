@@ -24,14 +24,15 @@ import copy
 from tensorflow import keras
 from tensorflow.keras import layers
 
-from keras_cv.models.backbones.backbone import Backbone
-from keras_cv.models.backbones.vit.vit_backbone_presets import (backbone_presets,)
-from keras_cv.models.backbones.vit.vit_backbone_presets import (backbone_presets_with_weights,)
-from keras_cv.utils.python_utils import classproperty
 from keras_cv.layers import TransformerEncoder
 from keras_cv.layers.vit_layers import PatchingAndEmbedding
-from keras_cv.models.legacy import utils
-from keras_cv.models.legacy.weights import parse_weights
+from keras_cv.models import utils
+from keras_cv.models.backbones.backbone import Backbone
+from keras_cv.models.backbones.vit.vit_backbone_presets import backbone_presets
+from keras_cv.models.backbones.vit.vit_backbone_presets import (
+    backbone_presets_with_weights,
+)
+from keras_cv.utils.python_utils import classproperty
 
 
 @keras.utils.register_keras_serializable(package="keras_cv.models")
@@ -83,7 +84,7 @@ class ViTBackbone(Backbone):
         patch_size: the patch size to be supplied to the Patching layer to turn
             input images into a flattened sequence of patches
         **kwargs: Pass-through keyword arguments to `keras.Model`.
-    """
+    """  # noqa: E501
 
     def __init__(
         self,
@@ -113,7 +114,7 @@ class ViTBackbone(Backbone):
         x = layers.Rescaling(scale=1.0 / 0.5, offset=-1.0, name="rescaling_2")(
             x
         )
-        
+
         encoded_patches = PatchingAndEmbedding(project_dim, patch_size)(x)
         encoded_patches = layers.Dropout(mlp_dropout)(encoded_patches)
 
@@ -161,13 +162,16 @@ class ViTBackbone(Backbone):
             }
         )
         return config
-    
+
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return copy.deepcopy(backbone_presets)
-    
+
     @classproperty
     def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include weights."""
+        """
+        Dictionary of preset names and configurations
+        that include weights.
+        """
         return copy.deepcopy(backbone_presets_with_weights)

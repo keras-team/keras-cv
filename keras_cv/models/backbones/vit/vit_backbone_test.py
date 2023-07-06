@@ -12,12 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import os
+
 import tensorflow as tf
 from absl.testing import parameterized
-
 from tensorflow import keras
-from keras_cv.models.backbones.vit.vit_backbone import ViTBackbone
+
 from keras_cv.models.backbones.vit.vit_aliases import ViTTiny16Backbone
+from keras_cv.models.backbones.vit.vit_backbone import ViTBackbone
 
 """
 Below are other configurations that we omit from our CI but that can/should
@@ -32,14 +33,14 @@ be tested manually when making changes to this model.
 (vit.ViTL32, 1024, {"input_shape": (224, 224, 3)}),
 (vit.ViTH32, 1280, {"input_shape": (224, 224, 3)}),
 """
+
+
 class ViTBackboneTest(tf.test.TestCase, parameterized.TestCase):
     def setUp(self):
         self.input_batch = tf.ones(shape=(2, 224, 224, 3))
-    
+
     def test_valid_call(self):
-        model = ViTBackbone(
-            include_rescaling=False
-        )
+        model = ViTBackbone(include_rescaling=False)
         model(self.input_batch)
 
     def test_valid_call_applications_model(self):
@@ -47,9 +48,7 @@ class ViTBackboneTest(tf.test.TestCase, parameterized.TestCase):
         model(self.input_batch)
 
     def test_valid_call_with_rescaling(self):
-        model = ViTBackbone(
-            include_rescaling=True
-        )
+        model = ViTBackbone(include_rescaling=True)
         model(self.input_batch)
 
     @parameterized.named_parameters(
@@ -57,9 +56,7 @@ class ViTBackboneTest(tf.test.TestCase, parameterized.TestCase):
         ("keras_format", "keras_v3", "model.keras"),
     )
     def test_saved_model(self, save_format, filename):
-        model = ViTBackbone(
-            include_rescaling=False
-        )
+        model = ViTBackbone(include_rescaling=False)
         model_output = model(self.input_batch)
         save_path = os.path.join(self.get_temp_dir(), filename)
         model.save(save_path, save_format=save_format)
@@ -87,12 +84,8 @@ class ViTBackboneTest(tf.test.TestCase, parameterized.TestCase):
         self.assertAllClose(model_output, restored_output)
 
     def test_model_backbone_layer_names_stability(self):
-        model_1 = ViTBackbone(
-
-        )
-        model_2 = ViTBackbone(
-
-        )
+        model_1 = ViTBackbone()
+        model_2 = ViTBackbone()
         layers_1 = model_1.layers
         layers_2 = model_2.layers
 
@@ -112,6 +105,7 @@ class ViTBackboneTest(tf.test.TestCase, parameterized.TestCase):
         )
         self.assertEqual(model.output_shape, (None, None, None, 2048))
         model(self.input_batch)
+
 
 if __name__ == "__main__":
     tf.test.main()

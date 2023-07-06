@@ -12,10 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from keras_cv.models.backbones.vit.vit_backbone import (
-    ViTBackbone,
-)
+from keras_cv.models.backbones.vit.vit_backbone import ViTBackbone
 from keras_cv.utils.python_utils import classproperty
+
 
 class ViTTiny16Backbone(ViTBackbone):
     def __new__(
@@ -27,9 +26,9 @@ class ViTTiny16Backbone(ViTBackbone):
     ):
         kwargs.update(
             {
-                "include_rescaling":include_rescaling,
-                "input_shape":input_shape,
-                "input_tensor":input_tensor
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
             }
         )
         return ViTBackbone.from_preset("vittiny16", **kwargs)
@@ -38,11 +37,14 @@ class ViTTiny16Backbone(ViTBackbone):
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return {}
-    
+
     @classproperty
     def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include weights."""
+        """
+        Dictionary of preset names and configurations that include weights.
+        """
         return {}
+
 
 class ViTS16Backbone(ViTBackbone):
     def __new__(
@@ -54,9 +56,9 @@ class ViTS16Backbone(ViTBackbone):
     ):
         kwargs.update(
             {
-                "include_rescaling":include_rescaling,
-                "input_shape":input_shape,
-                "input_tensor":input_tensor
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
             }
         )
         return ViTBackbone.from_preset("vits16", **kwargs)
@@ -65,10 +67,12 @@ class ViTS16Backbone(ViTBackbone):
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return {}
-    
+
     @classproperty
     def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include weights."""
+        """
+        Dictionary of preset names and configurations that include weights.
+        """
         return {}
 
 
@@ -82,9 +86,9 @@ class ViTB16Backbone(ViTBackbone):
     ):
         kwargs.update(
             {
-                "include_rescaling":include_rescaling,
-                "input_shape":input_shape,
-                "input_tensor":input_tensor
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
             }
         )
         return ViTBackbone.from_preset("vitb16", **kwargs)
@@ -93,11 +97,14 @@ class ViTB16Backbone(ViTBackbone):
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return {}
-    
+
     @classproperty
     def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include weights."""
+        """
+        Dictionary of preset names and configurations that include weights.
+        """
         return {}
+
 
 class ViTL16Backbone(ViTBackbone):
     def __new__(
@@ -109,9 +116,9 @@ class ViTL16Backbone(ViTBackbone):
     ):
         kwargs.update(
             {
-                "include_rescaling":include_rescaling,
-                "input_shape":input_shape,
-                "input_tensor":input_tensor
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
             }
         )
         return ViTBackbone.from_preset("vitl16", **kwargs)
@@ -120,11 +127,14 @@ class ViTL16Backbone(ViTBackbone):
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return {}
-    
+
     @classproperty
     def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include weights."""
+        """
+        Dictionary of preset names and configurations that include weights.
+        """
         return {}
+
 
 class ViTH16Backbone(ViTBackbone):
     def __new__(
@@ -136,9 +146,9 @@ class ViTH16Backbone(ViTBackbone):
     ):
         kwargs.update(
             {
-                "include_rescaling":include_rescaling,
-                "input_shape":input_shape,
-                "input_tensor":input_tensor
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
             }
         )
         return ViTBackbone.from_preset("vith16", **kwargs)
@@ -147,11 +157,14 @@ class ViTH16Backbone(ViTBackbone):
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return {}
-    
+
     @classproperty
     def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include weights."""
+        """
+        Dictionary of preset names and configurations that include weights.
+        """
         return {}
+
 
 class ViTTiny32Backbone(ViTBackbone):
     def __new__(
@@ -163,9 +176,9 @@ class ViTTiny32Backbone(ViTBackbone):
     ):
         kwargs.update(
             {
-                "include_rescaling":include_rescaling,
-                "input_shape":input_shape,
-                "input_tensor":input_tensor
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
             }
         )
         return ViTBackbone.from_preset("vittiny32", **kwargs)
@@ -174,10 +187,12 @@ class ViTTiny32Backbone(ViTBackbone):
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return {}
-    
+
     @classproperty
     def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include weights."""
+        """
+        Dictionary of preset names and configurations that include weights.
+        """
         return {}
 
 
@@ -191,9 +206,9 @@ class ViTS32Backbone(ViTBackbone):
     ):
         kwargs.update(
             {
-                "include_rescaling":include_rescaling,
-                "input_shape":input_shape,
-                "input_tensor":input_tensor
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
             }
         )
         return ViTBackbone.from_preset("vits32", **kwargs)
@@ -202,11 +217,14 @@ class ViTS32Backbone(ViTBackbone):
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return {}
-    
+
     @classproperty
     def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include weights."""
+        """
+        Dictionary of preset names and configurations that include weights.
+        """
         return {}
+
 
 class ViTB32Backbone(ViTBackbone):
     def __new__(
@@ -218,9 +236,9 @@ class ViTB32Backbone(ViTBackbone):
     ):
         kwargs.update(
             {
-                "include_rescaling":include_rescaling,
-                "input_shape":input_shape,
-                "input_tensor":input_tensor
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
             }
         )
         return ViTBackbone.from_preset("vitb32", **kwargs)
@@ -229,10 +247,12 @@ class ViTB32Backbone(ViTBackbone):
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return {}
-    
+
     @classproperty
     def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include weights."""
+        """
+        Dictionary of preset names and configurations that include weights.
+        """
         return {}
 
 
@@ -246,9 +266,9 @@ class ViTL32Backbone(ViTBackbone):
     ):
         kwargs.update(
             {
-                "include_rescaling":include_rescaling,
-                "input_shape":input_shape,
-                "input_tensor":input_tensor
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
             }
         )
         return ViTBackbone.from_preset("vitl32", **kwargs)
@@ -257,10 +277,12 @@ class ViTL32Backbone(ViTBackbone):
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return {}
-    
+
     @classproperty
     def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include weights."""
+        """
+        Dictionary of preset names and configurations that include weights.
+        """
         return {}
 
 
@@ -274,9 +296,9 @@ class ViTH32Backbone(ViTBackbone):
     ):
         kwargs.update(
             {
-                "include_rescaling":include_rescaling,
-                "input_shape":input_shape,
-                "input_tensor":input_tensor
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
             }
         )
         return ViTBackbone.from_preset("vith32", **kwargs)
@@ -285,11 +307,14 @@ class ViTH32Backbone(ViTBackbone):
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return {}
-    
+
     @classproperty
     def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include weights."""
+        """
+        Dictionary of preset names and configurations that include weights.
+        """
         return {}
+
 
 ALIAS_DOCSTRING = """ViTBackbone Model with the {name} configuration for {patch_size} patch size.
     Reference:
@@ -324,13 +349,53 @@ ALIAS_DOCSTRING = """ViTBackbone Model with the {name} configuration for {patch_
             to use as image input for the model.
 """  # noqa: E501
 
-setattr(ViTTiny16Backbone, "__doc__", ALIAS_DOCSTRING.format(name="ViTTiny16", patch_size=16))
-setattr(ViTS16Backbone, "__doc__", ALIAS_DOCSTRING.format(name="ViTS16", patch_size=16))
-setattr(ViTB16Backbone, "__doc__", ALIAS_DOCSTRING.format(name="ViTB16", patch_size=16))
-setattr(ViTL16Backbone, "__doc__", ALIAS_DOCSTRING.format(name="ViTL16", patch_size=16))
-setattr(ViTH16Backbone, "__doc__", ALIAS_DOCSTRING.format(name="ViTH16", patch_size=16))
-setattr(ViTTiny32Backbone, "__doc__", ALIAS_DOCSTRING.format(name="ViTTiny32", patch_size=32))
-setattr(ViTS32Backbone, "__doc__", ALIAS_DOCSTRING.format(name="ViTS32", patch_size=32))
-setattr(ViTB32Backbone, "__doc__", ALIAS_DOCSTRING.format(name="ViTB32", patch_size=32))
-setattr(ViTL32Backbone, "__doc__", ALIAS_DOCSTRING.format(name="ViTL32", patch_size=32))
-setattr(ViTH32Backbone, "__doc__", ALIAS_DOCSTRING.format(name="ViTH32", patch_size=32))
+setattr(
+    ViTTiny16Backbone,
+    "__doc__",
+    ALIAS_DOCSTRING.format(name="ViTTiny16", patch_size=16),
+)
+setattr(
+    ViTS16Backbone,
+    "__doc__",
+    ALIAS_DOCSTRING.format(name="ViTS16", patch_size=16),
+)
+setattr(
+    ViTB16Backbone,
+    "__doc__",
+    ALIAS_DOCSTRING.format(name="ViTB16", patch_size=16),
+)
+setattr(
+    ViTL16Backbone,
+    "__doc__",
+    ALIAS_DOCSTRING.format(name="ViTL16", patch_size=16),
+)
+setattr(
+    ViTH16Backbone,
+    "__doc__",
+    ALIAS_DOCSTRING.format(name="ViTH16", patch_size=16),
+)
+setattr(
+    ViTTiny32Backbone,
+    "__doc__",
+    ALIAS_DOCSTRING.format(name="ViTTiny32", patch_size=32),
+)
+setattr(
+    ViTS32Backbone,
+    "__doc__",
+    ALIAS_DOCSTRING.format(name="ViTS32", patch_size=32),
+)
+setattr(
+    ViTB32Backbone,
+    "__doc__",
+    ALIAS_DOCSTRING.format(name="ViTB32", patch_size=32),
+)
+setattr(
+    ViTL32Backbone,
+    "__doc__",
+    ALIAS_DOCSTRING.format(name="ViTL32", patch_size=32),
+)
+setattr(
+    ViTH32Backbone,
+    "__doc__",
+    ALIAS_DOCSTRING.format(name="ViTH32", patch_size=32),
+)
