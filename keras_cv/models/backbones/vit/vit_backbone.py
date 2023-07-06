@@ -102,7 +102,6 @@ class ViTBackbone(Backbone):
         mlp_dim=None,
         **kwargs,
     ):
-
         inputs = utils.parse_model_inputs(input_shape, input_tensor)
         x = inputs
 

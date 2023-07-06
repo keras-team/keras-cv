@@ -47,7 +47,10 @@ class ViTLayersTest(tf.test.TestCase):
         patch_embedding.build(inputs.shape)
 
         positional_embeddings = tf.ones([197, 128])
-        (output, cls,) = patch_embedding.interpolate_positional_embeddings(
+        (
+            output,
+            cls,
+        ) = patch_embedding.interpolate_positional_embeddings(
             positional_embeddings, height=450, width=450, patch_size=12
         )
 
