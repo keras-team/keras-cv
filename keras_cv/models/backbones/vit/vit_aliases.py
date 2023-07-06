@@ -50,11 +50,7 @@ class ViTTiny16Backbone(ViTBackbone):
         """
         Dictionary of preset names and configurations that include weights.
         """
-        return {
-            "vittiny16_imagenet": copy.deepcopy(
-                backbone_presets["vittiny16_imagenet"]
-            ),
-        }
+        return cls.presets
 
 
 class ViTS16Backbone(ViTBackbone):
@@ -88,11 +84,7 @@ class ViTS16Backbone(ViTBackbone):
         """
         Dictionary of preset names and configurations that include weights.
         """
-        return {
-            "vits16_imagenet": copy.deepcopy(
-                backbone_presets["vits16_imagenet"]
-            ),
-        }
+        return cls.presets
 
 
 class ViTB16Backbone(ViTBackbone):
@@ -126,11 +118,7 @@ class ViTB16Backbone(ViTBackbone):
         """
         Dictionary of preset names and configurations that include weights.
         """
-        return {
-            "vitb16_imagenet": copy.deepcopy(
-                backbone_presets["vitb16_imagenet"]
-            ),
-        }
+        return cls.presets
 
 
 class ViTL16Backbone(ViTBackbone):
@@ -164,11 +152,7 @@ class ViTL16Backbone(ViTBackbone):
         """
         Dictionary of preset names and configurations that include weights.
         """
-        return {
-            "vitl16_imagenet": copy.deepcopy(
-                backbone_presets["vitl16_imagenet"]
-            ),
-        }
+        return cls.presets
 
 
 class ViTH16Backbone(ViTBackbone):
@@ -262,11 +246,7 @@ class ViTS32Backbone(ViTBackbone):
         """
         Dictionary of preset names and configurations that include weights.
         """
-        return {
-            "vits32_imagenet": copy.deepcopy(
-                backbone_presets["vits32_imagenet"]
-            ),
-        }
+        return cls.presets
 
 
 class ViTB32Backbone(ViTBackbone):
@@ -300,11 +280,7 @@ class ViTB32Backbone(ViTBackbone):
         """
         Dictionary of preset names and configurations that include weights.
         """
-        return {
-            "vitb32_imagenet": copy.deepcopy(
-                backbone_presets["vitb32_imagenet"]
-            ),
-        }
+        return cls.presets
 
 
 class ViTL32Backbone(ViTBackbone):
