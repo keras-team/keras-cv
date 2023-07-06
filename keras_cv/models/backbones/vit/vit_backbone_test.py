@@ -48,7 +48,7 @@ class ViTBackboneTest(tf.test.TestCase, parameterized.TestCase):
             num_heads=3,
             mlp_dropout=0.0,
             attention_dropout=0.0,
-            include_rescaling=False
+            include_rescaling=False,
         )
         model(self.input_batch)
 
@@ -65,7 +65,7 @@ class ViTBackboneTest(tf.test.TestCase, parameterized.TestCase):
             num_heads=3,
             mlp_dropout=0.0,
             attention_dropout=0.0,
-            include_rescaling=True
+            include_rescaling=True,
         )
         model(self.input_batch)
 
@@ -110,7 +110,7 @@ class ViTBackboneTest(tf.test.TestCase, parameterized.TestCase):
             num_heads=3,
             mlp_dropout=0.0,
             attention_dropout=0.0,
-            include_rescaling=False
+            include_rescaling=False,
         )
         model_2 = ViTBackbone(
             patch_size=16,
@@ -120,7 +120,7 @@ class ViTBackboneTest(tf.test.TestCase, parameterized.TestCase):
             num_heads=3,
             mlp_dropout=0.0,
             attention_dropout=0.0,
-            include_rescaling=False
+            include_rescaling=False,
         )
         layers_1 = model_1.layers
         layers_2 = model_2.layers
