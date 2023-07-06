@@ -40,7 +40,16 @@ class ViTBackboneTest(tf.test.TestCase, parameterized.TestCase):
         self.input_batch = tf.ones(shape=(2, 224, 224, 3))
 
     def test_valid_call(self):
-        model = ViTBackbone(include_rescaling=False)
+        model = ViTBackbone(
+            patch_size=16,
+            transformer_layer_num=12,
+            project_dim=192,
+            mlp_dim=768,
+            num_heads=3,
+            mlp_dropout=0.0,
+            attention_dropout=0.0,
+            include_rescaling=False
+        )
         model(self.input_batch)
 
     def test_valid_call_applications_model(self):
@@ -48,7 +57,16 @@ class ViTBackboneTest(tf.test.TestCase, parameterized.TestCase):
         model(self.input_batch)
 
     def test_valid_call_with_rescaling(self):
-        model = ViTBackbone(include_rescaling=True)
+        model = ViTBackbone(
+            patch_size=16,
+            transformer_layer_num=12,
+            project_dim=192,
+            mlp_dim=768,
+            num_heads=3,
+            mlp_dropout=0.0,
+            attention_dropout=0.0,
+            include_rescaling=True
+        )
         model(self.input_batch)
 
     @parameterized.named_parameters(
@@ -84,8 +102,26 @@ class ViTBackboneTest(tf.test.TestCase, parameterized.TestCase):
         self.assertAllClose(model_output, restored_output)
 
     def test_model_backbone_layer_names_stability(self):
-        model_1 = ViTBackbone()
-        model_2 = ViTBackbone()
+        model_1 = ViTBackbone(
+            patch_size=16,
+            transformer_layer_num=12,
+            project_dim=192,
+            mlp_dim=768,
+            num_heads=3,
+            mlp_dropout=0.0,
+            attention_dropout=0.0,
+            include_rescaling=False
+        )
+        model_2 = ViTBackbone(
+            patch_size=16,
+            transformer_layer_num=12,
+            project_dim=192,
+            mlp_dim=768,
+            num_heads=3,
+            mlp_dropout=0.0,
+            attention_dropout=0.0,
+            include_rescaling=False
+        )
         layers_1 = model_1.layers
         layers_2 = model_2.layers
 
