@@ -202,8 +202,9 @@ backbone_presets_with_weights = {
             "description": (
                 "Vision Transformer Model with patch size of 16x16,"
                 "3 heads, and a hidden size of 192."
-                "Trained on ImageNet (will only work with images "
+                "Pre-Trained on ImageNet (will only work with images "
                 "of size (224, 224, 3).)"
+                "Has an ImageNet top-1 accuracy of 78.22%."
             ),
         },
         "class_name": "keras_cv.models>ViTBackbone",
@@ -216,8 +217,9 @@ backbone_presets_with_weights = {
             "description": (
                 "Vision Transformer Model with patch size of 16x16,"
                 "6 heads, and a hidden size of 384."
-                "Trained on ImageNet (will only work with images of "
+                "Pre-Trained on ImageNet (will only work with images of "
                 "size (224, 224, 3).)"
+                "Has an ImageNet top-1 accuracy of 83.73%."
             ),
         },
         "class_name": "keras_cv.models>ViTBackbone",
@@ -230,8 +232,9 @@ backbone_presets_with_weights = {
             "description": (
                 "Vision Transformer Model with patch size of 16x16,"
                 "12 heads, and a hidden size of 768."
-                "Trained on ImageNet (will only work with images of "
+                "Pre-Trained on ImageNet (will only work with images of "
                 "size (224, 224, 3).)"
+                "Has an ImageNet top-1 accuracy of 85.49%."
             ),
         },
         "class_name": "keras_cv.models>ViTBackbone",
@@ -244,8 +247,9 @@ backbone_presets_with_weights = {
             "description": (
                 "Vision Transformer Model with patch size of 16x16,"
                 "16 heads, and a hidden size of 1024."
-                "Trained on ImageNet (will only work with images of "
+                "Pre-Trained on ImageNet (will only work with images of "
                 "size (224, 224, 3).)"
+                "Has an ImageNet top-1 accuracy of 85.59%."
             ),
         },
         "class_name": "keras_cv.models>ViTBackbone",
@@ -253,13 +257,14 @@ backbone_presets_with_weights = {
         "weights_url": "https://storage.googleapis.com/keras-cv/models/vitl16/imagenet/classification-v0-notop.h5",  # noqa: E501
         "weights_hash": "40d237c44f14d20337266fce6192c00c2f9b890a463fd7f4cb17e8e35b3f5448",  # noqa: E501
     },
-    "vits32": {
+    "vits32_imagenet": {
         "metadata": {
             "description": (
                 "Vision Transformer Model with patch size of 32x32,"
                 "6 heads, and a hidden size of 384."
-                "Trained on ImageNet (will only work with images of "
+                "Pre-Trained on ImageNet (will only work with images of "
                 "size (224, 224, 3).)"
+                "Has an ImageNet top-1 accuracy of 79.58%."
             ),
         },
         "class_name": "keras_cv.models>ViTBackbone",
@@ -267,13 +272,14 @@ backbone_presets_with_weights = {
         "weights_url": "https://storage.googleapis.com/keras-cv/models/vits32/imagenet/classification-v0-notop.h5",  # noqa: E501
         "weights_hash": "f3907845eff780a4d29c1c56e0ae053411f02fff6fdce1147c4c3bb2124698cd",  # noqa: E501
     },
-    "vitb32": {
+    "vitb32_imagenet": {
         "metadata": {
             "description": (
                 "Vision Transformer Model with patch size of 32x32,"
                 "12 heads, and a hidden size of 768."
-                "Trained on ImageNet (will only work with images of "
+                "Pre-Trained on ImageNet (will only work with images of "
                 "size (224, 224, 3).)"
+                "Has an ImageNet top-1 accuracy of 83.59%."
             ),
         },
         "class_name": "keras_cv.models>ViTBackbone",

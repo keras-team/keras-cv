@@ -61,35 +61,35 @@ class ViTBackbone(Backbone):
     [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
 
     Args:
-        mlp_dim: the dimensionality of the hidden Dense layer in the transformer
-            MLP head
+
         include_rescaling: bool, whether to rescale the inputs. If set to
             True, inputs will be passed through a `Rescaling(1/255.0)` layer.
-        name: string, model name.
-        input_shape: optional shape tuple, defaults to (None, None, 3).
+        input_shape: optional shape tuple, defaults to (224, 224, 3).
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
             to use as image input for the model.
-        project_dim: the latent dimensionality to be projected into in the
-            output of each stacked transformer encoder
-        activation: the activation function to use in the first `layers.Dense`
-            layer in the MLP head of the transformer encoder
-        attention_dropout: the dropout rate to apply to the `MultiHeadAttention`
-            in each transformer encoder
-        mlp_dropout: the dropout rate to apply between `layers.Dense` layers
-            in the MLP head of the transformer encoder
-        num_heads: the number of heads to use in the `MultiHeadAttention` layer
-            of each transformer encoder
-        transformer_layer_num: the number of transformer encoder layers to stack
-            in the Vision Transformer
         patch_size: the patch size to be supplied to the Patching layer to turn
-            input images into a flattened sequence of patches
+            input images into a flattened sequence of patches.
+        transformer_layer_num: the number of transformer encoder layers to stack
+            in the Vision Transformer.
+        num_heads: the number of heads to use in the `MultiHeadAttention` layer
+            of each transformer encoder.
+        mlp_dropout: the dropout rate to apply between `layers.Dense` layers
+            in the MLP head of the transformer encoder.
+        attention_dropout: the dropout rate to apply to the `MultiHeadAttention`
+            in each transformer encoder.
+        activation: the activation function to use in the first `layers.Dense`
+            layer in the MLP head of the transformer encoder.
+        project_dim: the latent dimensionality to be projected into in the
+            output of each stacked transformer encoder.
+        mlp_dim: the dimensionality of the hidden Dense layer in the transformer
+            MLP head.
         **kwargs: Pass-through keyword arguments to `keras.Model`.
     """  # noqa: E501
 
     def __init__(
         self,
         *,
-        include_rescaling=False,
+        include_rescaling,
         input_shape=(224, 224, 3),
         input_tensor=None,
         patch_size=None,
@@ -118,7 +118,7 @@ class ViTBackbone(Backbone):
         encoded_patches = PatchingAndEmbedding(project_dim, patch_size)(x)
         encoded_patches = layers.Dropout(mlp_dropout)(encoded_patches)
 
-        for encoder_num in range(transformer_layer_num):
+        for _ in range(transformer_layer_num):
             encoded_patches = TransformerEncoder(
                 project_dim=project_dim,
                 mlp_dim=mlp_dim,

@@ -12,7 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import copy
+
 from keras_cv.models.backbones.vit.vit_backbone import ViTBackbone
+from keras_cv.models.backbones.vit.vit_backbone_presets import backbone_presets
 from keras_cv.utils.python_utils import classproperty
 
 
@@ -36,14 +39,22 @@ class ViTTiny16Backbone(ViTBackbone):
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
-        return {}
+        return {
+            "vittiny16_imagenet": copy.deepcopy(
+                backbone_presets["vittiny16_imagenet"]
+            ),
+        }
 
     @classproperty
     def presets_with_weights(cls):
         """
         Dictionary of preset names and configurations that include weights.
         """
-        return {}
+        return {
+            "vittiny16_imagenet": copy.deepcopy(
+                backbone_presets["vittiny16_imagenet"]
+            ),
+        }
 
 
 class ViTS16Backbone(ViTBackbone):
@@ -66,14 +77,22 @@ class ViTS16Backbone(ViTBackbone):
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
-        return {}
+        return {
+            "vits16_imagenet": copy.deepcopy(
+                backbone_presets["vits16_imagenet"]
+            ),
+        }
 
     @classproperty
     def presets_with_weights(cls):
         """
         Dictionary of preset names and configurations that include weights.
         """
-        return {}
+        return {
+            "vits16_imagenet": copy.deepcopy(
+                backbone_presets["vits16_imagenet"]
+            ),
+        }
 
 
 class ViTB16Backbone(ViTBackbone):
@@ -96,14 +115,22 @@ class ViTB16Backbone(ViTBackbone):
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
-        return {}
+        return {
+            "vitb16_imagenet": copy.deepcopy(
+                backbone_presets["vitb16_imagenet"]
+            ),
+        }
 
     @classproperty
     def presets_with_weights(cls):
         """
         Dictionary of preset names and configurations that include weights.
         """
-        return {}
+        return {
+            "vitb16_imagenet": copy.deepcopy(
+                backbone_presets["vitb16_imagenet"]
+            ),
+        }
 
 
 class ViTL16Backbone(ViTBackbone):
@@ -126,14 +153,22 @@ class ViTL16Backbone(ViTBackbone):
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
-        return {}
+        return {
+            "vitl16_imagenet": copy.deepcopy(
+                backbone_presets["vitl16_imagenet"]
+            ),
+        }
 
     @classproperty
     def presets_with_weights(cls):
         """
         Dictionary of preset names and configurations that include weights.
         """
-        return {}
+        return {
+            "vitl16_imagenet": copy.deepcopy(
+                backbone_presets["vitl16_imagenet"]
+            ),
+        }
 
 
 class ViTH16Backbone(ViTBackbone):
@@ -216,14 +251,22 @@ class ViTS32Backbone(ViTBackbone):
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
-        return {}
+        return {
+            "vits32_imagenet": copy.deepcopy(
+                backbone_presets["vits32_imagenet"]
+            ),
+        }
 
     @classproperty
     def presets_with_weights(cls):
         """
         Dictionary of preset names and configurations that include weights.
         """
-        return {}
+        return {
+            "vits32_imagenet": copy.deepcopy(
+                backbone_presets["vits32_imagenet"]
+            ),
+        }
 
 
 class ViTB32Backbone(ViTBackbone):
@@ -246,14 +289,22 @@ class ViTB32Backbone(ViTBackbone):
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
-        return {}
+        return {
+            "vitb32_imagenet": copy.deepcopy(
+                backbone_presets["vitb32_imagenet"]
+            ),
+        }
 
     @classproperty
     def presets_with_weights(cls):
         """
         Dictionary of preset names and configurations that include weights.
         """
-        return {}
+        return {
+            "vitb32_imagenet": copy.deepcopy(
+                backbone_presets["vitb32_imagenet"]
+            ),
+        }
 
 
 class ViTL32Backbone(ViTBackbone):

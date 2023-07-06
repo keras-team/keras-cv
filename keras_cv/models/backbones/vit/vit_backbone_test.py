@@ -20,20 +20,6 @@ from tensorflow import keras
 from keras_cv.models.backbones.vit.vit_aliases import ViTTiny16Backbone
 from keras_cv.models.backbones.vit.vit_backbone import ViTBackbone
 
-"""
-Below are other configurations that we omit from our CI but that can/should
-be tested manually when making changes to this model.
-(vit.ViTS16, 192, {"input_shape": (224, 224, 3)}),
-(vit.ViTB16, 768, {"input_shape": (224, 224, 3)}),
-(vit.ViTL16, 1024, {"input_shape": (224, 224, 3)}),
-(vit.ViTH16, 1280, {"input_shape": (224, 224, 3)}),
-(vit.ViTTiny32, 192, {"input_shape": (224, 224, 3)}),
-(vit.ViTS32, 384, {"input_shape": (224, 224, 3)}),
-(vit.ViTB32, 768, {"input_shape": (224, 224, 3)}),
-(vit.ViTL32, 1024, {"input_shape": (224, 224, 3)}),
-(vit.ViTH32, 1280, {"input_shape": (224, 224, 3)}),
-"""
-
 
 class ViTBackboneTest(tf.test.TestCase, parameterized.TestCase):
     def setUp(self):
