@@ -88,8 +88,8 @@ class ViTBackbone(Backbone):
     def __init__(
         self,
         *,
-        include_rescaling,
-        input_shape=(None, None, 3),
+        include_rescaling=False,
+        input_shape=(224, 224, 3),
         input_tensor=None,
         patch_size=None,
         transformer_layer_num=None,
@@ -113,7 +113,7 @@ class ViTBackbone(Backbone):
         x = layers.Rescaling(scale=1.0 / 0.5, offset=-1.0, name="rescaling_2")(
             x
         )
-
+        
         encoded_patches = PatchingAndEmbedding(project_dim, patch_size)(x)
         encoded_patches = layers.Dropout(mlp_dropout)(encoded_patches)
 
@@ -124,7 +124,7 @@ class ViTBackbone(Backbone):
                 num_heads=num_heads,
                 mlp_dropout=mlp_dropout,
                 attention_dropout=attention_dropout,
-                activation=activation,
+                activation=activation or keras.activations.gelu,
             )(encoded_patches)
         output = layers.LayerNormalization(epsilon=1e-6)(encoded_patches)
 

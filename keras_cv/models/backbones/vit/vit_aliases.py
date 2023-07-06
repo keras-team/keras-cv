@@ -21,7 +21,7 @@ class ViTTiny16Backbone(ViTBackbone):
     def __new__(
         cls,
         include_rescaling=True,
-        input_shape=(None, None, 3),
+        input_shape=(224, 224, 3),
         input_tensor=None,
         **kwargs
     ):
@@ -48,7 +48,7 @@ class ViTS16Backbone(ViTBackbone):
     def __new__(
         cls,
         include_rescaling=True,
-        input_shape=(None, None, 3),
+        input_shape=(224, 224, 3),
         input_tensor=None,
         **kwargs
     ):
@@ -76,7 +76,7 @@ class ViTB16Backbone(ViTBackbone):
     def __new__(
         cls,
         include_rescaling=True,
-        input_shape=(None, None, 3),
+        input_shape=(224, 224, 3),
         input_tensor=None,
         **kwargs
     ):
@@ -103,7 +103,7 @@ class ViTL16Backbone(ViTBackbone):
     def __new__(
         cls,
         include_rescaling=True,
-        input_shape=(None, None, 3),
+        input_shape=(224, 224, 3),
         input_tensor=None,
         **kwargs
     ):
@@ -130,7 +130,7 @@ class ViTH16Backbone(ViTBackbone):
     def __new__(
         cls,
         include_rescaling=True,
-        input_shape=(None, None, 3),
+        input_shape=(224, 224, 3),
         input_tensor=None,
         **kwargs
     ):
@@ -157,7 +157,7 @@ class ViTTiny32Backbone(ViTBackbone):
     def __new__(
         cls,
         include_rescaling=True,
-        input_shape=(None, None, 3),
+        input_shape=(224, 224, 3),
         input_tensor=None,
         **kwargs
     ):
@@ -185,7 +185,7 @@ class ViTS32Backbone(ViTBackbone):
     def __new__(
         cls,
         include_rescaling=True,
-        input_shape=(None, None, 3),
+        input_shape=(224, 224, 3),
         input_tensor=None,
         **kwargs
     ):
@@ -212,7 +212,7 @@ class ViTB32Backbone(ViTBackbone):
     def __new__(
         cls,
         include_rescaling=True,
-        input_shape=(None, None, 3),
+        input_shape=(224, 224, 3),
         input_tensor=None,
         **kwargs
     ):
@@ -240,7 +240,7 @@ class ViTL32Backbone(ViTBackbone):
     def __new__(
         cls,
         include_rescaling=True,
-        input_shape=(None, None, 3),
+        input_shape=(224, 224, 3),
         input_tensor=None,
         **kwargs
     ):
@@ -268,7 +268,7 @@ class ViTH32Backbone(ViTBackbone):
     def __new__(
         cls,
         include_rescaling=True,
-        input_shape=(None, None, 3),
+        input_shape=(224, 224, 3),
         input_tensor=None,
         **kwargs
     ):

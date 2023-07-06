@@ -70,13 +70,3 @@ from keras_cv.models.legacy.regnet import RegNetY320
 from keras_cv.models.legacy.segmentation.deeplab import DeepLabV3
 from keras_cv.models.legacy.vgg16 import VGG16
 from keras_cv.models.legacy.vgg19 import VGG19
-from keras_cv.models.legacy.vit import ViTB16
-from keras_cv.models.legacy.vit import ViTB32
-from keras_cv.models.legacy.vit import ViTH16
-from keras_cv.models.legacy.vit import ViTH32
-from keras_cv.models.legacy.vit import ViTL16
-from keras_cv.models.legacy.vit import ViTL32
-from keras_cv.models.legacy.vit import ViTS16
-from keras_cv.models.legacy.vit import ViTS32
-from keras_cv.models.legacy.vit import ViTTiny16
-from keras_cv.models.legacy.vit import ViTTiny32

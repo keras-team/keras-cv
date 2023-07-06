@@ -18,28 +18,11 @@ from absl.testing import parameterized
 from tensorflow import keras
 from keras_cv.models.backbones.vit.vit_backbone import ViTBackbone
 from keras_cv.models.backbones.vit.vit_aliases import ViTTiny16Backbone
-from keras_cv.models.backbones.vit.vit_aliases import ViTS16Backbone
-from keras_cv.models.backbones.vit.vit_aliases import ViTB16Backbone
-from keras_cv.models.backbones.vit.vit_aliases import ViTL16Backbone
-from keras_cv.models.backbones.vit.vit_aliases import ViTH16Backbone
-from keras_cv.models.backbones.vit.vit_aliases import ViTTiny32Backbone
-from keras_cv.models.backbones.vit.vit_aliases import ViTS32Backbone
-from keras_cv.models.backbones.vit.vit_aliases import ViTB32Backbone
-from keras_cv.models.backbones.vit.vit_aliases import ViTL32Backbone
-from keras_cv.models.backbones.vit.vit_aliases import ViTH16Backbone
-
-from keras_cv.utils.train import get_feature_extractor
-
-from keras_cv.models.models_test import ModelsTest
-
-MODEL_LIST = [
-    (vit.ViTS16, 384, {"input_shape": (224, 224, 3)}),
-]
 
 """
 Below are other configurations that we omit from our CI but that can/should
 be tested manually when making changes to this model.
-(vit.ViTTiny16, 192, {"input_shape": (224, 224, 3)}),
+(vit.ViTS16, 192, {"input_shape": (224, 224, 3)}),
 (vit.ViTB16, 768, {"input_shape": (224, 224, 3)}),
 (vit.ViTL16, 1024, {"input_shape": (224, 224, 3)}),
 (vit.ViTH16, 1280, {"input_shape": (224, 224, 3)}),

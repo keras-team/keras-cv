@@ -112,6 +112,7 @@ from keras_cv.models.backbones.resnet_v2.resnet_v2_aliases import (
 from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
     ResNetV2Backbone,
 )
+from keras_cv.models.backbones.vit.vit_backbone import ViTBackbone
 from keras_cv.models.backbones.vit.vit_aliases import ViTTiny16Backbone
 from keras_cv.models.backbones.vit.vit_aliases import ViTS16Backbone
 from keras_cv.models.backbones.vit.vit_aliases import ViTB16Backbone

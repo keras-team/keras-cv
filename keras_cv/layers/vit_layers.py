@@ -146,7 +146,7 @@ class PatchingAndEmbedding(layers.Layer):
             (
                 interpolated_embeddings,
                 class_token,
-            ) = self.__interpolate_positional_embeddings(
+            ) = self.interpolate_positional_embeddings(
                 self.position_embedding(positions),
                 interpolate_width,
                 interpolate_height,
@@ -167,7 +167,7 @@ class PatchingAndEmbedding(layers.Layer):
             encoded = patches_flattened + self.position_embedding(positions)
         return encoded
 
-    def __interpolate_positional_embeddings(
+    def interpolate_positional_embeddings(
         self, embedding, height, width, patch_size
     ):
         """
