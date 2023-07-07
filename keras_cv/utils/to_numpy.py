@@ -14,15 +14,14 @@
 import numpy as np
 import tensorflow as tf
 
+from keras_cv.backend import ops
+
 
 def to_numpy(x):
     if x is None:
         return None
     if isinstance(x, tf.RaggedTensor):
         x = x.to_tensor(-1)
-    if isinstance(x, tf.Tensor):
-        x = x.numpy()
-    if not isinstance(x, (np.ndarray, np.generic)):
-        x = np.array(x)
+    x = ops.convert_to_numpy(x)
     # Important for consistency when working with visualization utilities
     return np.ascontiguousarray(x)
