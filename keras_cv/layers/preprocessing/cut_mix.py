@@ -209,14 +209,6 @@ class CutMix(BaseImageAugmentationLayer):
                 "Labels must be of type float."
             )
 
-        if segmentation_masks is not None:
-            if len(segmentation_masks.shape) != 4:
-                raise ValueError(
-                    "CutMix expects shape of segmentation_masks as "
-                    "[batch, h, w, num_classes]. "
-                    f"Got: shape = {segmentation_masks.shape}. "
-                )
-
     def get_config(self):
         config = {
             "alpha": self.alpha,

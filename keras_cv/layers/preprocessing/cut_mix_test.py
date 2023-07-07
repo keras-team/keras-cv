@@ -100,7 +100,44 @@ class CutMixTest(tf.test.TestCase):
         self.assertNotAllClose(ys, 1.0)
         self.assertNotAllClose(ys, 0.0)
 
-    def test_cut_mix_call_results_with_masks(self):
+    def test_cut_mix_call_results_with_dense_encoded_segmentation_masks(self):
+        xs = tf.cast(
+            tf.stack(
+                [2 * tf.ones((4, 4, 3)), tf.ones((4, 4, 3))],
+                axis=0,
+            ),
+            tf.float32,
+        )
+
+        ys_segmentation_masks = tf.cast(
+            tf.stack(
+                [2 * tf.ones((4, 4, 1)), tf.ones((4, 4, 1))],
+                axis=0,
+            ),
+            tf.float32,
+        )
+
+        layer = CutMix(seed=1)
+        outputs = layer(
+            {"images": xs, "segmentation_masks": ys_segmentation_masks}
+        )
+        xs, ys_segmentation_masks = (
+            outputs["images"],
+            outputs["segmentation_masks"],
+        )
+
+        # At least some pixels should be replaced in the images
+        self.assertTrue(tf.math.reduce_any(xs[0] == 1.0))
+        self.assertTrue(tf.math.reduce_any(xs[0] == 2.0))
+        self.assertTrue(tf.math.reduce_any(xs[1] == 1.0))
+        self.assertTrue(tf.math.reduce_any(xs[1] == 2.0))
+        # At least some pixels should be replaced in the segmentation_masks
+        self.assertTrue(tf.math.reduce_any(ys_segmentation_masks[0] == 1.0))
+        self.assertTrue(tf.math.reduce_any(ys_segmentation_masks[0] == 2.0))
+        self.assertTrue(tf.math.reduce_any(ys_segmentation_masks[1] == 1.0))
+        self.assertTrue(tf.math.reduce_any(ys_segmentation_masks[1] == 2.0))
+
+    def test_cut_mix_call_results_with_one_hot_encoded_segmentation_masks(self):
         xs = tf.cast(
             tf.stack(
                 [2 * tf.ones((4, 4, 3)), tf.ones((4, 4, 3))],
@@ -118,44 +155,7 @@ class CutMixTest(tf.test.TestCase):
         )
         ys_segmentation_masks = tf.one_hot(ys_segmentation_masks, 3)
 
-        layer = CutMix(seed=1, apply_to_segmentation_masks=True)
-        outputs = layer(
-            {"images": xs, "segmentation_masks": ys_segmentation_masks}
-        )
-        xs, ys_segmentation_masks = (
-            outputs["images"],
-            outputs["segmentation_masks"],
-        )
-
-        # At least some pixels should be replaced in the images
-        self.assertTrue(tf.math.reduce_any(xs[0] == 1.0))
-        self.assertTrue(tf.math.reduce_any(xs[0] == 2.0))
-        self.assertTrue(tf.math.reduce_any(xs[1] == 1.0))
-        self.assertTrue(tf.math.reduce_any(xs[1] == 2.0))
-        # At least some pixels should be replaced in the segmentation_masks
-        self.assertTrue(tf.math.reduce_any(ys_segmentation_masks[0] == 1.0))
-        self.assertTrue(tf.math.reduce_any(ys_segmentation_masks[0] == 0.0))
-        self.assertTrue(tf.math.reduce_any(ys_segmentation_masks[1] == 1.0))
-        self.assertTrue(tf.math.reduce_any(ys_segmentation_masks[1] == 0.0))
-
-    def test_cut_mix_call_results_one_channel_with_masks(self):
-        xs = tf.cast(
-            tf.stack(
-                [2 * tf.ones((4, 4, 1)), tf.ones((4, 4, 1))],
-                axis=0,
-            ),
-            tf.float32,
-        )
-        ys_segmentation_masks = tf.cast(
-            tf.stack(
-                [2 * tf.ones((4, 4)), tf.ones((4, 4))],
-                axis=0,
-            ),
-            tf.uint8,
-        )
-        ys_segmentation_masks = tf.one_hot(ys_segmentation_masks, 3)
-
-        layer = CutMix(seed=1, apply_to_segmentation_masks=True)
+        layer = CutMix(seed=1)
         outputs = layer(
             {"images": xs, "segmentation_masks": ys_segmentation_masks}
         )
@@ -220,18 +220,11 @@ class CutMixTest(tf.test.TestCase):
         ):
             _ = layer(inputs)
 
-    def test_missing_labels(self):
-        xs = tf.ones((2, 512, 512, 3))
-        inputs = {"images": xs}
-        layer = CutMix(apply_to_labels=True)
-        with self.assertRaisesRegexp(ValueError, "CutMix expects 'labels'"):
-            _ = layer(inputs)
-
     def test_int_labels(self):
         xs = tf.ones((2, 512, 512, 3))
         ys = tf.one_hot(tf.constant([1, 0]), 2, dtype=tf.int32)
         inputs = {"images": xs, "labels": ys}
-        layer = CutMix(apply_to_labels=True)
+        layer = CutMix()
         with self.assertRaisesRegexp(
             ValueError, "CutMix received labels with type"
         ):
@@ -239,8 +232,8 @@ class CutMixTest(tf.test.TestCase):
 
     def test_image_input(self):
         xs = tf.ones((2, 512, 512, 3))
-        layer = CutMix(apply_to_labels=True)
+        layer = CutMix()
         with self.assertRaisesRegexp(
-            ValueError, "CutMix expects 'labels' to be present in its inputs"
+            ValueError, "CutMix expects inputs in a dictionary with format"
         ):
             _ = layer(xs)
