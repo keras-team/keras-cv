@@ -90,13 +90,38 @@ class NonMaxSuppression(keras.layers.Layer):
 
         # TODO(tirthasheshpatel): Use backend-specific op where available
         if multi_backend():
-            idx, valid_det = non_max_suppression(
-                box_prediction,
-                confidence_prediction,
-                max_output_size=self.max_detections,
-                iou_threshold=self.iou_threshold,
-                score_threshold=self.confidence_threshold,
-            )
+            if keras.backend.backend() == "torch":
+                import torchvision
+
+                def one_batch_nms(preds):
+                    box_pred, conf_pred = preds
+                    idx = torchvision.ops.nms(
+                        box_pred, conf_pred, iou_threshold=self.iou_threshold
+                    )
+
+                    num_dets_in_batch = ops.size(idx)
+                    if num_dets_in_batch >= self.max_detections:
+                        idx = idx[: self.max_detections]
+                    else:
+                        idx = ops.pad(
+                            idx, (0, self.max_detections - num_dets_in_batch)
+                        )
+                    return idx, conf_pred[idx]
+
+                idx, conf_at_idx = ops.vectorized_map(
+                    one_batch_nms, (box_prediction, confidence_prediction)
+                )
+                valid_det = ops.sum(
+                    conf_at_idx > self.confidence_threshold, axis=-1
+                )
+            else:
+                idx, valid_det = non_max_suppression(
+                    box_prediction,
+                    confidence_prediction,
+                    max_output_size=self.max_detections,
+                    iou_threshold=self.iou_threshold,
+                    score_threshold=self.confidence_threshold,
+                )
         else:
             # For non-multibackend, our NMS fails during graph tracing due to
             # the lack of a defined batch size, so we just fall back to the
