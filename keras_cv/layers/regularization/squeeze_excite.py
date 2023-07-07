@@ -97,7 +97,7 @@ class SqueezeAndExcite2D(keras.layers.Layer):
             self.filters, (1, 1), activation=self.excite_activation
         )
 
-    def call(self, inputs, training=True):
+    def call(self, inputs, training=None):
         x = self.global_average_pool(inputs)  # x: (batch_size, 1, 1, filters)
         x = self.squeeze_conv(x)  # x: (batch_size, 1, 1, bottleneck_filters)
         x = self.excite_conv(x)  # x: (batch_size, 1, 1, filters)
