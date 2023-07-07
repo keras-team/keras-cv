@@ -25,7 +25,7 @@ from keras_cv.layers import preprocessing
 
 def main():
     ds = demo_utils.load_oxford_iiit_pet_dataset()
-    cut_mix = preprocessing.CutMix(apply_to_segmentation_masks=True)
+    cut_mix = preprocessing.CutMix(alpha=0.8)
     ds = ds.map(cut_mix, num_parallel_calls=tf.data.AUTOTUNE)
     demo_utils.visualize_dataset(ds)
 
