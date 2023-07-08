@@ -93,27 +93,40 @@ class NonMaxSuppression(keras.layers.Layer):
             if keras.backend.backend() == "torch":
                 import torchvision
 
-                def one_batch_nms(preds):
-                    box_pred, conf_pred = preds
-                    idx = torchvision.ops.nms(
-                        box_pred, conf_pred, iou_threshold=self.iou_threshold
+                batch_size = box_prediction.shape[0]
+                idx = ops.zeros((batch_size, self.max_detections))
+                valid_det = ops.zeros((batch_size))
+
+                for batch_idx in range(batch_size):
+                    conf_mask = (
+                        confidence_prediction[batch_idx]
+                        > self.confidence_threshold
+                    )
+                    conf_mask_idx = ops.squeeze(ops.nonzero(conf_mask), axis=0)
+                    conf_i = confidence_prediction[batch_idx][conf_mask]
+                    box_i = box_prediction[batch_idx][conf_mask]
+
+                    idx_i = torchvision.ops.nms(
+                        box_i, conf_i, iou_threshold=self.iou_threshold
                     )
 
-                    num_dets_in_batch = ops.size(idx)
-                    if num_dets_in_batch >= self.max_detections:
-                        idx = idx[: self.max_detections]
-                    else:
-                        idx = ops.pad(
-                            idx, (0, self.max_detections - num_dets_in_batch)
-                        )
-                    return idx, conf_pred[idx]
+                    valid_det[batch_idx] = ops.size(idx_i)
 
-                idx, conf_at_idx = ops.vectorized_map(
-                    one_batch_nms, (box_prediction, confidence_prediction)
-                )
-                valid_det = ops.sum(
-                    conf_at_idx > self.confidence_threshold, axis=-1
-                )
+                    print(conf_mask)
+                    print(conf_mask_idx)
+                    print(idx_i)
+
+                    idx_i = conf_mask_idx[idx_i]
+
+                    print(idx_i)
+
+                    num_boxes = idx_i.shape[0]
+                    if num_boxes >= self.max_detections:
+                        idx_i = idx_i[: self.max_detections]
+                        num_boxes = self.max_detections
+
+                    idx[batch_idx, :num_boxes] = idx_i
+
             else:
                 idx, valid_det = non_max_suppression(
                     box_prediction,
