@@ -90,6 +90,8 @@ class NonMaxSuppression(keras.layers.Layer):
 
         # TODO(tirthasheshpatel): Use backend-specific op where available
         if multi_backend():
+            # Since TorchVision has a nice efficient NMS op, we might as well
+            # use it!
             if keras.backend.backend() == "torch":
                 import torchvision
 
