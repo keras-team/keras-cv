@@ -110,8 +110,6 @@ class NonMaxSuppression(keras.layers.Layer):
                         box_i, conf_i, iou_threshold=self.iou_threshold
                     )
 
-                    valid_det[batch_idx] = ops.cast(ops.size(idx_i), "int32")
-
                     idx_i = conf_mask_idx[idx_i]
 
                     num_boxes = idx_i.shape[0]
@@ -119,6 +117,7 @@ class NonMaxSuppression(keras.layers.Layer):
                         idx_i = idx_i[: self.max_detections]
                         num_boxes = self.max_detections
 
+                    valid_det[batch_idx] = ops.cast(ops.size(idx_i), "int32")
                     idx[batch_idx, :num_boxes] = idx_i
 
             else:
