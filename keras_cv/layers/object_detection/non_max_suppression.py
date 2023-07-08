@@ -112,13 +112,7 @@ class NonMaxSuppression(keras.layers.Layer):
 
                     valid_det[batch_idx] = ops.size(idx_i)
 
-                    print(conf_mask)
-                    print(conf_mask_idx)
-                    print(idx_i)
-
                     idx_i = conf_mask_idx[idx_i]
-
-                    print(idx_i)
 
                     num_boxes = idx_i.shape[0]
                     if num_boxes >= self.max_detections:
