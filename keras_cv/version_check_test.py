@@ -29,18 +29,18 @@ def cleanup_tf_version():
 
 
 def test_check_tf_version_error():
-    tf.__version__ = "2.11.0"
+    tf.__version__ = "2.12.0"
 
     with pytest.raises(
         RuntimeError,
-        match="Tensorflow package version needs to be at least 2.12.0",
+        match="Tensorflow package version needs to be at least 2.13.0",
     ):
         version_check.check_tf_version()
 
 
 def test_check_tf_version_passes_rc2():
     # should pass
-    tf.__version__ = "2.12.1rc2"
+    tf.__version__ = "2.13.1rc2"
     version_check.check_tf_version()
 
 
