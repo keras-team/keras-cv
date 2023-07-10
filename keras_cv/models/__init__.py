@@ -13,23 +13,23 @@
 # limitations under the License.
 
 from keras_cv.models import legacy
-from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
-    CSPDarkNetBackbone,
-)
-from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
+from keras_cv.models.backbones.csp_darknet.csp_darknet_aliases import (
     CSPDarkNetLBackbone,
 )
-from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
+from keras_cv.models.backbones.csp_darknet.csp_darknet_aliases import (
     CSPDarkNetMBackbone,
 )
-from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
+from keras_cv.models.backbones.csp_darknet.csp_darknet_aliases import (
     CSPDarkNetSBackbone,
 )
-from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
+from keras_cv.models.backbones.csp_darknet.csp_darknet_aliases import (
     CSPDarkNetTinyBackbone,
 )
-from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
+from keras_cv.models.backbones.csp_darknet.csp_darknet_aliases import (
     CSPDarkNetXLBackbone,
+)
+from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
+    CSPDarkNetBackbone,
 )
 from keras_cv.models.backbones.densenet.densenet_aliases import (
     DenseNet121Backbone,
