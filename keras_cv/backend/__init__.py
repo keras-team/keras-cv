@@ -22,6 +22,8 @@ as add shims to support older version of `tf.keras`.
 - `ops`: `keras_core.ops`, always tf-backed if using `tf.keras`.
 """
 
+import types
+
 from keras_cv.backend.config import multi_backend
 
 # Keys are of the form: "module.where.attr.exists->module.where.to.alias"
@@ -42,6 +44,9 @@ if multi_backend():
     import keras_core as keras
 else:
     from tensorflow import keras
+
+    if not hasattr(keras, "saving"):
+        keras.saving = types.SimpleNamespace()
 
     # add aliases
     for key, value in _KERAS_CORE_ALIASES.items():
