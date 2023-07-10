@@ -27,23 +27,13 @@ jobs:
         key: ${{ runner.os }}-pip-${{ hashFiles('setup.py') }}
         restore-keys: |
           ${{ runner.os }}-pip-
-    - name: Setup SSH Keys and known_hosts
-      env:
-          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
-      run: |
-          ssh-agent -a $SSH_AUTH_SOCK > /dev/null
-          ssh-add - <<< "${{ secrets.KERAS_CORE }}"
     - name: Install dependencies
-      env:
-          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
       run: |
         pip install tensorflow==2.12.0
         pip install torch>=2.0.1+cpu
         pip install "jax[cpu]"
+        pip install keras-core
         pip install -e ".[tests]" --progress-bar off --upgrade
-        git clone git@github.com:keras-team/keras-core.git
-        pip install -r keras-core/requirements.txt
-        python keras-core/pip_build.py --install
     - name: Test with pytest
       env:
         TEST_CUSTOM_OPS: false
@@ -74,23 +64,13 @@ jobs:
         key: ${{ runner.os }}-pip-${{ hashFiles('setup.py') }}
         restore-keys: |
           ${{ runner.os }}-pip-
-    - name: Setup SSH Keys and known_hosts
-      env:
-          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
-      run: |
-          ssh-agent -a $SSH_AUTH_SOCK > /dev/null
-          ssh-add - <<< "${{ secrets.KERAS_CORE }}"
     - name: Install dependencies
-      env:
-          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
       run: |
         pip install tensorflow==2.12.0
         pip install "jax[cpu]"
         pip install torch>=2.0.1+cpu
         pip install torchvision>=0.15.1
-        git clone git@github.com:keras-team/keras-core.git
-        pip install -r keras-core/requirements.txt
-        python keras-core/pip_build.py --install
+        pip install keras-core
         pip install -e ".[tests]" --progress-bar off --upgrade
     - name: Test with pytest
       env:
