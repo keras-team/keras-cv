@@ -19,7 +19,24 @@ import tensorflow as tf
 from absl.testing import parameterized
 from tensorflow import keras
 
-from keras_cv.models.backbones.csp_darknet import csp_darknet_backbone
+from keras_cv.models.backbones.csp_darknet.csp_darknet_aliases import (
+    CSPDarkNetLBackbone,
+)
+from keras_cv.models.backbones.csp_darknet.csp_darknet_aliases import (
+    CSPDarkNetMBackbone,
+)
+from keras_cv.models.backbones.csp_darknet.csp_darknet_aliases import (
+    CSPDarkNetSBackbone,
+)
+from keras_cv.models.backbones.csp_darknet.csp_darknet_aliases import (
+    CSPDarkNetTinyBackbone,
+)
+from keras_cv.models.backbones.csp_darknet.csp_darknet_aliases import (
+    CSPDarkNetXLBackbone,
+)
+from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
+    CSPDarkNetBackbone,
+)
 from keras_cv.utils.train import get_feature_extractor
 
 
@@ -28,7 +45,7 @@ class CSPDarkNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
         self.input_batch = tf.ones(shape=(2, 224, 224, 3))
 
     def test_valid_call(self):
-        model = csp_darknet_backbone.CSPDarkNetBackbone(
+        model = CSPDarkNetBackbone(
             stackwise_channels=[48, 96, 192, 384],
             stackwise_depth=[1, 3, 3, 1],
             include_rescaling=False,
@@ -36,11 +53,11 @@ class CSPDarkNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
         model(self.input_batch)
 
     def test_valid_call_applications_model(self):
-        model = csp_darknet_backbone.CSPDarkNetLBackbone()
+        model = CSPDarkNetLBackbone()
         model(self.input_batch)
 
     def test_valid_call_with_rescaling(self):
-        model = csp_darknet_backbone.CSPDarkNetBackbone(
+        model = CSPDarkNetBackbone(
             stackwise_channels=[48, 96, 192, 384],
             stackwise_depth=[1, 3, 3, 1],
             include_rescaling=True,
@@ -53,7 +70,7 @@ class CSPDarkNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
     )
     @pytest.mark.large  # Saving is slow, so mark these large.
     def test_saved_model(self, save_format, filename):
-        model = csp_darknet_backbone.CSPDarkNetBackbone(
+        model = CSPDarkNetBackbone(
             stackwise_channels=[48, 96, 192, 384],
             stackwise_depth=[1, 3, 3, 1],
             include_rescaling=True,
@@ -64,9 +81,7 @@ class CSPDarkNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
         restored_model = keras.models.load_model(save_path)
 
         # Check we got the real object back.
-        self.assertIsInstance(
-            restored_model, csp_darknet_backbone.CSPDarkNetBackbone
-        )
+        self.assertIsInstance(restored_model, CSPDarkNetBackbone)
 
         # Check that output matches.
         restored_output = restored_model(self.input_batch)
@@ -78,7 +93,7 @@ class CSPDarkNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
     )
     @pytest.mark.large  # Saving is slow, so mark these large.
     def test_saved_alias_model(self, save_format, filename):
-        model = csp_darknet_backbone.CSPDarkNetLBackbone()
+        model = CSPDarkNetLBackbone()
         model_output = model(self.input_batch)
         save_path = os.path.join(self.get_temp_dir(), filename)
         model.save(save_path, save_format=save_format)
@@ -86,16 +101,14 @@ class CSPDarkNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
 
         # Check we got the real object back.
         # Note that these aliases serialized as the base class
-        self.assertIsInstance(
-            restored_model, csp_darknet_backbone.CSPDarkNetBackbone
-        )
+        self.assertIsInstance(restored_model, CSPDarkNetBackbone)
 
         # Check that output matches.
         restored_output = restored_model(self.input_batch)
         self.assertAllClose(model_output, restored_output)
 
     def test_feature_pyramid_inputs(self):
-        model = csp_darknet_backbone.CSPDarkNetLBackbone()
+        model = CSPDarkNetLBackbone()
         backbone_model = get_feature_extractor(
             model,
             model.pyramid_level_inputs.values(),
@@ -124,22 +137,22 @@ class CSPDarkNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
         )
 
     @parameterized.named_parameters(
-        ("Tiny", csp_darknet_backbone.CSPDarkNetTinyBackbone),
-        ("S", csp_darknet_backbone.CSPDarkNetSBackbone),
-        ("M", csp_darknet_backbone.CSPDarkNetMBackbone),
-        ("L", csp_darknet_backbone.CSPDarkNetLBackbone),
-        ("XL", csp_darknet_backbone.CSPDarkNetXLBackbone),
+        ("Tiny", CSPDarkNetTinyBackbone),
+        ("S", CSPDarkNetSBackbone),
+        ("M", CSPDarkNetMBackbone),
+        ("L", CSPDarkNetLBackbone),
+        ("XL", CSPDarkNetXLBackbone),
     )
     def test_specific_arch_forward_pass(self, arch_class):
         backbone = arch_class()
         backbone(tf.random.uniform(shape=[2, 256, 256, 3]))
 
     @parameterized.named_parameters(
-        ("Tiny", csp_darknet_backbone.CSPDarkNetTinyBackbone),
-        ("S", csp_darknet_backbone.CSPDarkNetSBackbone),
-        ("M", csp_darknet_backbone.CSPDarkNetMBackbone),
-        ("L", csp_darknet_backbone.CSPDarkNetLBackbone),
-        ("XL", csp_darknet_backbone.CSPDarkNetXLBackbone),
+        ("Tiny", CSPDarkNetTinyBackbone),
+        ("S", CSPDarkNetSBackbone),
+        ("M", CSPDarkNetMBackbone),
+        ("L", CSPDarkNetLBackbone),
+        ("XL", CSPDarkNetXLBackbone),
     )
     def test_specific_arch_presets(self, arch_class):
         self.assertDictEqual(
