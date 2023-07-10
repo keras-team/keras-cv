@@ -87,6 +87,7 @@ jobs:
                keras_cv/models/backbones \
                keras_cv/models/classification \
                keras_cv/models/object_detection/retinanet \
+               keras_cv/models/object_detection/yolo_v8 \
                --durations 0
   format:
     name: Check the code format
