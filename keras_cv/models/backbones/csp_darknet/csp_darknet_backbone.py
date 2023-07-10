@@ -12,12 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""CSPDarkNet backbone model. """
+"""CSPDarkNet models for KerasCV. """
 import copy
 
-import tensorflow as tf
 from tensorflow import keras
-from tensorflow.keras import backend
 from tensorflow.keras import layers
 
 from keras_cv.models import utils
@@ -27,6 +25,19 @@ from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone_presets import (
 )
 from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone_presets import (
     backbone_presets_with_weights,
+)
+from keras_cv.models.backbones.csp_darknet.csp_darknet_utils import (
+    CrossStagePartial,
+)
+from keras_cv.models.backbones.csp_darknet.csp_darknet_utils import (
+    DarknetConvBlock,
+)
+from keras_cv.models.backbones.csp_darknet.csp_darknet_utils import (
+    DarknetConvBlockDepthwise,
+)
+from keras_cv.models.backbones.csp_darknet.csp_darknet_utils import Focus
+from keras_cv.models.backbones.csp_darknet.csp_darknet_utils import (
+    SpatialPyramidPoolingBottleneck,
 )
 from keras_cv.utils.python_utils import classproperty
 
@@ -170,353 +181,235 @@ class CSPDarkNetBackbone(Backbone):
         return copy.deepcopy(backbone_presets_with_weights)
 
 
-def DarknetConvBlock(
-    filters, kernel_size, strides, use_bias=False, activation="silu", name=None
-):
-    """The basic conv block used in Darknet. Applies Conv2D followed by a
-    BatchNorm.
+ALIAS_DOCSTRING = """CSPDarkNetBackbone model with {stackwise_channels} channels
+    and {stackwise_depth} depths.
+
+    Reference:
+        - [YoloV4 Paper](https://arxiv.org/abs/1804.02767)
+        - [CSPNet Paper](https://arxiv.org/pdf/1911.11929)
+        - [YoloX Paper](https://arxiv.org/abs/2107.08430)
+
+    For transfer learning use cases, make sure to read the
+    [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
 
     Args:
-        filters: Integer, the dimensionality of the output space (i.e. the
-            number of output filters in the convolution).
-        kernel_size: An integer or tuple/list of 2 integers, specifying the
-            height and width of the 2D convolution window. Can be a single
-            integer to specify the same value both dimensions.
-        strides: An integer or tuple/list of 2 integers, specifying the strides
-            of the convolution along the height and width. Can be a single
-            integer to the same value both dimensions.
-        use_bias: Boolean, whether the layer uses a bias vector.
-        activation: the activation applied after the BatchNorm layer. One of
-            "silu", "relu" or "leaky_relu", defaults to "silu".
-        name: the prefix for the layer names used in the block.
-    """
+        include_rescaling: bool, whether or not to rescale the inputs. If set to
+            True, inputs will be passed through a `Rescaling(1/255.0)` layer.
+        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
+            to use as image input for the model.
+        input_shape: optional shape tuple, defaults to (None, None, 3).
 
-    if name is None:
-        name = f"conv_block{backend.get_uid('conv_block')}"
+    Examples:
+    ```python
+    input_data = tf.ones(shape=(8, 224, 224, 3))
 
-    model_layers = [
-        layers.Conv2D(
-            filters,
-            kernel_size,
-            strides,
-            padding="same",
-            use_bias=use_bias,
-            name=name + "_conv",
-        ),
-        layers.BatchNormalization(name=name + "_bn"),
-    ]
-
-    if activation == "silu":
-        model_layers.append(layers.Lambda(lambda x: keras.activations.swish(x)))
-    elif activation == "relu":
-        model_layers.append(layers.ReLU())
-    elif activation == "leaky_relu":
-        model_layers.append(layers.LeakyReLU(0.1))
-
-    return keras.Sequential(model_layers, name=None)
+    # Randomly initialized backbone
+    model = CSPDarkNet{name}Backbone()
+    output = model(input_data)
+    ```
+"""  # noqa: E501
 
 
-def ResidualBlocks(filters, num_blocks, name=None):
-    """A residual block used in DarkNet models, repeated `num_blocks` times.
-
-    Args:
-        filters: Integer, the dimensionality of the output spaces (i.e. the
-            number of output filters in used the blocks).
-        num_blocks: number of times the residual connections are repeated
-        name: the prefix for the layer names used in the block.
-
-    Returns:
-        a function that takes an input Tensor representing a ResidualBlock.
-    """
-
-    if name is None:
-        name = f"residual_block{backend.get_uid('residual_block')}"
-
-    def apply(x):
-        x = DarknetConvBlock(
-            filters,
-            kernel_size=3,
-            strides=2,
-            activation="leaky_relu",
-            name=f"{name}_conv1",
-        )(x)
-
-        for i in range(1, num_blocks + 1):
-            residual = x
-
-            x = DarknetConvBlock(
-                filters // 2,
-                kernel_size=1,
-                strides=1,
-                activation="leaky_relu",
-                name=f"{name}_conv{2*i}",
-            )(x)
-            x = DarknetConvBlock(
-                filters,
-                kernel_size=3,
-                strides=1,
-                activation="leaky_relu",
-                name=f"{name}_conv{2*i + 1}",
-            )(x)
-
-            if i == num_blocks:
-                x = layers.Add(name=f"{name}_out")([residual, x])
-            else:
-                x = layers.Add(name=f"{name}_add_{i}")([residual, x])
-
-        return x
-
-    return apply
-
-
-def SpatialPyramidPoolingBottleneck(
-    filters,
-    hidden_filters=None,
-    kernel_sizes=(5, 9, 13),
-    activation="silu",
-    name=None,
-):
-    """Spatial pyramid pooling layer used in YOLOv3-SPP
-
-    Args:
-        filters: Integer, the dimensionality of the output spaces (i.e. the
-            number of output filters in used the blocks).
-        hidden_filters: Integer, the dimensionality of the intermediate
-            bottleneck space (i.e. the number of output filters in the
-            bottleneck convolution). If None, it will be equal to filters.
-            Defaults to None.
-        kernel_sizes: A list or tuple representing all the pool sizes used for
-            the pooling layers, defaults to (5, 9, 13).
-        activation: Activation for the conv layers, defaults to "silu".
-        name: the prefix for the layer names used in the block.
-
-    Returns:
-        a function that takes an input Tensor representing an
-        SpatialPyramidPoolingBottleneck.
-    """
-    if name is None:
-        name = f"spp{backend.get_uid('spp')}"
-
-    if hidden_filters is None:
-        hidden_filters = filters
-
-    def apply(x):
-        x = DarknetConvBlock(
-            hidden_filters,
-            kernel_size=1,
-            strides=1,
-            activation=activation,
-            name=f"{name}_conv1",
-        )(x)
-        x = [x]
-
-        for kernel_size in kernel_sizes:
-            x.append(
-                layers.MaxPooling2D(
-                    kernel_size,
-                    strides=1,
-                    padding="same",
-                    name=f"{name}_maxpool_{kernel_size}",
-                )(x[0])
-            )
-
-        x = layers.Concatenate(name=f"{name}_concat")(x)
-        x = DarknetConvBlock(
-            filters,
-            kernel_size=1,
-            strides=1,
-            activation=activation,
-            name=f"{name}_conv2",
-        )(x)
-
-        return x
-
-    return apply
-
-
-def DarknetConvBlockDepthwise(
-    filters, kernel_size, strides, activation="silu", name=None
-):
-    """The depthwise conv block used in CSPDarknet.
-
-    Args:
-        filters: Integer, the dimensionality of the output space (i.e. the
-            number of output filters in the final convolution).
-        kernel_size: An integer or tuple/list of 2 integers, specifying the
-            height and width of the 2D convolution window. Can be a single
-            integer to specify the same value both dimensions.
-        strides: An integer or tuple/list of 2 integers, specifying the strides
-            of the convolution along the height and width. Can be a single
-            integer to the same value both dimensions.
-        activation: the activation applied after the final layer. One of "silu",
-            "relu" or "leaky_relu", defaults to "silu".
-        name: the prefix for the layer names used in the block.
-
-    """
-
-    if name is None:
-        name = f"conv_block{backend.get_uid('conv_block')}"
-
-    model_layers = [
-        layers.DepthwiseConv2D(
-            kernel_size, strides, padding="same", use_bias=False
-        ),
-        layers.BatchNormalization(),
-    ]
-
-    if activation == "silu":
-        model_layers.append(layers.Lambda(lambda x: keras.activations.swish(x)))
-    elif activation == "relu":
-        model_layers.append(layers.ReLU())
-    elif activation == "leaky_relu":
-        model_layers.append(layers.LeakyReLU(0.1))
-
-    model_layers.append(
-        DarknetConvBlock(
-            filters, kernel_size=1, strides=1, activation=activation
-        )
-    )
-
-    return keras.Sequential(model_layers, name=name)
-
-
-@keras.utils.register_keras_serializable(package="keras_cv")
-class CrossStagePartial(layers.Layer):
-    """A block used in Cross Stage Partial Darknet.
-
-    Args:
-        filters: Integer, the dimensionality of the output space (i.e. the
-            number of output filters in the final convolution).
-        num_bottlenecks: an integer representing the number of blocks added in
-            the layer bottleneck.
-        residual: a boolean representing whether the value tensor before the
-            bottleneck should be added to the output of the bottleneck as a
-            residual, defaults to True.
-        use_depthwise: a boolean value used to decide whether a depthwise conv
-            block should be used over a regular darknet block, defaults to
-            False.
-        activation: the activation applied after the final layer. One of "silu",
-            "relu" or "leaky_relu", defaults to "silu".
-    """
-
-    def __init__(
-        self,
-        filters,
-        num_bottlenecks,
-        residual=True,
-        use_depthwise=False,
-        activation="silu",
+class CSPDarkNetTinyBackbone(CSPDarkNetBackbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
         **kwargs,
     ):
-        super().__init__(**kwargs)
-        self.filters = filters
-        self.num_bottlenecks = num_bottlenecks
-        self.residual = residual
-        self.use_depthwise = use_depthwise
-        self.activation = activation
-
-        hidden_channels = filters // 2
-        ConvBlock = (
-            DarknetConvBlockDepthwise if use_depthwise else DarknetConvBlock
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
         )
+        return CSPDarkNetBackbone.from_preset("csp_darknet_tiny", **kwargs)
 
-        self.darknet_conv1 = DarknetConvBlock(
-            hidden_channels,
-            kernel_size=1,
-            strides=1,
-            activation=activation,
-        )
-
-        self.darknet_conv2 = DarknetConvBlock(
-            hidden_channels,
-            kernel_size=1,
-            strides=1,
-            activation=activation,
-        )
-
-        # repeat bottlenecks num_bottleneck times
-        self.bottleneck_convs = []
-        for _ in range(num_bottlenecks):
-            self.bottleneck_convs.append(
-                DarknetConvBlock(
-                    hidden_channels,
-                    kernel_size=1,
-                    strides=1,
-                    activation=activation,
-                )
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {
+            "csp_darknet_tiny_imagenet": copy.deepcopy(
+                backbone_presets["csp_darknet_tiny_imagenet"]
             )
-
-            self.bottleneck_convs.append(
-                ConvBlock(
-                    hidden_channels,
-                    kernel_size=3,
-                    strides=1,
-                    activation=activation,
-                )
-            )
-
-        self.add = layers.Add()
-        self.concatenate = layers.Concatenate()
-
-        self.darknet_conv3 = DarknetConvBlock(
-            filters, kernel_size=1, strides=1, activation=activation
-        )
-
-    def call(self, x):
-        x1 = self.darknet_conv1(x)
-        x2 = self.darknet_conv2(x)
-
-        for i in range(self.num_bottlenecks):
-            residual = x1
-            x1 = self.bottleneck_convs[2 * i](x1)
-            x1 = self.bottleneck_convs[2 * i + 1](x1)
-
-            if self.residual:
-                x1 = self.add([residual, x1])
-
-        x1 = self.concatenate([x1, x2])
-        x = self.darknet_conv3(x1)
-        return x
-
-    def get_config(self):
-        config = {
-            "filters": self.filters,
-            "num_bottlenecks": self.num_bottlenecks,
-            "residual": self.residual,
-            "use_depthwise": self.use_depthwise,
-            "activation": self.activation,
         }
-        base_config = super().get_config()
-        return dict(list(base_config.items()) + list(config.items()))
+
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include
+        weights."""
+        return cls.presets
 
 
-def Focus(name=None):
-    """A block used in CSPDarknet to focus information into channels of the
-    image.
+class CSPDarkNetSBackbone(CSPDarkNetBackbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
+        **kwargs,
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return CSPDarkNetBackbone.from_preset("csp_darknet_s", **kwargs)
 
-    If the dimensions of a batch input is (batch_size, width, height, channels),
-    this layer converts the image into size (batch_size, width/2, height/2,
-    4*channels). See [the original discussion on YoloV5 Focus Layer](https://github.com/ultralytics/yolov5/discussions/3181).
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
 
-    Args:
-        name: the name for the lambda layer used in the block.
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include
+        weights."""
+        return {}
 
-    Returns:
-        a function that takes an input Tensor representing a Focus layer.
-    """  # noqa: E501
 
-    def apply(x):
-        return layers.Lambda(
-            lambda x: tf.concat(
-                [
-                    x[..., ::2, ::2, :],
-                    x[..., 1::2, ::2, :],
-                    x[..., ::2, 1::2, :],
-                    x[..., 1::2, 1::2, :],
-                ],
-                axis=-1,
-            ),
-            name=name,
-        )(x)
+class CSPDarkNetMBackbone(CSPDarkNetBackbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
+        **kwargs,
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return CSPDarkNetBackbone.from_preset("csp_darknet_m", **kwargs)
 
-    return apply
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
+
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include
+        weights."""
+        return {}
+
+
+class CSPDarkNetLBackbone(CSPDarkNetBackbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
+        **kwargs,
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return CSPDarkNetBackbone.from_preset("csp_darknet_l", **kwargs)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {
+            "csp_darknet_l_imagenet": copy.deepcopy(
+                backbone_presets["csp_darknet_l_imagenet"]
+            )
+        }
+
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include
+        weights."""
+        return cls.presets
+
+
+class CSPDarkNetXLBackbone(CSPDarkNetBackbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
+        **kwargs,
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return CSPDarkNetBackbone.from_preset("csp_darknet_xl", **kwargs)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
+
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include
+        weights."""
+        return {}
+
+
+setattr(
+    CSPDarkNetTinyBackbone,
+    "__doc__",
+    ALIAS_DOCSTRING.format(
+        name="Tiny",
+        stackwise_channels="[48, 96, 192, 384]",
+        stackwise_depth="[1, 3, 3, 1]",
+    ),
+)
+setattr(
+    CSPDarkNetSBackbone,
+    "__doc__",
+    ALIAS_DOCSTRING.format(
+        name="S",
+        stackwise_channels="[64, 128, 256, 512]",
+        stackwise_depth="[1, 3, 3, 1]",
+    ),
+)
+setattr(
+    CSPDarkNetMBackbone,
+    "__doc__",
+    ALIAS_DOCSTRING.format(
+        name="M",
+        stackwise_channels="[96, 192, 384, 768]",
+        stackwise_depth="[2, 6, 6, 2]",
+    ),
+)
+setattr(
+    CSPDarkNetLBackbone,
+    "__doc__",
+    ALIAS_DOCSTRING.format(
+        name="L",
+        stackwise_channels="[128, 256, 512, 1024]",
+        stackwise_depth="[3, 9, 9, 3]",
+    ),
+)
+setattr(
+    CSPDarkNetXLBackbone,
+    "__doc__",
+    ALIAS_DOCSTRING.format(
+        name="XL",
+        stackwise_channels="[170, 340, 680, 1360]",
+        stackwise_depth="[4, 12, 12, 4]",
+    ),
+)

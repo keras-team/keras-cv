@@ -20,176 +20,19 @@ Reference:
 
 import tensorflow as tf
 from tensorflow import keras
-from tensorflow.keras import backend
 from tensorflow.keras import layers
 
+from keras_cv.models.backbones.csp_darknet.csp_darknet_utils import (
+    DarknetConvBlock,
+)
+from keras_cv.models.backbones.csp_darknet.csp_darknet_utils import (
+    ResidualBlocks,
+)
+from keras_cv.models.backbones.csp_darknet.csp_darknet_utils import (
+    SpatialPyramidPoolingBottleneck,
+)
 from keras_cv.models.legacy import utils
 from keras_cv.models.legacy.weights import parse_weights
-
-
-def DarknetConvBlock(
-    filters, kernel_size, strides, use_bias=False, activation="silu", name=None
-):
-    """The basic conv block used in Darknet. Applies Conv2D followed by a
-    BatchNorm.
-
-    Args:
-        filters: Integer, the dimensionality of the output space (i.e. the
-            number of output filters in the convolution).
-        kernel_size: An integer or tuple/list of 2 integers, specifying the
-            height and width of the 2D convolution window. Can be a single
-            integer to specify the same value both dimensions.
-        strides: An integer or tuple/list of 2 integers, specifying the strides
-            of the convolution along the height and width. Can be a single
-            integer to the same value both dimensions.
-        use_bias: Boolean, whether the layer uses a bias vector.
-        activation: the activation applied after the BatchNorm layer. One of
-            "silu", "relu" or "leaky_relu", defaults to "silu".
-        name: the prefix for the layer names used in the block.
-    """
-
-    if name is None:
-        name = f"conv_block{backend.get_uid('conv_block')}"
-
-    model_layers = [
-        layers.Conv2D(
-            filters,
-            kernel_size,
-            strides,
-            padding="same",
-            use_bias=use_bias,
-            name=name + "_conv",
-        ),
-        layers.BatchNormalization(name=name + "_bn"),
-    ]
-
-    if activation == "silu":
-        model_layers.append(layers.Lambda(lambda x: keras.activations.swish(x)))
-    elif activation == "relu":
-        model_layers.append(layers.ReLU())
-    elif activation == "leaky_relu":
-        model_layers.append(layers.LeakyReLU(0.1))
-
-    return keras.Sequential(model_layers, name=None)
-
-
-def ResidualBlocks(filters, num_blocks, name=None):
-    """A residual block used in DarkNet models, repeated `num_blocks` times.
-
-    Args:
-        filters: Integer, the dimensionality of the output spaces (i.e. the
-            number of output filters in used the blocks).
-        num_blocks: number of times the residual connections are repeated
-        name: the prefix for the layer names used in the block.
-
-    Returns:
-        a function that takes an input Tensor representing a ResidualBlock.
-    """
-
-    if name is None:
-        name = f"residual_block{backend.get_uid('residual_block')}"
-
-    def apply(x):
-        x = DarknetConvBlock(
-            filters,
-            kernel_size=3,
-            strides=2,
-            activation="leaky_relu",
-            name=f"{name}_conv1",
-        )(x)
-
-        for i in range(1, num_blocks + 1):
-            residual = x
-
-            x = DarknetConvBlock(
-                filters // 2,
-                kernel_size=1,
-                strides=1,
-                activation="leaky_relu",
-                name=f"{name}_conv{2*i}",
-            )(x)
-            x = DarknetConvBlock(
-                filters,
-                kernel_size=3,
-                strides=1,
-                activation="leaky_relu",
-                name=f"{name}_conv{2*i + 1}",
-            )(x)
-
-            if i == num_blocks:
-                x = layers.Add(name=f"{name}_out")([residual, x])
-            else:
-                x = layers.Add(name=f"{name}_add_{i}")([residual, x])
-
-        return x
-
-    return apply
-
-
-def SpatialPyramidPoolingBottleneck(
-    filters,
-    hidden_filters=None,
-    kernel_sizes=(5, 9, 13),
-    activation="silu",
-    name=None,
-):
-    """Spatial pyramid pooling layer used in YOLOv3-SPP
-
-    Args:
-        filters: Integer, the dimensionality of the output spaces (i.e. the
-            number of output filters in used the blocks).
-        hidden_filters: Integer, the dimensionality of the intermediate
-            bottleneck space (i.e. the number of output filters in the
-            bottleneck convolution). If None, it will be equal to filters.
-            Defaults to None.
-        kernel_sizes: A list or tuple representing all the pool sizes used for
-            the pooling layers, defaults to (5, 9, 13).
-        activation: Activation for the conv layers, defaults to "silu".
-        name: the prefix for the layer names used in the block.
-
-    Returns:
-        a function that takes an input Tensor representing an
-        SpatialPyramidPoolingBottleneck.
-    """
-    if name is None:
-        name = f"spp{backend.get_uid('spp')}"
-
-    if hidden_filters is None:
-        hidden_filters = filters
-
-    def apply(x):
-        x = DarknetConvBlock(
-            hidden_filters,
-            kernel_size=1,
-            strides=1,
-            activation=activation,
-            name=f"{name}_conv1",
-        )(x)
-        x = [x]
-
-        for kernel_size in kernel_sizes:
-            x.append(
-                layers.MaxPooling2D(
-                    kernel_size,
-                    strides=1,
-                    padding="same",
-                    name=f"{name}_maxpool_{kernel_size}",
-                )(x[0])
-            )
-
-        x = layers.Concatenate(name=f"{name}_concat")(x)
-        x = DarknetConvBlock(
-            filters,
-            kernel_size=1,
-            strides=1,
-            activation=activation,
-            name=f"{name}_conv2",
-        )(x)
-
-        return x
-
-    return apply
-
 
 BASE_DOCSTRING = """Represents the {name} architecture.
 
