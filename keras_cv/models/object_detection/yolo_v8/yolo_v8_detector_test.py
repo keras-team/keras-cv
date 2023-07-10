@@ -221,6 +221,7 @@ class YOLOV8DetectorSmokeTest(tf.test.TestCase, parameterized.TestCase):
     @parameterized.named_parameters(
         *[(preset, preset) for preset in test_backbone_presets]
     )
+    @pytest.mark.extra_large
     def test_backbone_preset(self, preset):
         model = keras_cv.models.YOLOV8Detector.from_preset(
             preset,
