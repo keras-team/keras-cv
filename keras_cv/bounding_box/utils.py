@@ -142,7 +142,8 @@ def _clip_boxes(boxes, box_format, image_shape):
         max_length = [height, width, height, width]
     else:
         image_shape = ops.cast(image_shape, dtype=boxes.dtype)
-        height, width, _ = ops.unstack(image_shape, axis=-1)
+        height = image_shape[0]
+        width = image_shape[1]
         max_length = ops.stack([height, width, height, width], axis=-1)
 
     clipped_boxes = ops.maximum(ops.minimum(boxes, max_length), 0.0)
