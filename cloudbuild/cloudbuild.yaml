@@ -10,13 +10,9 @@ substitutions:
 steps:
 - name: 'gcr.io/cloud-builders/docker'
   id: build-image
-  args: [
-    'build',
-    '.',
-    '-f', 'cloudbuild/Dockerfile',
-    '-t', '$_IMAGE_NAME:$BUILD_ID',
-    '--build_arg', 'IMAGE_NAME=$_IMAGE_NAME:deps',
-  ]
+  entrypoint: 'bash'
+  args:
+      ['-c', 'docker build -f cloudbuild/Dockerfile -t $_IMAGE_NAME:$BUILD_ID --build_arg IMAGE_NAME=$_IMAGE_NAME:deps .']
 - name: 'gcr.io/cloud-builders/docker'
   id: push-image
   waitFor:
