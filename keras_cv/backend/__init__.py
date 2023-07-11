@@ -48,6 +48,9 @@ else:
     if not hasattr(keras, "saving"):
         keras.saving = types.SimpleNamespace()
 
+    if not hasattr(keras, "backend"):
+        keras.backend = keras.src.backend
+
     # add aliases
     for key, value in _KERAS_CORE_ALIASES.items():
         src, _, dst = key.partition("->")

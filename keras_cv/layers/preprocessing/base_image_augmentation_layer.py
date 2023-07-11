@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import tensorflow as tf
-from keras.src import backend as keras_backend
+from keras import backend as keras_backend
 
 from keras_cv import bounding_box
 from keras_cv.backend import keras
