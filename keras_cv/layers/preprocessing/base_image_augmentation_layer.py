@@ -12,7 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import keras
 import tensorflow as tf
+
+if hasattr(keras, "src"):
+    keras_backend = keras.src.backend
+else:
+    keras_backend = keras.backend
 
 from keras_cv import bounding_box
 from keras_cv.backend import keras
@@ -117,14 +123,14 @@ class BaseImageAugmentationLayer(base_class):
     ```
 
     Note that since the randomness is also a common functionality, this layer
-    also includes a keras.backend.RandomGenerator, which can be used to
+    also includes a keras_backend.RandomGenerator, which can be used to
     produce the random numbers. The random number generator is stored in the
     `self._random_generator` attribute.
     """
 
     def __init__(self, seed=None, **kwargs):
         force_generator = kwargs.pop("force_generator", False)
-        self._random_generator = keras.backend.RandomGenerator(
+        self._random_generator = keras_backend.RandomGenerator(
             seed=seed, force_generator=force_generator
         )
         super().__init__(**kwargs)
