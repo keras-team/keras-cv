@@ -24,12 +24,10 @@ local unittest = base.BaseTest {
     '-c',
     |||
       # Run whatever is in `command` here.
-      ${@:0}
+      KERAS_BACKEND=${backend} JAX_ENABLE_X64=true ${@:0}
     |||
   ],
   command: [
-    'KERAS_BACKEND=${backend}',
-    'JAX_ENABLE_X64=true',
     'pytest --run_large --durations 0',
     'keras_cv/bounding_box',
     'keras_cv/callbacks',
