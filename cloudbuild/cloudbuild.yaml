@@ -8,16 +8,16 @@ substitutions:
   # Image name.
   _IMAGE_NAME: 'us-west1-docker.pkg.dev/keras-team-test/keras-cv-test/keras-cv-image-${_BACKEND}'
 steps:
-- name: 'docker'
+- name: 'gcr.io/cloud-builders/docker'
   id: build-image
   args: [
     'build',
     '.',
     '-f', 'cloudbuild/Dockerfile',
     '-t', '$_IMAGE_NAME:$BUILD_ID',
-    '--build_arg', 'IMAGE_NAME=us-west1-docker.pkg.dev/keras-team-test/keras-cv-test/keras-cv-image-${_BACKEND}:deps'
+    '--build_arg', 'IMAGE_NAME=$IMAGE_NAME:deps',
   ]
-- name: 'docker'
+- name: 'gcr.io/cloud-builders/docker'
   id: push-image
   waitFor:
   - build-image
