@@ -149,9 +149,10 @@ train_ds = train_ds.map(augmenter, num_parallel_calls=tf.data.AUTOTUNE)
 
 
 def pad_fn(inputs):
-    return inputs["images"], keras_cv.bounding_box.to_dense(
+    inputs["bounding_boxes"] = keras_cv.bounding_box.to_dense(
         inputs["bounding_boxes"], max_boxes=32
     )
+    return inputs
 
 
 train_ds = train_ds.shuffle(8 * strategy.num_replicas_in_sync)

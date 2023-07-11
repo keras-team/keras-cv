@@ -15,40 +15,35 @@
 import itertools
 
 import numpy as np
+import pytest
 import tensorflow as tf
 from absl.testing import parameterized
 
 from keras_cv import bounding_box
 
-xyxy_box = tf.constant(
-    [[[10, 20, 110, 120], [20, 30, 120, 130]]], dtype=tf.float32
+xyxy_box = np.array([[[10, 20, 110, 120], [20, 30, 120, 130]]], dtype="float32")
+yxyx_box = np.array([[[20, 10, 120, 110], [30, 20, 130, 120]]], dtype="float32")
+rel_xyxy_box = np.array(
+    [[[0.01, 0.02, 0.11, 0.12], [0.02, 0.03, 0.12, 0.13]]], dtype="float32"
 )
-yxyx_box = tf.constant(
-    [[[20, 10, 120, 110], [30, 20, 130, 120]]], dtype=tf.float32
+rel_xyxy_box_ragged_images = np.array(
+    [[[0.10, 0.20, 1.1, 1.20], [0.40, 0.6, 2.40, 2.6]]], dtype="float32"
 )
-rel_xyxy_box = tf.constant(
-    [[[0.01, 0.02, 0.11, 0.12], [0.02, 0.03, 0.12, 0.13]]], dtype=tf.float32
+rel_yxyx_box = np.array(
+    [[[0.02, 0.01, 0.12, 0.11], [0.03, 0.02, 0.13, 0.12]]], dtype="float32"
 )
-rel_xyxy_box_ragged_images = tf.constant(
-    [[[0.10, 0.20, 1.1, 1.20], [0.40, 0.6, 2.40, 2.6]]], dtype=tf.float32
+rel_yxyx_box_ragged_images = np.array(
+    [[[0.2, 0.1, 1.2, 1.1], [0.6, 0.4, 2.6, 2.4]]], dtype="float32"
 )
-rel_yxyx_box = tf.constant(
-    [[[0.02, 0.01, 0.12, 0.11], [0.03, 0.02, 0.13, 0.12]]], dtype=tf.float32
+center_xywh_box = np.array(
+    [[[60, 70, 100, 100], [70, 80, 100, 100]]], dtype="float32"
 )
-rel_yxyx_box_ragged_images = tf.constant(
-    [[[0.2, 0.1, 1.2, 1.1], [0.6, 0.4, 2.6, 2.4]]], dtype=tf.float32
+xywh_box = np.array([[[10, 20, 100, 100], [20, 30, 100, 100]]], dtype="float32")
+rel_xywh_box = np.array(
+    [[[0.01, 0.02, 0.1, 0.1], [0.02, 0.03, 0.1, 0.1]]], dtype="float32"
 )
-center_xywh_box = tf.constant(
-    [[[60, 70, 100, 100], [70, 80, 100, 100]]], dtype=tf.float32
-)
-xywh_box = tf.constant(
-    [[[10, 20, 100, 100], [20, 30, 100, 100]]], dtype=tf.float32
-)
-rel_xywh_box = tf.constant(
-    [[[0.01, 0.02, 0.1, 0.1], [0.02, 0.03, 0.1, 0.1]]], dtype=tf.float32
-)
-rel_xywh_box_ragged_images = tf.constant(
-    [[[0.1, 0.2, 1, 1], [0.4, 0.6, 2, 2]]], dtype=tf.float32
+rel_xywh_box_ragged_images = np.array(
+    [[[0.1, 0.2, 1, 1], [0.4, 0.6, 2, 2]]], dtype="float32"
 )
 
 ragged_images = tf.ragged.constant(
@@ -56,9 +51,9 @@ ragged_images = tf.ragged.constant(
     ragged_rank=2,
 )
 
-images = tf.ones([2, 1000, 1000, 3])
+images = np.ones([2, 1000, 1000, 3])
 
-ragged_classes = tf.ragged.constant([[0], [0]], dtype=tf.float32)
+ragged_classes = tf.ragged.constant([[0], [0]], dtype="float32")
 
 boxes = {
     "xyxy": xyxy_box,
@@ -107,6 +102,7 @@ class ConvertersTestCase(tf.test.TestCase, parameterized.TestCase):
         )
 
     @parameterized.named_parameters(*test_image_ragged)
+    @pytest.mark.tf_keras_only
     def test_converters_ragged_images(self, source, target):
         source_box = _raggify(boxes_ragged_images[source])
         target_box = _raggify(boxes_ragged_images[target])
@@ -157,6 +153,7 @@ class ConvertersTestCase(tf.test.TestCase, parameterized.TestCase):
         )
 
     @parameterized.named_parameters(*test_cases)
+    @pytest.mark.tf_keras_only
     def test_ragged_bounding_box(self, source, target):
         source_box = _raggify(boxes[source])
         target_box = _raggify(boxes[target])
@@ -168,6 +165,7 @@ class ConvertersTestCase(tf.test.TestCase, parameterized.TestCase):
         )
 
     @parameterized.named_parameters(*test_image_ragged)
+    @pytest.mark.tf_keras_only
     def test_ragged_bounding_box_ragged_images(self, source, target):
         source_box = _raggify(boxes_ragged_images[source])
         target_box = _raggify(boxes_ragged_images[target])
@@ -179,6 +177,7 @@ class ConvertersTestCase(tf.test.TestCase, parameterized.TestCase):
         )
 
     @parameterized.named_parameters(*test_cases)
+    @pytest.mark.tf_keras_only
     def test_ragged_bounding_box_with_image_shape(self, source, target):
         source_box = _raggify(boxes[source])
         target_box = _raggify(boxes[target])
@@ -193,6 +192,7 @@ class ConvertersTestCase(tf.test.TestCase, parameterized.TestCase):
         )
 
     @parameterized.named_parameters(*test_image_ragged)
+    @pytest.mark.tf_keras_only
     def test_dense_bounding_box_with_ragged_images(self, source, target):
         source_box = _raggify(boxes_ragged_images[source])
         target_box = _raggify(boxes_ragged_images[target])

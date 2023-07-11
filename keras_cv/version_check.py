@@ -18,7 +18,7 @@
 import tensorflow as tf
 from packaging.version import parse
 
-MIN_VERSION = "2.11.0"
+MIN_VERSION = "2.13.0"
 
 
 def check_tf_version():

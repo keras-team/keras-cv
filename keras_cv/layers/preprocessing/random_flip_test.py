@@ -263,7 +263,7 @@ class RandomFlipTest(tf.test.TestCase, parameterized.TestCase):
         self.assertAllClose(expected_mask, output["segmentation_masks"])
 
     def test_ragged_bounding_boxes(self):
-        input_image = np.random.random((2, 512, 512, 3)).astype(np.float32)
+        input_image = tf.random.uniform((2, 512, 512, 3))
         bounding_boxes = {
             "boxes": tf.ragged.constant(
                 [

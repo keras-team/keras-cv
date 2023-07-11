@@ -12,13 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 import warnings
 
-import tensorflow as tf
-from tensorflow import keras
-
 from keras_cv import bounding_box
+from keras_cv.backend import keras
+from keras_cv.backend import ops
 
 
 class GIoULoss(keras.losses.Loss):
@@ -44,16 +42,8 @@ class GIoULoss(keras.losses.Loss):
 
     Sample Usage:
     ```python
-    y_true = tf.random.uniform(
-        (5, 10, 5),
-        minval=0,
-        maxval=10,
-        dtype=tf.dtypes.int32)
-    y_pred = tf.random.uniform(
-        (5, 10, 4),
-        minval=0,
-        maxval=10,
-        dtype=tf.dtypes.int32)
+    y_true = np.random.uniform(size=(5, 10, 5), low=0, high=10)
+    y_pred = np.random.uniform(size=(5, 10, 4), low=0, high=10)
     loss = GIoULoss(bounding_box_format = "xyWH")
     loss(y_true, y_pred).numpy()
     ```
@@ -70,23 +60,19 @@ class GIoULoss(keras.losses.Loss):
         self.axis = axis
 
     def _compute_enclosure(self, boxes1, boxes2):
-        y_min1, x_min1, y_max1, x_max1 = tf.split(
-            boxes1[..., :4], num_or_size_splits=4, axis=-1
-        )
-        y_min2, x_min2, y_max2, x_max2 = tf.split(
-            boxes2[..., :4], num_or_size_splits=4, axis=-1
-        )
+        y_min1, x_min1, y_max1, x_max1 = ops.split(boxes1[..., :4], 4, axis=-1)
+        y_min2, x_min2, y_max2, x_max2 = ops.split(boxes2[..., :4], 4, axis=-1)
         boxes2_rank = len(boxes2.shape)
         perm = [1, 0] if boxes2_rank == 2 else [0, 2, 1]
         # [N, M] or [batch_size, N, M]
-        zeros_t = tf.cast(0, boxes1.dtype)
+        zeros_t = ops.cast(0, boxes1.dtype)
 
-        enclose_ymin = tf.minimum(y_min1, tf.transpose(y_min2, perm))
-        enclose_xmin = tf.minimum(x_min1, tf.transpose(x_min2, perm))
-        enclose_ymax = tf.maximum(y_max1, tf.transpose(y_max2, perm))
-        enclose_xmax = tf.maximum(x_max1, tf.transpose(x_max2, perm))
-        enclose_width = tf.maximum(zeros_t, enclose_xmax - enclose_xmin)
-        enclose_height = tf.maximum(zeros_t, enclose_ymax - enclose_ymin)
+        enclose_ymin = ops.minimum(y_min1, ops.transpose(y_min2, perm))
+        enclose_xmin = ops.minimum(x_min1, ops.transpose(x_min2, perm))
+        enclose_ymax = ops.maximum(y_max1, ops.transpose(y_max2, perm))
+        enclose_xmax = ops.maximum(x_max1, ops.transpose(x_max2, perm))
+        enclose_width = ops.maximum(zeros_t, enclose_xmax - enclose_xmin)
+        enclose_height = ops.maximum(zeros_t, enclose_ymax - enclose_ymin)
         enclose_area = enclose_width * enclose_height
 
         return enclose_area
@@ -127,16 +113,16 @@ class GIoULoss(keras.losses.Loss):
         boxes2_area = bounding_box.iou._compute_area(boxes2)
         boxes2_area_rank = len(boxes2_area.shape)
         boxes2_axis = 1 if (boxes2_area_rank == 2) else 0
-        boxes1_area = tf.expand_dims(boxes1_area, axis=-1)
-        boxes2_area = tf.expand_dims(boxes2_area, axis=boxes2_axis)
+        boxes1_area = ops.expand_dims(boxes1_area, axis=-1)
+        boxes2_area = ops.expand_dims(boxes2_area, axis=boxes2_axis)
         union_area = boxes1_area + boxes2_area - intersect_area
-        iou = tf.math.divide_no_nan(intersect_area, union_area)
+        iou = ops.divide(intersect_area, union_area + keras.backend.epsilon())
 
         # giou calculation
         enclose_area = self._compute_enclosure(boxes1, boxes2)
 
-        return iou - tf.math.divide_no_nan(
-            (enclose_area - union_area), enclose_area
+        return iou - ops.divide(
+            (enclose_area - union_area), enclose_area + keras.backend.epsilon()
         )
 
     def call(self, y_true, y_pred, sample_weight=None):
@@ -146,8 +132,8 @@ class GIoULoss(keras.losses.Loss):
                 f"sample_weight=None. Got sample_weight={sample_weight}"
             )
 
-        y_pred = tf.convert_to_tensor(y_pred)
-        y_true = tf.cast(y_true, y_pred.dtype)
+        y_pred = ops.convert_to_tensor(y_pred)
+        y_true = ops.cast(y_true, y_pred.dtype)
 
         if y_pred.shape[-1] != 4:
             raise ValueError(
@@ -170,7 +156,9 @@ class GIoULoss(keras.losses.Loss):
             )
 
         giou = self._compute_giou(y_true, y_pred)
-        giou = tf.linalg.diag_part(giou)
+        giou = ops.diagonal(
+            giou,
+        )
         if self.axis == "no_reduction":
             warnings.warn(
                 "`axis='no_reduction'` is a temporary API, and the API "
@@ -178,7 +166,7 @@ class GIoULoss(keras.losses.Loss):
                 "solution covering all losses."
             )
         else:
-            giou = tf.reduce_mean(giou, axis=self.axis)
+            giou = ops.mean(giou, axis=self.axis)
 
         return 1 - giou
 

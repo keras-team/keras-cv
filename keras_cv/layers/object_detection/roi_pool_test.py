@@ -12,11 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
 import tensorflow as tf
 
 from keras_cv.layers.object_detection.roi_pool import ROIPooler
 
 
+@pytest.mark.tf_keras_only
 class ROIPoolTest(tf.test.TestCase):
     def test_no_quantize(self):
         roi_pooler = ROIPooler(

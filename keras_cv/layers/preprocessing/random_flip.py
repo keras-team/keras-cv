@@ -13,9 +13,9 @@
 # limitations under the License.
 
 import tensorflow as tf
-from tensorflow import keras
 
 from keras_cv import bounding_box
+from keras_cv.backend import keras
 from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     VectorizedBaseImageAugmentationLayer,
 )
@@ -31,7 +31,7 @@ VERTICAL = "vertical"
 HORIZONTAL_AND_VERTICAL = "horizontal_and_vertical"
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+@keras.saving.register_keras_serializable(package="keras_cv")
 class RandomFlip(VectorizedBaseImageAugmentationLayer):
     """A preprocessing layer which randomly flips images.
 
