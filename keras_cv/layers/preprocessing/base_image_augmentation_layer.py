@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import tensorflow as tf
-from keras import backend as keras_backend
 
 from keras_cv import bounding_box
 from keras_cv.backend import keras
@@ -125,7 +124,7 @@ class BaseImageAugmentationLayer(base_class):
 
     def __init__(self, seed=None, **kwargs):
         force_generator = kwargs.pop("force_generator", False)
-        self._random_generator = keras_backend.RandomGenerator(
+        self._random_generator = keras.backend.RandomGenerator(
             seed=seed, force_generator=force_generator
         )
         super().__init__(**kwargs)
