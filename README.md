@@ -71,7 +71,7 @@ using it on top of your backend of choice:
 import keras_cv
 import keras_core as keras
 
-filepath = keras_core.utils.get_file(origin="https://i.imgur.com/gCNcJJI.jpg")
+filepath = keras.utils.get_file(origin="https://i.imgur.com/gCNcJJI.jpg")
 image = np.array(keras.utils.load_img(filepath))
 image_resized = ops.image.resize(image, (640, 640))[None, ...]
 
@@ -83,9 +83,10 @@ predictions = model.predict(image_resized)
 ```
 
 Until Keras Core is officially released as the new Keras, KerasCV will use 
-`tf.keras` as the default backend. To restore this default behavior, simply set 
-`"multi_backend": False` in `.keras/keras_cv.json`. You will need to restart the
-Python runtime for changes to take effect.
+`tf.keras` as the default backend. To restore this default behavior, simply 
+unset `KERAS_BACKEND` and ensure that  `"multi_backend": False` or is unset in 
+`.keras/keras_cv.json`. You will need to restart the Python runtime for changes 
+to take effect.
 
 ## Quickstart
 
