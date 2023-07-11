@@ -24,7 +24,7 @@ Applied computer vision engineers can leverage KerasCV to quickly assemble
 production-grade, state-of-the-art training and inference pipelines for all of 
 these common tasks.
 
-With the release of Keras Core (link)[https://keras.io/keras_core/announcement/],
+With the release of [Keras Core](https://keras.io/keras_core/announcement/),
 KerasCV models and checkpoints can be natively trained and evaluated in 
 TensorFlow, JAX, or PyTorch. See "Using KerasCV with Keras Core" below for
 instructions.
