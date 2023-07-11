@@ -22,16 +22,19 @@ local unittest = base.BaseTest {
   entrypoint: [
     'bash',
     '-c',
-    |||
-      export KERAS_BACKEND=jax
-      echo $backend
-      export JAX_ENABLE_X64=true
+    std.format(
+      |||
+        export KERAS_BACKEND=%s
+        export JAX_ENABLE_X64=true
 
-      # Run whatever is in `command` here.
-      ${@:0}
-    |||
+        # Run whatever is in `command` here.
+        ${@:0}
+      |||,
+      backend
+    )
   ],
   command: [
+    'export KERAS_BACKEND=$backend &&'
     'pytest --run_large --durations 0',
     'keras_cv/bounding_box',
     'keras_cv/callbacks',
