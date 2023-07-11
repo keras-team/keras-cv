@@ -44,12 +44,13 @@ RUN pip install -r keras-cv/requirements.txt
 ```
 - Run the following command from the directory with your `Dockerfile`:
 ```
-gcloud builds submit --region=us-west1 --tag us-west1-docker.pkg.dev/keras-team-test/keras-cv-test/keras-cv-image-tf:deps --timeout=10m
+gcloud builds submit --region=us-west1 --tag us-west1-docker.pkg.dev/keras-team-test/keras-cv-test/keras-cv-image-tf:deps --timeout=20m
 ```
 - Repeat the last two steps for Jax and Torch (replacing "tf" with "jax" or
   "torch" in the docker image target name). `Dockerfile` for jax:
 ```
 FROM tensorflow/tensorflow:2.13.0-gpu
+RUN apt-get -y update
 RUN apt-get -y install git
 RUN git clone https://github.com/{path_to_keras_cv_fork}.git
 RUN cd keras-cv && git checkout {branch_name}
@@ -59,6 +60,7 @@ RUN pip install --upgrade "jax[cuda12_pip]" -f https://storage.googleapis.com/ja
   and for torch:
 ```
 FROM tensorflow/tensorflow:2.13.0-gpu
+RUN apt-get -y update
 RUN apt-get -y install git
 RUN git clone https://github.com/{path_to_keras_cv_fork}.git
 RUN cd keras-cv && git checkout {branch_name}

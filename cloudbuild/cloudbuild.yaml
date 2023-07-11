@@ -6,15 +6,16 @@ substitutions:
   # Location of GKE cluster.
   _CLUSTER_ZONE: 'us-west1-b'
   # Image name.
-  _IMAGE_NAME: 'us-west1-docker.pkg.dev/keras-team-test/keras-cv-test/keras-cv-image-jax'
+  _IMAGE_NAME: 'us-west1-docker.pkg.dev/keras-team-test/keras-cv-test/keras-cv-image-$_BACKEND'
 steps:
 - name: 'docker'
   id: build-image
   args: [
     'build',
     '.',
-    '-f', 'cloudbuild/Dockerfile-jax',
+    '-f', 'cloudbuild/Dockerfile',
     '-t', '$_IMAGE_NAME:$BUILD_ID',
+    '--build_arg', 'IMAGE_NAME=us-west1-docker.pkg.dev/keras-team-test/keras-cv-test/keras-cv-image-${_BACKEND}:deps'
   ]
 - name: 'docker'
   id: push-image
@@ -44,12 +45,13 @@ steps:
   - clone-templates
   entrypoint: 'jsonnet'
   args: [
-    'cloudbuild/unit_test_jobs_tf.jsonnet',
+    'cloudbuild/unit_test_jobs.jsonnet',
     '--string',
     '-J', 'ml-testing-accelerators',
     '--ext-str', 'image=$_IMAGE_NAME',
     '--ext-str', 'tag_name=$BUILD_ID',
     '--ext-str', 'gcs_bucket=$_GCS_BUCKET',
+    '--ext-str', 'backend=$_BACKEND',
     '-o', 'output.yaml',
   ]
 - name: 'gcr.io/cloud-builders/gcloud'
