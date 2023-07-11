@@ -12,8 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import keras
 import tensorflow as tf
-from keras.src import backend as keras_backend
+
+if hasattr(keras, "src"):
+    keras_backend = keras.src.backend
+else:
+    keras_backend = keras.backend
 
 from keras_cv import bounding_box
 from keras_cv.backend import keras
@@ -97,7 +102,7 @@ class VectorizedBaseImageAugmentationLayer(base_class):
     ```
 
     Note that since the randomness is also a common functionality, this layer
-    also includes a keras.backend.RandomGenerator, which can be used to
+    also includes a keras_backend.RandomGenerator, which can be used to
     produce the random numbers. The random number generator is stored in the
     `self._random_generator` attribute.
     """
