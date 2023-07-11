@@ -23,15 +23,13 @@ local unittest = base.BaseTest {
     'bash',
     '-c',
     |||
-      export TEST_CUSTOM_OPS=false
-      export KERAS_BACKEND=${backend}
-      export JAX_ENABLE_X64=true
-
       # Run whatever is in `command` here.
       ${@:0}
     |||
   ],
   command: [
+    'KERAS_BACKEND=${backend}',
+    'JAX_ENABLE_X64=true',
     'pytest --run_large --durations 0',
     'keras_cv/bounding_box',
     'keras_cv/callbacks',
