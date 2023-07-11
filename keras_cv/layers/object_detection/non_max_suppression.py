@@ -88,8 +88,17 @@ class NonMaxSuppression(keras.layers.Layer):
 
         confidence_prediction = ops.max(class_prediction, axis=-1)
 
-        # TODO(tirthasheshpatel): Use backend-specific op where available
-        if multi_backend():
+        if not multi_backend() or keras.backend.backend() == "tensorflow":
+            idx, valid_det = tf.image.non_max_suppression_padded(
+                box_prediction,
+                confidence_prediction,
+                max_output_size=self.max_detections,
+                iou_threshold=self.iou_threshold,
+                score_threshold=self.confidence_threshold,
+                pad_to_max_output_size=True,
+                sorted_input=False,
+            )
+        elif keras.backend.backend() == "torch":
             # Since TorchVision has a nice efficient NMS op, we might as well
             # use it!
             if keras.backend.backend() == "torch":
@@ -121,27 +130,13 @@ class NonMaxSuppression(keras.layers.Layer):
 
                     valid_det[batch_idx] = ops.cast(ops.size(idx_i), "int32")
                     idx[batch_idx, :num_boxes] = idx_i
-
-            else:
-                idx, valid_det = non_max_suppression(
-                    box_prediction,
-                    confidence_prediction,
-                    max_output_size=self.max_detections,
-                    iou_threshold=self.iou_threshold,
-                    score_threshold=self.confidence_threshold,
-                )
         else:
-            # For non-multibackend, our NMS fails during graph tracing due to
-            # the lack of a defined batch size, so we just fall back to the
-            # original implementation that this is ported from.
-            idx, valid_det = tf.image.non_max_suppression_padded(
+            idx, valid_det = non_max_suppression(
                 box_prediction,
                 confidence_prediction,
                 max_output_size=self.max_detections,
                 iou_threshold=self.iou_threshold,
                 score_threshold=self.confidence_threshold,
-                pad_to_max_output_size=True,
-                sorted_input=False,
             )
 
         box_prediction = ops.take_along_axis(
