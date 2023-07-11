@@ -23,7 +23,8 @@ local unittest = base.BaseTest {
     'bash',
     '-c',
     |||
-      export KERAS_BACKEND=$backend
+      export KERAS_BACKEND=jax
+      echo $backend
       export JAX_ENABLE_X64=true
 
       # Run whatever is in `command` here.
