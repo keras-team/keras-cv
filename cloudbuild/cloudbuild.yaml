@@ -6,7 +6,7 @@ substitutions:
   # Location of GKE cluster.
   _CLUSTER_ZONE: 'us-west1-b'
   # Image name.
-  _IMAGE_NAME: 'us-west1-docker.pkg.dev/keras-team-test/keras-cv-test/keras-cv-image-$_BACKEND'
+  _IMAGE_NAME: 'us-west1-docker.pkg.dev/keras-team-test/keras-cv-test/keras-cv-image-${_BACKEND}'
 steps:
 - name: 'docker'
   id: build-image
