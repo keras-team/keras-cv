@@ -13,10 +13,12 @@
 # limitations under the License.
 """Tests for loading pretrained model presets."""
 
+import numpy as np
 import pytest
 import tensorflow as tf
 from absl.testing import parameterized
 
+from keras_cv.backend import ops
 from keras_cv.models.backbones.resnet_v2.resnet_v2_aliases import (
     ResNet50V2Backbone,
 )
@@ -34,7 +36,7 @@ class ResNetV2PresetSmokeTest(tf.test.TestCase, parameterized.TestCase):
     """  # noqa: E501
 
     def setUp(self):
-        self.input_batch = tf.ones(shape=(8, 224, 224, 3))
+        self.input_batch = np.ones(shape=(8, 224, 224, 3))
 
     @parameterized.named_parameters(
         ("preset_with_weights", "resnet50_v2_imagenet"),
@@ -53,7 +55,9 @@ class ResNetV2PresetSmokeTest(tf.test.TestCase, parameterized.TestCase):
             outputs = outputs[0, 0, 0, :5]
             expected = [1.051145, 0, 0, 1.16328, 0]
             # Keep a high tolerance, so we are robust to different hardware.
-            self.assertAllClose(outputs, expected, atol=0.01, rtol=0.01)
+            self.assertAllClose(
+                ops.convert_to_numpy(outputs), expected, atol=0.01, rtol=0.01
+            )
 
     def test_applications_model_output(self):
         model = ResNet50V2Backbone()
@@ -89,7 +93,7 @@ class ResNetV2PresetFullTest(tf.test.TestCase, parameterized.TestCase):
     """  # noqa: E501
 
     def test_load_resnetv2(self):
-        input_data = tf.ones(shape=(8, 224, 224, 3))
+        input_data = np.ones(shape=(8, 224, 224, 3))
         for preset in ResNetV2Backbone.presets:
             model = ResNetV2Backbone.from_preset(preset)
             model(input_data)

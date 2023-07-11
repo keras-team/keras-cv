@@ -14,7 +14,6 @@
 
 import pytest
 import tensorflow as tf
-from tensorflow import keras
 
 import keras_cv
 from keras_cv.callbacks import PyCOCOCallback
@@ -25,18 +24,12 @@ from keras_cv.models.object_detection.__test_utils__ import (
 
 
 class PyCOCOCallbackTest(tf.test.TestCase):
-    @pytest.fixture(autouse=True)
-    def cleanup_global_session(self):
-        # Code before yield runs before the test
-        yield
-        keras.backend.clear_session()
-
     @pytest.mark.large  # Fit is slow, so mark these large.
     def test_model_fit_retinanet(self):
         model = keras_cv.models.RetinaNet(
             num_classes=10,
             bounding_box_format="xywh",
-            backbone=keras_cv.models.ResNet50V2Backbone(),
+            backbone=keras_cv.models.CSPDarkNetTinyBackbone(),
         )
         # all metric formats must match
         model.compile(
@@ -52,8 +45,15 @@ class PyCOCOCallbackTest(tf.test.TestCase):
             bounding_box_format="xyxy", use_dictionary_box_format=True
         )
 
+        def dict_to_tuple(inputs):
+            return inputs["images"], inputs["bounding_boxes"]
+
+        train_ds = train_ds.map(dict_to_tuple)
+        val_ds = val_ds.map(dict_to_tuple)
+
         callback = PyCOCOCallback(
-            validation_data=val_ds, bounding_box_format="xyxy"
+            validation_data=val_ds,
+            bounding_box_format="xyxy",
         )
         history = model.fit(train_ds, callbacks=[callback])
 

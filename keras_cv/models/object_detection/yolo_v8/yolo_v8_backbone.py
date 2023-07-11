@@ -13,10 +13,8 @@
 # limitations under the License.
 import copy
 
-import tensorflow as tf
-from keras import layers
-from tensorflow import keras
-
+from keras_cv.backend import keras
+from keras_cv.backend import ops
 from keras_cv.models import utils
 from keras_cv.models.backbones.backbone import Backbone
 from keras_cv.models.object_detection.yolo_v8.yolo_v8_backbone_presets import (
@@ -48,17 +46,17 @@ def apply_spatial_pyramid_pooling_fast(
         activation=activation,
         name=f"{name}_pre",
     )
-    pool_1 = layers.MaxPool2D(
+    pool_1 = keras.layers.MaxPooling2D(
         pool_size=pool_size, strides=1, padding="same", name=f"{name}_pool1"
     )(x)
-    pool_2 = layers.MaxPool2D(
+    pool_2 = keras.layers.MaxPooling2D(
         pool_size=pool_size, strides=1, padding="same", name=f"{name}_pool2"
     )(pool_1)
-    pool_3 = layers.MaxPool2D(
+    pool_3 = keras.layers.MaxPooling2D(
         pool_size=pool_size, strides=1, padding="same", name=f"{name}_pool3"
     )(pool_2)
 
-    out = tf.concat([x, pool_1, pool_2, pool_3], axis=channel_axis)
+    out = ops.concatenate([x, pool_1, pool_2, pool_3], axis=channel_axis)
     out = apply_conv_bn(
         out,
         input_channels,
@@ -129,7 +127,7 @@ class YOLOV8Backbone(Backbone):
 
         x = inputs
         if include_rescaling:
-            x = layers.Rescaling(1 / 255.0)(x)
+            x = keras.layers.Rescaling(1 / 255.0)(x)
 
         """ Stem """
         stem_width = stackwise_channels[0]
@@ -151,7 +149,7 @@ class YOLOV8Backbone(Backbone):
         )
 
         """ blocks """
-        pyramid_level_inputs = {"P1": x.node.layer.name}
+        pyramid_level_inputs = {"P1": utils.get_tensor_input_name(x)}
         for stack_id, (channel, depth) in enumerate(
             zip(stackwise_channels, stackwise_depth)
         ):
@@ -180,7 +178,9 @@ class YOLOV8Backbone(Backbone):
                     activation=activation,
                     name=f"{stack_name}_spp_fast",
                 )
-            pyramid_level_inputs[f"P{stack_id + 2}"] = x.node.layer.name
+            pyramid_level_inputs[
+                f"P{stack_id + 2}"
+            ] = utils.get_tensor_input_name(x)
 
         super().__init__(inputs=inputs, outputs=x, **kwargs)
         self.pyramid_level_inputs = pyramid_level_inputs
