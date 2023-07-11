@@ -22,11 +22,8 @@ local unittest = base.BaseTest {
     'bash',
     '-c',
     |||
-      # Build custom ops from source
-      python build_deps/configure.py
-      bazel-5.4.0 build keras_cv/custom_ops:all --verbose_failures
-      cp bazel-bin/keras_cv/custom_ops/*.so keras_cv/custom_ops/
-      export TEST_CUSTOM_OPS=true
+      export TEST_CUSTOM_OPS=false
+      export KERAS_BACKEND=torch
 
       # Run whatever is in `command` here.
       ${@:0}
