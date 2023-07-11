@@ -34,7 +34,6 @@ local unittest = base.BaseTest {
     )
   ],
   command: [
-    'export KERAS_BACKEND=$backend &&'
     'pytest --run_large --durations 0',
     'keras_cv/bounding_box',
     'keras_cv/callbacks',
