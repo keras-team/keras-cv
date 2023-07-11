@@ -54,15 +54,13 @@ pip install git+https://github.com/keras-team/keras-cv.git tensorflow --upgrade
 ## Using KerasCV with Keras Core
 
 As of version 0.6.0, KerasCV supports multiple backends with Keras Core out of 
-the box. There are three ways to configure KerasCV to run with multi-backend 
+the box. There are two ways to configure KerasCV to run with multi-backend 
 support:
 
 1. Via the `KERAS_BACKEND` environment variable. If set, then KerasCV will be 
 using Keras Core with the backend specified (e.g., `KERAS_BACKEND=jax`).
-2. Via the environment variable `KERAS_CV_MULTI_BACKEND` (e.g, 
-`KERAS_CV_MULTI_BACKEND=true`).
-3. Via the `.keras/keras.json` and `.keras/keras_cv.json` config files (which 
-are automatically created the first time you import KerasCV).
+2. Via the `.keras/keras.json` and `.keras/keras_cv.json` config files (which 
+are automatically created the first time you import KerasCV):
 - Set your backend of choice in `.keras/keras.json`; e.g., `"backend": "jax"`. 
 - Set `"multi_backend": True` in `.keras/keras_cv.json`.
 
@@ -86,8 +84,7 @@ predictions = model.predict(image_resized)
 
 Until Keras Core is officially released as the new Keras, KerasCV will use 
 `tf.keras` as the default backend. To restore this default behavior, simply set 
-`"multi_backend": False` in `.keras/keras_cv.json` and ensure that 
-`KERAS_CV_MULTI_BACKEND=false` or is not defined. You will need to restart the 
+`"multi_backend": False` in `.keras/keras_cv.json`. You will need to restart the
 Python runtime for changes to take effect.
 
 ## Quickstart
