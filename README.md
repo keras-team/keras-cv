@@ -6,9 +6,11 @@
 ![Tensorflow](https://img.shields.io/badge/tensorflow-v2.9.0+-success.svg)
 [![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/keras-team/keras-cv/issues)
 
-KerasCV is a library of modular, framework-agnostic computer vision components 
-that works natively with TensorFlow, JAX, or PyTorch. These components include 
-models, layers, metrics, losses, callbacks, and utility functions.
+KerasCV is a library of modular computer vision components that work natively 
+with TensorFlow, JAX, or PyTorch. Built on [Keras Core](https://keras.io/keras_core/announcement/),
+these models, layers, metrics, etc. can be trained and serialized
+in any framework and re-used in another without costly migrations. See "Using 
+KerasCV with Keras Core" below for more details on multi-framework KerasCV.
 
 <img style="width: 440px; max-width: 90%;" src="https://storage.googleapis.com/keras-cv/guides/keras-cv-augmentations.gif">
 
@@ -23,11 +25,6 @@ classification, object detection, segmentation, image generation, and more.
 Applied computer vision engineers can leverage KerasCV to quickly assemble 
 production-grade, state-of-the-art training and inference pipelines for all of 
 these common tasks.
-
-With the release of [Keras Core](https://keras.io/keras_core/announcement/),
-KerasCV models and checkpoints can be natively trained and evaluated in 
-TensorFlow, JAX, or PyTorch. See "Using KerasCV with Keras Core" below for
-instructions.
 
 ## Quick Links
 - [List of available models and presets](https://keras.io/api/keras_cv/models/)
@@ -53,7 +50,7 @@ pip install git+https://github.com/keras-team/keras-cv.git tensorflow --upgrade
 
 ## Using KerasCV with Keras Core
 
-As of version 0.6.0, KerasCV supports multiple backends with Keras Core out of 
+As of version `0.6.0`, KerasCV supports multiple backends with Keras Core out of 
 the box. There are two ways to configure KerasCV to run with multi-backend 
 support:
 
@@ -61,8 +58,8 @@ support:
 using Keras Core with the backend specified (e.g., `KERAS_BACKEND=jax`).
 2. Via the `.keras/keras.json` and `.keras/keras_cv.json` config files (which 
 are automatically created the first time you import KerasCV):
-- Set your backend of choice in `.keras/keras.json`; e.g., `"backend": "jax"`. 
-- Set `"multi_backend": True` in `.keras/keras_cv.json`.
+  - Set your backend of choice in `.keras/keras.json`; e.g., `"backend": "jax"`. 
+  - Set `"multi_backend": True` in `.keras/keras_cv.json`.
 
 Once that configuration step is done, you can just import KerasCV and start 
 using it on top of your backend of choice:
@@ -82,9 +79,9 @@ model = keras_cv.models.YOLOV8Detector.from_preset(
 predictions = model.predict(image_resized)
 ```
 
-Until Keras Core is officially released as the new Keras, KerasCV will use 
+Until Keras Core is officially released as Keras 3.0, KerasCV will use 
 `tf.keras` as the default backend. To restore this default behavior, simply 
-unset `KERAS_BACKEND` and ensure that  `"multi_backend": False` or is unset in 
+`unset KERAS_BACKEND` and ensure that  `"multi_backend": False` or is unset in 
 `.keras/keras_cv.json`. You will need to restart the Python runtime for changes 
 to take effect.
 
