@@ -15,7 +15,7 @@ steps:
     '.',
     '-f', 'cloudbuild/Dockerfile',
     '-t', '$_IMAGE_NAME:$BUILD_ID',
-    '--build_arg', 'IMAGE_NAME=$IMAGE_NAME:deps',
+    '--build_arg', 'IMAGE_NAME=$_IMAGE_NAME:deps',
   ]
 - name: 'gcr.io/cloud-builders/docker'
   id: push-image
