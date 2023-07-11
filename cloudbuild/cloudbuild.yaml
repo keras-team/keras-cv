@@ -12,7 +12,7 @@ steps:
   id: build-image
   entrypoint: 'bash'
   args:
-      ['-c', 'docker build -f cloudbuild/Dockerfile -t $_IMAGE_NAME:$BUILD_ID --build_arg IMAGE_NAME=$_IMAGE_NAME:deps .']
+      ['-c', 'docker build -f cloudbuild/Dockerfile -t $_IMAGE_NAME:$BUILD_ID --build-arg IMAGE_NAME=$_IMAGE_NAME:deps .']
 - name: 'gcr.io/cloud-builders/docker'
   id: push-image
   waitFor:
