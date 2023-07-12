@@ -68,9 +68,9 @@ class DeepLabV3PlusTest(TestCase):
         target_size = [512, 512, 3]
 
         images = np.ones([1] + target_size)
-        labels = np.zeros([1] + target_size)
+        labels = np.random.uniform(size=[1] + target_size)
         ds = tf.data.Dataset.from_tensor_slices((images, labels))
-        ds = ds.repeat(2)
+        ds = ds.repeat(8)
         ds = ds.batch(2)
 
         backbone = ResNet18V2Backbone(input_shape=target_size)
