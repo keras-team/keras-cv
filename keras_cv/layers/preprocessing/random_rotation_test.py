@@ -16,9 +16,10 @@ import tensorflow as tf
 
 from keras_cv import bounding_box
 from keras_cv.layers.preprocessing.random_rotation import RandomRotation
+from keras_cv.tests.test_case import TestCase
 
 
-class RandomRotationTest(tf.test.TestCase):
+class RandomRotationTest(TestCase):
     def test_random_rotation_output_shapes(self):
         input_images = np.random.random((2, 5, 8, 3)).astype(np.float32)
         expected_output = input_images

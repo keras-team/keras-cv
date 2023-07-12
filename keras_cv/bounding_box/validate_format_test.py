@@ -14,9 +14,10 @@
 import tensorflow as tf
 
 from keras_cv import bounding_box
+from keras_cv.tests.test_case import TestCase
 
 
-class ValidateTest(tf.test.TestCase):
+class ValidateTest(TestCase):
     def test_raises_nondict(self):
         with self.assertRaisesRegex(
             ValueError, "Expected `bounding_boxes` to be a dictionary, got "

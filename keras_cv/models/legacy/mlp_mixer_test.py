@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import tensorflow as tf
 from absl.testing import parameterized
 
 from keras_cv.models.legacy import mlp_mixer
+from keras_cv.tests.test_case import TestCase
 
 from .models_test import ModelsTest
 
@@ -38,7 +38,7 @@ MODEL_LIST = [
 ]
 
 
-class MLPMixerTest(ModelsTest, tf.test.TestCase, parameterized.TestCase):
+class MLPMixerTest(ModelsTest, TestCase):
     @parameterized.parameters(*MODEL_LIST)
     def test_application_base(self, app, _, args):
         super()._test_application_base(app, _, args)
@@ -58,7 +58,3 @@ class MLPMixerTest(ModelsTest, tf.test.TestCase, parameterized.TestCase):
     @parameterized.parameters(*MODEL_LIST)
     def test_model_can_be_used_as_backbone(self, app, last_dim, args):
         super()._test_model_can_be_used_as_backbone(app, last_dim, args)
-
-
-if __name__ == "__main__":
-    tf.test.main()

@@ -13,12 +13,12 @@
 # limitations under the License.
 
 import numpy as np
-import tensorflow as tf
 
 from keras_cv.losses.iou_loss import IoULoss
+from keras_cv.tests.test_case import TestCase
 
 
-class IoUTest(tf.test.TestCase):
+class IoUTest(TestCase):
     def test_output_shape(self):
         y_true = np.random.uniform(size=(2, 2, 4), low=0, high=10)
         y_pred = np.random.uniform(size=(2, 2, 4), low=0, high=20)

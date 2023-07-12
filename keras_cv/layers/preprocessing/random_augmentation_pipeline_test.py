@@ -18,6 +18,7 @@ from absl.testing import parameterized
 
 from keras_cv import layers
 from keras_cv.backend import keras
+from keras_cv.tests.test_case import TestCase
 
 
 class AddOneToInputs(keras.layers.Layer):
@@ -30,7 +31,7 @@ class AddOneToInputs(keras.layers.Layer):
         return result
 
 
-class RandomAugmentationPipelineTest(tf.test.TestCase, parameterized.TestCase):
+class RandomAugmentationPipelineTest(TestCase):
     @parameterized.named_parameters(("1", 1), ("3", 3), ("5", 5))
     def test_calls_layers_augmentations_per_image_times(
         self, augmentations_per_image

@@ -14,12 +14,12 @@
 """Tests for iou functions."""
 
 import numpy as np
-import tensorflow as tf
 
 from keras_cv.bounding_box import iou as iou_lib
+from keras_cv.tests.test_case import TestCase
 
 
-class IoUTest(tf.test.TestCase):
+class IoUTest(TestCase):
     def test_compute_single_iou(self):
         bb1 = np.array([[100, 101, 200, 201]])
         bb1_off_by_1 = np.array([[101, 102, 201, 202]])

@@ -20,9 +20,10 @@ from keras_cv import backend
 from keras_cv import layers as cv_layers
 from keras_cv.backend import ops
 from keras_cv.models.object_detection.retinanet import RetinaNetLabelEncoder
+from keras_cv.tests.test_case import TestCase
 
 
-class RetinaNetLabelEncoderTest(tf.test.TestCase):
+class RetinaNetLabelEncoderTest(TestCase):
     def test_label_encoder_output_shapes(self):
         images_shape = (8, 512, 512, 3)
         boxes_shape = (8, 10, 4)

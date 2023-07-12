@@ -16,10 +16,11 @@ import pytest
 import tensorflow as tf
 
 from keras_cv.layers.object_detection.rpn_label_encoder import _RpnLabelEncoder
+from keras_cv.tests.test_case import TestCase
 
 
 @pytest.mark.tf_keras_only
-class RpnLabelEncoderTest(tf.test.TestCase):
+class RpnLabelEncoderTest(TestCase):
     def test_rpn_label_encoder(self):
         rpn_encoder = _RpnLabelEncoder(
             anchor_format="xyxy",

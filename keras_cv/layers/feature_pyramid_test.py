@@ -16,9 +16,10 @@ import tensorflow as tf
 from tensorflow import keras
 
 from keras_cv.layers import FeaturePyramid
+from keras_cv.tests.test_case import TestCase
 
 
-class FeaturePyramidTest(tf.test.TestCase):
+class FeaturePyramidTest(TestCase):
     def test_return_type_dict(self):
         layer = FeaturePyramid(min_level=2, max_level=5)
         c2 = tf.ones([2, 64, 64, 3])

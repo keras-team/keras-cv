@@ -20,6 +20,7 @@ import tensorflow as tf
 from absl.testing import parameterized
 
 from keras_cv import bounding_box
+from keras_cv.tests.test_case import TestCase
 
 xyxy_box = np.array([[[10, 20, 110, 120], [20, 30, 120, 130]]], dtype="float32")
 yxyx_box = np.array([[[20, 10, 120, 110], [30, 20, 130, 120]]], dtype="float32")
@@ -88,7 +89,7 @@ test_image_ragged = [
 ] + [("xyxy_xyxy", "xyxy", "xyxy")]
 
 
-class ConvertersTestCase(tf.test.TestCase, parameterized.TestCase):
+class ConvertersTestCase(TestCase):
     @parameterized.named_parameters(*test_cases)
     def test_converters(self, source, target):
         source_box = boxes[source]

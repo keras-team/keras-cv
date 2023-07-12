@@ -18,6 +18,7 @@ from keras_cv import bounding_box
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
+from keras_cv.tests.test_case import TestCase
 
 
 class RandomAddLayer(BaseImageAugmentationLayer):
@@ -60,7 +61,7 @@ class VectorizeDisabledLayer(BaseImageAugmentationLayer):
         super().__init__(**kwargs)
 
 
-class BaseImageAugmentationLayerTest(tf.test.TestCase):
+class BaseImageAugmentationLayerTest(TestCase):
     def test_augment_single_image(self):
         add_layer = RandomAddLayer(fixed_value=2.0)
         image = np.random.random(size=(8, 8, 3)).astype("float32")

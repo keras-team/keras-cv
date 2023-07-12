@@ -25,9 +25,10 @@ from keras_cv.models.legacy.object_detection.faster_rcnn.faster_rcnn import (
 from keras_cv.models.object_detection.__test_utils__ import (
     _create_bounding_box_dataset,
 )
+from keras_cv.tests.test_case import TestCase
 
 
-class FasterRCNNTest(tf.test.TestCase, parameterized.TestCase):
+class FasterRCNNTest(TestCase):
     # TODO(ianstenbit): Make FasterRCNN support shapes that are not multiples
     # of 128, perhaps by adding a flag to the anchor generator for whether to
     # include anchors centered outside of the image. (RetinaNet does use those,

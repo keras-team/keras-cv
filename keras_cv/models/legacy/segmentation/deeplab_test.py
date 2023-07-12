@@ -19,9 +19,10 @@ from tensorflow import keras
 
 from keras_cv.models import ResNet50V2Backbone
 from keras_cv.models.legacy.segmentation.deeplab import DeepLabV3
+from keras_cv.tests.test_case import TestCase
 
 
-class DeeplabTest(tf.test.TestCase):
+class DeeplabTest(TestCase):
     def test_deeplab_model_construction_with_preconfigured_setting(self):
         backbone = ResNet50V2Backbone(
             input_shape=[64, 64, 3],

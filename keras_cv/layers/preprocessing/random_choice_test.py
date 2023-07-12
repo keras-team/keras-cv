@@ -14,10 +14,10 @@
 
 import pytest
 import tensorflow as tf
-from absl.testing import parameterized
 
 from keras_cv import layers
 from keras_cv.backend import keras
+from keras_cv.tests.test_case import TestCase
 
 
 class AddOneToInputs(keras.layers.Layer):
@@ -32,7 +32,7 @@ class AddOneToInputs(keras.layers.Layer):
         return result
 
 
-class RandomAugmentationPipelineTest(tf.test.TestCase, parameterized.TestCase):
+class RandomAugmentationPipelineTest(TestCase):
     def test_calls_layer_augmentation_per_image(self):
         layer = AddOneToInputs()
         pipeline = layers.RandomChoice(layers=[layer])

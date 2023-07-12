@@ -16,17 +16,16 @@
 
 import numpy as np
 import pytest
-import tensorflow as tf
-from absl.testing import parameterized
 
 from keras_cv.backend import ops
 from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_backbone import (
     MobileNetV3Backbone,
 )
+from keras_cv.tests.test_case import TestCase
 
 
 @pytest.mark.large
-class MobileNetV3PresetSmokeTest(tf.test.TestCase):
+class MobileNetV3PresetSmokeTest(TestCase):
     """
     A smoke test for MobileNetV3 presets we run continuously.
     This only tests the smallest weights we have available. Run with:
@@ -54,7 +53,7 @@ class MobileNetV3PresetSmokeTest(tf.test.TestCase):
 
 
 @pytest.mark.extra_large
-class MobileNetV3PresetFullTest(tf.test.TestCase, parameterized.TestCase):
+class MobileNetV3PresetFullTest(TestCase):
     """
     Test the full enumeration of our preset.
     This tests every preset for MobileNetV3 and is only run manually.

@@ -13,12 +13,12 @@
 # limitations under the License.
 
 import numpy as np
-import tensorflow as tf
 
 from keras_cv.losses import BinaryPenaltyReducedFocalCrossEntropy
+from keras_cv.tests.test_case import TestCase
 
 
-class BinaryPenaltyReducedFocalLossTest(tf.test.TestCase):
+class BinaryPenaltyReducedFocalLossTest(TestCase):
     def test_output_shape(self):
         y_true = (np.random.uniform(size=[2, 5], low=0, high=2),)
         y_pred = np.random.uniform(size=[2, 5], low=0, high=1)

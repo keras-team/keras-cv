@@ -15,9 +15,10 @@
 import tensorflow as tf
 
 from keras_cv.layers import DropPath
+from keras_cv.tests.test_case import TestCase
 
 
-class DropPathTest(tf.test.TestCase):
+class DropPathTest(TestCase):
     FEATURE_SHAPE = (16, 14, 14, 256)
 
     def test_input_unchanged_in_eval_mode(self):

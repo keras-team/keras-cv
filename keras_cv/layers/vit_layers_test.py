@@ -14,9 +14,10 @@
 import tensorflow as tf
 
 from keras_cv.layers.vit_layers import PatchingAndEmbedding
+from keras_cv.tests.test_case import TestCase
 
 
-class ViTLayersTest(tf.test.TestCase):
+class ViTLayersTest(TestCase):
     def test_patching_wrong_patch_size(self):
         with self.assertRaisesRegexp(
             ValueError,

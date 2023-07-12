@@ -36,10 +36,11 @@ from keras_cv.models.backbones.resnet_v1.resnet_v1_aliases import (
 from keras_cv.models.backbones.resnet_v1.resnet_v1_backbone import (
     ResNetBackbone,
 )
+from keras_cv.tests.test_case import TestCase
 from keras_cv.utils.train import get_feature_extractor
 
 
-class ResNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
+class ResNetBackboneTest(TestCase):
     def setUp(self):
         self.input_batch = np.ones(shape=(2, 224, 224, 3))
 
@@ -164,7 +165,3 @@ class ResNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
     def test_specific_arch_forward_pass(self, arch_class):
         backbone = arch_class()
         backbone(tf.random.uniform(shape=[2, 256, 256, 3]))
-
-
-if __name__ == "__main__":
-    tf.test.main()

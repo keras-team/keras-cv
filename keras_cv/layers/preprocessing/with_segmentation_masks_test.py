@@ -15,6 +15,7 @@ import tensorflow as tf
 from absl.testing import parameterized
 
 from keras_cv.layers import preprocessing
+from keras_cv.tests.test_case import TestCase
 
 TEST_CONFIGURATIONS = [
     ("AutoContrast", preprocessing.AutoContrast, {"value_range": (0, 255)}),
@@ -86,7 +87,7 @@ TEST_CONFIGURATIONS = [
 ]
 
 
-class WithSegmentationMasksTest(tf.test.TestCase, parameterized.TestCase):
+class WithSegmentationMasksTest(TestCase):
     @parameterized.named_parameters(*TEST_CONFIGURATIONS)
     def test_can_run_with_segmentation_masks(self, layer_cls, init_args):
         num_classes = 10

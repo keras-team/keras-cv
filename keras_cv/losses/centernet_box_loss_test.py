@@ -13,13 +13,13 @@
 # limitations under the License.
 
 import numpy as np
-import tensorflow as tf
 from absl.testing import parameterized
 
 import keras_cv
+from keras_cv.tests.test_case import TestCase
 
 
-class CenterNetBoxLoss(tf.test.TestCase, parameterized.TestCase):
+class CenterNetBoxLoss(TestCase):
     @parameterized.named_parameters(
         (
             "none",

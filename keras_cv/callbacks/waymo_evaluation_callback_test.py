@@ -17,6 +17,7 @@ import tensorflow as tf
 from tensorflow import keras
 
 from keras_cv.callbacks import WaymoEvaluationCallback
+from keras_cv.tests.test_case import TestCase
 
 NUM_RECORDS = 10
 POINT_FEATURES = 3
@@ -32,7 +33,7 @@ METRIC_KEYS = [
 ]
 
 
-class WaymoEvaluationCallbackTest(tf.test.TestCase):
+class WaymoEvaluationCallbackTest(TestCase):
     @pytest.mark.skipif(True, reason="Requires Waymo Open Dataset")
     def test_model_fit(self):
         # Silly hypothetical model

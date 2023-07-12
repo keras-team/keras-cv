@@ -16,7 +16,6 @@ import os
 
 import numpy as np
 import pytest
-import tensorflow as tf
 from absl.testing import parameterized
 
 import keras_cv
@@ -32,9 +31,10 @@ from keras_cv.models.object_detection.__test_utils__ import (
 from keras_cv.models.object_detection.yolo_v8.yolo_v8_detector_presets import (
     yolo_v8_detector_presets,
 )
+from keras_cv.tests.test_case import TestCase
 
 
-class YOLOV8DetectorTest(tf.test.TestCase, parameterized.TestCase):
+class YOLOV8DetectorTest(TestCase):
     @pytest.mark.large  # Fit is slow, so mark these large.
     def test_fit(self):
         bounding_box_format = "xywh"
@@ -217,7 +217,7 @@ class YOLOV8DetectorTest(tf.test.TestCase, parameterized.TestCase):
 
 
 @pytest.mark.large
-class YOLOV8DetectorSmokeTest(tf.test.TestCase, parameterized.TestCase):
+class YOLOV8DetectorSmokeTest(TestCase):
     @parameterized.named_parameters(
         *[(preset, preset) for preset in test_backbone_presets]
     )
@@ -261,7 +261,7 @@ class YOLOV8DetectorSmokeTest(tf.test.TestCase, parameterized.TestCase):
 
 
 @pytest.mark.extra_large
-class YOLOV8DetectorPresetFullTest(tf.test.TestCase):
+class YOLOV8DetectorPresetFullTest(TestCase):
     """
     Test the full enumeration of our presets.
     This every presets for YOLOV8Detector and is only run manually.

@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import pytest
-import tensorflow as tf
 
 import keras_cv
 from keras_cv.callbacks import PyCOCOCallback
@@ -21,9 +20,10 @@ from keras_cv.metrics.coco.pycoco_wrapper import METRIC_NAMES
 from keras_cv.models.object_detection.__test_utils__ import (
     _create_bounding_box_dataset,
 )
+from keras_cv.tests.test_case import TestCase
 
 
-class PyCOCOCallbackTest(tf.test.TestCase):
+class PyCOCOCallbackTest(TestCase):
     @pytest.mark.large  # Fit is slow, so mark these large.
     def test_model_fit_retinanet(self):
         model = keras_cv.models.RetinaNet(

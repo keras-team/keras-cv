@@ -15,7 +15,6 @@
 
 import numpy as np
 import pytest
-import tensorflow as tf
 from absl.testing import parameterized
 
 from keras_cv.backend import keras
@@ -25,11 +24,12 @@ from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_aliases import (
 from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone import (
     EfficientNetV2Backbone,
 )
+from keras_cv.tests.test_case import TestCase
 from keras_cv.utils.train import get_feature_extractor
 
 
 @pytest.mark.extra_large
-class EfficientNetV2PresetFullTest(tf.test.TestCase, parameterized.TestCase):
+class EfficientNetV2PresetFullTest(TestCase):
     """
     Test the full enumeration of our preset.
     This every presets for EfficientNetV2 and is only run manually.

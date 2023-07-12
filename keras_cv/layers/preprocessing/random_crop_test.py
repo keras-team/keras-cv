@@ -20,9 +20,10 @@ from absl.testing import parameterized
 
 from keras_cv.backend import keras
 from keras_cv.layers.preprocessing.random_crop import RandomCrop
+from keras_cv.tests.test_case import TestCase
 
 
-class RandomCropTest(tf.test.TestCase, parameterized.TestCase):
+class RandomCropTest(TestCase):
     @parameterized.named_parameters(
         ("random_crop_4_by_6", 4, 6),
         ("random_crop_3_by_2", 3, 2),

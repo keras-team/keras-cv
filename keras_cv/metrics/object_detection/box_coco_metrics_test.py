@@ -18,6 +18,7 @@ import tensorflow as tf
 
 from keras_cv import bounding_box
 from keras_cv.metrics import BoxCOCOMetrics
+from keras_cv.tests.test_case import TestCase
 
 SAMPLE_FILE = (
     os.path.dirname(os.path.abspath(__file__)) + "/test_data/sample_boxes.npz"
@@ -64,7 +65,7 @@ golden_metrics = {
 }
 
 
-class BoxCOCOMetricsTest(tf.test.TestCase):
+class BoxCOCOMetricsTest(TestCase):
     def test_coco_metric_suite_returns_all_coco_metrics(self):
         suite = BoxCOCOMetrics(bounding_box_format="xyxy", evaluate_freq=1)
         y_true, y_pred, categories = load_samples(SAMPLE_FILE)
