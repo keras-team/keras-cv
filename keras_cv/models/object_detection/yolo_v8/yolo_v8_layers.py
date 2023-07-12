@@ -11,8 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import tensorflow as tf
-from keras import layers
+from keras_cv.backend import keras
+from keras_cv.backend import ops
 
 BATCH_NORM_EPSILON = 1e-3
 BATCH_NORM_MOMENTUM = 0.97
@@ -29,11 +29,11 @@ def apply_conv_bn(
     name="conv_bn",
 ):
     if kernel_size > 1:
-        inputs = layers.ZeroPadding2D(
+        inputs = keras.layers.ZeroPadding2D(
             padding=kernel_size // 2, name=f"{name}_pad"
         )(inputs)
 
-    x = layers.Conv2D(
+    x = keras.layers.Conv2D(
         filters=output_channel,
         kernel_size=kernel_size,
         strides=strides,
@@ -41,12 +41,12 @@ def apply_conv_bn(
         use_bias=False,
         name=f"{name}_conv",
     )(inputs)
-    x = layers.BatchNormalization(
+    x = keras.layers.BatchNormalization(
         momentum=BATCH_NORM_MOMENTUM,
         epsilon=BATCH_NORM_EPSILON,
         name=f"{name}_bn",
     )(x)
-    x = layers.Activation(activation, name=name)(x)
+    x = keras.layers.Activation(activation, name=name)(x)
     return x
 
 
@@ -72,7 +72,7 @@ def apply_csp_block(
         activation=activation,
         name=f"{name}_pre",
     )
-    short, deep = tf.split(pre, 2, axis=channel_axis)
+    short, deep = ops.split(pre, 2, axis=channel_axis)
 
     out = [short, deep]
     for id in range(depth):
@@ -92,7 +92,7 @@ def apply_csp_block(
         )
         deep = (out[-1] + deep) if shortcut else deep
         out.append(deep)
-    out = tf.concat(out, axis=channel_axis)
+    out = ops.concatenate(out, axis=channel_axis)
     out = apply_conv_bn(
         out,
         channels,

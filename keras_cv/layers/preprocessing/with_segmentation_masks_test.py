@@ -132,6 +132,4 @@ class WithSegmentationMasksTest(tf.test.TestCase, parameterized.TestCase):
         # This currently asserts that all layers are no-ops.
         # When preprocessing layers are updated to mutate segmentation masks,
         # this condition should only be asserted for no-op layers.
-        self.assertAllClose(
-            inputs["segmentation_masks"], outputs["segmentation_masks"]
-        )
+        self.assertAllClose(segmentation_mask, outputs["segmentation_masks"])

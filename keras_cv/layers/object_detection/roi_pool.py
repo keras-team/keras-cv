@@ -16,6 +16,7 @@ import tensorflow as tf
 from tensorflow import keras
 
 from keras_cv import bounding_box
+from keras_cv.backend import assert_tf_keras
 
 
 @keras.utils.register_keras_serializable(package="keras_cv")
@@ -57,6 +58,7 @@ class ROIPooler(keras.layers.Layer):
         image_shape,
         **kwargs,
     ):
+        assert_tf_keras("keras_cv.layers.ROIPooler")
         if not isinstance(target_size, (tuple, list)):
             raise ValueError(
                 "Expected `target_size` to be tuple or list, got "

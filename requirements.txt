@@ -9,3 +9,4 @@ isort
 black
 pytest
 pycocotools
+keras-core

@@ -16,6 +16,8 @@ import pytest
 import tensorflow as tf
 from packaging import version
 
+from keras_cv.backend.config import multi_backend
+
 
 def pytest_addoption(parser):
     parser.addoption(
@@ -40,6 +42,10 @@ def pytest_configure(config):
         "markers",
         "extra_large: mark test as being too large to run continuously",
     )
+    config.addinivalue_line(
+        "markers",
+        "tf_keras_only: mark test as a tf only test",
+    )
 
 
 def pytest_collection_modifyitems(config, items):
@@ -58,6 +64,10 @@ def pytest_collection_modifyitems(config, items):
     skip_extra_large = pytest.mark.skipif(
         not run_extra_large_tests, reason="need --run_extra_large option to run"
     )
+    skip_tf_keras_only = pytest.mark.skipif(
+        multi_backend(),
+        reason="This test is only supported on tf.keras",
+    )
     for item in items:
         if "keras_format" in item.name:
             item.add_marker(skip_keras_saving_test)
@@ -67,3 +77,5 @@ def pytest_collection_modifyitems(config, items):
             item.add_marker(skip_large)
         if "extra_large" in item.keywords:
             item.add_marker(skip_extra_large)
+        if "tf_keras_only" in item.keywords:
+            item.add_marker(skip_tf_keras_only)
