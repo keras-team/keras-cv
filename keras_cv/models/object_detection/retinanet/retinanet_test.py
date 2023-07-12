@@ -22,6 +22,7 @@ from absl.testing import parameterized
 import keras_cv
 from keras_cv.backend import keras
 from keras_cv.backend import ops
+from keras_cv.backend.config import multi_backend
 from keras_cv.models.backbones.test_backbone_presets import (
     test_backbone_presets,
 )
@@ -31,7 +32,6 @@ from keras_cv.models.object_detection.__test_utils__ import (
 from keras_cv.models.object_detection.retinanet import RetinaNetLabelEncoder
 from keras_cv.tests.test_case import TestCase
 
-from keras_cv.backend.config import multi_backend
 
 class RetinaNetTest(TestCase):
     def test_retinanet_construction(self):
@@ -78,12 +78,20 @@ class RetinaNetTest(TestCase):
 
     @pytest.mark.large
     def test_cuda_device(self):
+        # TODO(ianstenbit): Delete this test before merging PR, or do something
+        # better with it.
         if multi_backend() and keras.config.backend() == "torch":
             print(ops.ones((1)).device.type)
-            self.assertTrue(ops.ones((1)).device.type == 'cuda')
+            self.assertTrue(ops.ones((1)).device.type == "cuda")
         elif multi_backend() and keras.config.backend() == "jax":
             print(str(ops.ones((1)).device()))
             self.assertTrue(str(ops.ones((1)).device()) == "gpu:0")
+        elif multi_backend() and keras.config.backend() == "tensorflow":
+            print(ops.ones((1)).device)
+            self.assertTrue(
+                ops.ones((1)).device
+                == "/job:localhost/replica:0/task:0/device:GPU:0"
+            )
 
     @pytest.mark.large  # Fit is slow, so mark these large.
     def test_retinanet_call(self):
