@@ -67,6 +67,6 @@ RUN apt-get install -y git
 RUN git clone https://github.com/keras-team/keras-cv.git
 RUN cd keras-cv && git checkout master
 RUN pip install -r keras-cv/requirements.txt
-RUN pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
+RUN pip install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cu118
 ```
 - Merge the PR adding the dependency

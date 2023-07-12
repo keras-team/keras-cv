@@ -98,7 +98,7 @@ class YOLOV8DetectorTest(TestCase):
         )
         xs, ys = _create_bounding_box_dataset(bounding_box_format)
         # Make all bounding_boxes invalid and filter out them
-        ys["classes"] = -ops.ones_like(ys["classes"])
+        ys["classes"] = -np.ones_like(ys["classes"])
 
         yolo.fit(x=xs, y=ys, epochs=1)
 

@@ -35,11 +35,13 @@ class TestCase(tf.test.TestCase, parameterized.TestCase):
         x2 = tf.nest.map_structure(convert_to_numpy, x2)
         super().assertAllEqual(x1, x2, msg=msg)
 
-    def assertAllGreaterEqual(self, x1, x2, msg=None):
+    def assertAllGreaterEqual(self, x1, x2):
         x1 = tf.nest.map_structure(convert_to_numpy, x1)
         x2 = tf.nest.map_structure(convert_to_numpy, x2)
-        super().assertAllGreaterEqual(x1, x2, msg=msg)
+        super().assertAllGreaterEqual(x1, x2)
 
 
 def convert_to_numpy(x):
-    return ops.convert_to_numpy(x) if ops.is_tensor(x) else x
+    if ops.is_tensor(x) and not isinstance(x, tf.RaggedTensor):
+        return ops.convert_to_numpy(x)
+    return x
