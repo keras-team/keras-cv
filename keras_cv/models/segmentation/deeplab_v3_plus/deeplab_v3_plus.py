@@ -25,9 +25,9 @@ class DeepLabV3Plus(Task):
     segmentation.
 
     References:
-        - [Encoder-Decoder with Atrous Separable Convolution for Semantic Image Segmentation](https://arxiv.org/abs/1802.02611)
+        - [Encoder-Decoder with Atrous Separable Convolution for Semantic Image Segmentation](https://arxiv.org/abs/1802.02611)  # noqa: E501
         (ECCV 2018)
-        - [Rethinking Atrous Convolution for Semantic Image Segmentation](https://arxiv.org/abs/1706.05587)
+        - [Rethinking Atrous Convolution for Semantic Image Segmentation](https://arxiv.org/abs/1706.05587)  # noqa: E501
         (CVPR 2017)
 
     Args:
@@ -45,7 +45,7 @@ class DeepLabV3Plus(Task):
         projection_filters: int, number of filters in the convolution layer
             projecting low-level features from the `backbone`. The default
             value is set to `48`, as per the
-            [TensorFlow implementation of DeepLab](https://github.com/tensorflow/models/blob/master/research/deeplab/model.py#L676).
+            [TensorFlow implementation of DeepLab](https://github.com/tensorflow/models/blob/master/research/deeplab/model.py#L676).  # noqa: E501
         spatial_pyramid_pooling: (Optional) a `keras.layers.Layer`. Also known
             as Atrous Spatial Pyramid Pooling (ASPP). Performs spatial pooling
             on different spatial levels in the pyramid, with dilation. If
