@@ -49,24 +49,24 @@ gcloud builds submit --region=us-west1 --tag us-west1-docker.pkg.dev/keras-team-
 - Repeat the last two steps for Jax and Torch (replacing "tensorflow" with "jax"
  or "torch" in the docker image target name). `Dockerfile` for jax:
 ```
-FROM nvidia/cuda:11.8.0-cudnn8-devel-ubuntu22.04
+FROM ubuntu:22.04
 RUN apt-get update
 RUN apt-get install -y python3 python3-pip
 RUN apt-get install -y git
-RUN git clone https://github.com/keras-team/keras-cv.git
-RUN cd keras-cv && git checkout master
+RUN git clone https://github.com/{path_to_keras_cv_fork}.git
+RUN cd keras-cv && git checkout {branch_name}
 RUN pip install -r keras-cv/requirements.txt
-RUN pip install "jax[cuda11_cudnn86]" -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
+RUN pip install --upgrade "jax[cuda11_pip]" -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
 ```
   and for torch:
 ```
-FROM nvidia/cuda:11.8.0-cudnn8-devel-ubuntu22.04
+FROM ubuntu:22.04
 RUN apt-get update
 RUN apt-get install -y python3 python3-pip
 RUN apt-get install -y git
-RUN git clone https://github.com/keras-team/keras-cv.git
-RUN cd keras-cv && git checkout master
+RUN git clone https://github.com/{path_to_keras_cv_fork}.git
+RUN cd keras-cv && git checkout {branch_name}
 RUN pip install -r keras-cv/requirements.txt
-RUN pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
+RUN pip install torch torchvision
 ```
 - Merge the PR adding the dependency

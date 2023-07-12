@@ -31,6 +31,7 @@ from keras_cv.models.object_detection.__test_utils__ import (
 from keras_cv.models.object_detection.retinanet import RetinaNetLabelEncoder
 from keras_cv.tests.test_case import TestCase
 
+from keras_cv.backend.config import multi_backend
 
 class RetinaNetTest(TestCase):
     def test_retinanet_construction(self):
@@ -74,6 +75,15 @@ class RetinaNetTest(TestCase):
         )
 
         self.assertIsNone(retinanet._user_metrics)
+
+    @pytest.mark.large
+    def test_cuda_device(self):
+        if multi_backend() and keras.config.backend() == "torch":
+            print(ops.ones((1)).device.type)
+            self.assertTrue(ops.ones((1)).device.type == 'cuda')
+        elif multi_backend() and keras.config.backend() == "jax":
+            print(str(ops.ones((1)).device()))
+            self.assertTrue(str(ops.ones((1)).device()) == "gpu:0")
 
     @pytest.mark.large  # Fit is slow, so mark these large.
     def test_retinanet_call(self):
