@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import tensorflow as tf
-from tensorflow import keras
+from keras_cv.backend import keras
 
 from keras_cv.layers.spatial_pyramid import SpatialPyramidPooling
 from keras_cv.models.task import Task
@@ -34,7 +33,7 @@ class DeepLabV3Plus(Task):
         backbone: `keras.Model`. The backbone network for the model that is
             used as a feature extractor for the DeepLabV3+ Encoder. Should
             either be a `keras_cv.models.backbones.backbone.Backbone` or a
-            `tf.keras.Model` that implements the `pyramid_level_inputs`
+            `keras.Model` that implements the `pyramid_level_inputs`
             property with keys "P2", "P3", "P4", and "P5" and layer names as
             values. A somewhat sensible backbone to use in many cases is the:
             `keras_cv.models.ResNet50V2Backbone.from_preset("resnet50_v2_imagenet")`.
@@ -59,7 +58,6 @@ class DeepLabV3Plus(Task):
 
     Examples:
     ```python
-    import tensorflow as tf
     import keras_cv
 
     images = np.ones(shape=(1, 96, 96, 3))
@@ -177,7 +175,7 @@ class DeepLabV3Plus(Task):
                         # Force the dtype of the classification layer to float32
                         # to avoid the NAN loss issue when used with mixed
                         # precision API.
-                        dtype=tf.float32,
+                        "float32",
                     ),
                 ]
             )

@@ -18,6 +18,7 @@ from absl.testing import parameterized
 from tensorflow import keras
 
 from keras_cv.losses import FocalLoss
+from keras_cv.tests.test_case import TestCase
 
 
 class ModelGardenFocalLoss(keras.losses.Loss):
@@ -51,9 +52,7 @@ class ModelGardenFocalLoss(keras.losses.Loss):
         return weighted_loss
 
 
-class FocalLossModelGardenComparisonTest(
-    tf.test.TestCase, parameterized.TestCase
-):
+class FocalLossModelGardenComparisonTest(TestCase):
     @parameterized.named_parameters(
         ("sum", "sum"),
     )

@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import tensorflow as tf
 
 from keras_cv import bounding_box
 from keras_cv.backend import ops
+from keras_cv.tests.test_case import TestCase
 
 
-class BoundingBoxEnsureTensorTest(tf.test.TestCase):
+class BoundingBoxEnsureTensorTest(TestCase):
     def test_convert_list(self):
         boxes = {"boxes": [[0, 1, 2, 3]], "classes": [0]}
         output = bounding_box.ensure_tensor(boxes)

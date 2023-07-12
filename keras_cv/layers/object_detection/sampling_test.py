@@ -16,10 +16,11 @@ import pytest
 import tensorflow as tf
 
 from keras_cv.layers.object_detection.sampling import balanced_sample
+from keras_cv.tests.test_case import TestCase
 
 
 @pytest.mark.tf_keras_only
-class BalancedSamplingTest(tf.test.TestCase):
+class BalancedSamplingTest(TestCase):
     def test_balanced_sampling(self):
         positive_matches = tf.constant(
             [

@@ -14,9 +14,10 @@
 import tensorflow as tf
 
 from keras_cv.layers import preprocessing
+from keras_cv.tests.test_case import TestCase
 
 
-class RandomSharpnessTest(tf.test.TestCase):
+class RandomSharpnessTest(TestCase):
     def test_random_sharpness_preserves_output_shape(self):
         img_shape = (50, 50, 3)
         xs = tf.stack(

@@ -37,13 +37,13 @@ class DeepLabV3PlusTest(tf.test.TestCase, parameterized.TestCase):
     def test_deeplab_v3_plus_call(self):
         backbone = ResNet18V2Backbone(input_shape=[512, 512, 3])
         model = DeepLabV3Plus(backbone=backbone, num_classes=1)
-        images = tf.random.uniform((2, 512, 512, 3))
+        images = np.random.uniform(size=(2, 512, 512, 3))
         _ = model(images)
         _ = model.predict(images)
 
     def test_weights_contained_in_trainable_variables(self):
         target_size = [512, 512]
-        images = tf.ones(shape=[1] + target_size + [3])
+        images = np.ones(shape=[1] + target_size + [3])
 
         backbone = ResNet18V2Backbone(input_shape=target_size + [3])
         model = DeepLabV3Plus(backbone=backbone, num_classes=1)
@@ -68,8 +68,8 @@ class DeepLabV3PlusTest(tf.test.TestCase, parameterized.TestCase):
     def test_weights_change(self):
         target_size = [512, 512, 3]
 
-        images = tf.ones(shape=[1] + target_size)
-        labels = tf.zeros(shape=[1] + target_size)
+        images = np.ones([1] + target_size)
+        labels = np.zeros([1] + target_size)
         ds = tf.data.Dataset.from_tensor_slices((images, labels))
         ds = ds.repeat(2)
         ds = ds.batch(2)
@@ -89,7 +89,7 @@ class DeepLabV3PlusTest(tf.test.TestCase, parameterized.TestCase):
 
         for w1, w2 in zip(original_weights, updated_weights):
             self.assertNotAllClose(w1, w2)
-            self.assertFalse(tf.math.reduce_any(tf.math.is_nan(w2)))
+            self.assertFalse(ops.any(ops.isnan(w2)))
 
     @parameterized.named_parameters(
         ("tf_format", "tf", "model"),
@@ -102,7 +102,7 @@ class DeepLabV3PlusTest(tf.test.TestCase, parameterized.TestCase):
         backbone = ResNet18V2Backbone(input_shape=target_size)
         model = DeepLabV3Plus(backbone=backbone, num_classes=1)
 
-        input_batch = tf.ones(shape=[2] + target_size)
+        input_batch = np.ones(shape=[2] + target_size)
         model_output = model(input_batch)
 
         save_path = os.path.join(self.get_temp_dir(), filename)

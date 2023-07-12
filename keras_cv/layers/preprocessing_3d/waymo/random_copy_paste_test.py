@@ -6,12 +6,12 @@ import os
 
 import numpy as np
 import pytest
-import tensorflow as tf
 
 from keras_cv.layers.preprocessing_3d import base_augmentation_layer_3d
 from keras_cv.layers.preprocessing_3d.waymo.random_copy_paste import (
     RandomCopyPaste,
 )
+from keras_cv.tests.test_case import TestCase
 
 POINT_CLOUDS = base_augmentation_layer_3d.POINT_CLOUDS
 BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
@@ -19,7 +19,7 @@ OBJECT_POINT_CLOUDS = base_augmentation_layer_3d.OBJECT_POINT_CLOUDS
 OBJECT_BOUNDING_BOXES = base_augmentation_layer_3d.OBJECT_BOUNDING_BOXES
 
 
-class RandomCopyPasteTest(tf.test.TestCase):
+class RandomCopyPasteTest(TestCase):
     @pytest.mark.skipif(
         "TEST_CUSTOM_OPS" not in os.environ
         or os.environ["TEST_CUSTOM_OPS"] != "true",

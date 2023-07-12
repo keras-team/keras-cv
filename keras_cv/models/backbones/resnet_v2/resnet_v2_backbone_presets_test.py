@@ -15,7 +15,6 @@
 
 import numpy as np
 import pytest
-import tensorflow as tf
 from absl.testing import parameterized
 
 from keras_cv.backend import ops
@@ -25,10 +24,11 @@ from keras_cv.models.backbones.resnet_v2.resnet_v2_aliases import (
 from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
     ResNetV2Backbone,
 )
+from keras_cv.tests.test_case import TestCase
 
 
 @pytest.mark.large
-class ResNetV2PresetSmokeTest(tf.test.TestCase, parameterized.TestCase):
+class ResNetV2PresetSmokeTest(TestCase):
     """
     A smoke test for ResNetV2 presets we run continuously.
     This only tests the smallest weights we have available. Run with:
@@ -84,7 +84,7 @@ class ResNetV2PresetSmokeTest(tf.test.TestCase, parameterized.TestCase):
 
 
 @pytest.mark.extra_large
-class ResNetV2PresetFullTest(tf.test.TestCase, parameterized.TestCase):
+class ResNetV2PresetFullTest(TestCase):
     """
     Test the full enumeration of our preset.
     This every presets for ResNetV2 and is only run manually.

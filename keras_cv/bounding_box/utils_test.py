@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import numpy as np
-import tensorflow as tf
 
 from keras_cv import bounding_box
 from keras_cv.backend import ops
+from keras_cv.tests.test_case import TestCase
 
 
-class BoundingBoxUtilTest(tf.test.TestCase):
+class BoundingBoxUtilTest(TestCase):
     def test_clip_to_image_standard(self):
         # Test xyxy format unbatched
         height = 256

@@ -29,9 +29,10 @@ from keras_cv.models.object_detection.__test_utils__ import (
     _create_bounding_box_dataset,
 )
 from keras_cv.models.object_detection.retinanet import RetinaNetLabelEncoder
+from keras_cv.tests.test_case import TestCase
 
 
-class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
+class RetinaNetTest(TestCase):
     def test_retinanet_construction(self):
         retinanet = keras_cv.models.RetinaNet(
             num_classes=20,
@@ -144,10 +145,10 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
         )
 
         # only a -1 box
-        xs = ops.ones((1, 512, 512, 3), "float32")
+        xs = np.ones((1, 512, 512, 3), "float32")
         ys = {
-            "classes": ops.array([[-1]], "float32"),
-            "boxes": ops.array([[[0, 0, 0, 0]]], "float32"),
+            "classes": np.array([[-1]], "float32"),
+            "boxes": np.array([[[0, 0, 0, 0]]], "float32"),
         }
         ds = tf.data.Dataset.from_tensor_slices((xs, ys))
         ds = ds.repeat(2)
@@ -250,7 +251,7 @@ class RetinaNetTest(tf.test.TestCase, parameterized.TestCase):
 
 
 @pytest.mark.large
-class RetinaNetSmokeTest(tf.test.TestCase, parameterized.TestCase):
+class RetinaNetSmokeTest(TestCase):
     @parameterized.named_parameters(
         *[(preset, preset) for preset in test_backbone_presets]
     )

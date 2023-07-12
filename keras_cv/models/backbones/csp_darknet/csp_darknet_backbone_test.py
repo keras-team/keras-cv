@@ -22,10 +22,11 @@ from absl.testing import parameterized
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 from keras_cv.models.backbones.csp_darknet import csp_darknet_backbone
+from keras_cv.tests.test_case import TestCase
 from keras_cv.utils.train import get_feature_extractor
 
 
-class CSPDarkNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
+class CSPDarkNetBackboneTest(TestCase):
     def setUp(self):
         self.input_batch = np.ones(shape=(2, 224, 224, 3))
 

@@ -20,6 +20,7 @@ import pytest
 import tensorflow as tf
 
 import keras_cv
+from keras_cv.tests.test_case import TestCase
 
 num_points = 200000
 num_boxes = 1000
@@ -62,7 +63,7 @@ def get_points_boxes():
     return points, boxes
 
 
-class WithinBox3DTest(tf.test.TestCase):
+class WithinBox3DTest(TestCase):
     @pytest.mark.skipif(
         "TEST_CUSTOM_OPS" not in os.environ
         or os.environ["TEST_CUSTOM_OPS"] != "true",

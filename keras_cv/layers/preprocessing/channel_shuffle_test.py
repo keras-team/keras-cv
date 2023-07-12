@@ -15,9 +15,10 @@ import numpy as np
 import tensorflow as tf
 
 from keras_cv.layers.preprocessing.channel_shuffle import ChannelShuffle
+from keras_cv.tests.test_case import TestCase
 
 
-class ChannelShuffleTest(tf.test.TestCase):
+class ChannelShuffleTest(TestCase):
     def test_return_shapes(self):
         xs = tf.ones((2, 512, 512, 3))
 

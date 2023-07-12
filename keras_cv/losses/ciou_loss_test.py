@@ -13,13 +13,13 @@
 # limitations under the License.
 
 import numpy as np
-import tensorflow as tf
 from absl.testing import parameterized
 
 from keras_cv.losses.ciou_loss import CIoULoss
+from keras_cv.tests.test_case import TestCase
 
 
-class CIoUTest(tf.test.TestCase, parameterized.TestCase):
+class CIoUTest(TestCase):
     def test_output_shape(self):
         y_true = np.random.uniform(size=(2, 2, 4), low=0, high=10)
         y_pred = np.random.uniform(size=(2, 2, 4), low=0, high=20)

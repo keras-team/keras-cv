@@ -17,7 +17,8 @@ from typing import List
 from typing import Mapping
 
 import tensorflow as tf
-from tensorflow import keras
+from keras_cv.backend import keras
+from keras_cv.backend import ops
 
 
 @keras.utils.register_keras_serializable(package="keras_cv")
@@ -142,18 +143,18 @@ class SpatialPyramidPooling(keras.layers.Layer):
         """Calls the Atrous Spatial Pyramid Pooling layer on an input.
 
         Args:
-          inputs: A `tf.Tensor` of shape [batch, height, width, channels]
+          inputs: A tensor of shape [batch, height, width, channels]
 
         Returns:
-          A `tf.Tensor` of shape [batch, height, width, num_channels]
+          A tensor of shape [batch, height, width, num_channels]
         """
         result = []
 
         for channel in self.aspp_parallel_channels:
-            temp = tf.cast(channel(inputs, training=training), inputs.dtype)
+            temp = ops.cast(channel(inputs, training=training), inputs.dtype)
             result.append(temp)
 
-        result = tf.concat(result, axis=-1)
+        result = ops.concat(result, axis=-1)
         result = self.projection(result, training=training)
         return result
 

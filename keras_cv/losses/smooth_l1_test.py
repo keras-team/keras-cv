@@ -13,13 +13,13 @@
 # limitations under the License.
 
 import numpy as np
-import tensorflow as tf
 from absl.testing import parameterized
 
 import keras_cv
+from keras_cv.tests.test_case import TestCase
 
 
-class SmoothL1LossTest(tf.test.TestCase, parameterized.TestCase):
+class SmoothL1LossTest(TestCase):
     @parameterized.named_parameters(
         ("none", "none", (20,)),
         ("sum", "sum", ()),

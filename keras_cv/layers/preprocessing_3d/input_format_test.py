@@ -17,6 +17,7 @@ from absl.testing import parameterized
 
 from keras_cv.layers import preprocessing_3d
 from keras_cv.layers.preprocessing_3d import base_augmentation_layer_3d
+from keras_cv.tests.test_case import TestCase
 
 POINT_CLOUDS = base_augmentation_layer_3d.POINT_CLOUDS
 BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
@@ -94,7 +95,7 @@ def convert_to_model_format(inputs):
     }
 
 
-class InputFormatTest(tf.test.TestCase, parameterized.TestCase):
+class InputFormatTest(TestCase):
     @parameterized.named_parameters(*TEST_CONFIGURATIONS)
     def test_equivalent_results_with_model_format(self, layer):
         point_clouds = np.random.random(size=(3, 2, 50, 10)).astype("float32")

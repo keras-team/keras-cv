@@ -17,9 +17,10 @@ import tensorflow as tf
 from absl.testing import parameterized
 
 from keras_cv import layers as cv_layers
+from keras_cv.tests.test_case import TestCase
 
 
-class ResizingTest(tf.test.TestCase, parameterized.TestCase):
+class ResizingTest(TestCase):
     def _run_output_shape_test(self, kwargs, height, width):
         kwargs.update({"height": height, "width": width})
         layer = cv_layers.Resizing(**kwargs)

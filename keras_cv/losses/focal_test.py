@@ -13,15 +13,15 @@
 # limitations under the License.
 
 import numpy as np
-import tensorflow as tf
 
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 from keras_cv.backend.config import multi_backend
 from keras_cv.losses import FocalLoss
+from keras_cv.tests.test_case import TestCase
 
 
-class FocalTest(tf.test.TestCase):
+class FocalTest(TestCase):
     def test_output_shape(self):
         y_true = np.random.uniform(size=[2, 5], low=0, high=2)
         y_pred = np.random.uniform(size=[2, 5], low=0, high=1)
