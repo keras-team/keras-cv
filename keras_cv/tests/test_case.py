@@ -18,12 +18,7 @@ from keras_cv.backend import ops
 
 
 class TestCase(tf.test.TestCase, parameterized.TestCase):
-    """Base test case class for KerasCV.
-
-    For now we just extend tf.TestCase and parameterized.TestCase, but this
-    indirection will allow us to add more functionality in the future if we
-    want.
-    """
+    """Base test case class for KerasCV. (Copied from KerasNLP)."""
 
     def assertAllClose(self, x1, x2, atol=1e-6, rtol=1e-6, msg=None):
         x1 = tf.nest.map_structure(convert_to_numpy, x1)
