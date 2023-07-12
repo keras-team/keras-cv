@@ -15,6 +15,7 @@ import numpy as np
 import tensorflow as tf
 
 import keras_cv
+from keras_cv.backend import ops
 
 
 def _create_bounding_box_dataset(
@@ -37,12 +38,14 @@ def _create_bounding_box_dataset(
     )
     ys = np.expand_dims(ys, axis=0)
     ys = np.tile(ys, [5, 1, 1])
-    ys = keras_cv.bounding_box.convert_format(
-        ys,
-        source="rel_xywh",
-        target=bounding_box_format,
-        images=xs,
-        dtype="float32",
+    ys = ops.convert_to_numpy(
+        keras_cv.bounding_box.convert_format(
+            ys,
+            source="rel_xywh",
+            target=bounding_box_format,
+            images=xs,
+            dtype="float32",
+        )
     )
     num_dets = np.ones([5])
 

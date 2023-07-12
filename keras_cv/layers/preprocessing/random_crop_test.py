@@ -18,7 +18,7 @@ import numpy as np
 import tensorflow as tf
 from absl.testing import parameterized
 
-from keras_cv.backend import keras
+from keras_cv import layers as cv_layers
 from keras_cv.layers.preprocessing.random_crop import RandomCrop
 from keras_cv.tests.test_case import TestCase
 
@@ -59,7 +59,7 @@ class RandomCropTest(TestCase):
         actual_output = layer(inp)
         # In this case, output should equal resizing with crop_to_aspect
         # ratio.
-        resizing_layer = keras.layers.Resizing(height, width)
+        resizing_layer = cv_layers.Resizing(height, width)
         expected_output = resizing_layer(inp)
         self.assertAllEqual(expected_output, actual_output)
 

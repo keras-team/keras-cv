@@ -40,6 +40,11 @@ class TestCase(tf.test.TestCase, parameterized.TestCase):
         x2 = tf.nest.map_structure(convert_to_numpy, x2)
         super().assertAllGreaterEqual(x1, x2)
 
+    def assertAllLessEqual(self, x1, x2):
+        x1 = tf.nest.map_structure(convert_to_numpy, x1)
+        x2 = tf.nest.map_structure(convert_to_numpy, x2)
+        super().assertAllLessEqual(x1, x2)
+
 
 def convert_to_numpy(x):
     if ops.is_tensor(x) and not isinstance(x, tf.RaggedTensor):
