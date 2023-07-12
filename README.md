@@ -58,8 +58,8 @@ support:
 using Keras Core with the backend specified (e.g., `KERAS_BACKEND=jax`).
 2. Via the `.keras/keras.json` and `.keras/keras_cv.json` config files (which 
 are automatically created the first time you import KerasCV):
-  - Set your backend of choice in `.keras/keras.json`; e.g., `"backend": "jax"`. 
-  - Set `"multi_backend": True` in `.keras/keras_cv.json`.
+   - Set your backend of choice in `.keras/keras.json`; e.g., `"backend": "jax"`. 
+   - Set `"multi_backend": True` in `.keras/keras_cv.json`.
 
 Once that configuration step is done, you can just import KerasCV and start 
 using it on top of your backend of choice:
