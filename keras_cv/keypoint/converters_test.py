@@ -18,6 +18,7 @@ import tensorflow as tf
 from absl.testing import parameterized
 
 from keras_cv import keypoint
+from keras_cv.tests.test_case import TestCase
 
 xy_keypoints = tf.constant(
     [[[10, 20], [110, 120], [210, 220]], [[20, 30], [120, 130], [220, 230]]],
@@ -44,7 +45,7 @@ test_cases = [
 ] + [("xy_xy", "xy", "xy")]
 
 
-class ConvertersTestCase(tf.test.TestCase, parameterized.TestCase):
+class ConvertersTestCase(TestCase):
     @parameterized.named_parameters(*test_cases)
     def test_converters(self, source, target):
         source_keypoints = keypoints[source]

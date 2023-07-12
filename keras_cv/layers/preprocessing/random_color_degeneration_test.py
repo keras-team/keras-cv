@@ -14,9 +14,10 @@
 import tensorflow as tf
 
 from keras_cv.layers import preprocessing
+from keras_cv.tests.test_case import TestCase
 
 
-class RandomColorDegenerationTest(tf.test.TestCase):
+class RandomColorDegenerationTest(TestCase):
     def test_random_color_degeneration_base_case(self):
         img_shape = (50, 50, 3)
         xs = tf.stack(

@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import numpy as np
-import tensorflow as tf
 
 from keras_cv import layers
 from keras_cv.backend import ops
+from keras_cv.tests.test_case import TestCase
 
 
-class NonMaxSupressionTest(tf.test.TestCase):
+class NonMaxSupressionTest(TestCase):
     def test_confidence_threshold(self):
         boxes = np.random.uniform(low=0, high=1, size=(2, 5, 4))
         classes = ops.expand_dims(

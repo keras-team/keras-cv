@@ -24,11 +24,11 @@ def _create_bounding_box_dataset(
     # Just about the easiest dataset you can have, all classes are 0, all boxes
     # are exactly the same. [1, 1, 2, 2] are the coordinates in xyxy.
     xs = np.random.normal(size=(1, 512, 512, 3))
-    xs = ops.tile(xs, [5, 1, 1, 1])
+    xs = np.tile(xs, [5, 1, 1, 1])
 
-    y_classes = ops.zeros((5, 3), "float32")
+    y_classes = np.zeros((5, 3), "float32")
 
-    ys = ops.array(
+    ys = np.array(
         [
             [0.1, 0.1, 0.23, 0.23],
             [0.67, 0.75, 0.23, 0.23],
@@ -36,16 +36,18 @@ def _create_bounding_box_dataset(
         ],
         "float32",
     )
-    ys = ops.expand_dims(ys, axis=0)
-    ys = ops.tile(ys, [5, 1, 1])
-    ys = keras_cv.bounding_box.convert_format(
-        ys,
-        source="rel_xywh",
-        target=bounding_box_format,
-        images=xs,
-        dtype="float32",
+    ys = np.expand_dims(ys, axis=0)
+    ys = np.tile(ys, [5, 1, 1])
+    ys = ops.convert_to_numpy(
+        keras_cv.bounding_box.convert_format(
+            ys,
+            source="rel_xywh",
+            target=bounding_box_format,
+            images=xs,
+            dtype="float32",
+        )
     )
-    num_dets = ops.ones([5])
+    num_dets = np.ones([5])
 
     if use_dictionary_box_format:
         return tf.data.Dataset.from_tensor_slices(

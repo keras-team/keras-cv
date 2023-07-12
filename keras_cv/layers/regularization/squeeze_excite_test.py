@@ -15,9 +15,10 @@
 import tensorflow as tf
 
 from keras_cv.layers import SqueezeAndExcite2D
+from keras_cv.tests.test_case import TestCase
 
 
-class SqueezeAndExcite2DTest(tf.test.TestCase):
+class SqueezeAndExcite2DTest(TestCase):
     def test_maintains_shape(self):
         input_shape = (1, 4, 4, 8)
         inputs = tf.random.uniform(input_shape)

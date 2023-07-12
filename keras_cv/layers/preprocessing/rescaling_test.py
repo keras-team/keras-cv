@@ -15,9 +15,10 @@ import numpy as np
 import tensorflow as tf
 
 from keras_cv.layers.preprocessing.rescaling import Rescaling
+from keras_cv.tests.test_case import TestCase
 
 
-class RescalingTest(tf.test.TestCase):
+class RescalingTest(TestCase):
     def test_rescaling_correctness_float(self):
         layer = Rescaling(scale=1.0 / 127.5, offset=-1.0)
         inputs = tf.random.uniform((2, 4, 5, 3))

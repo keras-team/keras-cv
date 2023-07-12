@@ -13,13 +13,13 @@
 # limitations under the License.
 
 import numpy as np
-import tensorflow as tf
 
 from keras_cv.backend import ops
 from keras_cv.layers.object_detection.box_matcher import BoxMatcher
+from keras_cv.tests.test_case import TestCase
 
 
-class BoxMatcherTest(tf.test.TestCase):
+class BoxMatcherTest(TestCase):
     def test_box_matcher_invalid_length(self):
         fg_threshold = 0.5
         bg_thresh_hi = 0.2

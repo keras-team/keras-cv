@@ -15,9 +15,10 @@ import tensorflow as tf
 from absl.testing import parameterized
 
 from keras_cv import layers
+from keras_cv.tests.test_case import TestCase
 
 
-class RandAugmentTest(tf.test.TestCase, parameterized.TestCase):
+class RandAugmentTest(TestCase):
     @parameterized.named_parameters(
         ("0", 0),
         ("20", 0.2),

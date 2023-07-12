@@ -3,18 +3,18 @@
 # Licensed under the terms in https://github.com/keras-team/keras-cv/blob/master/keras_cv/layers/preprocessing_3d/waymo/LICENSE  # noqa: E501
 
 import numpy as np
-import tensorflow as tf
 
 from keras_cv.layers.preprocessing_3d import base_augmentation_layer_3d
 from keras_cv.layers.preprocessing_3d.waymo.frustum_random_dropping_points import (  # noqa: E501
     FrustumRandomDroppingPoints,
 )
+from keras_cv.tests.test_case import TestCase
 
 POINT_CLOUDS = base_augmentation_layer_3d.POINT_CLOUDS
 BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
 
 
-class FrustumRandomDroppingPointTest(tf.test.TestCase):
+class FrustumRandomDroppingPointTest(TestCase):
     def test_augment_point_clouds_and_bounding_boxes(self):
         add_layer = FrustumRandomDroppingPoints(
             r_distance=0, theta_width=1, phi_width=1, drop_rate=0.5

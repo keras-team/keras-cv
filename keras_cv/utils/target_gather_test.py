@@ -13,13 +13,13 @@
 # limitations under the License.
 
 import numpy as np
-import tensorflow as tf
 
 from keras_cv.backend import ops
+from keras_cv.tests.test_case import TestCase
 from keras_cv.utils.target_gather import _target_gather
 
 
-class TargetGatherTest(tf.test.TestCase):
+class TargetGatherTest(TestCase):
     def test_target_gather_boxes_batched(self):
         target_boxes = np.array(
             [[0, 0, 5, 5], [0, 5, 5, 10], [5, 0, 10, 5], [5, 5, 10, 10]]

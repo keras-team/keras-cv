@@ -78,7 +78,7 @@ jobs:
         KERAS_BACKEND: ${{ matrix.backend }}
         JAX_ENABLE_X64: true
       run: |
-        pytest --run_large keras_cv/bounding_box \
+        pytest keras_cv/bounding_box \
                keras_cv/callbacks \
                keras_cv/losses \
                keras_cv/layers/object_detection \

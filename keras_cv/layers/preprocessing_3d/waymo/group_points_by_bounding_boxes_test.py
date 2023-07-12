@@ -12,6 +12,7 @@ from keras_cv.layers.preprocessing_3d import base_augmentation_layer_3d
 from keras_cv.layers.preprocessing_3d.waymo.group_points_by_bounding_boxes import (  # noqa: E501
     GroupPointsByBoundingBoxes,
 )
+from keras_cv.tests.test_case import TestCase
 
 POINT_CLOUDS = base_augmentation_layer_3d.POINT_CLOUDS
 BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
@@ -19,7 +20,7 @@ OBJECT_POINT_CLOUDS = base_augmentation_layer_3d.OBJECT_POINT_CLOUDS
 OBJECT_BOUNDING_BOXES = base_augmentation_layer_3d.OBJECT_BOUNDING_BOXES
 
 
-class GroupPointsByBoundingBoxesTest(tf.test.TestCase):
+class GroupPointsByBoundingBoxesTest(TestCase):
     def test_augment_point_clouds_and_bounding_boxes(self):
         add_layer = GroupPointsByBoundingBoxes(
             label_index=1,

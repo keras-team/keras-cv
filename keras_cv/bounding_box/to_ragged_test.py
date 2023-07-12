@@ -13,13 +13,13 @@
 # limitations under the License.
 import numpy as np
 import pytest
-import tensorflow as tf
 
 from keras_cv import backend
 from keras_cv import bounding_box
+from keras_cv.tests.test_case import TestCase
 
 
-class ToRaggedTest(tf.test.TestCase):
+class ToRaggedTest(TestCase):
     @pytest.mark.tf_keras_only
     def test_converts_to_ragged(self):
         bounding_boxes = {

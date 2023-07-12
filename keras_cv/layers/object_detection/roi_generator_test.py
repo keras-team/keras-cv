@@ -16,10 +16,11 @@ import pytest
 import tensorflow as tf
 
 from keras_cv.layers.object_detection.roi_generator import ROIGenerator
+from keras_cv.tests.test_case import TestCase
 
 
 @pytest.mark.tf_keras_only
-class ROIGeneratorTest(tf.test.TestCase):
+class ROIGeneratorTest(TestCase):
     def test_single_tensor(self):
         roi_generator = ROIGenerator("xyxy", nms_iou_threshold_train=0.96)
         rpn_boxes = tf.constant(

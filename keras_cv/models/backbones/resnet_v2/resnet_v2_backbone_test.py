@@ -16,7 +16,6 @@ import os
 
 import numpy as np
 import pytest
-import tensorflow as tf
 from absl.testing import parameterized
 
 from keras_cv.backend import keras
@@ -27,10 +26,11 @@ from keras_cv.models.backbones.resnet_v2.resnet_v2_aliases import (
 from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
     ResNetV2Backbone,
 )
+from keras_cv.tests.test_case import TestCase
 from keras_cv.utils.train import get_feature_extractor
 
 
-class ResNetV2BackboneTest(tf.test.TestCase, parameterized.TestCase):
+class ResNetV2BackboneTest(TestCase):
     def setUp(self):
         self.input_batch = np.ones(shape=(8, 224, 224, 3))
 
@@ -145,7 +145,3 @@ class ResNetV2BackboneTest(tf.test.TestCase, parameterized.TestCase):
             include_rescaling=False,
         )
         self.assertEqual(model.output_shape, (None, None, None, 2048))
-
-
-if __name__ == "__main__":
-    tf.test.main()

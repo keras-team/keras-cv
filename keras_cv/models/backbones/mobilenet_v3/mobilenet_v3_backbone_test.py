@@ -16,7 +16,6 @@ import os
 
 import numpy as np
 import pytest
-import tensorflow as tf
 from absl.testing import parameterized
 
 from keras_cv.backend import keras
@@ -27,10 +26,11 @@ from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_aliases import (
 from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_backbone import (
     MobileNetV3Backbone,
 )
+from keras_cv.tests.test_case import TestCase
 from keras_cv.utils.train import get_feature_extractor
 
 
-class MobileNetV3BackboneTest(tf.test.TestCase, parameterized.TestCase):
+class MobileNetV3BackboneTest(TestCase):
     def setUp(self):
         self.input_batch = np.ones(shape=(2, 224, 224, 3))
 
@@ -109,7 +109,3 @@ class MobileNetV3BackboneTest(tf.test.TestCase, parameterized.TestCase):
             include_rescaling=False,
         )
         self.assertEqual(model.output_shape, (None, None, None, 576))
-
-
-if __name__ == "__main__":
-    tf.test.main()

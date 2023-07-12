@@ -18,6 +18,7 @@ from keras_cv import bounding_box
 from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     VectorizedBaseImageAugmentationLayer,
 )
+from keras_cv.tests.test_case import TestCase
 
 
 class VectorizedRandomAddLayer(VectorizedBaseImageAugmentationLayer):
@@ -189,7 +190,7 @@ class VectorizedAssertionLayer(VectorizedBaseImageAugmentationLayer):
         return segmentation_masks
 
 
-class VectorizedBaseImageAugmentationLayerTest(tf.test.TestCase):
+class VectorizedBaseImageAugmentationLayerTest(TestCase):
     def test_augment_single_image(self):
         add_layer = VectorizedRandomAddLayer(fixed_value=2.0)
         image = np.random.random(size=(8, 8, 3)).astype("float32")

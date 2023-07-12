@@ -15,8 +15,6 @@
 
 import numpy as np
 import pytest
-import tensorflow as tf
-from absl.testing import parameterized
 
 from keras_cv.backend import ops
 from keras_cv.models.backbones.densenet.densenet_aliases import (
@@ -25,10 +23,11 @@ from keras_cv.models.backbones.densenet.densenet_aliases import (
 from keras_cv.models.backbones.densenet.densenet_backbone import (
     DenseNetBackbone,
 )
+from keras_cv.tests.test_case import TestCase
 
 
 @pytest.mark.large
-class DenseNetPresetSmokeTest(tf.test.TestCase, parameterized.TestCase):
+class DenseNetPresetSmokeTest(TestCase):
     """
     A smoke test for DenseNet presets we run continuously.
     This only tests the smallest weights we have available. Run with:
@@ -86,7 +85,7 @@ class DenseNetPresetSmokeTest(tf.test.TestCase, parameterized.TestCase):
 
 
 @pytest.mark.extra_large
-class DenseNetPresetFullTest(tf.test.TestCase, parameterized.TestCase):
+class DenseNetPresetFullTest(TestCase):
     """
     Test the full enumeration of our preset.
     This tests every preset for DenseNet and is only run manually.
