@@ -60,13 +60,13 @@ RUN pip install "jax[cuda11_cudnn86]" -f https://storage.googleapis.com/jax-rele
 ```
   and for torch:
 ```
-FROM nvidia/cuda:11.7.1-cudnn8-runtime-ubuntu22.04
+FROM nvidia/cuda:11.8.0-cudnn8-devel-ubuntu22.04
 RUN apt-get update
 RUN apt-get install -y python3 python3-pip
 RUN apt-get install -y git
 RUN git clone https://github.com/keras-team/keras-cv.git
 RUN cd keras-cv && git checkout master
 RUN pip install -r keras-cv/requirements.txt
-RUN pip install torch torchvision
+RUN pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
 ```
 - Merge the PR adding the dependency

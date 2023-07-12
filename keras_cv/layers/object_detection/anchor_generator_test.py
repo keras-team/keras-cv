@@ -189,6 +189,8 @@ class AnchorGeneratorTest(TestCase):
             clip_boxes=False,
         )
         boxes = anchor_generator(image=image)
-        boxes = np.concatenate(list(boxes.values()), axis=0)
+        boxes = np.concatenate(
+            [ops.convert_to_numpy(x) for x in list(boxes.values())], axis=0
+        )
         self.assertAllLessEqual(boxes, 1.5)
         self.assertAllGreaterEqual(boxes, -0.50)

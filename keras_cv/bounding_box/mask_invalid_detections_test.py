@@ -33,7 +33,8 @@ class MaskInvalidDetectionsTest(TestCase):
 
         negative_one_boxes = result["boxes"][:, 5:, :]
         self.assertAllClose(
-            negative_one_boxes, -np.ones_like(negative_one_boxes)
+            negative_one_boxes,
+            -np.ones_like(ops.convert_to_numpy(negative_one_boxes)),
         )
 
         preserved_boxes = result["boxes"][:, :2, :]
