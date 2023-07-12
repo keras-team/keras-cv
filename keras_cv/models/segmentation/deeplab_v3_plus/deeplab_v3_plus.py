@@ -178,7 +178,7 @@ class DeepLabV3Plus(Task):
                         # to avoid the NAN loss issue when used with mixed
                         # precision API.
                         dtype=tf.float32,
-                    )
+                    ),
                 ]
             )
 
