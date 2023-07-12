@@ -73,7 +73,8 @@ class BoxCOCOMetricsTest(TestCase):
         suite.update_state(y_true, y_pred)
         metrics = suite.result()
 
-        self.assertAllEqual(metrics, golden_metrics)
+        for metric_name, metric_value in metrics.items():
+            self.assertEqual(metric_value, golden_metrics[metric_name])
 
     def test_coco_metric_suite_evaluate_freq(self):
         suite = BoxCOCOMetrics(bounding_box_format="xyxy", evaluate_freq=2)
