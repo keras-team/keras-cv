@@ -50,7 +50,7 @@ class ViTLayersTest(tf.test.TestCase):
         (
             output,
             cls,
-        ) = patch_embedding._PatchingAndEmbedding__interpolate_positional_embeddings(  # noqa: E501
+        ) = patch_embedding.interpolate_positional_embeddings(
             positional_embeddings, height=450, width=450, patch_size=12
         )
 
@@ -67,7 +67,7 @@ class ViTLayersTest(tf.test.TestCase):
         (
             output,
             cls_token,
-        ) = patch_embedding._PatchingAndEmbedding__interpolate_positional_embeddings(  # noqa: E501
+        ) = patch_embedding.interpolate_positional_embeddings(
             positional_embeddings, height=8, width=8, patch_size=2
         )
 
