@@ -74,7 +74,7 @@ jobs:
         pip install -e ".[tests]" --progress-bar off --upgrade
     - name: Test with pytest
       env:
-        KERAS_CV_MULTI_BACKEND: true
+        TEST_CUSTOM_OPS: false # TODO(ianstenbit): test custom ops, or figure out what our story is here
         KERAS_BACKEND: ${{ matrix.backend }}
         JAX_ENABLE_X64: true
       run: |
