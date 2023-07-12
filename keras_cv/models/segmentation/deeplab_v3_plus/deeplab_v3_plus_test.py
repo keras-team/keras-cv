@@ -14,16 +14,19 @@
 
 import os
 
+import numpy as np
 import pytest
 import tensorflow as tf
 from absl.testing import parameterized
-from tensorflow import keras
 
+from keras_cv.backend import keras
+from keras_cv.backend import ops
 from keras_cv.models import DeepLabV3Plus
 from keras_cv.models import ResNet18V2Backbone
+from keras_cv.tests.test_case import TestCase
 
 
-class DeepLabV3PlusTest(tf.test.TestCase, parameterized.TestCase):
+class DeepLabV3PlusTest(TestCase):
     def test_deeplab_v3_plus_construction(self):
         backbone = ResNet18V2Backbone(input_shape=[512, 512, 3])
         model = DeepLabV3Plus(backbone=backbone, num_classes=1)
@@ -41,7 +44,7 @@ class DeepLabV3PlusTest(tf.test.TestCase, parameterized.TestCase):
         _ = model(images)
         _ = model.predict(images)
 
-    def test_weights_contained_in_trainable_variables(self):
+    def test_trainable_variable_count(self):
         target_size = [512, 512]
         images = np.ones(shape=[1] + target_size + [3])
 
@@ -54,13 +57,9 @@ class DeepLabV3PlusTest(tf.test.TestCase, parameterized.TestCase):
             metrics=["accuracy"],
         )
 
-        variable_names = [x.name for x in model.trainable_variables]
         outputs = model(images)
 
-        # encoder
-        self.assertIn("conv2d_1/kernel:0", variable_names)
-        # segmentation head
-        self.assertIn("segmentation_head_conv/kernel:0", variable_names)
+        self.assertEqual(len(model.trainable_variables), 83)
         # Output shape
         self.assertEqual(outputs.shape, tuple([1] + target_size + [1]))
 
@@ -75,7 +74,7 @@ class DeepLabV3PlusTest(tf.test.TestCase, parameterized.TestCase):
         ds = ds.batch(2)
 
         backbone = ResNet18V2Backbone(input_shape=target_size)
-        model = DeepLabV3Plus(backbone=backbone, num_classes=1)
+        model = DeepLabV3Plus(backbone=backbone, num_classes=3)
 
         model.compile(
             optimizer="adam",

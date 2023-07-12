@@ -16,7 +16,6 @@ from typing import Any
 from typing import List
 from typing import Mapping
 
-import tensorflow as tf
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 
@@ -154,9 +153,12 @@ class SpatialPyramidPooling(keras.layers.Layer):
             temp = ops.cast(channel(inputs, training=training), inputs.dtype)
             result.append(temp)
 
-        result = ops.concat(result, axis=-1)
+        result = ops.concatenate(result, axis=-1)
         result = self.projection(result, training=training)
         return result
+
+    def compute_output_shape(self, input_shape):
+        return tuple(input_shape[:-1]) + (self.num_channels,)
 
     def get_config(self) -> Mapping[str, Any]:
         config = {

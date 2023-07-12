@@ -13,12 +13,11 @@
 # limitations under the License.
 
 from keras_cv.backend import keras
-
 from keras_cv.layers.spatial_pyramid import SpatialPyramidPooling
 from keras_cv.models.task import Task
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+@keras.saving.register_keras_serializable(package="keras_cv")
 class DeepLabV3Plus(Task):
     """A Keras model implementing the DeepLabV3+ architecture for semantic
     segmentation.
@@ -175,7 +174,7 @@ class DeepLabV3Plus(Task):
                         # Force the dtype of the classification layer to float32
                         # to avoid the NAN loss issue when used with mixed
                         # precision API.
-                        "float32",
+                        dtype="float32",
                     ),
                 ]
             )
@@ -193,8 +192,30 @@ class DeepLabV3Plus(Task):
     def get_config(self):
         return {
             "num_classes": self.num_classes,
-            "backbone": self.backbone,
-            "spatial_pyramid_pooling": self.spatial_pyramid_pooling,
+            "backbone": keras.saving.serialize_keras_object(self.backbone),
+            "spatial_pyramid_pooling": keras.saving.serialize_keras_object(
+                self.spatial_pyramid_pooling
+            ),
             "projection_filters": self.projection_filters,
-            "segmentation_head": self.segmentation_head,
+            "segmentation_head": keras.saving.serialize_keras_object(
+                self.segmentation_head
+            ),
         }
+
+    @classmethod
+    def from_config(cls, config):
+        if "backbone" in config and isinstance(config["backbone"], dict):
+            config["backbone"] = keras.layers.deserialize(config["backbone"])
+        if "spatial_pyramid_pooling" in config and isinstance(
+            config["spatial_pyramid_pooling"], dict
+        ):
+            config["spatial_pyramid_pooling"] = keras.layers.deserialize(
+                config["spatial_pyramid_pooling"]
+            )
+        if "segmentation_head" in config and isinstance(
+            config["segmentation_head"], dict
+        ):
+            config["segmentation_head"] = keras.layers.deserialize(
+                config["segmentation_head"]
+            )
+        return super().from_config(config)
