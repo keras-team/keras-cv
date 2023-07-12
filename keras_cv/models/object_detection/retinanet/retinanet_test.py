@@ -22,7 +22,6 @@ from absl.testing import parameterized
 import keras_cv
 from keras_cv.backend import keras
 from keras_cv.backend import ops
-from keras_cv.backend.config import multi_backend
 from keras_cv.models.backbones.test_backbone_presets import (
     test_backbone_presets,
 )
@@ -75,23 +74,6 @@ class RetinaNetTest(TestCase):
         )
 
         self.assertIsNone(retinanet._user_metrics)
-
-    @pytest.mark.large
-    def test_cuda_device(self):
-        # TODO(ianstenbit): Delete this test before merging PR, or do something
-        # better with it.
-        if multi_backend() and keras.config.backend() == "torch":
-            print(ops.ones((1)).device.type)
-            self.assertTrue(ops.ones((1)).device.type == "cuda")
-        elif multi_backend() and keras.config.backend() == "jax":
-            print(str(ops.ones((1)).device()))
-            self.assertTrue(str(ops.ones((1)).device()) == "gpu:0")
-        elif multi_backend() and keras.config.backend() == "tensorflow":
-            print(ops.ones((1)).device)
-            self.assertTrue(
-                ops.ones((1)).device
-                == "/job:localhost/replica:0/task:0/device:GPU:0"
-            )
 
     @pytest.mark.large  # Fit is slow, so mark these large.
     def test_retinanet_call(self):
@@ -163,10 +145,10 @@ class RetinaNetTest(TestCase):
         )
 
         # only a -1 box
-        xs = ops.ones((1, 512, 512, 3), "float32")
+        xs = np.ones((1, 512, 512, 3), "float32")
         ys = {
-            "classes": ops.array([[-1]], "float32"),
-            "boxes": ops.array([[[0, 0, 0, 0]]], "float32"),
+            "classes": np.array([[-1]], "float32"),
+            "boxes": np.array([[[0, 0, 0, 0]]], "float32"),
         }
         ds = tf.data.Dataset.from_tensor_slices((xs, ys))
         ds = ds.repeat(2)

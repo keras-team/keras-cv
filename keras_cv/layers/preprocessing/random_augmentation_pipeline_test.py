@@ -17,18 +17,20 @@ import tensorflow as tf
 from absl.testing import parameterized
 
 from keras_cv import layers
-from keras_cv.backend import keras
+from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
+    BaseImageAugmentationLayer,
+)
 from keras_cv.tests.test_case import TestCase
 
 
-class AddOneToInputs(keras.layers.Layer):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+class AddOneToInputs(BaseImageAugmentationLayer):
+    """Add 1 to all image values, for testing purposes."""
 
-    def call(self, inputs):
-        result = inputs.copy()
-        result["images"] = inputs["images"] + 1
-        return result
+    def __init__(self):
+        super(AddOneToInputs, self).__init__()
+
+    def augment_image(self, image, transformation=None, **kwargs):
+        return image + 1
 
 
 class RandomAugmentationPipelineTest(TestCase):

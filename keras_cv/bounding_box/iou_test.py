@@ -26,8 +26,8 @@ class IoUTest(TestCase):
         # area of bb1 and bb1_off_by_1 are each 10000.
         # intersection area is 99*99=9801
         # iou=9801/(2*10000 - 9801)=0.96097656633
-        self.assertAlmostEqual(
-            iou_lib.compute_iou(bb1, bb1_off_by_1, "yxyx")[0], 0.96097656633
+        self.assertAllClose(
+            iou_lib.compute_iou(bb1, bb1_off_by_1, "yxyx")[0], [0.96097656633]
         )
 
     def test_compute_iou(self):
