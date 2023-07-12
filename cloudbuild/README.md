@@ -49,7 +49,7 @@ gcloud builds submit --region=us-west1 --tag us-west1-docker.pkg.dev/keras-team-
 - Repeat the last two steps for Jax and Torch (replacing "tensorflow" with "jax"
  or "torch" in the docker image target name). `Dockerfile` for jax:
 ```
-FROM ubuntu:22.04
+FROM nvidia/cuda:11.7.1-base-ubuntu20.04
 RUN apt-get update
 RUN apt-get install -y python3 python3-pip
 RUN apt-get install -y git
@@ -60,7 +60,7 @@ RUN pip install --upgrade "jax[cuda11_pip]" -f https://storage.googleapis.com/ja
 ```
   and for torch:
 ```
-FROM ubuntu:22.04
+FROM nvidia/cuda:11.7.1-base-ubuntu20.04
 RUN apt-get update
 RUN apt-get install -y python3 python3-pip
 RUN apt-get install -y git
