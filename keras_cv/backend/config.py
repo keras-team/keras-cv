@@ -56,11 +56,6 @@ if not os.path.exists(_config_path):
         # Except permission denied.
         pass
 
-# Set Keras backend based on KERAS_CV_MULTI_BACKEND flag, if applicable.
-if "KERAS_CV_MULTI_BACKEND" in os.environ:
-    if os.environ["KERAS_CV_MULTI_BACKEND"]:
-        _MULTI_BACKEND = True
-
 if "KERAS_BACKEND" in os.environ and os.environ["KERAS_BACKEND"]:
     _MULTI_BACKEND = True
 

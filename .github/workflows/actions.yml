@@ -75,7 +75,6 @@ jobs:
     - name: Test with pytest
       env:
         TEST_CUSTOM_OPS: false # TODO(ianstenbit): test custom ops, or figure out what our story is here
-        KERAS_CV_MULTI_BACKEND: true
         KERAS_BACKEND: ${{ matrix.backend }}
         JAX_ENABLE_X64: true
       run: |
