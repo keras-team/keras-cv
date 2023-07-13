@@ -91,6 +91,7 @@ to take effect.
 import tensorflow as tf
 import keras_cv
 import tensorflow_datasets as tfds
+import keras_core as keras
 
 # Create a preprocessing pipeline with augmentations
 BATCH_SIZE = 16
