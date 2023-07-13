@@ -33,8 +33,8 @@ class DeepLabV3Plus(Task):
             used as a feature extractor for the DeepLabV3+ Encoder. Should
             either be a `keras_cv.models.backbones.backbone.Backbone` or a
             `keras.Model` that implements the `pyramid_level_inputs`
-            property with keys "P2", "P3", "P4", and "P5" and layer names as
-            values. A somewhat sensible backbone to use in many cases is the:
+            property with key "P2" and a layer name as a value. A somewhat
+            sensible backbone to use in many cases is the:
             `keras_cv.models.ResNet50V2Backbone.from_preset("resnet50_v2_imagenet")`.
         num_classes: int, the number of classes for the detection model. Note
             that the `num_classes` doesn't contain the background class, and the
@@ -53,7 +53,8 @@ class DeepLabV3Plus(Task):
         segmentation_head: (Optional) a `keras.layers.Layer`. If provided, the
             outputs of the DeepLabV3 encoder is passed to this layer and it
             should predict the segmentation mask based on feature from backbone
-            and feature from decoder, otherwise a similar architecture is used.
+            and feature from decoder, otherwise a default DeepLabV3
+            convolutional head is used.
 
     Examples:
     ```python
