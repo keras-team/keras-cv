@@ -15,9 +15,10 @@ import numpy as np
 import tensorflow as tf
 
 from keras_cv.layers.preprocessing.posterization import Posterization
+from keras_cv.tests.test_case import TestCase
 
 
-class PosterizationTest(tf.test.TestCase):
+class PosterizationTest(TestCase):
     rng = tf.random.Generator.from_non_deterministic_state()
 
     def test_raises_error_on_invalid_bits_parameter(self):

@@ -15,14 +15,14 @@ import unittest
 
 import numpy as np
 import tensorflow as tf
-from absl.testing import parameterized
 
 from keras_cv import bounding_box
 from keras_cv.layers.preprocessing.random_flip import HORIZONTAL_AND_VERTICAL
 from keras_cv.layers.preprocessing.random_flip import RandomFlip
+from keras_cv.tests.test_case import TestCase
 
 
-class RandomFlipTest(tf.test.TestCase, parameterized.TestCase):
+class RandomFlipTest(TestCase):
     def test_horizontal_flip(self):
         np.random.seed(1337)
         mock_random = tf.convert_to_tensor([[0.6], [0.6]])

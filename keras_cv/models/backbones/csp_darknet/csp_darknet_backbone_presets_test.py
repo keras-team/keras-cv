@@ -15,7 +15,6 @@
 
 import pytest
 import tensorflow as tf
-from absl.testing import parameterized
 
 from keras_cv.models.backbones.csp_darknet.csp_darknet_aliases import (
     CSPDarkNetMBackbone,
@@ -24,10 +23,11 @@ from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
     CSPDarkNetBackbone,
 )
 from keras_cv.backend import ops
+from keras_cv.tests.test_case import TestCase
 
 
 @pytest.mark.large
-class CSPDarkNetPresetSmokeTest(tf.test.TestCase, parameterized.TestCase):
+class CSPDarkNetPresetSmokeTest(TestCase):
     """
     A smoke test for CSPDarkNet presets we run continuously.
     This only tests the smallest weights we have available. Run with:
@@ -90,7 +90,7 @@ class CSPDarkNetPresetSmokeTest(tf.test.TestCase, parameterized.TestCase):
 
 
 @pytest.mark.extra_large
-class CSPDarkNetPresetFullTest(tf.test.TestCase, parameterized.TestCase):
+class CSPDarkNetPresetFullTest(TestCase):
     """
     Test the full enumeration of our preset.
     This tests every presets for CSPDarkNet and is only run manually.

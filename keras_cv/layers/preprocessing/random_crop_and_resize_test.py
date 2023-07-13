@@ -17,9 +17,10 @@ from absl.testing import parameterized
 
 from keras_cv import bounding_box
 from keras_cv.layers import preprocessing
+from keras_cv.tests.test_case import TestCase
 
 
-class RandomCropAndResizeTest(tf.test.TestCase, parameterized.TestCase):
+class RandomCropAndResizeTest(TestCase):
     height, width = 300, 300
     batch_size = 4
     target_size = (224, 224)

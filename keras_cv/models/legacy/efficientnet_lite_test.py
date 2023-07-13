@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import tensorflow as tf
 from absl.testing import parameterized
 
 from keras_cv.models.legacy import efficientnet_lite
+from keras_cv.tests.test_case import TestCase
 
 from .models_test import ModelsTest
 
@@ -33,9 +33,7 @@ be tested manually when making changes to this model.
 """
 
 
-class EfficientNetLiteTest(
-    ModelsTest, tf.test.TestCase, parameterized.TestCase
-):
+class EfficientNetLiteTest(ModelsTest, TestCase):
     @parameterized.parameters(*MODEL_LIST)
     def test_application_base(self, app, _, args):
         super()._test_application_base(app, _, args)
@@ -55,7 +53,3 @@ class EfficientNetLiteTest(
     @parameterized.parameters(*MODEL_LIST)
     def test_model_can_be_used_as_backbone(self, app, last_dim, args):
         super()._test_model_can_be_used_as_backbone(app, last_dim, args)
-
-
-if __name__ == "__main__":
-    tf.test.main()

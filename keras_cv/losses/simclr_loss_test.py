@@ -13,12 +13,12 @@
 # limitations under the License.
 
 import numpy as np
-import tensorflow as tf
 
 from keras_cv.losses.simclr_loss import SimCLRLoss
+from keras_cv.tests.test_case import TestCase
 
 
-class SimCLRLossTest(tf.test.TestCase):
+class SimCLRLossTest(TestCase):
     def test_output_shape(self):
         projections_1 = np.random.uniform(size=(10, 128), low=0, high=10)
         projections_2 = np.random.uniform(size=(10, 128), low=0, high=10)

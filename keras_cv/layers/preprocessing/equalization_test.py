@@ -18,9 +18,10 @@ from absl.testing import parameterized
 
 from keras_cv.backend import keras
 from keras_cv.layers.preprocessing.equalization import Equalization
+from keras_cv.tests.test_case import TestCase
 
 
-class EqualizationTest(tf.test.TestCase, parameterized.TestCase):
+class EqualizationTest(TestCase):
     def test_return_shapes(self):
         xs = 255 * tf.ones((2, 512, 512, 3), dtype=tf.int32)
         layer = Equalization(value_range=(0, 255))

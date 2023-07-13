@@ -12,14 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import numpy as np
-import tensorflow as tf
 from absl.testing import parameterized
 
 from keras_cv import layers as cv_layers
 from keras_cv.backend import ops
+from keras_cv.tests.test_case import TestCase
 
 
-class AnchorGeneratorTest(tf.test.TestCase, parameterized.TestCase):
+class AnchorGeneratorTest(TestCase):
     @parameterized.named_parameters(
         ("unequal_lists", [0, 1, 2], [1]),
         ("unequal_levels_dicts", {"level_1": [0, 1, 2]}, {"1": [0, 1, 2]}),
@@ -189,6 +189,8 @@ class AnchorGeneratorTest(tf.test.TestCase, parameterized.TestCase):
             clip_boxes=False,
         )
         boxes = anchor_generator(image=image)
-        boxes = np.concatenate(list(boxes.values()), axis=0)
+        boxes = np.concatenate(
+            [ops.convert_to_numpy(x) for x in list(boxes.values())], axis=0
+        )
         self.assertAllLessEqual(boxes, 1.5)
         self.assertAllGreaterEqual(boxes, -0.50)

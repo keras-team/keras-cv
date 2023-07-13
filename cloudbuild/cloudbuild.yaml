@@ -6,17 +6,14 @@ substitutions:
   # Location of GKE cluster.
   _CLUSTER_ZONE: 'us-west1-b'
   # Image name.
-  _IMAGE_NAME: 'us-west1-docker.pkg.dev/keras-team-test/keras-cv-test/keras-cv-image'
+  _IMAGE_NAME: 'us-west1-docker.pkg.dev/keras-team-test/keras-cv-test/keras-cv-image-${_BACKEND}'
 steps:
-- name: 'docker'
+- name: 'gcr.io/cloud-builders/docker'
   id: build-image
-  args: [
-    'build',
-    '.',
-    '-f', 'cloudbuild/Dockerfile',
-    '-t', '$_IMAGE_NAME:$BUILD_ID',
-  ]
-- name: 'docker'
+  entrypoint: 'bash'
+  args:
+      ['-c', 'docker build -f cloudbuild/Dockerfile -t $_IMAGE_NAME:$BUILD_ID --build-arg IMAGE_NAME=$_IMAGE_NAME:deps .']
+- name: 'gcr.io/cloud-builders/docker'
   id: push-image
   waitFor:
   - build-image
@@ -50,6 +47,7 @@ steps:
     '--ext-str', 'image=$_IMAGE_NAME',
     '--ext-str', 'tag_name=$BUILD_ID',
     '--ext-str', 'gcs_bucket=$_GCS_BUCKET',
+    '--ext-str', 'backend=$_BACKEND',
     '-o', 'output.yaml',
   ]
 - name: 'gcr.io/cloud-builders/gcloud'

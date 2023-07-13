@@ -22,13 +22,14 @@ from tensorflow.keras import optimizers
 from keras_cv.layers import preprocessing
 from keras_cv.losses import SimCLRLoss
 from keras_cv.models import DenseNet121Backbone
+from keras_cv.tests.test_case import TestCase
 from keras_cv.training import ContrastiveTrainer
 
 
 # TODO(jbischof): revisit "extra_large" tag once development resumes.
 # These tests are currently some of the slowest in our repo.
 @pytest.mark.extra_large
-class ContrastiveTrainerTest(tf.test.TestCase):
+class ContrastiveTrainerTest(TestCase):
     def test_probe_requires_probe_optimizer(self):
         trainer = ContrastiveTrainer(
             encoder=self.build_encoder(),

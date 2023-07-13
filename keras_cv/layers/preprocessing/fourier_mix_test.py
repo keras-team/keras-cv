@@ -14,11 +14,12 @@
 import tensorflow as tf
 
 from keras_cv.layers.preprocessing.fourier_mix import FourierMix
+from keras_cv.tests.test_case import TestCase
 
 num_classes = 10
 
 
-class FourierMixTest(tf.test.TestCase):
+class FourierMixTest(TestCase):
     def test_return_shapes(self):
         xs = tf.ones((2, 512, 512, 3))
         # randomly sample labels

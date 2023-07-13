@@ -27,9 +27,10 @@ from keras_cv.models.backbones.resnet_v2.resnet_v2_aliases import (
     ResNet18V2Backbone,
 )
 from keras_cv.models.classification.image_classifier import ImageClassifier
+from keras_cv.tests.test_case import TestCase
 
 
-class ImageClassifierTest(tf.test.TestCase, parameterized.TestCase):
+class ImageClassifierTest(TestCase):
     def setUp(self):
         self.input_batch = np.ones(shape=(2, 224, 224, 3))
         self.dataset = tf.data.Dataset.from_tensor_slices(
@@ -103,7 +104,7 @@ class ImageClassifierTest(tf.test.TestCase, parameterized.TestCase):
 
 
 @pytest.mark.large
-class ImageClassifierPresetSmokeTest(tf.test.TestCase, parameterized.TestCase):
+class ImageClassifierPresetSmokeTest(TestCase):
     """
     A smoke test for ImageClassifier presets we run continuously.
     This only tests the smallest weights we have available. Run with:

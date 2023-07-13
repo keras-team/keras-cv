@@ -13,10 +13,11 @@
 # limitations under the License.
 import tensorflow as tf
 
+from keras_cv.tests.test_case import TestCase
 from keras_cv.utils import fill_utils
 
 
-class BoundingBoxToMaskTest(tf.test.TestCase):
+class BoundingBoxToMaskTest(TestCase):
     def _run_test(self, corners, expected):
         mask = fill_utils.corners_to_mask(corners, mask_shape=(6, 6))
         mask = tf.cast(mask, dtype=tf.int32)
@@ -178,7 +179,7 @@ class BoundingBoxToMaskTest(tf.test.TestCase):
         self._run_test(corners, expected)
 
 
-class FillRectangleTest(tf.test.TestCase):
+class FillRectangleTest(TestCase):
     def _run_test(self, img_w, img_h, cent_x, cent_y, rec_w, rec_h, expected):
         batch_size = 1
 

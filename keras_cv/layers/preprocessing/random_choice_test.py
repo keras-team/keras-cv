@@ -14,25 +14,27 @@
 
 import pytest
 import tensorflow as tf
-from absl.testing import parameterized
 
 from keras_cv import layers
-from keras_cv.backend import keras
+from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
+    BaseImageAugmentationLayer,
+)
+from keras_cv.tests.test_case import TestCase
 
 
-class AddOneToInputs(keras.layers.Layer):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+class AddOneToInputs(BaseImageAugmentationLayer):
+    """Add 1 to all image values, for testing purposes."""
+
+    def __init__(self):
+        super(AddOneToInputs, self).__init__()
         self.call_counter = tf.Variable(initial_value=0)
 
-    def call(self, inputs):
-        result = inputs.copy()
-        result["images"] = inputs["images"] + 1
+    def augment_image(self, image, transformation=None, **kwargs):
         self.call_counter.assign_add(1)
-        return result
+        return image + 1
 
 
-class RandomAugmentationPipelineTest(tf.test.TestCase, parameterized.TestCase):
+class RandomChoiceTest(TestCase):
     def test_calls_layer_augmentation_per_image(self):
         layer = AddOneToInputs()
         pipeline = layers.RandomChoice(layers=[layer])

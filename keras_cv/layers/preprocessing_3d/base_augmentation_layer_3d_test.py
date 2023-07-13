@@ -15,6 +15,7 @@ import numpy as np
 import tensorflow as tf
 
 from keras_cv.layers.preprocessing_3d import base_augmentation_layer_3d
+from keras_cv.tests.test_case import TestCase
 
 POINT_CLOUDS = base_augmentation_layer_3d.POINT_CLOUDS
 BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
@@ -61,7 +62,7 @@ class VectorizeDisabledLayer(
         super().__init__(**kwargs)
 
 
-class BaseImageAugmentationLayerTest(tf.test.TestCase):
+class BaseImageAugmentationLayerTest(TestCase):
     def test_auto_vectorize_disabled(self):
         vectorize_disabled_layer = VectorizeDisabledLayer()
         self.assertFalse(vectorize_disabled_layer.auto_vectorize)
