@@ -107,8 +107,8 @@ def preprocess_data(images, labels, augment=False):
     inputs = {"images": images, "labels": labels}
     outputs = inputs
     if augment:
-        for augment in augmentations:
-            outputs = augment(outputs)
+        for augmentation in augmentations:
+            outputs = augmentation(outputs)
     return outputs['images'], outputs['labels']
 
 train_dataset, test_dataset = tfds.load(
