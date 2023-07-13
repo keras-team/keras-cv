@@ -16,13 +16,13 @@
 import pytest
 import tensorflow as tf
 
+from keras_cv.backend import ops
 from keras_cv.models.backbones.csp_darknet.csp_darknet_aliases import (
     CSPDarkNetMBackbone,
 )
 from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
     CSPDarkNetBackbone,
 )
-from keras_cv.backend import ops
 from keras_cv.tests.test_case import TestCase
 
 
