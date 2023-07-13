@@ -133,12 +133,16 @@ class DeepLabV3Plus(Task):
             low_level_features
         )
 
+        # Note that we're using nearest interpolation instead of "bilinear"
+        # throughout this model. This is due to a lack of XLA support for
+        # gradient computation for bilinear upsampling in TensorFlow. For more
+        # information, see https://github.com/keras-team/keras-core/issues/294.
         encoder_outputs = keras.layers.UpSampling2D(
             size=(
                 low_level_projected_features.shape[1] // spp_outputs.shape[1],
                 low_level_projected_features.shape[2] // spp_outputs.shape[2],
             ),
-            interpolation="bilinear",
+            interpolation="nearest",
             name="encoder_output_upsampling",
         )(spp_outputs)
 
@@ -161,7 +165,7 @@ class DeepLabV3Plus(Task):
                     ),
                     keras.layers.ReLU(name="segmentation_head_relu"),
                     keras.layers.UpSampling2D(
-                        size=(4, 4), interpolation="bilinear"
+                        size=(4, 4), interpolation="nearest"
                     ),
                     # Classification layer
                     keras.layers.Conv2D(

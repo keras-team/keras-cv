@@ -119,7 +119,14 @@ class SpatialPyramidPooling(keras.layers.Layer):
                 ),
                 keras.layers.BatchNormalization(),
                 keras.layers.Activation(self.activation),
-                keras.layers.Resizing(height, width, interpolation="bilinear"),
+                # Note that we're using nearest interpolation instead of
+                # "bilinear" in this layer. This is due to a lack of XLA support
+                # for gradient computation with bilinear upsampling in
+                # TensorFlow. For more information, see
+                # https://github.com/keras-team/keras-core/issues/294.
+                keras.layers.UpSampling2D(
+                    size=(height, width), interpolation="nearest"
+                ),
             ]
         )
         self.aspp_parallel_channels.append(pool_sequential)
