@@ -12,31 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import tensorflow as tf
+import numpy as np
 
 from keras_cv.losses.simclr_loss import SimCLRLoss
+from keras_cv.tests.test_case import TestCase
 
 
-class SimCLRLossTest(tf.test.TestCase):
+class SimCLRLossTest(TestCase):
     def test_output_shape(self):
-        projections_1 = tf.random.uniform(
-            shape=(10, 128), minval=0, maxval=10, dtype=tf.float32
-        )
-        projections_2 = tf.random.uniform(
-            shape=(10, 128), minval=0, maxval=10, dtype=tf.float32
-        )
+        projections_1 = np.random.uniform(size=(10, 128), low=0, high=10)
+        projections_2 = np.random.uniform(size=(10, 128), low=0, high=10)
 
         simclr_loss = SimCLRLoss(temperature=1)
 
         self.assertAllEqual(simclr_loss(projections_1, projections_2).shape, ())
 
     def test_output_shape_reduction_none(self):
-        projections_1 = tf.random.uniform(
-            shape=(10, 128), minval=0, maxval=10, dtype=tf.float32
-        )
-        projections_2 = tf.random.uniform(
-            shape=(10, 128), minval=0, maxval=10, dtype=tf.float32
-        )
+        projections_1 = np.random.uniform(size=(10, 128), low=0, high=10)
+        projections_2 = np.random.uniform(size=(10, 128), low=0, high=10)
 
         simclr_loss = SimCLRLoss(temperature=1, reduction="none")
 
@@ -45,17 +38,21 @@ class SimCLRLossTest(tf.test.TestCase):
         )
 
     def test_output_value(self):
-        projections_1 = [
-            [1.0, 2.0, 3.0, 4.0],
-            [2.0, 3.0, 4.0, 5.0],
-            [3.0, 4.0, 5.0, 6.0],
-        ]
+        projections_1 = np.array(
+            [
+                [1.0, 2.0, 3.0, 4.0],
+                [2.0, 3.0, 4.0, 5.0],
+                [3.0, 4.0, 5.0, 6.0],
+            ]
+        )
 
-        projections_2 = [
-            [6.0, 5.0, 4.0, 3.0],
-            [5.0, 4.0, 3.0, 2.0],
-            [4.0, 3.0, 2.0, 1.0],
-        ]
+        projections_2 = np.array(
+            [
+                [6.0, 5.0, 4.0, 3.0],
+                [5.0, 4.0, 3.0, 2.0],
+                [4.0, 3.0, 2.0, 1.0],
+            ]
+        )
 
         simclr_loss = SimCLRLoss(temperature=0.5)
         self.assertAllClose(simclr_loss(projections_1, projections_2), 3.566689)

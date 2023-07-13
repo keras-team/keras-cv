@@ -13,20 +13,21 @@
 # limitations under the License.
 """Tests for loading pretrained model presets."""
 
+import numpy as np
 import pytest
-import tensorflow as tf
-from absl.testing import parameterized
 
+from keras_cv.backend import ops
 from keras_cv.models.backbones.densenet.densenet_aliases import (
     DenseNet121Backbone,
 )
 from keras_cv.models.backbones.densenet.densenet_backbone import (
     DenseNetBackbone,
 )
+from keras_cv.tests.test_case import TestCase
 
 
 @pytest.mark.large
-class DenseNetPresetSmokeTest(tf.test.TestCase, parameterized.TestCase):
+class DenseNetPresetSmokeTest(TestCase):
     """
     A smoke test for DenseNet presets we run continuously.
     This only tests the smallest weights we have available. Run with:
@@ -34,7 +35,7 @@ class DenseNetPresetSmokeTest(tf.test.TestCase, parameterized.TestCase):
     """
 
     def setUp(self):
-        self.input_batch = tf.ones(shape=(2, 224, 224, 3))
+        self.input_batch = np.ones(shape=(2, 224, 224, 3))
 
     def test_backbone_output(self):
         model = DenseNetBackbone.from_preset("densenet121")
@@ -49,11 +50,14 @@ class DenseNetPresetSmokeTest(tf.test.TestCase, parameterized.TestCase):
         # We should only update these numbers if we are updating a weights
         # file, or have found a discrepancy with the upstream source.
 
-        outputs = model(tf.ones(shape=(1, 512, 512, 3)))
+        outputs = model(np.ones(shape=(1, 512, 512, 3)))
         expected = [0.0, 0.0, 0.09920305, 0.0, 0.0]
         # Keep a high tolerance, so we are robust to different hardware.
         self.assertAllClose(
-            outputs[0, 0, 0, :5], expected, atol=0.01, rtol=0.01
+            ops.convert_to_numpy(outputs[0, 0, 0, :5]),
+            expected,
+            atol=0.01,
+            rtol=0.01,
         )
 
     def test_applications_model_output(self):
@@ -81,7 +85,7 @@ class DenseNetPresetSmokeTest(tf.test.TestCase, parameterized.TestCase):
 
 
 @pytest.mark.extra_large
-class DenseNetPresetFullTest(tf.test.TestCase, parameterized.TestCase):
+class DenseNetPresetFullTest(TestCase):
     """
     Test the full enumeration of our preset.
     This tests every preset for DenseNet and is only run manually.
@@ -90,7 +94,7 @@ class DenseNetPresetFullTest(tf.test.TestCase, parameterized.TestCase):
     """
 
     def test_load_densenet(self):
-        input_data = tf.ones(shape=(2, 224, 224, 3))
+        input_data = np.ones(shape=(2, 224, 224, 3))
         for preset in DenseNetBackbone.presets:
             model = DenseNetBackbone.from_preset(preset)
             model(input_data)

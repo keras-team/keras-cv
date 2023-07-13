@@ -59,6 +59,7 @@ setup(
             "pytest",
             "pycocotools",
             "tensorflow",
+            "keras-core",
         ],
         "examples": ["tensorflow_datasets", "matplotlib"],
     },

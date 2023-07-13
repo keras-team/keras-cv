@@ -11,10 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import tensorflow as tf
+import numpy as np
 from keras.callbacks import Callback
 
 from keras_cv import bounding_box
+from keras_cv.backend import ops
 from keras_cv.metrics.coco import compute_pycoco_metrics
 from keras_cv.models.object_detection.__internal__ import unpack_input
 from keras_cv.utils.conditional_imports import assert_pycocotools_installed
@@ -54,28 +55,34 @@ class PyCOCOCallback(Callback):
     def on_epoch_end(self, epoch, logs=None):
         logs = logs or {}
 
-        def images_only(data):
-            images, boxes = unpack_input(data)
+        def images_only(data, maybe_boxes=None):
+            if maybe_boxes is None:
+                images, boxes = unpack_input(data)
+            else:
+                images = data
             return images
 
-        def boxes_only(data):
-            images, boxes = unpack_input(data)
-            return bounding_box.to_ragged(boxes)
+        def boxes_only(data, maybe_boxes=None):
+            if maybe_boxes is None:
+                images, boxes = unpack_input(data)
+            else:
+                boxes = maybe_boxes
+            return boxes
 
         images_only_ds = self.val_data.map(images_only)
         y_pred = self.model.predict(images_only_ds)
         box_pred = y_pred["boxes"]
-        cls_pred = y_pred["classes"]
-        confidence_pred = y_pred["confidence"]
-        valid_det = y_pred["num_detections"]
+        cls_pred = ops.convert_to_numpy(y_pred["classes"])
+        confidence_pred = ops.convert_to_numpy(y_pred["confidence"])
+        valid_det = ops.convert_to_numpy(y_pred["num_detections"])
 
         gt = [boxes for boxes in self.val_data.map(boxes_only)]
-        gt_boxes = tf.concat(
-            [boxes["boxes"] for boxes in gt],
+        gt_boxes = ops.concatenate(
+            [ops.convert_to_numpy(boxes["boxes"]) for boxes in gt],
             axis=0,
         )
-        gt_classes = tf.concat(
-            [boxes["classes"] for boxes in gt],
+        gt_classes = ops.concatenate(
+            [ops.convert_to_numpy(boxes["classes"]) for boxes in gt],
             axis=0,
         )
 
@@ -88,17 +95,26 @@ class PyCOCOCallback(Callback):
             gt_boxes, source=self.bounding_box_format, target="yxyx"
         )
 
-        source_ids = tf.strings.as_string(
-            tf.linspace(1, total_images, total_images), precision=0
+        source_ids = np.char.mod(
+            "%d", np.linspace(1, total_images, total_images)
         )
+        num_detections = ops.sum(ops.cast(gt_classes > 0, "int32"), axis=-1)
 
         ground_truth = {
             "source_id": [source_ids],
-            "height": [tf.tile(tf.constant([height]), [total_images])],
-            "width": [tf.tile(tf.constant([width]), [total_images])],
-            "num_detections": [gt_boxes.row_lengths(axis=1)],
-            "boxes": [gt_boxes.to_tensor(-1)],
-            "classes": [gt_classes.to_tensor(-1)],
+            "height": [
+                ops.convert_to_numpy(
+                    ops.tile(ops.array([height]), [total_images])
+                )
+            ],
+            "width": [
+                ops.convert_to_numpy(
+                    ops.tile(ops.array([width]), [total_images])
+                )
+            ],
+            "num_detections": [ops.convert_to_numpy(num_detections)],
+            "boxes": [ops.convert_to_numpy(gt_boxes)],
+            "classes": [ops.convert_to_numpy(gt_classes)],
         }
 
         box_pred = bounding_box.convert_format(
@@ -107,7 +123,7 @@ class PyCOCOCallback(Callback):
 
         predictions = {
             "source_id": [source_ids],
-            "detection_boxes": [box_pred],
+            "detection_boxes": [ops.convert_to_numpy(box_pred)],
             "detection_classes": [cls_pred],
             "detection_scores": [confidence_pred],
             "num_detections": [valid_det],

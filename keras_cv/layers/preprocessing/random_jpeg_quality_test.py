@@ -15,9 +15,10 @@
 import tensorflow as tf
 
 from keras_cv.layers import preprocessing
+from keras_cv.tests.test_case import TestCase
 
 
-class RandomJpegQualityTest(tf.test.TestCase):
+class RandomJpegQualityTest(TestCase):
     def test_return_shapes(self):
         layer = preprocessing.RandomJpegQuality(factor=[0, 100])
 

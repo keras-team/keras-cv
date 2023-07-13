@@ -21,6 +21,7 @@ import tensorflow as tf
 from tensorflow import keras
 
 from keras_cv import bounding_box
+from keras_cv.backend import assert_tf_keras
 
 
 def _feature_bilinear_interpolation(
@@ -394,6 +395,7 @@ class _ROIAligner(keras.layers.Layer):
           sample_offset: A `float` in [0, 1] of the subpixel sample offset.
           **kwargs: Additional keyword arguments passed to Layer.
         """
+        assert_tf_keras("keras_cv.layers._ROIAligner")
         self._config_dict = {
             "bounding_box_format": bounding_box_format,
             "crop_size": target_size,

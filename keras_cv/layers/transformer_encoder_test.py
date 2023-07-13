@@ -15,9 +15,10 @@
 import tensorflow as tf
 
 from keras_cv.layers import TransformerEncoder
+from keras_cv.tests.test_case import TestCase
 
 
-class TransformerEncoderTest(tf.test.TestCase):
+class TransformerEncoderTest(TestCase):
     def test_return_type_and_shape(self):
         layer = TransformerEncoder(project_dim=128, num_heads=2, mlp_dim=128)
 

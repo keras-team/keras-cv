@@ -15,6 +15,7 @@ import tensorflow as tf
 from absl.testing import parameterized
 
 from keras_cv import layers
+from keras_cv.tests.test_case import TestCase
 
 CONSISTENT_OUTPUT_TEST_CONFIGURATIONS = [
     ("AutoContrast", layers.AutoContrast, {"value_range": (0, 255)}),
@@ -136,7 +137,7 @@ RAGGED_OUTPUT_TEST_CONFIGURATIONS = [
 ]
 
 
-class RaggedImageTest(tf.test.TestCase, parameterized.TestCase):
+class RaggedImageTest(TestCase):
     @parameterized.named_parameters(*CONSISTENT_OUTPUT_TEST_CONFIGURATIONS)
     def test_preserves_ragged_status(self, layer_cls, init_args):
         layer = layer_cls(**init_args)

@@ -14,17 +14,18 @@
 
 """Tests for loading pretrained model presets."""
 
+import numpy as np
 import pytest
-import tensorflow as tf
-from absl.testing import parameterized
 
+from keras_cv.backend import ops
 from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_backbone import (
     MobileNetV3Backbone,
 )
+from keras_cv.tests.test_case import TestCase
 
 
 @pytest.mark.large
-class MobileNetV3PresetSmokeTest(tf.test.TestCase):
+class MobileNetV3PresetSmokeTest(TestCase):
     """
     A smoke test for MobileNetV3 presets we run continuously.
     This only tests the smallest weights we have available. Run with:
@@ -32,7 +33,7 @@ class MobileNetV3PresetSmokeTest(tf.test.TestCase):
     """  # noqa: E501
 
     def setUp(self):
-        self.input_batch = tf.ones(shape=(8, 224, 224, 3))
+        self.input_batch = np.ones(shape=(8, 224, 224, 3))
 
     def test_backbone_output(self):
         model = MobileNetV3Backbone.from_preset("mobilenet_v3_large_imagenet")
@@ -46,11 +47,13 @@ class MobileNetV3PresetSmokeTest(tf.test.TestCase):
         outputs = outputs[0, 0, 0, :5]
         expected = [0.27, 0.01, 0.29, 0.08, -0.12]
         # Keep a high tolerance, so we are robust to different hardware.
-        self.assertAllClose(outputs, expected, atol=0.01, rtol=0.01)
+        self.assertAllClose(
+            ops.convert_to_numpy(outputs), expected, atol=0.01, rtol=0.01
+        )
 
 
 @pytest.mark.extra_large
-class MobileNetV3PresetFullTest(tf.test.TestCase, parameterized.TestCase):
+class MobileNetV3PresetFullTest(TestCase):
     """
     Test the full enumeration of our preset.
     This tests every preset for MobileNetV3 and is only run manually.
@@ -59,7 +62,7 @@ class MobileNetV3PresetFullTest(tf.test.TestCase, parameterized.TestCase):
     """  # noqa: E501
 
     def test_load_mobilenet_v3(self):
-        input_data = tf.ones(shape=(2, 224, 224, 3))
+        input_data = np.ones(shape=(2, 224, 224, 3))
         for preset in MobileNetV3Backbone.presets:
             model = MobileNetV3Backbone.from_preset(preset)
             model(input_data)

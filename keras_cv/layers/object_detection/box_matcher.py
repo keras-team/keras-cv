@@ -13,13 +13,12 @@
 # limitations under the License.
 
 from typing import List
-from typing import Tuple
 
-import tensorflow as tf
-from tensorflow import keras
+from keras_cv.backend import keras
+from keras_cv.backend import ops
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+@keras.saving.register_keras_serializable(package="keras_cv")
 class BoxMatcher(keras.layers.Layer):
     """Box matching logic based on argmax of highest value (e.g., IOU).
 
@@ -73,7 +72,7 @@ class BoxMatcher(keras.layers.Layer):
     box_matcher = keras_cv.layers.BoxMatcher([0.3, 0.7], [-1, 0, 1])
     iou_metric = keras_cv.bounding_box.compute_iou(anchors, boxes)
     matched_columns, matched_match_values = box_matcher(iou_metric)
-    cls_mask = tf.less_equal(matched_match_values, 0)
+    cls_mask = ops.less_equal(matched_match_values, 0)
     ```
 
     TODO(tanzhenyu): document when to use which mode.
@@ -102,7 +101,7 @@ class BoxMatcher(keras.layers.Layer):
         self.force_match_for_each_col = force_match_for_each_col
         self.built = True
 
-    def call(self, similarity_matrix: tf.Tensor) -> Tuple[tf.Tensor, tf.Tensor]:
+    def call(self, similarity_matrix):
         """Matches each row to a column based on argmax
 
         TODO(tanzhenyu): consider swapping rows and cols.
@@ -120,10 +119,10 @@ class BoxMatcher(keras.layers.Layer):
         squeeze_result = False
         if len(similarity_matrix.shape) == 2:
             squeeze_result = True
-            similarity_matrix = tf.expand_dims(similarity_matrix, axis=0)
-        static_shape = similarity_matrix.shape.as_list()
-        num_rows = static_shape[1] or tf.shape(similarity_matrix)[1]
-        batch_size = static_shape[0] or tf.shape(similarity_matrix)[0]
+            similarity_matrix = ops.expand_dims(similarity_matrix, axis=0)
+        static_shape = list(similarity_matrix.shape)
+        num_rows = static_shape[1] or ops.shape(similarity_matrix)[1]
+        batch_size = static_shape[0] or ops.shape(similarity_matrix)[0]
 
         def _match_when_cols_are_empty():
             """Performs matching when the rows of similarity matrix are empty.
@@ -138,12 +137,12 @@ class BoxMatcher(keras.layers.Layer):
                     num_rows] storing the match type indicator (e.g. positive or
                     negative or ignored match).
             """
-            with tf.name_scope("empty_boxes"):
-                matched_columns = tf.zeros(
-                    [batch_size, num_rows], dtype=tf.int32
+            with ops.name_scope("empty_boxes"):
+                matched_columns = ops.zeros(
+                    [batch_size, num_rows], dtype="int32"
                 )
-                matched_values = -tf.ones(
-                    [batch_size, num_rows], dtype=tf.int32
+                matched_values = -ops.ones(
+                    [batch_size, num_rows], dtype="int32"
                 )
                 return matched_columns, matched_values
 
@@ -158,25 +157,37 @@ class BoxMatcher(keras.layers.Layer):
                     num_rows] storing the match type indicator (e.g. positive or
                     negative or ignored match).
             """
-            with tf.name_scope("non_empty_boxes"):
-                matched_columns = tf.argmax(
-                    similarity_matrix, axis=-1, output_type=tf.int32
+            with ops.name_scope("non_empty_boxes"):
+                # Jax traces this function even when running eagerly and the
+                # columns are non-empty. Therefore, we need to handle the case
+                # where the similarity matrix is empty. We do this by padding
+                # some -1s to the end. -1s are guaranteed to not affect argmax
+                # matching because all values in a similarity matrix are [0,1]
+                # and the indexing won't change because these are added at the
+                # end.
+                padded_similarity_matrix = ops.concatenate(
+                    [similarity_matrix, -ops.ones((batch_size, num_rows, 1))],
+                    axis=-1,
                 )
 
-                # Get logical indices of ignored and unmatched columns as
-                # tf.int64
-                matched_vals = tf.reduce_max(similarity_matrix, axis=-1)
-                matched_values = tf.zeros([batch_size, num_rows], tf.int32)
+                matched_columns = ops.argmax(
+                    padded_similarity_matrix,
+                    axis=-1,
+                )
+
+                # Get logical indices of ignored and unmatched columns as int32
+                matched_vals = ops.max(padded_similarity_matrix, axis=-1)
+                matched_values = ops.zeros([batch_size, num_rows], "int32")
 
                 match_dtype = matched_vals.dtype
                 for ind, low, high in zip(
                     self.match_values, self.thresholds[:-1], self.thresholds[1:]
                 ):
-                    low_threshold = tf.cast(low, match_dtype)
-                    high_threshold = tf.cast(high, match_dtype)
-                    mask = tf.logical_and(
-                        tf.greater_equal(matched_vals, low_threshold),
-                        tf.less(matched_vals, high_threshold),
+                    low_threshold = ops.cast(low, match_dtype)
+                    high_threshold = ops.cast(high, match_dtype)
+                    mask = ops.logical_and(
+                        ops.greater_equal(matched_vals, low_threshold),
+                        ops.less(matched_vals, high_threshold),
                     )
                     matched_values = self._set_values_using_indicator(
                         matched_values, mask, ind
@@ -185,55 +196,54 @@ class BoxMatcher(keras.layers.Layer):
                 if self.force_match_for_each_col:
                     # [batch_size, num_cols], for each column (groundtruth_box),
                     # find the best matching row (anchor).
-                    matching_rows = tf.argmax(
-                        input=similarity_matrix, axis=1, output_type=tf.int32
+                    matching_rows = ops.argmax(
+                        padded_similarity_matrix,
+                        axis=1,
                     )
                     # [batch_size, num_cols, num_rows], a transposed 0-1 mapping
                     # matrix M, where M[j, i] = 1 means column j is matched to
                     # row i.
-                    column_to_row_match_mapping = tf.one_hot(
-                        matching_rows, depth=num_rows
+                    column_to_row_match_mapping = ops.one_hot(
+                        matching_rows, num_rows
                     )
                     # [batch_size, num_rows], for each row (anchor), find the
                     # matched column (groundtruth_box).
-                    force_matched_columns = tf.argmax(
-                        input=column_to_row_match_mapping,
+                    force_matched_columns = ops.argmax(
+                        column_to_row_match_mapping,
                         axis=1,
-                        output_type=tf.int32,
                     )
                     # [batch_size, num_rows]
-                    force_matched_column_mask = tf.cast(
-                        tf.reduce_max(column_to_row_match_mapping, axis=1),
-                        tf.bool,
+                    force_matched_column_mask = ops.cast(
+                        ops.max(column_to_row_match_mapping, axis=1),
+                        "bool",
                     )
                     # [batch_size, num_rows]
-                    matched_columns = tf.where(
+                    matched_columns = ops.where(
                         force_matched_column_mask,
                         force_matched_columns,
                         matched_columns,
                     )
-                    matched_values = tf.where(
+                    matched_values = ops.where(
                         force_matched_column_mask,
                         self.match_values[-1]
-                        * tf.ones([batch_size, num_rows], dtype=tf.int32),
+                        * ops.ones([batch_size, num_rows], dtype="int32"),
                         matched_values,
                     )
 
-                return matched_columns, matched_values
+                return ops.cast(matched_columns, "int32"), matched_values
 
         num_boxes = (
-            similarity_matrix.shape.as_list()[-1]
-            or tf.shape(similarity_matrix)[-1]
+            similarity_matrix.shape[-1] or ops.shape(similarity_matrix)[-1]
         )
-        matched_columns, matched_values = tf.cond(
-            pred=tf.greater(num_boxes, 0),
+        matched_columns, matched_values = ops.cond(
+            pred=ops.greater(num_boxes, 0),
             true_fn=_match_when_cols_are_non_empty,
             false_fn=_match_when_cols_are_empty,
         )
 
         if squeeze_result:
-            matched_columns = tf.squeeze(matched_columns, axis=0)
-            matched_values = tf.squeeze(matched_values, axis=0)
+            matched_columns = ops.squeeze(matched_columns, axis=0)
+            matched_values = ops.squeeze(matched_values, axis=0)
 
         return matched_columns, matched_values
 
@@ -247,8 +257,8 @@ class BoxMatcher(keras.layers.Layer):
         Returns:
           modified tensor.
         """
-        indicator = tf.cast(indicator, x.dtype)
-        return tf.add(tf.multiply(x, 1 - indicator), val * indicator)
+        indicator = ops.cast(indicator, x.dtype)
+        return ops.add(ops.multiply(x, 1 - indicator), val * indicator)
 
     def get_config(self):
         config = {

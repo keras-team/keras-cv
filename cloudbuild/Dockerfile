@@ -1,4 +1,4 @@
-# keras-cv-image:deps has all deps of KerasCV for testing.
-FROM us-west1-docker.pkg.dev/keras-team-test/keras-cv-test/keras-cv-image:deps
+ARG IMAGE_NAME
+FROM $IMAGE_NAME
 COPY . /kerascv
 WORKDIR /kerascv
