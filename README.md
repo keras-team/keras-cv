@@ -89,25 +89,25 @@ to take effect.
 
 ```python
 import tensorflow as tf
-from tensorflow import keras
 import keras_cv
 import tensorflow_datasets as tfds
 
 # Create a preprocessing pipeline with augmentations
 BATCH_SIZE = 16
 NUM_CLASSES = 3
-augmenter = keras.Sequential(
-    [
-        keras_cv.layers.RandomFlip(),
-        keras_cv.layers.RandAugment(value_range=(0, 255)),
-        keras_cv.layers.CutMix(),
-    ]
-)
+augmentations = [
+    keras_cv.layers.RandomFlip(),
+    keras_cv.layers.RandAugment(value_range=(0, 255)),
+    keras_cv.layers.CutMix(),
+]
 
 def preprocess_data(images, labels, augment=False):
     labels = tf.one_hot(labels, NUM_CLASSES)
     inputs = {"images": images, "labels": labels}
-    outputs = augmenter(inputs) if augment else inputs
+    outputs = inputs
+    if augment:
+        for augment in augmentations:
+            inputs = augment(inputs)
     return outputs['images'], outputs['labels']
 
 train_dataset, test_dataset = tfds.load(
