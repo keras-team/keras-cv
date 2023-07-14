@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import copy
 from typing import List
 from typing import Sequence
 
@@ -19,6 +19,175 @@ import tensorflow as tf
 from tensorflow import keras
 
 from keras_cv.layers.object_detection_3d.heatmap_decoder import HeatmapDecoder
+from keras_cv.models.object_detection_3d.center_pillar_backbone import Block
+from keras_cv.models.object_detection_3d.center_pillar_backbone_presets import (
+    backbone_presets,
+)
+from keras_cv.models.task import Task
+from keras_cv.utils.python_utils import classproperty
+
+
+class MultiHeadCenterPillar(Task):
+    """Multi headed model based on CenterNet heatmap and PointPillar.
+
+    This model builds box classification and regression for each class
+    separately. It voxelizes the point cloud feature, applies feature extraction
+    on top of voxelized feature, and applies multi-class classification and
+    regression heads on the feature map.
+
+    Args:
+      backbone: the backbone to apply to voxelized features.
+      voxel_net: the voxel_net that takes point cloud feature and convert
+        to voxelized features.
+      multiclass_head: a multi class head which returns a dict of heatmap
+        prediction and regression prediction per class.
+      label_encoder: a LabelEncoder that takes point cloud xyz and point cloud
+        features and returns a multi class labels which is a dict of heatmap,
+        box location and top_k heatmap index per class.
+      prediction_decoder: a multi class heatmap prediction decoder that returns
+        a dict of decoded boxes, box class, and box confidence score per class.
+
+
+    """
+
+    def __init__(
+        self,
+        backbone,
+        voxel_net,
+        multiclass_head,
+        prediction_decoder,
+        **kwargs,
+    ):
+        super().__init__(**kwargs)
+        self._voxelization_layer = voxel_net
+        self.backbone = backbone
+        self._multiclass_head = multiclass_head
+        self._prediction_decoder = prediction_decoder
+        self._head_names = self._multiclass_head._head_names
+
+        self.initial_conv = keras.layers.Conv2D(
+            128,
+            1,
+            1,
+            padding="same",
+            kernel_initializer=keras.initializers.VarianceScaling(),
+            kernel_regularizer=keras.regularizers.L2(l2=1e-4),
+        )
+        self.initial_bn = keras.layers.BatchNormalization(
+            synchronized=True,
+        )
+        self.initial_block = Block(backbone.input_shape[-1], downsample=False)
+
+    def call(self, input_dict, training=None):
+        point_xyz, point_feature, point_mask = (
+            input_dict["point_xyz"],
+            input_dict["point_feature"],
+            input_dict["point_mask"],
+        )
+
+        voxel_feature = self._voxelization_layer(
+            point_xyz, point_feature, point_mask, training=training
+        )
+        voxel_feature = self.initial_conv(voxel_feature)
+        voxel_feature = self.initial_bn(voxel_feature)
+        voxel_feature = keras.layers.ReLU()(voxel_feature)
+        voxel_feature = self.initial_block(voxel_feature)
+        voxel_feature = self.backbone(voxel_feature)
+
+        predictions = self._multiclass_head(voxel_feature)
+
+        if not training:
+            predictions = self._prediction_decoder(predictions)
+
+        return predictions
+
+    def compile(self, heatmap_loss=None, box_loss=None, **kwargs):
+        """Compiles the MultiHeadCenterPillar.
+
+        `compile()` mirrors the standard Keras `compile()` method, but allows
+        for specification of heatmap and box-specific losses.
+
+        Args:
+            heatmap_loss: a Keras loss to use for heatmap regression.
+            box_loss: a Keras loss to use for box regression, or a list of Keras
+                losses for box regression, one for each class. If only one loss
+                is specified, it will be used for all classes, otherwise exactly
+                one loss should be specified per class.
+            kwargs: other `keras.Model.compile()` arguments are supported and
+                propagated to the `keras.Model` class.
+        """
+        losses = {}
+
+        if box_loss is not None and not isinstance(box_loss, list):
+            box_loss = [
+                box_loss for _ in range(self._multiclass_head._num_classes)
+            ]
+        for i in range(self._multiclass_head._num_classes):
+            losses[f"heatmap_class_{i+1}"] = heatmap_loss
+            losses[f"box_class_{i+1}"] = box_loss[i]
+
+        super().compile(loss=losses, **kwargs)
+
+    def compute_loss(self, predictions=None, targets=None):
+        y_pred = {}
+        y_true = {}
+        sample_weight = {}
+
+        for head_name in self._head_names:
+            prediction = predictions[head_name]
+            heatmap_pred = tf.nn.softmax(prediction[..., :2])[..., 1]
+            box_pred = prediction[..., 2:]
+            box = targets[head_name]["boxes"]
+            heatmap = targets[head_name]["heatmap"]
+            index = targets[head_name]["top_k_index"]
+
+            # the prediction returns 2 outputs for background vs object
+            y_pred["heatmap_" + head_name] = heatmap_pred
+            y_true["heatmap_" + head_name] = heatmap
+
+            # TODO(ianstenbit): loss heatmap threshold should be configurable.
+            box_regression_mask = (
+                tf.gather_nd(heatmap, index, batch_dims=1) >= 0.95
+            )
+            box = tf.gather_nd(box, index, batch_dims=1)
+            box_pred = tf.gather_nd(box_pred, index, batch_dims=1)
+
+            num_boxes = tf.math.maximum(
+                tf.reduce_sum(tf.cast(box_regression_mask, tf.float32)), 1
+            )
+
+            sample_weight["box_" + head_name] = (
+                tf.cast(box_regression_mask, tf.float32) / num_boxes
+            )
+            sample_weight["heatmap_" + head_name] = (
+                tf.ones_like(heatmap) / num_boxes
+            )
+
+            y_pred["box_" + head_name] = box_pred
+            y_true["box_" + head_name] = box
+
+        return super().compute_loss(
+            x={}, y=y_true, y_pred=y_pred, sample_weight=sample_weight
+        )
+
+    def train_step(self, data):
+        x, y, sample_weight = keras.utils.unpack_x_y_sample_weight(data)
+        with tf.GradientTape() as tape:
+            predictions = self(x, training=True)
+            loss = self.compute_loss(predictions, y)
+        self.optimizer.minimize(loss, self.trainable_variables, tape=tape)
+        return self.compute_metrics({}, {}, {}, sample_weight={})
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return copy.deepcopy(backbone_presets)
+
+    @classproperty
+    def backbone_presets(cls):
+        """Dictionary of preset names and configurations of compatible
+        backbones."""
+        return copy.deepcopy(backbone_presets)
 
 
 class MultiClassDetectionHead(keras.layers.Layer):
@@ -129,135 +298,3 @@ class MultiClassHeatmapDecoder(keras.layers.Layer):
                 "confidence": tf.concat(box_confidence, axis=1),
             }
         }
-
-
-class MultiHeadCenterPillar(keras.Model):
-    """Multi headed model based on CenterNet heatmap and PointPillar.
-
-    This model builds box classification and regression for each class
-    separately. It voxelizes the point cloud feature, applies feature extraction
-    on top of voxelized feature, and applies multi-class classification and
-    regression heads on the feature map.
-
-    Args:
-      backbone: the backbone to apply to voxelized features.
-      voxel_net: the voxel_net that takes point cloud feature and convert
-        to voxelized features.
-      multiclass_head: a multi class head which returns a dict of heatmap
-        prediction and regression prediction per class.
-      label_encoder: a LabelEncoder that takes point cloud xyz and point cloud
-        features and returns a multi class labels which is a dict of heatmap,
-        box location and top_k heatmap index per class.
-      prediction_decoder: a multi class heatmap prediction decoder that returns
-        a dict of decoded boxes, box class, and box confidence score per class.
-
-
-    """
-
-    def __init__(
-        self,
-        backbone,
-        voxel_net,
-        multiclass_head,
-        prediction_decoder,
-        **kwargs,
-    ):
-        super().__init__(**kwargs)
-        self._voxelization_layer = voxel_net
-        self._unet_layer = backbone
-        self._multiclass_head = multiclass_head
-        self._prediction_decoder = prediction_decoder
-        self._head_names = self._multiclass_head._head_names
-
-    def call(self, input_dict, training=None):
-        point_xyz, point_feature, point_mask = (
-            input_dict["point_xyz"],
-            input_dict["point_feature"],
-            input_dict["point_mask"],
-        )
-        voxel_feature = self._voxelization_layer(
-            point_xyz, point_feature, point_mask, training=training
-        )
-        voxel_feature = self._unet_layer(voxel_feature, training=training)
-        predictions = self._multiclass_head(voxel_feature)
-        if not training:
-            predictions = self._prediction_decoder(predictions)
-        # returns dict {"class_1": concat_pred_1, "class_2": concat_pred_2}
-        return predictions
-
-    def compile(self, heatmap_loss=None, box_loss=None, **kwargs):
-        """Compiles the MultiHeadCenterPillar.
-
-        `compile()` mirrors the standard Keras `compile()` method, but allows
-        for specification of heatmap and box-specific losses.
-
-        Args:
-            heatmap_loss: a Keras loss to use for heatmap regression.
-            box_loss: a Keras loss to use for box regression, or a list of Keras
-                losses for box regression, one for each class. If only one loss
-                is specified, it will be used for all classes, otherwise exactly
-                one loss should be specified per class.
-            kwargs: other `keras.Model.compile()` arguments are supported and
-                propagated to the `keras.Model` class.
-        """
-        losses = {}
-
-        if box_loss is not None and not isinstance(box_loss, list):
-            box_loss = [
-                box_loss for _ in range(self._multiclass_head._num_classes)
-            ]
-        for i in range(self._multiclass_head._num_classes):
-            losses[f"heatmap_class_{i+1}"] = heatmap_loss
-            losses[f"box_class_{i+1}"] = box_loss[i]
-
-        super().compile(loss=losses, **kwargs)
-
-    def compute_loss(self, predictions=None, targets=None):
-        y_pred = {}
-        y_true = {}
-        sample_weight = {}
-
-        for head_name in self._head_names:
-            prediction = predictions[head_name]
-            heatmap_pred = tf.nn.softmax(prediction[..., :2])[..., 1]
-            box_pred = prediction[..., 2:]
-            box = targets[head_name]["boxes"]
-            heatmap = targets[head_name]["heatmap"]
-            index = targets[head_name]["top_k_index"]
-
-            # the prediction returns 2 outputs for background vs object
-            y_pred["heatmap_" + head_name] = heatmap_pred
-            y_true["heatmap_" + head_name] = heatmap
-
-            # TODO(ianstenbit): loss heatmap threshold should be configurable.
-            box_regression_mask = (
-                tf.gather_nd(heatmap, index, batch_dims=1) >= 0.95
-            )
-            box = tf.gather_nd(box, index, batch_dims=1)
-            box_pred = tf.gather_nd(box_pred, index, batch_dims=1)
-
-            num_boxes = tf.math.maximum(
-                tf.reduce_sum(tf.cast(box_regression_mask, tf.float32)), 1
-            )
-
-            sample_weight["box_" + head_name] = (
-                tf.cast(box_regression_mask, tf.float32) / num_boxes
-            )
-            sample_weight["heatmap_" + head_name] = (
-                tf.ones_like(heatmap) / num_boxes
-            )
-
-            y_pred["box_" + head_name] = box_pred
-            y_true["box_" + head_name] = box
-
-        return super().compute_loss(
-            x={}, y=y_true, y_pred=y_pred, sample_weight=sample_weight
-        )
-
-    def train_step(self, data):
-        x, y, sample_weight = keras.utils.unpack_x_y_sample_weight(data)
-        with tf.GradientTape() as tape:
-            predictions = self(x, training=True)
-            loss = self.compute_loss(predictions, y)
-        self.optimizer.minimize(loss, self.trainable_variables, tape=tape)
-        return self.compute_metrics({}, {}, {}, sample_weight={})

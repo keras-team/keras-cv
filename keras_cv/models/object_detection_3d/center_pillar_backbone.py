@@ -11,20 +11,24 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import copy
 
 from tensorflow import keras
 from tensorflow.keras import initializers
 from tensorflow.keras import layers
 from tensorflow.keras import regularizers
 
+from keras_cv.models.backbones.backbone import Backbone
+from keras_cv.models.object_detection_3d.center_pillar_backbone_presets import (
+    backbone_presets,
+)
+from keras_cv.utils.python_utils import classproperty
 
-def Block(filters, downsample, sync_bn):
+
+def Block(filters, downsample):
     """A default block which serves as an example of the block interface.
 
     This is the base block definition for a CenterPillar model.
-
-    Note that the sync_bn parameter is a temporary workaround and should _not_
-    be part of the Block API.
     """
 
     def apply(x):
@@ -42,12 +46,9 @@ def Block(filters, downsample, sync_bn):
             kernel_initializer=initializers.VarianceScaling(),
             kernel_regularizer=regularizers.L2(l2=1e-4),
         )(x)
-        if sync_bn:
-            x = layers.BatchNormalization(
-                synchronized=True,
-            )(x)
-        else:
-            x = layers.BatchNormalization()(x)
+        x = layers.BatchNormalization(
+            synchronized=True,
+        )(x)
         x = layers.ReLU()(x)
 
         x = layers.Conv2D(
@@ -59,12 +60,9 @@ def Block(filters, downsample, sync_bn):
             kernel_initializer=initializers.VarianceScaling(),
             kernel_regularizer=regularizers.L2(l2=1e-4),
         )(x)
-        if sync_bn:
-            x = layers.BatchNormalization(
-                synchronized=True,
-            )(x)
-        else:
-            x = layers.BatchNormalization()(x)
+        x = layers.BatchNormalization(
+            synchronized=True,
+        )(x)
         x = layers.ReLU()(x)
 
         if downsample:
@@ -82,12 +80,9 @@ def Block(filters, downsample, sync_bn):
                 kernel_initializer=initializers.VarianceScaling(),
                 kernel_regularizer=regularizers.L2(l2=1e-4),
             )(residual)
-            if sync_bn:
-                residual = layers.BatchNormalization(
-                    synchronized=True,
-                )(residual)
-            else:
-                residual = layers.BatchNormalization()(residual)
+            residual = layers.BatchNormalization(
+                synchronized=True,
+            )(residual)
             residual = layers.ReLU()(residual)
 
         x = x + residual
@@ -97,7 +92,7 @@ def Block(filters, downsample, sync_bn):
     return apply
 
 
-def SkipBlock(filters, sync_bn):
+def SkipBlock(filters):
     def apply(x):
         x = layers.Conv2D(
             filters,
@@ -107,12 +102,9 @@ def SkipBlock(filters, sync_bn):
             kernel_initializer=initializers.VarianceScaling(),
             kernel_regularizer=regularizers.L2(l2=1e-4),
         )(x)
-        if sync_bn:
-            x = layers.BatchNormalization(
-                synchronized=True,
-            )(x)
-        else:
-            x = layers.BatchNormalization()(x)
+        x = layers.BatchNormalization(
+            synchronized=True,
+        )(x)
         x = layers.ReLU()(x)
 
         return x
@@ -120,19 +112,19 @@ def SkipBlock(filters, sync_bn):
     return apply
 
 
-def DownSampleBlock(filters, num_blocks, sync_bn):
+def DownSampleBlock(filters, num_blocks):
     def apply(x):
-        x = Block(filters, downsample=True, sync_bn=sync_bn)(x)
+        x = Block(filters, downsample=True)(x)
 
         for _ in range(num_blocks - 1):
-            x = Block(filters, downsample=False, sync_bn=sync_bn)(x)
+            x = Block(filters, downsample=False)(x)
 
         return x
 
     return apply
 
 
-def UpSampleBlock(filters, sync_bn):
+def UpSampleBlock(filters):
     def apply(x, lateral_input):
         x = layers.Conv2DTranspose(
             filters,
@@ -143,33 +135,24 @@ def UpSampleBlock(filters, sync_bn):
             kernel_initializer=initializers.VarianceScaling(),
             kernel_regularizer=regularizers.L2(l2=1e-4),
         )(x)
-        if sync_bn:
-            x = layers.BatchNormalization(
-                synchronized=True,
-            )(x)
-        else:
-            x = layers.BatchNormalization()(x)
+        x = layers.BatchNormalization(
+            synchronized=True,
+        )(x)
         x = layers.ReLU()(x)
 
-        lateral_input = SkipBlock(filters, sync_bn=sync_bn)(lateral_input)
+        lateral_input = SkipBlock(filters)(lateral_input)
 
         x = x + lateral_input
-        x = Block(filters, downsample=False, sync_bn=sync_bn)(x)
+        x = Block(filters, downsample=False)(x)
 
         return x
 
     return apply
 
 
-def UNet(
-    input_shape,
-    down_block_configs,
-    up_block_configs,
-    down_block=DownSampleBlock,
-    up_block=UpSampleBlock,
-    sync_bn=True,
-):
-    """Experimental UNet API. This API should not be considered stable.
+@keras.utils.register_keras_serializable(package="keras_cv.models")
+class CenterPillarBackbone(Backbone):
+    """A UNet backbone for CenterPillar models.
 
     All up and down blocks scale by a factor of two. Skip connections are
     included.
@@ -182,24 +165,46 @@ def UNet(
         down_block_configs: a list of (filter_count, num_blocks) tuples
             indicating the number of filters and sub-blocks in each down block
         up_block_configs: a list of filter counts, one for each up block
-        down_block: a downsampling block
-        up_block: an upsampling block
+        down_block: a Python function with two arguments which returns a
+            curried function to create a downsampling block. See the default
+            `DownSampleBlock` for an example.
+        up_block: a Python function with one argument which returns a curried
+            function to create an upsampling block. See the default
+            `UpSampleBlock` for an example.
     """
 
-    input = layers.Input(shape=input_shape)
-    x = input
+    def __init__(
+        self,
+        input_shape,
+        down_block_configs,
+        up_block_configs,
+        down_block=DownSampleBlock,
+        up_block=UpSampleBlock,
+        **kwargs
+    ):
+        input = layers.Input(shape=input_shape)
+        x = input
 
-    skip_connections = []
-    # Filters refers to the number of convolutional filters in each block,
-    # while num_blocks refers to the number of sub-blocks within a block
-    # (Note that only the first sub-block will perform downsampling)
-    for filters, num_blocks in down_block_configs:
-        skip_connections.append(x)
-        x = down_block(filters, num_blocks, sync_bn=sync_bn)(x)
+        skip_connections = []
+        # Filters refers to the number of convolutional filters in each block,
+        # while num_blocks refers to the number of sub-blocks within a block
+        # (Note that only the first sub-block will perform downsampling)
+        for filters, num_blocks in down_block_configs:
+            skip_connections.append(x)
+            x = down_block(filters, num_blocks)(x)
 
-    for filters in up_block_configs:
-        x = up_block(filters, sync_bn=sync_bn)(x, skip_connections.pop())
+        for filters in up_block_configs:
+            x = up_block(filters)(x, skip_connections.pop())
 
-    output = x
+        output = x
 
-    return keras.Model(input, output)
+        super().__init__(
+            inputs=input,
+            outputs=output,
+            **kwargs,
+        )
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return copy.deepcopy(backbone_presets)

@@ -14,33 +14,32 @@
 
 import tensorflow as tf
 
-from keras_cv.models.__internal__.unet import UNet
+from keras_cv.models.object_detection_3d import CenterPillarBackbone
 from keras_cv.tests.test_case import TestCase
 
 
-class UNetTest(TestCase):
-    def test_example_unet_sync_bn_false(self):
+class CenterPillarBackboneTest(TestCase):
+    def test_output_shape(self):
         x = tf.random.normal((1, 16, 16, 5))
-        model = UNet(
+        model = CenterPillarBackbone(
             input_shape=(16, 16, 5),
             down_block_configs=[(128, 6), (256, 2), (512, 1)],
             up_block_configs=[512, 256, 256],
-            sync_bn=False,
         )
         output = model(x)
         self.assertEqual(output.shape, x.shape[:-1] + (256))
+
+    def test_model_size(self):
+        model = CenterPillarBackbone(
+            input_shape=(16, 16, 5),
+            down_block_configs=[(128, 6), (256, 2), (512, 1)],
+            up_block_configs=[512, 256, 256],
+        )
         self.assertLen(model.layers, 118)
 
-    # This test is disabled because it requires tf-nightly to run
-    # (tf-nightly includes the synchronized param for BatchNorm layer)
-    def disable_test_example_unet_sync_bn_true(self):
-        x = tf.random.normal((1, 16, 16, 5))
-        model = UNet(
-            input_shape=(16, 16, 5),
-            down_block_configs=[(128, 6), (256, 2), (512, 1)],
-            up_block_configs=[512, 256, 256],
-            sync_bn=True,
+    def test_preset(self):
+        model = CenterPillarBackbone.from_preset(
+            "waymo_open_dataset", input_shape=(16, 16, 5)
         )
-        output = model(x)
-        self.assertEqual(output.shape, x.shape[:-1] + (256))
-        self.assertLen(model.layers, 118)
+        x = tf.random.normal((1, 16, 16, 5))
+        _ = model(x)
