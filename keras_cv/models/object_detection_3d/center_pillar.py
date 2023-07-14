@@ -19,7 +19,6 @@ import tensorflow as tf
 from tensorflow import keras
 
 from keras_cv.layers.object_detection_3d.heatmap_decoder import HeatmapDecoder
-from keras_cv.models.object_detection_3d.center_pillar_backbone import Block
 from keras_cv.models.object_detection_3d.center_pillar_backbone_presets import (
     backbone_presets,
 )
@@ -65,17 +64,6 @@ class MultiHeadCenterPillar(Task):
         self._prediction_decoder = prediction_decoder
         self._head_names = self._multiclass_head._head_names
 
-        self.initial_conv = keras.layers.Conv2D(
-            128,
-            1,
-            1,
-            padding="same",
-            kernel_initializer=keras.initializers.VarianceScaling(),
-            kernel_regularizer=keras.regularizers.L2(l2=1e-4),
-        )
-        self.initial_bn = keras.layers.BatchNormalization()
-        self.initial_block = Block(backbone.input_shape[-1], downsample=False)
-
     def call(self, input_dict, training=None):
         point_xyz, point_feature, point_mask = (
             input_dict["point_xyz"],
@@ -86,10 +74,6 @@ class MultiHeadCenterPillar(Task):
         voxel_feature = self._voxelization_layer(
             point_xyz, point_feature, point_mask, training=training
         )
-        voxel_feature = self.initial_conv(voxel_feature)
-        voxel_feature = self.initial_bn(voxel_feature)
-        voxel_feature = keras.layers.ReLU()(voxel_feature)
-        voxel_feature = self.initial_block(voxel_feature)
         voxel_feature = self.backbone(voxel_feature)
 
         predictions = self._multiclass_head(voxel_feature)

@@ -48,7 +48,7 @@ class CenterPillarTest(TestCase):
         )
         # dimensions computed from voxel_net
         backbone = CenterPillarBackbone.from_preset(
-            "waymo_open_dataset", input_shape=(400, 400, 20)
+            "waymo_open_dataset", input_shape=(None, None, 20)
         )
         decoder = MultiClassHeatmapDecoder(
             num_classes=2,
@@ -91,7 +91,7 @@ class CenterPillarTest(TestCase):
             spatial_size=[-20, 20, -20, 20, -20, 20],
         )
         backbone = CenterPillarBackbone.from_preset(
-            "waymo_open_dataset", input_shape=(400, 400, 128)
+            "waymo_open_dataset", input_shape=(None, None, 20)
         )
         decoder = MultiClassHeatmapDecoder(
             num_classes=2,

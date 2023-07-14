@@ -165,15 +165,27 @@ class CenterPillarBackbone(Backbone):
 
     def __init__(
         self,
-        input_shape,
         down_block_configs,
         up_block_configs,
         down_block=DownSampleBlock,
         up_block=UpSampleBlock,
+        input_shape=(None, None, 128),
         **kwargs
     ):
         input = layers.Input(shape=input_shape)
         x = input
+
+        x = keras.layers.Conv2D(
+            128,
+            1,
+            1,
+            padding="same",
+            kernel_initializer=keras.initializers.VarianceScaling(),
+            kernel_regularizer=keras.regularizers.L2(l2=1e-4),
+        )(x)
+        x = keras.layers.BatchNormalization()(x)
+        x = keras.layers.ReLU()(x)
+        x = Block(128, downsample=False)(x)
 
         skip_connections = []
         # Filters refers to the number of convolutional filters in each block,

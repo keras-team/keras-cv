@@ -35,7 +35,7 @@ class CenterPillarBackboneTest(TestCase):
             down_block_configs=[(128, 6), (256, 2), (512, 1)],
             up_block_configs=[512, 256, 256],
         )
-        self.assertLen(model.layers, 118)
+        self.assertLen(model.layers, 125)
 
     def test_preset(self):
         model = CenterPillarBackbone.from_preset(
