@@ -72,7 +72,7 @@ class CenterPillarTest(TestCase):
         )
         point_xyz = tf.random.normal([2, 1000, 3])
         point_feature = tf.random.normal([2, 1000, 4])
-        point_mask = tf.constant(True, shape=[2, 1000])
+        point_mask = tf.constant(True, shape=[2, 1000, 1])
         outputs = model(
             {
                 "point_xyz": point_xyz,
@@ -115,19 +115,18 @@ class CenterPillarTest(TestCase):
         )
         point_xyz = tf.random.normal([2, 1000, 3])
         point_feature = tf.random.normal([2, 1000, 4])
-        point_mask = tf.constant(True, shape=[2, 1000])
-        outputs = model(
+        point_mask = tf.constant(True, shape=[2, 1000, 1])
+        outputs = model.predict(
             {
                 "point_xyz": point_xyz,
                 "point_feature": point_feature,
                 "point_mask": point_mask,
-            },
-            training=False,
+            }
         )
         # max number boxes is 3
-        self.assertEqual(outputs["3d_boxes"]["boxes"].shape, [2, 7, 7])
-        self.assertEqual(outputs["3d_boxes"]["classes"].shape, [2, 7])
-        self.assertEqual(outputs["3d_boxes"]["confidence"].shape, [2, 7])
+        self.assertEqual(outputs["3d_boxes"]["boxes"].shape, (2, 7, 7))
+        self.assertEqual(outputs["3d_boxes"]["classes"].shape, (2, 7))
+        self.assertEqual(outputs["3d_boxes"]["confidence"].shape, (2, 7))
         self.assertAllEqual(
             outputs["3d_boxes"]["classes"],
             tf.constant([1, 1, 1, 2, 2, 2, 2] * 2, shape=(2, 7)),

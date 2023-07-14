@@ -57,31 +57,31 @@ class MultiHeadCenterPillar(Task):
         prediction_decoder,
         **kwargs,
     ):
-        super().__init__(**kwargs)
+        point_xyz = keras.layers.Input((None, 3), name="point_xyz")
+        point_feature = keras.layers.Input((None, 4), name="point_feature")
+        point_mask = keras.layers.Input(
+            (None, 1), name="point_mask", dtype=tf.bool
+        )
+
+        inputs = {
+            "point_xyz": point_xyz,
+            "point_feature": point_feature,
+            "point_mask": point_mask,
+        }
+
+        voxel_feature = voxel_net(
+            point_xyz, point_feature, tf.squeeze(point_mask, axis=-1)
+        )
+        voxel_feature = backbone(voxel_feature)
+        predictions = multiclass_head(voxel_feature)
+
+        super().__init__(inputs=inputs, outputs=predictions, **kwargs)
+
         self._voxelization_layer = voxel_net
         self.backbone = backbone
         self._multiclass_head = multiclass_head
         self._prediction_decoder = prediction_decoder
         self._head_names = self._multiclass_head._head_names
-
-    def call(self, input_dict, training=None):
-        point_xyz, point_feature, point_mask = (
-            input_dict["point_xyz"],
-            input_dict["point_feature"],
-            input_dict["point_mask"],
-        )
-
-        voxel_feature = self._voxelization_layer(
-            point_xyz, point_feature, point_mask, training=training
-        )
-        voxel_feature = self.backbone(voxel_feature)
-
-        predictions = self._multiclass_head(voxel_feature)
-
-        if not training:
-            predictions = self._prediction_decoder(predictions)
-
-        return predictions
 
     def compile(self, heatmap_loss=None, box_loss=None, **kwargs):
         """Compiles the MultiHeadCenterPillar.
@@ -159,6 +159,9 @@ class MultiHeadCenterPillar(Task):
             loss = self.compute_loss(predictions, y)
         self.optimizer.minimize(loss, self.trainable_variables, tape=tape)
         return self.compute_metrics({}, {}, {}, sample_weight={})
+
+    def predict_step(self, data):
+        return self._prediction_decoder(super().predict_step(data))
 
     @classproperty
     def presets(cls):
