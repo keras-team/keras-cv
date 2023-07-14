@@ -23,6 +23,9 @@ from keras_cv.backend import keras
 from keras_cv.backend import ops
 from keras_cv.models import DeepLabV3Plus
 from keras_cv.models import ResNet18V2Backbone
+from keras_cv.models.backbones.test_backbone_presets import (
+    test_backbone_presets,
+)
 from keras_cv.tests.test_case import TestCase
 
 
@@ -114,3 +117,19 @@ class DeepLabV3PlusTest(TestCase):
         # Check that output matches.
         restored_output = restored_model(input_batch)
         self.assertAllClose(model_output, restored_output)
+
+
+@pytest.mark.large
+class DeepLabV3PlusSmokeTest(TestCase):
+    @parameterized.named_parameters(
+        *[(preset, preset) for preset in test_backbone_presets]
+    )
+    def test_backbone_preset(self, preset):
+        model = DeepLabV3Plus.from_preset(
+            preset,
+            num_classes=3,
+        )
+        xs = np.random.uniform(size=(1, 128, 128, 3))
+        output = model(xs)
+
+        self.assertEqual(output.shape, (1, 128, 128, 3))

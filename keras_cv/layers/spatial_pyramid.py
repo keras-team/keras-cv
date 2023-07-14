@@ -69,8 +69,6 @@ class SpatialPyramidPooling(keras.layers.Layer):
         self.supports_jit = False
 
     def build(self, input_shape):
-        height = input_shape[1]
-        width = input_shape[2]
         channels = input_shape[3]
 
         # This is the parallel networks that process the input features with
@@ -122,7 +120,6 @@ class SpatialPyramidPooling(keras.layers.Layer):
                 ),
                 keras.layers.BatchNormalization(),
                 keras.layers.Activation(self.activation),
-                keras.layers.Resizing(height, width, interpolation="bilinear"),
             ]
         )
         self.aspp_parallel_channels.append(pool_sequential)
@@ -155,6 +152,10 @@ class SpatialPyramidPooling(keras.layers.Layer):
         for channel in self.aspp_parallel_channels:
             temp = ops.cast(channel(inputs, training=training), inputs.dtype)
             result.append(temp)
+
+        result[-1] = keras.layers.Resizing(
+            inputs.shape[1], inputs.shape[2], interpolation="bilinear"
+        )(result[-1])
 
         result = ops.concatenate(result, axis=-1)
         result = self.projection(result, training=training)

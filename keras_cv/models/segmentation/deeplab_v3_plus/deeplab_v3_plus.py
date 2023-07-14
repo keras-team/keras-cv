@@ -114,6 +114,12 @@ class DeepLabV3Plus(Task):
             ).output,
             name="p4-feature-extractor",
         )
+        high_level_feature_extractor.compute_output_shape = lambda s, i: (
+            i[0],
+            i[1] / 2**4,
+            i[2] / 2**4,
+            i[3],
+        )
         high_level_features = high_level_feature_extractor(inputs)
 
         if spatial_pyramid_pooling is None:
