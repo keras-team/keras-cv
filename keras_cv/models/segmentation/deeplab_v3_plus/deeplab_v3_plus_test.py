@@ -59,7 +59,7 @@ class DeepLabV3PlusTest(TestCase):
 
         outputs = model(images)
 
-        self.assertEqual(len(model.trainable_variables), 83)
+        self.assertEqual(len(model.trainable_variables), 67)
         # Output shape
         self.assertEqual(outputs.shape, tuple([1] + target_size + [1]))
 

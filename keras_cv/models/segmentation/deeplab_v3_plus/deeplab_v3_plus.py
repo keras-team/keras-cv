@@ -12,9 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import copy
+
 from keras_cv.backend import keras
 from keras_cv.layers.spatial_pyramid import SpatialPyramidPooling
+from keras_cv.models.backbones.backbone_presets import backbone_presets
+from keras_cv.models.backbones.backbone_presets import (
+    backbone_presets_with_weights,
+)
 from keras_cv.models.task import Task
+from keras_cv.utils.python_utils import classproperty
 
 
 @keras.saving.register_keras_serializable(package="keras_cv")
@@ -100,13 +107,20 @@ class DeepLabV3Plus(Task):
 
         inputs = backbone.input
 
-        backbone_outputs = backbone(inputs)
+        high_level_feature_extractor = keras.Model(
+            inputs=backbone.input,
+            outputs=backbone.get_layer(
+                backbone.pyramid_level_inputs["P4"]
+            ).output,
+            name="p4-feature-extractor",
+        )
+        high_level_features = high_level_feature_extractor(inputs)
 
         if spatial_pyramid_pooling is None:
             spatial_pyramid_pooling = SpatialPyramidPooling(
                 dilation_rates=[6, 12, 18]
             )
-        spp_outputs = spatial_pyramid_pooling(backbone_outputs)
+        spp_outputs = spatial_pyramid_pooling(high_level_features)
 
         low_level_feature_extractor = keras.Model(
             inputs=backbone.input,
@@ -135,11 +149,8 @@ class DeepLabV3Plus(Task):
         )
 
         encoder_outputs = keras.layers.UpSampling2D(
-            size=(
-                low_level_projected_features.shape[1] // spp_outputs.shape[1],
-                low_level_projected_features.shape[2] // spp_outputs.shape[2],
-            ),
-            interpolation="nearest",
+            size=(4, 4),
+            interpolation="bilinear",
             name="encoder_output_upsampling",
         )(spp_outputs)
 
@@ -220,3 +231,20 @@ class DeepLabV3Plus(Task):
                 config["segmentation_head"]
             )
         return super().from_config(config)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return copy.deepcopy(backbone_presets)
+
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include
+        weights."""
+        return copy.deepcopy(backbone_presets_with_weights)
+
+    @classproperty
+    def backbone_presets(cls):
+        """Dictionary of preset names and configurations of compatible
+        backbones."""
+        return copy.deepcopy(backbone_presets)
