@@ -31,9 +31,6 @@ class CutMix(BaseImageAugmentationLayer):
             the smoothing values are sampled. Defaults to 1.0, which is a
             recommended value when training an imagenet1k classification model.
         seed: Integer. Used to create a random seed.
-        apply_to_labels: Boolean. Cutmix applies to labels with images.
-        apply_to_segmentation_masks: Boolean. Cutmix applies to
-            segmentation_masks with images.
 
     References:
        - [CutMix paper]( https://arxiv.org/abs/1905.04899).
