@@ -40,8 +40,8 @@ class DeepLabV3Plus(Task):
             used as a feature extractor for the DeepLabV3+ Encoder. Should
             either be a `keras_cv.models.backbones.backbone.Backbone` or a
             `keras.Model` that implements the `pyramid_level_inputs`
-            property with key "P2" and a layer name as a value. A somewhat
-            sensible backbone to use in many cases is the:
+            property with keys "P2" and "P4" and layer names as values. A
+            somewhat sensible backbone to use in many cases is the
             `keras_cv.models.ResNet50V2Backbone.from_preset("resnet50_v2_imagenet")`.
         num_classes: int, the number of classes for the detection model. Note
             that the `num_classes` doesn't contain the background class, and the
@@ -113,12 +113,6 @@ class DeepLabV3Plus(Task):
                 backbone.pyramid_level_inputs["P4"]
             ).output,
             name="p4-feature-extractor",
-        )
-        high_level_feature_extractor.compute_output_shape = lambda s, i: (
-            i[0],
-            i[1] / 2**4,
-            i[2] / 2**4,
-            i[3],
         )
         high_level_features = high_level_feature_extractor(inputs)
 
