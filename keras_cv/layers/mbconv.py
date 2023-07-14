@@ -224,11 +224,7 @@ class MBConvBlock(keras.layers.Layer):
 
         if self.strides == 1 and self.input_filters == self.output_filters:
             if self.survival_probability:
-                x = keras.layers.Dropout(
-                    self.survival_probability,
-                    noise_shape=(None, 1, 1, 1),
-                    name=self.name + "drop",
-                )(x)
+                x = self.dropout(x)
             x = keras.layers.add([x, inputs], name=self.name + "add")
         return x
 
