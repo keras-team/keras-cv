@@ -15,9 +15,10 @@
 import tensorflow as tf
 
 from keras_cv.layers.object_detection_3d import voxel_utils
+from keras_cv.tests.test_case import TestCase
 
 
-class PadOrTrimToTest(tf.test.TestCase):
+class PadOrTrimToTest(TestCase):
     """Tests for pad_or_trim_to, branched from
     https://github.com/tensorflow/lingvo/blob/master/lingvo/core/py_utils_test.py.
     """

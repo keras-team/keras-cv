@@ -13,14 +13,14 @@
 # limitations under the License.
 import inspect
 
-import tensorflow as tf
 from absl.testing import parameterized
 
 from keras_cv import losses as cv_losses
+from keras_cv.tests.test_case import TestCase
 from keras_cv.utils import test_utils
 
 
-class SerializationTest(tf.test.TestCase, parameterized.TestCase):
+class SerializationTest(TestCase):
     @parameterized.named_parameters(
         (
             "FocalLoss",

@@ -12,13 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import tensorflow as tf
+import numpy as np
 from absl.testing import parameterized
 
 import keras_cv
+from keras_cv.tests.test_case import TestCase
 
 
-class CenterNetBoxLoss(tf.test.TestCase, parameterized.TestCase):
+class CenterNetBoxLoss(TestCase):
     @parameterized.named_parameters(
         (
             "none",
@@ -36,8 +37,8 @@ class CenterNetBoxLoss(tf.test.TestCase, parameterized.TestCase):
             num_heading_bins=4, anchor_size=[1.0, 1.0, 1.0], reduction=reduction
         )
         result = loss(
-            y_true=tf.random.uniform((2, 10, 7)),
+            y_true=np.random.uniform(size=(2, 10, 7)),
             # Predictions have xyz,lwh, and 2*4 values for heading.
-            y_pred=tf.random.uniform((2, 10, 6 + 2 * 4)),
+            y_pred=np.random.uniform(size=(2, 10, 6 + 2 * 4)),
         )
         self.assertEqual(result.shape, target_size)

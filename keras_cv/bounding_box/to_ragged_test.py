@@ -11,19 +11,23 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import tensorflow as tf
+import numpy as np
+import pytest
 
+from keras_cv import backend
 from keras_cv import bounding_box
+from keras_cv.tests.test_case import TestCase
 
 
-class ToRaggedTest(tf.test.TestCase):
+class ToRaggedTest(TestCase):
+    @pytest.mark.tf_keras_only
     def test_converts_to_ragged(self):
         bounding_boxes = {
-            "boxes": tf.constant(
+            "boxes": np.array(
                 [[[0, 0, 0, 0], [0, 0, 0, 0]], [[2, 3, 4, 5], [0, 1, 2, 3]]]
             ),
-            "classes": tf.constant([[-1, -1], [-1, 1]]),
-            "confidence": tf.constant([[0.5, 0.7], [0.23, 0.12]]),
+            "classes": np.array([[-1, -1], [-1, 1]]),
+            "confidence": np.array([[0.5, 0.7], [0.23, 0.12]]),
         }
         bounding_boxes = bounding_box.to_ragged(bounding_boxes)
 
@@ -45,16 +49,17 @@ class ToRaggedTest(tf.test.TestCase):
             ],
         )
 
+    @pytest.mark.tf_keras_only
     def test_round_trip(self):
         original = {
-            "boxes": tf.constant(
+            "boxes": np.array(
                 [
                     [[0, 0, 0, 0], [-1, -1, -1, -1]],
                     [[-1, -1, -1, -1], [-1, -1, -1, -1]],
                 ]
             ),
-            "classes": tf.constant([[1, -1], [-1, -1]]),
-            "confidence": tf.constant([[0.5, -1], [-1, -1]]),
+            "classes": np.array([[1, -1], [-1, -1]]),
+            "confidence": np.array([[0.5, -1], [-1, -1]]),
         }
         bounding_boxes = bounding_box.to_ragged(original)
         bounding_boxes = bounding_box.to_dense(bounding_boxes, max_boxes=2)
@@ -70,3 +75,19 @@ class ToRaggedTest(tf.test.TestCase):
         self.assertAllEqual(
             bounding_boxes["confidence"], original["confidence"]
         )
+
+    @pytest.mark.skipif(
+        backend.supports_ragged() is True,
+        reason="Only applies to backends which don't support raggeds",
+    )
+    def test_backend_without_raggeds_throws(self):
+        bounding_boxes = {
+            "boxes": np.array(
+                [[[0, 0, 0, 0], [0, 0, 0, 0]], [[2, 3, 4, 5], [0, 1, 2, 3]]]
+            ),
+            "classes": np.array([[-1, -1], [-1, 1]]),
+            "confidence": np.array([[0.5, 0.7], [0.23, 0.12]]),
+        }
+
+        with self.assertRaisesRegex(NotImplementedError, "support ragged"):
+            bounding_box.to_ragged(bounding_boxes)

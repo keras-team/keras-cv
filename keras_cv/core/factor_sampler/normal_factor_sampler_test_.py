@@ -12,12 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import tensorflow as tf
-
 from keras_cv import core
+from keras_cv.tests.test_case import TestCase
 
 
-class NormalFactorTest(tf.test.TestCase):
+class NormalFactorTest(TestCase):
     def test_sample(self):
         factor = core.NormalFactor(
             mean=0.5, stddev=0.2, min_value=0, max_value=1

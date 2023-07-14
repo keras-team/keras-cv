@@ -15,9 +15,10 @@
 import tensorflow as tf
 
 from keras_cv.layers.regularization.dropblock_2d import DropBlock2D
+from keras_cv.tests.test_case import TestCase
 
 
-class DropBlock2DTest(tf.test.TestCase):
+class DropBlock2DTest(TestCase):
     FEATURE_SHAPE = (1, 14, 14, 256)  # Shape of ResNet block group 3
     rng = tf.random.Generator.from_non_deterministic_state()
 

@@ -3,11 +3,11 @@
 # Licensed under the terms in https://github.com/keras-team/keras-cv/blob/master/keras_cv/layers/preprocessing_3d/waymo/LICENSE  # noqa: E501
 
 import numpy as np
-import tensorflow as tf
 from tensorflow import keras
 
 from keras_cv.layers.preprocessing_3d import base_augmentation_layer_3d
 from keras_cv.layers.preprocessing_3d.waymo.random_drop_box import RandomDropBox
+from keras_cv.tests.test_case import TestCase
 
 POINT_CLOUDS = base_augmentation_layer_3d.POINT_CLOUDS
 BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
@@ -15,7 +15,7 @@ ADDITIONAL_POINT_CLOUDS = base_augmentation_layer_3d.ADDITIONAL_POINT_CLOUDS
 ADDITIONAL_BOUNDING_BOXES = base_augmentation_layer_3d.ADDITIONAL_BOUNDING_BOXES
 
 
-class RandomDropBoxTest(tf.test.TestCase):
+class RandomDropBoxTest(TestCase):
     def test_drop_class1_box_point_clouds_and_bounding_boxes(self):
         keras.utils.set_random_seed(2)
         add_layer = RandomDropBox(label_index=1, max_drop_bounding_boxes=4)

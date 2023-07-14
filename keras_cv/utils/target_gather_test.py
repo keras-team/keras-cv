@@ -12,106 +12,109 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import tensorflow as tf
+import numpy as np
 
+from keras_cv.backend import ops
+from keras_cv.tests.test_case import TestCase
 from keras_cv.utils.target_gather import _target_gather
 
 
-class TargetGatherTest(tf.test.TestCase):
+class TargetGatherTest(TestCase):
     def test_target_gather_boxes_batched(self):
-        target_boxes = tf.constant(
+        target_boxes = np.array(
             [[0, 0, 5, 5], [0, 5, 5, 10], [5, 0, 10, 5], [5, 5, 10, 10]]
         )
-        target_boxes = target_boxes[tf.newaxis, ...]
-        indices = tf.constant([[0, 2]], dtype=tf.int32)
-        expected_boxes = tf.constant([[0, 0, 5, 5], [5, 0, 10, 5]])
-        expected_boxes = expected_boxes[tf.newaxis, ...]
+        target_boxes = ops.expand_dims(target_boxes, axis=0)
+        indices = np.array([[0, 2]], dtype="int32")
+        expected_boxes = np.array([[0, 0, 5, 5], [5, 0, 10, 5]])
+        expected_boxes = ops.expand_dims(expected_boxes, axis=0)
         res = _target_gather(target_boxes, indices)
         self.assertAllClose(expected_boxes, res)
 
     def test_target_gather_boxes_unbatched(self):
-        target_boxes = tf.constant(
-            [[0, 0, 5, 5], [0, 5, 5, 10], [5, 0, 10, 5], [5, 5, 10, 10]]
+        target_boxes = np.array(
+            [[0, 0, 5, 5], [0, 5, 5, 10], [5, 0, 10, 5], [5, 5, 10, 10]],
+            "int32",
         )
-        indices = tf.constant([0, 2], dtype=tf.int32)
-        expected_boxes = tf.constant([[0, 0, 5, 5], [5, 0, 10, 5]])
+        indices = np.array([0, 2], dtype="int32")
+        expected_boxes = np.array([[0, 0, 5, 5], [5, 0, 10, 5]])
         res = _target_gather(target_boxes, indices)
         self.assertAllClose(expected_boxes, res)
 
     def test_target_gather_classes_batched(self):
-        target_classes = tf.constant([[1, 2, 3, 4]])
-        target_classes = target_classes[..., tf.newaxis]
-        indices = tf.constant([[0, 2]], dtype=tf.int32)
-        expected_classes = tf.constant([[1, 3]])
-        expected_classes = expected_classes[..., tf.newaxis]
+        target_classes = np.array([[1, 2, 3, 4]])
+        target_classes = ops.expand_dims(target_classes, axis=-1)
+        indices = np.array([[0, 2]], dtype="int32")
+        expected_classes = np.array([[1, 3]])
+        expected_classes = ops.expand_dims(expected_classes, axis=-1)
         res = _target_gather(target_classes, indices)
         self.assertAllClose(expected_classes, res)
 
     def test_target_gather_classes_unbatched(self):
-        target_classes = tf.constant([1, 2, 3, 4])
-        target_classes = target_classes[..., tf.newaxis]
-        indices = tf.constant([0, 2], dtype=tf.int32)
-        expected_classes = tf.constant([1, 3])
-        expected_classes = expected_classes[..., tf.newaxis]
+        target_classes = np.array([1, 2, 3, 4])
+        target_classes = ops.expand_dims(target_classes, axis=-1)
+        indices = np.array([0, 2], dtype="int32")
+        expected_classes = np.array([1, 3])
+        expected_classes = ops.expand_dims(expected_classes, axis=-1)
         res = _target_gather(target_classes, indices)
         self.assertAllClose(expected_classes, res)
 
     def test_target_gather_classes_batched_with_mask(self):
-        target_classes = tf.constant([[1, 2, 3, 4]])
-        target_classes = target_classes[..., tf.newaxis]
-        indices = tf.constant([[0, 2]], dtype=tf.int32)
-        masks = tf.constant(([[False, True]]))
-        masks = masks[..., tf.newaxis]
+        target_classes = np.array([[1, 2, 3, 4]])
+        target_classes = ops.expand_dims(target_classes, axis=-1)
+        indices = np.array([[0, 2]], dtype="int32")
+        masks = np.array(([[False, True]]))
+        masks = ops.expand_dims(masks, axis=-1)
         # the second element is masked
-        expected_classes = tf.constant([[1, 0]])
-        expected_classes = expected_classes[..., tf.newaxis]
+        expected_classes = np.array([[1, 0]])
+        expected_classes = ops.expand_dims(expected_classes, axis=-1)
         res = _target_gather(target_classes, indices, masks)
         self.assertAllClose(expected_classes, res)
 
     def test_target_gather_classes_batched_with_mask_val(self):
-        target_classes = tf.constant([[1, 2, 3, 4]])
-        target_classes = target_classes[..., tf.newaxis]
-        indices = tf.constant([[0, 2]], dtype=tf.int32)
-        masks = tf.constant(([[False, True]]))
-        masks = masks[..., tf.newaxis]
+        target_classes = np.array([[1, 2, 3, 4]])
+        target_classes = ops.expand_dims(target_classes, axis=-1)
+        indices = np.array([[0, 2]], dtype="int32")
+        masks = np.array(([[False, True]]))
+        masks = ops.expand_dims(masks, axis=-1)
         # the second element is masked
-        expected_classes = tf.constant([[1, -1]])
-        expected_classes = expected_classes[..., tf.newaxis]
+        expected_classes = np.array([[1, -1]])
+        expected_classes = ops.expand_dims(expected_classes, axis=-1)
         res = _target_gather(target_classes, indices, masks, -1)
         self.assertAllClose(expected_classes, res)
 
     def test_target_gather_classes_unbatched_with_mask(self):
-        target_classes = tf.constant([1, 2, 3, 4])
-        target_classes = target_classes[..., tf.newaxis]
-        indices = tf.constant([0, 2], dtype=tf.int32)
-        masks = tf.constant([False, True])
-        masks = masks[..., tf.newaxis]
-        expected_classes = tf.constant([1, 0])
-        expected_classes = expected_classes[..., tf.newaxis]
+        target_classes = np.array([1, 2, 3, 4])
+        target_classes = ops.expand_dims(target_classes, axis=-1)
+        indices = np.array([0, 2], dtype="int32")
+        masks = np.array([False, True])
+        masks = ops.expand_dims(masks, axis=-1)
+        expected_classes = np.array([1, 0])
+        expected_classes = ops.expand_dims(expected_classes, axis=-1)
         res = _target_gather(target_classes, indices, masks)
         self.assertAllClose(expected_classes, res)
 
     def test_target_gather_with_empty_targets(self):
-        target_classes = tf.constant([])
-        target_classes = target_classes[..., tf.newaxis]
-        indices = tf.constant([0, 2], dtype=tf.int32)
+        target_classes = np.array([])
+        target_classes = ops.expand_dims(target_classes, axis=-1)
+        indices = np.array([0, 2], dtype="int32")
         # return all 0s since input is empty
-        expected_classes = tf.constant([0, 0])
-        expected_classes = expected_classes[..., tf.newaxis]
+        expected_classes = np.array([0, 0])
+        expected_classes = ops.expand_dims(expected_classes, axis=-1)
         res = _target_gather(target_classes, indices)
         self.assertAllClose(expected_classes, res)
 
     def test_target_gather_classes_multi_batch(self):
-        target_classes = tf.constant([[1, 2, 3, 4], [5, 6, 7, 8]])
-        target_classes = target_classes[..., tf.newaxis]
-        indices = tf.constant([[0, 2], [1, 3]], dtype=tf.int32)
-        expected_classes = tf.constant([[1, 3], [6, 8]])
-        expected_classes = expected_classes[..., tf.newaxis]
+        target_classes = np.array([[1, 2, 3, 4], [5, 6, 7, 8]])
+        target_classes = ops.expand_dims(target_classes, axis=-1)
+        indices = np.array([[0, 2], [1, 3]], dtype="int32")
+        expected_classes = np.array([[1, 3], [6, 8]])
+        expected_classes = ops.expand_dims(expected_classes, axis=-1)
         res = _target_gather(target_classes, indices)
         self.assertAllClose(expected_classes, res)
 
     def test_target_gather_invalid_rank(self):
-        targets = tf.random.normal([32, 2, 2, 2])
-        indices = tf.constant([0, 1], dtype=tf.int32)
+        targets = np.random.normal(size=[32, 2, 2, 2])
+        indices = np.array([0, 1], dtype="int32")
         with self.assertRaisesRegex(ValueError, "larger than 3"):
             _ = _target_gather(targets, indices)

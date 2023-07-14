@@ -15,9 +15,10 @@ import tensorflow as tf
 from absl.testing import parameterized
 
 from keras_cv.layers.preprocessing.solarization import Solarization
+from keras_cv.tests.test_case import TestCase
 
 
-class SolarizationTest(tf.test.TestCase, parameterized.TestCase):
+class SolarizationTest(TestCase):
     @parameterized.named_parameters(
         ("0_255", 0, 255),
         ("64_191", 64, 191),

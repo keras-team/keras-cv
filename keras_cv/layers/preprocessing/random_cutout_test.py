@@ -14,9 +14,10 @@
 import tensorflow as tf
 
 from keras_cv.layers import preprocessing
+from keras_cv.tests.test_case import TestCase
 
 
-class RandomCutoutTest(tf.test.TestCase):
+class RandomCutoutTest(TestCase):
     def _run_test(self, height_factor, width_factor):
         img_shape = (40, 40, 3)
         xs = tf.stack(

@@ -12,12 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
 import tensorflow as tf
 
 from keras_cv.layers.object_detection.roi_generator import ROIGenerator
+from keras_cv.tests.test_case import TestCase
 
 
-class ROIGeneratorTest(tf.test.TestCase):
+@pytest.mark.tf_keras_only
+class ROIGeneratorTest(TestCase):
     def test_single_tensor(self):
         roi_generator = ROIGenerator("xyxy", nms_iou_threshold_train=0.96)
         rpn_boxes = tf.constant(

@@ -19,11 +19,12 @@ import tensorflow as tf
 from absl import flags
 
 from keras_cv.datasets.pascal_voc import segmentation
+from keras_cv.tests.test_case import TestCase
 
 extracted_dir = os.path.join("VOCdevkit", "VOC2012")
 
 
-class PascalVocSegmentationDataTest(tf.test.TestCase):
+class PascalVocSegmentationDataTest(TestCase):
     def setUp(self):
         super().setUp()
         self.tempdir = self.get_tempdir()

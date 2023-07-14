@@ -3,12 +3,12 @@
 # Licensed under the terms in https://github.com/keras-team/keras-cv/blob/master/keras_cv/layers/preprocessing_3d/waymo/LICENSE  # noqa: E501
 
 import numpy as np
-import tensorflow as tf
 
 from keras_cv.layers.preprocessing_3d import base_augmentation_layer_3d
 from keras_cv.layers.preprocessing_3d.waymo.swap_background import (
     SwapBackground,
 )
+from keras_cv.tests.test_case import TestCase
 
 POINT_CLOUDS = base_augmentation_layer_3d.POINT_CLOUDS
 BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
@@ -16,7 +16,7 @@ ADDITIONAL_POINT_CLOUDS = base_augmentation_layer_3d.ADDITIONAL_POINT_CLOUDS
 ADDITIONAL_BOUNDING_BOXES = base_augmentation_layer_3d.ADDITIONAL_BOUNDING_BOXES
 
 
-class SwapBackgroundTest(tf.test.TestCase):
+class SwapBackgroundTest(TestCase):
     def test_augment_point_clouds_and_bounding_boxes(self):
         add_layer = SwapBackground()
         # point_clouds: 3D (multi frames) float32 Tensor with shape
