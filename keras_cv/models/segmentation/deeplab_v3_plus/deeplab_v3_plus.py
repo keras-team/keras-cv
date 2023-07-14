@@ -112,7 +112,7 @@ class DeepLabV3Plus(Task):
             outputs=backbone.get_layer(
                 backbone.pyramid_level_inputs["P4"]
             ).output,
-            name="p4-feature-extractor",
+            name="high-level-feature-extractor",
         )
         high_level_features = high_level_feature_extractor(inputs)
 

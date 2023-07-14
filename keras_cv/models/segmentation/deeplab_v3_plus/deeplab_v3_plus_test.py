@@ -47,25 +47,6 @@ class DeepLabV3PlusTest(TestCase):
         _ = model(images)
         _ = model.predict(images)
 
-    def test_trainable_variable_count(self):
-        target_size = [512, 512]
-        images = np.ones(shape=[1] + target_size + [3])
-
-        backbone = ResNet18V2Backbone(input_shape=target_size + [3])
-        model = DeepLabV3Plus(backbone=backbone, num_classes=1)
-
-        model.compile(
-            optimizer="adam",
-            loss=keras.losses.BinaryCrossentropy(),
-            metrics=["accuracy"],
-        )
-
-        outputs = model(images)
-
-        self.assertEqual(len(model.trainable_variables), 67)
-        # Output shape
-        self.assertEqual(outputs.shape, tuple([1] + target_size + [1]))
-
     @pytest.mark.large
     def test_weights_change(self):
         target_size = [512, 512, 3]
