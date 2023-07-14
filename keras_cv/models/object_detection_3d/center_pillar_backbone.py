@@ -46,9 +46,7 @@ def Block(filters, downsample):
             kernel_initializer=initializers.VarianceScaling(),
             kernel_regularizer=regularizers.L2(l2=1e-4),
         )(x)
-        x = layers.BatchNormalization(
-            synchronized=True,
-        )(x)
+        x = layers.BatchNormalization()(x)
         x = layers.ReLU()(x)
 
         x = layers.Conv2D(
@@ -60,9 +58,7 @@ def Block(filters, downsample):
             kernel_initializer=initializers.VarianceScaling(),
             kernel_regularizer=regularizers.L2(l2=1e-4),
         )(x)
-        x = layers.BatchNormalization(
-            synchronized=True,
-        )(x)
+        x = layers.BatchNormalization()(x)
         x = layers.ReLU()(x)
 
         if downsample:
@@ -80,9 +76,7 @@ def Block(filters, downsample):
                 kernel_initializer=initializers.VarianceScaling(),
                 kernel_regularizer=regularizers.L2(l2=1e-4),
             )(residual)
-            residual = layers.BatchNormalization(
-                synchronized=True,
-            )(residual)
+            residual = layers.BatchNormalization()(residual)
             residual = layers.ReLU()(residual)
 
         x = x + residual
@@ -102,9 +96,7 @@ def SkipBlock(filters):
             kernel_initializer=initializers.VarianceScaling(),
             kernel_regularizer=regularizers.L2(l2=1e-4),
         )(x)
-        x = layers.BatchNormalization(
-            synchronized=True,
-        )(x)
+        x = layers.BatchNormalization()(x)
         x = layers.ReLU()(x)
 
         return x
@@ -135,9 +127,7 @@ def UpSampleBlock(filters):
             kernel_initializer=initializers.VarianceScaling(),
             kernel_regularizer=regularizers.L2(l2=1e-4),
         )(x)
-        x = layers.BatchNormalization(
-            synchronized=True,
-        )(x)
+        x = layers.BatchNormalization()(x)
         x = layers.ReLU()(x)
 
         lateral_input = SkipBlock(filters)(lateral_input)

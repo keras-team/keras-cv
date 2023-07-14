@@ -73,9 +73,7 @@ class MultiHeadCenterPillar(Task):
             kernel_initializer=keras.initializers.VarianceScaling(),
             kernel_regularizer=keras.regularizers.L2(l2=1e-4),
         )
-        self.initial_bn = keras.layers.BatchNormalization(
-            synchronized=True,
-        )
+        self.initial_bn = keras.layers.BatchNormalization()
         self.initial_block = Block(backbone.input_shape[-1], downsample=False)
 
     def call(self, input_dict, training=None):
