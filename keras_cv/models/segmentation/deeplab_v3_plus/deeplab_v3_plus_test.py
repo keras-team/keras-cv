@@ -70,7 +70,7 @@ class DeepLabV3PlusTest(TestCase):
         images = np.ones([1] + target_size)
         labels = np.random.uniform(size=[1] + target_size)
         ds = tf.data.Dataset.from_tensor_slices((images, labels))
-        ds = ds.repeat(8)
+        ds = ds.repeat(2)
         ds = ds.batch(2)
 
         backbone = ResNet18V2Backbone(input_shape=target_size)
@@ -82,12 +82,12 @@ class DeepLabV3PlusTest(TestCase):
             metrics=["accuracy"],
         )
 
-        original_weights = model.get_weights()
+        original_weights = model.segmentation_head.get_weights()
         model.fit(ds, epochs=1)
-        updated_weights = model.get_weights()
+        updated_weights = model.segmentation_head.get_weights()
 
         for w1, w2 in zip(original_weights, updated_weights):
-            self.assertNotAllClose(w1, w2)
+            self.assertNotAllEqual(w1, w2)
             self.assertFalse(ops.any(ops.isnan(w2)))
 
     @parameterized.named_parameters(

@@ -166,7 +166,7 @@ class DeepLabV3Plus(Task):
                     ),
                     keras.layers.ReLU(name="segmentation_head_relu"),
                     keras.layers.UpSampling2D(
-                        size=(4, 4), interpolation="nearest"
+                        size=(4, 4), interpolation="bilinear"
                     ),
                     # Classification layer
                     keras.layers.Conv2D(
