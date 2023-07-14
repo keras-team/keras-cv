@@ -22,6 +22,7 @@ from keras_cv.models.backbones.backbone_presets import (
 )
 from keras_cv.models.task import Task
 from keras_cv.utils.python_utils import classproperty
+from keras_cv.utils.train import get_feature_extractor
 
 
 @keras.saving.register_keras_serializable(package="keras_cv")
@@ -107,28 +108,21 @@ class DeepLabV3Plus(Task):
 
         inputs = backbone.input
 
-        high_level_feature_extractor = keras.Model(
-            inputs=backbone.input,
-            outputs=backbone.get_layer(
-                backbone.pyramid_level_inputs["P4"]
-            ).output,
-            name="high-level-feature-extractor",
+        extractor_levels = ["P2", "P4"]
+        extractor_layer_names = [
+            backbone.pyramid_level_inputs[i] for i in extractor_levels
+        ]
+        feature_extractor = get_feature_extractor(
+            backbone, extractor_layer_names, extractor_levels
         )
-        high_level_features = high_level_feature_extractor(inputs)
+        backbone_features = feature_extractor(inputs)
 
         if spatial_pyramid_pooling is None:
             spatial_pyramid_pooling = SpatialPyramidPooling(
                 dilation_rates=[6, 12, 18]
             )
-        spp_outputs = spatial_pyramid_pooling(high_level_features)
+        spp_outputs = spatial_pyramid_pooling(backbone_features["P4"])
 
-        low_level_feature_extractor = keras.Model(
-            inputs=backbone.input,
-            outputs=backbone.get_layer(
-                backbone.pyramid_level_inputs["P2"]
-            ).output,
-            name="low-level-feature-extractor",
-        )
         low_level_feature_projector = keras.Sequential(
             [
                 keras.layers.Conv2D(
@@ -143,9 +137,8 @@ class DeepLabV3Plus(Task):
             ]
         )
 
-        low_level_features = low_level_feature_extractor(inputs)
         low_level_projected_features = low_level_feature_projector(
-            low_level_features
+            backbone_features["P2"]
         )
 
         encoder_outputs = keras.layers.UpSampling2D(
