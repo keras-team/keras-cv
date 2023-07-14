@@ -175,6 +175,13 @@ class MBConvBlock(keras.layers.Layer):
             name=self.name + "project_bn",
         )
 
+        if self.survival_probability:
+            self.dropout = keras.layers.Dropout(
+                self.survival_probability,
+                noise_shape=(None, 1, 1, 1),
+                name=self.name + "drop",
+            )
+
     def build(self, input_shape):
         if self.name is None:
             self.name = keras.backend.get_uid("block0")
