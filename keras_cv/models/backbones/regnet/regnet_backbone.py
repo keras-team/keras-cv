@@ -392,7 +392,7 @@ def apply_z_block(
       squeeze_excite_ratio: float, expansion ration for Squeeze and Excite block
       bottleneck_ratio: float, inverted bottleneck ratio
       name: str, name prefix
-      
+
     Returns:
       Output tensor of the block
     """
