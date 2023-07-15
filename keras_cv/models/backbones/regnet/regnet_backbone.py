@@ -33,7 +33,7 @@ from keras_cv.models.backbones.regnet.regnet_backbone_presets import (
 from keras_cv.utils.python_utils import classproperty
 
 
-@keras.utils.register_keras_serializable(package="keras_cv.models")
+@keras.saving.register_keras_serializable(package="keras_cv.models")
 class RegNetBackbone(Backbone):
     """
     This class represents the architecture of RegNet
@@ -173,6 +173,7 @@ def apply_stem(x, name=None):
     """Implementation of RegNet stem.
 
     (Common to all model variants)
+
     Args:
       x: Tensor, input tensor to the stem
       name: name prefix
@@ -199,6 +200,7 @@ def apply_x_block(
     inputs, filters_in, filters_out, group_width, stride=1, name=None
 ):
     """Implementation of X Block.
+
     References:
         - [Designing Network Design Spaces](https://arxiv.org/abs/2003.13678)
 
@@ -209,6 +211,7 @@ def apply_x_block(
       group_width: int, group width
       stride: int (or) tuple, stride of Conv layer
       name: str, name prefix
+
     Returns:
       Output tensor of the block
     """
@@ -283,6 +286,7 @@ def apply_y_block(
     name=None,
 ):
     """Implementation of Y Block.
+
     References:
         - [Designing Network Design Spaces](https://arxiv.org/abs/2003.13678)
 
@@ -294,6 +298,7 @@ def apply_y_block(
       stride: int (or) tuple, stride of Conv layer
       squeeze_excite_ratio: float, expansion ratio for Squeeze and Excite block
       name: str, name prefix
+
     Returns:
       Output tensor of the block
     """
@@ -387,6 +392,7 @@ def apply_z_block(
       squeeze_excite_ratio: float, expansion ration for Squeeze and Excite block
       bottleneck_ratio: float, inverted bottleneck ratio
       name: str, name prefix
+      
     Returns:
       Output tensor of the block
     """
