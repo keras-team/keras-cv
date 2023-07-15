@@ -59,7 +59,7 @@ class EfficientNetLiteBackbone(Backbone):
         activation: activation function.
         input_shape: optional shape tuple,
             It should have exactly 3 inputs channels.
-        input_tensor: optional Keras tensor (i.e. output of `keras.keras.layers.Input()`)
+        input_tensor: optional Keras tensor (i.e. output of `keras.layers.Input()`)
             to use as image input for the model.
 
     Usage:
@@ -68,7 +68,7 @@ class EfficientNetLiteBackbone(Backbone):
     efficientnet = models.EfficientNetLiteBackbone.from_preset(
         "efficientnetlite_b0"
     )
-    images = tf.ones((1, 256, 256, 3))
+    images = np.ones((1, 256, 256, 3))
     outputs = efficientnet.predict(images)
 
     # Alternatively, you can also customize the EfficientNetLite architecture:
@@ -83,7 +83,7 @@ class EfficientNetLiteBackbone(Backbone):
         depth_coefficient=1.0,
         include_rescaling=False,
     )
-    images = tf.ones((1, 256, 256, 3))
+    images = np.ones((1, 256, 256, 3))
     outputs = model.predict(images)
     ```
     """  # noqa: E501
@@ -280,7 +280,7 @@ def apply_efficient_net_lite_block(
     inputs,
     activation="relu6",
     dropout_rate=0.0,
-    name="",
+    name=None,
     filters_in=32,
     filters_out=16,
     kernel_size=3,
@@ -304,6 +304,8 @@ def apply_efficient_net_lite_block(
     Returns:
         output tensor for the block.
     """  # noqa: E501
+    if name is None:
+        name = f"block_{keras.backend.get_uid('block_')}_"
 
     # Expansion phase
     filters = filters_in * expand_ratio
