@@ -47,7 +47,6 @@ class RegNetBackbone(Backbone):
         block_type: Must be one of `{"X", "Y", "Z"}`. For more details see the
             papers "Designing network design spaces" and "Fast and Accurate
             Model Scaling"
-        model_name: str, An optional name for the model.
         include_rescaling: bool, whether or not to Rescale the inputs.If set to True,
             inputs will be passed through a `Rescaling(1/255.0)` layer.
         input_tensor: Tensor, Optional Keras tensor (i.e. output of `keras.layers.Input()`)
@@ -64,7 +63,6 @@ class RegNetBackbone(Backbone):
         group_width,
         block_type,
         include_rescaling,
-        model_name="regnet",
         input_tensor=None,
         input_shape=(None, None, 3),
         **kwargs,
@@ -74,7 +72,7 @@ class RegNetBackbone(Backbone):
 
         if include_rescaling:
             x = keras.layers.Rescaling(scale=1.0 / 255.0)(x)
-        x = apply_stem(x, name=model_name)
+        x = apply_stem(x)
 
         in_channels = x.shape[-1]  # Output from Stem
 
@@ -91,20 +89,19 @@ class RegNetBackbone(Backbone):
                 group_width,
                 in_channels,
                 out_channels,
-                name=model_name + "_Stage_" + str(i),
+                name="Stage_" + str(i),
             )
             in_channels = out_channels
 
         pyramid_level_inputs.append(utils.get_tensor_input_name(x))
 
-        super().__init__(inputs=img_input, outputs=x, name=model_name, **kwargs)
+        super().__init__(inputs=img_input, outputs=x, **kwargs)
 
         self.depths = depths
         self.widths = widths
         self.group_width = group_width
         self.block_type = block_type
         self.include_rescaling = include_rescaling
-        self.model_name = model_name
         self.input_tensor = input_tensor
         self.pyramid_level_inputs = {
             f"P{i + 1}": name for i, name in enumerate(pyramid_level_inputs)
@@ -119,7 +116,6 @@ class RegNetBackbone(Backbone):
                 "group_width": self.group_width,
                 "block_type": self.block_type,
                 "include_rescaling": self.include_rescaling,
-                "model_name": self.model_name,
                 "input_tensor": self.input_tensor,
                 "input_shape": self.input_shape[1:],
             }
@@ -193,7 +189,7 @@ def apply_stem(x, name=None):
         kernel_size=(3, 3),
         strides=2,
         padding="same",
-        name=name + "_stem_conv",
+        name="stem_conv",
     )
 
     return x

@@ -57,7 +57,6 @@ class RegNetBackboneTest(TestCase):
             depths=[1, 1, 4, 7],
             widths=[24, 56, 152, 368],
             group_width=8,
-            default_size=224,
             include_rescaling=False,
             block_type="X",
         )
@@ -72,8 +71,8 @@ class RegNetBackboneTest(TestCase):
             depths=[1, 1, 4, 7],
             widths=[24, 56, 152, 368],
             group_width=8,
-            default_size=224,
             include_rescaling=True,
+            block_type="X"
         )
         model(self.input_batch)
 
@@ -83,7 +82,6 @@ class RegNetBackboneTest(TestCase):
             depths=[1, 1, 4, 7],
             widths=[24, 56, 152, 368],
             group_width=8,
-            default_size=224,
             include_rescaling=False,
             block_type="X",
         )
@@ -120,7 +118,6 @@ class RegNetBackboneTest(TestCase):
             depths=[1, 1, 4, 7],
             widths=[24, 56, 152, 368],
             group_width=8,
-            default_size=224,
             include_rescaling=False,
             block_type="X",
         )
@@ -128,7 +125,6 @@ class RegNetBackboneTest(TestCase):
             depths=[1, 1, 4, 7],
             widths=[24, 56, 152, 368],
             group_width=8,
-            default_size=224,
             include_rescaling=False,
             block_type="X",
         )
@@ -166,7 +162,6 @@ class RegNetBackboneTest(TestCase):
             depths=[1, 1, 4, 7],
             widths=[24, 56, 152, 368],
             group_width=8,
-            default_size=224,
             input_shape=(None, None, num_channels),
             include_rescaling=False,
             block_type="X",
