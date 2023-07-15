@@ -267,7 +267,7 @@ def apply_x_block(
         name=name + "_conv_1x1_2",
     )
 
-    x = keras.layers.add([x, skip], name="add")
+    x = keras.layers.add([x, skip], name=name + "_add")
     x = keras.layers.Activation("relu", name=name + "_exit_relu")(x)
 
     return x
@@ -357,7 +357,7 @@ def apply_y_block(
         name=name + "_conv_1x1_2",
     )
 
-    x = keras.layers.add([x, skip], name="add")
+    x = keras.layers.add([x, skip], name=name + "_add")
     x = keras.layers.Activation("relu", name=name + "_exit_relu")(x)
 
     return x
@@ -444,7 +444,7 @@ def apply_z_block(
     if stride != 1:
         return x
     else:
-        return keras.layers.add([x, inputs], name="add")
+        return keras.layers.add([x, inputs], name=name + "_add")
 
 
 def apply_stage(
