@@ -393,7 +393,7 @@ def apply_efficientnet_block(
         strides=strides,
         padding=conv_pad,
         use_bias=False,
-        kernel_initializer=conv_kernel_initializer(),
+        depthwise_initializer=conv_kernel_initializer(),
         name=name + "dwconv",
     )(x)
     x = keras.layers.BatchNormalization(
