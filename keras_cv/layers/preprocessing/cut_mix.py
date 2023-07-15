@@ -13,15 +13,15 @@
 # limitations under the License.
 
 import tensorflow as tf
-from tensorflow import keras
 
+from keras_cv.backend import keras
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
 from keras_cv.utils import fill_utils
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+@keras.saving.register_keras_serializable(package="keras_cv")
 class CutMix(BaseImageAugmentationLayer):
     """CutMix implements the CutMix data augmentation technique.
 
@@ -127,7 +127,12 @@ class CutMix(BaseImageAugmentationLayer):
             tf.gather(images, permutation_order),
         )
 
-        return images, labels, lambda_sample, permutation_order
+        return (
+            images,
+            tf.cast(labels, dtype=self.compute_dtype),
+            lambda_sample,
+            permutation_order,
+        )
 
     def _update_labels(self, images, labels, lambda_sample, permutation_order):
         cutout_labels = tf.gather(labels, permutation_order)

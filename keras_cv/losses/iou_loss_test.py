@@ -12,31 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import tensorflow as tf
+import numpy as np
 
 from keras_cv.losses.iou_loss import IoULoss
+from keras_cv.tests.test_case import TestCase
 
 
-class IoUTest(tf.test.TestCase):
+class IoUTest(TestCase):
     def test_output_shape(self):
-        y_true = tf.random.uniform(
-            shape=(2, 2, 4), minval=0, maxval=10, dtype=tf.int32
-        )
-        y_pred = tf.random.uniform(
-            shape=(2, 2, 4), minval=0, maxval=20, dtype=tf.int32
-        )
+        y_true = np.random.uniform(size=(2, 2, 4), low=0, high=10)
+        y_pred = np.random.uniform(size=(2, 2, 4), low=0, high=20)
 
         iou_loss = IoULoss(bounding_box_format="xywh")
 
         self.assertAllEqual(iou_loss(y_true, y_pred).shape, ())
 
     def test_output_shape_reduction_none(self):
-        y_true = tf.random.uniform(
-            shape=(2, 2, 4), minval=0, maxval=10, dtype=tf.int32
-        )
-        y_pred = tf.random.uniform(
-            shape=(2, 2, 4), minval=0, maxval=20, dtype=tf.int32
-        )
+        y_true = np.random.uniform(size=(2, 2, 4), low=0, high=10)
+        y_pred = np.random.uniform(size=(2, 2, 4), low=0, high=20)
 
         iou_loss = IoULoss(bounding_box_format="xywh", reduction="none")
 

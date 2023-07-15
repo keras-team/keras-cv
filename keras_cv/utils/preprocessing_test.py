@@ -14,6 +14,7 @@
 
 import tensorflow as tf
 
+from keras_cv.tests.test_case import TestCase
 from keras_cv.utils import preprocessing
 
 
@@ -26,7 +27,7 @@ class MockRandomGenerator:
         return tf.constant(self.value, dtype=dtype)
 
 
-class PreprocessingTestCase(tf.test.TestCase):
+class PreprocessingTestCase(TestCase):
     def setUp(self):
         super().setUp()
 

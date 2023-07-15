@@ -16,9 +16,10 @@ import tensorflow as tf
 
 from keras_cv import bounding_box
 from keras_cv.layers.preprocessing.random_rotation import RandomRotation
+from keras_cv.tests.test_case import TestCase
 
 
-class RandomRotationTest(tf.test.TestCase):
+class RandomRotationTest(TestCase):
     def test_random_rotation_output_shapes(self):
         input_images = np.random.random((2, 5, 8, 3)).astype(np.float32)
         expected_output = input_images
@@ -61,10 +62,8 @@ class RandomRotationTest(tf.test.TestCase):
     def test_augment_bounding_boxes(self):
         input_image = np.random.random((512, 512, 3)).astype(np.float32)
         bounding_boxes = {
-            "boxes": tf.convert_to_tensor(
-                [[200, 200, 400, 400], [100, 100, 300, 300]], dtype=tf.float32
-            ),
-            "classes": tf.convert_to_tensor([1, 2], dtype=tf.float32),
+            "boxes": np.array([[200, 200, 400, 400], [100, 100, 300, 300]]),
+            "classes": np.array([1, 2]),
         }
         input = {"images": input_image, "bounding_boxes": bounding_boxes}
         # 180 rotation.
@@ -74,11 +73,10 @@ class RandomRotationTest(tf.test.TestCase):
             output["bounding_boxes"]
         )
         expected_bounding_boxes = {
-            "boxes": tf.convert_to_tensor(
+            "boxes": np.array(
                 [[112.0, 112.0, 312.0, 312.0], [212.0, 212.0, 412.0, 412.0]],
-                dtype=tf.float32,
             ),
-            "classes": tf.convert_to_tensor([1, 2], dtype=tf.float32),
+            "classes": np.array([1, 2]),
         }
         self.assertAllClose(expected_bounding_boxes, output["bounding_boxes"])
 
@@ -90,7 +88,7 @@ class RandomRotationTest(tf.test.TestCase):
         self.assertAllEqual(layer(inputs).dtype, "uint8")
 
     def test_ragged_bounding_boxes(self):
-        input_image = np.random.random((2, 512, 512, 3)).astype(np.float32)
+        input_image = tf.random.uniform((2, 512, 512, 3))
         bounding_boxes = {
             "boxes": tf.ragged.constant(
                 [
@@ -182,8 +180,10 @@ class RandomRotationTest(tf.test.TestCase):
         num_classes = 8
 
         input_images = np.random.random((2, 20, 20, 3)).astype(np.float32)
-        masks = tf.one_hot(
-            np.random.randint(num_classes, size=(2, 20, 20)), num_classes
+        masks = np.array(
+            tf.one_hot(
+                np.random.randint(num_classes, size=(2, 20, 20)), num_classes
+            )
         )
         inputs = {"images": input_images, "segmentation_masks": masks}
 

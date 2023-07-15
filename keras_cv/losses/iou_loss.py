@@ -15,10 +15,9 @@
 
 import warnings
 
-import tensorflow as tf
-from tensorflow import keras
-
 from keras_cv import bounding_box
+from keras_cv.backend import keras
+from keras_cv.backend import ops
 
 
 class IoULoss(keras.losses.Loss):
@@ -48,18 +47,10 @@ class IoULoss(keras.losses.Loss):
 
     Sample Usage:
     ```python
-    y_true = tf.random.uniform(
-        (5, 10, 5),
-        minval=0,
-        maxval=10,
-        dtype=tf.dtypes.int32)
-    y_pred = tf.random.uniform(
-        (5, 10, 4),
-        minval=0,
-        maxval=10,
-        dtype=tf.dtypes.int32)
+    y_true = np.random.uniform(size=(5, 10, 5), low=10, high=10)
+    y_pred = np.random.uniform(size=(5, 10, 5), low=10, high=10)
     loss = IoULoss(bounding_box_format = "xyWH")
-    loss(y_true, y_pred).numpy()
+    loss(y_true, y_pred)
     ```
 
     Usage with the `compile()` API:
@@ -81,8 +72,8 @@ class IoULoss(keras.losses.Loss):
             )
 
     def call(self, y_true, y_pred):
-        y_pred = tf.convert_to_tensor(y_pred)
-        y_true = tf.cast(y_true, y_pred.dtype)
+        y_pred = ops.convert_to_tensor(y_pred)
+        y_true = ops.cast(y_true, y_pred.dtype)
 
         if y_pred.shape[-1] != 4:
             raise ValueError(
@@ -106,7 +97,7 @@ class IoULoss(keras.losses.Loss):
 
         iou = bounding_box.compute_iou(y_true, y_pred, self.bounding_box_format)
         # pick out the diagonal for corresponding ious
-        iou = tf.linalg.diag_part(iou)
+        iou = ops.diagonal(iou)
         if self.axis == "no_reduction":
             warnings.warn(
                 "`axis='no_reduction'` is a temporary API, and the API "
@@ -114,14 +105,14 @@ class IoULoss(keras.losses.Loss):
                 "solution covering all losses."
             )
         else:
-            iou = tf.reduce_mean(iou, axis=self.axis)
+            iou = ops.mean(iou, axis=self.axis)
 
         if self.mode == "linear":
             loss = 1 - iou
         elif self.mode == "quadratic":
             loss = 1 - iou**2
         elif self.mode == "log":
-            loss = -tf.math.log(iou)
+            loss = -ops.log(iou)
 
         return loss
 

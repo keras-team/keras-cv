@@ -43,7 +43,6 @@ from keras_cv.models.legacy.mlp_mixer import MLPMixerL16
 from keras_cv.models.legacy.object_detection.faster_rcnn.faster_rcnn import (
     FasterRCNN,
 )
-from keras_cv.models.legacy.segmentation.deeplab import DeepLabV3
 from keras_cv.models.legacy.vgg16 import VGG16
 from keras_cv.models.legacy.vgg19 import VGG19
 from keras_cv.models.legacy.vit import ViTB16

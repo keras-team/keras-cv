@@ -12,13 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import tensorflow as tf
+import numpy as np
 from absl.testing import parameterized
 
 import keras_cv
+from keras_cv.tests.test_case import TestCase
 
 
-class SmoothL1LossTest(tf.test.TestCase, parameterized.TestCase):
+class SmoothL1LossTest(TestCase):
     @parameterized.named_parameters(
         ("none", "none", (20,)),
         ("sum", "sum", ()),
@@ -27,7 +28,7 @@ class SmoothL1LossTest(tf.test.TestCase, parameterized.TestCase):
     def test_proper_output_shapes(self, reduction, target_size):
         loss = keras_cv.losses.SmoothL1Loss(l1_cutoff=0.5, reduction=reduction)
         result = loss(
-            y_true=tf.random.uniform((20, 300)),
-            y_pred=tf.random.uniform((20, 300)),
+            y_true=np.random.uniform(size=(20, 300)),
+            y_pred=np.random.uniform(size=(20, 300)),
         )
         self.assertEqual(result.shape, target_size)

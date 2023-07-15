@@ -14,16 +14,16 @@
 
 import inspect
 
-import tensorflow as tf
 from absl.testing import parameterized
 from tensorflow import keras
 
 from keras_cv import layers as cv_layers
 from keras_cv.layers.vit_layers import PatchingAndEmbedding
+from keras_cv.tests.test_case import TestCase
 from keras_cv.utils import test_utils
 
 
-class SerializationTest(tf.test.TestCase, parameterized.TestCase):
+class SerializationTest(TestCase):
     @parameterized.named_parameters(
         ("AutoContrast", cv_layers.AutoContrast, {"value_range": (0, 255)}),
         ("ChannelShuffle", cv_layers.ChannelShuffle, {"seed": 1}),

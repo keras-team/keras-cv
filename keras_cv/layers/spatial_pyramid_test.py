@@ -16,9 +16,10 @@ import tensorflow as tf
 from tensorflow import keras
 
 from keras_cv.layers import SpatialPyramidPooling
+from keras_cv.tests.test_case import TestCase
 
 
-class SpatialPyramidPoolingTest(tf.test.TestCase):
+class SpatialPyramidPoolingTest(TestCase):
     def test_return_type_and_shape(self):
         layer = SpatialPyramidPooling(dilation_rates=[6, 12, 18])
         c4 = tf.ones([2, 16, 16, 3])

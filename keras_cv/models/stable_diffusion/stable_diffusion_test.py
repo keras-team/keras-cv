@@ -16,9 +16,10 @@ import tensorflow as tf
 from tensorflow.keras import mixed_precision
 
 from keras_cv.models import StableDiffusion
+from keras_cv.tests.test_case import TestCase
 
 
-class StableDiffusionTest(tf.test.TestCase):
+class StableDiffusionTest(TestCase):
     def DISABLED_test_end_to_end_golden_value(self):
         prompt = "a caterpillar smoking a hookah while sitting on a mushroom"
         stablediff = StableDiffusion(128, 128)
