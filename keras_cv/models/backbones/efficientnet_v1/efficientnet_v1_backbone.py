@@ -126,7 +126,7 @@ class EfficientNetV1Backbone(Backbone):
             x = keras.layers.Rescaling(1.0 / 255.0)(x)
 
         x = keras.layers.ZeroPadding2D(
-            padding=correct_pad(x, 3), name="stem_conv_pad"
+            padding=utils.correct_pad_downsample(x, 3), name="stem_conv_pad"
         )(x)
 
         # Build stem
@@ -294,31 +294,6 @@ def conv_kernel_initializer(scale=2.0):
     )
 
 
-def correct_pad(inputs, kernel_size):
-    """Returns a tuple for zero-padding for 2D convolution with downsampling.
-
-    Args:
-      inputs: Input tensor.
-      kernel_size: An integer or tuple/list of 2 integers.
-
-    Returns:
-      A tuple.
-    """
-    img_dim = 1
-    input_size = keras.backend.int_shape(inputs)[img_dim : (img_dim + 2)]
-    if isinstance(kernel_size, int):
-        kernel_size = (kernel_size, kernel_size)
-    if input_size[0] is None:
-        adjust = (1, 1)
-    else:
-        adjust = (1 - input_size[0] % 2, 1 - input_size[1] % 2)
-    correct = (kernel_size[0] // 2, kernel_size[1] // 2)
-    return (
-        (correct[0] - adjust[0], correct[0]),
-        (correct[1] - adjust[1], correct[1]),
-    )
-
-
 def round_filters(filters, width_coefficient, divisor):
     """Round number of filters based on depth multiplier.
 
@@ -406,7 +381,7 @@ def apply_efficientnet_block(
     # Depthwise Convolution
     if strides == 2:
         x = keras.layers.ZeroPadding2D(
-            padding=correct_pad(x, kernel_size),
+            padding=utils.correct_pad_downsample(x, kernel_size),
             name=name + "dwconv_pad",
         )(x)
         conv_pad = "valid"
