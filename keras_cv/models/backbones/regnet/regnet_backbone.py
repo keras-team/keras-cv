@@ -20,9 +20,7 @@ References:
 
 import copy
 
-from tensorflow import keras
-from tensorflow.keras import backend
-from tensorflow.keras import layers
+from keras_cv.backend import keras
 
 from keras_cv.layers import SqueezeAndExcite2D
 from keras_cv.models import utils
@@ -34,6 +32,110 @@ from keras_cv.models.backbones.regnet.regnet_backbone_presets import (
     backbone_presets_with_weights,
 )
 from keras_cv.utils.python_utils import classproperty
+
+@keras.utils.register_keras_serializable(package="keras_cv.models")
+class RegNetBackbone(Backbone):
+    """
+    This class represents the architecture of RegNet
+
+    Args:
+        depths: iterable, Contains depths for each individual stages.
+        widths: iterable, Contains output channel width of each individual
+            stages
+        group_width: int, Number of channels to be used in each group. See grouped
+            convolutions for more information.
+        block_type: Must be one of `{"X", "Y", "Z"}`. For more details see the
+            papers "Designing network design spaces" and "Fast and Accurate
+            Model Scaling"
+        model_name: str, An optional name for the model.
+        include_rescaling: bool, whether or not to Rescale the inputs.If set to True,
+            inputs will be passed through a `Rescaling(1/255.0)` layer.
+        input_tensor: Tensor, Optional Keras tensor (i.e. output of `keras.layers.Input()`)
+            to use as image input for the model.
+        input_shape: Optional shape tuple, defaults to (None, None, 3).
+            It should have exactly 3 inputs channels.
+    """  # noqa: E501
+
+    def __init__(
+        self,
+        *,
+        depths,
+        widths,
+        group_width,
+        block_type,
+        include_rescaling,
+        model_name="regnet",
+        input_tensor=None,
+        input_shape=(None, None, 3),
+        **kwargs,
+    ):
+        img_input = utils.parse_model_inputs(input_shape, input_tensor)
+        x = img_input
+
+        if include_rescaling:
+            x = keras.layers.Rescaling(scale=1.0 / 255.0)(x)
+        x = apply_stem(x, name=model_name)
+
+        in_channels = x.shape[-1]  # Output from Stem
+
+        pyramid_level_inputs = []
+
+        for i in range(len(depths)):
+            depth = depths[i]
+            out_channels = widths[i]
+
+            x = apply_stage(
+                x,
+                block_type,
+                depth,
+                group_width,
+                in_channels,
+                out_channels,
+                name=model_name + "_Stage_" + str(i),
+            )
+            in_channels = out_channels
+
+        pyramid_level_inputs.append(utils.get_tensor_input_name(x))
+
+        super().__init__(inputs=img_input, outputs=x, name=model_name, **kwargs)
+
+        self.depths = depths
+        self.widths = widths
+        self.group_width = group_width
+        self.block_type = block_type
+        self.include_rescaling = include_rescaling
+        self.model_name = model_name
+        self.input_tensor = input_tensor
+        self.pyramid_level_inputs = {
+            f"P{i + 1}": name for i, name in enumerate(pyramid_level_inputs)
+        }
+
+    def get_config(self):
+        config = super().get_config()
+        config.update(
+            {
+                "depths": self.depths,
+                "widths": self.widths,
+                "group_width": self.group_width,
+                "block_type": self.block_type,
+                "include_rescaling": self.include_rescaling,
+                "model_name": self.model_name,
+                "input_tensor": self.input_tensor,
+                "input_shape": self.input_shape[1:],
+            }
+        )
+        return config
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return copy.deepcopy(backbone_presets)
+
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include
+        weights."""
+        return copy.deepcopy(backbone_presets_with_weights)
 
 
 def apply_conv2d_bn(
@@ -49,7 +151,7 @@ def apply_conv2d_bn(
     activation="relu",
     name="",
 ):
-    x = layers.Conv2D(
+    x = keras.layers.Conv2D(
         filters,
         kernel_size,
         strides=strides,
@@ -61,12 +163,12 @@ def apply_conv2d_bn(
     )(x)
 
     if batch_norm:
-        x = layers.BatchNormalization(
+        x = keras.layers.BatchNormalization(
             momentum=0.9, epsilon=1e-5, name=name + "_bn"
         )(x)
 
     if activation is not None:
-        x = layers.Activation(activation, name=name + f"_{activation}")(x)
+        x = keras.layers.Activation(activation, name=name + f"_{activation}")(x)
 
     return x
 
@@ -83,7 +185,7 @@ def apply_stem(x, name=None):
       Output tensor of the Stem
     """
     if name is None:
-        name = "stem" + str(backend.get_uid("stem"))
+        name = "stem" + str(keras.backend.get_uid("stem"))
 
     x = apply_conv2d_bn(
         x=x,
@@ -115,7 +217,7 @@ def apply_x_block(
       Output tensor of the block
     """
     if name is None:
-        name = str(backend.get_uid("xblock"))
+        name = str(keras.backend.get_uid("xblock"))
 
     if filters_in != filters_out and stride == 1:
         raise ValueError(
@@ -125,7 +227,7 @@ def apply_x_block(
             f"must be equal for stride={stride}."
         )
 
-    # Declare layers
+    # Declare keras.layers
     groups = filters_out // group_width
 
     if stride != 1:
@@ -169,7 +271,7 @@ def apply_x_block(
         name=name + "_conv_1x1_2",
     )
 
-    x = layers.Activation("relu", name=name + "_exit_relu")(x + skip)
+    x = keras.layers.Activation("relu", name=name + "_exit_relu")(x + skip)
 
     return x
 
@@ -199,7 +301,7 @@ def apply_y_block(
       Output tensor of the block
     """
     if name is None:
-        name = str(backend.get_uid("yblock"))
+        name = str(keras.backend.get_uid("yblock"))
 
     if filters_in != filters_out and stride == 1:
         raise ValueError(
@@ -258,7 +360,7 @@ def apply_y_block(
         name=name + "_conv_1x1_2",
     )
 
-    x = layers.Activation("relu", name=name + "_exit_relu")(x + skip)
+    x = keras.layers.Activation("relu", name=name + "_exit_relu")(x + skip)
 
     return x
 
@@ -291,7 +393,7 @@ def apply_z_block(
       Output tensor of the block
     """
     if name is None:
-        name = str(backend.get_uid("zblock"))
+        name = str(keras.backend.get_uid("zblock"))
 
     if filters_in != filters_out and stride == 1:
         raise ValueError(
@@ -365,7 +467,7 @@ def apply_stage(
       Output tensor of the block
     """
     if name is None:
-        name = str(backend.get_uid("stage"))
+        name = str(keras.backend.get_uid("stage"))
 
     if block_type == "X":
         x = apply_x_block(
@@ -424,108 +526,3 @@ def apply_stage(
             f"block_type must be one of (`X`, `Y`, `Z`). "
         )
     return x
-
-
-@keras.utils.register_keras_serializable(package="keras_cv.models")
-class RegNetBackbone(Backbone):
-    """
-    This class represents the architecture of RegNet
-
-    Args:
-        depths: iterable, Contains depths for each individual stages.
-        widths: iterable, Contains output channel width of each individual
-            stages
-        group_width: int, Number of channels to be used in each group. See grouped
-            convolutions for more information.
-        block_type: Must be one of `{"X", "Y", "Z"}`. For more details see the
-            papers "Designing network design spaces" and "Fast and Accurate
-            Model Scaling"
-        model_name: str, An optional name for the model.
-        include_rescaling: bool, whether or not to Rescale the inputs.If set to True,
-            inputs will be passed through a `Rescaling(1/255.0)` layer.
-        input_tensor: Tensor, Optional Keras tensor (i.e. output of `layers.Input()`)
-            to use as image input for the model.
-        input_shape: Optional shape tuple, defaults to (None, None, 3).
-            It should have exactly 3 inputs channels.
-    """  # noqa: E501
-
-    def __init__(
-        self,
-        *,
-        depths,
-        widths,
-        group_width,
-        block_type,
-        include_rescaling,
-        model_name="regnet",
-        input_tensor=None,
-        input_shape=(None, None, 3),
-        **kwargs,
-    ):
-        img_input = utils.parse_model_inputs(input_shape, input_tensor)
-        x = img_input
-
-        if include_rescaling:
-            x = layers.Rescaling(scale=1.0 / 255.0)(x)
-        x = apply_stem(x, name=model_name)
-
-        in_channels = x.shape[-1]  # Output from Stem
-
-        pyramid_level_inputs = []
-
-        for i in range(len(depths)):
-            depth = depths[i]
-            out_channels = widths[i]
-
-            x = apply_stage(
-                x,
-                block_type,
-                depth,
-                group_width,
-                in_channels,
-                out_channels,
-                name=model_name + "_Stage_" + str(i),
-            )
-            in_channels = out_channels
-
-        pyramid_level_inputs.append(x.node.layer.name)
-
-        super().__init__(inputs=img_input, outputs=x, name=model_name, **kwargs)
-
-        self.depths = depths
-        self.widths = widths
-        self.group_width = group_width
-        self.block_type = block_type
-        self.include_rescaling = include_rescaling
-        self.model_name = model_name
-        self.input_tensor = input_tensor
-        self.pyramid_level_inputs = {
-            f"P{i + 1}": name for i, name in enumerate(pyramid_level_inputs)
-        }
-
-    def get_config(self):
-        config = super().get_config()
-        config.update(
-            {
-                "depths": self.depths,
-                "widths": self.widths,
-                "group_width": self.group_width,
-                "block_type": self.block_type,
-                "include_rescaling": self.include_rescaling,
-                "model_name": self.model_name,
-                "input_tensor": self.input_tensor,
-                "input_shape": self.input_shape[1:],
-            }
-        )
-        return config
-
-    @classproperty
-    def presets(cls):
-        """Dictionary of preset names and configurations."""
-        return copy.deepcopy(backbone_presets)
-
-    @classproperty
-    def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include
-        weights."""
-        return copy.deepcopy(backbone_presets_with_weights)

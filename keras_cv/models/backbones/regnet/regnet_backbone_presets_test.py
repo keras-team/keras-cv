@@ -12,21 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numpy as np
 import pytest
-import tensorflow as tf
 from absl.testing import parameterized
 
+from keras_cv.backend import keras
 from keras_cv.models.backbones.regnet.regnet_aliases import (  # noqa: E501
     RegNetX002Backbone,
 )
 from keras_cv.models.backbones.regnet.regnet_backbone import (  # noqa: E501
     RegNetBackbone,
 )
+from keras_cv.tests.test_case import TestCase
 from keras_cv.utils.train import get_feature_extractor
 
 
 @pytest.mark.extra_large
-class RegNetPresetFullTest(tf.test.TestCase, parameterized.TestCase):
+class RegNetPresetFullTest(TestCase):
     """
     Test the full enumeration of our preset.
     This tests every preset for EfficientNetLite and is only run manually.
@@ -38,7 +40,7 @@ class RegNetPresetFullTest(tf.test.TestCase, parameterized.TestCase):
         *[(preset, preset) for preset in RegNetBackbone.presets]
     )
     def test_load_efficientnetlite(self, preset):
-        input_data = tf.ones(shape=(2, 224, 224, 3))
+        input_data = np.ones(shape=(2, 224, 224, 3))
         model = RegNetBackbone.from_preset(preset)
         model(input_data)
 
@@ -50,8 +52,8 @@ class RegNetPresetFullTest(tf.test.TestCase, parameterized.TestCase):
         levels = ["P1"]
         layer_names = [model.pyramid_level_inputs[level] for level in levels]
         backbone_model = get_feature_extractor(model, layer_names, levels)
-        inputs = tf.keras.Input(shape=[256, 256, 3])
+        inputs = keras.Input(shape=[256, 256, 3])
         outputs = backbone_model(inputs)
         self.assertLen(outputs, 1)
         self.assertEquals(list(outputs.keys()), levels)
-        self.assertEquals(outputs["P1"].shape[:3], [None, 8, 8])
+        self.assertEquals(outputs["P1"].shape[:3], (None, 8, 8))

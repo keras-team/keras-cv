@@ -14,7 +14,8 @@
 
 import os
 
-import tensorflow as tf
+import numpy as np
+import pytest
 from absl.testing import parameterized
 from tensorflow import keras
 
@@ -42,15 +43,18 @@ from keras_cv.models.backbones.regnet.regnet_aliases import RegNetY080Backbone
 from keras_cv.models.backbones.regnet.regnet_aliases import RegNetY120Backbone
 from keras_cv.models.backbones.regnet.regnet_aliases import RegNetY160Backbone
 from keras_cv.models.backbones.regnet.regnet_aliases import RegNetY320Backbone
-from keras_cv.models.backbones.regnet.regnet_backbone import RegNetBackBone
+from keras_cv.models.backbones.regnet.regnet_backbone import RegNetBackbone
+
+from keras_cv.tests.test_case import TestCase
+from keras_cv.utils.train import get_feature_extractor
 
 
-class RegNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
+class RegNetBackboneTest(TestCase):
     def setUp(self):
-        self.input_batch = tf.ones(shape=(2, 224, 224, 3))
+        self.input_batch = np.ones(shape=(2, 224, 224, 3))
 
     def test_valid_call(self):
-        model = RegNetBackBone(
+        model = RegNetBackbone(
             depths=[1, 1, 4, 7],
             widths=[24, 56, 152, 368],
             group_width=8,
@@ -64,7 +68,7 @@ class RegNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
         model(self.input_batch)
 
     def test_valid_call_with_rescaling(self):
-        model = RegNetBackBone(
+        model = RegNetBackbone(
             depths=[1, 1, 4, 7],
             widths=[24, 56, 152, 368],
             group_width=8,
@@ -73,12 +77,9 @@ class RegNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
         )
         model(self.input_batch)
 
-    @parameterized.named_parameters(
-        ("tf_format", "tf", "model"),
-        ("keras_format", "keras_v3", "model.keras"),
-    )
-    def test_saved_model(self, save_format, filename):
-        model = RegNetBackBone(
+    @pytest.mark.large  # Saving is slow, so mark these large.
+    def test_saved_model(self):
+        model = RegNetBackbone(
             depths=[1, 1, 4, 7],
             widths=[24, 56, 152, 368],
             group_width=8,
@@ -86,45 +87,46 @@ class RegNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
             include_rescaling=False,
         )
         model_output = model(self.input_batch)
-        save_path = os.path.join(self.get_temp_dir(), filename)
-        model.save(save_path, save_format=save_format)
+        save_path = os.path.join(
+            self.get_temp_dir(), "regnet_backbone.keras"
+        )
+        model.save(save_path)
         restored_model = keras.models.load_model(save_path)
 
         # Check we got the real object back.
-        self.assertIsInstance(restored_model, RegNetBackBone)
+        self.assertIsInstance(restored_model, RegNetBackbone)
 
         # Check that output matches.
         restored_output = restored_model(self.input_batch)
         self.assertAllClose(model_output, restored_output)
 
-    @parameterized.named_parameters(
-        ("tf_format", "tf", "model"),
-        ("keras_format", "keras_v3", "model.keras"),
-    )
-    def test_saved_alias_model(self, save_format, filename):
+    @pytest.mark.large  # Saving is slow, so mark these large.
+    def test_saved_alias_model(self):
         model = RegNetX002Backbone()
         model_output = model(self.input_batch)
-        save_path = os.path.join(self.get_temp_dir(), filename)
-        model.save(save_path, save_format=save_format)
+        save_path = os.path.join(
+            self.get_temp_dir(), "regnet_backbone.keras"
+        )
+        model.save(save_path)
         restored_model = keras.models.load_model(save_path)
 
         # Check we got the real object back.
         # Note that these aliases serialized as the base class
-        self.assertIsInstance(restored_model, RegNetBackBone)
+        self.assertIsInstance(restored_model, RegNetBackbone)
 
         # Check that output matches.
         restored_output = restored_model(self.input_batch)
         self.assertAllClose(model_output, restored_output)
 
     def test_model_backbone_layer_names_stability(self):
-        model = RegNetBackBone(
+        model = RegNetBackbone(
             depths=[1, 1, 4, 7],
             widths=[24, 56, 152, 368],
             group_width=8,
             default_size=224,
             include_rescaling=False,
         )
-        model_2 = RegNetBackBone(
+        model_2 = RegNetBackbone(
             depths=[1, 1, 4, 7],
             widths=[24, 56, 152, 368],
             group_width=8,
@@ -138,13 +140,30 @@ class RegNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
                 continue
             self.assertEquals(layers_1[i].name, layers_2[i].name)
 
+    def test_feature_pyramid_inputs(self):
+        model = RegNetX002Backbone()
+        backbone_model = get_feature_extractor(
+            model,
+            model.pyramid_level_inputs.values(),
+            model.pyramid_level_inputs.keys(),
+        )
+        input_size = 256
+        inputs = keras.Input(shape=[input_size, input_size, 3])
+        outputs = backbone_model(inputs)
+        levels = ["P1"]
+        self.assertEquals(list(outputs.keys()), levels)
+        self.assertEquals(
+            outputs["P1"].shape,
+            (None, input_size // 2**1, input_size // 2**1, 16),
+        )
+
     @parameterized.named_parameters(
         ("one_channel", 1),
         ("four_channels", 4),
     )
     def test_application_variable_input_channels(self, num_channels):
         # RegNetX002 model
-        model = RegNetBackBone(
+        model = RegNetBackbone(
             depths=[1, 1, 4, 7],
             widths=[24, 56, 152, 368],
             group_width=8,
@@ -182,8 +201,4 @@ class RegNetBackboneTest(tf.test.TestCase, parameterized.TestCase):
     )
     def test_specific_arch_forward_pass(self, arch_class):
         backbone = arch_class()
-        backbone(tf.random.uniform(shape=[2, 256, 256, 3]))
-
-
-if __name__ == "__main__":
-    tf.test.main()
+        backbone(np.random.uniform(size=[2, 256, 256, 3]))
