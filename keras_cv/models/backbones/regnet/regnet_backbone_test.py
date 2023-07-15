@@ -17,8 +17,8 @@ import os
 import numpy as np
 import pytest
 from absl.testing import parameterized
-from keras_cv.backend import keras
 
+from keras_cv.backend import keras
 from keras_cv.models.backbones.regnet.regnet_aliases import RegNetX002Backbone
 from keras_cv.models.backbones.regnet.regnet_aliases import RegNetX004Backbone
 from keras_cv.models.backbones.regnet.regnet_aliases import RegNetX006Backbone
@@ -72,7 +72,7 @@ class RegNetBackboneTest(TestCase):
             widths=[24, 56, 152, 368],
             group_width=8,
             include_rescaling=True,
-            block_type="X"
+            block_type="X",
         )
         model(self.input_batch)
 
