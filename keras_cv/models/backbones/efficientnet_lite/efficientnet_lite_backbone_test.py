@@ -14,22 +14,24 @@
 
 import os
 
-import tensorflow as tf
+import numpy as np
+import pytest
 from absl.testing import parameterized
-from tensorflow import keras
 
+from keras_cv.backend import keras
 from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_aliases import (  # noqa: E501
     EfficientNetLiteB0Backbone,
 )
 from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_backbone import (  # noqa: E501
     EfficientNetLiteBackbone,
 )
+from keras_cv.tests.test_case import TestCase
 from keras_cv.utils.train import get_feature_extractor
 
 
-class EfficientNetLiteBackboneTest(tf.test.TestCase, parameterized.TestCase):
+class EfficientNetLiteBackboneTest(TestCase):
     def setUp(self):
-        self.input_batch = tf.ones(shape=(8, 224, 224, 3))
+        self.input_batch = np.ones(shape=(8, 224, 224, 3))
 
     def test_valid_call(self):
         model = EfficientNetLiteBackbone(
@@ -63,11 +65,8 @@ class EfficientNetLiteBackboneTest(tf.test.TestCase, parameterized.TestCase):
         )
         model(self.input_batch)
 
-    @parameterized.named_parameters(
-        ("tf_format", "tf", "model"),
-        ("keras_format", "keras_v3", "model.keras"),
-    )
-    def test_saved_model(self, save_format, filename):
+    @pytest.mark.large  # Saving is slow, so mark these large.
+    def test_saved_model(self):
         model = EfficientNetLiteBackbone(
             stackwise_kernel_sizes=[3, 3, 5, 3, 5, 5, 3],
             stackwise_num_repeats=[1, 2, 2, 3, 3, 4, 1],
@@ -80,8 +79,10 @@ class EfficientNetLiteBackboneTest(tf.test.TestCase, parameterized.TestCase):
             include_rescaling=True,
         )
         model_output = model(self.input_batch)
-        save_path = os.path.join(self.get_temp_dir(), filename)
-        model.save(save_path, save_format=save_format)
+        save_path = os.path.join(
+            self.get_temp_dir(), "efficientnet_lite_backbone.keras"
+        )
+        model.save(save_path)
         restored_model = keras.models.load_model(save_path)
 
         # Check we got the real object back.
@@ -91,15 +92,14 @@ class EfficientNetLiteBackboneTest(tf.test.TestCase, parameterized.TestCase):
         restored_output = restored_model(self.input_batch)
         self.assertAllClose(model_output, restored_output)
 
-    @parameterized.named_parameters(
-        ("tf_format", "tf", "model"),
-        ("keras_format", "keras_v3", "model.keras"),
-    )
-    def test_saved_alias_model(self, save_format, filename):
+    @pytest.mark.large  # Saving is slow, so mark these large.
+    def test_saved_alias_model(self):
         model = EfficientNetLiteB0Backbone()
         model_output = model(self.input_batch)
-        save_path = os.path.join(self.get_temp_dir(), filename)
-        model.save(save_path, save_format=save_format)
+        save_path = os.path.join(
+            self.get_temp_dir(), "efficientnet_lite_backbone.keras"
+        )
+        model.save(save_path)
         restored_model = keras.models.load_model(save_path)
 
         # Check we got the real object back.
@@ -118,29 +118,29 @@ class EfficientNetLiteBackboneTest(tf.test.TestCase, parameterized.TestCase):
             model.pyramid_level_inputs.keys(),
         )
         input_size = 256
-        inputs = tf.keras.Input(shape=[input_size, input_size, 3])
+        inputs = keras.Input(shape=[input_size, input_size, 3])
         outputs = backbone_model(inputs)
         levels = ["P1", "P2", "P3", "P4", "P5"]
         self.assertEquals(list(outputs.keys()), levels)
         self.assertEquals(
             outputs["P1"].shape,
-            [None, input_size // 2**1, input_size // 2**1, 16],
+            (None, input_size // 2**1, input_size // 2**1, 16),
         )
         self.assertEquals(
             outputs["P2"].shape,
-            [None, input_size // 2**2, input_size // 2**2, 24],
+            (None, input_size // 2**2, input_size // 2**2, 24),
         )
         self.assertEquals(
             outputs["P3"].shape,
-            [None, input_size // 2**3, input_size // 2**3, 40],
+            (None, input_size // 2**3, input_size // 2**3, 40),
         )
         self.assertEquals(
             outputs["P4"].shape,
-            [None, input_size // 2**4, input_size // 2**4, 112],
+            (None, input_size // 2**4, input_size // 2**4, 112),
         )
         self.assertEquals(
             outputs["P5"].shape,
-            [None, input_size // 2**5, input_size // 2**5, 1280],
+            (None, input_size // 2**5, input_size // 2**5, 1280),
         )
 
     @parameterized.named_parameters(
@@ -160,7 +160,3 @@ class EfficientNetLiteBackboneTest(tf.test.TestCase, parameterized.TestCase):
             include_rescaling=True,
         )
         self.assertEqual(model.output_shape, (None, None, None, 1280))
-
-
-if __name__ == "__main__":
-    tf.test.main()

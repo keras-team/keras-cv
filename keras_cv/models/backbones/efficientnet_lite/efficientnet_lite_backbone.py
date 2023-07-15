@@ -24,10 +24,7 @@ Reference:
 import copy
 import math
 
-from keras import backend
-from keras import layers
-from tensorflow import keras
-
+from keras_cv.backend import keras
 from keras_cv.models.backbones.backbone import Backbone
 from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_backbone_presets import (  # noqa: E501
     backbone_presets,
@@ -62,7 +59,7 @@ class EfficientNetLiteBackbone(Backbone):
         activation: activation function.
         input_shape: optional shape tuple,
             It should have exactly 3 inputs channels.
-        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
+        input_tensor: optional Keras tensor (i.e. output of `keras.keras.layers.Input()`)
             to use as image input for the model.
 
     Usage:
@@ -118,12 +115,12 @@ class EfficientNetLiteBackbone(Backbone):
 
         if include_rescaling:
             # Use common rescaling strategy across keras_cv
-            x = layers.Rescaling(1.0 / 255.0)(x)
+            x = keras.layers.Rescaling(1.0 / 255.0)(x)
 
-        x = layers.ZeroPadding2D(
+        x = keras.layers.ZeroPadding2D(
             padding=correct_pad_downsample(x, 3), name="stem_conv_pad"
         )(x)
-        x = layers.Conv2D(
+        x = keras.layers.Conv2D(
             32,
             3,
             strides=2,
@@ -132,8 +129,8 @@ class EfficientNetLiteBackbone(Backbone):
             kernel_initializer=conv_kernel_initializer(),
             name="stem_conv",
         )(x)
-        x = layers.BatchNormalization(axis=BN_AXIS, name="stem_bn")(x)
-        x = layers.Activation(activation, name="stem_activation")(x)
+        x = keras.layers.BatchNormalization(axis=BN_AXIS, name="stem_bn")(x)
+        x = keras.layers.Activation(activation, name="stem_activation")(x)
 
         # Build blocks
         block_id = 0
@@ -174,7 +171,7 @@ class EfficientNetLiteBackbone(Backbone):
                     input_filters = output_filters
 
                 if strides != 1:
-                    pyramid_level_inputs.append(x.node.layer.name)
+                    pyramid_level_inputs.append(utils.get_tensor_input_name(x))
 
                 # 97 is the start of the lowercase alphabet.
                 letter_identifier = chr(j + 97)
@@ -192,7 +189,7 @@ class EfficientNetLiteBackbone(Backbone):
                 block_id += 1
 
         # Build top
-        x = layers.Conv2D(
+        x = keras.layers.Conv2D(
             1280,
             1,
             padding="same",
@@ -200,10 +197,10 @@ class EfficientNetLiteBackbone(Backbone):
             kernel_initializer=conv_kernel_initializer(),
             name="top_conv",
         )(x)
-        x = layers.BatchNormalization(axis=BN_AXIS, name="top_bn")(x)
-        x = layers.Activation(activation, name="top_activation")(x)
+        x = keras.layers.BatchNormalization(axis=BN_AXIS, name="top_bn")(x)
+        x = keras.layers.Activation(activation, name="top_activation")(x)
 
-        pyramid_level_inputs.append(x.node.layer.name)
+        pyramid_level_inputs.append(utils.get_tensor_input_name(x))
 
         # Create model.
         super().__init__(inputs=img_input, outputs=x, **kwargs)
@@ -283,7 +280,7 @@ def apply_efficient_net_lite_block(
     inputs,
     activation="relu6",
     dropout_rate=0.0,
-    name=None,
+    name="",
     filters_in=32,
     filters_out=16,
     kernel_size=3,
@@ -307,13 +304,11 @@ def apply_efficient_net_lite_block(
     Returns:
         output tensor for the block.
     """  # noqa: E501
-    if name is None:
-        name = f"block_{backend.get_uid('block_')}_"
 
     # Expansion phase
     filters = filters_in * expand_ratio
     if expand_ratio != 1:
-        x = layers.Conv2D(
+        x = keras.layers.Conv2D(
             filters,
             1,
             padding="same",
@@ -321,21 +316,25 @@ def apply_efficient_net_lite_block(
             kernel_initializer=conv_kernel_initializer(),
             name=name + "expand_conv",
         )(inputs)
-        x = layers.BatchNormalization(axis=BN_AXIS, name=name + "expand_bn")(x)
-        x = layers.Activation(activation, name=name + "expand_activation")(x)
+        x = keras.layers.BatchNormalization(
+            axis=BN_AXIS, name=name + "expand_bn"
+        )(x)
+        x = keras.layers.Activation(
+            activation, name=name + "expand_activation"
+        )(x)
     else:
         x = inputs
 
     # Depthwise Convolution
     if strides == 2:
-        x = layers.ZeroPadding2D(
+        x = keras.layers.ZeroPadding2D(
             padding=correct_pad_downsample(x, kernel_size),
             name=name + "dwconv_pad",
         )(x)
         conv_pad = "valid"
     else:
         conv_pad = "same"
-    x = layers.DepthwiseConv2D(
+    x = keras.layers.DepthwiseConv2D(
         kernel_size,
         strides=strides,
         padding=conv_pad,
@@ -343,12 +342,12 @@ def apply_efficient_net_lite_block(
         depthwise_initializer=conv_kernel_initializer(),
         name=name + "dwconv",
     )(x)
-    x = layers.BatchNormalization(axis=BN_AXIS, name=name + "bn")(x)
-    x = layers.Activation(activation, name=name + "activation")(x)
+    x = keras.layers.BatchNormalization(axis=BN_AXIS, name=name + "bn")(x)
+    x = keras.layers.Activation(activation, name=name + "activation")(x)
 
     # Skip SE block
     # Output phase
-    x = layers.Conv2D(
+    x = keras.layers.Conv2D(
         filters_out,
         1,
         padding="same",
@@ -356,11 +355,13 @@ def apply_efficient_net_lite_block(
         kernel_initializer=conv_kernel_initializer(),
         name=name + "project_conv",
     )(x)
-    x = layers.BatchNormalization(axis=BN_AXIS, name=name + "project_bn")(x)
+    x = keras.layers.BatchNormalization(axis=BN_AXIS, name=name + "project_bn")(
+        x
+    )
     if strides == 1 and filters_in == filters_out:
         if dropout_rate > 0:
-            x = layers.Dropout(
+            x = keras.layers.Dropout(
                 dropout_rate, noise_shape=(None, 1, 1, 1), name=name + "drop"
             )(x)
-        x = layers.add([x, inputs], name=name + "add")
+        x = keras.layers.add([x, inputs], name=name + "add")
     return x
