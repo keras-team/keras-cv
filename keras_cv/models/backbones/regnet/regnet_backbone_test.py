@@ -44,7 +44,6 @@ from keras_cv.models.backbones.regnet.regnet_aliases import RegNetY120Backbone
 from keras_cv.models.backbones.regnet.regnet_aliases import RegNetY160Backbone
 from keras_cv.models.backbones.regnet.regnet_aliases import RegNetY320Backbone
 from keras_cv.models.backbones.regnet.regnet_backbone import RegNetBackbone
-
 from keras_cv.tests.test_case import TestCase
 from keras_cv.utils.train import get_feature_extractor
 
@@ -87,9 +86,7 @@ class RegNetBackboneTest(TestCase):
             include_rescaling=False,
         )
         model_output = model(self.input_batch)
-        save_path = os.path.join(
-            self.get_temp_dir(), "regnet_backbone.keras"
-        )
+        save_path = os.path.join(self.get_temp_dir(), "regnet_backbone.keras")
         model.save(save_path)
         restored_model = keras.models.load_model(save_path)
 
@@ -104,9 +101,7 @@ class RegNetBackboneTest(TestCase):
     def test_saved_alias_model(self):
         model = RegNetX002Backbone()
         model_output = model(self.input_batch)
-        save_path = os.path.join(
-            self.get_temp_dir(), "regnet_backbone.keras"
-        )
+        save_path = os.path.join(self.get_temp_dir(), "regnet_backbone.keras")
         model.save(save_path)
         restored_model = keras.models.load_model(save_path)
 

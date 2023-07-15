@@ -21,7 +21,6 @@ References:
 import copy
 
 from keras_cv.backend import keras
-
 from keras_cv.layers import SqueezeAndExcite2D
 from keras_cv.models import utils
 from keras_cv.models.backbones.backbone import Backbone
@@ -32,6 +31,7 @@ from keras_cv.models.backbones.regnet.regnet_backbone_presets import (
     backbone_presets_with_weights,
 )
 from keras_cv.utils.python_utils import classproperty
+
 
 @keras.utils.register_keras_serializable(package="keras_cv.models")
 class RegNetBackbone(Backbone):
