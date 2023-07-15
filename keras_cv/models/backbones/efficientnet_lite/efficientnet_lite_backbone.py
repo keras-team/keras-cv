@@ -25,12 +25,11 @@ import copy
 import math
 
 from keras_cv.backend import keras
+from keras_cv.models import utils
 from keras_cv.models.backbones.backbone import Backbone
 from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_backbone_presets import (  # noqa: E501
     backbone_presets,
 )
-from keras_cv.models.legacy import utils
-from keras_cv.models.utils import correct_pad_downsample
 from keras_cv.utils.python_utils import classproperty
 
 BN_AXIS = 3
@@ -118,7 +117,7 @@ class EfficientNetLiteBackbone(Backbone):
             x = keras.layers.Rescaling(1.0 / 255.0)(x)
 
         x = keras.layers.ZeroPadding2D(
-            padding=correct_pad_downsample(x, 3), name="stem_conv_pad"
+            padding=utils.correct_pad_downsample(x, 3), name="stem_conv_pad"
         )(x)
         x = keras.layers.Conv2D(
             32,
@@ -330,7 +329,7 @@ def apply_efficient_net_lite_block(
     # Depthwise Convolution
     if strides == 2:
         x = keras.layers.ZeroPadding2D(
-            padding=correct_pad_downsample(x, kernel_size),
+            padding=utils.correct_pad_downsample(x, kernel_size),
             name=name + "dwconv_pad",
         )(x)
         conv_pad = "valid"
