@@ -14,7 +14,6 @@
 import copy
 
 import numpy as np
-import tensorflow as tf
 
 try:
     from pycocotools.coco import COCO
@@ -193,23 +192,16 @@ def _convert_groundtruths_to_coco_dataset(groundtruths, label_map=None):
     return gt_dataset
 
 
-def _convert_to_numpy(groundtruths, predictions):
+def _concat_numpy(groundtruths, predictions):
     """Converts tensors to numpy arrays."""
-    labels = tf.nest.map_structure(lambda x: x.numpy(), groundtruths)
     numpy_groundtruths = {}
-    for key, val in labels.items():
+    for key, val in groundtruths.items():
         if isinstance(val, tuple):
             val = np.concatenate(val)
         numpy_groundtruths[key] = val
 
-    def _to_numpy(x):
-        if isinstance(x, np.ndarray):
-            return x
-        return x.numpy()
-
-    outputs = tf.nest.map_structure(lambda x: _to_numpy(x), predictions)
     numpy_predictions = {}
-    for key, val in outputs.items():
+    for key, val in predictions.items():
         if isinstance(val, tuple):
             val = np.concatenate(val)
         numpy_predictions[key] = val
@@ -220,7 +212,7 @@ def _convert_to_numpy(groundtruths, predictions):
 def compute_pycoco_metrics(groundtruths, predictions):
     assert_pycocotools_installed("compute_pycoco_metrics")
 
-    groundtruths, predictions = _convert_to_numpy(groundtruths, predictions)
+    groundtruths, predictions = _concat_numpy(groundtruths, predictions)
 
     gt_dataset = _convert_groundtruths_to_coco_dataset(groundtruths)
     coco_gt = PyCOCOWrapper(gt_dataset=gt_dataset)

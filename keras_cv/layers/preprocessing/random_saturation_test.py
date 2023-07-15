@@ -13,13 +13,14 @@
 # limitations under the License.
 
 import tensorflow as tf
-from tensorflow import keras
 
 from keras_cv import core
+from keras_cv.backend import keras
 from keras_cv.layers import preprocessing
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
+from keras_cv.tests.test_case import TestCase
 from keras_cv.utils import preprocessing as preprocessing_utils
 
 
@@ -106,7 +107,7 @@ class OldRandomSaturation(BaseImageAugmentationLayer):
         return cls(**config)
 
 
-class RandomSaturationTest(tf.test.TestCase):
+class RandomSaturationTest(TestCase):
     def test_preserves_output_shape(self):
         image_shape = (4, 8, 8, 3)
         image = tf.random.uniform(shape=image_shape) * 255.0

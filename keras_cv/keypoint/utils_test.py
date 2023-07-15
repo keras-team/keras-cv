@@ -16,9 +16,10 @@ import tensorflow as tf
 from absl.testing import parameterized
 
 from keras_cv.keypoint.utils import filter_out_of_image
+from keras_cv.tests.test_case import TestCase
 
 
-class UtilsTestCase(tf.test.TestCase, parameterized.TestCase):
+class UtilsTestCase(TestCase):
     @parameterized.named_parameters(
         (
             "all inside",

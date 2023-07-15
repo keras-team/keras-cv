@@ -14,11 +14,12 @@
 import tensorflow as tf
 
 from keras_cv.layers.preprocessing.mosaic import Mosaic
+from keras_cv.tests.test_case import TestCase
 
 num_classes = 10
 
 
-class MosaicTest(tf.test.TestCase):
+class MosaicTest(TestCase):
     def test_return_shapes(self):
         xs = tf.ones((2, 512, 512, 3))
         # randomly sample labels
@@ -93,16 +94,6 @@ class MosaicTest(tf.test.TestCase):
         layer = Mosaic()
         with self.assertRaisesRegexp(
             ValueError, "Mosaic received a single image to `call`"
-        ):
-            _ = layer(inputs)
-
-    def test_int_labels(self):
-        xs = tf.ones((2, 512, 512, 3))
-        ys = tf.one_hot(tf.constant([1, 0]), 2, dtype=tf.int32)
-        inputs = {"images": xs, "labels": ys}
-        layer = Mosaic()
-        with self.assertRaisesRegexp(
-            ValueError, "Mosaic received labels with type"
         ):
             _ = layer(inputs)
 

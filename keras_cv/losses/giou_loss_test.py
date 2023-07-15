@@ -15,9 +15,10 @@
 import tensorflow as tf
 
 from keras_cv.losses.giou_loss import GIoULoss
+from keras_cv.tests.test_case import TestCase
 
 
-class GIoUTest(tf.test.TestCase):
+class GIoUTest(TestCase):
     def test_output_shape(self):
         y_true = tf.random.uniform(
             shape=(2, 2, 4), minval=0, maxval=10, dtype=tf.int32

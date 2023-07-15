@@ -27,12 +27,13 @@ from keras_cv.models.object_detection_3d.center_pillar import (
 from keras_cv.models.object_detection_3d.center_pillar import (
     MultiHeadCenterPillar,
 )
+from keras_cv.tests.test_case import TestCase
 
 down_block_configs = [(128, 6), (256, 2), (512, 2)]
 up_block_configs = [512, 256, 256]
 
 
-class CenterPillarTest(tf.test.TestCase):
+class CenterPillarTest(TestCase):
     def get_point_net(self):
         return keras.Sequential(
             [

@@ -62,7 +62,6 @@ from keras_cv.models.legacy.regnet import RegNetY080
 from keras_cv.models.legacy.regnet import RegNetY120
 from keras_cv.models.legacy.regnet import RegNetY160
 from keras_cv.models.legacy.regnet import RegNetY320
-from keras_cv.models.legacy.segmentation.deeplab import DeepLabV3
 from keras_cv.models.legacy.vgg16 import VGG16
 from keras_cv.models.legacy.vgg19 import VGG19
 from keras_cv.models.legacy.vit import ViTB16

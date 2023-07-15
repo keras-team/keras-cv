@@ -14,23 +14,22 @@
 
 import math
 
-import tensorflow as tf
-from tensorflow import keras
-
+from keras_cv.backend import keras
+from keras_cv.backend import ops
 from keras_cv.bounding_box_3d import CENTER_XYZ_DXDYDZ_PHI
 
 
 def l1(y_true, y_pred, sigma=9.0):
     """Computes element-wise l1 loss."""
 
-    absolute_difference = tf.abs(y_pred - y_true)
-    loss = tf.where(
+    absolute_difference = ops.abs(y_pred - y_true)
+    loss = ops.where(
         absolute_difference < 1.0 / sigma,
         0.5 * sigma * absolute_difference**2,
         absolute_difference - 0.5 / sigma,
     )
 
-    return tf.reduce_sum(loss, axis=-1)
+    return ops.sum(loss, axis=-1)
 
 
 class CenterNetBoxLoss(keras.losses.Loss):
@@ -65,36 +64,39 @@ class CenterNetBoxLoss(keras.losses.Loss):
 
     def heading_regression_loss(self, heading_true, heading_pred):
         # Set the heading to within 0 -> 2pi
-        heading_true = tf.math.floormod(heading_true, 2 * math.pi)
+        heading_true = ops.floor(ops.mod(heading_true, 2 * math.pi))
 
         # Divide 2pi into bins. shifted by 0.5 * angle_per_class.
         angle_per_class = (2 * math.pi) / self.num_heading_bins
-        shift_angle = tf.math.floormod(
-            heading_true + angle_per_class / 2, 2 * math.pi
+        shift_angle = ops.floor(
+            ops.mod(heading_true + angle_per_class / 2, 2 * math.pi)
         )
 
-        heading_bin_label_float = tf.math.floordiv(shift_angle, angle_per_class)
-        heading_bin_label = tf.cast(heading_bin_label_float, dtype=tf.int32)
+        heading_bin_label_float = ops.floor(
+            ops.divide(shift_angle, angle_per_class)
+        )
+        heading_bin_label = ops.cast(heading_bin_label_float, dtype="int32")
         heading_res_label = shift_angle - (
             heading_bin_label_float * angle_per_class + angle_per_class / 2.0
         )
         heading_res_norm_label = heading_res_label / (angle_per_class / 2.0)
 
-        heading_bin_one_hot = tf.one_hot(
-            heading_bin_label, self.num_heading_bins
+        heading_bin_one_hot = ops.one_hot(
+            heading_bin_label, self.num_heading_bins, dtype=heading_pred.dtype
         )
-        loss_heading_bin = tf.nn.softmax_cross_entropy_with_logits(
-            labels=heading_bin_one_hot,
-            logits=heading_pred[..., : self.num_heading_bins],
+        loss_heading_bin = ops.categorical_crossentropy(
+            target=heading_bin_one_hot,
+            output=heading_pred[..., : self.num_heading_bins],
+            from_logits=True,
         )
         loss_heading_res = l1(
-            tf.reduce_sum(
+            ops.sum(
                 heading_pred[..., self.num_heading_bins :]
                 * heading_bin_one_hot,
                 axis=-1,
                 keepdims=True,
             ),
-            heading_res_norm_label[..., tf.newaxis],
+            ops.expand_dims(heading_res_norm_label, axis=-1),
         )
 
         return loss_heading_bin + loss_heading_res
@@ -107,7 +109,9 @@ class CenterNetBoxLoss(keras.losses.Loss):
         )
 
         # Size loss
-        size_norm_label = y_true[:, 3:6] / self.anchor_size
+        size_norm_label = y_true[:, 3:6] / ops.cast(
+            self.anchor_size, y_true.dtype
+        )
         size_norm_pred = y_pred[:, -3:] + 1.0
         size_loss = l1(size_norm_pred, size_norm_label)
 
@@ -116,12 +120,11 @@ class CenterNetBoxLoss(keras.losses.Loss):
         return position_loss + heading_loss + size_loss
 
     def call(self, y_true, y_pred):
-        return tf.map_fn(
+        return ops.vectorized_map(
             lambda y_true_and_pred: self.regression_loss(
                 y_true_and_pred[0], y_true_and_pred[1]
             ),
             (y_true, y_pred),
-            tf.TensorSpec((y_pred.shape[1])),
         )
 
     def get_config(self):

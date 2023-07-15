@@ -12,12 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import tensorflow as tf
-
 import keras_cv
+from keras_cv.tests.test_case import TestCase
 
 
-class UniformFactorSamplerTest(tf.test.TestCase):
+class UniformFactorSamplerTest(TestCase):
     def test_sample(self):
         factor = keras_cv.UniformFactorSampler(0.3, 0.6)
         self.assertTrue(0.3 <= factor() <= 0.6)

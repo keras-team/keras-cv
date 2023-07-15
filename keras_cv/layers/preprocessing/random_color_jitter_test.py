@@ -13,12 +13,12 @@
 # limitations under the License.
 
 import tensorflow as tf
-from absl.testing import parameterized
 
 from keras_cv.layers import preprocessing
+from keras_cv.tests.test_case import TestCase
 
 
-class RandomColorJitterTest(tf.test.TestCase, parameterized.TestCase):
+class RandomColorJitterTest(TestCase):
     # Test 1: Check input and output shape. It should match.
     def test_return_shapes(self):
         batch_input = tf.ones((2, 512, 512, 3))

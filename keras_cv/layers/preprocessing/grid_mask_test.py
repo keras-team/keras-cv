@@ -17,9 +17,10 @@ import tensorflow as tf
 
 import keras_cv
 from keras_cv.layers.preprocessing.grid_mask import GridMask
+from keras_cv.tests.test_case import TestCase
 
 
-class GridMaskTest(tf.test.TestCase):
+class GridMaskTest(TestCase):
     def test_return_shapes(self):
         xs = tf.ones((2, 512, 512, 3))
 

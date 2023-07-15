@@ -14,12 +14,12 @@
 
 import numpy as np
 import tensorflow as tf
-from absl.testing import parameterized
 
 from keras_cv.layers import preprocessing
+from keras_cv.tests.test_case import TestCase
 
 
-class RandomTranslationTest(tf.test.TestCase, parameterized.TestCase):
+class RandomTranslationTest(TestCase):
     def test_random_translation_up_numeric_reflect(self):
         for dtype in (np.int64, np.float32):
             input_image = np.reshape(np.arange(0, 25), (1, 5, 5, 1)).astype(
