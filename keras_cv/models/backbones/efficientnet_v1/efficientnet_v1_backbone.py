@@ -14,10 +14,7 @@
 import copy
 import math
 
-from tensorflow import keras
-from tensorflow.keras import backend
-from tensorflow.keras import layers
-
+from keras_cv.backend import keras
 from keras_cv.models import utils
 from keras_cv.models.backbones.backbone import Backbone
 from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_backbone_presets import (  # noqa: E501
@@ -48,7 +45,7 @@ class EfficientNetV1Backbone(Backbone):
         activation: activation function to use between each convolutional layer.
         input_shape: optional shape tuple, it should have exactly 3 input
             channels.
-        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`) to
+        input_tensor: optional Keras tensor (i.e. output of `keras.keras.layers.Input()`) to
             use as image input for the model.
         stackwise_kernel_sizes:  list of ints, the kernel sizes used for each
             conv block.
@@ -126,9 +123,9 @@ class EfficientNetV1Backbone(Backbone):
 
         if include_rescaling:
             # Use common rescaling strategy across keras_cv
-            x = layers.Rescaling(1.0 / 255.0)(x)
+            x = keras.layers.Rescaling(1.0 / 255.0)(x)
 
-        x = layers.ZeroPadding2D(
+        x = keras.layers.ZeroPadding2D(
             padding=correct_pad(x, 3), name="stem_conv_pad"
         )(x)
 
@@ -138,7 +135,7 @@ class EfficientNetV1Backbone(Backbone):
             width_coefficient=width_coefficient,
             divisor=depth_divisor,
         )
-        x = layers.Conv2D(
+        x = keras.layers.Conv2D(
             filters=stem_filters,
             kernel_size=3,
             strides=2,
@@ -147,11 +144,11 @@ class EfficientNetV1Backbone(Backbone):
             kernel_initializer=conv_kernel_initializer(),
             name="stem_conv",
         )(x)
-        x = layers.BatchNormalization(
+        x = keras.layers.BatchNormalization(
             axis=3,
             name="stem_bn",
         )(x)
-        x = layers.Activation(activation, name="stem_activation")(x)
+        x = keras.layers.Activation(activation, name="stem_activation")(x)
 
         # Build blocks
         block_id = 0
@@ -190,7 +187,7 @@ class EfficientNetV1Backbone(Backbone):
                     input_filters = output_filters
 
                 if strides != 1:
-                    pyramid_level_inputs.append(x.node.layer.name)
+                    pyramid_level_inputs.append(utils.get_tensor_input_name(x))
 
                 # 97 is the start of the lowercase alphabet.
                 letter_identifier = chr(j + 97)
@@ -215,7 +212,7 @@ class EfficientNetV1Backbone(Backbone):
             divisor=depth_divisor,
         )
 
-        x = layers.Conv2D(
+        x = keras.layers.Conv2D(
             filters=top_filters,
             kernel_size=1,
             padding="same",
@@ -224,13 +221,15 @@ class EfficientNetV1Backbone(Backbone):
             use_bias=False,
             name="top_conv",
         )(x)
-        x = layers.BatchNormalization(
+        x = keras.layers.BatchNormalization(
             axis=3,
             name="top_bn",
         )(x)
-        x = layers.Activation(activation=activation, name="top_activation")(x)
+        x = keras.layers.Activation(
+            activation=activation, name="top_activation"
+        )(x)
 
-        pyramid_level_inputs.append(x.node.layer.name)
+        pyramid_level_inputs.append(utils.get_tensor_input_name(x))
 
         # Create model.
         super().__init__(inputs=img_input, outputs=x, **kwargs)
@@ -306,7 +305,7 @@ def correct_pad(inputs, kernel_size):
       A tuple.
     """
     img_dim = 1
-    input_size = backend.int_shape(inputs)[img_dim : (img_dim + 2)]
+    input_size = keras.backend.int_shape(inputs)[img_dim : (img_dim + 2)]
     if isinstance(kernel_size, int):
         kernel_size = (kernel_size, kernel_size)
     if input_size[0] is None:
@@ -385,7 +384,7 @@ def apply_efficientnet_block(
     """  # noqa: E501
     filters = filters_in * expand_ratio
     if expand_ratio != 1:
-        x = layers.Conv2D(
+        x = keras.layers.Conv2D(
             filters=filters,
             kernel_size=1,
             strides=1,
@@ -394,17 +393,19 @@ def apply_efficientnet_block(
             kernel_initializer=conv_kernel_initializer(),
             name=name + "expand_conv",
         )(inputs)
-        x = layers.BatchNormalization(
+        x = keras.layers.BatchNormalization(
             axis=3,
             name=name + "expand_bn",
         )(x)
-        x = layers.Activation(activation, name=name + "expand_activation")(x)
+        x = keras.layers.Activation(
+            activation, name=name + "expand_activation"
+        )(x)
     else:
         x = inputs
 
     # Depthwise Convolution
     if strides == 2:
-        x = layers.ZeroPadding2D(
+        x = keras.layers.ZeroPadding2D(
             padding=correct_pad(x, kernel_size),
             name=name + "dwconv_pad",
         )(x)
@@ -412,7 +413,7 @@ def apply_efficientnet_block(
     else:
         conv_pad = "same"
 
-    x = layers.DepthwiseConv2D(
+    x = keras.layers.DepthwiseConv2D(
         kernel_size=kernel_size,
         strides=strides,
         padding=conv_pad,
@@ -420,19 +421,19 @@ def apply_efficientnet_block(
         kernel_initializer=conv_kernel_initializer(),
         name=name + "dwconv",
     )(x)
-    x = layers.BatchNormalization(
+    x = keras.layers.BatchNormalization(
         axis=3,
         name=name + "dwconv_bn",
     )(x)
-    x = layers.Activation(activation, name=name + "dwconv_activation")(x)
+    x = keras.layers.Activation(activation, name=name + "dwconv_activation")(x)
 
     # Squeeze and Excitation phase
     if 0 < se_ratio <= 1:
         filters_se = max(1, int(filters_in * se_ratio))
-        se = layers.GlobalAveragePooling2D(name=name + "se_squeeze")(x)
+        se = keras.layers.GlobalAveragePooling2D(name=name + "se_squeeze")(x)
         se_shape = (1, 1, filters)
-        se = layers.Reshape(se_shape, name=name + "se_reshape")(se)
-        se = layers.Conv2D(
+        se = keras.layers.Reshape(se_shape, name=name + "se_reshape")(se)
+        se = keras.layers.Conv2D(
             filters_se,
             1,
             padding="same",
@@ -440,7 +441,7 @@ def apply_efficientnet_block(
             kernel_initializer=conv_kernel_initializer(),
             name=name + "se_reduce",
         )(se)
-        se = layers.Conv2D(
+        se = keras.layers.Conv2D(
             filters,
             1,
             padding="same",
@@ -448,10 +449,10 @@ def apply_efficientnet_block(
             kernel_initializer=conv_kernel_initializer(),
             name=name + "se_expand",
         )(se)
-        x = layers.multiply([x, se], name=name + "se_excite")
+        x = keras.layers.multiply([x, se], name=name + "se_excite")
 
     # Output phase
-    x = layers.Conv2D(
+    x = keras.layers.Conv2D(
         filters=filters_out,
         kernel_size=1,
         strides=1,
@@ -460,19 +461,19 @@ def apply_efficientnet_block(
         kernel_initializer=conv_kernel_initializer(),
         name=name + "project",
     )(x)
-    x = layers.BatchNormalization(
+    x = keras.layers.BatchNormalization(
         axis=3,
         name=name + "project_bn",
     )(x)
-    x = layers.Activation(activation, name=name + "project_activation")(x)
+    x = keras.layers.Activation(activation, name=name + "project_activation")(x)
 
     if strides == 1 and filters_in == filters_out:
         if dropout_rate > 0:
-            x = layers.Dropout(
+            x = keras.layers.Dropout(
                 dropout_rate,
                 noise_shape=(None, 1, 1, 1),
                 name=name + "drop",
             )(x)
-        x = layers.add([x, inputs], name=name + "add")
+        x = keras.layers.add([x, inputs], name=name + "add")
 
     return x

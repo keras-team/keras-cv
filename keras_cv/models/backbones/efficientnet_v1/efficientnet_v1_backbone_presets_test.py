@@ -12,22 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
+import numpy as np
 import pytest
-import tensorflow as tf
 from absl.testing import parameterized
 
+from keras_cv.backend import keras
 from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_aliases import (
     EfficientNetV1B0Backbone,
 )
 from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_backbone import (
     EfficientNetV1Backbone,
 )
+from keras_cv.tests.test_case import TestCase
 from keras_cv.utils.train import get_feature_extractor
 
 
 @pytest.mark.extra_large
-class EfficientNetV1PresetFullTest(tf.test.TestCase, parameterized.TestCase):
+class EfficientNetV1PresetFullTest(TestCase):
     """
     Test the full enumeration of our preset.
     This every presets for EfficientNetV1 and is only run manually.
@@ -39,7 +40,7 @@ class EfficientNetV1PresetFullTest(tf.test.TestCase, parameterized.TestCase):
         *[(preset, preset) for preset in EfficientNetV1Backbone.presets]
     )
     def test_load_efficientnet(self, preset):
-        input_data = tf.ones(shape=(2, 224, 224, 3))
+        input_data = np.ones(shape=(2, 224, 224, 3))
         model = EfficientNetV1Backbone.from_preset(preset)
         model(input_data)
 
@@ -51,9 +52,9 @@ class EfficientNetV1PresetFullTest(tf.test.TestCase, parameterized.TestCase):
         levels = ["P3", "P4"]
         layer_names = [model.pyramid_level_inputs[level] for level in levels]
         backbone_model = get_feature_extractor(model, layer_names, levels)
-        inputs = tf.keras.Input(shape=[256, 256, 3])
+        inputs = keras.Input(shape=[256, 256, 3])
         outputs = backbone_model(inputs)
         self.assertLen(outputs, 2)
         self.assertEquals(list(outputs.keys()), levels)
-        self.assertEquals(outputs["P3"].shape[:3], [None, 32, 32])
-        self.assertEquals(outputs["P4"].shape[:3], [None, 16, 16])
+        self.assertEquals(outputs["P3"].shape[:3], (None, 32, 32))
+        self.assertEquals(outputs["P4"].shape[:3], (None, 16, 16))
