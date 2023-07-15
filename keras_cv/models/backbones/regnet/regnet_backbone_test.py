@@ -17,7 +17,7 @@ import os
 import numpy as np
 import pytest
 from absl.testing import parameterized
-from tensorflow import keras
+from keras_cv.backend import keras
 
 from keras_cv.models.backbones.regnet.regnet_aliases import RegNetX002Backbone
 from keras_cv.models.backbones.regnet.regnet_aliases import RegNetX004Backbone
@@ -166,7 +166,7 @@ class RegNetBackboneTest(TestCase):
             include_rescaling=False,
             block_type="X",
         )
-        self.assertEqual(model.output_shape, (None, None, None, 2048))
+        self.assertEqual(model.output_shape, (None, None, None, 368))
 
     @parameterized.named_parameters(
         ("x002", RegNetX002Backbone),
