@@ -67,7 +67,7 @@ class EfficientNetV1Backbone(Backbone):
     efficientnet = keras_cv.models.EfficientNetV1Backbone.from_preset(
         "efficientnetv1_b0"
     )
-    images = tf.ones((1, 256, 256, 3))
+    images = np.ones((1, 256, 256, 3))
     outputs = efficientnet.predict(images)
 
     # Alternatively, you can also customize the EfficientNetV1 architecture:
@@ -91,7 +91,7 @@ class EfficientNetV1Backbone(Backbone):
         depth_coefficient=1.0,
         include_rescaling=False,
     )
-    images = tf.ones((1, 256, 256, 3))
+    images = np.ones((1, 256, 256, 3))
     outputs = efficientnet.predict(images)
     ```
     """  # noqa: E501
@@ -355,7 +355,7 @@ def apply_efficientnet_block(
         name: string, block label.
 
     Returns:
-        tf.Tensor
+        output tensor for the block.
     """  # noqa: E501
     filters = filters_in * expand_ratio
     if expand_ratio != 1:
