@@ -125,7 +125,7 @@ class EfficientNetV1BackboneTest(TestCase):
         model = EfficientNetV1B0Backbone()
         model_output = model(self.input_batch)
         save_path = os.path.join(
-            self.get_temp_dir(), "efficientnet_v2_backbone.keras"
+            self.get_temp_dir(), "efficientnet_v1_backbone.keras"
         )
         model.save(save_path)
         restored_model = keras.models.load_model(save_path)
