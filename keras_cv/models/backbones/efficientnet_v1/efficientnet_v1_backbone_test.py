@@ -16,7 +16,6 @@ import os
 
 import numpy as np
 import pytest
-import tensorflow as tf
 from absl.testing import parameterized
 
 from keras_cv.backend import keras
@@ -146,7 +145,7 @@ class EfficientNetV1BackboneTest(TestCase):
             model.pyramid_level_inputs.keys(),
         )
         input_size = 256
-        inputs = tf.keras.Input(shape=[input_size, input_size, 3])
+        inputs = keras.Input(shape=[input_size, input_size, 3])
         outputs = backbone_model(inputs)
         levels = ["P1", "P2", "P3", "P4", "P5"]
         self.assertEquals(list(outputs.keys()), levels)
