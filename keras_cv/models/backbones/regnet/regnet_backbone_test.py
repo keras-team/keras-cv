@@ -59,6 +59,7 @@ class RegNetBackboneTest(TestCase):
             group_width=8,
             default_size=224,
             include_rescaling=False,
+            block_type="X",
         )
         model(self.input_batch)
 
@@ -84,6 +85,7 @@ class RegNetBackboneTest(TestCase):
             group_width=8,
             default_size=224,
             include_rescaling=False,
+            block_type="X",
         )
         model_output = model(self.input_batch)
         save_path = os.path.join(self.get_temp_dir(), "regnet_backbone.keras")
@@ -120,6 +122,7 @@ class RegNetBackboneTest(TestCase):
             group_width=8,
             default_size=224,
             include_rescaling=False,
+            block_type="X",
         )
         model_2 = RegNetBackbone(
             depths=[1, 1, 4, 7],
@@ -127,6 +130,7 @@ class RegNetBackboneTest(TestCase):
             group_width=8,
             default_size=224,
             include_rescaling=False,
+            block_type="X",
         )
         layers_1 = model.layers
         layers_2 = model_2.layers
@@ -149,7 +153,7 @@ class RegNetBackboneTest(TestCase):
         self.assertEquals(list(outputs.keys()), levels)
         self.assertEquals(
             outputs["P1"].shape,
-            (None, input_size // 2**1, input_size // 2**1, 16),
+            (None, 8, 8, 368),
         )
 
     @parameterized.named_parameters(
@@ -165,6 +169,7 @@ class RegNetBackboneTest(TestCase):
             default_size=224,
             input_shape=(None, None, num_channels),
             include_rescaling=False,
+            block_type="X",
         )
         self.assertEqual(model.output_shape, (None, None, None, 2048))
 
