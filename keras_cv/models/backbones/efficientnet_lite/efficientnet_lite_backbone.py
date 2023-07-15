@@ -35,7 +35,7 @@ from keras_cv.utils.python_utils import classproperty
 BN_AXIS = 3
 
 
-@keras.utils.register_keras_serializable(package="keras_cv.models")
+@keras.saving.register_keras_serializable(package="keras_cv.models")
 class EfficientNetLiteBackbone(Backbone):
     """Instantiates the EfficientNetLite architecture using given scaling
     coefficients.
