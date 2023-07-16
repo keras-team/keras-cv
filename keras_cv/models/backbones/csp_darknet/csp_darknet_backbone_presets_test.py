@@ -93,7 +93,7 @@ class CSPDarkNetPresetSmokeTest(TestCase):
 class CSPDarkNetPresetFullTest(TestCase):
     """
     Test the full enumeration of our preset.
-    This tests every presets for CSPDarkNet and is only run manually.
+    This tests every preset for CSPDarkNet and is only run manually.
     Run with:
     `pytest keras_cv/models/backbones/csp_darknet/csp_darknet_backbone_presets_test.py --run_extra_large`  # noqa: E501
     """
