@@ -131,7 +131,6 @@ class MiTBackbone(Backbone):
                 "output_channels": self.output_channels,
                 "classes": self.classes,
                 "include_top": self.include_top,
-                "as_backbone": self.as_backbone,
                 "pooling": self.pooling,
             }
         )

@@ -12,7 +12,6 @@ class SegFormer(Task):
         embed_dim=None,
         input_shape=None,
         input_tensor=None,
-        softmax_output=None,
         **kwargs,
     ):
         inputs = utils.parse_model_inputs(input_shape, input_tensor)
@@ -27,10 +26,6 @@ class SegFormer(Task):
         output = keras.layers.Resizing(
             height=x.shape[1], width=x.shape[2], interpolation="bilinear"
         )(y)
-        if softmax_output:
-            output = keras.layers.Activation(
-                "softmax", name="output_activation"
-            )(output)
 
         super().__init__(
             inputs=inputs,
@@ -40,7 +35,13 @@ class SegFormer(Task):
 
         self.num_classes = num_classes
         self.embed_dim = embed_dim
-        self.softmax_output = softmax_output
+
+    def get_config(self):
+        return {
+            "num_classes": self.num_classes,
+            "backbone": self.backbone,
+            "embed_dim": self.embed_dim,
+        }
 
 
 class SegFormerHead(keras.layers.Layer):
