@@ -21,6 +21,9 @@ from keras_cv.layers.efficient_multihead_attention import (
 )
 from keras_cv.layers.feature_pyramid import FeaturePyramid
 from keras_cv.layers.fusedmbconv import FusedMBConvBlock
+from keras_cv.layers.hierarchical_transformer_encoder import (
+    HierarchicalTransformerEncoder,
+)
 from keras_cv.layers.mbconv import MBConvBlock
 from keras_cv.layers.object_detection.anchor_generator import AnchorGenerator
 from keras_cv.layers.object_detection.box_matcher import BoxMatcher

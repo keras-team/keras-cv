@@ -17,6 +17,6 @@ class OverlappingPatchingAndEmbedding(keras.layers.Layer):
         x = self.proj(x)
         # B, H, W, C
         shape = x.shape
-        x = x.reshape((-1, shape[1] * shape[2], shape[3]))
+        x = keras.ops.reshape(x, (-1, shape[1] * shape[2], shape[3]))
         x = self.norm(x)
         return x, shape[1], shape[2]

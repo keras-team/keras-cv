@@ -18,6 +18,8 @@ References:
 
 """  # noqa: E501
 
+import numpy as np
+
 from keras_cv import layers as cv_layers
 from keras_cv.backend import keras
 from keras_cv.models import utils
@@ -29,7 +31,6 @@ from keras_cv.models.backbones.mix_transformer.mix_transformer_backbone_presets 
     backbone_presets_with_weights,
 )
 from keras_cv.utils.python_utils import classproperty
-import numpy as np
 
 
 @keras.saving.register_keras_serializable(package="keras_cv.models")
@@ -70,7 +71,6 @@ class MiTBackbone(Backbone):
 
         for i in range(num_stages):
             patch_embed_layer = cv_layers.OverlappingPatchingAndEmbedding(
-                in_channels=input_shape[-1] if i == 0 else embed_dims[i - 1],
                 out_channels=embed_dims[0] if i == 0 else embed_dims[i],
                 patch_size=7 if i == 0 else 3,
                 stride=4 if i == 0 else 2,

@@ -30,7 +30,8 @@ class EfficientMultiheadAttention(keras.layers.Layer):
         input_shape = x.shape
 
         q = self.q(x)
-        q = q.reshape(
+        q = keras.ops.reshape.reshape(
+            q,
             (
                 input_shape[0],
                 input_shape[1],
@@ -42,42 +43,45 @@ class EfficientMultiheadAttention(keras.layers.Layer):
         q = q.transpose([0, 2, 1, 3])
 
         if self.sr_ratio > 1:
-            x = x.transpose(x, [0, 2, 1]).reshape(
-                (input_shape[0], H, W, input_shape[2])
+            x = keras.ops.reshape(
+                keras.ops.transpose(x, [0, 2, 1]),
+                (input_shape[0], H, W, input_shape[2]),
             )
             x = self.sr(x)
-            x = x.reshape([input_shape[0], input_shape[2], -1])
-            x = x.transpose([0, 2, 1])
+            x = keras.ops.reshape(x, [input_shape[0], input_shape[2], -1])
+            x = keras.ops.transpose(x, [0, 2, 1])
             x = self.norm(x)
 
         k = self.k(x)
         v = self.v(x)
 
-        k = k.transpose([0, 2, 1, 3]).reshape(
+        k = keras.ops.reshape(
+            keras.ops.transpose(k, [0, 2, 1, 3]),
             [
                 input_shape[0],
                 -1,
                 self.num_heads,
                 input_shape[2] // self.num_heads,
-            ]
-        )
-        v = (
-            v.transpose([0, 2, 1, 3]).reshape(
-                [
-                    input_shape[0],
-                    -1,
-                    self.num_heads,
-                    input_shape[2] // self.num_heads,
-                ]
-            ),
+            ],
         )
 
-        attn = (q @ x.transpose([0, 1, 3, 2])) * self.scale
+        v = keras.ops.reshape(
+            keras.ops.transpose(v, [0, 2, 1, 3]),
+            [
+                input_shape[0],
+                -1,
+                self.num_heads,
+                input_shape[2] // self.num_heads,
+            ],
+        )
+
+        attn = (q @ keras.ops.transpose(x, [0, 1, 3, 2])) * self.scale
         attn = keras.nn.ops.softmax(attn, axis=-1)
 
         attn = attn @ v
-        attn = attn.transpose(attn, [0, 2, 1, 3]).reshape(
-            [input_shape[0], input_shape[1], input_shape[2]]
+        attn = keras.ops.reshape(
+            keras.ops.transpose(attn, [0, 2, 1, 3]),
+            [input_shape[0], input_shape[1], input_shape[2]],
         )
         x = self.proj(attn)
         return x
