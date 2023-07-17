@@ -6,7 +6,7 @@ Based on: https://github.com/sithu31296/semantic-segmentation/blob/main/semseg/m
 
 
 @keras.saving.register_keras_serializable(package="keras_cv")
-class EfficientMultiheadAttention(tf.keras.layers.Layer):
+class EfficientMultiheadAttention(keras.layers.Layer):
     def __init__(self, project_dim, num_heads, sr_ratio):
         super().__init__()
         self.num_heads = num_heads
