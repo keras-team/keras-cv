@@ -21,7 +21,7 @@ from keras_cv.utils import fill_utils
 class BoundingBoxToMaskTest(TestCase):
     def _run_test(self, corners, expected):
         mask = fill_utils.corners_to_mask(corners, mask_shape=(6, 6))
-        mask = tf.cast(mask, dtype="int32")
+        mask = tf.cast(mask, dtype=tf.int32)
         tf.assert_equal(mask, expected)
 
     def test_corners_whole(self):
@@ -48,7 +48,8 @@ class BoundingBoxToMaskTest(TestCase):
                 [0, 0, 1, 1, 1, 0],
                 [0, 0, 0, 0, 0, 0],
                 [0, 0, 0, 0, 0, 0],
-            ]
+            ],
+            dtype="int32",
         )
         corners = np.array([[1.5, 0.5, 4.5, 3.5]], dtype="float32")
         self._run_test(corners, expected)
@@ -62,7 +63,8 @@ class BoundingBoxToMaskTest(TestCase):
                 [0, 0, 0, 0, 0, 0],
                 [0, 0, 0, 0, 0, 0],
                 [0, 0, 0, 0, 0, 0],
-            ]
+            ],
+            dtype="int32",
         )
         corners = np.array([[0, 0, 0, 3]], dtype="float32")
         self._run_test(corners, expected)
@@ -76,7 +78,8 @@ class BoundingBoxToMaskTest(TestCase):
                 [0, 0, 0, 0, 0, 0],
                 [0, 0, 0, 0, 0, 0],
                 [0, 0, 0, 0, 0, 0],
-            ]
+            ],
+            dtype="int32",
         )
         corners = np.array([[1, 0, 4, 0]], dtype="float32")
         self._run_test(corners, expected)
@@ -90,7 +93,8 @@ class BoundingBoxToMaskTest(TestCase):
                 [0, 0, 0, 0, 0, 0],
                 [0, 0, 0, 0, 0, 0],
                 [0, 0, 0, 0, 0, 0],
-            ]
+            ],
+            dtype="int32",
         )
         corners = np.array([[1, 0, -2, 3]], dtype="float32")
         self._run_test(corners, expected)
@@ -104,7 +108,8 @@ class BoundingBoxToMaskTest(TestCase):
                 [0, 0, 0, 0, 0, 0],
                 [0, 0, 0, 0, 0, 0],
                 [0, 0, 0, 0, 0, 0],
-            ]
+            ],
+            dtype="int32",
         )
         corners = np.array([[1, 0, 4, -2]], dtype="float32")
         self._run_test(corners, expected)
@@ -118,7 +123,8 @@ class BoundingBoxToMaskTest(TestCase):
                 [0, 0, 0, 0, 0, 0],
                 [0, 0, 0, 0, 0, 0],
                 [0, 0, 0, 0, 0, 0],
-            ]
+            ],
+            dtype="int32",
         )
         corners = np.array([[-2, -2, 2, 3]], dtype="float32")
         self._run_test(corners, expected)
@@ -132,7 +138,8 @@ class BoundingBoxToMaskTest(TestCase):
                 [0, 0, 0, 0, 0, 0],
                 [0, 0, 0, 0, 0, 0],
                 [0, 0, 0, 0, 0, 0],
-            ]
+            ],
+            dtype="int32",
         )
         corners = np.array([[4, 0, 8, 3]], dtype="float32")
         self._run_test(corners, expected)
@@ -146,7 +153,8 @@ class BoundingBoxToMaskTest(TestCase):
                 [0, 0, 0, 0, 0, 0],
                 [0, 0, 0, 0, 0, 0],
                 [0, 0, 0, 0, 0, 0],
-            ]
+            ],
+            dtype="int32",
         )
         corners = np.array([[1, -3, 4, 2]], dtype="float32")
         self._run_test(corners, expected)
@@ -160,7 +168,8 @@ class BoundingBoxToMaskTest(TestCase):
                 [0, 0, 0, 0, 0, 0],
                 [0, 1, 1, 1, 0, 0],
                 [0, 1, 1, 1, 0, 0],
-            ]
+            ],
+            dtype="int32",
         )
         corners = np.array([[1, 4, 4, 9]], dtype="float32")
         self._run_test(corners, expected)
@@ -174,7 +183,8 @@ class BoundingBoxToMaskTest(TestCase):
                 [0, 0, 0, 0, 0, 0],
                 [0, 0, 0, 0, 0, 0],
                 [0, 0, 0, 0, 0, 0],
-            ]
+            ],
+            dtype="int32",
         )
         corners = np.array([[8, 8, 10, 12]], dtype="float32")
         self._run_test(corners, expected)
