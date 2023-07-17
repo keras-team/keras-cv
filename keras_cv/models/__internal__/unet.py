@@ -180,7 +180,7 @@ def UNet(
     Reference:
         - [U-Net: Convolutional Networks for Biomedical Image Segmentation](https://arxiv.org/abs/1505.04597)
 
-            U-Net relies on strong use of Data Augmentation and architecture consists of a contracting path to capture 
+       
             
     
     Args:
