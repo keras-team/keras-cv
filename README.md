@@ -70,7 +70,7 @@ import keras_core as keras
 
 filepath = keras.utils.get_file(origin="https://i.imgur.com/gCNcJJI.jpg")
 image = np.array(keras.utils.load_img(filepath))
-image_resized = ops.image.resize(image, (640, 640))[None, ...]
+image_resized = keras.ops.image.resize(image, (640, 640))[None, ...]
 
 model = keras_cv.models.YOLOV8Detector.from_preset(
     "yolo_v8_m_pascalvoc",
