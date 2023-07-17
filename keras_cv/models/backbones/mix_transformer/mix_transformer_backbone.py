@@ -29,6 +29,7 @@ from keras_cv.models.backbones.mix_transformer.mix_transformer_backbone_presets 
     backbone_presets_with_weights,
 )
 from keras_cv.utils.python_utils import classproperty
+import numpy as np
 
 
 @keras.saving.register_keras_serializable(package="keras_cv.models")
@@ -57,7 +58,7 @@ class MiTBackbone(Backbone):
             )
 
         drop_path_rate = 0.1
-        dpr = [x.numpy() for x in tf.linspace(0.0, drop_path_rate, sum(depths))]
+        dpr = [x for x in np.linspace(0.0, drop_path_rate, sum(depths))]
         blockwise_num_heads = [1, 2, 5, 8]
         blockwise_sr_ratios = [8, 4, 2, 1]
         num_stages = 4
