@@ -181,7 +181,7 @@ def UNet(
         - [U-Net: Convolutional Networks for Biomedical Image Segmentation](https://arxiv.org/abs/1505.04597)
 
             U-Net relies on strong use of Data Augmentation and architecture consists of a contracting path to capture 
-            context and a symmetric expanding path that enables precise localization.
+            
     
     Args:
         input_shape: the rank 3 shape of the input to the UNet
