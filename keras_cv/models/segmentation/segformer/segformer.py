@@ -29,9 +29,9 @@ class __SegFormerTF(tf.keras.Model):
             height=x.shape[1], width=x.shape[2], interpolation="bilinear"
         )(y)
         if softmax_output:
-            output = tf.keras.layers.Activation("softmax", name="output_activation")(
-                output
-            )
+            output = tf.keras.layers.Activation(
+                "softmax", name="output_activation"
+            )(output)
 
         super().__init__(
             inputs=inputs,
