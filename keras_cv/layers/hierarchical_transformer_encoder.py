@@ -1,6 +1,6 @@
 from keras_cv.backend import keras
-from keras_cv.layers import StochasticDepth
 from keras_cv.layers import EfficientMultiheadAttention
+from keras_cv.layers import StochasticDepth
 
 
 @keras.saving.register_keras_serializable(package="keras_cv")

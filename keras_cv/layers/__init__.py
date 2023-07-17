@@ -16,6 +16,9 @@ from tensorflow.keras.layers import CenterCrop
 from tensorflow.keras.layers import RandomHeight
 from tensorflow.keras.layers import RandomWidth
 
+from keras_cv.layers.efficient_multihead_attention import (
+    EfficientMultiheadAttention,
+)
 from keras_cv.layers.feature_pyramid import FeaturePyramid
 from keras_cv.layers.fusedmbconv import FusedMBConvBlock
 from keras_cv.layers.mbconv import MBConvBlock
@@ -31,6 +34,9 @@ from keras_cv.layers.object_detection_3d.centernet_label_encoder import (
     CenterNetLabelEncoder,
 )
 from keras_cv.layers.object_detection_3d.voxelization import DynamicVoxelization
+from keras_cv.layers.overlapping_patching_embedding import (
+    OverlappingPatchingAndEmbedding,
+)
 from keras_cv.layers.preprocessing.aug_mix import AugMix
 from keras_cv.layers.preprocessing.auto_contrast import AutoContrast
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (

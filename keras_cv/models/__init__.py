@@ -67,6 +67,9 @@ from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_aliases import (
 from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_aliases import (
     EfficientNetV2SBackbone,
 )
+from keras_cv.models.backbones.mix_transformer.mix_transformer_backbone import (
+    MiTBackbone,
+)
 from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_aliases import (
     MobileNetV3LargeBackbone,
 )
@@ -124,5 +127,6 @@ from keras_cv.models.object_detection_3d.center_pillar import (
     MultiHeadCenterPillar,
 )
 from keras_cv.models.segmentation import DeepLabV3Plus
+from keras_cv.models.segmentation import SegFormer
 from keras_cv.models.stable_diffusion import StableDiffusion
 from keras_cv.models.stable_diffusion import StableDiffusionV2

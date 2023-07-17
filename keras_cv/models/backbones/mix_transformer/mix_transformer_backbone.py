@@ -32,7 +32,7 @@ from keras_cv.utils.python_utils import classproperty
 
 
 @keras.saving.register_keras_serializable(package="keras_cv.models")
-class MiT(Backbone):
+class MiTBackbone(Backbone):
     def __init__(
         self,
         input_shape=None,
@@ -56,12 +56,6 @@ class MiT(Backbone):
                 f"Received pooling={pooling} and include_top={include_top}. "
             )
 
-        if include_top and as_backbone:
-            raise ValueError(
-                f"`as_backbone` must be `False` when `include_top=True`."
-                f"Received as_backbone={as_backbone} and include_top={include_top}. "
-            )
-
         drop_path_rate = 0.1
         dpr = [x.numpy() for x in tf.linspace(0.0, drop_path_rate, sum(depths))]
         blockwise_num_heads = [1, 2, 5, 8]
@@ -74,7 +68,7 @@ class MiT(Backbone):
         layer_norms = []
 
         for i in range(num_stages):
-            patch_embed_layer = OverlappingPatchingAndEmbedding(
+            patch_embed_layer = cv_layers.OverlappingPatchingAndEmbedding(
                 in_channels=input_shape[-1] if i == 0 else embed_dims[i - 1],
                 out_channels=embed_dims[0] if i == 0 else embed_dims[i],
                 patch_size=7 if i == 0 else 3,
@@ -84,7 +78,7 @@ class MiT(Backbone):
             patch_embedding_layers.append(patch_embed_layer)
 
             transformer_block = [
-                HierarchicalTransformerEncoder(
+                cv_layers.HierarchicalTransformerEncoder(
                     project_dim=embed_dims[i],
                     num_heads=blockwise_num_heads[i],
                     sr_ratio=blockwise_sr_ratios[i],
