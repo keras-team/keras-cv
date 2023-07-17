@@ -179,10 +179,7 @@ def UNet(
 
     Reference:
         - [U-Net: Convolutional Networks for Biomedical Image Segmentation](https://arxiv.org/abs/1505.04597)
-
-       
-            
-    
+        
     Args:
         input_shape: the rank 3 shape of the input to the UNet
         down_block_configs: a list of (filter_count, num_blocks) tuples
