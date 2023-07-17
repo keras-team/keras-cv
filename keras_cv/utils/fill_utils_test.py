@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import numpy as np
 import tensorflow as tf
 
 from keras_cv.tests.test_case import TestCase
@@ -24,7 +25,7 @@ class BoundingBoxToMaskTest(TestCase):
         tf.assert_equal(mask, expected)
 
     def test_corners_whole(self):
-        expected = tf.constant(
+        expected = np.array(
             [
                 [0, 1, 1, 1, 0, 0],
                 [0, 1, 1, 1, 0, 0],
@@ -33,13 +34,13 @@ class BoundingBoxToMaskTest(TestCase):
                 [0, 0, 0, 0, 0, 0],
                 [0, 0, 0, 0, 0, 0],
             ],
-            dtype=tf.int32,
+            dtype="int32",
         )
-        corners = tf.constant([[1, 0, 4, 3]], dtype=tf.float32)
+        corners = np.array([[1, 0, 4, 3]], dtype="float32")
         self._run_test(corners, expected)
 
     def test_corners_frac(self):
-        expected = tf.constant(
+        expected = np.array(
             [
                 [0, 0, 0, 0, 0, 0],
                 [0, 0, 1, 1, 1, 0],
@@ -49,11 +50,11 @@ class BoundingBoxToMaskTest(TestCase):
                 [0, 0, 0, 0, 0, 0],
             ]
         )
-        corners = tf.constant([[1.5, 0.5, 4.5, 3.5]], dtype=tf.float32)
+        corners = np.array([[1.5, 0.5, 4.5, 3.5]], dtype="float32")
         self._run_test(corners, expected)
 
     def test_width_zero(self):
-        expected = tf.constant(
+        expected = np.array(
             [
                 [0, 0, 0, 0, 0, 0],
                 [0, 0, 0, 0, 0, 0],
@@ -63,11 +64,11 @@ class BoundingBoxToMaskTest(TestCase):
                 [0, 0, 0, 0, 0, 0],
             ]
         )
-        corners = tf.constant([[0, 0, 0, 3]], dtype=tf.float32)
+        corners = np.array([[0, 0, 0, 3]], dtype="float32")
         self._run_test(corners, expected)
 
     def test_height_zero(self):
-        expected = tf.constant(
+        expected = np.array(
             [
                 [0, 0, 0, 0, 0, 0],
                 [0, 0, 0, 0, 0, 0],
@@ -77,11 +78,11 @@ class BoundingBoxToMaskTest(TestCase):
                 [0, 0, 0, 0, 0, 0],
             ]
         )
-        corners = tf.constant([[1, 0, 4, 0]], dtype=tf.float32)
+        corners = np.array([[1, 0, 4, 0]], dtype="float32")
         self._run_test(corners, expected)
 
     def test_width_negative(self):
-        expected = tf.constant(
+        expected = np.array(
             [
                 [0, 0, 0, 0, 0, 0],
                 [0, 0, 0, 0, 0, 0],
@@ -91,11 +92,11 @@ class BoundingBoxToMaskTest(TestCase):
                 [0, 0, 0, 0, 0, 0],
             ]
         )
-        corners = tf.constant([[1, 0, -2, 3]], dtype=tf.float32)
+        corners = np.array([[1, 0, -2, 3]], dtype="float32")
         self._run_test(corners, expected)
 
     def test_height_negative(self):
-        expected = tf.constant(
+        expected = np.array(
             [
                 [0, 0, 0, 0, 0, 0],
                 [0, 0, 0, 0, 0, 0],
@@ -105,11 +106,11 @@ class BoundingBoxToMaskTest(TestCase):
                 [0, 0, 0, 0, 0, 0],
             ]
         )
-        corners = tf.constant([[1, 0, 4, -2]], dtype=tf.float32)
+        corners = np.array([[1, 0, 4, -2]], dtype="float32")
         self._run_test(corners, expected)
 
     def test_width_out_of_lower_bound(self):
-        expected = tf.constant(
+        expected = np.array(
             [
                 [1, 1, 0, 0, 0, 0],
                 [1, 1, 0, 0, 0, 0],
@@ -119,11 +120,11 @@ class BoundingBoxToMaskTest(TestCase):
                 [0, 0, 0, 0, 0, 0],
             ]
         )
-        corners = tf.constant([[-2, -2, 2, 3]], dtype=tf.float32)
+        corners = np.array([[-2, -2, 2, 3]], dtype="float32")
         self._run_test(corners, expected)
 
     def test_width_out_of_upper_bound(self):
-        expected = tf.constant(
+        expected = np.array(
             [
                 [0, 0, 0, 0, 1, 1],
                 [0, 0, 0, 0, 1, 1],
@@ -133,11 +134,11 @@ class BoundingBoxToMaskTest(TestCase):
                 [0, 0, 0, 0, 0, 0],
             ]
         )
-        corners = tf.constant([[4, 0, 8, 3]], dtype=tf.float32)
+        corners = np.array([[4, 0, 8, 3]], dtype="float32")
         self._run_test(corners, expected)
 
     def test_height_out_of_lower_bound(self):
-        expected = tf.constant(
+        expected = np.array(
             [
                 [0, 1, 1, 1, 0, 0],
                 [0, 1, 1, 1, 0, 0],
@@ -147,11 +148,11 @@ class BoundingBoxToMaskTest(TestCase):
                 [0, 0, 0, 0, 0, 0],
             ]
         )
-        corners = tf.constant([[1, -3, 4, 2]], dtype=tf.float32)
+        corners = np.array([[1, -3, 4, 2]], dtype="float32")
         self._run_test(corners, expected)
 
     def test_height_out_of_upper_bound(self):
-        expected = tf.constant(
+        expected = np.array(
             [
                 [0, 0, 0, 0, 0, 0],
                 [0, 0, 0, 0, 0, 0],
@@ -161,11 +162,11 @@ class BoundingBoxToMaskTest(TestCase):
                 [0, 1, 1, 1, 0, 0],
             ]
         )
-        corners = tf.constant([[1, 4, 4, 9]], dtype=tf.float32)
+        corners = np.array([[1, 4, 4, 9]], dtype="float32")
         self._run_test(corners, expected)
 
     def test_start_out_of_upper_bound(self):
-        expected = tf.constant(
+        expected = np.array(
             [
                 [0, 0, 0, 0, 0, 0],
                 [0, 0, 0, 0, 0, 0],
@@ -175,7 +176,7 @@ class BoundingBoxToMaskTest(TestCase):
                 [0, 0, 0, 0, 0, 0],
             ]
         )
-        corners = tf.constant([[8, 8, 10, 12]], dtype=tf.float32)
+        corners = np.array([[8, 8, 10, 12]], dtype="float32")
         self._run_test(corners, expected)
 
 
@@ -184,7 +185,7 @@ class FillRectangleTest(TestCase):
         batch_size = 1
 
         batch_shape = (batch_size, img_h, img_w, 1)
-        images = tf.ones(batch_shape, dtype=tf.int32)
+        images = np.ones(batch_shape, dtype="int32")
 
         centers_x = tf.fill([batch_size], cent_x)
         centers_y = tf.fill([batch_size], cent_y)
@@ -204,7 +205,7 @@ class FillRectangleTest(TestCase):
         img_w, img_h = 8, 8
         cent_x, cent_y = 4, 3
         rec_w, rec_h = 5, 3
-        expected = tf.constant(
+        expected = np.array(
             [
                 [1, 1, 1, 1, 1, 1, 1, 1],
                 [1, 1, 1, 1, 1, 1, 1, 1],
@@ -215,7 +216,7 @@ class FillRectangleTest(TestCase):
                 [1, 1, 1, 1, 1, 1, 1, 1],
                 [1, 1, 1, 1, 1, 1, 1, 1],
             ],
-            dtype=tf.int32,
+            dtype="int32",
         )
         self._run_test(img_w, img_h, cent_x, cent_y, rec_w, rec_h, expected)
 
@@ -224,7 +225,7 @@ class FillRectangleTest(TestCase):
         cent_x, cent_y = 1, 3
         rec_w, rec_h = 5, 3
         # assert width is truncated when cent_x - rec_w < 0
-        expected = tf.constant(
+        expected = np.array(
             [
                 [1, 1, 1, 1, 1, 1, 1, 1],
                 [1, 1, 1, 1, 1, 1, 1, 1],
@@ -235,7 +236,7 @@ class FillRectangleTest(TestCase):
                 [1, 1, 1, 1, 1, 1, 1, 1],
                 [1, 1, 1, 1, 1, 1, 1, 1],
             ],
-            dtype=tf.int32,
+            dtype="int32",
         )
         self._run_test(img_w, img_h, cent_x, cent_y, rec_w, rec_h, expected)
 
@@ -244,7 +245,7 @@ class FillRectangleTest(TestCase):
         cent_x, cent_y = 6, 3
         rec_w, rec_h = 5, 3
         # assert width is truncated when cent_x + rec_w > img_w
-        expected = tf.constant(
+        expected = np.array(
             [
                 [1, 1, 1, 1, 1, 1, 1, 1],
                 [1, 1, 1, 1, 1, 1, 1, 1],
@@ -255,7 +256,7 @@ class FillRectangleTest(TestCase):
                 [1, 1, 1, 1, 1, 1, 1, 1],
                 [1, 1, 1, 1, 1, 1, 1, 1],
             ],
-            dtype=tf.int32,
+            dtype="int32",
         )
         self._run_test(img_w, img_h, cent_x, cent_y, rec_w, rec_h, expected)
 
@@ -264,7 +265,7 @@ class FillRectangleTest(TestCase):
         cent_x, cent_y = 4, 1
         rec_w, rec_h = 3, 5
         # assert height is truncated when cent_y - rec_h < 0
-        expected = tf.constant(
+        expected = np.array(
             [
                 [1, 1, 1, 0, 0, 0, 1, 1],
                 [1, 1, 1, 0, 0, 0, 1, 1],
@@ -275,7 +276,7 @@ class FillRectangleTest(TestCase):
                 [1, 1, 1, 1, 1, 1, 1, 1],
                 [1, 1, 1, 1, 1, 1, 1, 1],
             ],
-            dtype=tf.int32,
+            dtype="int32",
         )
         self._run_test(img_w, img_h, cent_x, cent_y, rec_w, rec_h, expected)
 
@@ -284,7 +285,7 @@ class FillRectangleTest(TestCase):
         cent_x, cent_y = 4, 6
         rec_w, rec_h = 3, 5
         # assert height is truncated when cent_y + rec_h > img_h
-        expected = tf.constant(
+        expected = np.array(
             [
                 [1, 1, 1, 1, 1, 1, 1, 1],
                 [1, 1, 1, 1, 1, 1, 1, 1],
@@ -295,7 +296,7 @@ class FillRectangleTest(TestCase):
                 [1, 1, 1, 0, 0, 0, 1, 1],
                 [1, 1, 1, 0, 0, 0, 1, 1],
             ],
-            dtype=tf.int32,
+            dtype="int32",
         )
         self._run_test(img_w, img_h, cent_x, cent_y, rec_w, rec_h, expected)
 
@@ -306,7 +307,7 @@ class FillRectangleTest(TestCase):
         rec_w, rec_h = 3, 3
 
         batch_shape = (batch_size, img_h, img_w, 1)
-        images = tf.ones(batch_shape, dtype=tf.int32)
+        images = np.ones(batch_shape, dtype="int32")
 
         centers_x = tf.fill([batch_size], cent_x)
         centers_y = tf.fill([batch_size], cent_y)
@@ -322,7 +323,7 @@ class FillRectangleTest(TestCase):
         # remove channel dimension
         filled_images = filled_images[..., 0]
 
-        expected = tf.constant(
+        expected = np.array(
             [
                 [
                     [1, 1, 1, 1, 1],
@@ -339,6 +340,6 @@ class FillRectangleTest(TestCase):
                     [1, 1, 1, 1, 1],
                 ],
             ],
-            dtype=tf.int32,
+            dtype="int32",
         )
         tf.assert_equal(filled_images, expected)
