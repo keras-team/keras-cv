@@ -21,7 +21,7 @@ from keras_cv.utils import fill_utils
 class BoundingBoxToMaskTest(TestCase):
     def _run_test(self, corners, expected):
         mask = fill_utils.corners_to_mask(corners, mask_shape=(6, 6))
-        mask = tf.cast(mask, dtype=tf.int32)
+        mask = tf.cast(mask, dtype="int32")
         tf.assert_equal(mask, expected)
 
     def test_corners_whole(self):
