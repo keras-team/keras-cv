@@ -183,7 +183,7 @@ class JitteredResizeTest(TestCase):
         input_shape = (self.batch_size, self.height, self.width, 3)
         image = tf.random.uniform(shape=input_shape, seed=self.seed)
         mask = tf.cast(
-            3 * tf.random.uniform(shape=input_shape, seed=self.seed),
+            2 * tf.random.uniform(shape=input_shape, seed=self.seed),
             tf.int32,
         )
 
