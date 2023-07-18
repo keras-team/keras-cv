@@ -159,7 +159,6 @@ TEST_CONFIGURATIONS = [
         {
             "scale": 1,
             "offset": 0.5,
-            # "dtype": "map_fn",
         },
     ),
 ]
@@ -230,8 +229,12 @@ class WithMixedPrecisionTest(tf.test.TestCase, parameterized.TestCase):
         # )
         # labels = tf.ones((3,), dtype=tf.float32)
         # inputs = {"images": img, "labels": labels}
-
+        
         layer = layer_cls(**init_args)
+
+        if layer_cls == layers.CutMix:
+            inputs = {"images": img, "labels": bounding_boxes["classes"]}
+
         layer(inputs)
 
     @classmethod
