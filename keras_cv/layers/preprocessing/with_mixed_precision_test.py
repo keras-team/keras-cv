@@ -170,6 +170,11 @@ NO_CPU_FP16_KERNEL_LAYERS = [
     layers.RandomHue,
 ]
 
+NO_BOUNDING_BOXES_TESTS = [
+    layers.RandomCutout,
+    layers.RandomZoom
+]
+
 
 class WithMixedPrecisionTest(tf.test.TestCase, parameterized.TestCase):
     @parameterized.named_parameters(*TEST_CONFIGURATIONS)
@@ -180,6 +185,11 @@ class WithMixedPrecisionTest(tf.test.TestCase, parameterized.TestCase):
                     "There is currently no float16 CPU kernel registered for "
                     "operations `tf.image.adjust_saturation`, and "
                     "`tf.image.adjust_hue`. Skipping."
+                )
+            if layer_cls in NO_BOUNDING_BOXES_TESTS:
+                self.skipTest(
+                    "There is currently no support for bounding boxes."
+                    "Skipping."              
                 )
 
         keras.mixed_precision.set_global_policy("mixed_float16")
