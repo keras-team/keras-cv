@@ -94,12 +94,12 @@ TEST_CONFIGURATIONS = [
     (
         "RandomGaussianBlur",
         layers.RandomGaussianBlur,
-        {"kernel_size": 3, "factor": (0.0, 3.0), "dtype": "map_fn"},
+        {"kernel_size": 3, "factor": (0.0, 3.0), "dtype": tf.float32},
     ),
     (
         "RandomJpegQuality",
         layers.RandomJpegQuality,
-        {"factor": (75, 100), "dtype": "map_fn"},
+        {"factor": (75, 100), "dtype": tf.float32},
     ),
     (
         "RandomRotation",
@@ -131,7 +131,7 @@ TEST_CONFIGURATIONS = [
             "width": 224,
             "bounding_box_format": "xyxy",
             "pad_to_aspect_ratio": True,
-            "dtype": "map_fn",
+            "dtype": tf.float32,
         },
     ),
     (
