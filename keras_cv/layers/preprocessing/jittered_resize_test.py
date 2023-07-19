@@ -13,14 +13,14 @@
 # limitations under the License.
 import numpy as np
 import tensorflow as tf
-from absl.testing import parameterized
 
 from keras_cv import bounding_box
 from keras_cv import core
 from keras_cv import layers
+from keras_cv.tests.test_case import TestCase
 
 
-class JitteredResizeTest(tf.test.TestCase, parameterized.TestCase):
+class JitteredResizeTest(TestCase):
     batch_size = 4
     height = 9
     width = 8

@@ -11,12 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import pytest
 import tensorflow as tf
 
 from keras_cv import bounding_box
+from keras_cv.tests.test_case import TestCase
 
 
-class ToDenseTest(tf.test.TestCase):
+class ToDenseTest(TestCase):
+    @pytest.mark.tf_keras_only
     def test_converts_to_dense(self):
         bounding_boxes = {
             "boxes": tf.ragged.constant(

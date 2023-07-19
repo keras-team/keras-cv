@@ -15,6 +15,7 @@ import tensorflow as tf
 from absl.testing import parameterized
 
 from keras_cv.layers import preprocessing
+from keras_cv.tests.test_case import TestCase
 
 TEST_CONFIGURATIONS = [
     ("AutoContrast", preprocessing.AutoContrast, {"value_range": (0, 255)}),
@@ -82,10 +83,11 @@ TEST_CONFIGURATIONS = [
         {"factor": 0.5, "value_range": (0, 255)},
     ),
     ("Solarization", preprocessing.Solarization, {"value_range": (0, 255)}),
+    ("Resizing", preprocessing.Resizing, {"height": 512, "width": 512}),
 ]
 
 
-class WithSegmentationMasksTest(tf.test.TestCase, parameterized.TestCase):
+class WithSegmentationMasksTest(TestCase):
     @parameterized.named_parameters(*TEST_CONFIGURATIONS)
     def test_can_run_with_segmentation_masks(self, layer_cls, init_args):
         num_classes = 10
@@ -131,6 +133,4 @@ class WithSegmentationMasksTest(tf.test.TestCase, parameterized.TestCase):
         # This currently asserts that all layers are no-ops.
         # When preprocessing layers are updated to mutate segmentation masks,
         # this condition should only be asserted for no-op layers.
-        self.assertAllClose(
-            inputs["segmentation_masks"], outputs["segmentation_masks"]
-        )
+        self.assertAllClose(segmentation_mask, outputs["segmentation_masks"])

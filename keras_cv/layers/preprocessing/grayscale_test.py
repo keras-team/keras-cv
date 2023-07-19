@@ -14,9 +14,10 @@
 import tensorflow as tf
 
 from keras_cv.layers import preprocessing
+from keras_cv.tests.test_case import TestCase
 
 
-class GrayscaleTest(tf.test.TestCase):
+class GrayscaleTest(TestCase):
     def test_return_shapes(self):
         xs = tf.ones((2, 52, 24, 3))
 

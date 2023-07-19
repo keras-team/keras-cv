@@ -15,6 +15,7 @@ import tensorflow as tf
 from absl.testing import parameterized
 
 from keras_cv import layers
+from keras_cv.tests.test_case import TestCase
 
 TEST_CONFIGURATIONS = [
     ("AutoContrast", layers.AutoContrast, {"value_range": (0, 255)}),
@@ -127,7 +128,7 @@ TEST_CONFIGURATIONS = [
 ]
 
 
-class WithLabelsTest(tf.test.TestCase, parameterized.TestCase):
+class WithLabelsTest(TestCase):
     @parameterized.named_parameters(
         *TEST_CONFIGURATIONS,
         ("CutMix", layers.CutMix, {}),

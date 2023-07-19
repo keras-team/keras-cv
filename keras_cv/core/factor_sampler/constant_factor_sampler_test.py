@@ -12,12 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import tensorflow as tf
-
 import keras_cv
+from keras_cv.tests.test_case import TestCase
 
 
-class ConstantFactorSamplerTest(tf.test.TestCase):
+class ConstantFactorSamplerTest(TestCase):
     def test_sample(self):
         factor = keras_cv.ConstantFactorSampler(0.3)
         self.assertEqual(factor(), 0.3)

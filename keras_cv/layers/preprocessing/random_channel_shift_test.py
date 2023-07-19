@@ -13,12 +13,12 @@
 # limitations under the License.
 
 import tensorflow as tf
-from absl.testing import parameterized
 
 from keras_cv.layers import preprocessing
+from keras_cv.tests.test_case import TestCase
 
 
-class RandomChannelShiftTest(tf.test.TestCase, parameterized.TestCase):
+class RandomChannelShiftTest(TestCase):
     def test_return_shapes(self):
         xs = tf.ones((2, 512, 512, 3))
         layer = preprocessing.RandomChannelShift(

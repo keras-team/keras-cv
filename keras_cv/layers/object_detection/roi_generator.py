@@ -21,6 +21,7 @@ import tensorflow as tf
 from tensorflow import keras
 
 from keras_cv import bounding_box
+from keras_cv.backend import assert_tf_keras
 
 
 @keras.utils.register_keras_serializable(package="keras_cv")
@@ -95,6 +96,7 @@ class ROIGenerator(keras.layers.Layer):
         post_nms_topk_test: int = 1000,
         **kwargs,
     ):
+        assert_tf_keras("keras_cv.layers.ROIGenerator")
         super().__init__(**kwargs)
         self.bounding_box_format = bounding_box_format
         self.pre_nms_topk_train = pre_nms_topk_train

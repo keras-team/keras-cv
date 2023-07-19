@@ -14,9 +14,10 @@
 
 import tensorflow as tf
 from absl.testing import parameterized
-from tensorflow import keras
 
 from keras_cv import layers
+from keras_cv.backend import keras
+from keras_cv.tests.test_case import TestCase
 
 TEST_CONFIGURATIONS = [
     ("AutoContrast", layers.AutoContrast, {"value_range": (0, 255)}),
@@ -196,7 +197,7 @@ NO_BOUNDING_BOXES_TESTS = [
 ]
 
 
-class WithMixedPrecisionTest(tf.test.TestCase, parameterized.TestCase):
+class WithMixedPrecisionTest(TestCase):
     @parameterized.named_parameters(*TEST_CONFIGURATIONS)
     def test_can_run_in_mixed_precision(self, layer_cls, init_args):
         if not tf.config.list_physical_devices("GPU"):

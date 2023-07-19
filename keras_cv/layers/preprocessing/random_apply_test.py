@@ -14,13 +14,13 @@
 
 import tensorflow as tf
 from absl.testing import parameterized
-from tensorflow import keras
 
 from keras_cv import layers
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
 from keras_cv.layers.preprocessing.random_apply import RandomApply
+from keras_cv.tests.test_case import TestCase
 
 
 class ZeroOut(BaseImageAugmentationLayer):
@@ -36,7 +36,7 @@ class ZeroOut(BaseImageAugmentationLayer):
         return 0 * label
 
 
-class RandomApplyTest(tf.test.TestCase, parameterized.TestCase):
+class RandomApplyTest(TestCase):
     rng = tf.random.Generator.from_seed(seed=1234)
 
     @parameterized.parameters([-0.5, 1.7])
@@ -106,15 +106,6 @@ class RandomApplyTest(tf.test.TestCase, parameterized.TestCase):
         outputs = layer({"images": dummy_inputs, "labels": dummy_labels})
 
         self.assertAllEqual(outputs["labels"], tf.zeros_like(dummy_labels))
-
-    def test_works_with_native_keras_layers(self):
-        dummy_inputs = self.rng.uniform(shape=(32, 224, 224, 3))
-        zero_out = keras.layers.Lambda(lambda x: {"images": 0 * x["images"]})
-        layer = RandomApply(rate=1.0, layer=zero_out)
-
-        outputs = layer(dummy_inputs)
-
-        self.assertAllEqual(outputs, tf.zeros_like(dummy_inputs))
 
     def test_works_with_xla(self):
         dummy_inputs = self.rng.uniform(shape=(32, 224, 224, 3))

@@ -18,26 +18,32 @@ from absl.testing import parameterized
 from tensorflow import keras
 from tensorflow.keras import optimizers
 
-from keras_cv.models import ResNet50V2Backbone
+from keras_cv.models import ResNet18V2Backbone
 from keras_cv.models.legacy.object_detection.faster_rcnn.faster_rcnn import (
     FasterRCNN,
 )
 from keras_cv.models.object_detection.__test_utils__ import (
     _create_bounding_box_dataset,
 )
+from keras_cv.tests.test_case import TestCase
 
 
-class FasterRCNNTest(tf.test.TestCase, parameterized.TestCase):
+class FasterRCNNTest(TestCase):
+    # TODO(ianstenbit): Make FasterRCNN support shapes that are not multiples
+    # of 128, perhaps by adding a flag to the anchor generator for whether to
+    # include anchors centered outside of the image. (RetinaNet does use those,
+    # while FasterRCNN doesn't). For more context on why this is the case, see
+    # https://github.com/keras-team/keras-cv/pull/1882
     @parameterized.parameters(
-        ((2, 640, 480, 3),),
+        ((2, 640, 384, 3),),
         ((2, 512, 512, 3),),
-        ((2, 224, 224, 3),),
+        ((2, 128, 128, 3),),
     )
     def test_faster_rcnn_infer(self, batch_shape):
         model = FasterRCNN(
             num_classes=80,
             bounding_box_format="xyxy",
-            backbone=ResNet50V2Backbone(),
+            backbone=ResNet18V2Backbone(),
         )
         images = tf.random.normal(batch_shape)
         outputs = model(images, training=False)
@@ -46,15 +52,15 @@ class FasterRCNNTest(tf.test.TestCase, parameterized.TestCase):
         self.assertAllEqual([2, 1000, 4], outputs[0].shape)
 
     @parameterized.parameters(
-        ((2, 640, 480, 3),),
+        ((2, 640, 384, 3),),
         ((2, 512, 512, 3),),
-        ((2, 224, 224, 3),),
+        ((2, 128, 128, 3),),
     )
     def test_faster_rcnn_train(self, batch_shape):
         model = FasterRCNN(
             num_classes=80,
             bounding_box_format="xyxy",
-            backbone=ResNet50V2Backbone(),
+            backbone=ResNet18V2Backbone(),
         )
         images = tf.random.normal(batch_shape)
         outputs = model(images, training=True)
@@ -65,7 +71,7 @@ class FasterRCNNTest(tf.test.TestCase, parameterized.TestCase):
         model = FasterRCNN(
             num_classes=80,
             bounding_box_format="yxyx",
-            backbone=ResNet50V2Backbone(),
+            backbone=ResNet18V2Backbone(),
         )
         with self.assertRaisesRegex(ValueError, "only accepts"):
             model.compile(rpn_box_loss="binary_crossentropy")
@@ -81,7 +87,7 @@ class FasterRCNNTest(tf.test.TestCase, parameterized.TestCase):
         faster_rcnn = FasterRCNN(
             num_classes=20,
             bounding_box_format="xywh",
-            backbone=ResNet50V2Backbone(),
+            backbone=ResNet18V2Backbone(),
         )
 
         images, boxes = _create_bounding_box_dataset("xywh")

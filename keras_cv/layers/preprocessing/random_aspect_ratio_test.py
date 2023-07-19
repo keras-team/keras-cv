@@ -15,9 +15,10 @@ import tensorflow as tf
 
 from keras_cv import bounding_box
 from keras_cv import layers
+from keras_cv.tests.test_case import TestCase
 
 
-class RandomAspectRatioTest(tf.test.TestCase):
+class RandomAspectRatioTest(TestCase):
     def test_train_augments_image(self):
         # Checks if original and augmented images are different
         input_image_shape = (8, 100, 100, 3)

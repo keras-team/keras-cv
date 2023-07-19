@@ -14,9 +14,10 @@
 import tensorflow as tf
 
 from keras_cv.layers.regularization.stochastic_depth import StochasticDepth
+from keras_cv.tests.test_case import TestCase
 
 
-class StochasticDepthTest(tf.test.TestCase):
+class StochasticDepthTest(TestCase):
     FEATURE_SHAPE = (1, 14, 14, 256)
 
     def test_inputs_have_two_elements(self):

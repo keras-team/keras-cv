@@ -15,13 +15,12 @@
 
 import os
 
-from tensorflow import keras
-
+from keras_cv.backend import keras
 from keras_cv.utils.python_utils import classproperty
 from keras_cv.utils.python_utils import format_docstring
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+@keras.saving.register_keras_serializable(package="keras_cv")
 class Task(keras.Model):
     """Base class for Task models."""
 
@@ -56,19 +55,25 @@ class Task(keras.Model):
 
     @classproperty
     def presets(cls):
-        """Dictionary of preset names and configurations."""
+        """Dictionary of preset names and configs."""
         return {}
 
     @classproperty
     def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include
-        weights."""
+        """Dictionary of preset names and configs that include weights."""
         return {}
 
     @classproperty
+    def presets_without_weights(cls):
+        """Dictionary of preset names and configs that don't include weights."""
+        return {
+            preset: cls.presets[preset]
+            for preset in set(cls.presets) - set(cls.presets_with_weights)
+        }
+
+    @classproperty
     def backbone_presets(cls):
-        """Dictionary of preset names and configurations for compatible
-        backbones."""
+        """Dictionary of preset names and configs for compatible backbones."""
         return {}
 
     @classmethod
@@ -78,8 +83,7 @@ class Task(keras.Model):
         load_weights=None,
         **kwargs,
     ):
-        """Instantiate {{model_name}} model from preset architecture and
-        weights.
+        """Instantiate {{model_name}} model from preset config and weights.
 
         Args:
             preset: string. Must be one of "{{preset_names}}".
@@ -125,7 +129,7 @@ class Task(keras.Model):
         metadata = cls.presets[preset]
         # Check if preset is backbone-only model
         if preset in cls.backbone_presets:
-            backbone_cls = keras.utils.get_registered_object(
+            backbone_cls = keras.saving.get_registered_object(
                 metadata["class_name"]
             )
             backbone = backbone_cls.from_preset(preset, load_weights)
@@ -159,12 +163,19 @@ class Task(keras.Model):
         # the `backbone` as a layer, because it will be included in the model
         # summary and saves weights despite not being part of the model graph.
         layers = super().layers
-        if hasattr(self, "_backbone") and self.backbone in layers:
+        if hasattr(self, "backbone") and self.backbone in layers:
             # We know that the backbone is not part of the graph if it has no
             # inbound nodes.
             if len(self.backbone._inbound_nodes) == 0:
                 layers.remove(self.backbone)
         return layers
+
+    def __setattr__(self, name, value):
+        # Work around torch setattr for properties.
+        if name in ["backbone"]:
+            object.__setattr__(self, name, value)
+        else:
+            super().__setattr__(name, value)
 
     def __init_subclass__(cls, **kwargs):
         # Use __init_subclass__ to set up a correct docstring for from_preset.
