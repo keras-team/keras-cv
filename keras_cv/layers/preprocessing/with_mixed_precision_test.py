@@ -120,7 +120,7 @@ TEST_CONFIGURATIONS = [
         {"factor": 0.5, "value_range": (0, 255)},
     ),
     (
-        "RandomAspectRatio", 
+        "RandomAspectRatio",
         layers.RandomAspectRatio,
         {
             "factor": (0.9, 1.1),
@@ -132,9 +132,9 @@ TEST_CONFIGURATIONS = [
         "RandomShear",
         layers.RandomShear,
         {
-            "x_factor": 0.3, 
-            "x_factor": 0.3, 
-            "bounding_box_format": "xyxy", 
+            "x_factor": 0.3,
+            "x_factor": 0.3,
+            "bounding_box_format": "xyxy",
             "dtype": tf.float32,
         },
     ),
@@ -244,7 +244,7 @@ class WithMixedPrecisionTest(TestCase):
         }
 
         inputs = {"images": img, "bounding_boxes": bounding_boxes}
-        
+
         layer = layer_cls(**init_args)
         layer(inputs)
 
