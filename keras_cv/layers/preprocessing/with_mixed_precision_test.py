@@ -107,8 +107,8 @@ TEST_CONFIGURATIONS = [
         "RandomRotation",
         layers.RandomRotation,
         {
-            "factor": 0.5, 
-            "bounding_box_format": "xyxy", 
+            "factor": 0.5,
+            "bounding_box_format": "xyxy",
             "dtype": tf.float32,
         },
     ),
@@ -118,11 +118,24 @@ TEST_CONFIGURATIONS = [
         layers.RandomSharpness,
         {"factor": 0.5, "value_range": (0, 255)},
     ),
-    ("RandomAspectRatio", layers.RandomAspectRatio, {"factor": (0.9, 1.1), "bounding_box_format": "xyxy", "dtype": tf.float32}),
+    (
+        "RandomAspectRatio", 
+        layers.RandomAspectRatio,
+        {
+            "factor": (0.9, 1.1),
+            "bounding_box_format": "xyxy",
+            "dtype": tf.float32,
+        }
+    ),
     (
         "RandomShear",
         layers.RandomShear,
-        {"x_factor": 0.3, "x_factor": 0.3, "bounding_box_format": "xyxy", "dtype": tf.float32},
+        {
+            "x_factor": 0.3, 
+            "x_factor": 0.3, 
+            "bounding_box_format": "xyxy", 
+            "dtype": tf.float32,
+        },
     ),
     # ("RandomShear", layers.RandomShear, {"x_factor": 0.3, "x_factor": 0.3}),
     ("Solarization", layers.Solarization, {"value_range": (0, 255)}),
@@ -196,7 +209,7 @@ class WithMixedPrecisionTest(tf.test.TestCase, parameterized.TestCase):
             if layer_cls in NO_BOUNDING_BOXES_TESTS:
                 self.skipTest(
                     "There is currently no support for bounding boxes."
-                    "Skipping."              
+                    "Skipping."
                 )
 
         keras.mixed_precision.set_global_policy("mixed_float16")
@@ -229,14 +242,7 @@ class WithMixedPrecisionTest(tf.test.TestCase, parameterized.TestCase):
             "classes": tf.ones((3, 3), dtype=tf.float32),
         }
 
-        # inputs = {"images": img, "labels": labels}
         inputs = {"images": img, "bounding_boxes": bounding_boxes}
-
-        # img = tf.random.uniform(
-        #     shape=(3, 512, 512, 3), minval=0, maxval=255, dtype=tf.float32
-        # )
-        # labels = tf.ones((3,), dtype=tf.float32)
-        # inputs = {"images": img, "labels": labels}
         
         layer = layer_cls(**init_args)
         layer(inputs)
