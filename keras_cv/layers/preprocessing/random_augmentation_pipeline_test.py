@@ -12,24 +12,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
 import tensorflow as tf
 from absl.testing import parameterized
-from tensorflow import keras
 
 from keras_cv import layers
+from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
+    BaseImageAugmentationLayer,
+)
+from keras_cv.tests.test_case import TestCase
 
 
-class AddOneToInputs(keras.layers.Layer):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+class AddOneToInputs(BaseImageAugmentationLayer):
+    """Add 1 to all image values, for testing purposes."""
 
-    def call(self, inputs):
-        result = inputs.copy()
-        result["images"] = inputs["images"] + 1
-        return result
+    def __init__(self):
+        super(AddOneToInputs, self).__init__()
+
+    def augment_image(self, image, transformation=None, **kwargs):
+        return image + 1
 
 
-class RandomAugmentationPipelineTest(tf.test.TestCase, parameterized.TestCase):
+class RandomAugmentationPipelineTest(TestCase):
     @parameterized.named_parameters(("1", 1), ("3", 3), ("5", 5))
     def test_calls_layers_augmentations_per_image_times(
         self, augmentations_per_image
@@ -54,6 +58,7 @@ class RandomAugmentationPipelineTest(tf.test.TestCase, parameterized.TestCase):
 
         self.assertAllClose(xs, os)
 
+    @pytest.mark.tf_keras_only
     def test_calls_layers_augmentations_in_graph(self):
         layer = AddOneToInputs()
         pipeline = layers.RandomAugmentationPipeline(

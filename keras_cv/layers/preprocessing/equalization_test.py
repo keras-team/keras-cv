@@ -12,14 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
 import tensorflow as tf
 from absl.testing import parameterized
-from tensorflow import keras
 
+from keras_cv.backend import keras
 from keras_cv.layers.preprocessing.equalization import Equalization
+from keras_cv.tests.test_case import TestCase
 
 
-class EqualizationTest(tf.test.TestCase, parameterized.TestCase):
+class EqualizationTest(TestCase):
     def test_return_shapes(self):
         xs = 255 * tf.ones((2, 512, 512, 3), dtype=tf.int32)
         layer = Equalization(value_range=(0, 255))
@@ -28,13 +30,14 @@ class EqualizationTest(tf.test.TestCase, parameterized.TestCase):
         self.assertEqual(xs.shape, [2, 512, 512, 3])
         self.assertAllEqual(xs, 255 * tf.ones((2, 512, 512, 3)))
 
+    @pytest.mark.tf_keras_only
     def test_return_shapes_inside_model(self):
         layer = Equalization(value_range=(0, 255))
         inp = keras.layers.Input(shape=[512, 512, 5])
         out = layer(inp)
         model = keras.models.Model(inp, out)
 
-        self.assertEqual(model.layers[-1].output_shape, (None, 512, 512, 5))
+        self.assertEqual(model.output_shape, (None, 512, 512, 5))
 
     def test_equalizes_to_all_bins(self):
         xs = tf.random.uniform((2, 512, 512, 3), 0, 255, dtype=tf.float32)

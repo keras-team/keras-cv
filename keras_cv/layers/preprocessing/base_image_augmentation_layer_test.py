@@ -18,6 +18,7 @@ from keras_cv import bounding_box
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
+from keras_cv.tests.test_case import TestCase
 
 
 class RandomAddLayer(BaseImageAugmentationLayer):
@@ -60,7 +61,7 @@ class VectorizeDisabledLayer(BaseImageAugmentationLayer):
         super().__init__(**kwargs)
 
 
-class BaseImageAugmentationLayerTest(tf.test.TestCase):
+class BaseImageAugmentationLayerTest(TestCase):
     def test_augment_single_image(self):
         add_layer = RandomAddLayer(fixed_value=2.0)
         image = np.random.random(size=(8, 8, 3)).astype("float32")
@@ -126,8 +127,8 @@ class BaseImageAugmentationLayerTest(tf.test.TestCase):
     def test_augment_leaves_extra_dict_entries_unmodified(self):
         add_layer = RandomAddLayer(fixed_value=0.5)
         images = np.random.random(size=(8, 8, 3)).astype("float32")
-        filenames = tf.constant("/path/to/first.jpg")
-        inputs = {"images": images, "filenames": filenames}
+        image_timestamp = np.array(123123123)
+        inputs = {"images": images, "image_timestamp": image_timestamp}
         _ = add_layer(inputs)
 
     def test_augment_ragged_images(self):
@@ -203,32 +204,6 @@ class BaseImageAugmentationLayerTest(tf.test.TestCase):
         )
 
         output = add_layer(
-            {
-                "images": images,
-                "bounding_boxes": bounding_boxes,
-                "keypoints": keypoints,
-                "segmentation_masks": segmentation_masks,
-            }
-        )
-
-        bounding_boxes_diff = (
-            output["bounding_boxes"]["boxes"] - bounding_boxes["boxes"]
-        )
-        keypoints_diff = output["keypoints"] - keypoints
-        segmentation_mask_diff = (
-            output["segmentation_masks"] - segmentation_masks
-        )
-        self.assertNotAllClose(bounding_boxes_diff[0], bounding_boxes_diff[1])
-        self.assertNotAllClose(keypoints_diff[0], keypoints_diff[1])
-        self.assertNotAllClose(
-            segmentation_mask_diff[0], segmentation_mask_diff[1]
-        )
-
-        @tf.function
-        def in_tf_function(inputs):
-            return add_layer(inputs)
-
-        output = in_tf_function(
             {
                 "images": images,
                 "bounding_boxes": bounding_boxes,

@@ -12,12 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
 import tensorflow as tf
 
 from keras_cv.layers import preprocessing
+from keras_cv.tests.test_case import TestCase
 
 
-class AutoContrastTest(tf.test.TestCase):
+class AutoContrastTest(TestCase):
     def test_constant_channels_dont_get_nanned(self):
         img = tf.constant([1, 1], dtype=tf.float32)
         img = tf.expand_dims(img, axis=-1)

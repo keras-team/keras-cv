@@ -15,9 +15,10 @@
 import tensorflow as tf
 
 from keras_cv.layers import preprocessing
+from keras_cv.tests.test_case import TestCase
 
 
-class RandomGaussianBlurTest(tf.test.TestCase):
+class RandomGaussianBlurTest(TestCase):
     def test_return_shapes(self):
         layer = preprocessing.RandomGaussianBlur(
             kernel_size=(3, 7), factor=(0, 2)

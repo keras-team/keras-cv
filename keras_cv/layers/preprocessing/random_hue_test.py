@@ -16,9 +16,10 @@ from absl.testing import parameterized
 
 from keras_cv import core
 from keras_cv.layers import preprocessing
+from keras_cv.tests.test_case import TestCase
 
 
-class RandomHueTest(tf.test.TestCase, parameterized.TestCase):
+class RandomHueTest(TestCase):
     def test_preserves_output_shape(self):
         image_shape = (4, 8, 8, 3)
         image = tf.random.uniform(shape=image_shape) * 255.0

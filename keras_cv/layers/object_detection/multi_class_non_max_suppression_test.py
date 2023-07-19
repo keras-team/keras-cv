@@ -12,9 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
 import tensorflow as tf
 
 from keras_cv import layers as cv_layers
+from keras_cv.tests.test_case import TestCase
 
 
 def decode_predictions_output_shapes():
@@ -41,7 +43,8 @@ def decode_predictions_output_shapes():
     return result
 
 
-class NmsPredictionDecoderTest(tf.test.TestCase):
+@pytest.mark.tf_keras_only
+class NmsPredictionDecoderTest(TestCase):
     def test_decode_predictions_output_shapes(self):
         result = decode_predictions_output_shapes()
         self.assertEqual(result["boxes"].shape, [8, None, 4])

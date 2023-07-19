@@ -15,9 +15,10 @@
 import tensorflow as tf
 
 from keras_cv.models.object_detection.yolox.layers import YoloXLabelEncoder
+from keras_cv.tests.test_case import TestCase
 
 
-class YoloXLabelEncoderTest(tf.test.TestCase):
+class YoloXLabelEncoderTest(TestCase):
     def test_ragged_images_exception(self):
         img1 = tf.random.uniform((10, 11, 3))
         img2 = tf.random.uniform((9, 14, 3))

@@ -14,6 +14,7 @@
 import tensorflow as tf
 
 import keras_cv.bounding_box.validate_format as validate_format
+from keras_cv.backend.scope import tf_data
 
 
 def _box_shape(batched, boxes_shape, max_boxes):
@@ -35,6 +36,7 @@ def _classes_shape(batched, classes_shape, max_boxes):
     return [max_boxes] + classes_shape[2:]
 
 
+@tf_data
 def to_dense(bounding_boxes, max_boxes=None, default_value=-1):
     """to_dense converts bounding boxes to Dense tensors
 

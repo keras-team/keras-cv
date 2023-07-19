@@ -17,12 +17,13 @@ import unittest
 import numpy as np
 import tensorflow as tf
 from absl.testing import parameterized
-from tensorflow import keras
 
+from keras_cv import layers as cv_layers
 from keras_cv.layers.preprocessing.random_crop import RandomCrop
+from keras_cv.tests.test_case import TestCase
 
 
-class RandomCropTest(tf.test.TestCase, parameterized.TestCase):
+class RandomCropTest(TestCase):
     @parameterized.named_parameters(
         ("random_crop_4_by_6", 4, 6),
         ("random_crop_3_by_2", 3, 2),
@@ -58,7 +59,7 @@ class RandomCropTest(tf.test.TestCase, parameterized.TestCase):
         actual_output = layer(inp)
         # In this case, output should equal resizing with crop_to_aspect
         # ratio.
-        resizing_layer = keras.layers.Resizing(height, width)
+        resizing_layer = cv_layers.Resizing(height, width)
         expected_output = resizing_layer(inp)
         self.assertAllEqual(expected_output, actual_output)
 
@@ -144,15 +145,15 @@ class RandomCropTest(tf.test.TestCase, parameterized.TestCase):
             np.float32
         )
         bboxes = {
-            "boxes": tf.convert_to_tensor([[200, 200, 400, 400]]),
-            "classes": tf.convert_to_tensor([1]),
+            "boxes": np.array([[200, 200, 400, 400]]),
+            "classes": np.array([1]),
         }
         input = {"images": input_image, "bounding_boxes": bboxes}
         # for top = 300 and left = 305
         height_offset = 300
         width_offset = 305
-        tops = tf.ones((1, 1)) * (height_offset / (orig_height - height))
-        lefts = tf.ones((1, 1)) * (width_offset / (orig_width - width))
+        tops = np.ones((1, 1)) * (height_offset / (orig_height - height))
+        lefts = np.ones((1, 1)) * (width_offset / (orig_width - width))
         transformations = {"tops": tops, "lefts": lefts}
         layer = RandomCrop(
             height=height, width=width, bounding_box_format="xyxy"
@@ -171,8 +172,8 @@ class RandomCropTest(tf.test.TestCase, parameterized.TestCase):
     def test_augment_bounding_boxes_resize(self):
         input_image = np.random.random((256, 256, 3)).astype(np.float32)
         bboxes = {
-            "boxes": tf.convert_to_tensor([[100, 100, 200, 200]]),
-            "classes": tf.convert_to_tensor([1]),
+            "boxes": np.array([[100, 100, 200, 200]]),
+            "classes": np.array([1]),
         }
         input = {"images": input_image, "bounding_boxes": bboxes}
         layer = RandomCrop(height=512, width=512, bounding_box_format="xyxy")

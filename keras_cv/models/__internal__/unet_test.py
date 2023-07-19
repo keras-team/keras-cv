@@ -15,9 +15,10 @@
 import tensorflow as tf
 
 from keras_cv.models.__internal__.unet import UNet
+from keras_cv.tests.test_case import TestCase
 
 
-class UNetTest(tf.test.TestCase):
+class UNetTest(TestCase):
     def test_example_unet_sync_bn_false(self):
         x = tf.random.normal((1, 16, 16, 5))
         model = UNet(

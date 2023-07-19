@@ -18,6 +18,7 @@ import tensorflow as tf
 from tensorflow import keras
 
 from keras_cv import bounding_box
+from keras_cv.backend import assert_tf_keras
 from keras_cv.bounding_box import iou
 from keras_cv.layers.object_detection import box_matcher
 from keras_cv.layers.object_detection import sampling
@@ -72,6 +73,7 @@ class _RpnLabelEncoder(keras.layers.Layer):
         box_variance=[0.1, 0.1, 0.2, 0.2],
         **kwargs,
     ):
+        assert_tf_keras("keras_cv.layers._RpnLabelEncoder")
         super().__init__(**kwargs)
         self.anchor_format = anchor_format
         self.ground_truth_box_format = ground_truth_box_format

@@ -17,9 +17,10 @@ import tensorflow as tf
 from tensorflow import keras
 
 from keras_cv.layers.mbconv import MBConvBlock
+from keras_cv.tests.test_case import TestCase
 
 
-class MBConvTest(tf.test.TestCase):
+class MBConvTest(TestCase):
     @pytest.fixture(autouse=True)
     def cleanup_global_session(self):
         # Code before yield runs before the test

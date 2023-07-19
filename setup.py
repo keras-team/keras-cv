@@ -49,7 +49,13 @@ setup(
     author="Keras team",
     author_email="keras-cv@google.com",
     license="Apache License 2.0",
-    install_requires=["packaging", "absl-py", "regex", "tensorflow-datasets"],
+    install_requires=[
+        "packaging",
+        "absl-py",
+        "regex",
+        "tensorflow-datasets",
+        "keras-core",
+    ],
     python_requires=">=3.7",
     extras_require={
         "tests": [
@@ -59,6 +65,7 @@ setup(
             "pytest",
             "pycocotools",
             "tensorflow",
+            "keras-core",
         ],
         "examples": ["tensorflow_datasets", "matplotlib"],
     },
