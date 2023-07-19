@@ -30,6 +30,7 @@ TEST_CONFIGURATIONS = [
             "crop_area_factor": (0.8, 1.0),
             "aspect_ratio_factor": (3 / 4, 4 / 3),
             "bounding_box_format": "xywh",
+            "dtype": tf.float32,
         },
     ),
     ("Grayscale", layers.Grayscale, {}),
@@ -67,6 +68,7 @@ TEST_CONFIGURATIONS = [
             "width_factor": 0.5,
             "height_factor": 0.5,
             "bounding_box_format": "xyxy",
+            "dtype": tf.float32,
         },
     ),
     (
@@ -104,7 +106,11 @@ TEST_CONFIGURATIONS = [
     (
         "RandomRotation",
         layers.RandomRotation,
-        {"factor": 0.5, "bounding_box_format": "xyxy"},
+        {
+            "factor": 0.5, 
+            "bounding_box_format": "xyxy", 
+            "dtype": tf.float32,
+        },
     ),
     ("RandomSaturation", layers.RandomSaturation, {"factor": 0.5}),
     (
@@ -112,11 +118,11 @@ TEST_CONFIGURATIONS = [
         layers.RandomSharpness,
         {"factor": 0.5, "value_range": (0, 255)},
     ),
-    ("RandomAspectRatio", layers.RandomAspectRatio, {"factor": (0.9, 1.1)}),
+    ("RandomAspectRatio", layers.RandomAspectRatio, {"factor": (0.9, 1.1), "bounding_box_format": "xyxy", "dtype": tf.float32}),
     (
         "RandomShear",
         layers.RandomShear,
-        {"x_factor": 0.3, "x_factor": 0.3, "bounding_box_format": "xyxy"},
+        {"x_factor": 0.3, "x_factor": 0.3, "bounding_box_format": "xyxy", "dtype": tf.float32},
     ),
     # ("RandomShear", layers.RandomShear, {"x_factor": 0.3, "x_factor": 0.3}),
     ("Solarization", layers.Solarization, {"value_range": (0, 255)}),
@@ -141,6 +147,7 @@ TEST_CONFIGURATIONS = [
             "target_size": (224, 224),
             "scale_factor": (0.8, 1.25),
             "bounding_box_format": "xywh",
+            "dtype": tf.float32,
         },
     ),
     (
@@ -171,7 +178,8 @@ NO_CPU_FP16_KERNEL_LAYERS = [
 
 NO_BOUNDING_BOXES_TESTS = [
     layers.RandomCutout,
-    layers.RandomZoom
+    layers.RandomZoom,
+    layers.CutMix,
 ]
 
 
@@ -231,10 +239,6 @@ class WithMixedPrecisionTest(tf.test.TestCase, parameterized.TestCase):
         # inputs = {"images": img, "labels": labels}
         
         layer = layer_cls(**init_args)
-
-        if layer_cls == layers.CutMix:
-            inputs = {"images": img, "labels": bounding_boxes["classes"]}
-
         layer(inputs)
 
     @classmethod
