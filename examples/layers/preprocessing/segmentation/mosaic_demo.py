@@ -25,8 +25,8 @@ from keras_cv.layers import preprocessing
 
 def main():
     ds = demo_utils.load_oxford_iiit_pet_dataset()
-    jittered_resize = preprocessing.Mosaic()
-    ds = ds.map(jittered_resize, num_parallel_calls=tf.data.AUTOTUNE)
+    mosaic = preprocessing.Mosaic()
+    ds = ds.map(mosaic, num_parallel_calls=tf.data.AUTOTUNE)
     demo_utils.visualize_dataset(ds)
 
 

@@ -189,7 +189,9 @@ class JitteredResize(VectorizedBaseImageAugmentationLayer):
         )
         return tf.squeeze(image, axis=0)
 
-    def augment_images(self, images, transformations, **kwargs):
+    def augment_images(
+        self, images, transformations, resize_method="bilinear", **kwargs
+    ):
         # unpackage augmentation arguments
         scaled_sizes = transformations["scaled_sizes"]
         offsets = transformations["offsets"]
@@ -199,7 +201,9 @@ class JitteredResize(VectorizedBaseImageAugmentationLayer):
             "offsets": offsets,
         }
         scaled_images = tf.map_fn(
-            self.resize_and_crop_single_image,
+            lambda x: self.resize_and_crop_single_image(
+                x, resize_method=resize_method
+            ),
             inputs_for_resize_and_crop_single_image,
             fn_output_signature=tf.float32,
         )
@@ -208,22 +212,9 @@ class JitteredResize(VectorizedBaseImageAugmentationLayer):
     def augment_segmentation_masks(
         self, segmentation_masks, transformations, **kwargs
     ):
-        # unpackage augmentation arguments
-        scaled_sizes = transformations["scaled_sizes"]
-        offsets = transformations["offsets"]
-        inputs_for_resize_and_crop_single_image = {
-            "images": segmentation_masks,
-            "scaled_sizes": scaled_sizes,
-            "offsets": offsets,
-        }
-        scaled_masks = tf.map_fn(
-            lambda inputs: self.resize_and_crop_single_image(
-                inputs, resize_method="nearest"
-            ),
-            inputs_for_resize_and_crop_single_image,
-            fn_output_signature=tf.float32,
+        return self.augment_images(
+            segmentation_masks, transformations, resize_method="nearest"
         )
-        return tf.cast(scaled_masks, self.compute_dtype)
 
     def augment_labels(self, labels, transformations, **kwargs):
         return labels
