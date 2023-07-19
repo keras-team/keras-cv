@@ -126,7 +126,7 @@ TEST_CONFIGURATIONS = [
             "factor": (0.9, 1.1),
             "bounding_box_format": "xyxy",
             "dtype": tf.float32,
-        }
+        },
     ),
     (
         "RandomShear",
@@ -140,7 +140,11 @@ TEST_CONFIGURATIONS = [
     ),
     # ("RandomShear", layers.RandomShear, {"x_factor": 0.3, "x_factor": 0.3}),
     ("Solarization", layers.Solarization, {"value_range": (0, 255)}),
-    ("Mosaic", layers.Mosaic, {"bounding_box_format": "xyxy"}, ),
+    (
+        "Mosaic",
+        layers.Mosaic,
+        {"bounding_box_format": "xyxy"},
+    ),
     ("CutMix", layers.CutMix, {}),
     ("MixUp", layers.MixUp, {}),
     (
