@@ -178,7 +178,7 @@ def UNet(
     function that acts on tensors as inputs.
 
     Reference:
-        - [U-Net: Convolutional Networks for Biomedical Image Segmentation](https://arxiv.org/abs/1505.04597) #noqa:E501  
+        - [U-Net: Convolutional Networks for Biomedical Image Segmentation](https://arxiv.org/abs/1505.04597)
     Args:
         input_shape: the rank 3 shape of the input to the UNet
         down_block_configs: a list of (filter_count, num_blocks) tuples
@@ -186,7 +186,7 @@ def UNet(
         up_block_configs: a list of filter counts, one for each up block
         down_block: a downsampling block
         up_block: an upsampling block
-    """
+    """ # noqa: E501
 
     input = layers.Input(shape=input_shape)
     x = input
