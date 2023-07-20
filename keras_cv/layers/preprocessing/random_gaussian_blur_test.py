@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numpy as np
 import tensorflow as tf
 
 from keras_cv.layers import preprocessing
@@ -25,12 +26,12 @@ class RandomGaussianBlurTest(TestCase):
         )
 
         # RGB
-        xs = tf.ones((2, 512, 512, 3))
+        xs = np.ones((2, 512, 512, 3))
         xs = layer(xs)
         self.assertEqual(xs.shape, [2, 512, 512, 3])
 
         # greyscale
-        xs = tf.ones((2, 512, 512, 1))
+        xs = np.ones((2, 512, 512, 1))
         xs = layer(xs)
         self.assertEqual(xs.shape, [2, 512, 512, 1])
 
@@ -41,8 +42,8 @@ class RandomGaussianBlurTest(TestCase):
 
         # RGB
         xs = tf.cast(
-            tf.ones((512, 512, 3)),
-            dtype=tf.float32,
+            np.ones((512, 512, 3)),
+            dtype="float32",
         )
 
         xs = layer(xs)
@@ -50,8 +51,8 @@ class RandomGaussianBlurTest(TestCase):
 
         # greyscale
         xs = tf.cast(
-            tf.ones((512, 512, 1)),
-            dtype=tf.float32,
+            np.ones((512, 512, 1)),
+            dtype="float32",
         )
 
         xs = layer(xs)
@@ -63,12 +64,12 @@ class RandomGaussianBlurTest(TestCase):
         )
 
         # RGB
-        xs = tf.ones((2, 256, 512, 3))
+        xs = np.ones((2, 256, 512, 3))
         xs = layer(xs)
         self.assertEqual(xs.shape, [2, 256, 512, 3])
 
         # greyscale
-        xs = tf.ones((2, 256, 512, 1))
+        xs = np.ones((2, 256, 512, 1))
         xs = layer(xs)
         self.assertEqual(xs.shape, [2, 256, 512, 1])
 
@@ -76,12 +77,12 @@ class RandomGaussianBlurTest(TestCase):
         layer = preprocessing.RandomGaussianBlur(kernel_size=7, factor=2)
 
         # RGB
-        xs = tf.ones((2, 512, 512, 3))
+        xs = np.ones((2, 512, 512, 3))
         xs = layer(xs)
         self.assertEqual(xs.shape, [2, 512, 512, 3])
 
         # greyscale
-        xs = tf.ones((2, 512, 512, 1))
+        xs = np.ones((2, 512, 512, 1))
         xs = layer(xs)
         self.assertEqual(xs.shape, [2, 512, 512, 1])
 
@@ -91,7 +92,7 @@ class RandomGaussianBlurTest(TestCase):
         )
 
         xs = tf.expand_dims(
-            tf.constant([[0, 0, 0], [0, 1, 0], [0, 0, 0]]),
+            np.array([[0, 0, 0], [0, 1, 0], [0, 0, 0]]),
             axis=-1,
         )
 
@@ -100,7 +101,7 @@ class RandomGaussianBlurTest(TestCase):
         # Result expected to be identical to gaussian blur kernel of
         # size 3x3 and factor=1.0
         result = tf.expand_dims(
-            tf.constant(
+            np.array(
                 [
                     [0.07511361, 0.1238414, 0.07511361],
                     [0.1238414, 0.20417996, 0.1238414],

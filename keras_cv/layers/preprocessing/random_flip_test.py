@@ -39,11 +39,11 @@ class RandomFlipTest(TestCase):
 
     def test_flip_ragged(self):
         images = tf.ragged.stack(
-            [tf.ones((512, 512, 3)), tf.ones((1002, 512, 3))]
+            [np.ones((512, 512, 3)), np.ones((1002, 512, 3))]
         )
         bounding_boxes = {
-            "boxes": tf.ragged.stack([tf.ones((5, 4)), tf.ones((3, 4))]),
-            "classes": tf.ragged.stack([tf.ones((5,)), tf.ones((3,))]),
+            "boxes": tf.ragged.stack([np.ones((5, 4)), np.ones((3, 4))]),
+            "classes": tf.ragged.stack([np.ones((5,)), np.ones((3,))]),
         }
         inputs = {"images": images, "bounding_boxes": bounding_boxes}
         layer = RandomFlip(mode="horizontal", bounding_box_format="xywh")
@@ -146,7 +146,7 @@ class RandomFlipTest(TestCase):
         self.assertAllEqual(layer(inputs).dtype, "uint8")
 
     def test_augment_bounding_box_batched_input(self):
-        image = tf.zeros([20, 20, 3])
+        image = np.zeros([20, 20, 3])
         bounding_boxes = {
             "boxes": tf.convert_to_tensor(
                 [
@@ -200,7 +200,7 @@ class RandomFlipTest(TestCase):
         )
 
     def test_augment_boxes_ragged(self):
-        image = tf.zeros([2, 20, 20, 3])
+        image = np.zeros([2, 20, 20, 3])
         bounding_boxes = {
             "boxes": tf.ragged.constant(
                 [[[0, 0, 10, 10], [4, 4, 12, 12]], [[0, 0, 10, 10]]],

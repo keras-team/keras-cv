@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import numpy as np
 import tensorflow as tf
 
 from keras_cv import bounding_box
@@ -38,7 +39,7 @@ class RandomAspectRatioTest(TestCase):
         self.assertEqual(output.shape[-1], 1)
 
     def test_augment_boxes_ragged(self):
-        image = tf.zeros([2, 20, 20, 3])
+        image = np.zeros([2, 20, 20, 3])
         bounding_boxes = {
             "boxes": tf.ragged.constant(
                 [[[0.2, 0.12, 1, 1], [0, 0, 0.5, 0.73]], [[0, 0, 1, 1]]],

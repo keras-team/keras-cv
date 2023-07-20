@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import numpy as np
 import tensorflow as tf
 
 from keras_cv.layers import preprocessing
@@ -21,7 +22,7 @@ class RandomColorDegenerationTest(TestCase):
     def test_random_color_degeneration_base_case(self):
         img_shape = (50, 50, 3)
         xs = tf.stack(
-            [2 * tf.ones(img_shape), tf.ones(img_shape)],
+            [2 * np.ones(img_shape), np.ones(img_shape)],
             axis=0,
         )
 
@@ -32,9 +33,9 @@ class RandomColorDegenerationTest(TestCase):
 
     def test_color_degeneration_full_factor(self):
         img_shape = (50, 50, 1)
-        r = tf.ones(img_shape)
-        g = 2 * tf.ones(img_shape)
-        b = 3 * tf.ones(img_shape)
+        r = np.ones(img_shape)
+        g = 2 * np.ones(img_shape)
+        b = 3 * np.ones(img_shape)
         xs = tf.concat([r, g, b], axis=-1)
 
         layer = preprocessing.RandomColorDegeneration(factor=(1, 1))
@@ -43,13 +44,13 @@ class RandomColorDegenerationTest(TestCase):
         # Color degeneration uses standard luma conversion for RGB->Grayscale.
         # The formula for luma is result= 0.2989*r + 0.5870*g + 0.1140*b
         luma_result = 0.2989 + 2 * 0.5870 + 3 * 0.1140
-        self.assertAllClose(ys, tf.ones_like(ys) * luma_result)
+        self.assertAllClose(ys, np.ones_like(ys) * luma_result)
 
     def test_color_degeneration_70p_factor(self):
         img_shape = (50, 50, 1)
-        r = tf.ones(img_shape)
-        g = 2 * tf.ones(img_shape)
-        b = 3 * tf.ones(img_shape)
+        r = np.ones(img_shape)
+        g = 2 * np.ones(img_shape)
+        b = 3 * np.ones(img_shape)
         xs = tf.concat([r, g, b], axis=-1)
 
         layer = preprocessing.RandomColorDegeneration(factor=(0.7, 0.7))
@@ -69,6 +70,6 @@ class RandomColorDegenerationTest(TestCase):
         g = ys[..., 1]
         b = ys[..., 2]
 
-        self.assertAllClose(r, tf.ones_like(r) * r_result)
-        self.assertAllClose(g, tf.ones_like(g) * g_result)
-        self.assertAllClose(b, tf.ones_like(b) * b_result)
+        self.assertAllClose(r, np.ones_like(r) * r_result)
+        self.assertAllClose(g, np.ones_like(g) * g_result)
+        self.assertAllClose(b, np.ones_like(b) * b_result)
