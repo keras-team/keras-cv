@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import numpy as np
 import tensorflow as tf
 from absl.testing import parameterized
 
@@ -141,7 +140,7 @@ class WithLabelsTest(TestCase):
         img = tf.random.uniform(
             shape=(3, 512, 512, 3), minval=0, maxval=255, dtype=tf.float32
         )
-        labels = np.ones((3,), dtype="float32")
+        labels = tf.ones((3,), dtype=tf.float32)
 
         inputs = {"images": img, "labels": labels}
         outputs = layer(inputs)
@@ -155,7 +154,7 @@ class WithLabelsTest(TestCase):
         img = tf.random.uniform(
             shape=(512, 512, 3), minval=0, maxval=1, dtype=tf.float32
         )
-        labels = np.ones((), dtype="float32")
+        labels = tf.ones((), dtype=tf.float32)
 
         inputs = {"images": img, "labels": labels}
         outputs = layer(inputs)

@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import numpy as np
 import tensorflow as tf
 from absl.testing import parameterized
 
@@ -101,7 +100,7 @@ class RandomApplyTest(TestCase):
 
     def test_can_modify_label(self):
         dummy_inputs = self.rng.uniform(shape=(32, 224, 224, 3))
-        dummy_labels = np.ones(shape=(32, 2))
+        dummy_labels = tf.ones(shape=(32, 2))
         layer = RandomApply(rate=1.0, layer=ZeroOut())
 
         outputs = layer({"images": dummy_inputs, "labels": dummy_labels})

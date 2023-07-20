@@ -120,7 +120,7 @@ class RandomCropAndResizeTest(TestCase):
         input_image_shape = (1, self.height, self.width, 3)
         mask_shape = (1, self.height, self.width, 1)
         image = tf.random.uniform(shape=input_image_shape, seed=self.seed)
-        mask = np.array(
+        mask = tf.constant(
             np.random.randint(2, size=mask_shape) * (num_classes - 1)
         )
 
@@ -179,7 +179,7 @@ class RandomCropAndResizeTest(TestCase):
         self.assertAllClose(output["segmentation_masks"], input_mask_resized)
 
     def test_augment_bounding_box_single(self):
-        image = np.zeros([20, 20, 3])
+        image = tf.zeros([20, 20, 3])
         boxes = {
             "boxes": tf.convert_to_tensor([[0, 0, 1, 1]]),
             "classes": tf.convert_to_tensor([0]),
@@ -209,7 +209,7 @@ class RandomCropAndResizeTest(TestCase):
         )
 
     def test_augment_boxes_batched_input(self):
-        image = np.zeros([20, 20, 3])
+        image = tf.zeros([20, 20, 3])
 
         boxes = {
             "boxes": tf.convert_to_tensor(
@@ -248,7 +248,7 @@ class RandomCropAndResizeTest(TestCase):
         )
 
     def test_augment_boxes_ragged(self):
-        image = np.zeros([2, 20, 20, 3])
+        image = tf.zeros([2, 20, 20, 3])
         boxes = {
             "boxes": tf.ragged.constant(
                 [[[0, 0, 1, 1], [0, 0, 1, 1]], [[0, 0, 1, 1]]], dtype=tf.float32
