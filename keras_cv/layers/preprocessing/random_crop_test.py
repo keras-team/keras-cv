@@ -71,8 +71,8 @@ class RandomCropTest(TestCase):
         width_offset = np.random.randint(low=0, high=5)
         # manually compute transformations which shift height_offset and
         # width_offset respectively
-        tops = tf.ones((batch_size, 1)) * (height_offset / (5 - height))
-        lefts = tf.ones((batch_size, 1)) * (width_offset / (8 - width))
+        tops = np.ones((batch_size, 1)) * (height_offset / (5 - height))
+        lefts = np.ones((batch_size, 1)) * (width_offset / (8 - width))
         transformations = {"tops": tops, "lefts": lefts}
         layer = RandomCrop(height, width)
         with unittest.mock.patch.object(
@@ -102,7 +102,7 @@ class RandomCropTest(TestCase):
         np.random.seed(1337)
         inp = np.random.random((16, 16, 3))
         # manually compute transformations which shift 2 pixels
-        mock_offset = tf.ones(shape=(1, 1), dtype=tf.float32) * 0.25
+        mock_offset = np.ones(shape=(1, 1), dtype="float32") * 0.25
         layer = RandomCrop(8, 8)
         with unittest.mock.patch.object(
             layer._random_generator,
@@ -116,7 +116,7 @@ class RandomCropTest(TestCase):
         np.random.seed(1337)
         inp = np.random.random((20, 16, 16, 3))
         # manually compute transformations which shift 2 pixels
-        mock_offset = tf.ones(shape=(20, 1), dtype=tf.float32) * 2 / (16 - 8)
+        mock_offset = np.ones(shape=(20, 1), dtype="float32") * 2 / (16 - 8)
         layer = RandomCrop(8, 8)
         with unittest.mock.patch.object(
             layer._random_generator,
@@ -186,7 +186,7 @@ class RandomCropTest(TestCase):
     def test_in_tf_function(self):
         np.random.seed(1337)
         inp = np.random.random((20, 16, 16, 3))
-        mock_offset = tf.ones(shape=(20, 1), dtype=tf.float32) * 2 / (16 - 8)
+        mock_offset = np.ones(shape=(20, 1), dtype="float32") * 2 / (16 - 8)
         layer = RandomCrop(8, 8)
 
         @tf.function
@@ -217,14 +217,14 @@ class RandomCropTest(TestCase):
         boxes = {
             "boxes": tf.ragged.stack(
                 [
-                    tf.ones((3, 4), dtype=tf.float32),
-                    tf.ones((3, 4), dtype=tf.float32),
+                    np.ones((3, 4), dtype="float32"),
+                    np.ones((3, 4), dtype="float32"),
                 ],
             ),
             "classes": tf.ragged.stack(
                 [
-                    tf.ones((3,), dtype=tf.float32),
-                    tf.ones((3,), dtype=tf.float32),
+                    np.ones((3,), dtype="float32"),
+                    np.ones((3,), dtype="float32"),
                 ],
             ),
         }
