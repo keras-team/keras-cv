@@ -75,7 +75,7 @@ class RetinaNet(Task):
     model(images)
 
     # Prediction with box decoding and NMS
-    model.predict(images)    
+    model.predict(images)
 
     # Train model
     model.compile(
