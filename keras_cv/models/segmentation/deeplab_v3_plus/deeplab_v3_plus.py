@@ -41,7 +41,7 @@ class DeepLabV3Plus(Task):
             used as a feature extractor for the DeepLabV3+ Encoder. Should
             either be a `keras_cv.models.backbones.backbone.Backbone` or a
             `keras.Model` that implements the `pyramid_level_inputs`
-            property with keys "P2" and "P4" and layer names as values. A
+            property with keys "P2" and "P5" and layer names as values. A
             somewhat sensible backbone to use in many cases is the
             `keras_cv.models.ResNet50V2Backbone.from_preset("resnet50_v2_imagenet")`.
         num_classes: int, the number of classes for the detection model. Note
@@ -108,7 +108,7 @@ class DeepLabV3Plus(Task):
 
         inputs = backbone.input
 
-        extractor_levels = ["P2", "P4"]
+        extractor_levels = ["P2", "P5"]
         extractor_layer_names = [
             backbone.pyramid_level_inputs[i] for i in extractor_levels
         ]
@@ -121,7 +121,7 @@ class DeepLabV3Plus(Task):
             spatial_pyramid_pooling = SpatialPyramidPooling(
                 dilation_rates=[6, 12, 18]
             )
-        spp_outputs = spatial_pyramid_pooling(backbone_features["P4"])
+        spp_outputs = spatial_pyramid_pooling(backbone_features["P5"])
 
         low_level_feature_projector = keras.Sequential(
             [
@@ -142,7 +142,7 @@ class DeepLabV3Plus(Task):
         )
 
         encoder_outputs = keras.layers.UpSampling2D(
-            size=(4, 4),
+            size=(8, 8),
             interpolation="bilinear",
             name="encoder_output_upsampling",
         )(spp_outputs)
