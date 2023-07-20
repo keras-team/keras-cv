@@ -370,10 +370,10 @@ class YOLOV8Detector(Task):
         fpn_depth=2.
     )
 
-    # Evaluate model
+    # Evaluate model without box decoding and NMS
     model(images)
 
-    # Get predictions using the model
+    # Prediction with box decoding and NMS
     model.predict(images)
 
     # Train model
