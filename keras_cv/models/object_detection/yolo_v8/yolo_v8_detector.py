@@ -374,7 +374,7 @@ class YOLOV8Detector(Task):
     model(images)
 
     # Prediction with box decoding and NMS
-    model.predict(images)        
+    model.predict(images)
 
     # Train model
     model.compile(
