@@ -207,11 +207,11 @@ class VectorizedBaseImageAugmentationLayerTest(TestCase):
 
     def test_augment_casts_dtypes(self):
         add_layer = VectorizedRandomAddLayer(fixed_value=2.0)
-        images = tf.ones((2, 8, 8, 3), dtype="uint8")
+        images = np.ones((2, 8, 8, 3), dtype="uint8")
         output = add_layer(images)
 
         self.assertAllClose(
-            tf.ones((2, 8, 8, 3), dtype="float32") * 3.0, output
+            np.ones((2, 8, 8, 3), dtype="float32") * 3.0, output
         )
 
     def test_augment_batch_images(self):
@@ -484,9 +484,7 @@ class VectorizedBaseImageAugmentationLayerTest(TestCase):
                 tf.random.uniform(shape=(16, 8, 3)),
             ]
         )
-        labels = tf.constant(
-            np.squeeze(np.eye(10)[np.array([0, 1]).reshape(-1)])
-        )
+        labels = np.array(np.squeeze(np.eye(10)[np.array([0, 1]).reshape(-1)]))
         bounding_boxes = {
             "boxes": tf.random.uniform(shape=(2, 3, 4)),
             "classes": tf.random.uniform(shape=(2, 3)),

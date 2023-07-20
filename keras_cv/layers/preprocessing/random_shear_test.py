@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import numpy as np
 import tensorflow as tf
 
 from keras_cv import bounding_box
@@ -24,7 +25,7 @@ class RandomShearTest(TestCase):
     def test_aggressive_shear_fills_at_least_some_pixels(self):
         img_shape = (50, 50, 3)
         xs = tf.stack(
-            [2 * tf.ones(img_shape), tf.ones(img_shape)],
+            [2 * np.ones(img_shape), np.ones(img_shape)],
             axis=0,
         )
         xs = tf.cast(xs, tf.float32)
@@ -43,7 +44,7 @@ class RandomShearTest(TestCase):
 
     def test_return_shapes(self):
         """test return dict keys and value pairs"""
-        xs = tf.ones((2, 512, 512, 3))
+        xs = np.ones((2, 512, 512, 3))
         # randomly sample labels
         ys_labels = tf.random.categorical(tf.math.log([[0.5, 0.5]]), 2)
         ys_labels = tf.squeeze(ys_labels)
@@ -51,7 +52,7 @@ class RandomShearTest(TestCase):
 
         # randomly sample bounding boxes
         ys_bounding_boxes = {
-            "boxes": tf.ones((2, 3, 4)),
+            "boxes": np.ones((2, 3, 4)),
             "classes": tf.random.uniform((2, 3), 0, 1),
         }
 
@@ -83,7 +84,7 @@ class RandomShearTest(TestCase):
 
     def test_single_image_input(self):
         """test for single image input"""
-        xs = tf.ones((512, 512, 3))
+        xs = np.ones((512, 512, 3))
         inputs = {"images": xs}
         layer = preprocessing.RandomShear(
             x_factor=(3, 3),
@@ -94,12 +95,12 @@ class RandomShearTest(TestCase):
         self.assertEqual(outputs["images"].shape, [512, 512, 3])
 
     def test_area(self):
-        xs = tf.ones((1, 512, 512, 3))
+        xs = np.ones((1, 512, 512, 3))
         ys = {
-            "boxes": tf.constant(
-                [[[0.3, 0.4, 0.5, 0.6], [0.9, 0.8, 1.0, 1.0]]]
+            "boxes": np.array(
+                [[[0.3, 0.4, 0.5, 0.6], [0.9, 0.8, 1.0, 1.0]]], dtype="float32"
             ),
-            "classes": tf.constant([2, 3]),
+            "classes": np.array([2, 3]),
         }
 
         inputs = {"images": xs, "bounding_boxes": ys}
@@ -137,7 +138,7 @@ class RandomShearTest(TestCase):
         """test for class works with tf function"""
         xs = tf.cast(
             tf.stack(
-                [2 * tf.ones((4, 4, 3)), tf.ones((4, 4, 3))],
+                [2 * np.ones((4, 4, 3)), np.ones((4, 4, 3))],
                 axis=0,
             ),
             tf.float32,
@@ -166,20 +167,20 @@ class RandomShearTest(TestCase):
         0,0"""
         xs = tf.cast(
             tf.stack(
-                [2 * tf.ones((4, 4, 3)), tf.ones((4, 4, 3))],
+                [2 * np.ones((4, 4, 3)), np.ones((4, 4, 3))],
                 axis=0,
             ),
             tf.float32,
         )
         ys = {
-            "boxes": tf.constant(
+            "boxes": np.array(
                 [
                     [[0.3, 0.4, 0.5, 0.6], [0.9, 0.8, 1.0, 1.0]],
                     [[0.3, 0.4, 0.5, 0.6], [0.9, 0.8, 1.0, 1.0]],
                 ],
-                dtype=tf.float32,
+                dtype="float32",
             ),
-            "classes": tf.constant([[0, 0], [0, 0]], dtype=tf.float32),
+            "classes": np.array([[0, 0], [0, 0]], dtype="float32"),
         }
         layer = preprocessing.RandomShear(
             x_factor=0, y_factor=0, bounding_box_format="rel_xyxy"
@@ -197,7 +198,7 @@ class RandomShearTest(TestCase):
         """test to verify augmented bounding box output coordinate"""
         xs = tf.cast(
             tf.stack(
-                [2 * tf.ones((100, 100, 3)), tf.zeros((100, 100, 3))],
+                [2 * np.ones((100, 100, 3)), np.zeros((100, 100, 3))],
                 axis=0,
             ),
             tf.float32,
@@ -205,10 +206,10 @@ class RandomShearTest(TestCase):
         ys = tf.cast(
             tf.stack(
                 [
-                    tf.constant(
+                    np.array(
                         [[10.0, 20.0, 40.0, 50.0], [12.0, 22.0, 42.0, 54.0]]
                     ),
-                    tf.constant(
+                    np.array(
                         [[10.0, 20.0, 40.0, 50.0], [12.0, 22.0, 42.0, 54.0]]
                     ),
                 ],
@@ -220,13 +221,13 @@ class RandomShearTest(TestCase):
         true_ys = tf.cast(
             tf.stack(
                 [
-                    tf.constant(
+                    np.array(
                         [
                             [7.60, 20.43, 39.04, 51.79, 0.0],
                             [9.41, 22.52, 40.94, 55.88, 0.0],
                         ]
                     ),
-                    tf.constant(
+                    np.array(
                         [
                             [13.68, 22.51, 49.20, 59.05, 0],
                             [16.04, 24.95, 51.940, 63.56, 0],
@@ -256,8 +257,8 @@ class RandomShearTest(TestCase):
     def test_ragged_bounding_box(self):
         images = tf.random.uniform((2, 16, 16, 3))
 
-        random_box = tf.constant(
-            [[[0.1, 0.2, 1, 1], [0.4, 0.6, 1, 1]]], dtype=tf.float32
+        random_box = np.array(
+            [[[0.1, 0.2, 1, 1], [0.4, 0.6, 1, 1]]], dtype="float32"
         )
         random_box = tf.squeeze(random_box, axis=0)
         random_box = tf.RaggedTensor.from_row_lengths(random_box, [1, 1])

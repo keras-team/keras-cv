@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import tensorflow as tf
+import numpy as np
 
 import keras_cv.layers as cv_layers
 from keras_cv.tests.test_case import TestCase
@@ -26,8 +26,8 @@ class RepeatedAugmentationTest(TestCase):
             ]
         )
         inputs = {
-            "images": tf.ones((8, 512, 512, 3)),
-            "labels": tf.ones((8,)),
+            "images": np.ones((8, 512, 512, 3)),
+            "labels": np.ones((8,)),
         }
         outputs = repeated_augment(inputs)
 
@@ -42,8 +42,8 @@ class RepeatedAugmentationTest(TestCase):
             ]
         )
         inputs = {
-            "images": tf.ones((8, 512, 512, 3)),
-            "labels": tf.ones((8, 10)),
+            "images": np.ones((8, 512, 512, 3)),
+            "labels": np.ones((8, 10)),
         }
         outputs = repeated_augment(inputs)
 

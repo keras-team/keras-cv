@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numpy as np
 import tensorflow as tf
 from absl.testing import parameterized
 
@@ -162,7 +163,7 @@ class WithMixedPrecisionTest(TestCase):
         img = tf.random.uniform(
             shape=(3, 512, 512, 3), minval=0, maxval=255, dtype=tf.float32
         )
-        labels = tf.ones((3,), dtype=tf.float16)
+        labels = np.ones((3,), dtype="float16")
         inputs = {"images": img, "labels": labels}
 
         layer = layer_cls(**init_args)
