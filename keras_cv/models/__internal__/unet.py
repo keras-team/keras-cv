@@ -186,7 +186,7 @@ def UNet(
         up_block_configs: a list of filter counts, one for each up block
         down_block: a downsampling block
         up_block: an upsampling block
-    """ # noqa: E501
+    """  # noqa: E501
 
     input = layers.Input(shape=input_shape)
     x = input
