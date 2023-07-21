@@ -120,6 +120,11 @@ from keras_cv.models.object_detection.yolo_v8.yolo_v8_backbone import (
 from keras_cv.models.object_detection.yolo_v8.yolo_v8_detector import (
     YOLOV8Detector,
 )
+from keras_cv.models.object_detection.yolox.yolox import YoloX_l
+from keras_cv.models.object_detection.yolox.yolox import YoloX_m
+from keras_cv.models.object_detection.yolox.yolox import YoloX_s
+from keras_cv.models.object_detection.yolox.yolox import YoloX_tiny
+from keras_cv.models.object_detection.yolox.yolox import YoloX_x
 from keras_cv.models.object_detection_3d.center_pillar import (
     MultiHeadCenterPillar,
 )
