@@ -68,7 +68,7 @@ class CSPDarkNetBackboneTest(TestCase):
         model(self.input_batch)
 
     @pytest.mark.large  # Saving is slow, so mark these large.
-    def test_saved_model(self, save_format, filename):
+    def test_saved_model(self):
         model = CSPDarkNetBackbone(
             stackwise_channels=[48, 96, 192, 384],
             stackwise_depth=[1, 3, 3, 1],
@@ -92,7 +92,7 @@ class CSPDarkNetBackboneTest(TestCase):
         )
 
     @pytest.mark.large  # Saving is slow, so mark these large.
-    def test_saved_alias_model(self, save_format, filename):
+    def test_saved_alias_model(self):
         model = CSPDarkNetLBackbone()
         model_output = model(self.input_batch)
         save_path = os.path.join(
