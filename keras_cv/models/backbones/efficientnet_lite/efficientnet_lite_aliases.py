@@ -11,13 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import copy
 
 from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_backbone import (  # noqa: E501
     EfficientNetLiteBackbone,
-)
-from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_backbone_presets import (  # noqa: E501
-    backbone_presets,
 )
 from keras_cv.utils.python_utils import classproperty
 
@@ -68,11 +64,7 @@ class EfficientNetLiteB0Backbone(EfficientNetLiteBackbone):
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
-        return {
-            "efficientnetlite_b0": copy.deepcopy(
-                backbone_presets["efficientnetlite_b0"]
-            ),
-        }
+        return {}
 
     @classproperty
     def presets_with_weights(cls):
@@ -104,11 +96,7 @@ class EfficientNetLiteB1Backbone(EfficientNetLiteBackbone):
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
-        return {
-            "efficientnetlite_b1": copy.deepcopy(
-                backbone_presets["efficientnetlite_b1"]
-            ),
-        }
+        return {}
 
     @classproperty
     def presets_with_weights(cls):
@@ -140,11 +128,7 @@ class EfficientNetLiteB2Backbone(EfficientNetLiteBackbone):
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
-        return {
-            "efficientnetlite_b2": copy.deepcopy(
-                backbone_presets["efficientnetlite_b2"]
-            ),
-        }
+        return {}
 
     @classproperty
     def presets_with_weights(cls):
@@ -176,11 +160,7 @@ class EfficientNetLiteB3Backbone(EfficientNetLiteBackbone):
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
-        return {
-            "efficientnetlite_b3": copy.deepcopy(
-                backbone_presets["efficientnetlite_b3"]
-            ),
-        }
+        return {}
 
     @classproperty
     def presets_with_weights(cls):
@@ -212,11 +192,7 @@ class EfficientNetLiteB4Backbone(EfficientNetLiteBackbone):
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
-        return {
-            "efficientnetlite_b4": copy.deepcopy(
-                backbone_presets["efficientnetlite_b4"]
-            ),
-        }
+        return {}
 
     @classproperty
     def presets_with_weights(cls):
