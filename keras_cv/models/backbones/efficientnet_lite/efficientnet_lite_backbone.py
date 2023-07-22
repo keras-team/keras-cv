@@ -72,12 +72,12 @@ class EfficientNetLiteBackbone(Backbone):
 
     # Alternatively, you can also customize the EfficientNetLite architecture:
     model = EfficientNetLiteBackbone(
-        stackwise_kernel_sizes= [3, 3, 5, 3, 5, 5, 3],
-        stackwise_num_repeats= [1, 2, 2, 3, 3, 4, 1],
-        stackwise_input_filters= [32, 16, 24, 40, 80, 112, 192],
-        stackwise_output_filters= [16, 24, 40, 80, 112, 192, 320],
-        stackwise_expansion_ratios= [1, 6, 6, 6, 6, 6, 6],
-        stackwise_strides= [1, 2, 2, 2, 1, 2, 1],
+        stackwise_kernel_sizes=[3, 3, 5, 3, 5, 5, 3],
+        stackwise_num_repeats=[1, 2, 2, 3, 3, 4, 1],
+        stackwise_input_filters=[32, 16, 24, 40, 80, 112, 192],
+        stackwise_output_filters=[16, 24, 40, 80, 112, 192, 320],
+        stackwise_expansion_ratios=[1, 6, 6, 6, 6, 6, 6],
+        stackwise_strides=[1, 2, 2, 2, 1, 2, 1],
         width_coefficient=1.0,
         depth_coefficient=1.0,
         include_rescaling=False,
@@ -298,7 +298,6 @@ def apply_efficient_net_lite_block(
         kernel_size: integer, the dimension of the convolution window.
         strides: integer, the stride of the convolution.
         expand_ratio: integer, scaling coefficient for the input filters.
-        id_skip: boolean.
 
     Returns:
         output tensor for the block.
@@ -346,7 +345,6 @@ def apply_efficient_net_lite_block(
     x = keras.layers.BatchNormalization(axis=BN_AXIS, name=name + "bn")(x)
     x = keras.layers.Activation(activation, name=name + "activation")(x)
 
-    # Skip SE block
     # Output phase
     x = keras.layers.Conv2D(
         filters_out,
