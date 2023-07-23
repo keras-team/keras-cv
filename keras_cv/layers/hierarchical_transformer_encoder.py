@@ -30,10 +30,6 @@ class HierarchicalTransformerEncoder(keras.layers.Layer):
             mid_channels=int(project_dim * 4),
         )
 
-    def build(self, input_shape):
-        self.H = keras.ops.sqrt(keras.ops.cast(input_shape[1], "float32"))
-        self.W = keras.ops.sqrt(keras.ops.cast(input_shape[2], "float32"))
-
     def call(self, x):
         x = x + self.drop_path(self.attn(self.norm1(x)))
         x = x + self.drop_path(self.mlp(self.norm2(x)))

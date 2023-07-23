@@ -18,6 +18,8 @@ References:
 
 """  # noqa: E501
 
+import math
+
 import numpy as np
 
 from keras_cv import layers as cv_layers
@@ -31,6 +33,8 @@ from keras_cv.models.backbones.mix_transformer.mix_transformer_backbone_presets 
     backbone_presets_with_weights,
 )
 from keras_cv.utils.python_utils import classproperty
+
+# from keras import KerasTensor
 
 
 @keras.saving.register_keras_serializable(package="keras_cv.models")
@@ -96,7 +100,7 @@ class MiTBackbone(Backbone):
                 x = blk(x)
             x = layer_norms[i](x)
             C = x.shape[-1]
-            x = keras.ops.reshape(x, (batch_size, new_height, new_width, C))
+            x = CustomReshaping(new_height, new_width)(x)
             pyramid_level_inputs.append(x)
 
         super().__init__(
@@ -122,3 +126,18 @@ class MiTBackbone(Backbone):
             }
         )
         return config
+
+
+@keras.saving.register_keras_serializable(package="keras_cv")
+class CustomReshaping(keras.layers.Layer):
+    def __init__(self, H, W):
+        super().__init__()
+        self.H = H
+        self.W = W
+
+    def call(self, x):
+        input_shape = keras.ops.shape(x)
+        x = keras.ops.reshape(
+            x, (input_shape[0], self.H, self.W, input_shape[-1])
+        )
+        return x
