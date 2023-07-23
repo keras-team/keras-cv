@@ -1,6 +1,5 @@
-import math
-
 from keras_cv.backend import keras
+from keras_cv.backend import ops
 
 """
 Acknowledgement:
@@ -33,17 +32,17 @@ class EfficientMultiheadAttention(keras.layers.Layer):
             self.norm = keras.layers.LayerNormalization()
 
     def call(self, x):
-        input_shape = keras.ops.shape(x)
-        H, W = keras.ops.sqrt(
-            keras.ops.cast(input_shape[1], "float32")
-        ), keras.ops.sqrt(keras.ops.cast(input_shape[1], "float32"))
-        B, C = keras.ops.cast(input_shape[0], "float32"), keras.ops.cast(
+        input_shape = ops.shape(x)
+        H, W = ops.sqrt(ops.cast(input_shape[1], "float32")), ops.sqrt(
+            ops.cast(input_shape[1], "float32")
+        )
+        B, C = ops.cast(input_shape[0], "float32"), ops.cast(
             input_shape[2], "float32"
         )
 
         q = self.q(x)
 
-        q = keras.ops.reshape(
+        q = ops.reshape(
             q,
             (
                 input_shape[0],
@@ -52,43 +51,43 @@ class EfficientMultiheadAttention(keras.layers.Layer):
                 input_shape[2] // self.num_heads,
             ),
         )
-        q = keras.ops.transpose(q, [0, 2, 1, 3])
+        q = ops.transpose(q, [0, 2, 1, 3])
 
         if self.sr_ratio > 1:
-            x = keras.ops.reshape(
-                keras.ops.transpose(x, [0, 2, 1]),
+            x = ops.reshape(
+                ops.transpose(x, [0, 2, 1]),
                 (B, H, W, C),
             )
             x = self.sr(x)
-            x = keras.ops.reshape(x, [input_shape[0], input_shape[2], -1])
-            x = keras.ops.transpose(x, [0, 2, 1])
+            x = ops.reshape(x, [input_shape[0], input_shape[2], -1])
+            x = ops.transpose(x, [0, 2, 1])
             x = self.norm(x)
 
         k = self.k(x)
         v = self.v(x)
 
-        k = keras.ops.transpose(
-            keras.ops.reshape(
+        k = ops.transpose(
+            ops.reshape(
                 k,
                 [B, -1, self.num_heads, C // self.num_heads],
             ),
             [0, 2, 1, 3],
         )
 
-        v = keras.ops.transpose(
-            keras.ops.reshape(
+        v = ops.transpose(
+            ops.reshape(
                 v,
                 [B, -1, self.num_heads, C // self.num_heads],
             ),
             [0, 2, 1, 3],
         )
 
-        attn = (q @ keras.ops.transpose(k, [0, 1, 3, 2])) * self.scale
-        attn = keras.ops.nn.softmax(attn, axis=-1)
+        attn = (q @ ops.transpose(k, [0, 1, 3, 2])) * self.scale
+        attn = ops.nn.softmax(attn, axis=-1)
 
         attn = attn @ v
-        attn = keras.ops.reshape(
-            keras.ops.transpose(attn, [0, 2, 1, 3]),
+        attn = ops.reshape(
+            ops.transpose(attn, [0, 2, 1, 3]),
             [input_shape[0], input_shape[1], input_shape[2]],
         )
         x = self.proj(attn)

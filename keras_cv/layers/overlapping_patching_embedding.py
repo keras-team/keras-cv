@@ -1,4 +1,5 @@
 from keras_cv.backend import keras
+from keras_cv.backend import ops
 
 
 @keras.saving.register_keras_serializable(package="keras_cv")
@@ -17,6 +18,6 @@ class OverlappingPatchingAndEmbedding(keras.layers.Layer):
         x = self.proj(x)
         # B, H, W, C
         shape = x.shape
-        x = keras.ops.reshape(x, (-1, shape[1] * shape[2], shape[3]))
+        x = ops.reshape(x, (-1, shape[1] * shape[2], shape[3]))
         x = self.norm(x)
         return x

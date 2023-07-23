@@ -24,6 +24,7 @@ import numpy as np
 
 from keras_cv import layers as cv_layers
 from keras_cv.backend import keras
+from keras_cv.backend import ops
 from keras_cv.models import utils
 from keras_cv.models.backbones.backbone import Backbone
 from keras_cv.models.backbones.mix_transformer.mix_transformer_backbone_presets import (  # noqa: E501
@@ -39,7 +40,8 @@ from keras_cv.utils.python_utils import classproperty
 class MiTBackbone(Backbone):
     def __init__(
         self,
-        input_shape=None,
+        include_rescaling,
+        input_shape=(None, None, 3),
         input_tensor=None,
         embed_dims=None,
         depths=None,
@@ -82,15 +84,17 @@ class MiTBackbone(Backbone):
         inputs = utils.parse_model_inputs(input_shape, input_tensor)
         x = inputs
 
-        batch_size = keras.ops.shape(x)[0]
+        if include_rescaling:
+            x = keras.layers.Rescaling(scale=1 / 255)(x)
+
         pyramid_level_inputs = []
         for i in range(num_stages):
             # Compute new height/width after the `proj`
             # call in `OverlappingPatchingAndEmbedding`
             stride = 4 if i == 0 else 2
             new_height, new_width = (
-                int(keras.ops.shape(x)[1] / stride),
-                int(keras.ops.shape(x)[2] / stride),
+                int(ops.shape(x)[1] / stride),
+                int(ops.shape(x)[2] / stride),
             )
 
             x = patch_embedding_layers[i](x)
@@ -103,12 +107,11 @@ class MiTBackbone(Backbone):
 
         super().__init__(inputs=inputs, outputs=x, **kwargs)
 
-        self.channels = embed_dims
         self.num_stages = num_stages
         self.output_channels = embed_dims
-        self.pyramid_level_inputs = pyramid_level_inputs
-        self.patch_embedding_layers = []
-        self.transformer_blocks = []
+        self.pyramid_level_inputs = {
+            f"P{i + 1}": name for i, name in enumerate(pyramid_level_inputs)
+        }
 
     def get_config(self):
         config = super().get_config()
@@ -117,24 +120,10 @@ class MiTBackbone(Backbone):
                 "channels": self.channels,
                 "num_stages": self.num_stages,
                 "output_channels": self.output_channels,
+                "pyramid_level_inputs": self.pyramid_level_inputs,
             }
         )
         return config
-
-
-@keras.saving.register_keras_serializable(package="keras_cv")
-class CustomReshaping(keras.layers.Layer):
-    def __init__(self, H, W):
-        super().__init__()
-        self.H = H
-        self.W = W
-
-    def call(self, x):
-        input_shape = keras.ops.shape(x)
-        x = keras.ops.reshape(
-            x, (input_shape[0], self.H, self.W, input_shape[-1])
-        )
-        return x
 
     @classproperty
     def presets(cls):
@@ -146,3 +135,16 @@ class CustomReshaping(keras.layers.Layer):
         """Dictionary of preset names and configurations that include
         weights."""
         return copy.deepcopy(backbone_presets_with_weights)
+
+
+@keras.saving.register_keras_serializable(package="keras_cv")
+class CustomReshaping(keras.layers.Layer):
+    def __init__(self, H, W):
+        super().__init__()
+        self.H = H
+        self.W = W
+
+    def call(self, x):
+        input_shape = ops.shape(x)
+        x = ops.reshape(x, (input_shape[0], self.H, self.W, input_shape[-1]))
+        return x

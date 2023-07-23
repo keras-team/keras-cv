@@ -1,6 +1,7 @@
 import math
 
 from keras_cv.backend import keras
+from keras_cv.backend import ops
 from keras_cv.layers.efficient_multihead_attention import (
     EfficientMultiheadAttention,
 )
@@ -31,8 +32,8 @@ class HierarchicalTransformerEncoder(keras.layers.Layer):
         )
 
     def build(self, input_shape):
-        self.H = keras.ops.sqrt(keras.ops.cast(input_shape[1], "float32"))
-        self.W = keras.ops.sqrt(keras.ops.cast(input_shape[2], "float32"))
+        self.H = ops.sqrt(ops.cast(input_shape[1], "float32"))
+        self.W = ops.sqrt(ops.cast(input_shape[2], "float32"))
 
     def call(self, x):
         x = x + self.drop_path(self.attn(self.norm1(x)))
@@ -52,17 +53,15 @@ class HierarchicalTransformerEncoder(keras.layers.Layer):
 
         def call(self, x):
             x = self.fc1(x)
-            shape = keras.ops.shape(x)
-            B, C = keras.ops.cast(shape[0], "float32"), keras.ops.cast(
-                shape[-1], "float32"
+            shape = ops.shape(x)
+            B, C = ops.cast(shape[0], "float32"), ops.cast(shape[-1], "float32")
+            H, W = ops.sqrt(ops.cast(shape[1], "float32")), ops.sqrt(
+                ops.cast(shape[1], "float32")
             )
-            H, W = keras.ops.sqrt(
-                keras.ops.cast(shape[1], "float32")
-            ), keras.ops.sqrt(keras.ops.cast(shape[1], "float32"))
             # print(B, C, H, W)
-            x = keras.ops.reshape(x, (B, H, W, C))
+            x = ops.reshape(x, (B, H, W, C))
             x = self.dwconv(x)
-            x = keras.ops.reshape(x, (B, -1, C))
-            x = keras.ops.nn.gelu(x)
+            x = ops.reshape(x, (B, -1, C))
+            x = ops.nn.gelu(x)
             x = self.fc2(x)
             return x
