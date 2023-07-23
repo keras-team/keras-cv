@@ -33,10 +33,12 @@ class RandomGaussianBlur(BaseImageAugmentationLayer):
         factor: A tuple of two floats, a single float or a
             `keras_cv.FactorSampler`. `factor` controls the extent to which the
             image is blurred. Mathematically, `factor` represents the `sigma`
-            value in a gaussian blur. `factor=0.0` makes this layer perform a
-            no-op operation, and high values make the blur stronger. In order to
-            ensure the value is always the same, please pass a tuple with two
-            identical floats: `(0.5, 0.5)`.
+            value in a gaussian blur. The closer `factor` is to 0, the more 
+            this operation becomes a no-op operation, and high values make the 
+            blur stronger. However, factor MUST NOT BECOME 0 as then numerical 
+            instability occurs and `nan` results. In order to ensure the value 
+            is always the same, please pass a tuple with two identical floats: 
+            `(0.5, 0.5)`.
     """
 
     def __init__(self, kernel_size, factor, **kwargs):
