@@ -43,7 +43,7 @@ class MiTBackbone(Backbone):
         include_rescaling,
         input_shape=(None, None, 3),
         input_tensor=None,
-        embed_dims=None,
+        embedding_dims=None,
         depths=None,
         **kwargs,
     ):
@@ -60,7 +60,7 @@ class MiTBackbone(Backbone):
 
         for i in range(num_stages):
             patch_embed_layer = cv_layers.OverlappingPatchingAndEmbedding(
-                out_channels=embed_dims[0] if i == 0 else embed_dims[i],
+                out_channels=embedding_dims[0] if i == 0 else embedding_dims[i],
                 patch_size=7 if i == 0 else 3,
                 stride=4 if i == 0 else 2,
                 name=f"patch_and_embed_{i}",
@@ -69,7 +69,7 @@ class MiTBackbone(Backbone):
 
             transformer_block = [
                 cv_layers.HierarchicalTransformerEncoder(
-                    project_dim=embed_dims[i],
+                    project_dim=embedding_dims[i],
                     num_heads=blockwise_num_heads[i],
                     sr_ratio=blockwise_sr_ratios[i],
                     drop_prob=dpr[cur + k],
@@ -108,7 +108,7 @@ class MiTBackbone(Backbone):
         super().__init__(inputs=inputs, outputs=x, **kwargs)
 
         self.num_stages = num_stages
-        self.output_channels = embed_dims
+        self.output_channels = embedding_dims
         self.pyramid_level_inputs = {
             f"P{i + 1}": name for i, name in enumerate(pyramid_level_inputs)
         }

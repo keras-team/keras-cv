@@ -25,7 +25,7 @@ backbone_presets_no_weights = {
         },
         "class_name": "keras_cv.models>MiTBackbone",
         "config": {
-            "embed_dims": [32, 64, 160, 256],
+            "embedding_dims": [32, 64, 160, 256],
             "depths": [2, 2, 2, 2],
             "include_rescaling": True,
             "input_shape": (224, 224, 3),
@@ -43,7 +43,7 @@ backbone_presets_no_weights = {
         },
         "class_name": "keras_cv.models>MiTBackbone",
         "config": {
-            "embed_dims": [64, 128, 320, 512],
+            "embedding_dims": [64, 128, 320, 512],
             "depths": [2, 2, 2, 2],
             "include_rescaling": True,
             "input_shape": (224, 224, 3),
@@ -61,7 +61,7 @@ backbone_presets_no_weights = {
         },
         "class_name": "keras_cv.models>MiTBackbone",
         "config": {
-            "embed_dims": [64, 128, 320, 512],
+            "embedding_dims": [64, 128, 320, 512],
             "depths": [3, 4, 6, 3],
             "include_rescaling": True,
             "input_shape": (224, 224, 3),
@@ -79,7 +79,7 @@ backbone_presets_no_weights = {
         },
         "class_name": "keras_cv.models>MiTBackbone",
         "config": {
-            "embed_dims": [64, 128, 320, 512],
+            "embedding_dims": [64, 128, 320, 512],
             "depths": [3, 4, 18, 3],
             "include_rescaling": True,
             "input_shape": (224, 224, 3),
@@ -97,7 +97,7 @@ backbone_presets_no_weights = {
         },
         "class_name": "keras_cv.models>MiTBackbone",
         "config": {
-            "embed_dims": [64, 128, 320, 512],
+            "embedding_dims": [64, 128, 320, 512],
             "depths": [3, 8, 27, 3],
             "include_rescaling": True,
             "input_shape": (224, 224, 3),
@@ -115,7 +115,7 @@ backbone_presets_no_weights = {
         },
         "class_name": "keras_cv.models>MiTBackbone",
         "config": {
-            "embed_dims": [64, 128, 320, 512],
+            "embedding_dims": [64, 128, 320, 512],
             "depths": [3, 6, 40, 3],
             "include_rescaling": True,
             "input_shape": (224, 224, 3),
