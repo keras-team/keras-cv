@@ -3,7 +3,11 @@ import math
 from keras_cv.backend import keras
 
 """
-Based on: https://github.com/sithu31296/semantic-segmentation/blob/main/semseg/models/backbones/mit.py
+Acknowledgement:
+
+This implementation is based on the PyTorch implementations from:
+ - NVlabs' official implementation: https://github.com/NVlabs/SegFormer/blob/master/mmseg/models/backbones/mix_transformer.py
+ - @sithu31296's reimplementation: https://github.com/sithu31296/semantic-segmentation/blob/main/semseg/models/backbones/mit.py
 """
 
 

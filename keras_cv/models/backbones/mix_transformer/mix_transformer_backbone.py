@@ -18,7 +18,7 @@ References:
 
 """  # noqa: E501
 
-import math
+import copy
 
 import numpy as np
 
@@ -33,8 +33,6 @@ from keras_cv.models.backbones.mix_transformer.mix_transformer_backbone_presets 
     backbone_presets_with_weights,
 )
 from keras_cv.utils.python_utils import classproperty
-
-# from keras import KerasTensor
 
 
 @keras.saving.register_keras_serializable(package="keras_cv.models")
@@ -103,11 +101,7 @@ class MiTBackbone(Backbone):
             x = CustomReshaping(new_height, new_width)(x)
             pyramid_level_inputs.append(x)
 
-        super().__init__(
-            inputs=inputs,
-            outputs=x,
-            **kwargs,
-        )
+        super().__init__(inputs=inputs, outputs=x, **kwargs)
 
         self.channels = embed_dims
         self.num_stages = num_stages
@@ -141,3 +135,14 @@ class CustomReshaping(keras.layers.Layer):
             x, (input_shape[0], self.H, self.W, input_shape[-1])
         )
         return x
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return copy.deepcopy(backbone_presets)
+
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include
+        weights."""
+        return copy.deepcopy(backbone_presets_with_weights)
