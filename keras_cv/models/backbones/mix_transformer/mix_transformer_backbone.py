@@ -39,25 +39,10 @@ class MiTBackbone(Backbone):
         self,
         input_shape=None,
         input_tensor=None,
-        classes=None,
-        include_top=None,
         embed_dims=None,
         depths=None,
-        pooling=None,
         **kwargs,
     ):
-        if include_top and not classes:
-            raise ValueError(
-                "If `include_top` is True, you should specify `classes`. "
-                f"Received: classes={classes}"
-            )
-
-        if include_top and pooling:
-            raise ValueError(
-                f"`pooling` must be `None` when `include_top=True`."
-                f"Received pooling={pooling} and include_top={include_top}. "
-            )
-
         drop_path_rate = 0.1
         dpr = [x for x in np.linspace(0.0, drop_path_rate, sum(depths))]
         blockwise_num_heads = [1, 2, 5, 8]
@@ -95,15 +80,23 @@ class MiTBackbone(Backbone):
         inputs = utils.parse_model_inputs(input_shape, input_tensor)
         x = inputs
 
-        batch_size = x.shape[0]
+        batch_size = keras.ops.shape(x)[0]
         pyramid_level_inputs = []
         for i in range(num_stages):
-            x, H, W = patch_embedding_layers[i](x)
+            # Compute new height/width after the `proj`
+            # call in `OverlappingPatchingAndEmbedding`
+            stride = 4 if i == 0 else 2
+            new_height, new_width = (
+                int(keras.ops.shape(x)[1] / stride),
+                int(keras.ops.shape(x)[2] / stride),
+            )
+
+            x = patch_embedding_layers[i](x)
             for blk in transformer_blocks[i]:
-                x = blk(x, H, W)
+                x = blk(x)
             x = layer_norms[i](x)
             C = x.shape[-1]
-            x = x.reshape((batch_size, H, W, C))
+            x = keras.ops.reshape(x, (batch_size, new_height, new_width, C))
             pyramid_level_inputs.append(x)
 
         super().__init__(
@@ -115,11 +108,7 @@ class MiTBackbone(Backbone):
         self.channels = embed_dims
         self.num_stages = num_stages
         self.output_channels = embed_dims
-        self.classes = classes
-        self.include_top = include_top
         self.pyramid_level_inputs = pyramid_level_inputs
-        self.pooling = pooling
-
         self.patch_embedding_layers = []
         self.transformer_blocks = []
 
@@ -130,9 +119,6 @@ class MiTBackbone(Backbone):
                 "channels": self.channels,
                 "num_stages": self.num_stages,
                 "output_channels": self.output_channels,
-                "classes": self.classes,
-                "include_top": self.include_top,
-                "pooling": self.pooling,
             }
         )
         return config

@@ -19,4 +19,4 @@ class OverlappingPatchingAndEmbedding(keras.layers.Layer):
         shape = x.shape
         x = keras.ops.reshape(x, (-1, shape[1] * shape[2], shape[3]))
         x = self.norm(x)
-        return x, shape[1], shape[2]
+        return x
