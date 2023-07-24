@@ -63,7 +63,7 @@ class MiTBackbone(Backbone):
 
         for i in range(num_stages):
             patch_embed_layer = cv_layers.OverlappingPatchingAndEmbedding(
-                out_channels=embedding_dims[0] if i == 0 else embedding_dims[i],
+                project_dim=embedding_dims[0] if i == 0 else embedding_dims[i],
                 patch_size=7 if i == 0 else 3,
                 stride=4 if i == 0 else 2,
                 name=f"patch_and_embed_{i}",
