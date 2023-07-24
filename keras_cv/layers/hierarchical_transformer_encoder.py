@@ -32,6 +32,7 @@ class HierarchicalTransformerEncoder(keras.layers.Layer):
         )
 
     def build(self, input_shape):
+        super().build()
         self.H = ops.sqrt(ops.cast(input_shape[1], "float32"))
         self.W = ops.sqrt(ops.cast(input_shape[2], "float32"))
 
@@ -58,7 +59,6 @@ class HierarchicalTransformerEncoder(keras.layers.Layer):
             H, W = ops.sqrt(ops.cast(shape[1], "float32")), ops.sqrt(
                 ops.cast(shape[1], "float32")
             )
-            # print(B, C, H, W)
             x = ops.reshape(x, (B, H, W, C))
             x = self.dwconv(x)
             x = ops.reshape(x, (B, -1, C))

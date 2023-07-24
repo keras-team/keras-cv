@@ -15,7 +15,10 @@
 """MiT backbone model.
 
 References:
-
+  - [SegFormer: Simple and Efficient Design for Semantic Segmentation with Transformers](https://arxiv.org/abs/2105.15203) (CVPR 2021)
+  - [Based on the TensorFlow implementation from DeepVision](https://github.com/DavidLandup0/deepvision/blob/main/deepvision/models/classification/mix_transformer/mit_tf.py)
+  - [Based on the NVlabs' official PyTorch implementation](https://github.com/NVlabs/SegFormer/blob/master/mmseg/models/backbones/mix_transformer.py)
+  - [Inspired by @sithu31296's reimplementation](https://github.com/sithu31296/semantic-segmentation/blob/main/semseg/models/backbones/mit.py)
 """  # noqa: E501
 
 import copy
@@ -101,8 +104,7 @@ class MiTBackbone(Backbone):
             for blk in transformer_blocks[i]:
                 x = blk(x)
             x = layer_norms[i](x)
-            C = x.shape[-1]
-            x = CustomReshaping(new_height, new_width)(x)
+            x = keras.layers.Reshape((new_height, new_width, -1))(x)
             pyramid_level_inputs.append(x)
 
         super().__init__(inputs=inputs, outputs=x, **kwargs)
@@ -135,16 +137,3 @@ class MiTBackbone(Backbone):
         """Dictionary of preset names and configurations that include
         weights."""
         return copy.deepcopy(backbone_presets_with_weights)
-
-
-@keras.saving.register_keras_serializable(package="keras_cv")
-class CustomReshaping(keras.layers.Layer):
-    def __init__(self, H, W):
-        super().__init__()
-        self.H = H
-        self.W = W
-
-    def call(self, x):
-        input_shape = ops.shape(x)
-        x = ops.reshape(x, (input_shape[0], self.H, self.W, input_shape[-1]))
-        return x
