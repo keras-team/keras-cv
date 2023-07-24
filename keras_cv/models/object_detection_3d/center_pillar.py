@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import copy
-from typing import List
-from typing import Sequence
 
 import tensorflow as tf
 from tensorflow import keras
@@ -38,13 +36,11 @@ class MultiHeadCenterPillar(Task):
         backbone: the backbone to apply to voxelized features.
         voxel_net: the voxel_net that takes point cloud feature and convert
             to voxelized features. KerasCV offers a `DynamicVoxelization` layer
-            in `keras_cv.layers.object_detection_3d.voxelization` which is a
-            reasonable default for most detection use cases.
-        multiclass_head: a multi class head which returns a dict of heatmap
-            prediction and regression prediction per class.
-        label_encoder: a LabelEncoder that takes point cloud xyz and point cloud
-            features and returns a multi class labels which is a dict of
-            heatmap, box location and top_k heatmap index per class.
+            in `keras_cv.layers` which is a reasonable default for most
+            detection use cases.
+        multiclass_head: A keras.layers.Layer which takes the backbone output
+            and returns a dict of heatmap prediction and regression prediction
+            per class.
         prediction_decoder: a multi class heatmap prediction decoder that
             returns a dict of decoded boxes, box class, and box confidence score
             per class.
@@ -79,7 +75,7 @@ class MultiHeadCenterPillar(Task):
         super().__init__(inputs=inputs, outputs=predictions, **kwargs)
 
         self._voxelization_layer = voxel_net
-        self.backbone = backbone
+        self._backbone = backbone
         self._multiclass_head = multiclass_head
         self._prediction_decoder = prediction_decoder
         self._head_names = self._multiclass_head._head_names
@@ -191,9 +187,9 @@ class MultiClassDetectionHead(keras.layers.Layer):
 
     def __init__(
         self,
-        num_classes: int,
-        num_head_bin: Sequence[int],
-        name: str = "detection_head",
+        num_classes,
+        num_head_bin,
+        name="detection_head",
     ):
         super().__init__(name=name)
 
@@ -214,7 +210,7 @@ class MultiClassDetectionHead(keras.layers.Layer):
                 name=f"head_{i + 1}",
             )
 
-    def call(self, feature: tf.Tensor, training: bool) -> List[tf.Tensor]:
+    def call(self, feature, training):
         del training
         outputs = {}
         for head_name in self._head_names:
@@ -256,13 +252,13 @@ class MultiClassHeatmapDecoder(keras.layers.Layer):
     def __init__(
         self,
         num_classes,
-        num_head_bin: Sequence[int],
-        anchor_size: Sequence[Sequence[float]],
-        max_pool_size: Sequence[int],
-        max_num_box: Sequence[int],
-        heatmap_threshold: Sequence[float],
-        voxel_size: Sequence[float],
-        spatial_size: Sequence[float],
+        num_head_bin,
+        anchor_size,
+        max_pool_size,
+        max_num_box,
+        heatmap_threshold,
+        voxel_size,
+        spatial_size,
         **kwargs,
     ):
         super().__init__(**kwargs)

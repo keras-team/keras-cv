@@ -15,7 +15,7 @@
 
 
 backbone_presets = {
-    "waymo_open_dataset": {
+    "center_pillar_waymo_open_dataset": {
         "metadata": {
             "description": "An example CenterPillar backbone for WOD.",
             "params": 1277680,

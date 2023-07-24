@@ -41,7 +41,7 @@ class CenterPillarBackboneTest(TestCase):
 
     def test_preset(self):
         model = CenterPillarBackbone.from_preset(
-            "waymo_open_dataset", input_shape=(16, 16, 5)
+            "center_pillar_waymo_open_dataset", input_shape=(16, 16, 5)
         )
         x = tf.random.normal((1, 16, 16, 5))
         _ = model(x)
