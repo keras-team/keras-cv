@@ -31,7 +31,7 @@ TEST_CONFIGURATIONS = [
             "crop_area_factor": (0.8, 1.0),
             "aspect_ratio_factor": (3 / 4, 4 / 3),
             "bounding_box_format": "xywh",
-            "dtype": tf.float32,
+            "dtype": "float32",
         },
     ),
     ("Grayscale", layers.Grayscale, {}),
@@ -69,7 +69,7 @@ TEST_CONFIGURATIONS = [
             "width_factor": 0.5,
             "height_factor": 0.5,
             "bounding_box_format": "xyxy",
-            "dtype": tf.float32,
+            "dtype": "float32",
         },
     ),
     (
@@ -97,12 +97,12 @@ TEST_CONFIGURATIONS = [
     (
         "RandomGaussianBlur",
         layers.RandomGaussianBlur,
-        {"kernel_size": 3, "factor": (0.0, 3.0), "dtype": tf.float32},
+        {"kernel_size": 3, "factor": (0.0, 3.0), "dtype": "float32"},
     ),
     (
         "RandomJpegQuality",
         layers.RandomJpegQuality,
-        {"factor": (75, 100), "dtype": tf.float32},
+        {"factor": (75, 100), "dtype": "float32"},
     ),
     (
         "RandomRotation",
@@ -110,7 +110,7 @@ TEST_CONFIGURATIONS = [
         {
             "factor": 0.5,
             "bounding_box_format": "xyxy",
-            "dtype": tf.float32,
+            "dtype": "float32",
         },
     ),
     ("RandomSaturation", layers.RandomSaturation, {"factor": 0.5}),
@@ -125,7 +125,7 @@ TEST_CONFIGURATIONS = [
         {
             "factor": (0.9, 1.1),
             "bounding_box_format": "xyxy",
-            "dtype": tf.float32,
+            "dtype": "float32",
         },
     ),
     (
@@ -135,7 +135,7 @@ TEST_CONFIGURATIONS = [
             "x_factor": 0.3,
             "x_factor": 0.3,
             "bounding_box_format": "xyxy",
-            "dtype": tf.float32,
+            "dtype": "float32",
         },
     ),
     # ("RandomShear", layers.RandomShear, {"x_factor": 0.3, "x_factor": 0.3}),
@@ -155,7 +155,7 @@ TEST_CONFIGURATIONS = [
             "width": 224,
             "bounding_box_format": "xyxy",
             "pad_to_aspect_ratio": True,
-            "dtype": tf.float32,
+            "dtype": "float32",
         },
     ),
     (
@@ -165,7 +165,7 @@ TEST_CONFIGURATIONS = [
             "target_size": (224, 224),
             "scale_factor": (0.8, 1.25),
             "bounding_box_format": "xywh",
-            "dtype": tf.float32,
+            "dtype": "float32",
         },
     ),
     (
