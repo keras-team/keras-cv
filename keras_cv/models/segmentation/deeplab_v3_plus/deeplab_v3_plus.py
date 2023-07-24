@@ -16,6 +16,7 @@ import copy
 
 from keras_cv.backend import keras
 from keras_cv.layers.spatial_pyramid import SpatialPyramidPooling
+from keras_cv.models.backbones.backbone import Backbone
 from keras_cv.models.backbones.backbone_presets import backbone_presets
 from keras_cv.models.backbones.backbone_presets import (
     backbone_presets_with_weights,
@@ -97,12 +98,14 @@ class DeepLabV3Plus(Task):
         segmentation_head=None,
         **kwargs,
     ):
-        if not isinstance(backbone, keras.layers.Layer) or not isinstance(
-            backbone, keras.Model
+        if (
+            not isinstance(backbone, keras.layers.Layer)
+            or not isinstance(backbone, keras.Model)
+            or not issubclass(backbone.__class__, Backbone)
         ):
             raise ValueError(
                 "Argument `backbone` must be a `keras.layers.Layer` instance "
-                f" or `keras.Model`. Received instead "
+                f" or `keras.Model` or `keras_cv.models.backbones.backbone.Backbone`. Received instead "
                 f"backbone={backbone} (of type {type(backbone)})."
             )
 
