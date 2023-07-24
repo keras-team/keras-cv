@@ -35,6 +35,8 @@ class CenterPillarBackbone(Backbone):
     All function parameters require curried functions as inputs which return a
     function that acts on tensors as inputs.
 
+    Reference: [U-Net: Convolutional Networks for Biomedical Image Segmentation](https://arxiv.org/abs/1505.04597)
+
     Args:
         stackwise_down_blocks: a list of integers representing the number of
             sub-blocks in each downsampling block.
@@ -43,7 +45,7 @@ class CenterPillarBackbone(Backbone):
         stackwise_up_filters: a list of integers representing the number of
             filters in each upsampling block.
         input_shape: the rank 3 shape of the input to the UNet.
-    """
+    """  # noqa: E501
 
     def __init__(
         self,

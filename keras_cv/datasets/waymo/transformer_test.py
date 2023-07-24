@@ -13,6 +13,7 @@
 # limitations under the License.
 import os
 
+import numpy as np
 import pytest
 import tensorflow as tf
 
@@ -54,7 +55,7 @@ class WaymoOpenDatasetTransformerTest(TestCase):
         self.assertGreater(lidar_tensors["timestamp_micros"], 0)
         self.assertAllEqual(
             lidar_tensors["label_box_detection_difficulty"],
-            tf.zeros(num_boxes, dtype=tf.int32),
+            np.zeros(num_boxes, dtype="int32"),
         )
 
         # Laser points.

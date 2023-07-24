@@ -12,14 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import tensorflow as tf
-from tensorflow import keras
+import copy
 
+from keras_cv.backend import keras
 from keras_cv.layers.spatial_pyramid import SpatialPyramidPooling
+from keras_cv.models.backbones.backbone_presets import backbone_presets
+from keras_cv.models.backbones.backbone_presets import (
+    backbone_presets_with_weights,
+)
 from keras_cv.models.task import Task
+from keras_cv.utils.python_utils import classproperty
+from keras_cv.utils.train import get_feature_extractor
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+@keras.saving.register_keras_serializable(package="keras_cv")
 class DeepLabV3Plus(Task):
     """A Keras model implementing the DeepLabV3+ architecture for semantic
     segmentation.
@@ -34,9 +40,9 @@ class DeepLabV3Plus(Task):
         backbone: `keras.Model`. The backbone network for the model that is
             used as a feature extractor for the DeepLabV3+ Encoder. Should
             either be a `keras_cv.models.backbones.backbone.Backbone` or a
-            `tf.keras.Model` that implements the `pyramid_level_inputs`
-            property with keys "P2", "P3", "P4", and "P5" and layer names as
-            values. A somewhat sensible backbone to use in many cases is the:
+            `keras.Model` that implements the `pyramid_level_inputs`
+            property with keys "P2" and "P5" and layer names as values. A
+            somewhat sensible backbone to use in many cases is the
             `keras_cv.models.ResNet50V2Backbone.from_preset("resnet50_v2_imagenet")`.
         num_classes: int, the number of classes for the detection model. Note
             that the `num_classes` doesn't contain the background class, and the
@@ -55,11 +61,11 @@ class DeepLabV3Plus(Task):
         segmentation_head: (Optional) a `keras.layers.Layer`. If provided, the
             outputs of the DeepLabV3 encoder is passed to this layer and it
             should predict the segmentation mask based on feature from backbone
-            and feature from decoder, otherwise a similar architecture is used.
+            and feature from decoder, otherwise a default DeepLabV3
+            convolutional head is used.
 
     Examples:
     ```python
-    import tensorflow as tf
     import keras_cv
 
     images = np.ones(shape=(1, 96, 96, 3))
@@ -102,21 +108,21 @@ class DeepLabV3Plus(Task):
 
         inputs = backbone.input
 
-        backbone_outputs = backbone(inputs)
+        extractor_levels = ["P2", "P5"]
+        extractor_layer_names = [
+            backbone.pyramid_level_inputs[i] for i in extractor_levels
+        ]
+        feature_extractor = get_feature_extractor(
+            backbone, extractor_layer_names, extractor_levels
+        )
+        backbone_features = feature_extractor(inputs)
 
         if spatial_pyramid_pooling is None:
             spatial_pyramid_pooling = SpatialPyramidPooling(
                 dilation_rates=[6, 12, 18]
             )
-        spp_outputs = spatial_pyramid_pooling(backbone_outputs)
+        spp_outputs = spatial_pyramid_pooling(backbone_features["P5"])
 
-        low_level_feature_extractor = keras.Model(
-            inputs=backbone.input,
-            outputs=backbone.get_layer(
-                backbone.pyramid_level_inputs["P2"]
-            ).output,
-            name="low-level-feature-extractor",
-        )
         low_level_feature_projector = keras.Sequential(
             [
                 keras.layers.Conv2D(
@@ -131,16 +137,12 @@ class DeepLabV3Plus(Task):
             ]
         )
 
-        low_level_features = low_level_feature_extractor(inputs)
         low_level_projected_features = low_level_feature_projector(
-            low_level_features
+            backbone_features["P2"]
         )
 
         encoder_outputs = keras.layers.UpSampling2D(
-            size=(
-                low_level_projected_features.shape[1] // spp_outputs.shape[1],
-                low_level_projected_features.shape[2] // spp_outputs.shape[2],
-            ),
+            size=(8, 8),
             interpolation="bilinear",
             name="encoder_output_upsampling",
         )(spp_outputs)
@@ -177,7 +179,7 @@ class DeepLabV3Plus(Task):
                         # Force the dtype of the classification layer to float32
                         # to avoid the NAN loss issue when used with mixed
                         # precision API.
-                        dtype=tf.float32,
+                        dtype="float32",
                     ),
                 ]
             )
@@ -195,8 +197,47 @@ class DeepLabV3Plus(Task):
     def get_config(self):
         return {
             "num_classes": self.num_classes,
-            "backbone": self.backbone,
-            "spatial_pyramid_pooling": self.spatial_pyramid_pooling,
+            "backbone": keras.saving.serialize_keras_object(self.backbone),
+            "spatial_pyramid_pooling": keras.saving.serialize_keras_object(
+                self.spatial_pyramid_pooling
+            ),
             "projection_filters": self.projection_filters,
-            "segmentation_head": self.segmentation_head,
+            "segmentation_head": keras.saving.serialize_keras_object(
+                self.segmentation_head
+            ),
         }
+
+    @classmethod
+    def from_config(cls, config):
+        if "backbone" in config and isinstance(config["backbone"], dict):
+            config["backbone"] = keras.layers.deserialize(config["backbone"])
+        if "spatial_pyramid_pooling" in config and isinstance(
+            config["spatial_pyramid_pooling"], dict
+        ):
+            config["spatial_pyramid_pooling"] = keras.layers.deserialize(
+                config["spatial_pyramid_pooling"]
+            )
+        if "segmentation_head" in config and isinstance(
+            config["segmentation_head"], dict
+        ):
+            config["segmentation_head"] = keras.layers.deserialize(
+                config["segmentation_head"]
+            )
+        return super().from_config(config)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return copy.deepcopy(backbone_presets)
+
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include
+        weights."""
+        return copy.deepcopy(backbone_presets_with_weights)
+
+    @classproperty
+    def backbone_presets(cls):
+        """Dictionary of preset names and configurations of compatible
+        backbones."""
+        return copy.deepcopy(backbone_presets)

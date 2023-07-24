@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numpy as np
 import pytest
 import tensorflow as tf
 from tensorflow import keras
@@ -82,7 +83,7 @@ class ContrastiveTrainerTest(TestCase):
         )
 
         images = tf.random.uniform((1, 50, 50, 3))
-        targets = tf.ones((1, 20))
+        targets = np.ones((1, 20))
 
         trainer_with_probing.compile(
             encoder_optimizer=optimizers.Adam(),
@@ -105,7 +106,7 @@ class ContrastiveTrainerTest(TestCase):
         )
 
         images = tf.random.uniform((1, 50, 50, 3))
-        targets = tf.ones((1, 20))
+        targets = np.ones((1, 20))
 
         trainer_without_probing.compile(
             encoder_optimizer=optimizers.Adam(),
@@ -128,7 +129,7 @@ class ContrastiveTrainerTest(TestCase):
         )
 
         with self.assertRaises(NotImplementedError):
-            trainer(tf.ones((1, 50, 50, 3)))
+            trainer(np.ones((1, 50, 50, 3)))
 
     def test_encoder_must_have_flat_output(self):
         with self.assertRaises(ValueError):

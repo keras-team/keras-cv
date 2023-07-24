@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import tensorflow as tf
+import numpy as np
 
 from keras_cv import bounding_box
 from keras_cv.tests.test_case import TestCase
@@ -22,7 +22,7 @@ class ValidateTest(TestCase):
         with self.assertRaisesRegex(
             ValueError, "Expected `bounding_boxes` to be a dictionary, got "
         ):
-            bounding_box.validate_format(tf.ones((4, 3, 6)))
+            bounding_box.validate_format(np.ones((4, 3, 6)))
 
     def test_mismatch_dimensions(self):
         with self.assertRaisesRegex(
@@ -30,7 +30,7 @@ class ValidateTest(TestCase):
             "Expected `boxes` and `classes` to have matching dimensions",
         ):
             bounding_box.validate_format(
-                {"boxes": tf.ones((4, 3, 6)), "classes": tf.ones((4, 6))}
+                {"boxes": np.ones((4, 3, 6)), "classes": np.ones((4, 6))}
             )
 
     def test_bad_keys(self):
