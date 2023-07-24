@@ -10,21 +10,32 @@ class SegFormer(Task):
         num_classes=None,
         backbone=None,
         embed_dim=None,
-        input_shape=None,
-        input_tensor=None,
         **kwargs,
     ):
-        inputs = utils.parse_model_inputs(input_shape, input_tensor)
-        x = inputs
-        y = backbone(x)
+        
+        if not isinstance(backbone, keras.layers.Layer) or not isinstance(
+            backbone, keras.Model
+        ):
+            raise ValueError(
+                "Argument `backbone` must be a `keras.layers.Layer` instance "
+                f" or `keras.Model`. Received instead "
+                f"backbone={backbone} (of type {type(backbone)})."
+            )
+
+        inputs = backbone.input
+        backbone(inputs)
+
+        outputs = backbone.pyramid_level_inputs
+
         y = SegFormerHead(
             in_dims=backbone.output_channels,
             embed_dim=embed_dim,
             num_classes=num_classes,
             name="segformer_head",
-        )(y)
+        )(outputs)
+
         output = keras.layers.Resizing(
-            height=x.shape[1], width=x.shape[2], interpolation="bilinear"
+            height=inputs.shape[1], width=inputs.shape[2], interpolation="bilinear"
         )(y)
 
         super().__init__(
@@ -69,7 +80,7 @@ class SegFormerHead(keras.layers.Layer):
         self.seg_out = keras.layers.Conv2D(filters=num_classes, kernel_size=1)
 
     def call(self, features):
-        B, H, W, _ = features[0].shape
+        _, H, W, _ = features[0].shape
         outs = []
 
         for feature, layer in zip(features, self.linear_layers):
