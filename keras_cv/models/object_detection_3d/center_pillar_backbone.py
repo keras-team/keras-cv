@@ -25,6 +25,76 @@ from keras_cv.models.object_detection_3d.center_pillar_backbone_presets import (
 from keras_cv.utils.python_utils import classproperty
 
 
+@keras.utils.register_keras_serializable(package="keras_cv.models")
+class CenterPillarBackbone(Backbone):
+    """A UNet backbone for CenterPillar models.
+
+    All up and down blocks scale by a factor of two. Skip connections are
+    included.
+
+    All function parameters require curried functions as inputs which return a
+    function that acts on tensors as inputs.
+
+    Args:
+        stackwise_down_blocks: a list of integers representing the number of
+            sub-blocks in each downsampling block.
+        stackwise_down_filters: a list of integers representing the number of
+            filters in each downsampling block.
+        stackwise_up_filters: a list of integers representing the number of
+            filters in each upsampling block.
+        input_shape: the rank 3 shape of the input to the UNet.
+    """
+
+    def __init__(
+        self,
+        stackwise_down_blocks,
+        stackwise_down_filters,
+        stackwise_up_filters,
+        input_shape=(None, None, 128),
+        **kwargs
+    ):
+        input = layers.Input(shape=input_shape)
+        x = input
+
+        x = keras.layers.Conv2D(
+            128,
+            1,
+            1,
+            padding="same",
+            kernel_initializer=keras.initializers.VarianceScaling(),
+            kernel_regularizer=keras.regularizers.L2(l2=1e-4),
+        )(x)
+        x = keras.layers.BatchNormalization()(x)
+        x = keras.layers.ReLU()(x)
+        x = Block(128, downsample=False)(x)
+
+        skip_connections = []
+        # Filters refers to the number of convolutional filters in each block,
+        # while num_blocks refers to the number of sub-blocks within a block
+        # (Note that only the first sub-block will perform downsampling)
+        for filters, num_blocks in zip(
+            stackwise_down_filters, stackwise_down_blocks
+        ):
+            skip_connections.append(x)
+            x = DownSampleBlock(filters, num_blocks)(x)
+
+        for filters in stackwise_up_filters:
+            x = UpSampleBlock(filters)(x, skip_connections.pop())
+
+        output = x
+
+        super().__init__(
+            inputs=input,
+            outputs=output,
+            **kwargs,
+        )
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return copy.deepcopy(backbone_presets)
+
+
 def Block(filters, downsample):
     """A default block which serves as an example of the block interface.
 
@@ -138,75 +208,3 @@ def UpSampleBlock(filters):
         return x
 
     return apply
-
-
-@keras.utils.register_keras_serializable(package="keras_cv.models")
-class CenterPillarBackbone(Backbone):
-    """A UNet backbone for CenterPillar models.
-
-    All up and down blocks scale by a factor of two. Skip connections are
-    included.
-
-    All function parameters require curried functions as inputs which return a
-    function that acts on tensors as inputs.
-
-    Args:
-        input_shape: the rank 3 shape of the input to the UNet
-        down_block_configs: a list of (filter_count, num_blocks) tuples
-            indicating the number of filters and sub-blocks in each down block
-        up_block_configs: a list of filter counts, one for each up block
-        down_block: a Python function with two arguments which returns a
-            curried function to create a downsampling block. See the default
-            `DownSampleBlock` for an example.
-        up_block: a Python function with one argument which returns a curried
-            function to create an upsampling block. See the default
-            `UpSampleBlock` for an example.
-    """
-
-    def __init__(
-        self,
-        down_block_configs,
-        up_block_configs,
-        down_block=DownSampleBlock,
-        up_block=UpSampleBlock,
-        input_shape=(None, None, 128),
-        **kwargs
-    ):
-        input = layers.Input(shape=input_shape)
-        x = input
-
-        x = keras.layers.Conv2D(
-            128,
-            1,
-            1,
-            padding="same",
-            kernel_initializer=keras.initializers.VarianceScaling(),
-            kernel_regularizer=keras.regularizers.L2(l2=1e-4),
-        )(x)
-        x = keras.layers.BatchNormalization()(x)
-        x = keras.layers.ReLU()(x)
-        x = Block(128, downsample=False)(x)
-
-        skip_connections = []
-        # Filters refers to the number of convolutional filters in each block,
-        # while num_blocks refers to the number of sub-blocks within a block
-        # (Note that only the first sub-block will perform downsampling)
-        for filters, num_blocks in down_block_configs:
-            skip_connections.append(x)
-            x = down_block(filters, num_blocks)(x)
-
-        for filters in up_block_configs:
-            x = up_block(filters)(x, skip_connections.pop())
-
-        output = x
-
-        super().__init__(
-            inputs=input,
-            outputs=output,
-            **kwargs,
-        )
-
-    @classproperty
-    def presets(cls):
-        """Dictionary of preset names and configurations."""
-        return copy.deepcopy(backbone_presets)

@@ -35,18 +35,19 @@ class MultiHeadCenterPillar(Task):
     regression heads on the feature map.
 
     Args:
-      backbone: the backbone to apply to voxelized features.
-      voxel_net: the voxel_net that takes point cloud feature and convert
-        to voxelized features.
-      multiclass_head: a multi class head which returns a dict of heatmap
-        prediction and regression prediction per class.
-      label_encoder: a LabelEncoder that takes point cloud xyz and point cloud
-        features and returns a multi class labels which is a dict of heatmap,
-        box location and top_k heatmap index per class.
-      prediction_decoder: a multi class heatmap prediction decoder that returns
-        a dict of decoded boxes, box class, and box confidence score per class.
-
-
+        backbone: the backbone to apply to voxelized features.
+        voxel_net: the voxel_net that takes point cloud feature and convert
+            to voxelized features. KerasCV offers a `DynamicVoxelization` layer
+            in `keras_cv.layers.object_detection_3d.voxelization` which is a
+            reasonable default for most detection use cases.
+        multiclass_head: a multi class head which returns a dict of heatmap
+            prediction and regression prediction per class.
+        label_encoder: a LabelEncoder that takes point cloud xyz and point cloud
+            features and returns a multi class labels which is a dict of
+            heatmap, box location and top_k heatmap index per class.
+        prediction_decoder: a multi class heatmap prediction decoder that
+            returns a dict of decoded boxes, box class, and box confidence score
+            per class.
     """
 
     def __init__(
@@ -176,13 +177,22 @@ class MultiHeadCenterPillar(Task):
 
 
 class MultiClassDetectionHead(keras.layers.Layer):
-    """Multi-class object detection head."""
+    """Multi-class object detection head for CenterPillar.
+
+    This head includes a 1x1 convolution layer for each class which is called
+    on the output of the CenterPillar's backbone. The outputs are per-class
+    prediction heatmaps which must be decoded into 3D boxes.
+
+    Args:
+        num_classes: int, the number of box classes to predict.
+        num_head_bin: list of ints, the number of heading bins to use for each
+            respective box class.
+    """
 
     def __init__(
         self,
         num_classes: int,
         num_head_bin: Sequence[int],
-        share_head: bool = False,
         name: str = "detection_head",
     ):
         super().__init__(name=name)
@@ -192,35 +202,17 @@ class MultiClassDetectionHead(keras.layers.Layer):
         self._per_class_prediction_size = []
         self._num_classes = num_classes
         self._num_head_bin = num_head_bin
+
         for i in range(num_classes):
             self._head_names.append(f"class_{i + 1}")
-            size = 0
-            # 0:1 outputs is for classification
-            size += 2
-            # 2:4 outputs is for location offset
-            size += 3
-            # 5:7 outputs is for dimension offset
-            size += 3
-            # 8:end outputs is for bin-based classification and regression
-            size += 2 * num_head_bin[i]
-            self._per_class_prediction_size.append(size)
 
-        if not share_head:
-            for i in range(num_classes):
-                # 1x1 conv for each voxel/pixel.
-                self._heads[self._head_names[i]] = keras.layers.Conv2D(
-                    filters=self._per_class_prediction_size[i],
-                    kernel_size=(1, 1),
-                    name=f"head_{i + 1}",
-                )
-        else:
-            shared_layer = keras.layers.Conv2D(
-                filters=self._per_class_prediction_size[0],
+            # 1x1 conv for each voxel/pixel.
+            self._heads[self._head_names[i]] = keras.layers.Conv2D(
+                # 2 for class, 3 for location, 3 for size, 2N for heading
+                filters=8 + 2 * num_head_bin[i],
                 kernel_size=(1, 1),
-                name="shared_head",
+                name=f"head_{i + 1}",
             )
-            for i in range(num_classes):
-                self._heads[self._head_names[i]] = shared_layer
 
     def call(self, feature: tf.Tensor, training: bool) -> List[tf.Tensor]:
         del training
@@ -231,6 +223,36 @@ class MultiClassDetectionHead(keras.layers.Layer):
 
 
 class MultiClassHeatmapDecoder(keras.layers.Layer):
+    """Heatmap decoder for CenterPillar models.
+
+    The heatmap decoder converts a sparse heatmap of box predictions into a
+    padded dense set of decoded predicted boxes.
+
+    The input to the heatmap decoder is a spatial heatmap of encoded box
+    predictions, and the output is decoded 3D boxes in CENTER_XYZ_DXDYDZ_PHI
+    format.
+
+    Args:
+        num_classes: int, the number of box classes to predict.
+        num_head_bin: list of ints, the number of heading bins for each
+            respective class.
+        anchor_size: list of length-3 lists of floats, the 3D anchor sizes for
+            each respective class.
+        max_pool_size: list of ints, the 2D pooling size for the heatmap, to be
+            used before box decoding.
+        max_num_box: list of ints, the maximum number of boxes to return for
+            each class. The top K boxes will be returned, and if fewer than K
+            boxes are predicted, the outputs will be padded to contain K boxes.
+        heatmap_threshold: list of floats, the heatmap confidence threshold to
+            be used for each respective class to determine whether or not a box
+            prediction is strong enough to decode and return.
+        voxel_size: list of floats, the size of the voxels that were used to
+            voxelize inputs to the CenterPillar model for each respective class.
+        spatial_size: list of floats, the global 3D size of the heatmap for each
+            respective class. `spatial_size[i] / voxel_size[i]` equals the
+            size of the `i`th rank of the input heatmap.
+    """
+
     def __init__(
         self,
         num_classes,

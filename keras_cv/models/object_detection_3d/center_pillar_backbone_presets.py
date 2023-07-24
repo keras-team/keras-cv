@@ -25,8 +25,9 @@ backbone_presets = {
             "keras_cv.models.object_detection_3d>CenterPillarBackbone"
         ),
         "config": {
-            "down_block_configs": [(128, 6), (256, 2), (512, 2)],
-            "up_block_configs": [512, 256, 256],
+            "stackwise_down_blocks": [6, 2, 1],
+            "stackwise_down_filters": [128, 256, 512],
+            "stackwise_up_filters": [512, 256, 256],
         },
     },
 }

@@ -23,8 +23,9 @@ class CenterPillarBackboneTest(TestCase):
         x = tf.random.normal((1, 16, 16, 5))
         model = CenterPillarBackbone(
             input_shape=(16, 16, 5),
-            down_block_configs=[(128, 6), (256, 2), (512, 1)],
-            up_block_configs=[512, 256, 256],
+            stackwise_down_blocks=[6, 2, 1],
+            stackwise_down_filters=[128, 256, 512],
+            stackwise_up_filters=[512, 256, 256],
         )
         output = model(x)
         self.assertEqual(output.shape, x.shape[:-1] + (256))
@@ -32,8 +33,9 @@ class CenterPillarBackboneTest(TestCase):
     def test_model_size(self):
         model = CenterPillarBackbone(
             input_shape=(16, 16, 5),
-            down_block_configs=[(128, 6), (256, 2), (512, 1)],
-            up_block_configs=[512, 256, 256],
+            stackwise_down_blocks=[6, 2, 1],
+            stackwise_down_filters=[128, 256, 512],
+            stackwise_up_filters=[512, 256, 256],
         )
         self.assertLen(model.layers, 125)
 
