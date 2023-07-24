@@ -44,10 +44,10 @@ class MiTBackbone(Backbone):
     def __init__(
         self,
         include_rescaling,
+        depths,
         input_shape=(None, None, 3),
         input_tensor=None,
         embedding_dims=None,
-        depths=None,
         **kwargs,
     ):
         drop_path_rate = 0.1
