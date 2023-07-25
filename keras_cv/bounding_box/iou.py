@@ -96,8 +96,8 @@ def compute_iou(
       use_masking: whether masking will be applied. This will mask all `boxes1`
         or `boxes2` that have values less than 0 in all its 4 dimensions.
         Default to `False`.
-      mask_val: int to mask those returned IOUs if the masking is True, defaults
-        to -1.
+      mask_val: int to mask those returned IOUs if the masking is True.
+        Defaults to `-1`.
 
     Returns:
       iou_lookup_table: a vector containing the pairwise ious of boxes1 and

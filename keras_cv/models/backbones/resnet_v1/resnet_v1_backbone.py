@@ -60,7 +60,7 @@ class ResNetBackbone(Backbone):
         include_rescaling: bool, whether to rescale the inputs. If set
             to `True`, inputs will be passed through a `Rescaling(1/255.0)`
             layer.
-        input_shape: optional shape tuple, defaults to `(None, None, 3)`.
+        input_shape: optional shape tuple. Defaults to `(None, None, 3)`.
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
             to use as image input for the model.
         block_type: string, one of "basic_block" or "block". The block type to
@@ -181,10 +181,11 @@ def apply_basic_block(
     Args:
         x: input tensor.
         filters: int, filters of the basic layer.
-        kernel_size: int, kernel size of the bottleneck layer, defaults to `3`.
-        stride: int, stride of the first layer, defaults to `1`.
-        conv_shortcut: bool, uses convolution shortcut if `True`. If `False`
-            (default), uses identity or pooling shortcut, based on stride.
+        kernel_size: int, kernel size of the bottleneck layer. Defaults to `3`.
+        stride: int, stride of the first layer. Defaults to `1`.
+        conv_shortcut: bool, uses convolution shortcut if `True`. If `False`,
+          uses identity or pooling shortcut, based on stride.
+          Defaults to `False`.
         name: string, optional prefix for the layer names used in the block.
 
     Returns:
@@ -245,10 +246,11 @@ def apply_block(
     Args:
         x: input tensor.
         filters: int, filters of the basic layer.
-        kernel_size: int, kernel size of the bottleneck layer, defaults to `3`.
-        stride: int, stride of the first layer, defaults to `1`.
-        conv_shortcut: bool, uses convolution shortcut if `True`. If `False`
-            (default), uses identity or pooling shortcut, based on stride.
+        kernel_size: int, kernel size of the bottleneck layer. Defaults to `3`.
+        stride: int, stride of the first layer. Defaults to `1`.
+        conv_shortcut: bool, uses convolution shortcut if `True`. If `False`,
+            uses identity or pooling shortcut, based on stride.
+            Defaults to `False`.
         name: string, optional prefix for the layer names used in the block.
 
     Returns:
@@ -319,13 +321,14 @@ def apply_stack(
         x: input tensor.
         filters: int, filters of the layer in a block.
         blocks: int, blocks in the stacked blocks.
-        stride: int, stride of the first layer in the first block, defaults to
+        stride: int, stride of the first layer in the first block. Defaults to
             `2`.
         name: string, optional prefix for the layer names used in the block.
         block_type: string, one of "basic_block" or "block". The block type to
               stack. Use "basic_block" for ResNet18 and ResNet34.
-        first_shortcut: bool. Use convolution shortcut if `True` (default),
+        first_shortcut: bool. Use convolution shortcut if `True`,
               otherwise uses identity or pooling shortcut, based on stride.
+              Defaults to `True`.
 
     Returns:
         Output tensor for the stacked blocks.

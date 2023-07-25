@@ -52,17 +52,19 @@ class FusedMBConvBlock(keras.layers.Layer):
     Args:
         input_filters: int, the number of input filters
         output_filters: int, the number of output filters
-        expand_ratio: default 1, the ratio by which input_filters are multiplied
-            to expand the structure in the middle expansion phase
-        kernel_size: default 3, the kernel_size to apply to the expansion phase
-            convolutions
-        strides: default 1, the strides to apply to the expansion phase
-            convolutions
-        se_ratio: default 0.0, The filters used in the Squeeze-Excitation phase,
+        expand_ratio: the ratio by which input_filters are multiplied
+            to expand the structure in the middle expansion phase.
+            Defaults to `1`.
+        kernel_size: the kernel_size to apply to the expansion phase
+            convolutions. Defaults to `3`.
+        strides: the strides to apply to the expansion phase
+            convolutions. Defaults to `1`.
+        se_ratio: The filters used in the Squeeze-Excitation phase,
             and are chosen as the maximum between 1 and input_filters*se_ratio
-        bn_momentum: default 0.9, the BatchNormalization momentum
-        activation: default "swish", the activation function used between
-            convolution operations
+            Defaults to `0.0`.
+        bn_momentum: the BatchNormalization momentum. Defaults to `0.9`.
+        activation: the activation function used between
+            convolution operations. Defaults to "swish".
         survival_probability: float, the optional dropout rate to apply before
             the output convolution. Defaults to `0.8`.
 

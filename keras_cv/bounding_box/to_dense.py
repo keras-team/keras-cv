@@ -45,8 +45,8 @@ def to_dense(bounding_boxes, max_boxes=None, default_value=-1):
         max_boxes: the maximum number of boxes, used to pad tensors to a given
             shape. This can be used to make object detection pipelines TPU
             compatible.
-        default_value: the default value to pad bounding boxes with. defaults
-            to -1.
+        default_value: the default value to pad bounding boxes with.
+            Defaults to `-1`.
     """
     info = validate_format.validate_format(bounding_boxes)
 

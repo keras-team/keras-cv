@@ -39,9 +39,9 @@ class NonMaxSuppression(keras.layers.Layer):
         IoU threshold for two boxes to be considered same for suppression.
         Defaults to 0.5.
       confidence_threshold: a float value in the range [0, 1]. All boxes with
-        confidence below this value will be discarded, defaults to 0.5.
+        confidence below this value will be discarded. Defaults to `0.5`.
       max_detections: the maximum detections to consider after nms is applied. A
-        large number may trigger significant memory overhead, defaults to 100.
+        large number may trigger significant memory overhead. Defaults to `100`.
     """  # noqa: E501
 
     def __init__(

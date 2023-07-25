@@ -364,7 +364,7 @@ def convert_format(
             converters to compute relative pixel values of the bounding box
             dimensions. Required when transforming from a rel format to a
             non-rel format.
-        dtype: the data type to use when transforming the boxes, defaults to
+        dtype: the data type to use when transforming the boxes. Defaults to
             `"float32"`.
     """
     if isinstance(boxes, dict):

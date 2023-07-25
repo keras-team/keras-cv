@@ -50,7 +50,8 @@ class OldRandomBrightness(BaseImageAugmentationLayer):
         the image input has been scaled before this layer. The brightness
         adjustment will be scaled to this range, and the output values will be
         clipped to this range. Defaults to `[0.0, 255.0]`.
-      seed: optional integer, for fixed RNG behavior. Defaults to `[0.0, 255.0]`.
+      seed: optional integer, for fixed RNG behavior.
+        Defaults to `[0.0, 255.0]`.
     Inputs: 3D (HWC) or 4D (NHWC) tensor, with float or int dtype. Input pixel
       values can be of any range (e.g. `[0., 1.)` or `[0, 255]`)
     Output: 3D (HWC) or 4D (NHWC) tensor with brightness adjusted based on the

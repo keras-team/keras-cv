@@ -101,8 +101,8 @@ def plot_bounding_box_gallery(
         class_mapping: (Optional) class mapping from class IDs to strings
         ground_truth_mapping: (Optional) class mapping from class IDs to
             strings. Defaults to `class_mapping`
-        prediction_mapping: (Optional) class mapping from class IDs to strings,
-            defaults to `class_mapping`
+        prediction_mapping: (Optional) class mapping from class IDs to strings.
+            Defaults to `class_mapping`
         line_thickness: (Optional) line_thickness for the box and text labels.
             Defaults to `2`.
         text_thickness: (Optional) the line_thickness for the text. Defaults to

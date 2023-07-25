@@ -52,9 +52,10 @@ class Resizing(BaseImageAugmentationLayer):
     Args:
         height: Integer, the height of the output shape.
         width: Integer, the width of the output shape.
-        interpolation: String, the interpolation method. Supports `"bilinear"`, `"nearest"`, `"bicubic"`,
-            `"area"`, `"lanczos3"`, `"lanczos5"`, `"gaussian"`,
-            `"mitchellcubic"`. Defaults to `"bilinear"`.
+        interpolation: String, the interpolation method.
+            Supports `"bilinear"`, `"nearest"`, `"bicubic"`, `"area"`,
+            `"lanczos3"`, `"lanczos5"`, `"gaussian"`, `"mitchellcubic"`.
+            Defaults to `"bilinear"`.
         crop_to_aspect_ratio: If `True`, resize the images without aspect ratio
             distortion. When the original aspect ratio differs from the target
             aspect ratio, the output image will be cropped to return the largest

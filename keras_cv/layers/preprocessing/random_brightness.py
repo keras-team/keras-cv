@@ -40,10 +40,10 @@ class RandomBrightness(VectorizedBaseImageAugmentationLayer):
         is provided, eg, 0.2, then -0.2 will be used for lower bound and 0.2
         will be used for upper bound.
       value_range: Optional list/tuple of 2 floats for the lower and upper limit
-        of the values of the input data. Can be
-        changed to e.g. [0.0, 1.0] if the image input has been scaled before
-        this layer. The brightness adjustment will be scaled to this range, and
-        the output values will be clipped to this range. Defaults to `[0.0, 255.0]`.
+        of the values of the input data. Can be changed to e.g. [0.0, 1.0] if
+        the image input has been scaled before this layer. The brightness
+        adjustment will be scaled to this range, and the output values will be
+        clipped to this range. Defaults to `[0.0, 255.0]`.
       seed: optional integer, for fixed RNG behavior.
     Inputs: 3D (HWC) or 4D (NHWC) tensor, with float or int dtype. Input pixel
       values can be of any range (e.g. `[0., 1.)` or `[0, 255]`)

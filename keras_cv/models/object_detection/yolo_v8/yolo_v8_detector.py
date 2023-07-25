@@ -60,9 +60,9 @@ def get_anchors(
             image size that should be used to create anchors.
         base_anchors: tuple or list of two integers representing the offset from
             (0,0) to start creating the center of anchor boxes, relative to the
-            stride. For example, using the default (0.5, 0.5) creates the first
+            stride. For example, using (0.5, 0.5) creates the first
             anchor box for each stride such that its center is half of a stride
-            from the edge of the image.
+            from the edge of the image. Defaults to `[0.5, 0.5]`.
 
     Returns:
         A tuple of anchor centerpoints and anchor strides. Multiplying the
