@@ -211,7 +211,7 @@ class WithMixedPrecisionTest(TestCase):
                     "operations `tf.image.adjust_saturation`, and "
                     "`tf.image.adjust_hue`. Skipping."
                 )
-            
+
             if layer_cls in NO_BOUNDING_BOXES_TESTS:
                 self.skipTest(
                     "There is currently no support for bounding boxes."
