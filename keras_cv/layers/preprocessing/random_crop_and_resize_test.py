@@ -17,9 +17,10 @@ from absl.testing import parameterized
 
 from keras_cv import bounding_box
 from keras_cv.layers import preprocessing
+from keras_cv.tests.test_case import TestCase
 
 
-class RandomCropAndResizeTest(tf.test.TestCase, parameterized.TestCase):
+class RandomCropAndResizeTest(TestCase):
     height, width = 300, 300
     batch_size = 4
     target_size = (224, 224)
@@ -119,7 +120,9 @@ class RandomCropAndResizeTest(tf.test.TestCase, parameterized.TestCase):
         input_image_shape = (1, self.height, self.width, 3)
         mask_shape = (1, self.height, self.width, 1)
         image = tf.random.uniform(shape=input_image_shape, seed=self.seed)
-        mask = np.random.randint(2, size=mask_shape) * (num_classes - 1)
+        mask = tf.constant(
+            np.random.randint(2, size=mask_shape) * (num_classes - 1)
+        )
 
         inputs = {"images": image, "segmentation_masks": mask}
 

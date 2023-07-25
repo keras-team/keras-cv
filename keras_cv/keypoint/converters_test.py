@@ -14,24 +14,26 @@
 
 import itertools
 
+import numpy as np
 import tensorflow as tf
 from absl.testing import parameterized
 
 from keras_cv import keypoint
+from keras_cv.tests.test_case import TestCase
 
-xy_keypoints = tf.constant(
+xy_keypoints = np.array(
     [[[10, 20], [110, 120], [210, 220]], [[20, 30], [120, 130], [220, 230]]],
-    dtype=tf.float32,
+    dtype="float32",
 )
-rel_xy_keypoints = tf.constant(
+rel_xy_keypoints = np.array(
     [
         [[0.01, 0.04], [0.11, 0.24], [0.21, 0.44]],
         [[0.02, 0.06], [0.12, 0.26], [0.22, 0.46]],
     ],
-    dtype=tf.float32,
+    dtype="float32",
 )
 
-images = tf.ones([2, 500, 1000, 3])
+images = np.ones([2, 500, 1000, 3])
 
 keypoints = {
     "xy": xy_keypoints,
@@ -44,7 +46,7 @@ test_cases = [
 ] + [("xy_xy", "xy", "xy")]
 
 
-class ConvertersTestCase(tf.test.TestCase, parameterized.TestCase):
+class ConvertersTestCase(TestCase):
     @parameterized.named_parameters(*test_cases)
     def test_converters(self, source, target):
         source_keypoints = keypoints[source]
@@ -95,7 +97,7 @@ class ConvertersTestCase(tf.test.TestCase, parameterized.TestCase):
         target_keypoints = keypoints[target]
 
         def add_metadata(ins):
-            return tf.concat([ins, tf.ones([2, 3, 5])], axis=-1)
+            return tf.concat([ins, np.ones([2, 3, 5])], axis=-1)
 
         source_keypoints = add_metadata(source_keypoints)
         target_keypoints = add_metadata(target_keypoints)
@@ -123,21 +125,21 @@ class ConvertersTestCase(tf.test.TestCase, parameterized.TestCase):
     @parameterized.named_parameters(
         (
             "keypoint_rank",
-            tf.ones([2, 3, 4, 2, 1]),
+            np.ones([2, 3, 4, 2, 1]),
             None,
             "Expected keypoints rank to be in [2, 4], got "
             "len(keypoints.shape)=5.",
         ),
         (
             "images_rank",
-            tf.ones([4, 2]),
-            tf.ones([35, 35]),
+            np.ones([4, 2]),
+            np.ones([35, 35]),
             "Expected images rank to be 3 or 4, got len(images.shape)=2.",
         ),
         (
             "batch_mismatch",
-            tf.ones([2, 4, 2]),
-            tf.ones([35, 35, 3]),
+            np.ones([2, 4, 2]),
+            np.ones([35, 35, 3]),
             "convert_format() expects both `keypoints` and `images` to be "
             "batched or both unbatched. Received len(keypoints.shape)=3, "
             "len(images.shape)=3. Expected either len(keypoints.shape)=2 and "

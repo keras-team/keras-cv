@@ -12,13 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import numpy as np
+import pytest
 import tensorflow as tf
 from absl.testing import parameterized
 
 from keras_cv import layers as cv_layers
+from keras_cv.tests.test_case import TestCase
 
 
-class ResizingTest(tf.test.TestCase, parameterized.TestCase):
+class ResizingTest(TestCase):
     def _run_output_shape_test(self, kwargs, height, width):
         kwargs.update({"height": height, "width": width})
         layer = cv_layers.Resizing(**kwargs)
@@ -149,6 +151,7 @@ class ResizingTest(tf.test.TestCase, parameterized.TestCase):
         ("crop_to_aspect_ratio_false", False),
         ("crop_to_aspect_ratio_true", True),
     )
+    @pytest.mark.tf_keras_only
     def test_ragged_image(self, crop_to_aspect_ratio):
         inputs = tf.ragged.constant(
             [
@@ -226,6 +229,7 @@ class ResizingTest(tf.test.TestCase, parameterized.TestCase):
         img_data = np.random.random(size=input_shape).astype("float32")
         tf_function(img_data)
 
+    @pytest.mark.tf_keras_only
     def test_pad_to_size_with_bounding_boxes_ragged_images(self):
         images = tf.ragged.constant(
             [
@@ -239,18 +243,18 @@ class ResizingTest(tf.test.TestCase, parameterized.TestCase):
         boxes = {
             "boxes": tf.ragged.stack(
                 [
-                    tf.ones((3, 4), dtype=tf.float32),
-                    tf.ones((5, 4), dtype=tf.float32),
-                    tf.ones((3, 4), dtype=tf.float32),
-                    tf.ones((2, 4), dtype=tf.float32),
+                    np.ones((3, 4), dtype="float32"),
+                    np.ones((5, 4), dtype="float32"),
+                    np.ones((3, 4), dtype="float32"),
+                    np.ones((2, 4), dtype="float32"),
                 ],
             ),
             "classes": tf.ragged.stack(
                 [
-                    tf.ones((3,), dtype=tf.float32),
-                    tf.ones((5,), dtype=tf.float32),
-                    tf.ones((3,), dtype=tf.float32),
-                    tf.ones((2,), dtype=tf.float32),
+                    np.ones((3,), dtype="float32"),
+                    np.ones((5,), dtype="float32"),
+                    np.ones((3,), dtype="float32"),
+                    np.ones((2,), dtype="float32"),
                 ],
             ),
         }
@@ -264,6 +268,7 @@ class ResizingTest(tf.test.TestCase, parameterized.TestCase):
             outputs["images"].shape.as_list(),
         )
 
+    @pytest.mark.tf_keras_only
     def test_pad_to_size_with_bounding_boxes_ragged_images_upsample(self):
         images = tf.ragged.constant(
             [
@@ -277,18 +282,18 @@ class ResizingTest(tf.test.TestCase, parameterized.TestCase):
         boxes = {
             "boxes": tf.ragged.stack(
                 [
-                    tf.ones((3, 4), dtype=tf.float32),
-                    tf.ones((5, 4), dtype=tf.float32),
-                    tf.ones((3, 4), dtype=tf.float32),
-                    tf.ones((2, 4), dtype=tf.float32),
+                    np.ones((3, 4), dtype="float32"),
+                    np.ones((5, 4), dtype="float32"),
+                    np.ones((3, 4), dtype="float32"),
+                    np.ones((2, 4), dtype="float32"),
                 ],
             ),
             "classes": tf.ragged.stack(
                 [
-                    tf.ones((3,), dtype=tf.float32),
-                    tf.ones((5,), dtype=tf.float32),
-                    tf.ones((3,), dtype=tf.float32),
-                    tf.ones((2,), dtype=tf.float32),
+                    np.ones((3,), dtype="float32"),
+                    np.ones((5,), dtype="float32"),
+                    np.ones((3,), dtype="float32"),
+                    np.ones((2,), dtype="float32"),
                 ],
             ),
         }
@@ -302,9 +307,9 @@ class ResizingTest(tf.test.TestCase, parameterized.TestCase):
             outputs["images"].shape.as_list(),
         )
 
-        self.assertAllEqual(outputs["images"][1][:, :8, :], tf.ones((16, 8, 3)))
+        self.assertAllEqual(outputs["images"][1][:, :8, :], np.ones((16, 8, 3)))
         self.assertAllEqual(
-            outputs["images"][1][:, -8:, :], tf.zeros((16, 8, 3))
+            outputs["images"][1][:, -8:, :], np.zeros((16, 8, 3))
         )
 
     def test_resize_with_mask(self):

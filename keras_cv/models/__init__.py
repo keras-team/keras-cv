@@ -13,23 +13,35 @@
 # limitations under the License.
 
 from keras_cv.models import legacy
+from keras_cv.models.backbones.csp_darknet.csp_darknet_aliases import (
+    CSPDarkNetLBackbone,
+)
+from keras_cv.models.backbones.csp_darknet.csp_darknet_aliases import (
+    CSPDarkNetMBackbone,
+)
+from keras_cv.models.backbones.csp_darknet.csp_darknet_aliases import (
+    CSPDarkNetSBackbone,
+)
+from keras_cv.models.backbones.csp_darknet.csp_darknet_aliases import (
+    CSPDarkNetTinyBackbone,
+)
+from keras_cv.models.backbones.csp_darknet.csp_darknet_aliases import (
+    CSPDarkNetXLBackbone,
+)
 from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
     CSPDarkNetBackbone,
 )
-from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
-    CSPDarkNetLBackbone,
+from keras_cv.models.backbones.densenet.densenet_aliases import (
+    DenseNet121Backbone,
 )
-from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
-    CSPDarkNetMBackbone,
+from keras_cv.models.backbones.densenet.densenet_aliases import (
+    DenseNet169Backbone,
 )
-from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
-    CSPDarkNetSBackbone,
+from keras_cv.models.backbones.densenet.densenet_aliases import (
+    DenseNet201Backbone,
 )
-from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
-    CSPDarkNetTinyBackbone,
-)
-from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
-    CSPDarkNetXLBackbone,
+from keras_cv.models.backbones.densenet.densenet_backbone import (
+    DenseNetBackbone,
 )
 from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_aliases import (
     EfficientNetV2B0Backbone,
@@ -61,6 +73,9 @@ from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_aliases import (
 from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_aliases import (
     MobileNetV3SmallBackbone,
 )
+from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_backbone import (
+    MobileNetV3Backbone,
+)
 from keras_cv.models.backbones.resnet_v1.resnet_v1_aliases import (
     ResNet18Backbone,
 )
@@ -79,19 +94,19 @@ from keras_cv.models.backbones.resnet_v1.resnet_v1_aliases import (
 from keras_cv.models.backbones.resnet_v1.resnet_v1_backbone import (
     ResNetBackbone,
 )
-from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
+from keras_cv.models.backbones.resnet_v2.resnet_v2_aliases import (
     ResNet18V2Backbone,
 )
-from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
+from keras_cv.models.backbones.resnet_v2.resnet_v2_aliases import (
     ResNet34V2Backbone,
 )
-from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
+from keras_cv.models.backbones.resnet_v2.resnet_v2_aliases import (
     ResNet50V2Backbone,
 )
-from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
+from keras_cv.models.backbones.resnet_v2.resnet_v2_aliases import (
     ResNet101V2Backbone,
 )
-from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
+from keras_cv.models.backbones.resnet_v2.resnet_v2_aliases import (
     ResNet152V2Backbone,
 )
 from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
@@ -105,8 +120,6 @@ from keras_cv.models.object_detection.yolo_v8.yolo_v8_backbone import (
 from keras_cv.models.object_detection.yolo_v8.yolo_v8_detector import (
     YOLOV8Detector,
 )
-from keras_cv.models.object_detection_3d.center_pillar import (
-    MultiHeadCenterPillar,
-)
+from keras_cv.models.segmentation import DeepLabV3Plus
 from keras_cv.models.stable_diffusion import StableDiffusion
 from keras_cv.models.stable_diffusion import StableDiffusionV2

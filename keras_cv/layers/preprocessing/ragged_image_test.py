@@ -11,10 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import numpy as np
 import tensorflow as tf
 from absl.testing import parameterized
 
 from keras_cv import layers
+from keras_cv.tests.test_case import TestCase
 
 CONSISTENT_OUTPUT_TEST_CONFIGURATIONS = [
     ("AutoContrast", layers.AutoContrast, {"value_range": (0, 255)}),
@@ -136,14 +138,14 @@ RAGGED_OUTPUT_TEST_CONFIGURATIONS = [
 ]
 
 
-class RaggedImageTest(tf.test.TestCase, parameterized.TestCase):
+class RaggedImageTest(TestCase):
     @parameterized.named_parameters(*CONSISTENT_OUTPUT_TEST_CONFIGURATIONS)
     def test_preserves_ragged_status(self, layer_cls, init_args):
         layer = layer_cls(**init_args)
         inputs = tf.ragged.stack(
             [
-                tf.ones((5, 5, 3)),
-                tf.ones((8, 8, 3)),
+                np.ones((5, 5, 3)),
+                np.ones((8, 8, 3)),
             ]
         )
         outputs = layer(inputs)
@@ -154,8 +156,8 @@ class RaggedImageTest(tf.test.TestCase, parameterized.TestCase):
         layer = layer_cls(**init_args)
         inputs = tf.ragged.stack(
             [
-                tf.ones((5, 5, 3)),
-                tf.ones((8, 8, 3)),
+                np.ones((5, 5, 3)),
+                np.ones((8, 8, 3)),
             ]
         )
         outputs = layer(inputs)
@@ -164,6 +166,6 @@ class RaggedImageTest(tf.test.TestCase, parameterized.TestCase):
     @parameterized.named_parameters(*RAGGED_OUTPUT_TEST_CONFIGURATIONS)
     def test_dense_to_ragged(self, layer_cls, init_args):
         layer = layer_cls(**init_args)
-        inputs = tf.ones((8, 512, 512, 3))
+        inputs = np.ones((8, 512, 512, 3))
         outputs = layer(inputs)
         self.assertTrue(isinstance(outputs, tf.RaggedTensor))

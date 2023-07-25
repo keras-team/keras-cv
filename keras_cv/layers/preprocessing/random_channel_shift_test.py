@@ -12,15 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numpy as np
 import tensorflow as tf
-from absl.testing import parameterized
 
 from keras_cv.layers import preprocessing
+from keras_cv.tests.test_case import TestCase
 
 
-class RandomChannelShiftTest(tf.test.TestCase, parameterized.TestCase):
+class RandomChannelShiftTest(TestCase):
     def test_return_shapes(self):
-        xs = tf.ones((2, 512, 512, 3))
+        xs = np.ones((2, 512, 512, 3))
         layer = preprocessing.RandomChannelShift(
             factor=1.0, value_range=(0, 255)
         )
@@ -31,7 +32,7 @@ class RandomChannelShiftTest(tf.test.TestCase, parameterized.TestCase):
     def test_non_square_image(self):
         xs = tf.cast(
             tf.stack(
-                [2 * tf.ones((1024, 512, 3)), tf.ones((1024, 512, 3))],
+                [2 * np.ones((1024, 512, 3)), np.ones((1024, 512, 3))],
                 axis=0,
             ),
             dtype=tf.float32,
@@ -47,7 +48,7 @@ class RandomChannelShiftTest(tf.test.TestCase, parameterized.TestCase):
     def test_in_tf_function(self):
         xs = tf.cast(
             tf.stack(
-                [2 * tf.ones((100, 100, 3)), tf.ones((100, 100, 3))], axis=0
+                [2 * np.ones((100, 100, 3)), np.ones((100, 100, 3))], axis=0
             ),
             dtype=tf.float32,
         )
@@ -65,8 +66,8 @@ class RandomChannelShiftTest(tf.test.TestCase, parameterized.TestCase):
 
     def test_5_channels(self):
         xs = tf.cast(
-            tf.ones((512, 512, 5)),
-            dtype=tf.float32,
+            np.ones((512, 512, 5)),
+            dtype="float32",
         )
         layer = preprocessing.RandomChannelShift(
             factor=0.4, channels=5, value_range=(0, 255)
@@ -76,8 +77,8 @@ class RandomChannelShiftTest(tf.test.TestCase, parameterized.TestCase):
 
     def test_1_channel(self):
         xs = tf.cast(
-            tf.ones((512, 512, 1)),
-            dtype=tf.float32,
+            np.ones((512, 512, 1)),
+            dtype="float32",
         )
         layer = preprocessing.RandomChannelShift(
             factor=0.4, channels=1, value_range=(0, 255)
@@ -87,8 +88,8 @@ class RandomChannelShiftTest(tf.test.TestCase, parameterized.TestCase):
 
     def test_in_single_image(self):
         xs = tf.cast(
-            tf.ones((512, 512, 3)),
-            dtype=tf.float32,
+            np.ones((512, 512, 3)),
+            dtype="float32",
         )
         layer = preprocessing.RandomChannelShift(
             factor=0.4, value_range=(0, 255)

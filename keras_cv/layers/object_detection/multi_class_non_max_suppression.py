@@ -13,13 +13,14 @@
 # limitations under the License.
 
 import tensorflow as tf
-from tensorflow import keras
 
 from keras_cv import bounding_box
+from keras_cv.backend import keras
+from keras_cv.backend import ops
+from keras_cv.backend.config import multi_backend
 
 
-# TODO(tanzhenyu): provide a TPU compatible NMS decoder.
-@keras.utils.register_keras_serializable(package="keras_cv")
+@keras.saving.register_keras_serializable(package="keras_cv")
 class MultiClassNonMaxSuppression(keras.layers.Layer):
     """A Keras layer that decodes predictions of an object detection model.
 
@@ -71,6 +72,12 @@ class MultiClassNonMaxSuppression(keras.layers.Layer):
                 `bounding_box_format` specified in the constructor.
             class_prediction: Dense Tensor of shape [batch, boxes, num_classes].
         """
+        if multi_backend() and keras.backend.backend() != "tensorflow":
+            raise NotImplementedError(
+                "MultiClassNonMaxSuppression does not support non-TensorFlow "
+                "backends. Consider using NonMaxSuppression instead."
+            )
+
         target_format = "yxyx"
         if bounding_box.is_relative(self.bounding_box_format):
             target_format = bounding_box.as_relative(target_format)
@@ -83,9 +90,9 @@ class MultiClassNonMaxSuppression(keras.layers.Layer):
             image_shape=image_shape,
         )
         if self.from_logits:
-            class_prediction = tf.math.sigmoid(class_prediction)
+            class_prediction = ops.sigmoid(class_prediction)
 
-        box_prediction = tf.expand_dims(box_prediction, axis=-2)
+        box_prediction = ops.expand_dims(box_prediction, axis=-2)
         (
             box_prediction,
             confidence_prediction,

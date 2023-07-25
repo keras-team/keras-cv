@@ -17,9 +17,10 @@ import tensorflow as tf
 from absl.testing import parameterized
 
 from keras_cv.layers.preprocessing.random_zoom import RandomZoom
+from keras_cv.tests.test_case import TestCase
 
 
-class RandomZoomTest(tf.test.TestCase, parameterized.TestCase):
+class RandomZoomTest(TestCase):
     @parameterized.named_parameters(
         ("random_zoom_in_4_by_6", -0.4, -0.6),
         ("random_zoom_in_2_by_3", -0.2, -0.3),

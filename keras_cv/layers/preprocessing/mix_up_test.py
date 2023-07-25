@@ -14,11 +14,12 @@
 import tensorflow as tf
 
 from keras_cv.layers.preprocessing.mix_up import MixUp
+from keras_cv.tests.test_case import TestCase
 
 num_classes = 10
 
 
-class MixUpTest(tf.test.TestCase):
+class MixUpTest(TestCase):
     def test_return_shapes(self):
         xs = tf.ones((2, 512, 512, 3))
         # randomly sample labels

@@ -460,14 +460,13 @@ class FasterRCNN(keras.Model):
         super().compile(loss=losses, **kwargs)
 
     def compute_loss(self, images, boxes, classes, training):
-        image_shape = tf.shape(images[0])
         local_batch = images.get_shape().as_list()[0]
         if tf.distribute.has_strategy():
             num_sync = tf.distribute.get_strategy().num_replicas_in_sync
         else:
             num_sync = 1
         global_batch = local_batch * num_sync
-        anchors = self.anchor_generator(image_shape=image_shape)
+        anchors = self.anchor_generator(image_shape=tuple(images[0].shape))
         (
             rpn_box_targets,
             rpn_box_weights,

@@ -14,7 +14,8 @@
 import os
 
 import pytest
-import tensorflow as tf
+
+from keras_cv.tests.test_case import TestCase
 
 try:
     from keras_cv.datasets.waymo import load
@@ -24,7 +25,7 @@ except ImportError:
     pass
 
 
-class WaymoOpenDatasetLoadTest(tf.test.TestCase):
+class WaymoOpenDatasetLoadTest(TestCase):
     def setUp(self):
         super().setUp()
         self.test_data_path = os.path.abspath(

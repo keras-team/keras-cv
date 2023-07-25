@@ -22,11 +22,8 @@ References:
 
 import copy
 
-from tensorflow import keras
-from tensorflow.keras import backend
-from tensorflow.keras import layers
-
 from keras_cv import layers as cv_layers
+from keras_cv.backend import keras
 from keras_cv.models import utils
 from keras_cv.models.backbones.backbone import Backbone
 from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_backbone_presets import (  # noqa: E501
@@ -42,7 +39,7 @@ BN_EPSILON = 1e-3
 BN_MOMENTUM = 0.999
 
 
-@keras.utils.register_keras_serializable(package="keras_cv.models")
+@keras.saving.register_keras_serializable(package="keras_cv.models")
 class MobileNetV3Backbone(Backbone):
     """Instantiates the MobileNetV3 architecture.
 
@@ -114,9 +111,9 @@ class MobileNetV3Backbone(Backbone):
         x = inputs
 
         if include_rescaling:
-            x = layers.Rescaling(scale=1 / 255)(x)
+            x = keras.layers.Rescaling(scale=1 / 255)(x)
 
-        x = layers.Conv2D(
+        x = keras.layers.Conv2D(
             16,
             kernel_size=3,
             strides=(2, 2),
@@ -124,7 +121,7 @@ class MobileNetV3Backbone(Backbone):
             use_bias=False,
             name="Conv",
         )(x)
-        x = layers.BatchNormalization(
+        x = keras.layers.BatchNormalization(
             axis=CHANNEL_AXIS,
             epsilon=BN_EPSILON,
             momentum=BN_MOMENTUM,
@@ -135,7 +132,7 @@ class MobileNetV3Backbone(Backbone):
         pyramid_level_inputs = []
         for stack_index in range(len(stackwise_filters)):
             if stackwise_stride[stack_index] != 1:
-                pyramid_level_inputs.append(x.node.layer.name)
+                pyramid_level_inputs.append(utils.get_tensor_input_name(x))
             x = apply_inverted_res_block(
                 x,
                 expansion=stackwise_expansion[stack_index],
@@ -148,18 +145,18 @@ class MobileNetV3Backbone(Backbone):
                 activation=stackwise_activation[stack_index],
                 expansion_index=stack_index,
             )
-        pyramid_level_inputs.append(x.node.layer.name)
+        pyramid_level_inputs.append(utils.get_tensor_input_name(x))
 
-        last_conv_ch = adjust_channels(backend.int_shape(x)[CHANNEL_AXIS] * 6)
+        last_conv_ch = adjust_channels(x.shape[CHANNEL_AXIS] * 6)
 
-        x = layers.Conv2D(
+        x = keras.layers.Conv2D(
             last_conv_ch,
             kernel_size=1,
             padding="same",
             use_bias=False,
             name="Conv_1",
         )(x)
-        x = layers.BatchNormalization(
+        x = keras.layers.BatchNormalization(
             axis=CHANNEL_AXIS,
             epsilon=BN_EPSILON,
             momentum=BN_MOMENTUM,
@@ -212,7 +209,7 @@ class MobileNetV3Backbone(Backbone):
         return copy.deepcopy(backbone_presets_with_weights)
 
 
-class HardSigmoidActivation(layers.Layer):
+class HardSigmoidActivation(keras.layers.Layer):
     def __init__(self):
         super().__init__()
 
@@ -249,12 +246,12 @@ def adjust_channels(x, divisor=8, min_value=None):
 
 
 def apply_hard_sigmoid(x):
-    activation = layers.ReLU(6.0)
+    activation = keras.layers.ReLU(6.0)
     return activation(x + 3.0) * (1.0 / 6.0)
 
 
 def apply_hard_swish(x):
-    return layers.Multiply()([x, apply_hard_sigmoid(x)])
+    return keras.layers.Multiply()([x, apply_hard_sigmoid(x)])
 
 
 def apply_inverted_res_block(
@@ -294,19 +291,19 @@ def apply_inverted_res_block(
 
     shortcut = x
     prefix = "expanded_conv/"
-    infilters = backend.int_shape(x)[CHANNEL_AXIS]
+    infilters = x.shape[CHANNEL_AXIS]
 
     if expansion_index > 0:
         prefix = f"expanded_conv_{expansion_index}/"
 
-        x = layers.Conv2D(
+        x = keras.layers.Conv2D(
             adjust_channels(infilters * expansion),
             kernel_size=1,
             padding="same",
             use_bias=False,
             name=prefix + "expand",
         )(x)
-        x = layers.BatchNormalization(
+        x = keras.layers.BatchNormalization(
             axis=CHANNEL_AXIS,
             epsilon=BN_EPSILON,
             momentum=BN_MOMENTUM,
@@ -315,19 +312,19 @@ def apply_inverted_res_block(
         x = activation(x)
 
     if stride == 2:
-        x = layers.ZeroPadding2D(
+        x = keras.layers.ZeroPadding2D(
             padding=utils.correct_pad_downsample(x, kernel_size),
             name=prefix + "depthwise/pad",
         )(x)
 
-    x = layers.DepthwiseConv2D(
+    x = keras.layers.DepthwiseConv2D(
         kernel_size,
         strides=stride,
         padding="same" if stride == 1 else "valid",
         use_bias=False,
         name=prefix + "depthwise",
     )(x)
-    x = layers.BatchNormalization(
+    x = keras.layers.BatchNormalization(
         axis=CHANNEL_AXIS,
         epsilon=BN_EPSILON,
         momentum=BN_MOMENTUM,
@@ -344,14 +341,14 @@ def apply_inverted_res_block(
             excite_activation=HardSigmoidActivation(),
         )(x)
 
-    x = layers.Conv2D(
+    x = keras.layers.Conv2D(
         filters,
         kernel_size=1,
         padding="same",
         use_bias=False,
         name=prefix + "project",
     )(x)
-    x = layers.BatchNormalization(
+    x = keras.layers.BatchNormalization(
         axis=CHANNEL_AXIS,
         epsilon=BN_EPSILON,
         momentum=BN_MOMENTUM,
@@ -359,6 +356,6 @@ def apply_inverted_res_block(
     )(x)
 
     if stride == 1 and infilters == filters:
-        x = layers.Add(name=prefix + "Add")([shortcut, x])
+        x = keras.layers.Add(name=prefix + "Add")([shortcut, x])
 
     return x

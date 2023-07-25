@@ -12,11 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numpy as np
 import pytest
 import tensorflow as tf
 from tensorflow import keras
 
 from keras_cv.callbacks import WaymoEvaluationCallback
+from keras_cv.tests.test_case import TestCase
 
 NUM_RECORDS = 10
 POINT_FEATURES = 3
@@ -32,7 +34,7 @@ METRIC_KEYS = [
 ]
 
 
-class WaymoEvaluationCallbackTest(tf.test.TestCase):
+class WaymoEvaluationCallbackTest(TestCase):
     @pytest.mark.skipif(True, reason="Requires Waymo Open Dataset")
     def test_model_fit(self):
         # Silly hypothetical model
@@ -56,12 +58,12 @@ class WaymoEvaluationCallbackTest(tf.test.TestCase):
                 {
                     "3d_boxes": {
                         "boxes": boxes,
-                        "classes": tf.ones((NUM_RECORDS, NUM_BOXES)),
-                        "difficulty": tf.ones((NUM_RECORDS, NUM_BOXES)),
+                        "classes": np.ones((NUM_RECORDS, NUM_BOXES)),
+                        "difficulty": np.ones((NUM_RECORDS, NUM_BOXES)),
                         "mask": tf.concat(
                             [
-                                tf.ones((NUM_RECORDS // 2, NUM_BOXES)),
-                                tf.zeros((NUM_RECORDS // 2, NUM_BOXES)),
+                                np.ones((NUM_RECORDS // 2, NUM_BOXES)),
+                                np.zeros((NUM_RECORDS // 2, NUM_BOXES)),
                             ],
                             axis=0,
                         ),

@@ -13,8 +13,11 @@
 # limitations under the License.
 import os
 
+import numpy as np
 import pytest
 import tensorflow as tf
+
+from keras_cv.tests.test_case import TestCase
 
 try:
     from keras_cv.datasets.waymo import load
@@ -25,7 +28,7 @@ except ImportError:
     pass
 
 
-class WaymoOpenDatasetTransformerTest(tf.test.TestCase):
+class WaymoOpenDatasetTransformerTest(TestCase):
     def setUp(self):
         super().setUp()
         self.test_data_path = os.path.abspath(
@@ -52,7 +55,7 @@ class WaymoOpenDatasetTransformerTest(tf.test.TestCase):
         self.assertGreater(lidar_tensors["timestamp_micros"], 0)
         self.assertAllEqual(
             lidar_tensors["label_box_detection_difficulty"],
-            tf.zeros(num_boxes, dtype=tf.int32),
+            np.zeros(num_boxes, dtype="int32"),
         )
 
         # Laser points.

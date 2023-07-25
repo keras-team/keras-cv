@@ -16,8 +16,6 @@ import tensorflow as tf
 from tensorflow import keras
 
 from keras_cv.layers.object_detection_3d.voxelization import DynamicVoxelization
-from keras_cv.models.__internal__.unet import Block
-from keras_cv.models.__internal__.unet import UNet
 from keras_cv.models.object_detection_3d.center_pillar import (
     MultiClassDetectionHead,
 )
@@ -27,12 +25,13 @@ from keras_cv.models.object_detection_3d.center_pillar import (
 from keras_cv.models.object_detection_3d.center_pillar import (
     MultiHeadCenterPillar,
 )
+from keras_cv.models.object_detection_3d.center_pillar_backbone import (
+    CenterPillarBackbone,
+)
+from keras_cv.tests.test_case import TestCase
 
-down_block_configs = [(128, 6), (256, 2), (512, 2)]
-up_block_configs = [512, 256, 256]
 
-
-class CenterPillarTest(tf.test.TestCase):
+class CenterPillarTest(TestCase):
     def get_point_net(self):
         return keras.Sequential(
             [
@@ -41,27 +40,6 @@ class CenterPillarTest(tf.test.TestCase):
             ]
         )
 
-    def build_centerpillar_unet(self, input_shape):
-        input = keras.layers.Input(shape=input_shape)
-        x = keras.layers.Conv2D(
-            128,
-            1,
-            1,
-            padding="same",
-            kernel_initializer=keras.initializers.VarianceScaling(),
-            kernel_regularizer=keras.regularizers.L2(l2=1e-4),
-        )(input)
-        x = keras.layers.BatchNormalization(
-            beta_regularizer=keras.regularizers.L2(l2=1e-8),
-            gamma_regularizer=keras.regularizers.L2(l2=1e-8),
-        )(x)
-        x = keras.layers.ReLU()(x)
-        x = Block(128, downsample=False, sync_bn=False)(x)
-        output = UNet(
-            x.shape[1:], down_block_configs, up_block_configs, sync_bn=False
-        )(x)
-        return keras.Model(input, output)
-
     def test_center_pillar_call(self):
         voxel_net = DynamicVoxelization(
             point_net=self.get_point_net(),
@@ -69,7 +47,9 @@ class CenterPillarTest(tf.test.TestCase):
             spatial_size=[-20, 20, -20, 20, -20, 20],
         )
         # dimensions computed from voxel_net
-        unet = self.build_centerpillar_unet([400, 400, 20])
+        backbone = CenterPillarBackbone.from_preset(
+            "center_pillar_waymo_open_dataset", input_shape=(None, None, 20)
+        )
         decoder = MultiClassHeatmapDecoder(
             num_classes=2,
             num_head_bin=[2, 2],
@@ -85,14 +65,14 @@ class CenterPillarTest(tf.test.TestCase):
             num_head_bin=[2, 2],
         )
         model = MultiHeadCenterPillar(
-            backbone=unet,
+            backbone=backbone,
             voxel_net=voxel_net,
             multiclass_head=multiclass_head,
             prediction_decoder=decoder,
         )
         point_xyz = tf.random.normal([2, 1000, 3])
         point_feature = tf.random.normal([2, 1000, 4])
-        point_mask = tf.constant(True, shape=[2, 1000])
+        point_mask = tf.constant(True, shape=[2, 1000, 1])
         outputs = model(
             {
                 "point_xyz": point_xyz,
@@ -110,8 +90,9 @@ class CenterPillarTest(tf.test.TestCase):
             voxel_size=[0.1, 0.1, 1000],
             spatial_size=[-20, 20, -20, 20, -20, 20],
         )
-        # dimensions computed from voxel_net
-        unet = self.build_centerpillar_unet([400, 400, 20])
+        backbone = CenterPillarBackbone.from_preset(
+            "center_pillar_waymo_open_dataset", input_shape=(None, None, 20)
+        )
         decoder = MultiClassHeatmapDecoder(
             num_classes=2,
             num_head_bin=[2, 2],
@@ -127,26 +108,25 @@ class CenterPillarTest(tf.test.TestCase):
             num_head_bin=[2, 2],
         )
         model = MultiHeadCenterPillar(
-            backbone=unet,
+            backbone=backbone,
             voxel_net=voxel_net,
             multiclass_head=multiclass_head,
             prediction_decoder=decoder,
         )
         point_xyz = tf.random.normal([2, 1000, 3])
         point_feature = tf.random.normal([2, 1000, 4])
-        point_mask = tf.constant(True, shape=[2, 1000])
-        outputs = model(
+        point_mask = tf.constant(True, shape=[2, 1000, 1])
+        outputs = model.predict(
             {
                 "point_xyz": point_xyz,
                 "point_feature": point_feature,
                 "point_mask": point_mask,
-            },
-            training=False,
+            }
         )
         # max number boxes is 3
-        self.assertEqual(outputs["3d_boxes"]["boxes"].shape, [2, 7, 7])
-        self.assertEqual(outputs["3d_boxes"]["classes"].shape, [2, 7])
-        self.assertEqual(outputs["3d_boxes"]["confidence"].shape, [2, 7])
+        self.assertEqual(outputs["3d_boxes"]["boxes"].shape, (2, 7, 7))
+        self.assertEqual(outputs["3d_boxes"]["classes"].shape, (2, 7))
+        self.assertEqual(outputs["3d_boxes"]["confidence"].shape, (2, 7))
         self.assertAllEqual(
             outputs["3d_boxes"]["classes"],
             tf.constant([1, 1, 1, 2, 2, 2, 2] * 2, shape=(2, 7)),

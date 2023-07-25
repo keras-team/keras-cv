@@ -16,9 +16,10 @@ import tensorflow as tf
 from tensorflow import keras
 
 from keras_cv.layers.object_detection_3d.voxelization import DynamicVoxelization
+from keras_cv.tests.test_case import TestCase
 
 
-class VoxelizationTest(tf.test.TestCase):
+class VoxelizationTest(TestCase):
     def get_point_net(self):
         return keras.Sequential(
             [

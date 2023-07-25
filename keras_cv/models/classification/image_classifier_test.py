@@ -16,20 +16,23 @@
 
 import os
 
+import numpy as np
 import pytest
 import tensorflow as tf
 from absl.testing import parameterized
-from tensorflow import keras
 
-from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
+from keras_cv.backend import keras
+from keras_cv.backend import ops
+from keras_cv.models.backbones.resnet_v2.resnet_v2_aliases import (
     ResNet18V2Backbone,
 )
 from keras_cv.models.classification.image_classifier import ImageClassifier
+from keras_cv.tests.test_case import TestCase
 
 
-class ImageClassifierTest(tf.test.TestCase, parameterized.TestCase):
+class ImageClassifierTest(TestCase):
     def setUp(self):
-        self.input_batch = tf.ones(shape=(2, 224, 224, 3))
+        self.input_batch = np.ones(shape=(2, 224, 224, 3))
         self.dataset = tf.data.Dataset.from_tensor_slices(
             (self.input_batch, tf.one_hot(tf.ones((2,), dtype="int32"), 2))
         ).batch(4)
@@ -45,6 +48,7 @@ class ImageClassifierTest(tf.test.TestCase, parameterized.TestCase):
         ("jit_compile_false", False), ("jit_compile_true", True)
     )
     @pytest.mark.large  # Fit is slow, so mark these large.
+    @pytest.mark.filterwarnings("ignore::UserWarning")  # Torch + jit_compile
     def test_classifier_fit(self, jit_compile):
         model = ImageClassifier(
             backbone=ResNet18V2Backbone(),
@@ -77,19 +81,15 @@ class ImageClassifierTest(tf.test.TestCase, parameterized.TestCase):
                 pooling="clowntown",
             )
 
-    @parameterized.named_parameters(
-        ("tf_format", "tf", "model"),
-        ("keras_format", "keras_v3", "model.keras"),
-    )
     @pytest.mark.large  # Saving is slow, so mark these large.
-    def test_saved_model(self, save_format, filename):
+    def test_saved_model(self):
         model = ImageClassifier(
             backbone=ResNet18V2Backbone(),
             num_classes=2,
         )
         model_output = model(self.input_batch)
-        save_path = os.path.join(self.get_temp_dir(), filename)
-        model.save(save_path, save_format=save_format)
+        save_path = os.path.join(self.get_temp_dir(), "image_classifier.keras")
+        model.save(save_path)
         restored_model = keras.models.load_model(save_path)
 
         # Check we got the real object back.
@@ -97,11 +97,14 @@ class ImageClassifierTest(tf.test.TestCase, parameterized.TestCase):
 
         # Check that output matches.
         restored_output = restored_model(self.input_batch)
-        self.assertAllClose(model_output, restored_output)
+        self.assertAllClose(
+            ops.convert_to_numpy(model_output),
+            ops.convert_to_numpy(restored_output),
+        )
 
 
 @pytest.mark.large
-class ImageClassifierPresetSmokeTest(tf.test.TestCase, parameterized.TestCase):
+class ImageClassifierPresetSmokeTest(TestCase):
     """
     A smoke test for ImageClassifier presets we run continuously.
     This only tests the smallest weights we have available. Run with:
@@ -109,7 +112,7 @@ class ImageClassifierPresetSmokeTest(tf.test.TestCase, parameterized.TestCase):
     """
 
     def setUp(self):
-        self.input_batch = tf.ones(shape=(2, 224, 224, 3))
+        self.input_batch = np.ones(shape=(2, 224, 224, 3))
 
     @parameterized.named_parameters(
         (
@@ -131,7 +134,9 @@ class ImageClassifierPresetSmokeTest(tf.test.TestCase, parameterized.TestCase):
         outputs = model.backbone(self.input_batch)
         outputs = outputs[0, 0, 0, :5]
         # Keep a high tolerance, so we are robust to different hardware.
-        self.assertAllClose(outputs, expected, atol=0.01, rtol=0.01)
+        self.assertAllClose(
+            ops.convert_to_numpy(outputs), expected, atol=0.01, rtol=0.01
+        )
 
     @parameterized.named_parameters(
         ("preset_with_weights", "resnet50_v2_imagenet"),
@@ -165,7 +170,9 @@ class ImageClassifierPresetSmokeTest(tf.test.TestCase, parameterized.TestCase):
         outputs = outputs[0, 0, 0, :5]
         expected = [1.051145, 0, 0, 1.16328, 0]
         # Keep a high tolerance, so we are robust to different hardware.
-        self.assertAllClose(outputs, expected, atol=0.01, rtol=0.01)
+        self.assertAllClose(
+            ops.convert_to_numpy(outputs), expected, atol=0.01, rtol=0.01
+        )
 
     def test_classifier_preset_call(self):
         model = ImageClassifier.from_preset("resnet50_v2_imagenet_classifier")
@@ -184,7 +191,9 @@ class ImageClassifierPresetSmokeTest(tf.test.TestCase, parameterized.TestCase):
             3.414580e-04,
         ]
         # Keep a high tolerance, so we are robust to different hardware.
-        self.assertAllClose(outputs, expected, atol=0.01, rtol=0.01)
+        self.assertAllClose(
+            ops.convert_to_numpy(outputs), expected, atol=0.01, rtol=0.01
+        )
 
 
 if __name__ == "__main__":

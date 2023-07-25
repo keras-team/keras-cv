@@ -15,11 +15,12 @@ import tensorflow as tf
 
 from keras_cv import bounding_box
 from keras_cv.layers import preprocessing
+from keras_cv.tests.test_case import TestCase
 
 num_classes = 10
 
 
-class RandomShearTest(tf.test.TestCase):
+class RandomShearTest(TestCase):
     def test_aggressive_shear_fills_at_least_some_pixels(self):
         img_shape = (50, 50, 3)
         xs = tf.stack(

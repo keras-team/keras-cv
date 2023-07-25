@@ -17,12 +17,13 @@ import unittest
 import numpy as np
 import tensorflow as tf
 from absl.testing import parameterized
-from tensorflow import keras
 
+from keras_cv import layers as cv_layers
 from keras_cv.layers.preprocessing.random_crop import RandomCrop
+from keras_cv.tests.test_case import TestCase
 
 
-class RandomCropTest(tf.test.TestCase, parameterized.TestCase):
+class RandomCropTest(TestCase):
     @parameterized.named_parameters(
         ("random_crop_4_by_6", 4, 6),
         ("random_crop_3_by_2", 3, 2),
@@ -58,7 +59,7 @@ class RandomCropTest(tf.test.TestCase, parameterized.TestCase):
         actual_output = layer(inp)
         # In this case, output should equal resizing with crop_to_aspect
         # ratio.
-        resizing_layer = keras.layers.Resizing(height, width)
+        resizing_layer = cv_layers.Resizing(height, width)
         expected_output = resizing_layer(inp)
         self.assertAllEqual(expected_output, actual_output)
 
@@ -70,8 +71,8 @@ class RandomCropTest(tf.test.TestCase, parameterized.TestCase):
         width_offset = np.random.randint(low=0, high=5)
         # manually compute transformations which shift height_offset and
         # width_offset respectively
-        tops = tf.ones((batch_size, 1)) * (height_offset / (5 - height))
-        lefts = tf.ones((batch_size, 1)) * (width_offset / (8 - width))
+        tops = np.ones((batch_size, 1)) * (height_offset / (5 - height))
+        lefts = np.ones((batch_size, 1)) * (width_offset / (8 - width))
         transformations = {"tops": tops, "lefts": lefts}
         layer = RandomCrop(height, width)
         with unittest.mock.patch.object(
@@ -101,7 +102,7 @@ class RandomCropTest(tf.test.TestCase, parameterized.TestCase):
         np.random.seed(1337)
         inp = np.random.random((16, 16, 3))
         # manually compute transformations which shift 2 pixels
-        mock_offset = tf.ones(shape=(1, 1), dtype=tf.float32) * 0.25
+        mock_offset = np.ones(shape=(1, 1), dtype="float32") * 0.25
         layer = RandomCrop(8, 8)
         with unittest.mock.patch.object(
             layer._random_generator,
@@ -115,7 +116,7 @@ class RandomCropTest(tf.test.TestCase, parameterized.TestCase):
         np.random.seed(1337)
         inp = np.random.random((20, 16, 16, 3))
         # manually compute transformations which shift 2 pixels
-        mock_offset = tf.ones(shape=(20, 1), dtype=tf.float32) * 2 / (16 - 8)
+        mock_offset = np.ones(shape=(20, 1), dtype="float32") * 2 / (16 - 8)
         layer = RandomCrop(8, 8)
         with unittest.mock.patch.object(
             layer._random_generator,
@@ -144,15 +145,15 @@ class RandomCropTest(tf.test.TestCase, parameterized.TestCase):
             np.float32
         )
         bboxes = {
-            "boxes": tf.convert_to_tensor([[200, 200, 400, 400]]),
-            "classes": tf.convert_to_tensor([1]),
+            "boxes": np.array([[200, 200, 400, 400]]),
+            "classes": np.array([1]),
         }
         input = {"images": input_image, "bounding_boxes": bboxes}
         # for top = 300 and left = 305
         height_offset = 300
         width_offset = 305
-        tops = tf.ones((1, 1)) * (height_offset / (orig_height - height))
-        lefts = tf.ones((1, 1)) * (width_offset / (orig_width - width))
+        tops = np.ones((1, 1)) * (height_offset / (orig_height - height))
+        lefts = np.ones((1, 1)) * (width_offset / (orig_width - width))
         transformations = {"tops": tops, "lefts": lefts}
         layer = RandomCrop(
             height=height, width=width, bounding_box_format="xyxy"
@@ -171,8 +172,8 @@ class RandomCropTest(tf.test.TestCase, parameterized.TestCase):
     def test_augment_bounding_boxes_resize(self):
         input_image = np.random.random((256, 256, 3)).astype(np.float32)
         bboxes = {
-            "boxes": tf.convert_to_tensor([[100, 100, 200, 200]]),
-            "classes": tf.convert_to_tensor([1]),
+            "boxes": np.array([[100, 100, 200, 200]]),
+            "classes": np.array([1]),
         }
         input = {"images": input_image, "bounding_boxes": bboxes}
         layer = RandomCrop(height=512, width=512, bounding_box_format="xyxy")
@@ -185,7 +186,7 @@ class RandomCropTest(tf.test.TestCase, parameterized.TestCase):
     def test_in_tf_function(self):
         np.random.seed(1337)
         inp = np.random.random((20, 16, 16, 3))
-        mock_offset = tf.ones(shape=(20, 1), dtype=tf.float32) * 2 / (16 - 8)
+        mock_offset = np.ones(shape=(20, 1), dtype="float32") * 2 / (16 - 8)
         layer = RandomCrop(8, 8)
 
         @tf.function
@@ -216,14 +217,14 @@ class RandomCropTest(tf.test.TestCase, parameterized.TestCase):
         boxes = {
             "boxes": tf.ragged.stack(
                 [
-                    tf.ones((3, 4), dtype=tf.float32),
-                    tf.ones((3, 4), dtype=tf.float32),
+                    np.ones((3, 4), dtype="float32"),
+                    np.ones((3, 4), dtype="float32"),
                 ],
             ),
             "classes": tf.ragged.stack(
                 [
-                    tf.ones((3,), dtype=tf.float32),
-                    tf.ones((3,), dtype=tf.float32),
+                    np.ones((3,), dtype="float32"),
+                    np.ones((3,), dtype="float32"),
                 ],
             ),
         }

@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""ResNet models for Keras.
+"""ResNet backbone model.
 Reference:
   - [Identity Mappings in Deep Residual Networks](https://arxiv.org/abs/1603.05027) (ECCV 2016)
   - [Based on the original keras.applications ResNet](https://github.com/keras-team/keras/blob/master/keras/applications/resnet_v2.py)
@@ -19,10 +19,7 @@ Reference:
 
 import copy
 
-from tensorflow import keras
-from tensorflow.keras import backend
-from tensorflow.keras import layers
-
+from keras_cv.backend import keras
 from keras_cv.models import utils
 from keras_cv.models.backbones.backbone import Backbone
 from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone_presets import (
@@ -37,225 +34,7 @@ BN_AXIS = 3
 BN_EPSILON = 1.001e-5
 
 
-def apply_basic_block(
-    x,
-    filters,
-    kernel_size=3,
-    stride=1,
-    dilation=1,
-    conv_shortcut=False,
-    name=None,
-):
-    """A basic residual block (v2).
-
-    Args:
-        x: input tensor.
-        filters: int, filters of the basic layer.
-        kernel_size: int, kernel size of the bottleneck layer. Defaults to `3`.
-        stride: int, stride of the first layer. Defaults to `1`.
-        dilation: int, the dilation rate to use for dilated convolution.
-            Defaults to `1`.
-        conv_shortcut: bool, uses convolution shortcut if `True`. If `False`
-            (default), uses identity or pooling shortcut, based on stride.
-        name: string, optional prefix for the layer names used in the block.
-
-    Returns:
-      Output tensor for the residual block.
-    """
-
-    if name is None:
-        name = f"v2_basic_block_{backend.get_uid('v2_basic_block')}"
-
-    use_preactivation = layers.BatchNormalization(
-        axis=BN_AXIS, epsilon=BN_EPSILON, name=name + "_use_preactivation_bn"
-    )(x)
-
-    use_preactivation = layers.Activation(
-        "relu", name=name + "_use_preactivation_relu"
-    )(use_preactivation)
-
-    s = stride if dilation == 1 else 1
-    if conv_shortcut:
-        shortcut = layers.Conv2D(filters, 1, strides=s, name=name + "_0_conv")(
-            use_preactivation
-        )
-    else:
-        shortcut = (
-            layers.MaxPooling2D(
-                1, strides=stride, name=name + "_0_max_pooling"
-            )(x)
-            if s > 1
-            else x
-        )
-
-    x = layers.Conv2D(
-        filters,
-        kernel_size,
-        padding="SAME",
-        strides=1,
-        use_bias=False,
-        name=name + "_1_conv",
-    )(use_preactivation)
-    x = layers.BatchNormalization(
-        axis=BN_AXIS, epsilon=BN_EPSILON, name=name + "_1_bn"
-    )(x)
-    x = layers.Activation("relu", name=name + "_1_relu")(x)
-
-    x = layers.Conv2D(
-        filters,
-        kernel_size,
-        strides=s,
-        padding="same",
-        dilation_rate=dilation,
-        use_bias=False,
-        name=name + "_2_conv",
-    )(x)
-
-    x = layers.Add(name=name + "_out")([shortcut, x])
-    return x
-
-
-def apply_block(
-    x,
-    filters,
-    kernel_size=3,
-    stride=1,
-    dilation=1,
-    conv_shortcut=False,
-    name=None,
-):
-    """A residual block (v2).
-
-    Args:
-        x: input tensor.
-        filters: int, filters of the basic layer.
-        kernel_size: int, kernel size of the bottleneck layer. Defaults to `3`.
-        stride: int, stride of the first layer. Defaults to `1`.
-        dilation: int, the dilation rate to use for dilated convolution.
-            Defaults to `1`.
-        conv_shortcut: bool, uses convolution shortcut if `True`. If `False`
-            (default), uses identity or pooling shortcut, based on stride.
-        name: string, optional prefix for the layer names used in the block.
-
-    Returns:
-      Output tensor for the residual block.
-    """
-    if name is None:
-        name = f"v2_block_{backend.get_uid('v2_block')}"
-
-    use_preactivation = layers.BatchNormalization(
-        axis=BN_AXIS, epsilon=BN_EPSILON, name=name + "_use_preactivation_bn"
-    )(x)
-
-    use_preactivation = layers.Activation(
-        "relu", name=name + "_use_preactivation_relu"
-    )(use_preactivation)
-
-    s = stride if dilation == 1 else 1
-    if conv_shortcut:
-        shortcut = layers.Conv2D(
-            4 * filters,
-            1,
-            strides=s,
-            name=name + "_0_conv",
-        )(use_preactivation)
-    else:
-        shortcut = (
-            layers.MaxPooling2D(
-                1, strides=stride, name=name + "_0_max_pooling"
-            )(x)
-            if s > 1
-            else x
-        )
-
-    x = layers.Conv2D(
-        filters, 1, strides=1, use_bias=False, name=name + "_1_conv"
-    )(use_preactivation)
-    x = layers.BatchNormalization(
-        axis=BN_AXIS, epsilon=BN_EPSILON, name=name + "_1_bn"
-    )(x)
-    x = layers.Activation("relu", name=name + "_1_relu")(x)
-
-    x = layers.Conv2D(
-        filters,
-        kernel_size,
-        strides=s,
-        use_bias=False,
-        padding="same",
-        dilation_rate=dilation,
-        name=name + "_2_conv",
-    )(x)
-    x = layers.BatchNormalization(
-        axis=BN_AXIS, epsilon=BN_EPSILON, name=name + "_2_bn"
-    )(x)
-    x = layers.Activation("relu", name=name + "_2_relu")(x)
-
-    x = layers.Conv2D(4 * filters, 1, name=name + "_3_conv")(x)
-    x = layers.Add(name=name + "_out")([shortcut, x])
-    return x
-
-
-def apply_stack(
-    x,
-    filters,
-    blocks,
-    stride=2,
-    dilations=1,
-    name=None,
-    block_type="block",
-    first_shortcut=True,
-):
-    """A set of stacked blocks.
-
-    Args:
-        x: input tensor.
-        filters: int, filters of the layer in a block.
-        blocks: int, blocks in the stacked blocks.
-        stride: int, stride of the first layer in the first block, defaults
-            to 2.
-        dilations: int, the dilation rate to use for dilated convolution.
-            Defaults to `1`.
-        name: string, optional prefix for the layer names used in the block.
-        block_type: string, one of "basic_block" or "block". The block type to
-            stack. Use "basic_block" for ResNet18 and ResNet34.
-        first_shortcut: bool. Use convolution shortcut if `True` (default),
-            otherwise uses identity or pooling shortcut, based on stride.
-
-    Returns:
-        Output tensor for the stacked blocks.
-    """
-
-    if name is None:
-        name = "v2_stack"
-
-    if block_type == "basic_block":
-        block_fn = apply_basic_block
-    elif block_type == "block":
-        block_fn = apply_block
-    else:
-        raise ValueError(
-            """`block_type` must be either "basic_block" or "block". """
-            f"Received block_type={block_type}."
-        )
-
-    x = block_fn(
-        x, filters, conv_shortcut=first_shortcut, name=name + "_block1"
-    )
-    for i in range(2, blocks):
-        x = block_fn(
-            x, filters, dilation=dilations, name=name + "_block" + str(i)
-        )
-    x = block_fn(
-        x,
-        filters,
-        stride=stride,
-        dilation=dilations,
-        name=name + "_block" + str(blocks),
-    )
-    return x
-
-
-@keras.utils.register_keras_serializable(package="keras_cv.models")
+@keras.saving.register_keras_serializable(package="keras_cv.models")
 class ResNetV2Backbone(Backbone):
     """Instantiates the ResNetV2 architecture.
 
@@ -282,7 +61,7 @@ class ResNetV2Backbone(Backbone):
             layer.
         stackwise_dilations: list of ints, dilation for each stack in the
             model. If `None` (default), dilation will not be used.
-        input_shape: optional shape tuple. Defaults to `(None, None, 3)`.
+        input_shape: optional shape tuple, defaults to (None, None, 3).
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
             to use as image input for the model.
         block_type: string, one of "basic_block" or "block". The block type to
@@ -325,9 +104,9 @@ class ResNetV2Backbone(Backbone):
         x = inputs
 
         if include_rescaling:
-            x = layers.Rescaling(1 / 255.0)(x)
+            x = keras.layers.Rescaling(1 / 255.0)(x)
 
-        x = layers.Conv2D(
+        x = keras.layers.Conv2D(
             64,
             7,
             strides=2,
@@ -336,7 +115,7 @@ class ResNetV2Backbone(Backbone):
             name="conv1_conv",
         )(x)
 
-        x = layers.MaxPooling2D(
+        x = keras.layers.MaxPooling2D(
             3, strides=2, padding="same", name="pool1_pool"
         )(x)
 
@@ -356,12 +135,14 @@ class ResNetV2Backbone(Backbone):
                 first_shortcut=(block_type == "block" or stack_index > 0),
                 name=f"v2_stack_{stack_index}",
             )
-            pyramid_level_inputs[f"P{stack_index + 2}"] = x.node.layer.name
+            pyramid_level_inputs[
+                f"P{stack_index + 2}"
+            ] = utils.get_tensor_input_name(x)
 
-        x = layers.BatchNormalization(
+        x = keras.layers.BatchNormalization(
             axis=BN_AXIS, epsilon=BN_EPSILON, name="post_bn"
         )(x)
-        x = layers.Activation("relu", name="post_relu")(x)
+        x = keras.layers.Activation("relu", name="post_relu")(x)
 
         # Create model.
         super().__init__(inputs=inputs, outputs=x, **kwargs)
@@ -405,215 +186,219 @@ class ResNetV2Backbone(Backbone):
         return copy.deepcopy(backbone_presets_with_weights)
 
 
-ALIAS_DOCSTRING = """ResNetV2Backbone model with {num_layers} layers.
-
-    Reference:
-        - [Identity Mappings in Deep Residual Networks](https://arxiv.org/abs/1603.05027) (ECCV 2016)
-
-    The difference in ResNet and ResNetV2 rests in the structure of their
-    individual building blocks. In ResNetV2, the batch normalization and
-    ReLU activation precede the convolution layers, as opposed to ResNetV1 where
-    the batch normalization and ReLU activation are applied after the
-    convolution layers.
-
-    For transfer learning use cases, make sure to read the
-    [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
+def apply_basic_block(
+    x,
+    filters,
+    kernel_size=3,
+    stride=1,
+    dilation=1,
+    conv_shortcut=False,
+    name=None,
+):
+    """A basic residual block (v2).
 
     Args:
-        include_rescaling: bool, whether to rescale the inputs. If set
-            to `True`, inputs will be passed through a `Rescaling(1/255.0)`
-            layer.
-        input_shape: optional shape tuple. Defaults to `(None, None, 3)`.
-        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
-            to use as image input for the model.
+        x: input tensor.
+        filters: int, filters of the basic layer.
+        kernel_size: int, kernel size of the bottleneck layer, defaults to 3.
+        stride: int, stride of the first layer, defaults to 1.
+        dilation: int, the dilation rate to use for dilated convolution.
+            Defaults to 1.
+        conv_shortcut: bool, uses convolution shortcut if `True`. If `False`
+            (default), uses identity or pooling shortcut, based on stride.
+        name: string, optional prefix for the layer names used in the block.
 
-    Examples:
-    ```python
-    input_data = tf.ones(shape=(8, 224, 224, 3))
+    Returns:
+      Output tensor for the residual block.
+    """
 
-    # Randomly initialized backbone
-    model = ResNet{num_layers}V2Backbone()
-    output = model(input_data)
-    ```
-"""  # noqa: E501
+    if name is None:
+        name = f"v2_basic_block_{keras.backend.get_uid('v2_basic_block')}"
 
+    use_preactivation = keras.layers.BatchNormalization(
+        axis=BN_AXIS, epsilon=BN_EPSILON, name=name + "_use_preactivation_bn"
+    )(x)
 
-class ResNet18V2Backbone(ResNetV2Backbone):
-    def __new__(
-        cls,
-        include_rescaling=True,
-        input_shape=(None, None, 3),
-        input_tensor=None,
-        **kwargs,
-    ):
-        # Pack args in kwargs
-        kwargs.update(
-            {
-                "include_rescaling": include_rescaling,
-                "input_shape": input_shape,
-                "input_tensor": input_tensor,
-            }
+    use_preactivation = keras.layers.Activation(
+        "relu", name=name + "_use_preactivation_relu"
+    )(use_preactivation)
+
+    s = stride if dilation == 1 else 1
+    if conv_shortcut:
+        shortcut = keras.layers.Conv2D(
+            filters, 1, strides=s, name=name + "_0_conv"
+        )(use_preactivation)
+    else:
+        shortcut = (
+            keras.layers.MaxPooling2D(
+                1, strides=stride, name=name + "_0_max_pooling"
+            )(x)
+            if s > 1
+            else x
         )
-        return ResNetV2Backbone.from_preset("resnet18_v2", **kwargs)
 
-    @classproperty
-    def presets(cls):
-        """Dictionary of preset names and configurations."""
-        return {}
+    x = keras.layers.Conv2D(
+        filters,
+        kernel_size,
+        padding="SAME",
+        strides=1,
+        use_bias=False,
+        name=name + "_1_conv",
+    )(use_preactivation)
+    x = keras.layers.BatchNormalization(
+        axis=BN_AXIS, epsilon=BN_EPSILON, name=name + "_1_bn"
+    )(x)
+    x = keras.layers.Activation("relu", name=name + "_1_relu")(x)
 
-    @classproperty
-    def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include
-        weights."""
-        return {}
+    x = keras.layers.Conv2D(
+        filters,
+        kernel_size,
+        strides=s,
+        padding="same",
+        dilation_rate=dilation,
+        use_bias=False,
+        name=name + "_2_conv",
+    )(x)
+
+    x = keras.layers.Add(name=name + "_out")([shortcut, x])
+    return x
 
 
-class ResNet34V2Backbone(ResNetV2Backbone):
-    def __new__(
-        cls,
-        include_rescaling=True,
-        input_shape=(None, None, 3),
-        input_tensor=None,
-        **kwargs,
-    ):
-        # Pack args in kwargs
-        kwargs.update(
-            {
-                "include_rescaling": include_rescaling,
-                "input_shape": input_shape,
-                "input_tensor": input_tensor,
-            }
+def apply_block(
+    x,
+    filters,
+    kernel_size=3,
+    stride=1,
+    dilation=1,
+    conv_shortcut=False,
+    name=None,
+):
+    """A residual block (v2).
+
+    Args:
+        x: input tensor.
+        filters: int, filters of the basic layer.
+        kernel_size: int, kernel size of the bottleneck layer, defaults to 3.
+        stride: int, stride of the first layer, defaults to 1.
+        dilation: int, the dilation rate to use for dilated convolution.
+            Defaults to 1.
+        conv_shortcut: bool, uses convolution shortcut if `True`. If `False`
+            (default), uses identity or pooling shortcut, based on stride.
+        name: string, optional prefix for the layer names used in the block.
+
+    Returns:
+      Output tensor for the residual block.
+    """
+    if name is None:
+        name = f"v2_block_{keras.backend.get_uid('v2_block')}"
+
+    use_preactivation = keras.layers.BatchNormalization(
+        axis=BN_AXIS, epsilon=BN_EPSILON, name=name + "_use_preactivation_bn"
+    )(x)
+
+    use_preactivation = keras.layers.Activation(
+        "relu", name=name + "_use_preactivation_relu"
+    )(use_preactivation)
+
+    s = stride if dilation == 1 else 1
+    if conv_shortcut:
+        shortcut = keras.layers.Conv2D(
+            4 * filters,
+            1,
+            strides=s,
+            name=name + "_0_conv",
+        )(use_preactivation)
+    else:
+        shortcut = (
+            keras.layers.MaxPooling2D(
+                1, strides=stride, name=name + "_0_max_pooling"
+            )(x)
+            if s > 1
+            else x
         )
-        return ResNetV2Backbone.from_preset("resnet34_v2", **kwargs)
 
-    @classproperty
-    def presets(cls):
-        """Dictionary of preset names and configurations."""
-        return {}
+    x = keras.layers.Conv2D(
+        filters, 1, strides=1, use_bias=False, name=name + "_1_conv"
+    )(use_preactivation)
+    x = keras.layers.BatchNormalization(
+        axis=BN_AXIS, epsilon=BN_EPSILON, name=name + "_1_bn"
+    )(x)
+    x = keras.layers.Activation("relu", name=name + "_1_relu")(x)
 
-    @classproperty
-    def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include
-        weights."""
-        return {}
+    x = keras.layers.Conv2D(
+        filters,
+        kernel_size,
+        strides=s,
+        use_bias=False,
+        padding="same",
+        dilation_rate=dilation,
+        name=name + "_2_conv",
+    )(x)
+    x = keras.layers.BatchNormalization(
+        axis=BN_AXIS, epsilon=BN_EPSILON, name=name + "_2_bn"
+    )(x)
+    x = keras.layers.Activation("relu", name=name + "_2_relu")(x)
+
+    x = keras.layers.Conv2D(4 * filters, 1, name=name + "_3_conv")(x)
+    x = keras.layers.Add(name=name + "_out")([shortcut, x])
+    return x
 
 
-class ResNet50V2Backbone(ResNetV2Backbone):
-    def __new__(
-        cls,
-        include_rescaling=True,
-        input_shape=(None, None, 3),
-        input_tensor=None,
-        **kwargs,
-    ):
-        # Pack args in kwargs
-        kwargs.update(
-            {
-                "include_rescaling": include_rescaling,
-                "input_shape": input_shape,
-                "input_tensor": input_tensor,
-            }
+def apply_stack(
+    x,
+    filters,
+    blocks,
+    stride=2,
+    dilations=1,
+    name=None,
+    block_type="block",
+    first_shortcut=True,
+):
+    """A set of stacked blocks.
+
+    Args:
+        x: input tensor.
+        filters: int, filters of the layer in a block.
+        blocks: int, blocks in the stacked blocks.
+        stride: int, stride of the first layer in the first block, defaults
+            to 2.
+        dilations: int, the dilation rate to use for dilated convolution.
+            Defaults to 1.
+        name: string, optional prefix for the layer names used in the block.
+        block_type: string, one of "basic_block" or "block". The block type to
+            stack. Use "basic_block" for ResNet18 and ResNet34.
+        first_shortcut: bool. Use convolution shortcut if `True` (default),
+            otherwise uses identity or pooling shortcut, based on stride.
+
+    Returns:
+        Output tensor for the stacked blocks.
+    """
+
+    if name is None:
+        name = "v2_stack"
+
+    if block_type == "basic_block":
+        block_fn = apply_basic_block
+    elif block_type == "block":
+        block_fn = apply_block
+    else:
+        raise ValueError(
+            """`block_type` must be either "basic_block" or "block". """
+            f"Received block_type={block_type}."
         )
-        return ResNetV2Backbone.from_preset("resnet50_v2", **kwargs)
 
-    @classproperty
-    def presets(cls):
-        """Dictionary of preset names and configurations."""
-        return {
-            "resnet50_v2_imagenet": copy.deepcopy(
-                backbone_presets["resnet50_v2_imagenet"]
-            ),
-        }
-
-    @classproperty
-    def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include
-        weights."""
-        return cls.presets
-
-
-class ResNet101V2Backbone(ResNetV2Backbone):
-    def __new__(
-        cls,
-        include_rescaling=True,
-        input_shape=(None, None, 3),
-        input_tensor=None,
-        **kwargs,
-    ):
-        # Pack args in kwargs
-        kwargs.update(
-            {
-                "include_rescaling": include_rescaling,
-                "input_shape": input_shape,
-                "input_tensor": input_tensor,
-            }
+    x = block_fn(
+        x, filters, conv_shortcut=first_shortcut, name=name + "_block1"
+    )
+    for i in range(2, blocks):
+        x = block_fn(
+            x, filters, dilation=dilations, name=name + "_block" + str(i)
         )
-        return ResNetV2Backbone.from_preset("resnet101_v2", **kwargs)
-
-    @classproperty
-    def presets(cls):
-        """Dictionary of preset names and configurations."""
-        return {}
-
-    @classproperty
-    def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include
-        weights."""
-        return {}
-
-
-class ResNet152V2Backbone(ResNetV2Backbone):
-    def __new__(
-        cls,
-        include_rescaling=True,
-        input_shape=(None, None, 3),
-        input_tensor=None,
-        **kwargs,
-    ):
-        # Pack args in kwargs
-        kwargs.update(
-            {
-                "include_rescaling": include_rescaling,
-                "input_shape": input_shape,
-                "input_tensor": input_tensor,
-            }
-        )
-        return ResNetV2Backbone.from_preset("resnet152_v2", **kwargs)
-
-    @classproperty
-    def presets(cls):
-        """Dictionary of preset names and configurations."""
-        return {}
-
-    @classproperty
-    def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include
-        weights."""
-        return {}
-
-
-setattr(
-    ResNet18V2Backbone,
-    "__doc__",
-    ALIAS_DOCSTRING.format(num_layers=18),
-)
-setattr(
-    ResNet34V2Backbone,
-    "__doc__",
-    ALIAS_DOCSTRING.format(num_layers=34),
-)
-setattr(
-    ResNet50V2Backbone,
-    "__doc__",
-    ALIAS_DOCSTRING.format(num_layers=50),
-)
-setattr(
-    ResNet101V2Backbone,
-    "__doc__",
-    ALIAS_DOCSTRING.format(num_layers=101),
-)
-setattr(
-    ResNet152V2Backbone,
-    "__doc__",
-    ALIAS_DOCSTRING.format(num_layers=152),
-)
+    x = block_fn(
+        x,
+        filters,
+        stride=stride,
+        dilation=dilations,
+        name=name + "_block" + str(blocks),
+    )
+    return x

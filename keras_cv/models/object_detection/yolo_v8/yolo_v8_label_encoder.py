@@ -16,10 +16,11 @@ and is adapted from https://github.com/ultralytics/ultralytics/blob/main/ultraly
 """  # noqa: E501
 
 import tensorflow as tf
-from tensorflow import keras
-from tensorflow.keras import layers
 
-from keras_cv.models.object_detection.yolo_v8.yolo_v8_iou_loss import bbox_iou
+from keras_cv import bounding_box
+from keras_cv.backend import keras
+from keras_cv.backend import ops
+from keras_cv.bounding_box.iou import compute_ciou
 
 
 def select_highest_overlaps(mask_pos, overlaps, max_num_boxes):
@@ -28,36 +29,37 @@ def select_highest_overlaps(mask_pos, overlaps, max_num_boxes):
     Picks the GT box with the highest IoU.
     """
     # (b, max_num_boxes, num_anchors) -> (b, num_anchors)
-    fg_mask = tf.reduce_sum(mask_pos, axis=-2)
+    fg_mask = ops.sum(mask_pos, axis=-2)
 
     def handle_anchor_with_two_gt_boxes(
         fg_mask, mask_pos, overlaps, max_num_boxes
     ):
-        mask_multi_gts = tf.repeat(
-            tf.expand_dims(fg_mask, axis=1) > 1, max_num_boxes, axis=1
+        mask_multi_gts = ops.repeat(
+            ops.expand_dims(fg_mask, axis=1) > 1, max_num_boxes, axis=1
         )  # (b, max_num_boxes, num_anchors)
-        max_overlaps_idx = tf.argmax(overlaps, axis=1)  # (b, num_anchors)
-        is_max_overlaps = tf.one_hot(
-            max_overlaps_idx, max_num_boxes
+        max_overlaps_idx = ops.argmax(overlaps, axis=1)  # (b, num_anchors)
+        is_max_overlaps = ops.one_hot(
+            max_overlaps_idx,
+            max_num_boxes,  # tf.one_hot must use int32
         )  # (b, num_anchors, max_num_boxes)
-        is_max_overlaps = tf.cast(
-            tf.transpose(is_max_overlaps, perm=(0, 2, 1)), overlaps.dtype
+        is_max_overlaps = ops.cast(
+            ops.transpose(is_max_overlaps, axes=(0, 2, 1)), overlaps.dtype
         )  # (b, max_num_boxes, num_anchors)
-        mask_pos = tf.where(
+        mask_pos = ops.where(
             mask_multi_gts, is_max_overlaps, mask_pos
         )  # (b, max_num_boxes, num_anchors)
-        fg_mask = tf.reduce_sum(mask_pos, axis=-2)
+        fg_mask = ops.sum(mask_pos, axis=-2)
         return fg_mask, mask_pos
 
-    fg_mask, mask_pos = tf.cond(
-        tf.reduce_max(fg_mask) > 1,
+    fg_mask, mask_pos = ops.cond(
+        ops.max(fg_mask) > 1,
         lambda: handle_anchor_with_two_gt_boxes(
             fg_mask, mask_pos, overlaps, max_num_boxes
         ),
         lambda: (fg_mask, mask_pos),
     )
 
-    target_gt_idx = tf.argmax(mask_pos, axis=-2)  # (b, num_anchors)
+    target_gt_idx = ops.argmax(mask_pos, axis=-2)  # (b, num_anchors)
     return target_gt_idx, fg_mask, mask_pos
 
 
@@ -70,27 +72,27 @@ def select_candidates_in_gts(xy_centers, gt_bboxes, epsilon=1e-9):
         and `False` otherwise.
     """
     n_anchors = xy_centers.shape[0]
-    bs, n_boxes, _ = gt_bboxes.shape
+    n_boxes = ops.shape(gt_bboxes)[1]
 
-    left_top, right_bottom = tf.split(
-        tf.reshape(gt_bboxes, (-1, 1, 4)), 2, axis=-1
+    left_top, right_bottom = ops.split(
+        ops.reshape(gt_bboxes, (-1, 1, 4)), 2, axis=-1
     )
-    bbox_deltas = tf.reshape(
-        tf.concat(
+    bbox_deltas = ops.reshape(
+        ops.concatenate(
             [
-                xy_centers[tf.newaxis] - left_top,
-                right_bottom - xy_centers[tf.newaxis],
+                xy_centers[None] - left_top,
+                right_bottom - xy_centers[None],
             ],
             axis=2,
         ),
         (-1, n_boxes, n_anchors, 4),
     )
 
-    return tf.reduce_min(bbox_deltas, axis=-1) > epsilon
+    return ops.min(bbox_deltas, axis=-1, initial=float("inf")) > epsilon
 
 
 @keras.utils.register_keras_serializable(package="keras_cv")
-class YOLOV8LabelEncoder(layers.Layer):
+class YOLOV8LabelEncoder(keras.layers.Layer):
     """
     Encodes ground truth boxes to target boxes and class labels for training a
     YOLOV8 model. This is an implementation of the Task-aligned sample
@@ -163,55 +165,74 @@ class YOLOV8LabelEncoder(layers.Layer):
                     box should be excluded from both class and box losses.
         """
         if isinstance(gt_bboxes, tf.RaggedTensor):
-            raise ValueError(
-                "`YOLOV8LabelEncoder`'s `call()` method does not "
-                "support RaggedTensor inputs for the `gt_bboxes` argument. "
-                f"Received `type(gt_bboxes)={type(gt_bboxes)}`."
+            dense_bounding_boxes = bounding_box.to_dense(
+                {"boxes": gt_bboxes, "classes": gt_labels},
+            )
+            gt_bboxes = dense_bounding_boxes["boxes"]
+            gt_labels = dense_bounding_boxes["classes"]
+
+        if isinstance(mask_gt, tf.RaggedTensor):
+            mask_gt = mask_gt.to_tensor()
+
+        max_num_boxes = ops.shape(gt_bboxes)[1]
+
+        def encode_to_targets(
+            pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt
+        ):
+            mask_pos, align_metric, overlaps = self.get_pos_mask(
+                pd_scores,
+                pd_bboxes,
+                gt_labels,
+                gt_bboxes,
+                anc_points,
+                mask_gt,
+                max_num_boxes,
             )
 
-        max_num_boxes = gt_bboxes.shape[1]
+            target_gt_idx, fg_mask, mask_pos = select_highest_overlaps(
+                mask_pos, overlaps, max_num_boxes
+            )
 
-        mask_pos, align_metric, overlaps = self.get_pos_mask(
-            pd_scores,
-            pd_bboxes,
-            gt_labels,
-            gt_bboxes,
-            anc_points,
-            mask_gt,
-            max_num_boxes,
-        )
+            target_bboxes, target_scores = self.get_targets(
+                gt_labels, gt_bboxes, target_gt_idx, fg_mask, max_num_boxes
+            )
 
-        target_gt_idx, fg_mask, mask_pos = select_highest_overlaps(
-            mask_pos, overlaps, max_num_boxes
-        )
+            align_metric *= mask_pos
+            pos_align_metrics = ops.max(
+                align_metric, axis=-1, keepdims=True
+            )  # b, max_num_boxes
+            pos_overlaps = ops.max(
+                overlaps * mask_pos, axis=-1, keepdims=True
+            )  # b, max_num_boxes
+            norm_align_metric = ops.expand_dims(
+                ops.max(
+                    align_metric
+                    * pos_overlaps
+                    / (pos_align_metrics + self.epsilon),
+                    axis=-2,
+                ),
+                axis=-1,
+            )
+            target_scores = target_scores * norm_align_metric
 
-        target_bboxes, target_scores = self.get_targets(
-            gt_labels, gt_bboxes, target_gt_idx, fg_mask, max_num_boxes
-        )
+            # No need to compute gradients for these, as they're all targets
+            return (
+                ops.stop_gradient(target_bboxes),
+                ops.stop_gradient(target_scores),
+                ops.stop_gradient(fg_mask),
+            )
 
-        align_metric *= mask_pos
-        pos_align_metrics = tf.reduce_max(
-            align_metric, axis=-1, keepdims=True
-        )  # b, max_num_boxes
-        pos_overlaps = tf.reduce_max(
-            overlaps * mask_pos, axis=-1, keepdims=True
-        )  # b, max_num_boxes
-        norm_align_metric = tf.expand_dims(
-            tf.reduce_max(
-                align_metric
-                * pos_overlaps
-                / (pos_align_metrics + self.epsilon),
-                axis=-2,
+        # return zeros if no gt boxes are present
+        return ops.cond(
+            max_num_boxes > 0,
+            lambda: encode_to_targets(
+                pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt
             ),
-            axis=-1,
-        )
-        target_scores = target_scores * norm_align_metric
-
-        # No need to compute gradients for these, as they're all targets
-        return (
-            tf.stop_gradient(target_bboxes),
-            tf.stop_gradient(target_scores),
-            tf.stop_gradient(tf.cast(fg_mask, tf.bool)),
+            lambda: (
+                ops.zeros_like(pd_bboxes),
+                ops.zeros_like(pd_scores),
+                ops.zeros_like(pd_scores[..., 0]),
+            ),
         )
 
     def get_pos_mask(
@@ -246,21 +267,21 @@ class YOLOV8LabelEncoder(layers.Layer):
             pd_bboxes,
             gt_labels,
             gt_bboxes,
-            tf.cast(mask_in_gts, tf.int32) * tf.cast(mask_gt, tf.int32),
+            ops.cast(mask_in_gts, "int32") * ops.cast(mask_gt, "int32"),
             max_num_boxes,
         )
         # get topk_metric mask, (b, max_num_boxes, num_anchors)
         mask_topk = self.select_topk_candidates(
             align_metric,
-            topk_mask=tf.cast(
-                tf.repeat(mask_gt, self.max_anchor_matches, axis=2), tf.bool
+            topk_mask=ops.cast(
+                ops.repeat(mask_gt, self.max_anchor_matches, axis=2), "bool"
             ),
         )
         # merge all masks to a final mask, (b, max_num_boxes, num_anchors)
         mask_pos = (
             mask_topk
-            * tf.cast(mask_in_gts, tf.float32)
-            * tf.cast(mask_gt, tf.float32)
+            * ops.cast(mask_in_gts, "float32")
+            * ops.cast(mask_gt, "float32")
         )
 
         return mask_pos, align_metric, overlaps
@@ -280,30 +301,38 @@ class YOLOV8LabelEncoder(layers.Layer):
                     box and the predicted box at each anchor.
         """
         na = pd_bboxes.shape[-2]
-        mask_gt = tf.cast(mask_gt, tf.bool)  # b, max_num_boxes, num_anchors
+        mask_gt = ops.cast(mask_gt, "bool")  # b, max_num_boxes, num_anchors
 
-        ind_1 = tf.cast(gt_labels, tf.int64)
-        pd_scores = tf.gather(
-            pd_scores, tf.math.maximum(ind_1, 0), axis=-1, batch_dims=1
+        ind_1 = ops.cast(gt_labels, "int64")
+        pd_scores = ops.squeeze(
+            ops.take_along_axis(
+                pd_scores[:, None, :, :],
+                ops.cast(ops.maximum(ind_1[:, None, None, :], 0), "int32"),
+                axis=-1,
+            ),
+            axis=1,
         )
-        pd_scores = tf.where(ind_1[:, tf.newaxis, :] >= 0, pd_scores, 0)
-        pd_scores = tf.transpose(pd_scores, perm=(0, 2, 1))
+        pd_scores = ops.where(ind_1[:, None, :] >= 0, pd_scores, 0.0)
+        pd_scores = ops.transpose(pd_scores, axes=(0, 2, 1))
 
-        bbox_scores = tf.where(mask_gt, pd_scores, 0)
+        bbox_scores = ops.where(mask_gt, pd_scores, 0.0)
 
-        pd_boxes = tf.repeat(
-            tf.expand_dims(pd_bboxes, axis=1), max_num_boxes, axis=1
+        pd_boxes = ops.repeat(
+            ops.expand_dims(pd_bboxes, axis=1), max_num_boxes, axis=1
         )
 
-        gt_boxes = tf.repeat(tf.expand_dims(gt_bboxes, axis=2), na, axis=2)
+        gt_boxes = ops.repeat(ops.expand_dims(gt_bboxes, axis=2), na, axis=2)
 
-        iou = tf.squeeze(bbox_iou(gt_boxes, pd_boxes), axis=-1)
-        iou = tf.where(iou > 0, iou, 0)
+        iou = ops.squeeze(
+            compute_ciou(gt_boxes, pd_boxes, bounding_box_format="xyxy"),
+            axis=-1,
+        )
+        iou = ops.where(iou > 0, iou, 0.0)
 
-        iou = tf.reshape(iou, (-1, max_num_boxes, na))
-        overlaps = tf.where(mask_gt, iou, 0)
+        iou = ops.reshape(iou, (-1, max_num_boxes, na))
+        overlaps = ops.where(mask_gt, iou, 0.0)
 
-        align_metric = tf.math.pow(bbox_scores, self.alpha) * tf.math.pow(
+        align_metric = ops.power(bbox_scores, self.alpha) * ops.power(
             overlaps, self.beta
         )
         return align_metric, overlaps
@@ -319,28 +348,26 @@ class YOLOV8LabelEncoder(layers.Layer):
 
         num_anchors = metrics.shape[-1]  # num_anchors
         # (b, max_num_boxes, topk)
-        topk_metrics, topk_idxs = tf.math.top_k(
-            metrics, self.max_anchor_matches
-        )
-        topk_mask = tf.tile(
-            tf.reduce_max(topk_metrics, axis=-1, keepdims=True) > self.epsilon,
+        topk_metrics, topk_idxs = ops.top_k(metrics, self.max_anchor_matches)
+        topk_mask = ops.tile(
+            ops.max(topk_metrics, axis=-1, keepdims=True) > self.epsilon,
             [1, 1, self.max_anchor_matches],
         )
 
         # (b, max_num_boxes, topk)
-        topk_idxs = tf.where(topk_mask, topk_idxs, 0)
-        is_in_topk = tf.zeros_like(metrics, dtype=tf.int64)
+        topk_idxs = ops.where(topk_mask, topk_idxs, 0)
+        is_in_topk = ops.zeros_like(metrics, dtype="int64")
 
         for it in range(self.max_anchor_matches):
-            is_in_topk += tf.one_hot(
-                topk_idxs[:, :, it], num_anchors, dtype=tf.int64
+            is_in_topk += ops.one_hot(
+                topk_idxs[:, :, it], num_anchors, dtype="int64"
             )
 
         # filter invalid bboxes
-        is_in_topk = tf.where(
-            is_in_topk > 1, tf.constant(0, tf.int64), is_in_topk
+        is_in_topk = ops.where(
+            is_in_topk > 1, ops.array(0, "int64"), is_in_topk
         )
-        return tf.cast(is_in_topk, metrics.dtype)
+        return ops.cast(is_in_topk, metrics.dtype)
 
     def get_targets(
         self, gt_labels, gt_bboxes, target_gt_idx, fg_mask, max_num_boxes
@@ -355,31 +382,33 @@ class YOLOV8LabelEncoder(layers.Layer):
                     representing target classes for each anchor.
         """
 
-        batch_ind = tf.range(tf.shape(gt_labels)[0], dtype=tf.int64)[
-            ..., tf.newaxis
+        batch_ind = ops.arange(ops.shape(gt_labels)[0], dtype="int64")[
+            ..., None
         ]
-        target_gt_idx = target_gt_idx + batch_ind * max_num_boxes
+        target_gt_idx = target_gt_idx + batch_ind * ops.cast(
+            max_num_boxes, "int64"
+        )
 
-        gt_bboxes = tf.reshape(gt_bboxes, (-1, gt_bboxes.shape[1], 4))
+        gt_bboxes = keras.layers.Reshape((-1, 4))(gt_bboxes)
 
-        target_labels = tf.gather(
-            tf.reshape(tf.cast(gt_labels, tf.int64), (-1,)), target_gt_idx
+        target_labels = ops.take(
+            ops.reshape(ops.cast(gt_labels, "int64"), (-1,)), target_gt_idx
         )  # (b, num_anchors)
 
         # assigned target boxes, (b, max_num_boxes, 4) -> (b, num_anchors)
-        target_bboxes = tf.gather(
-            tf.reshape(gt_bboxes, (-1, 4)), target_gt_idx, axis=-2
+        target_bboxes = ops.take(
+            ops.reshape(gt_bboxes, (-1, 4)), target_gt_idx, axis=-2
         )
 
         # assigned target scores
-        target_labels = tf.math.maximum(target_labels, 0)
-        target_scores = tf.one_hot(
+        target_labels = ops.maximum(target_labels, 0)
+        target_scores = ops.one_hot(
             target_labels, self.num_classes
         )  # (b, num_anchors, num_classes)
-        fg_scores_mask = tf.repeat(
-            fg_mask[:, :, tf.newaxis], self.num_classes, axis=2
+        fg_scores_mask = ops.repeat(
+            fg_mask[:, :, None], self.num_classes, axis=2
         )  # (b, num_anchors, num_classes)
-        target_scores = tf.where(fg_scores_mask > 0, target_scores, 0)
+        target_scores = ops.where(fg_scores_mask > 0, target_scores, 0)
 
         return target_bboxes, target_scores
 

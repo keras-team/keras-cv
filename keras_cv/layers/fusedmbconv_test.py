@@ -17,9 +17,10 @@ import tensorflow as tf
 from tensorflow import keras
 
 from keras_cv.layers.fusedmbconv import FusedMBConvBlock
+from keras_cv.tests.test_case import TestCase
 
 
-class FusedMBConvBlockTest(tf.test.TestCase):
+class FusedMBConvBlockTest(TestCase):
     @pytest.fixture(autouse=True)
     def cleanup_global_session(self):
         # Code before yield runs before the test

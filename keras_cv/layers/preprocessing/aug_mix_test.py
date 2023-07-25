@@ -15,9 +15,10 @@
 import tensorflow as tf
 
 from keras_cv.layers import preprocessing
+from keras_cv.tests.test_case import TestCase
 
 
-class AugMixTest(tf.test.TestCase):
+class AugMixTest(TestCase):
     def test_return_shapes(self):
         layer = preprocessing.AugMix([0, 255])
 

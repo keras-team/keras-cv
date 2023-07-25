@@ -11,16 +11,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import numpy as np
 import tensorflow as tf
 
 from keras_cv.layers import preprocessing
+from keras_cv.tests.test_case import TestCase
 
 
-class RandomCutoutTest(tf.test.TestCase):
+class RandomCutoutTest(TestCase):
     def _run_test(self, height_factor, width_factor):
         img_shape = (40, 40, 3)
         xs = tf.stack(
-            [2 * tf.ones(img_shape), tf.ones(img_shape)],
+            [2 * np.ones(img_shape), np.ones(img_shape)],
             axis=0,
         )
         xs = tf.cast(xs, tf.float32)
@@ -42,7 +44,7 @@ class RandomCutoutTest(tf.test.TestCase):
         self.assertTrue(tf.math.reduce_any(xs[1] == 1.0))
 
     def test_return_shapes(self):
-        xs = tf.ones((2, 512, 512, 3))
+        xs = np.ones((2, 512, 512, 3))
 
         layer = preprocessing.RandomCutout(
             height_factor=0.5, width_factor=0.5, seed=1
@@ -52,7 +54,7 @@ class RandomCutoutTest(tf.test.TestCase):
         self.assertEqual(xs.shape, [2, 512, 512, 3])
 
     def test_return_shapes_single_element(self):
-        xs = tf.ones((512, 512, 3))
+        xs = np.ones((512, 512, 3))
 
         layer = preprocessing.RandomCutout(
             height_factor=0.5, width_factor=0.5, seed=1
@@ -78,7 +80,7 @@ class RandomCutoutTest(tf.test.TestCase):
     def test_random_cutout_call_results_one_channel(self):
         xs = tf.cast(
             tf.stack(
-                [2 * tf.ones((40, 40, 1)), tf.ones((40, 40, 1))],
+                [2 * np.ones((40, 40, 1)), np.ones((40, 40, 1))],
                 axis=0,
             ),
             tf.float32,
@@ -103,7 +105,7 @@ class RandomCutoutTest(tf.test.TestCase):
     def test_random_cutout_call_tiny_image(self):
         img_shape = (4, 4, 3)
         xs = tf.stack(
-            [2 * tf.ones(img_shape), tf.ones(img_shape)],
+            [2 * np.ones(img_shape), np.ones(img_shape)],
             axis=0,
         )
         xs = tf.cast(xs, tf.float32)
@@ -127,7 +129,7 @@ class RandomCutoutTest(tf.test.TestCase):
     def test_in_tf_function(self):
         xs = tf.cast(
             tf.stack(
-                [2 * tf.ones((100, 100, 1)), tf.ones((100, 100, 1))], axis=0
+                [2 * np.ones((100, 100, 1)), np.ones((100, 100, 1))], axis=0
             ),
             tf.float32,
         )

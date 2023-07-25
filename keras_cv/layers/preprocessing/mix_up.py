@@ -13,15 +13,15 @@
 # limitations under the License.
 
 import tensorflow as tf
-from tensorflow import keras
 
 from keras_cv import bounding_box
+from keras_cv.backend import keras
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+@keras.saving.register_keras_serializable(package="keras_cv")
 class MixUp(BaseImageAugmentationLayer):
     """MixUp implements the MixUp data augmentation technique.
 
@@ -73,7 +73,9 @@ class MixUp(BaseImageAugmentationLayer):
         images, lambda_sample, permutation_order = self._mixup(images)
         if labels is not None:
             labels = self._update_labels(
-                labels, lambda_sample, permutation_order
+                tf.cast(labels, dtype=self.compute_dtype),
+                lambda_sample,
+                permutation_order,
             )
             inputs["labels"] = labels
         if bounding_boxes is not None:

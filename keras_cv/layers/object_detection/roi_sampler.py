@@ -16,6 +16,7 @@ import tensorflow as tf
 from tensorflow import keras
 
 from keras_cv import bounding_box
+from keras_cv.backend import assert_tf_keras
 from keras_cv.bounding_box import iou
 from keras_cv.layers.object_detection import box_matcher
 from keras_cv.layers.object_detection import sampling
@@ -68,6 +69,7 @@ class _ROISampler(keras.layers.Layer):
         append_gt_boxes: bool = True,
         **kwargs,
     ):
+        assert_tf_keras("keras_cv.layers._ROISampler")
         super().__init__(**kwargs)
         self.bounding_box_format = bounding_box_format
         self.roi_matcher = roi_matcher

@@ -1,8 +1,9 @@
 """
 Title: Plot an image gallery
-Author: [lukewood](https://lukewood.xyz)
+Author: [lukewood](https://lukewood.xyz), updated by
+[Suvaditya Mukherjee](https://twitter.com/halcyonrayes)
 Date created: 2022/10/16
-Last modified: 2022/10/16
+Last modified: 2022/06/24
 Description: Visualize ground truth and predicted bounding boxes for a given
              dataset.
 """
@@ -11,7 +12,7 @@ Description: Visualize ground truth and predicted bounding boxes for a given
 Plotting images from a TensorFlow dataset is easy with KerasCV. Behold:
 """
 
-import tensorflow as tf
+import numpy as np
 import tensorflow_datasets as tfds
 
 import keras_cv
@@ -23,18 +24,20 @@ train_ds = tfds.load(
     shuffle_files=True,
 )
 
-
-def unpackage_tfds_inputs(inputs):
-    return inputs["image"]
-
-
-train_ds = train_ds.map(unpackage_tfds_inputs)
-train_ds = train_ds.apply(tf.data.experimental.dense_to_ragged_batch(16))
-
 keras_cv.visualization.plot_image_gallery(
-    next(iter(train_ds.take(1))),
+    train_ds,
     value_range=(0, 255),
     scale=3,
-    rows=2,
-    cols=2,
+)
+
+"""
+If you want to use plain NumPy arrays, you can do that too:
+"""
+
+# Prepare some sample NumPy arrays from random noise
+
+samples = np.random.randint(0, 255, (20, 224, 224, 3))
+
+keras_cv.visualization.plot_image_gallery(
+    samples, value_range=(0, 255), scale=3, rows=4, cols=5
 )
