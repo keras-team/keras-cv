@@ -211,11 +211,6 @@ class WithMixedPrecisionTest(TestCase):
                     "operations `tf.image.adjust_saturation`, and "
                     "`tf.image.adjust_hue`. Skipping."
                 )
-            if layer_cls in NO_BOUNDING_BOXES_TESTS:
-                self.skipTest(
-                    "There is currently no support for bounding boxes."
-                    "Skipping."
-                )
 
         keras.mixed_precision.set_global_policy("mixed_float16")
 
@@ -247,7 +242,12 @@ class WithMixedPrecisionTest(TestCase):
             "classes": tf.ones((3, 3), dtype=tf.float32),
         }
 
-        inputs = {"images": img, "bounding_boxes": bounding_boxes}
+        inputs = {"images": img}
+
+        if layer_cls in NO_BOUNDING_BOXES_TESTS:
+            inputs["labels"] = bounding_boxes["classes"]
+        else:
+            inputs["bounding_boxes"] = bounding_boxes
 
         layer = layer_cls(**init_args)
         layer(inputs)
