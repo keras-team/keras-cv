@@ -45,8 +45,8 @@ def load(
     tensors.
 
     References:
-        - Waymo Dataset Research Paper: https://arxiv.org/abs/1912.04838
-        - Waymo Dataset Website: https://waymo.com/open/
+        - [Waymo Dataset Research Paper](https://arxiv.org/abs/1912.04838)
+        - [Waymo Dataset Website](https://waymo.com/open/)
 
     Args:
         tfrecord_path: a string pointing to the directory containing the raw
