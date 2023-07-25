@@ -43,6 +43,11 @@ def load(
     """
     Loads the Waymo Open Dataset and transforms frames into features as
     tensors.
+
+    References:
+        - Waymo Dataset Research Paper: https://arxiv.org/abs/1912.04838
+        - Waymo Dataset Website: https://waymo.com/open/
+
     Args:
         tfrecord_path: a string pointing to the directory containing the raw
             tfrecords in the Waymo Open Dataset, or a list of strings pointing
