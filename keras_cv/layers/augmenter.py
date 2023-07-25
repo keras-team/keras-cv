@@ -12,12 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
 class Augmenter(object):
     """Light-weight class to apply augmentations to data.
 
     Args:
         layers: A list of `keras.layers.Layers` to apply to the example
-    
+
     Examples:
     from keras_cv import layers
     images = np.ones((16, 256, 256, 3))
@@ -33,8 +34,8 @@ class Augmenter(object):
 
     def __init__(self, layers):
         self.layers = layers
-    
+
     def __call__(self, inputs):
-            for layer in self.layers:
-                inputs = layer(inputs)
-            return inputs
+        for layer in self.layers:
+            inputs = layer(inputs)
+        return inputs
