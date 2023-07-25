@@ -138,7 +138,6 @@ TEST_CONFIGURATIONS = [
             "dtype": "float32",
         },
     ),
-    # ("RandomShear", layers.RandomShear, {"x_factor": 0.3, "x_factor": 0.3}),
     ("Solarization", layers.Solarization, {"value_range": (0, 255)}),
     (
         "Mosaic",
