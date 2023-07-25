@@ -279,7 +279,7 @@ def apply_block(
         x: input tensor.
         filters: int, filters of the basic layer.
         kernel_size: int, kernel size of the bottleneck layer, defaults to 3.
-        stride: int, stride of the first layer, defaults to 1.
+        stride: int, stride of the first layer, defaults to `1`.
         dilation: int, the dilation rate to use for dilated convolution.
             Defaults to 1.
         conv_shortcut: bool, uses convolution shortcut if `True`. If `False`

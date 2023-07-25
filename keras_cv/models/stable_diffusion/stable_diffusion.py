@@ -148,7 +148,7 @@ class StableDiffusionBase:
                 the image generation (e.g. by removing or altering certain
                 aspects of the generated image). Defaults to None.
             num_steps: int, number of diffusion steps (controls image quality),
-                defaults to 50.
+                defaults to `50`.
             unconditional_guidance_scale: float, controlling how closely the
                 image should adhere to the prompt. Larger values result in more
                 closely adhering to the prompt, but will make the image noisier.

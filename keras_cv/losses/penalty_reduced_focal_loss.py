@@ -38,11 +38,11 @@ class BinaryPenaltyReducedFocalCrossEntropy(keras.losses.Loss):
       from_logits: Whether `y_pred` is expected to be a logits tensor, defaults
         to `False`.
       positive_threshold: Anything bigger than this is treated as positive
-        label. Defaults to 0.99.
+        label. Defaults to `0.99`.
       positive_weight: single scalar weight on positive examples. Defaults to
-        1.0.
+        `1.0`.
       negative_weight: single scalar weight on negative examples. Defaults to
-        1.0.
+        `1.0`.
 
     Inputs:
       y_true: [batch_size, ...] float tensor

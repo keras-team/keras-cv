@@ -57,7 +57,7 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
             `(1.0, 1.0)`.
         interpolation: (Optional) A string specifying the sampling method for
             resizing. Defaults to "bilinear".
-        seed: (Optional) Used to create a random seed. Defaults to None.
+        seed: (Optional) Used to create a random seed. Defaults to `None`.
     """
 
     def __init__(

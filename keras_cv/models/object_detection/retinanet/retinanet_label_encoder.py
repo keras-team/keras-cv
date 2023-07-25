@@ -45,9 +45,9 @@ class RetinaNetLabelEncoder(keras.layers.Layer):
         box_variance: The scaling factors used to scale the bounding box
             targets. Defaults to `(0.1, 0.1, 0.2, 0.2)`.
         background_class: (Optional) The class ID used for the background class,
-            defaults to -1.
+            defaults to `-1`.
         ignore_class: (Optional) The class ID used for the ignore class,
-            defaults to -2.
+            defaults to `-2`.
     """  # noqa: E501
 
     def __init__(

@@ -29,8 +29,8 @@ class FourierMix(BaseImageAugmentationLayer):
             the gamma distribution. This controls the shape of the distribution
             from which the smoothing values are sampled. 0.5 is a recommended
             value in the paper. Defaults to `0.5`.
-        decay_power: A float value representing the decay power. Defaults to 3,
-            as recommended in the paper.
+        decay_power: A float value representing the decay power. When not specified by caller,
+            uses value recommended in the paper. Defaults to `3`.
         seed: Integer. Used to create a random seed.
     References:
         - [FMix paper](https://arxiv.org/abs/2002.12047).

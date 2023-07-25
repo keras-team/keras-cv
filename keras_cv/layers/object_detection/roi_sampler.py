@@ -56,7 +56,7 @@ class _ROISampler(keras.layers.Layer):
       num_sampled_rois: the number of sampled proposals per image for
         further (loss) calculation. Defaults to `256`.
       append_gt_boxes: boolean, whether gt_boxes will be appended to rois
-        before sample the rois. Defaults to True.
+        before sample the rois. Defaults to `True`.
     """  # noqa: E501
 
     def __init__(

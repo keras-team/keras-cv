@@ -72,10 +72,10 @@ class GridMask(BaseImageAugmentationLayer):
             amount in the range [-20% * 2pi, 20% * 2pi].
 
         fill_mode: Pixels inside the gridblock are filled according to the given
-            mode (one of `{"constant", "gaussian_noise"}`). Defaults to
-            "constant".
+            mode (one of `{"constant", "gaussian_noise"}`).
             - *constant*: Pixels are filled with the same constant value.
             - *gaussian_noise*: Pixels are filled with random gaussian noise.
+            Defaults to "constant".
         fill_value: an integer represents of value to be filled inside the
             gridblock when `fill_mode="constant"`. Valid integer range
             [0 to 255]
