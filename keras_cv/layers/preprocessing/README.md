@@ -11,16 +11,16 @@
 | AugMix | BaseImageAugmentationLayer | ❌ | ✅ |
 | AutoContrast | VectorizedBaseImageAugmentationLayer | ✅ | ✅ |
 | ChannelShuffle | VectorizedBaseImageAugmentationLayer | ✅ | ✅ |
-| (TODO) CutMix | BaseImageAugmentationLayer | ✅ | ❌ |
+| CutMix | BaseImageAugmentationLayer | ✅ | ❌ |
 | Equalization | BaseImageAugmentationLayer | ✅ | ✅ |
 | FourierMix | BaseImageAugmentationLayer | ❌ | ❌ |
 | Grayscale | VectorizedBaseImageAugmentationLayer | ✅ | ✅ |
 | GridMask | BaseImageAugmentationLayer | ✅ | ✅ |
 | JitteredResize | VectorizedBaseImageAugmentationLayer | ✅ | ✅ |
-| (TODO) MixUp | BaseImageAugmentationLayer | ✅ | ✅ |
+| MixUp | BaseImageAugmentationLayer | ✅ | ✅ |
 | Mosaic | VectorizedBaseImageAugmentationLayer | ✅ | ✅ |
 | Posterization | BaseImageAugmentationLayer | ✅ | ✅ |
-| (TODO) RandAugment | RandomAugmentationPipeline | ❌ | ❌ |
+| RandAugment | RandomAugmentationPipeline | ❌ | ❌ |
 | RandomApply | BaseImageAugmentationLayer | ❌ | ❌ |
 | RandomAspectRatio | BaseImageAugmentationLayer | ❌ | ✅ |
 | RandomBrightness | VectorizedBaseImageAugmentationLayer| ✅ | ✅ |
@@ -44,5 +44,5 @@
 | RandomZoom | VectorizedBaseImageAugmentationLayer | ❌ | ❌ |
 | RepeatedAugmentation | BaseImageAugmentationLayer | ❌ | ❌ |
 | Rescaling | BaseImageAugmentationLayer | ✅ | ✅ |
-| (TODO) Resizing | BaseImageAugmentationLayer | ✅ | ✅ |
+| Resizing | BaseImageAugmentationLayer | ✅ | ✅ |
 | Solarization | VectorizedBaseImageAugmentationLayer | ✅ | ✅ |
