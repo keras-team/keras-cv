@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
 import tensorflow as tf
 from tensorflow.keras import mixed_precision
 
@@ -19,23 +20,27 @@ from keras_cv.models import StableDiffusion
 from keras_cv.tests.test_case import TestCase
 
 
+@pytest.mark.extra_large
+@pytest.mark.tf_keras_only
 class StableDiffusionTest(TestCase):
-    def DISABLED_test_end_to_end_golden_value(self):
+    def test_end_to_end_golden_value(self):
         prompt = "a caterpillar smoking a hookah while sitting on a mushroom"
         stablediff = StableDiffusion(128, 128)
 
-        img = stablediff.text_to_image(prompt, seed=1337)
+        img = stablediff.text_to_image(prompt, seed=1337, num_steps=5)
         self.assertAllClose(
-            img[0][13:14, 13:14, :][0][0], [15, 248, 229], atol=1e-4
+            img[0][13:14, 13:14, :][0][0], [0, 135, 75], atol=1e-4
         )
 
         # Verify that the step-by-step creation flow creates an identical output
         text_encoding = stablediff.encode_text(prompt)
         self.assertAllClose(
-            img, stablediff.generate_image(text_encoding, seed=1337), atol=1e-4
+            img,
+            stablediff.generate_image(text_encoding, seed=1337, num_steps=5),
+            atol=1e-4,
         )
 
-    def DISABLED_test_image_encoder_golden_value(self):
+    def test_image_encoder_golden_value(self):
         stablediff = StableDiffusion(128, 128)
 
         outputs = stablediff.image_encoder.predict(tf.ones((1, 128, 128, 3)))
@@ -45,12 +50,12 @@ class StableDiffusionTest(TestCase):
             atol=1e-4,
         )
 
-    def DISABLED_test_mixed_precision(self):
+    def test_mixed_precision(self):
         mixed_precision.set_global_policy("mixed_float16")
         stablediff = StableDiffusion(128, 128)
         _ = stablediff.text_to_image("Testing123 haha!")
 
-    def DISABLED_test_generate_image_rejects_noise_and_seed(self):
+    def test_generate_image_rejects_noise_and_seed(self):
         stablediff = StableDiffusion(128, 128)
 
         with self.assertRaisesRegex(
