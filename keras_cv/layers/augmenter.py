@@ -14,6 +14,7 @@
 
 from keras_cv.backend import keras
 
+
 class Augmenter(keras.layers.Layer):
     """Light-weight class to apply augmentations to data.
 

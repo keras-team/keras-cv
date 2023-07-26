@@ -13,7 +13,6 @@
 # limitations under the License.
 
 from keras_cv import layers
-from keras_cv.backend import keras
 from keras_cv.backend import ops
 from keras_cv.tests.test_case import TestCase
 
