@@ -1,6 +1,7 @@
 from keras_cv.backend import keras
 from keras_cv.models import utils
 from keras_cv.models.task import Task
+from keras_cv.utils.train import get_feature_extractor
 
 
 @keras.utils.register_keras_serializable(package="keras_cv")
@@ -22,9 +23,10 @@ class SegFormer(Task):
             )
 
         inputs = backbone.input
-        backbone(inputs)
-
-        outputs = backbone.pyramid_level_inputs
+        feature_extractor = get_feature_extractor(
+            backbone, list(backbone.pyramid_level_inputs.values())
+        )
+        outputs = feature_extractor(inputs)
 
         y = SegFormerHead(
             in_dims=backbone.output_channels,
@@ -80,17 +82,23 @@ class SegFormerHead(keras.layers.Layer):
         # Final segmentation output
         self.seg_out = keras.layers.Conv2D(filters=num_classes, kernel_size=1)
 
+    def compute_output_shape(self, input_shape):
+        return input_shape
+
     def call(self, features):
         _, H, W, _ = features[0].shape
         outs = []
 
+        print(features)
         for feature, layer in zip(features, self.linear_layers):
+            print(feature, layer)
             feature = layer(feature)
             feature = keras.image.resize(
                 feature, size=(H, W), method="bilinear"
             )
             outs.append(feature)
 
+        
         seg = self.linear_fuse(keras.ops.concat(outs[::-1], axis=3))
         seg = self.dropout(seg)
         seg = self.seg_out(seg)
