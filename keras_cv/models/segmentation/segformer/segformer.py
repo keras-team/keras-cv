@@ -12,7 +12,6 @@ class SegFormer(Task):
         embed_dim=None,
         **kwargs,
     ):
-        
         if not isinstance(backbone, keras.layers.Layer) or not isinstance(
             backbone, keras.Model
         ):
@@ -35,7 +34,9 @@ class SegFormer(Task):
         )(outputs)
 
         output = keras.layers.Resizing(
-            height=inputs.shape[1], width=inputs.shape[2], interpolation="bilinear"
+            height=inputs.shape[1],
+            width=inputs.shape[2],
+            interpolation="bilinear",
         )(y)
 
         super().__init__(
