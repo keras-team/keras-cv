@@ -18,9 +18,9 @@ from keras_cv.backend import ops
 from keras_cv.tests.test_case import TestCase
 
 
-class SpatialPyramidPoolingTest(TestCase):
+class AugmenterTest(TestCase):
     def test_call(self):
-        images = ops.ones((16, 256, 256, 3))
+        images = ops.ones((2, 256, 256, 3))
         augmenter = layers.Augmenter(
             [
                 layers.RandomFlip(),
@@ -32,8 +32,8 @@ class SpatialPyramidPoolingTest(TestCase):
 
     def test_call_with_labels(self):
         images = {
-            "labels": ops.ones((16,)),
-            "images": ops.ones((16, 256, 256, 3)),
+            "labels": ops.ones((2,)),
+            "images": ops.ones((2, 256, 256, 3)),
         }
         augmenter = layers.Augmenter(
             [

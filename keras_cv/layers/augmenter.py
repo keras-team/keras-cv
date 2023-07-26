@@ -12,8 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from keras_cv.backend import keras
 
-class Augmenter(object):
+class Augmenter(keras.layers.Layer):
     """Light-weight class to apply augmentations to data.
 
     Args:
