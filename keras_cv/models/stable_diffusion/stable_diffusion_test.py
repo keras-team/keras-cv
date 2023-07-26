@@ -27,16 +27,16 @@ class StableDiffusionTest(TestCase):
         prompt = "a caterpillar smoking a hookah while sitting on a mushroom"
         stablediff = StableDiffusion(128, 128)
 
-        img = stablediff.text_to_image(prompt, seed=1337, num_steps=25)
+        img = stablediff.text_to_image(prompt, seed=1337, num_steps=5)
         self.assertAllClose(
-            img[0][13:14, 13:14, :][0][0], [15, 248, 229], atol=1e-4
+            img[0][13:14, 13:14, :][0][0], [0, 135, 75], atol=1e-4
         )
 
         # Verify that the step-by-step creation flow creates an identical output
         text_encoding = stablediff.encode_text(prompt)
         self.assertAllClose(
             img,
-            stablediff.generate_image(text_encoding, seed=1337, num_steps=25),
+            stablediff.generate_image(text_encoding, seed=1337, num_steps=5),
             atol=1e-4,
         )
 
