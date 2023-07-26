@@ -16,7 +16,8 @@
 Adapted from https://github.com/huggingface/diffusers/blob/v0.3.0/src/diffusers/schedulers/scheduling_ddpm.py#L56
 """  # noqa: E501
 
-import tensorflow as tf
+from keras_cv.backend import keras
+from keras_cv.backend import ops
 
 
 class NoiseScheduler:
@@ -43,28 +44,30 @@ class NoiseScheduler:
         beta_start=0.0001,
         beta_end=0.02,
         beta_schedule="linear",
-        betas=None,
         variance_type="fixed_small",
         clip_sample=True,
     ):
         self.train_timesteps = train_timesteps
 
         if beta_schedule == "linear":
-            self.betas = tf.linspace(beta_start, beta_end, train_timesteps)
+            self.betas = ops.linspace(beta_start, beta_end, train_timesteps)
         elif beta_schedule == "scaled_linear":
             # this schedule is very specific to the latent diffusion model.
             self.betas = (
-                tf.linspace(beta_start**0.5, beta_end**0.5, train_timesteps)
+                ops.linspace(
+                    beta_start**0.5, beta_end**0.5, train_timesteps
+                )
                 ** 2
             )
         else:
             raise ValueError(f"Invalid beta schedule: {beta_schedule}.")
 
         self.alphas = 1.0 - self.betas
-        self.alphas_cumprod = tf.math.cumprod(self.alphas)
+        self.alphas_cumprod = ops.math.cumprod(self.alphas)
 
         self.variance_type = variance_type
         self.clip_sample = clip_sample
+        self.seed_gen = keras.random.SeedGenerator(seed=42)
 
     def _get_variance(self, timestep, predicted_variance=None):
         alpha_prod = self.alphas_cumprod[timestep]
@@ -77,21 +80,13 @@ class NoiseScheduler:
         )
 
         if self.variance_type == "fixed_small":
-            variance = tf.clip_by_value(
-                variance, clip_value_min=1e-20, clip_value_max=1
-            )
+            variance = ops.clip(variance, x_min=1e-20, x_max=1)
         elif self.variance_type == "fixed_small_log":
-            variance = tf.log(
-                (
-                    tf.clip_by_value(
-                        variance, clip_value_min=1e-20, clip_value_max=1
-                    )
-                )
-            )
+            variance = ops.log(ops.clip(variance, x_min=1e-20, x_max=1))
         elif self.variance_type == "fixed_large":
             variance = self.betas[timestep]
         elif self.variance_type == "fixed_large_log":
-            variance = tf.log(self.betas[timestep])
+            variance = ops.log(self.betas[timestep])
         elif self.variance_type == "learned":
             return predicted_variance
         elif self.variance_type == "learned_range":
@@ -133,7 +128,7 @@ class NoiseScheduler:
             "learned",
             "learned_range",
         ]:
-            model_output, predicted_variance = tf.split(
+            model_output, predicted_variance = ops.split(
                 model_output, sample.shape[1], axis=1
             )
         else:
@@ -158,7 +153,9 @@ class NoiseScheduler:
 
         # 3. Clip "predicted x_0"
         if self.clip_sample:
-            pred_original_sample = tf.clip_by_value(pred_original_sample, -1, 1)
+            pred_original_sample = ops.clip_by_value(
+                pred_original_sample, -1, 1
+            )
 
         # 4. Compute coefficients for pred_original_sample x_0 and current
         # sample x_t
@@ -180,7 +177,7 @@ class NoiseScheduler:
         # 6. Add noise
         variance = 0
         if timestep > 0:
-            noise = tf.random.normal(model_output.shape)
+            noise = keras.random.normal(model_output.shape, seed=self.seed_gen)
             variance = (
                 self._get_variance(
                     timestep, predicted_variance=predicted_variance
@@ -198,14 +195,14 @@ class NoiseScheduler:
         noise,
         timesteps,
     ):
-        sqrt_alpha_prod = tf.gather(self.alphas_cumprod, timesteps) ** 0.5
+        sqrt_alpha_prod = ops.take(self.alphas_cumprod, timesteps) ** 0.5
         sqrt_one_minus_alpha_prod = (
-            1 - tf.gather(self.alphas_cumprod, timesteps)
+            1 - ops.take(self.alphas_cumprod, timesteps)
         ) ** 0.5
 
         for _ in range(3):
-            sqrt_alpha_prod = tf.expand_dims(sqrt_alpha_prod, axis=-1)
-            sqrt_one_minus_alpha_prod = tf.expand_dims(
+            sqrt_alpha_prod = ops.expand_dims(sqrt_alpha_prod, axis=-1)
+            sqrt_one_minus_alpha_prod = ops.expand_dims(
                 sqrt_one_minus_alpha_prod, axis=-1
             )
 

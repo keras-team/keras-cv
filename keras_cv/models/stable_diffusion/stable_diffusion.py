@@ -27,9 +27,9 @@ Divam Gupta.
 import math
 
 import numpy as np
-import tensorflow as tf
-from tensorflow import keras
 
+from keras_cv.backend import keras
+from keras_cv.backend import ops
 from keras_cv.models.stable_diffusion.clip_tokenizer import SimpleTokenizer
 from keras_cv.models.stable_diffusion.constants import _ALPHAS_CUMPROD
 from keras_cv.models.stable_diffusion.constants import _UNCONDITIONAL_TOKENS
@@ -64,6 +64,7 @@ class StableDiffusionBase:
         self._diffusion_model = None
         self._decoder = None
         self._tokenizer = None
+        self.seed_gen = keras.random.SeedGenerator(seed=42)
 
         self.jit_compile = jit_compile
 
@@ -116,7 +117,7 @@ class StableDiffusionBase:
                 f"Prompt is too long (should be <= {MAX_PROMPT_LENGTH} tokens)"
             )
         phrase = inputs + [49407] * (MAX_PROMPT_LENGTH - len(inputs))
-        phrase = tf.convert_to_tensor([phrase], dtype=tf.int32)
+        phrase = ops.convert_to_tensor([phrase], dtype="int32")
 
         context = self.text_encoder.predict_on_batch(
             [phrase, self._get_pos_ids()]
@@ -166,13 +167,14 @@ class StableDiffusionBase:
 
         ```python
         from keras_cv.models import StableDiffusion
+        from keras_core import ops
 
         batch_size = 8
         model = StableDiffusion(img_height=512, img_width=512, jit_compile=True)
         e_tacos = model.encode_text("Tacos at dawn")
         e_watermelons = model.encode_text("Watermelons at dusk")
 
-        e_interpolated = tf.linspace(e_tacos, e_watermelons, batch_size)
+        e_interpolated = ops.linspace(e_tacos, e_watermelons, batch_size)
         images = model.generate_image(e_interpolated, batch_size=batch_size)
         ```
         """
@@ -186,7 +188,7 @@ class StableDiffusionBase:
         context = self._expand_tensor(encoded_text, batch_size)
 
         if negative_prompt is None:
-            unconditional_context = tf.repeat(
+            unconditional_context = ops.repeat(
                 self._get_unconditional_context(), batch_size, axis=0
             )
         else:
@@ -196,17 +198,17 @@ class StableDiffusionBase:
             )
 
         if diffusion_noise is not None:
-            diffusion_noise = tf.squeeze(diffusion_noise)
+            diffusion_noise = ops.squeeze(diffusion_noise)
             if diffusion_noise.shape.rank == 3:
-                diffusion_noise = tf.repeat(
-                    tf.expand_dims(diffusion_noise, axis=0), batch_size, axis=0
+                diffusion_noise = ops.repeat(
+                    ops.expand_dims(diffusion_noise, axis=0), batch_size, axis=0
                 )
             latent = diffusion_noise
         else:
             latent = self._get_initial_diffusion_noise(batch_size, seed)
 
         # Iterative reverse diffusion stage
-        timesteps = tf.range(1, 1000, 1000 // num_steps)
+        timesteps = ops.arange(1, 1000, 1000 // num_steps)
         alphas, alphas_prev = self._get_initial_alphas(timesteps)
         progbar = keras.utils.Progbar(len(timesteps))
         iteration = 0
@@ -238,8 +240,9 @@ class StableDiffusionBase:
         return np.clip(decoded, 0, 255).astype("uint8")
 
     def _get_unconditional_context(self):
-        unconditional_tokens = tf.convert_to_tensor(
-            [_UNCONDITIONAL_TOKENS], dtype=tf.int32
+        unconditional_tokens = ops.convert_to_tensor(
+            [_UNCONDITIONAL_TOKENS],
+            dtype="int32",
         )
         unconditional_context = self.text_encoder.predict_on_batch(
             [unconditional_tokens, self._get_pos_ids()]
@@ -250,10 +253,10 @@ class StableDiffusionBase:
     def _expand_tensor(self, text_embedding, batch_size):
         """Extends a tensor by repeating it to fit the shape of the given batch
         size."""
-        text_embedding = tf.squeeze(text_embedding)
+        text_embedding = ops.squeeze(text_embedding)
         if text_embedding.shape.rank == 2:
-            text_embedding = tf.repeat(
-                tf.expand_dims(text_embedding, axis=0), batch_size, axis=0
+            text_embedding = ops.repeat(
+                ops.expand_dims(text_embedding, axis=0), batch_size, axis=0
             )
         return text_embedding
 
@@ -308,13 +311,13 @@ class StableDiffusionBase:
         self, timestep, batch_size, dim=320, max_period=10000
     ):
         half = dim // 2
-        freqs = tf.math.exp(
-            -math.log(max_period) * tf.range(0, half, dtype=tf.float32) / half
+        freqs = ops.exp(
+            -ops.log(max_period) * ops.arange(0, half, dtype="float32") / half
         )
-        args = tf.convert_to_tensor([timestep], dtype=tf.float32) * freqs
-        embedding = tf.concat([tf.math.cos(args), tf.math.sin(args)], 0)
-        embedding = tf.reshape(embedding, [1, -1])
-        return tf.repeat(embedding, batch_size, axis=0)
+        args = ops.convert_to_tensor([timestep], dtype="float32") * freqs
+        embedding = ops.concatenate([ops.cos(args), ops.sin(args)], 0)
+        embedding = ops.reshape(embedding, [1, -1])
+        return ops.repeat(embedding, batch_size, axis=0)
 
     def _get_initial_alphas(self, timesteps):
         alphas = [_ALPHAS_CUMPROD[t] for t in timesteps]
@@ -324,19 +327,21 @@ class StableDiffusionBase:
 
     def _get_initial_diffusion_noise(self, batch_size, seed):
         if seed is not None:
-            return tf.random.stateless_normal(
+            return keras.random.normal(
                 (batch_size, self.img_height // 8, self.img_width // 8, 4),
-                seed=[seed, seed],
+                seed=seed,
             )
         else:
-            return tf.random.normal(
-                (batch_size, self.img_height // 8, self.img_width // 8, 4)
+            return keras.random.normal(
+                (batch_size, self.img_height // 8, self.img_width // 8, 4),
+                seed=self.seed_gen,
             )
 
     @staticmethod
     def _get_pos_ids():
-        return tf.convert_to_tensor(
-            [list(range(MAX_PROMPT_LENGTH))], dtype=tf.int32
+        return ops.convert_to_tensor(
+            [list(range(MAX_PROMPT_LENGTH))],
+            dtype="int32",
         )
 
 

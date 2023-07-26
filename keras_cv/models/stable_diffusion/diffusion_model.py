@@ -12,9 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import tensorflow as tf
-from tensorflow import keras
-
+from keras_cv.backend import keras
+from keras_cv.backend import ops
 from keras_cv.models.stable_diffusion.__internal__.layers.padded_conv2d import (
     PaddedConv2D,
 )
@@ -268,9 +267,9 @@ class SpatialTransformer(keras.layers.Layer):
         _, h, w, c = inputs.shape
         x = self.norm(inputs)
         x = self.proj1(x)
-        x = tf.reshape(x, (-1, h * w, c))
+        x = ops.reshape(x, (-1, h * w, c))
         x = self.transformer_block([x, context])
-        x = tf.reshape(x, (-1, h, w, c))
+        x = ops.reshape(x, (-1, h, w, c))
         return self.proj2(x) + inputs
 
 
@@ -307,27 +306,29 @@ class CrossAttention(keras.layers.Layer):
         inputs, context = inputs
         context = inputs if context is None else context
         q, k, v = self.to_q(inputs), self.to_k(context), self.to_v(context)
-        q = tf.reshape(q, (-1, inputs.shape[1], self.num_heads, self.head_size))
-        k = tf.reshape(
+        q = ops.reshape(
+            q, (-1, inputs.shape[1], self.num_heads, self.head_size)
+        )
+        k = ops.reshape(
             k, (-1, context.shape[1], self.num_heads, self.head_size)
         )
-        v = tf.reshape(
+        v = ops.reshape(
             v, (-1, context.shape[1], self.num_heads, self.head_size)
         )
 
-        q = tf.transpose(q, (0, 2, 1, 3))  # (bs, num_heads, time, head_size)
-        k = tf.transpose(k, (0, 2, 3, 1))  # (bs, num_heads, head_size, time)
-        v = tf.transpose(v, (0, 2, 1, 3))  # (bs, num_heads, time, head_size)
+        q = ops.transpose(q, (0, 2, 1, 3))  # (bs, num_heads, time, head_size)
+        k = ops.transpose(k, (0, 2, 3, 1))  # (bs, num_heads, head_size, time)
+        v = ops.transpose(v, (0, 2, 1, 3))  # (bs, num_heads, time, head_size)
 
         score = td_dot(q, k) * self.scale
         weights = keras.activations.softmax(
             score
         )  # (bs, num_heads, time, time)
         attn = td_dot(weights, v)
-        attn = tf.transpose(
+        attn = ops.transpose(
             attn, (0, 2, 1, 3)
         )  # (bs, time, num_heads, head_size)
-        out = tf.reshape(
+        out = ops.reshape(
             attn, (-1, inputs.shape[1], self.num_heads * self.head_size)
         )
         return self.out_proj(out)
@@ -359,7 +360,7 @@ class GEGLU(keras.layers.Layer):
 
 
 def td_dot(a, b):
-    aa = tf.reshape(a, (-1, a.shape[2], a.shape[3]))
-    bb = tf.reshape(b, (-1, b.shape[2], b.shape[3]))
+    aa = ops.reshape(a, (-1, a.shape[2], a.shape[3]))
+    bb = ops.reshape(b, (-1, b.shape[2], b.shape[3]))
     cc = keras.backend.batch_dot(aa, bb)
-    return tf.reshape(cc, (-1, a.shape[1], cc.shape[1], cc.shape[2]))
+    return ops.reshape(cc, (-1, a.shape[1], cc.shape[1], cc.shape[2]))
