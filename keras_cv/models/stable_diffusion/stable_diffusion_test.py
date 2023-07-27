@@ -17,6 +17,7 @@ from tensorflow.keras import mixed_precision
 
 from keras_cv.backend import keras
 from keras_cv.backend import ops
+from keras_cv.backend import random
 from keras_cv.models import StableDiffusion
 from keras_cv.tests.test_case import TestCase
 
@@ -65,7 +66,7 @@ class StableDiffusionTest(TestCase):
         ):
             _ = stablediff.generate_image(
                 stablediff.encode_text("thou shall not render"),
-                diffusion_noise=keras.random.normal((1, 16, 16, 4), seed=42),
+                diffusion_noise=random.normal((1, 16, 16, 4), seed=42),
                 seed=1337,
             )
 

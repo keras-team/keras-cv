@@ -30,6 +30,7 @@ import numpy as np
 
 from keras_cv.backend import keras
 from keras_cv.backend import ops
+from keras_cv.backend import random
 from keras_cv.models.stable_diffusion.clip_tokenizer import SimpleTokenizer
 from keras_cv.models.stable_diffusion.constants import _ALPHAS_CUMPROD
 from keras_cv.models.stable_diffusion.constants import _UNCONDITIONAL_TOKENS
@@ -64,7 +65,7 @@ class StableDiffusionBase:
         self._diffusion_model = None
         self._decoder = None
         self._tokenizer = None
-        self.seed_gen = keras.random.SeedGenerator(seed=42)
+        self.seed_generator = random.SeedGenerator(seed=42)
 
         self.jit_compile = jit_compile
 
@@ -311,8 +312,9 @@ class StableDiffusionBase:
         self, timestep, batch_size, dim=320, max_period=10000
     ):
         half = dim // 2
+        range = ops.cast(ops.arange(0, half), "float32")
         freqs = ops.exp(
-            -ops.log(max_period) * ops.arange(0, half, dtype="float32") / half
+            -math.log(max_period) * range / half
         )
         args = ops.convert_to_tensor([timestep], dtype="float32") * freqs
         embedding = ops.concatenate([ops.cos(args), ops.sin(args)], 0)
@@ -327,14 +329,14 @@ class StableDiffusionBase:
 
     def _get_initial_diffusion_noise(self, batch_size, seed):
         if seed is not None:
-            return keras.random.normal(
+            return random.normal(
                 (batch_size, self.img_height // 8, self.img_width // 8, 4),
                 seed=seed,
             )
         else:
-            return keras.random.normal(
+            return random.normal(
                 (batch_size, self.img_height // 8, self.img_width // 8, 4),
-                seed=self.seed_gen,
+                seed=self.seed_generator,
             )
 
     @staticmethod

@@ -18,7 +18,7 @@ Adapted from https://github.com/huggingface/diffusers/blob/v0.3.0/src/diffusers/
 
 from keras_cv.backend import keras
 from keras_cv.backend import ops
-
+from keras_cv.backend import random
 
 class NoiseScheduler:
     """
@@ -67,7 +67,7 @@ class NoiseScheduler:
 
         self.variance_type = variance_type
         self.clip_sample = clip_sample
-        self.seed_gen = keras.random.SeedGenerator(seed=42)
+        self.seed_generator = random.SeedGenerator(seed=42)
 
     def _get_variance(self, timestep, predicted_variance=None):
         alpha_prod = self.alphas_cumprod[timestep]
@@ -177,7 +177,7 @@ class NoiseScheduler:
         # 6. Add noise
         variance = 0
         if timestep > 0:
-            noise = keras.random.normal(model_output.shape, seed=self.seed_gen)
+            noise = random.normal(model_output.shape, seed=self.seed_generator)
             variance = (
                 self._get_variance(
                     timestep, predicted_variance=predicted_variance
