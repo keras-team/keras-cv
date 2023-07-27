@@ -64,7 +64,7 @@ def load(
     img_size=None,
     crop_to_aspect_ratio=True,
 ):
-    """Loads the ImageNet dataset from TFRecords
+      """Loads the ImageNet dataset from TFRecords
 
     Usage:
     ```python
@@ -72,6 +72,10 @@ def load(
         split="train", tfrecord_path="gs://my-bucket/imagenet-tfrecords"
     )
     ```
+    
+    References:
+    - [ImageNet Dataset Research Paper](https://arxiv.org/abs/1409.0575)
+    - [ImageNet Dataset Website](https://www.image-net.org/)
 
     Args:
         split: the split to load. Should be one of "train" or "validation."
