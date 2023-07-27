@@ -1,5 +1,6 @@
+import tensorflow as tf
+
 from keras_cv.backend import keras
-from keras_cv.models import utils
 from keras_cv.models.task import Task
 from keras_cv.utils.train import get_feature_extractor
 
@@ -23,23 +24,49 @@ class SegFormer(Task):
             )
 
         inputs = backbone.input
+
         feature_extractor = get_feature_extractor(
             backbone, list(backbone.pyramid_level_inputs.values())
         )
-        outputs = feature_extractor(inputs)
+        # Multi-level dictionary
+        features = list(feature_extractor(inputs).values())
 
-        y = SegFormerHead(
-            in_dims=backbone.output_channels,
-            embed_dim=embed_dim,
-            num_classes=num_classes,
-            name="segformer_head",
-        )(outputs)
+        # Get H and W of level one output
+        _, H, W, _ = features[0].shape
+        # Project all multi-level outputs onto the same dimensionality
+        # and feature map shape
+        multi_layer_outs = []
+        for feature_dim, feature in zip(backbone.output_channels, features):
+            out = keras.layers.Dense(embed_dim, name=f"linear_{feature_dim}")(
+                feature
+            )
+            out = keras.layers.Resizing(H, W, interpolation="bilinear")(out)
+            multi_layer_outs.append(out)
+
+        # Concat now-equal feature maps
+        concatenated_outs = keras.layers.Concatenate(axis=3)(
+            multi_layer_outs[::-1]
+        )
+
+        # Fuse multi-channel segmentation map into a single-channel segmentation map
+        seg = keras.Sequential(
+            [
+                keras.layers.Conv2D(
+                    filters=embed_dim, kernel_size=1, use_bias=False
+                ),
+                keras.layers.BatchNormalization(),
+                keras.layers.Activation("relu"),
+            ]
+        )(concatenated_outs)
+
+        seg = keras.layers.Dropout(0.1)(seg)
+        seg = keras.layers.Conv2D(filters=num_classes, kernel_size=1)(seg)
 
         output = keras.layers.Resizing(
             height=inputs.shape[1],
             width=inputs.shape[2],
             interpolation="bilinear",
-        )(y)
+        )(seg)
 
         super().__init__(
             inputs=inputs,
@@ -56,51 +83,3 @@ class SegFormer(Task):
             "backbone": self.backbone,
             "embed_dim": self.embed_dim,
         }
-
-
-class SegFormerHead(keras.layers.Layer):
-    def __init__(self, in_dims, embed_dim=256, num_classes=19, **kwargs):
-        super().__init__(**kwargs)
-        self.linear_layers = []
-
-        for i in in_dims:
-            self.linear_layers.append(
-                keras.layers.Dense(embed_dim, name=f"linear_{i}")
-            )
-
-        # To fuse multiple layer outputs into a single feature map using a Conv2d
-        self.linear_fuse = keras.Sequential(
-            [
-                keras.layers.Conv2D(
-                    filters=embed_dim, kernel_size=1, use_bias=False
-                ),
-                keras.layers.BatchNormalization(),
-                keras.layers.Activation("relu"),
-            ]
-        )
-        self.dropout = keras.layers.Dropout(0.1)
-        # Final segmentation output
-        self.seg_out = keras.layers.Conv2D(filters=num_classes, kernel_size=1)
-
-    def compute_output_shape(self, input_shape):
-        return input_shape
-
-    def call(self, features):
-        _, H, W, _ = features[0].shape
-        outs = []
-
-        print(features)
-        for feature, layer in zip(features, self.linear_layers):
-            print(feature, layer)
-            feature = layer(feature)
-            feature = keras.image.resize(
-                feature, size=(H, W), method="bilinear"
-            )
-            outs.append(feature)
-
-        
-        seg = self.linear_fuse(keras.ops.concat(outs[::-1], axis=3))
-        seg = self.dropout(seg)
-        seg = self.seg_out(seg)
-
-        return seg

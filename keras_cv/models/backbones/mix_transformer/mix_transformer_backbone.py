@@ -104,7 +104,9 @@ class MiTBackbone(Backbone):
             for blk in transformer_blocks[i]:
                 x = blk(x)
             x = layer_norms[i](x)
-            x = keras.layers.Reshape((new_height, new_width, -1), name=f'output_level_{i}')(x)
+            x = keras.layers.Reshape(
+                (new_height, new_width, -1), name=f"output_level_{i}"
+            )(x)
             pyramid_level_inputs.append(utils.get_tensor_input_name(x))
 
         super().__init__(inputs=inputs, outputs=x, **kwargs)
