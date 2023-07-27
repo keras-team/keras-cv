@@ -29,10 +29,10 @@ jobs:
           ${{ runner.os }}-pip-
     - name: Install dependencies
       run: |
-        pip install tensorflow==2.13.0
+        pip install tensorflow>=2.13.0
         pip install torch>=2.0.1+cpu
         pip install "jax[cpu]"
-        pip install keras-core==0.1.0
+        pip install keras-core
         pip install -e ".[tests]" --progress-bar off --upgrade
     - name: Test with pytest
       env:
@@ -66,11 +66,11 @@ jobs:
           ${{ runner.os }}-pip-
     - name: Install dependencies
       run: |
-        pip install tensorflow==2.13.0
+        pip install tensorflow>=2.13.0
         pip install "jax[cpu]"
         pip install torch>=2.0.1+cpu
         pip install torchvision>=0.15.1
-        pip install keras-core==0.1.0
+        pip install keras-core
         pip install -e ".[tests]" --progress-bar off --upgrade
     - name: Test with pytest
       env:
@@ -112,7 +112,7 @@ jobs:
           ${{ runner.os }}-pip-
     - name: Install dependencies
       run: |
-        pip install tensorflow==2.11.0
+        pip install tensorflow>=2.13.0
         pip install -e ".[tests]" --progress-bar off --upgrade
     - name: Lint
       run: bash shell/lint.sh
