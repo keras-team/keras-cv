@@ -15,6 +15,7 @@
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 
+
 class TextEncoder(keras.Model):
     def __init__(
         self, max_length, vocab_size=49408, name=None, download_weights=True

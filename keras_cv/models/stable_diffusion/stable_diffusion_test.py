@@ -15,7 +15,6 @@
 import pytest
 from tensorflow.keras import mixed_precision
 
-from keras_cv.backend import keras
 from keras_cv.backend import ops
 from keras_cv.backend import random
 from keras_cv.models import StableDiffusion
@@ -69,7 +68,3 @@ class StableDiffusionTest(TestCase):
                 diffusion_noise=random.normal((1, 16, 16, 4), seed=42),
                 seed=1337,
             )
-
-
-if __name__ == "__main__":
-    tf.test.main()

@@ -313,9 +313,7 @@ class StableDiffusionBase:
     ):
         half = dim // 2
         range = ops.cast(ops.arange(0, half), "float32")
-        freqs = ops.exp(
-            -math.log(max_period) * range / half
-        )
+        freqs = ops.exp(-math.log(max_period) * range / half)
         args = ops.convert_to_tensor([timestep], dtype="float32") * freqs
         embedding = ops.concatenate([ops.cos(args), ops.sin(args)], 0)
         embedding = ops.reshape(embedding, [1, -1])

@@ -76,8 +76,9 @@ else:
 
 from keras_cv.backend import config  # noqa: E402
 from keras_cv.backend import ops  # noqa: E402
+from keras_cv.backend import random  # noqa: E402
 from keras_cv.backend import tf_ops  # noqa: E402
-from keras_cv.backend import random # noqa: E402
+
 
 def assert_tf_keras(src):
     if multi_backend():
