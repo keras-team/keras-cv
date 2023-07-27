@@ -38,7 +38,7 @@ def DarknetConvBlock(
             integer to the same value both dimensions.
         use_bias: Boolean, whether the layer uses a bias vector.
         activation: the activation applied after the BatchNorm layer. One of
-            "silu", "relu" or "leaky_relu". Defaults to "silu".
+            `"silu"`, `"relu"` or `"leaky_relu"`. Defaults to `"silu"`.
         name: the prefix for the layer names used in the block.
     """
 
@@ -140,7 +140,7 @@ def SpatialPyramidPoolingBottleneck(
             Defaults to `None`.
         kernel_sizes: A list or tuple representing all the pool sizes used for
             the pooling layers. Defaults to `(5, 9, 13)`.
-        activation: Activation for the conv layers. Defaults to "silu".
+        activation: Activation for the conv layers. Defaults to `"silu"`.
         name: the prefix for the layer names used in the block.
 
     Returns:
@@ -201,8 +201,8 @@ def DarknetConvBlockDepthwise(
         strides: An integer or tuple/list of 2 integers, specifying the strides
             of the convolution along the height and width. Can be a single
             integer to the same value both dimensions.
-        activation: the activation applied after the final layer. One of "silu",
-            "relu" or "leaky_relu". Defaults to "silu".
+        activation: the activation applied after the final layer.
+            One of `"silu"`, `"relu"` or `"leaky_relu"`. Defaults to `"silu"`.
         name: the prefix for the layer names used in the block.
 
     """
@@ -250,8 +250,8 @@ class CrossStagePartial(keras.layers.Layer):
         use_depthwise: a boolean value used to decide whether a depthwise conv
             block should be used over a regular darknet block. Defaults to
             `False`.
-        activation: the activation applied after the final layer. One of "silu",
-            "relu" or "leaky_relu". Defaults to "silu".
+        activation: the activation applied after the final layer.
+            One of `"silu"`, `"relu"` or `"leaky_relu"`. Defaults to `"silu"`.
     """
 
     def __init__(

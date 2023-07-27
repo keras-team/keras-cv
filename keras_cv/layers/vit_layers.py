@@ -160,8 +160,8 @@ class PatchingAndEmbedding(layers.Layer):
             patch_size,
         ):
             raise ValueError(
-                "`None of `interpolate_width`, `interpolate_height` and "
-                "`patch_size` cannot be None if `interpolate` is True"
+                "None of `interpolate_width`, `interpolate_height` and "
+                "`patch_size` cannot be `None` if `interpolate` is `True`"
             )
         else:
             encoded = patches_flattened + self.position_embedding(positions)

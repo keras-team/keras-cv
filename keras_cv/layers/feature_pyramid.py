@@ -59,7 +59,7 @@ class FeaturePyramid(keras.layers.Layer):
         lateral_layers: a python dict with int keys that matches to each of the
             pyramid level. The values of the dict should be `keras.Layer`, which
             will be called with feature activation outputs from backbone at each
-            level. When None: a `keras.Conv2D` layer with kernel 1x1
+            level. When `None`: a `keras.Conv2D` layer with kernel 1x1
             will be created for each pyramid level. Defaults to `None`.
         output_layers: a python dict with int keys that matches to each of the
             pyramid level. The values of the dict should be `keras.Layer`, which

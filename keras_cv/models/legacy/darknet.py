@@ -53,7 +53,7 @@ BASE_DOCSTRING = """Represents the {name} architecture.
         include_top: bool, whether to include the fully-connected layer at the
             top of the network. If provided, `num_classes` must be provided.
         num_classes: integer, optional number of classes to classify images
-            into. Only to be specified if `include_top` is True.
+            into. Only to be specified if `include_top` is `True`.
         weights: one of `None` (random initialization), or a pretrained weight
             file path.
         input_shape: optional shape tuple. Defaults to `(None, None, 3)`.
@@ -67,7 +67,7 @@ BASE_DOCSTRING = """Represents the {name} architecture.
                 output of the last convolutional block, and thus the output of
                 the model will be a 2D tensor.
             - `max` means that global max pooling will be applied.
-        name: string, optional name to pass to the model. Defaults to "{name}".
+        name: string, optional name to pass to the model. Defaults to `"{name}"`.
 
     Returns:
         A `keras.Model` instance.
@@ -92,12 +92,12 @@ class DarkNet(keras.Model):
     Args:
         blocks: integer, numbers of building blocks from the layer dark2 to
             layer dark5.
-        include_rescaling: bool, whether to rescale the inputs. If set to True,
+        include_rescaling: bool, whether to rescale the inputs. If set to `True`,
             inputs will be passed through a `Rescaling(1/255.0)` layer.
         include_top: bool, whether to include the fully-connected layer at the
             top of the network. If provided, `num_classes` must be provided.
         num_classes: integer, optional number of classes to classify images
-            into. Only to be specified if `include_top` is True.
+            into. Only to be specified if `include_top` is `True`.
         weights: one of `None` (random initialization) or a pretrained weight
             file path.
         input_shape: optional shape tuple. Defaults to `(None, None, 3)`.
@@ -115,7 +115,7 @@ class DarkNet(keras.Model):
             use on the "top" layer. Ignored unless `include_top=True`. Set
             `classifier_activation=None` to return the logits of the "top"
             layer.
-        name: string, optional name to pass to the model. Defaults to "DarkNet".
+        name: string, optional name to pass to the model. Defaults to `"DarkNet"`.
 
     Returns:
         A `keras.Model` instance.
@@ -144,7 +144,7 @@ class DarkNet(keras.Model):
 
         if include_top and not num_classes:
             raise ValueError(
-                "If `include_top` is True, you should specify `num_classes`. "
+                "If `include_top` is `True`, you should specify `num_classes`. "
                 f"Received: num_classes={num_classes}"
             )
 

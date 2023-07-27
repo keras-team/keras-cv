@@ -56,7 +56,7 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
             this should be `(3/4, 4/3)`. To perform a no-op provide the value
             `(1.0, 1.0)`.
         interpolation: (Optional) A string specifying the sampling method for
-            resizing. Defaults to "bilinear".
+            resizing. Defaults to `"bilinear"`.
         seed: (Optional) Used to create a random seed. Defaults to `None`.
     """
 

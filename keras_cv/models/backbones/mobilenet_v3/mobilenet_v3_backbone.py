@@ -227,8 +227,8 @@ def adjust_channels(x, divisor=8, min_value=None):
         x: integer, input value.
         divisor: integer, the value by which a channel number should be
             divisible. Defaults to `8`.
-        min_value: float, optional minimum value for the new tensor. When None,
-            is `divisor`. Defaults to `None`.
+        min_value: float, optional minimum value for the new tensor.
+            When `None`, is `divisor`. Defaults to `None`.
 
     Returns:
         the updated input scalar.

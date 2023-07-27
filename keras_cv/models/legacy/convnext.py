@@ -92,7 +92,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
             use on the "top" layer. Ignored unless `include_top=True`. Set
             `classifier_activation=None` to return the logits of the "top"
             layer.
-        name: (Optional) name to pass to the model. Defaults to "{name}".
+        name: (Optional) name to pass to the model. Defaults to `"{name}"`.
 
     Returns:
       A `keras.Model` instance.
@@ -252,7 +252,7 @@ class ConvNeXt(keras.Model):
             use on the "top" layer. Ignored unless `include_top=True`. Set
             `classifier_activation=None` to return the logits of the "top"
             layer.
-        name: (Optional) name to pass to the model. Defaults to "convnext".
+        name: (Optional) name to pass to the model. Defaults to `"convnext"`.
     Returns:
       A `keras.Model` instance.
     Raises:

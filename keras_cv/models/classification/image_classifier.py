@@ -39,7 +39,7 @@ class ImageClassifier(Task):
         pooling: str, type of pooling layer. Must be one of "avg", "max".
         activation: Optional `str` or callable. The
             activation function to use on the Dense layer. Set `activation=None`
-            to return the output logits. Defaults to "softmax".
+            to return the output logits. Defaults to `"softmax"`.
 
     Example:
     ```python

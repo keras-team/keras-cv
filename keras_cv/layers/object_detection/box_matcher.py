@@ -59,7 +59,7 @@ class BoxMatcher(keras.layers.Layer):
           least one column. This means some columns will be matched to
           multiple rows while some columns will not be matched to any rows.
           Filtering by `thresholds` will make less columns match to positive
-          result. Setting this to True guarantees that each column will be
+          result. Setting this to `True` guarantees that each column will be
           matched to positive result to at least one row.
 
     Raises:

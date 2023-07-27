@@ -36,7 +36,7 @@ class YoloXHead(keras.layers.Layer):
             to 1.0.
         num_level: the number of levels in the FPN output. Defaults to `3`.
         activation: the activation applied after the BatchNorm layer. One of
-            "silu", "relu" or "leaky_relu". Defaults to "silu".
+            `"silu"`, `"relu"` or `"leaky_relu"`. Defaults to `"silu"`.
         use_depthwise: a boolean value used to decide whether a depthwise conv
             block should be used over a regular darknet block. Defaults to
             `False`.
