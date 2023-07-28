@@ -144,7 +144,7 @@ TEST_CONFIGURATIONS = [
         layers.Mosaic,
         {"bounding_box_format": "xyxy"},
     ),
-    ("CutMix", layers.CutMix, {}),
+    ("CutMix", layers.CutMix, {"dtype": "float32"}),
     ("MixUp", layers.MixUp, {}),
     (
         "Resizing",
