@@ -60,7 +60,7 @@ class SegFormer(Task):
         )(concatenated_outs)
 
         seg = keras.layers.Dropout(0.1)(seg)
-        seg = keras.layers.Conv2D(filters=num_classes, kernel_size=1, activation="softmax")(seg)
+        seg = keras.layers.Conv2D(filters=num_classes, kernel_size=1)(seg)
 
         output = keras.layers.Resizing(
             height=inputs.shape[1],
