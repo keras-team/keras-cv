@@ -166,5 +166,9 @@ from keras_cv.models.object_detection.yolo_v8.yolo_v8_detector import (
     YOLOV8Detector,
 )
 from keras_cv.models.segmentation import DeepLabV3Plus
+from keras_cv.models.segmentation.segment_anything import ImageEncoder
+from keras_cv.models.segmentation.segment_anything import MaskDecoder
+from keras_cv.models.segmentation.segment_anything import PromptEncoder
+from keras_cv.models.segmentation.segment_anything import TwoWayTransformer
 from keras_cv.models.stable_diffusion import StableDiffusion
 from keras_cv.models.stable_diffusion import StableDiffusionV2
