@@ -54,13 +54,14 @@ class EfficientMultiheadAttention(keras.layers.Layer):
             )
             self.norm = keras.layers.LayerNormalization()
 
-    def compute_output_shape(self, input_shape):
-        return input_shape
-
     def call(self, x):
-        input_shape = x.shape
-        H, W = int(math.sqrt(input_shape[1])), int(math.sqrt(input_shape[1]))
-        B, C = input_shape[0], input_shape[-1]
+        input_shape = ops.shape(x)
+        H, W = ops.sqrt(ops.cast(input_shape[1], "float32")), ops.sqrt(
+            ops.cast(input_shape[1], "float32")
+        )
+        B, C = ops.cast(input_shape[0], "float32"), ops.cast(
+            input_shape[2], "float32"
+        )
 
         q = self.q(x)
         q = ops.reshape(
