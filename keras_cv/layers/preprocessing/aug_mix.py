@@ -377,7 +377,7 @@ class AugMix(BaseImageAugmentationLayer):
     def augment_label(self, label, transformation=None, **kwargs):
         return label
 
-    def augment_segmentation_masks(
+    def augment_segmentation_mask(
         self, segmentation_masks, transformation=None, **kwargs
     ):
         chain_mixing_weights = self._sample_from_dirichlet(
