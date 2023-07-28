@@ -306,6 +306,55 @@ class AugMix(BaseImageAugmentationLayer):
         )
         return augmented
 
+    def _apply_segmentation_masks_op(self, segmentation_masks, op_index):
+        augmented = segmentation_masks
+        augmented = tf.cond(
+            op_index == tf.constant([0], dtype=tf.int32),
+            lambda: self._auto_contrast(augmented),
+            lambda: augmented,
+        )
+        augmented = tf.cond(
+            op_index == tf.constant([1], dtype=tf.int32),
+            lambda: self._equalize(augmented),
+            lambda: augmented,
+        )
+        augmented = tf.cond(
+            op_index == tf.constant([2], dtype=tf.int32),
+            lambda: self._posterize(augmented),
+            lambda: augmented,
+        )
+        augmented = tf.cond(
+            op_index == tf.constant([3], dtype=tf.int32),
+            lambda: self._rotate(augmented),
+            lambda: augmented,
+        )
+        augmented = tf.cond(
+            op_index == tf.constant([4], dtype=tf.int32),
+            lambda: self._solarize(augmented),
+            lambda: augmented,
+        )
+        augmented = tf.cond(
+            op_index == tf.constant([5], dtype=tf.int32),
+            lambda: self._shear_x(augmented),
+            lambda: augmented,
+        )
+        augmented = tf.cond(
+            op_index == tf.constant([6], dtype=tf.int32),
+            lambda: self._shear_y(augmented),
+            lambda: augmented,
+        )
+        augmented = tf.cond(
+            op_index == tf.constant([7], dtype=tf.int32),
+            lambda: self._translate_x(augmented),
+            lambda: augmented,
+        )
+        augmented = tf.cond(
+            op_index == tf.constant([8], dtype=tf.int32),
+            lambda: self._translate_y(augmented),
+            lambda: augmented,
+        )
+        return augmented
+
     def augment_image(self, image, transformation=None, **kwargs):
         chain_mixing_weights = self._sample_from_dirichlet(
             tf.ones([self.num_chains]) * self.alpha
@@ -327,6 +376,29 @@ class AugMix(BaseImageAugmentationLayer):
 
     def augment_label(self, label, transformation=None, **kwargs):
         return label
+
+    def augment_segmentation_masks(
+        self, segmentation_masks, transformation=None, **kwargs
+    ):
+        chain_mixing_weights = self._sample_from_dirichlet(
+            tf.ones([self.num_chains]) * self.alpha
+        )
+        weight_sample = self._sample_from_beta(self.alpha, self.alpha)
+
+        result = tf.zeros_like(segmentation_masks)
+        curr_chain = tf.constant([0], dtype=tf.int32)
+
+        mask, chain_mixing_weights, curr_chain, result = tf.while_loop(
+            lambda segmentation_masks, chain_mixing_weights, curr_chain, result: tf.less(  # noqa: E501
+                curr_chain, self.num_chains
+            ),
+            self._loop_on_width,
+            [segmentation_masks, chain_mixing_weights, curr_chain, result],
+        )
+
+        # Apply the mixing of masks similar to images
+        result = weight_sample * mask + (1 - weight_sample) * result
+        return result
 
     def get_config(self):
         config = {
