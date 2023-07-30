@@ -145,18 +145,27 @@ class FourierMix(BaseImageAugmentationLayer):
     def _batch_augment(self, inputs):
         images = inputs.get("images", None)
         labels = inputs.get("labels", None)
-        if images is None or labels is None:
+        segmentation_masks = inputs.get("segmentation_masks", None)
+        if images is None or (labels is None and segmentation_masks is None):
             raise ValueError(
                 "FourierMix expects inputs in a dictionary with format "
                 '{"images": images, "labels": labels}.'
+                '{"images": images, "segmentation_masks": segmentation_masks}.'
                 f"Got: inputs = {inputs}"
             )
-        images, lambda_sample, permutation_order = self._fourier_mix(images)
+        images, masks, lambda_sample, permutation_order = self._fourier_mix(
+            images
+        )
         if labels is not None:
             labels = self._update_labels(
                 labels, lambda_sample, permutation_order
             )
             inputs["labels"] = labels
+        if segmentation_masks is not None:
+            segmentation_masks = self._update_segmentation_masks(
+                segmentation_masks, masks, permutation_order
+            )
+            inputs["segmentation_masks"] = segmentation_masks
         inputs["images"] = images
         return inputs
 
@@ -198,7 +207,7 @@ class FourierMix(BaseImageAugmentationLayer):
         fmix_images = tf.gather(images, permutation_order)
         images = masks * images + (1.0 - masks) * fmix_images
 
-        return images, lambda_sample, permutation_order
+        return images, masks, lambda_sample, permutation_order
 
     def _update_labels(self, labels, lambda_sample, permutation_order):
         labels_for_fmix = tf.gather(labels, permutation_order)
@@ -215,6 +224,17 @@ class FourierMix(BaseImageAugmentationLayer):
             lambda_sample * labels + (1.0 - lambda_sample) * labels_for_fmix
         )
         return labels
+
+    def _update_segmentation_masks(
+        self, segmentation_masks, masks, permutation_order
+    ):
+        fmix_segmentation_masks = tf.gather(
+            segmentation_masks, permutation_order
+        )
+
+        segmentation_masks = (
+            masks * segmentation_masks + (1.0 - masks) * fmix_segmentation_masks
+        )
 
     def get_config(self):
         config = {
