@@ -76,7 +76,7 @@ class BaseImageAugmentationLayer(base_class):
     The `call()` method supports two formats of inputs:
     1. A single image tensor with shape (height, width, channels) or
        (batch_size, height, width, channels)
-    1. A dict of tensors with any of the following keys (note that `"images"`
+    2. A dict of tensors with any of the following keys (note that `"images"`
        must be present):
        * `"images"` - Image Tensor with shape (height, width, channels) or
         (batch_size, height, width, channels)

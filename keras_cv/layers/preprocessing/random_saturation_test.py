@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numpy as np
 import tensorflow as tf
 
 from keras_cv import core
@@ -152,7 +153,7 @@ class RandomSaturationTest(TestCase):
 
         channel_mean = tf.math.reduce_min(output, axis=-1)
         # Make sure at least one of the channel is 0.0 (fully saturated image)
-        self.assertAllClose(channel_mean, tf.zeros((4, 8, 8)))
+        self.assertAllClose(channel_mean, np.zeros((4, 8, 8)))
 
     def test_adjustment_for_non_rgb_value_range(self):
         image_shape = (4, 8, 8, 3)

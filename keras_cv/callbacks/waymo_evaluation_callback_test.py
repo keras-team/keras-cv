@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numpy as np
 import pytest
 import tensorflow as tf
 from tensorflow import keras
@@ -57,12 +58,12 @@ class WaymoEvaluationCallbackTest(TestCase):
                 {
                     "3d_boxes": {
                         "boxes": boxes,
-                        "classes": tf.ones((NUM_RECORDS, NUM_BOXES)),
-                        "difficulty": tf.ones((NUM_RECORDS, NUM_BOXES)),
+                        "classes": np.ones((NUM_RECORDS, NUM_BOXES)),
+                        "difficulty": np.ones((NUM_RECORDS, NUM_BOXES)),
                         "mask": tf.concat(
                             [
-                                tf.ones((NUM_RECORDS // 2, NUM_BOXES)),
-                                tf.zeros((NUM_RECORDS // 2, NUM_BOXES)),
+                                np.ones((NUM_RECORDS // 2, NUM_BOXES)),
+                                np.zeros((NUM_RECORDS // 2, NUM_BOXES)),
                             ],
                             axis=0,
                         ),

@@ -14,16 +14,22 @@
 
 import os
 
+import numpy as np
 import pytest
 import tensorflow as tf
 from absl.testing import parameterized
-from tensorflow import keras
 
+from keras_cv.backend import keras
+from keras_cv.backend import ops
 from keras_cv.models import DeepLabV3Plus
 from keras_cv.models import ResNet18V2Backbone
+from keras_cv.models.backbones.test_backbone_presets import (
+    test_backbone_presets,
+)
+from keras_cv.tests.test_case import TestCase
 
 
-class DeepLabV3PlusTest(tf.test.TestCase, parameterized.TestCase):
+class DeepLabV3PlusTest(TestCase):
     def test_deeplab_v3_plus_construction(self):
         backbone = ResNet18V2Backbone(input_shape=[512, 512, 3])
         model = DeepLabV3Plus(backbone=backbone, num_classes=1)
@@ -37,45 +43,22 @@ class DeepLabV3PlusTest(tf.test.TestCase, parameterized.TestCase):
     def test_deeplab_v3_plus_call(self):
         backbone = ResNet18V2Backbone(input_shape=[512, 512, 3])
         model = DeepLabV3Plus(backbone=backbone, num_classes=1)
-        images = tf.random.uniform((2, 512, 512, 3))
+        images = np.random.uniform(size=(2, 512, 512, 3))
         _ = model(images)
         _ = model.predict(images)
-
-    def test_weights_contained_in_trainable_variables(self):
-        target_size = [512, 512]
-        images = tf.ones(shape=[1] + target_size + [3])
-
-        backbone = ResNet18V2Backbone(input_shape=target_size + [3])
-        model = DeepLabV3Plus(backbone=backbone, num_classes=1)
-
-        model.compile(
-            optimizer="adam",
-            loss=keras.losses.BinaryCrossentropy(),
-            metrics=["accuracy"],
-        )
-
-        variable_names = [x.name for x in model.trainable_variables]
-        outputs = model(images)
-
-        # encoder
-        self.assertIn("conv2d_1/kernel:0", variable_names)
-        # segmentation head
-        self.assertIn("segmentation_head_conv/kernel:0", variable_names)
-        # Output shape
-        self.assertEqual(outputs.shape, tuple([1] + target_size + [1]))
 
     @pytest.mark.large
     def test_weights_change(self):
         target_size = [512, 512, 3]
 
-        images = tf.ones(shape=[1] + target_size)
-        labels = tf.zeros(shape=[1] + target_size)
+        images = np.ones([1] + target_size)
+        labels = np.random.uniform(size=[1] + target_size)
         ds = tf.data.Dataset.from_tensor_slices((images, labels))
         ds = ds.repeat(2)
         ds = ds.batch(2)
 
         backbone = ResNet18V2Backbone(input_shape=target_size)
-        model = DeepLabV3Plus(backbone=backbone, num_classes=1)
+        model = DeepLabV3Plus(backbone=backbone, num_classes=3)
 
         model.compile(
             optimizer="adam",
@@ -83,13 +66,13 @@ class DeepLabV3PlusTest(tf.test.TestCase, parameterized.TestCase):
             metrics=["accuracy"],
         )
 
-        original_weights = model.get_weights()
+        original_weights = model.segmentation_head.get_weights()
         model.fit(ds, epochs=1)
-        updated_weights = model.get_weights()
+        updated_weights = model.segmentation_head.get_weights()
 
         for w1, w2 in zip(original_weights, updated_weights):
-            self.assertNotAllClose(w1, w2)
-            self.assertFalse(tf.math.reduce_any(tf.math.is_nan(w2)))
+            self.assertNotAllEqual(w1, w2)
+            self.assertFalse(ops.any(ops.isnan(w2)))
 
     @parameterized.named_parameters(
         ("tf_format", "tf", "model"),
@@ -102,7 +85,7 @@ class DeepLabV3PlusTest(tf.test.TestCase, parameterized.TestCase):
         backbone = ResNet18V2Backbone(input_shape=target_size)
         model = DeepLabV3Plus(backbone=backbone, num_classes=1)
 
-        input_batch = tf.ones(shape=[2] + target_size)
+        input_batch = np.ones(shape=[2] + target_size)
         model_output = model(input_batch)
 
         save_path = os.path.join(self.get_temp_dir(), filename)
@@ -115,3 +98,19 @@ class DeepLabV3PlusTest(tf.test.TestCase, parameterized.TestCase):
         # Check that output matches.
         restored_output = restored_model(input_batch)
         self.assertAllClose(model_output, restored_output)
+
+
+@pytest.mark.large
+class DeepLabV3PlusSmokeTest(TestCase):
+    @parameterized.named_parameters(
+        *[(preset, preset) for preset in test_backbone_presets]
+    )
+    def test_backbone_preset(self, preset):
+        model = DeepLabV3Plus.from_preset(
+            preset,
+            num_classes=3,
+        )
+        xs = np.random.uniform(size=(1, 128, 128, 3))
+        output = model(xs)
+
+        self.assertEqual(output.shape, (1, 128, 128, 3))

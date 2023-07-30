@@ -49,8 +49,13 @@ setup(
     author="Keras team",
     author_email="keras-cv@google.com",
     license="Apache License 2.0",
-    install_requires=["packaging", "absl-py", "regex", "tensorflow-datasets"],
-    python_requires=">=3.7",
+    install_requires=[
+        "packaging",
+        "absl-py",
+        "regex",
+        "tensorflow-datasets",
+        "keras-core",
+    ],
     extras_require={
         "tests": [
             "flake8",
@@ -64,9 +69,16 @@ setup(
         "examples": ["tensorflow_datasets", "matplotlib"],
     },
     distclass=BinaryDistribution,
+    # Supported Python versions
+    python_requires=">=3.8",
     classifiers=[
-        "Programming Language :: Python",
-        "Programming Language :: Python :: 3.7",
+        "Development Status :: 3 - Alpha",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3 :: Only",
         "Operating System :: Unix",
         "Operating System :: Microsoft :: Windows",
         "Operating System :: MacOS",

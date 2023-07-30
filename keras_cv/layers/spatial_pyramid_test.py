@@ -12,9 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import tensorflow as tf
-from tensorflow import keras
-
+from keras_cv.backend import keras
+from keras_cv.backend import ops
 from keras_cv.layers import SpatialPyramidPooling
 from keras_cv.tests.test_case import TestCase
 
@@ -22,11 +21,11 @@ from keras_cv.tests.test_case import TestCase
 class SpatialPyramidPoolingTest(TestCase):
     def test_return_type_and_shape(self):
         layer = SpatialPyramidPooling(dilation_rates=[6, 12, 18])
-        c4 = tf.ones([2, 16, 16, 3])
+        c4 = ops.ones([2, 16, 16, 3])
 
         inputs = c4
         output = layer(inputs, training=True)
-        self.assertEquals(output.shape, [2, 16, 16, 256])
+        self.assertEquals(output.shape, (2, 16, 16, 256))
 
     def test_with_keras_tensor(self):
         layer = SpatialPyramidPooling(dilation_rates=[6, 12, 18])
@@ -34,4 +33,4 @@ class SpatialPyramidPoolingTest(TestCase):
 
         inputs = c4
         output = layer(inputs, training=True)
-        self.assertEquals(output.shape, [None, 16, 16, 256])
+        self.assertEquals(output.shape, (None, 16, 16, 256))

@@ -71,8 +71,11 @@ class RetinaNet(Task):
         )
     )
 
-    # Evaluate model
+    # Evaluate model without box decoding and NMS
     model(images)
+
+    # Prediction with box decoding and NMS
+    model.predict(images)
 
     # Train model
     model.compile(
