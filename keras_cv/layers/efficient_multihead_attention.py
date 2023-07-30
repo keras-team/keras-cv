@@ -5,13 +5,13 @@ from keras_cv.backend import ops
 
 
 @keras.saving.register_keras_serializable(package="keras_cv")
-class EfficientMultiheadAttention(keras.layers.Layer):
+class SegFormerMultiheadAttention(keras.layers.Layer):
     def __init__(self, project_dim, num_heads, sr_ratio):
         """
         Efficient MultiHeadAttention implementation as a Keras layer.
         A huge bottleneck in scaling transformers is the self-attention layer with an O(n^2) complexity.
 
-        EfficientMultiHeadAttention performs a sequence reduction (SR) operation with a given ratio, to reduce
+        SegFormerMultiheadAttention performs a sequence reduction (SR) operation with a given ratio, to reduce
         the sequence length before performing key and value projections, reducing the O(n^2) complexity to O(n^2/R) where
         R is the sequence reduction ratio.
 
@@ -22,7 +22,7 @@ class EfficientMultiheadAttention(keras.layers.Layer):
         - [Ported from the TensorFlow implementation from DeepVision](https://github.com/DavidLandup0/deepvision/blob/main/deepvision/layers/efficient_attention.py)
 
         Args:
-            project_dim: the dimensionality of the projection of the `EfficientMultiHeadAttention` layer.
+            project_dim: the dimensionality of the projection of the `SegFormerMultiheadAttention` layer.
             num_heads: the number of heads to use in the attention computation.
             sr_ratio: the sequence reduction ratio to perform on the sequence before key and value projections.
 
@@ -30,7 +30,7 @@ class EfficientMultiheadAttention(keras.layers.Layer):
 
         ```
         tensor = tf.random.uniform([1, 196, 32])
-        output = keras_cv.layers.EfficientMultiheadAttention(project_dim=768,
+        output = keras_cv.layers.SegFormerMultiheadAttention(project_dim=768,
                                                             num_heads=2,
                                                             sr_ratio=4)(tensor)
         print(output.shape) # (1, 196, 32)

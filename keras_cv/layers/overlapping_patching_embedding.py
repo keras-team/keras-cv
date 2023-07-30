@@ -22,7 +22,7 @@ class OverlappingPatchingAndEmbedding(keras.layers.Layer):
             drop_prob: default 0.0, the probability of dropping a random sample using the `DropPath` layer.
             layer_norm_epsilon: default 1e-06, the epsilon for `LayerNormalization`
                 layers
-            sr_ratio: default 1, the ratio to use within `EfficientMultiHeadAttention`. If set to > 1,
+            sr_ratio: default 1, the ratio to use within `SegFormerMultiheadAttention`. If set to > 1,
                 a `Conv2D` layer is used to reduce the length of the sequence.
 
         Basic usage:

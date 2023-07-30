@@ -3,7 +3,7 @@ import math
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 from keras_cv.layers.efficient_multihead_attention import (
-    EfficientMultiheadAttention,
+    SegFormerMultiheadAttention,
 )
 from keras_cv.layers.regularization.drop_path import DropPath
 
@@ -12,7 +12,7 @@ from keras_cv.layers.regularization.drop_path import DropPath
 class HierarchicalTransformerEncoder(keras.layers.Layer):
     """
     Hierarchical transformer encoder block implementation as a Keras Layer.
-    The layer uses `EfficientMultiheadAttention` as a `MultiHeadAttention` alternative for
+    The layer uses `SegFormerMultiheadAttention` as a `MultiHeadAttention` alternative for
     computational efficiency, and is meant to be used within the SegFormer architecture.
 
     References:
@@ -22,13 +22,13 @@ class HierarchicalTransformerEncoder(keras.layers.Layer):
 
     Args:
         project_dim: the dimensionality of the projection of the encoder, and
-            output of the `EfficientMultiHeadAttention` layer. Due to the residual addition
+            output of the `SegFormerMultiheadAttention` layer. Due to the residual addition
             the input dimensionality has to be equal to the output dimensionality.
-        num_heads: the number of heads for the `EfficientMultiHeadAttention` layer
+        num_heads: the number of heads for the `SegFormerMultiheadAttention` layer
         drop_prob: default 0.0, the probability of dropping a random sample using the `DropPath` layer.
         layer_norm_epsilon: default 1e-06, the epsilon for `LayerNormalization`
             layers
-        sr_ratio: default 1, the ratio to use within `EfficientMultiHeadAttention`. If set to > 1,
+        sr_ratio: default 1, the ratio to use within `SegFormerMultiheadAttention`. If set to > 1,
             a `Conv2D` layer is used to reduce the length of the sequence.
 
     Basic usage:
@@ -64,7 +64,7 @@ class HierarchicalTransformerEncoder(keras.layers.Layer):
         self.drop_prop = drop_prob
 
         self.norm1 = keras.layers.LayerNormalization(epsilon=layer_norm_epsilon)
-        self.attn = EfficientMultiheadAttention(
+        self.attn = SegFormerMultiheadAttention(
             project_dim, num_heads, sr_ratio
         )
         self.drop_path = DropPath(drop_prob)
