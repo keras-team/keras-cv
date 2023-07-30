@@ -16,9 +16,6 @@ import math
 
 from keras_cv.backend import keras
 from keras_cv.backend import ops
-from keras_cv.models.segmentation.segment_anything.sam_layers import (
-    SAMLayerNormalization,
-)
 
 
 @keras.saving.register_keras_serializable(package="keras_cv")
@@ -183,10 +180,10 @@ class PromptEncoder(keras.models.Model):
                 keras.layers.Conv2D(
                     mask_in_chans // 4, kernel_size=2, strides=2
                 ),
-                SAMLayerNormalization(),
+                keras.layers.LayerNormalization(epsilon=1e-6),
                 keras.layers.Activation(activation),
                 keras.layers.Conv2D(mask_in_chans, kernel_size=2, strides=2),
-                SAMLayerNormalization(),
+                keras.layers.LayerNormalization(epsilon=1e-6),
                 keras.layers.Activation(activation),
                 keras.layers.Conv2D(embed_dim, kernel_size=1),
             ]
