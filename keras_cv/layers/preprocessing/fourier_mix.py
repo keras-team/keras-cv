@@ -235,6 +235,7 @@ class FourierMix(BaseImageAugmentationLayer):
         segmentation_masks = (
             masks * segmentation_masks + (1.0 - masks) * fmix_segmentation_masks
         )
+        return segmentation_masks
 
     def get_config(self):
         config = {
