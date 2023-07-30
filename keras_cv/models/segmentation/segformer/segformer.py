@@ -7,13 +7,64 @@ from keras_cv.utils.train import get_feature_extractor
 
 @keras.utils.register_keras_serializable(package="keras_cv")
 class SegFormer(Task):
+    """A Keras model implementing the SegFormer architecture for semantic
+    segmentation.
+
+    References:
+        - [SegFormer: Simple and Efficient Design for Semantic Segmentation with Transformers](https://arxiv.org/abs/2105.15203)
+        - [Based on the TensorFlow implementation from DeepVision](https://github.com/DavidLandup0/deepvision/tree/main/deepvision/models/segmentation/segformer)
+
+    Args:
+        backbone: `keras.Model`. The backbone network for the model that is
+            used as a feature extractor for the SegFormer encoder. It is *intended*
+            to be used only with the MiT backbone model which was created specifically
+            for SegFormers. It should either be a `keras_cv.models.backbones.backbone.Backbone` or a
+            `tf.keras.Model` that implements the `pyramid_level_inputs`
+            property with keys "P2", "P3", "P4", and "P5" and layer names as
+            values.
+        num_classes: int, the number of classes for the detection model. Note
+            that the `num_classes` doesn't contain the background class, and the
+            classes from the data should be represented by integers with range
+            [0, `num_classes`).
+        projection_filters: int, default 256, number of filters in the convolution layer
+            projecting the concatenated features into a segmentation map.
+
+    Examples:
+
+    Using the class with a `backbone`:
+
+    ```python
+    import tensorflow as tf
+    import keras_cv
+
+    images = np.ones(shape=(1, 96, 96, 3))
+    labels = np.zeros(shape=(1, 96, 96, 1))
+    backbone = keras_cv.models.MiTBackbone.from_preset("MiT_B0")
+    model = keras_cv.models.segmentation.SegFormer(
+        num_classes=1, backbone=backbone,
+    )
+
+    # Evaluate model
+    model(images)
+
+    # Train model
+    model.compile(
+        optimizer="adam",
+        loss=keras.losses.BinaryCrossentropy(from_logits=False),
+        metrics=["accuracy"],
+    )
+    model.fit(images, labels, epochs=3)
+    ```
+    """
+
     def __init__(
         self,
-        num_classes=None,
-        backbone=None,
-        embed_dim=None,
+        backbone,
+        num_classes,
+        projection_filters=None,
         **kwargs,
     ):
+        """ """
         if not isinstance(backbone, keras.layers.Layer) or not isinstance(
             backbone, keras.Model
         ):
@@ -37,9 +88,9 @@ class SegFormer(Task):
         # and feature map shape
         multi_layer_outs = []
         for feature_dim, feature in zip(backbone.output_channels, features):
-            out = keras.layers.Dense(embed_dim, name=f"linear_{feature_dim}")(
-                feature
-            )
+            out = keras.layers.Dense(
+                projection_filters, name=f"linear_{feature_dim}"
+            )(feature)
             out = keras.layers.Resizing(H, W, interpolation="bilinear")(out)
             multi_layer_outs.append(out)
 
@@ -48,11 +99,11 @@ class SegFormer(Task):
             multi_layer_outs[::-1]
         )
 
-        # Fuse multi-channel segmentation map into a single-channel segmentation map
+        # Fuse concatenated features into a segmentation map
         seg = keras.Sequential(
             [
                 keras.layers.Conv2D(
-                    filters=embed_dim, kernel_size=1, use_bias=False
+                    filters=projection_filters, kernel_size=1, use_bias=False
                 ),
                 keras.layers.BatchNormalization(),
                 keras.layers.Activation("relu"),
@@ -75,11 +126,11 @@ class SegFormer(Task):
         )
 
         self.num_classes = num_classes
-        self.embed_dim = embed_dim
+        self.projection_filters = projection_filters
 
     def get_config(self):
         return {
             "num_classes": self.num_classes,
             "backbone": self.backbone,
-            "embed_dim": self.embed_dim,
+            "projection_filters": self.projection_filters,
         }
