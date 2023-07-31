@@ -69,7 +69,6 @@ def plot_image_gallery(
     transparent=True,
     dpi=60,
     legend_handles=None,
-    
 ):
     """Displays a gallery of images.
 
@@ -178,16 +177,18 @@ def plot_image_gallery(
             current_axis.axis("off")
 
     if path is None and not show:
-        return
+        return fig
     if path is not None:
-        plt.savefig(
+        fig.savefig(
             fname=path,
             pad_inches=0,
             bbox_inches="tight",
             transparent=transparent,
             dpi=dpi,
         )
-        plt.close()
+        plt.close(fig)
     elif show:
-        plt.show()
-        plt.close()
+        plt.show(fig)
+        plt.close(fig)
+        
+    return fig

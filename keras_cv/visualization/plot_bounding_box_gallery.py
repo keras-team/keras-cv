@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import functools
-
+import matplotlib.pyplot as plt
 import numpy as np
 
 import keras_cv
@@ -121,8 +121,6 @@ def plot_bounding_box_gallery(
 
     plotted_images = utils.to_numpy(images)
 
-    class_color_mapping = class_mapping or {}
-    
     draw_fn = functools.partial(
         keras_cv.visualization.draw_bounding_boxes.draw_bounding_boxes,
         bounding_box_format="xyxy",
@@ -141,8 +139,7 @@ def plot_bounding_box_gallery(
         plotted_images = draw_fn(
             plotted_images,
             y_true,
-            #true_color,
-            class_color_mapping,
+            true_color,
             class_mapping=ground_truth_mapping,
         )
 
@@ -154,11 +151,7 @@ def plot_bounding_box_gallery(
             y_pred, images=images, source=bounding_box_format, target="xyxy"
         )
         plotted_images = draw_fn(
-            plotted_images,
-            y_pred,
-            #pred_color,
-            class_color_mapping,
-            class_mapping=prediction_mapping
+            plotted_images, y_pred, pred_color, class_mapping=prediction_mapping
         )
 
     if legend:
@@ -184,7 +177,6 @@ def plot_bounding_box_gallery(
         legend_handles=legend_handles,
         rows=rows,
         cols=cols,
-        **kwargs,
-        path = None
+        **kwargs
     )
-    return plotted_images
+    #return plt.gcf()
