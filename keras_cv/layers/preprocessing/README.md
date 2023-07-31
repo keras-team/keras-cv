@@ -6,12 +6,12 @@ The provided table gives an overview of the different augmentation layers availa
 
 | Layer Name | Vectorized | Segmentation Masks | BBoxes | Class Labels |
 | :-- | :--: | :--: | :--: | :--: |
-| AugMix | ❌ | ❌ | ✅ | ✅ |
+| AugMix | ❌ | ✅ | ✅ | ✅ |
 | AutoContrast | ✅ | ✅ | ✅ | ✅ |
 | ChannelShuffle | ✅ | ✅ | ✅ | ✅ |
 | CutMix | ❌ | ✅ | ❌ | ✅ |
 | Equalization | ❌ | ✅ | ✅ | ✅ |
-| FourierMix | ❌ | ❌ | ❌ | ✅ |
+| FourierMix | ❌ | ✅ | ❌ | ✅ |
 | Grayscale | ✅ | ✅ | ✅ | ✅ |
 | GridMask | ❌ | ✅ | ✅ | ✅ |
 | JitteredResize | ✅ | ✅ | ✅ | ✅ |

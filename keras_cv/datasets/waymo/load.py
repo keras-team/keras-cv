@@ -80,7 +80,7 @@ def load(
     ```
     """
     assert_waymo_open_dataset_installed("keras_cv.datasets.waymo.load()")
-    if type(tfrecord_path) == list:
+    if isinstance(tfrecord_path, list):
         filenames = tfrecord_path
     else:
         filenames = tf.data.TFRecordDataset.list_files(
