@@ -524,21 +524,6 @@ class RetinaNet(Task):
         return metrics
 
     def get_config(self):
-<<<<<<< Updated upstream
-        return {
-            "num_classes": self.num_classes,
-            "bounding_box_format": self.bounding_box_format,
-            "backbone": keras.saving.serialize_keras_object(self.backbone),
-            "label_encoder": keras.saving.serialize_keras_object(
-                self.label_encoder
-            ),
-            "prediction_decoder": self._prediction_decoder,
-            "classification_head": keras.saving.serialize_keras_object(
-                self.classification_head
-            ),
-            "box_head": keras.saving.serialize_keras_object(self.box_head),
-        }
-=======
         config = super().get_config()
         config.update(
             {
@@ -561,7 +546,6 @@ class RetinaNet(Task):
             }
         )
         return config
->>>>>>> Stashed changes
 
     @classmethod
     def from_config(cls, config):
@@ -587,15 +571,6 @@ class RetinaNet(Task):
             config["classification_head"] = keras.layers.deserialize(
                 config["classification_head"]
             )
-<<<<<<< Updated upstream
-        if "label_encoder" in config and isinstance(
-            config["label_encoder"], dict
-        ):
-            config["label_encoder"] = keras.layers.deserialize(
-                config["label_encoder"]
-            )
-        return super().from_config(config)
-=======
         if "feature_pyramid" in config and isinstance(
             config["feature_pyramid"], dict
         ):
@@ -603,7 +578,6 @@ class RetinaNet(Task):
                 config["feature_pyramid"]
             )
         return cls(**config)
->>>>>>> Stashed changes
 
     @classproperty
     def presets(cls):
