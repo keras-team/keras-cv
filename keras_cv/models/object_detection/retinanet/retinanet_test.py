@@ -233,6 +233,49 @@ class RetinaNetTest(TestCase):
             tf.nest.map_structure(ops.convert_to_numpy, restored_output),
         )
 
+    @pytest.mark.large
+    def test_custom_saved_model(self, save_format, filename):
+        class CustomPredictionHead(
+            keras_cv.models.object_detection.retinanet.PredictionHead
+        ):
+            pass
+
+        class CustomFeaturePyramid(
+            keras_cv.models.object_detection.retinanet.FeaturePyramid
+        ):
+            pass
+
+        model = keras_cv.models.RetinaNet(
+            num_classes=20,
+            bounding_box_format="xywh",
+            backbone=keras_cv.models.ResNet18V2Backbone(),
+            box_head=CustomPredictionHead(9 * 4, tf.keras.initializers.Zeros()),
+            classification_head=CustomPredictionHead(
+                9 * 20, tf.keras.initializers.Zeros()
+            ),
+            feature_pyramid=CustomFeaturePyramid(),
+        )
+
+        input_batch = tf.ones(shape=(2, 224, 224, 3))
+        model_output = model(input_batch)
+        save_path = os.path.join(self.get_temp_dir(), filename)
+        model.save(save_path, save_format=save_format)
+        restored_model = keras.models.load_model(
+            save_path,
+            {
+                "RetinaNet": keras_cv.models.RetinaNet,
+                "CustomFeaturePyramid": CustomFeaturePyramid,
+                "CustomPredictionHead": CustomPredictionHead,
+            },
+        )
+
+        # Check we got the real object back.
+        self.assertIsInstance(restored_model, keras_cv.models.RetinaNet)
+
+        # Check that output matches.
+        restored_output = restored_model(input_batch)
+        self.assertAllClose(model_output, restored_output)
+
     def test_call_with_custom_label_encoder(self):
         anchor_generator = keras_cv.models.RetinaNet.default_anchor_generator(
             "xywh"

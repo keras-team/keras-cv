@@ -524,6 +524,7 @@ class RetinaNet(Task):
         return metrics
 
     def get_config(self):
+<<<<<<< Updated upstream
         return {
             "num_classes": self.num_classes,
             "bounding_box_format": self.bounding_box_format,
@@ -537,9 +538,47 @@ class RetinaNet(Task):
             ),
             "box_head": keras.saving.serialize_keras_object(self.box_head),
         }
+=======
+        config = super().get_config()
+        config.update(
+            {
+                "num_classes": self.num_classes,
+                "bounding_box_format": self.bounding_box_format,
+                "backbone": keras.utils.serialize_keras_object(self.backbone),
+                "label_encoder": keras.utils.serialize_keras_object(
+                    self.label_encoder
+                ),
+                "prediction_decoder": keras.utils.serialize_keras_object(
+                    self._prediction_decoder
+                ),
+                "classification_head": keras.utils.serialize_keras_object(
+                    self.classification_head
+                ),
+                "box_head": keras.utils.serialize_keras_object(self.box_head),
+                "feature_pyramid": keras.utils.serialize_keras_object(
+                    self.feature_pyramid
+                ),
+            }
+        )
+        return config
+>>>>>>> Stashed changes
 
     @classmethod
     def from_config(cls, config):
+        if "backbone" in config and isinstance(config["backbone"], dict):
+            config["backbone"] = keras.layers.deserialize(config["backbone"])
+        if "prediction_decoder" in config and isinstance(
+            config["prediction_decoder"], dict
+        ):
+            config["prediction_decoder"] = keras.layers.deserialize(
+                config["prediction_decoder"]
+            )
+        if "label_encoder" in config and isinstance(
+            config["label_encoder"], dict
+        ):
+            config["label_encoder"] = keras.layers.deserialize(
+                config["label_encoder"]
+            )
         if "box_head" in config and isinstance(config["box_head"], dict):
             config["box_head"] = keras.layers.deserialize(config["box_head"])
         if "classification_head" in config and isinstance(
@@ -548,6 +587,7 @@ class RetinaNet(Task):
             config["classification_head"] = keras.layers.deserialize(
                 config["classification_head"]
             )
+<<<<<<< Updated upstream
         if "label_encoder" in config and isinstance(
             config["label_encoder"], dict
         ):
@@ -555,6 +595,15 @@ class RetinaNet(Task):
                 config["label_encoder"]
             )
         return super().from_config(config)
+=======
+        if "feature_pyramid" in config and isinstance(
+            config["feature_pyramid"], dict
+        ):
+            config["feature_pyramid"] = keras.layers.deserialize(
+                config["feature_pyramid"]
+            )
+        return cls(**config)
+>>>>>>> Stashed changes
 
     @classproperty
     def presets(cls):
