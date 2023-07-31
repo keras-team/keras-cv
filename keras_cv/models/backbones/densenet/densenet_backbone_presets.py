@@ -18,7 +18,7 @@ backbone_presets_no_weights = {
         "metadata": {
             "description": "DenseNet model with 121 layers.",
         },
-        "class_name": "keras_cv.models>DenseNetBackbone",
+        "class_name": "keras_cv>DenseNetBackbone",
         "config": {
             "stackwise_num_repeats": [6, 12, 24, 16],
             "include_rescaling": True,
@@ -32,7 +32,7 @@ backbone_presets_no_weights = {
         "metadata": {
             "description": "DenseNet model with 169 layers.",
         },
-        "class_name": "keras_cv.models>DenseNetBackbone",
+        "class_name": "keras_cv>DenseNetBackbone",
         "config": {
             "stackwise_num_repeats": [6, 12, 32, 32],
             "include_rescaling": True,
@@ -46,7 +46,7 @@ backbone_presets_no_weights = {
         "metadata": {
             "description": "DenseNet model with 201 layers.",
         },
-        "class_name": "keras_cv.models>DenseNetBackbone",
+        "class_name": "keras_cv>DenseNetBackbone",
         "config": {
             "stackwise_num_repeats": [6, 12, 48, 32],
             "include_rescaling": True,
@@ -66,7 +66,7 @@ backbone_presets_with_weights = {
                 "classification task."
             ),
         },
-        "class_name": "keras_cv.models>DenseNetBackbone",
+        "class_name": "keras_cv>DenseNetBackbone",
         "config": backbone_presets_no_weights["densenet121"]["config"],
         "weights_url": "https://storage.googleapis.com/keras-cv/models/densenet121/imagenet/classification-v0-notop.h5",  # noqa: E501
         "weights_hash": "709afe0321d9f2b2562e562ff9d0dc44cca10ed09e0e2cfba08d783ff4dab6bf",  # noqa: E501
@@ -78,7 +78,7 @@ backbone_presets_with_weights = {
                 "classification task."
             ),
         },
-        "class_name": "keras_cv.models>DenseNetBackbone",
+        "class_name": "keras_cv>DenseNetBackbone",
         "config": backbone_presets_no_weights["densenet169"]["config"],
         "weights_url": "https://storage.googleapis.com/keras-cv/models/densenet169/imagenet/classification-v0-notop.h5",  # noqa: E501
         "weights_hash": "a99d1bb2cbe1a59a1cdd1f435fb265453a97c2a7b723d26f4ebee96e5fb49d62",  # noqa: E501
@@ -90,7 +90,7 @@ backbone_presets_with_weights = {
                 "classification task."
             ),
         },
-        "class_name": "keras_cv.models>DenseNetBackbone",
+        "class_name": "keras_cv>DenseNetBackbone",
         "config": backbone_presets_no_weights["densenet201"]["config"],
         "weights_url": "https://storage.googleapis.com/keras-cv/models/densenet201/imagenet/classification-v0-notop.h5",  # noqa: E501
         "weights_hash": "c1189a934f12c1a676a9cf52238e5994401af925e2adfc0365bad8133c052060",  # noqa: E501
