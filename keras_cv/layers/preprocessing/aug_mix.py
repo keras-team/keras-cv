@@ -306,11 +306,16 @@ class AugMix(BaseImageAugmentationLayer):
         )
         return augmented
 
-    def augment_image(self, image, transformation=None, **kwargs):
+    def get_random_transformation(self):
         chain_mixing_weights = self._sample_from_dirichlet(
             tf.ones([self.num_chains]) * self.alpha
         )
         weight_sample = self._sample_from_beta(self.alpha, self.alpha)
+
+        return chain_mixing_weights, weight_sample
+
+    def augment_image(self, image, transformation=None, **kwargs):
+        chain_mixing_weights, weight_sample = self.get_random_transformation()
 
         result = tf.zeros_like(image)
         curr_chain = tf.constant([0], dtype=tf.int32)
@@ -331,10 +336,7 @@ class AugMix(BaseImageAugmentationLayer):
     def augment_segmentation_mask(
         self, segmentation_masks, transformation=None, **kwargs
     ):
-        chain_mixing_weights = self._sample_from_dirichlet(
-            tf.ones([self.num_chains]) * self.alpha
-        )
-        weight_sample = self._sample_from_beta(self.alpha, self.alpha)
+        chain_mixing_weights, weight_sample = self.get_random_transformation()
 
         result = tf.zeros_like(segmentation_masks)
         curr_chain = tf.constant([0], dtype=tf.int32)
