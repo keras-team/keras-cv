@@ -3,8 +3,8 @@
 # Licensed under the terms in https://github.com/keras-team/keras-cv/blob/master/keras_cv/layers/preprocessing_3d/waymo/LICENSE  # noqa: E501
 
 import tensorflow as tf
-from tensorflow import keras
 
+from keras_cv.api_export import keras_cv_export
 from keras_cv.bounding_box_3d import CENTER_XYZ_DXDYDZ_PHI
 from keras_cv.layers.preprocessing_3d import base_augmentation_layer_3d
 from keras_cv.ops import iou_3d
@@ -16,7 +16,7 @@ OBJECT_POINT_CLOUDS = base_augmentation_layer_3d.OBJECT_POINT_CLOUDS
 OBJECT_BOUNDING_BOXES = base_augmentation_layer_3d.OBJECT_BOUNDING_BOXES
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+@keras_cv_export("keras_cv.layers.RandomCopyPaste")
 class RandomCopyPaste(base_augmentation_layer_3d.BaseAugmentationLayer3D):
     """A preprocessing layer which randomly pastes object point clouds and
     bounding boxes during training.

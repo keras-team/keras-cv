@@ -15,14 +15,14 @@
 import tensorflow as tf
 
 from keras_cv import layers
-from keras_cv.backend import keras
+from keras_cv.api_export import keras_cv_export
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
 from keras_cv.utils import preprocessing
 
 
-@keras.saving.register_keras_serializable(package="keras_cv")
+@keras_cv_export("keras_cv.layers.AugMix")
 class AugMix(BaseImageAugmentationLayer):
     """Performs the AugMix data augmentation technique.
 

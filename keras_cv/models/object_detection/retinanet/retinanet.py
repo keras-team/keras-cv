@@ -19,6 +19,7 @@ import numpy as np
 import keras_cv
 from keras_cv import bounding_box
 from keras_cv import layers as cv_layers
+from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 from keras_cv.bounding_box.converters import _decode_deltas_to_boxes
@@ -40,9 +41,7 @@ from keras_cv.utils.train import get_feature_extractor
 BOX_VARIANCE = [0.1, 0.1, 0.2, 0.2]
 
 
-# TODO(jbischof): Generalize `FeaturePyramid` class to allow for any P-levels
-#  and add `feature_pyramid_levels` param.
-@keras.saving.register_keras_serializable(package="keras_cv")
+@keras_cv_export("keras_cv.models.RetinaNet")
 class RetinaNet(Task):
     """A Keras model implementing the RetinaNet meta-architecture.
 

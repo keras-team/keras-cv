@@ -12,11 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 
 
-# --- Implementing Smooth L1 loss and Focal Loss as keras custom losses ---
+@keras_cv_export("keras_cv.losses.SmoothL1Loss")
 class SmoothL1Loss(keras.losses.Loss):
     """Implements Smooth L1 loss.
 

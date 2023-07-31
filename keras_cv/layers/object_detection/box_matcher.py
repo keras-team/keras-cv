@@ -14,11 +14,12 @@
 
 from typing import List
 
+from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 
 
-@keras.saving.register_keras_serializable(package="keras_cv")
+@keras_cv_export("keras_cv.layers.BoxMatcher")
 class BoxMatcher(keras.layers.Layer):
     """Box matching logic based on argmax of highest value (e.g., IOU).
 

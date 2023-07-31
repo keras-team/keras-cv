@@ -51,7 +51,7 @@ def build():
 
     whl_path = None
     try:
-        # Copy sources (`keras_cv/` directory and setup files) to build directory
+        # Copy sources (`keras_cv/` directory and setup files) to build dir
         root_path = pathlib.Path(__file__).parent.resolve()
         os.chdir(root_path)
         os.mkdir(build_directory)

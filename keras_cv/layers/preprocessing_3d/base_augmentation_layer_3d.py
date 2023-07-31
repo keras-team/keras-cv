@@ -15,6 +15,8 @@
 import tensorflow as tf
 from tensorflow import keras
 
+from keras_cv.api_export import keras_cv_export
+
 POINT_CLOUDS = "point_clouds"
 BOUNDING_BOXES = "bounding_boxes"
 OBJECT_POINT_CLOUDS = "object_point_clouds"
@@ -26,7 +28,7 @@ POINTCLOUD_LABEL_INDEX = 3
 POINTCLOUD_FEATURE_INDEX = 4
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+@keras_cv_export("keras_cv.layers.BaseAugmentationLayer3D")
 class BaseAugmentationLayer3D(keras.__internal__.layers.BaseRandomLayer):
     """Abstract base layer for data augmentation for 3D perception.
 
