@@ -179,4 +179,4 @@ def plot_bounding_box_gallery(
         cols=cols,
         **kwargs
     )
-    #return plt.gcf()
+    return plt.gcf()
