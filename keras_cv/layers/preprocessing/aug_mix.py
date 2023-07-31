@@ -306,16 +306,32 @@ class AugMix(BaseImageAugmentationLayer):
         )
         return augmented
 
-    def get_random_transformation(self):
+    def get_random_transformation(
+        self,
+        image=None,
+        label=None,
+        bounding_boxes=None,
+        keypoints=None,
+        segmentation_mask=None,
+    ):
+        # Generate random values of chain_mixing_weights and weight_sample
         chain_mixing_weights = self._sample_from_dirichlet(
             tf.ones([self.num_chains]) * self.alpha
         )
         weight_sample = self._sample_from_beta(self.alpha, self.alpha)
 
-        return chain_mixing_weights, weight_sample
+        # Create a transformation config containing the random values
+        transformation = {
+            "chain_mixing_weights": chain_mixing_weights,
+            "weight_sample": weight_sample,
+        }
+
+        return transformation
 
     def augment_image(self, image, transformation=None, **kwargs):
-        chain_mixing_weights, weight_sample = self.get_random_transformation()
+        # Extract chain_mixing_weights and weight_sample from the provided transformation # noqa: E501
+        chain_mixing_weights = transformation["chain_mixing_weights"]
+        weight_sample = transformation["weight_sample"]
 
         result = tf.zeros_like(image)
         curr_chain = tf.constant([0], dtype=tf.int32)
@@ -336,7 +352,9 @@ class AugMix(BaseImageAugmentationLayer):
     def augment_segmentation_mask(
         self, segmentation_masks, transformation=None, **kwargs
     ):
-        chain_mixing_weights, weight_sample = self.get_random_transformation()
+        # Extract chain_mixing_weights and weight_sample from the provided transformation # noqa: E501
+        chain_mixing_weights = transformation["chain_mixing_weights"]
+        weight_sample = transformation["weight_sample"]
 
         result = tf.zeros_like(segmentation_masks)
         curr_chain = tf.constant([0], dtype=tf.int32)
