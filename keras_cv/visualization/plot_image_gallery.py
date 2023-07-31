@@ -69,6 +69,7 @@ def plot_image_gallery(
     transparent=True,
     dpi=60,
     legend_handles=None,
+    
 ):
     """Displays a gallery of images.
 
