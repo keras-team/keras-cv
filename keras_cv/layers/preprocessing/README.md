@@ -11,7 +11,7 @@ The provided table gives an overview of the different augmentation layers availa
 | ChannelShuffle | ✅ | ✅ | ✅ | ✅ |
 | CutMix | ❌ | ✅ | ❌ | ✅ |
 | Equalization | ❌ | ✅ | ✅ | ✅ |
-| FourierMix | ❌ | ❌ | ❌ | ✅ |
+| FourierMix | ❌ | ✅ | ❌ | ✅ |
 | Grayscale | ✅ | ✅ | ✅ | ✅ |
 | GridMask | ❌ | ✅ | ✅ | ✅ |
 | JitteredResize | ✅ | ✅ | ✅ | ✅ |
