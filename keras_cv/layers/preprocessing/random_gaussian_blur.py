@@ -62,8 +62,8 @@ class RandomGaussianBlur(BaseImageAugmentationLayer):
 
     def get_random_transformation(self, **kwargs):
         # `factor` must not become too small otherwise numerical issues occur.
-        # 0.01 behaves like 0 without causing `nan`s
-        factor = max(self.factor(), 0.01)
+        # keras.backend.epsilon() behaves like 0 without causing `nan`s
+        factor = max(self.factor(), keras.backend.epsilon())
         blur_v = RandomGaussianBlur.get_kernel(factor, self.y)
         blur_h = RandomGaussianBlur.get_kernel(factor, self.x)
         blur_v = tf.reshape(blur_v, [self.y, 1, 1, 1])
