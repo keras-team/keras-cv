@@ -14,6 +14,7 @@
 
 import copy
 
+from keras_cv.api_export import keras_cv_export
 from keras_cv.models.backbones.resnet_v1.resnet_v1_backbone import (
     ResNetBackbone,
 )
@@ -55,6 +56,7 @@ ALIAS_DOCSTRING = """ResNetBackbone (V1) model with {num_layers} layers.
 """  # noqa: E501
 
 
+@keras_cv_export("keras_cv.models.ResNet18Backbone")
 class ResNet18Backbone(ResNetBackbone):
     def __new__(
         cls,
@@ -85,6 +87,7 @@ class ResNet18Backbone(ResNetBackbone):
         return {}
 
 
+@keras_cv_export("keras_cv.models.ResNet34Backbone")
 class ResNet34Backbone(ResNetBackbone):
     def __new__(
         cls,
@@ -115,6 +118,7 @@ class ResNet34Backbone(ResNetBackbone):
         return {}
 
 
+@keras_cv_export("keras_cv.models.ResNet50Backbone")
 class ResNet50Backbone(ResNetBackbone):
     def __new__(
         cls,
@@ -149,6 +153,7 @@ class ResNet50Backbone(ResNetBackbone):
         return cls.presets
 
 
+@keras_cv_export("keras_cv.models.ResNet101Backbone")
 class ResNet101Backbone(ResNetBackbone):
     def __new__(
         cls,
@@ -179,6 +184,7 @@ class ResNet101Backbone(ResNetBackbone):
         return {}
 
 
+@keras_cv_export("keras_cv.models.ResNet152Backbone")
 class ResNet152Backbone(ResNetBackbone):
     def __new__(
         cls,

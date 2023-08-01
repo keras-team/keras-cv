@@ -12,9 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 
 
+@keras_cv_export("keras_cv.layers.Augmenter")
 class Augmenter(keras.layers.Layer):
     """Light-weight class to apply augmentations to data.
 

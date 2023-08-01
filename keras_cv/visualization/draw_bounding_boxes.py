@@ -21,9 +21,11 @@ import numpy as np
 
 from keras_cv import bounding_box
 from keras_cv import utils
+from keras_cv.api_export import keras_cv_export
 from keras_cv.utils import assert_cv2_installed
 
 
+@keras_cv_export("keras_cv.visualization.draw_bounding_boxes")
 def draw_bounding_boxes(
     images,
     bounding_boxes,

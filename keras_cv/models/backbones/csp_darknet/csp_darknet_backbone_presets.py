@@ -26,7 +26,7 @@ backbone_presets_no_weights = {
             "official_name": "CSPDarkNet",
             "path": "csp_darknet",
         },
-        "class_name": "keras_cv.models>CSPDarkNetBackbone",
+        "class_name": "keras_cv>CSPDarkNetBackbone",
         "config": {
             "stackwise_channels": [48, 96, 192, 384],
             "stackwise_depth": [1, 3, 3, 1],
@@ -47,7 +47,7 @@ backbone_presets_no_weights = {
             "official_name": "CSPDarkNet",
             "path": "csp_darknet",
         },
-        "class_name": "keras_cv.models>CSPDarkNetBackbone",
+        "class_name": "keras_cv>CSPDarkNetBackbone",
         "config": {
             "stackwise_channels": [64, 128, 256, 512],
             "stackwise_depth": [1, 3, 3, 1],
@@ -68,7 +68,7 @@ backbone_presets_no_weights = {
             "official_name": "CSPDarkNet",
             "path": "csp_darknet",
         },
-        "class_name": "keras_cv.models>CSPDarkNetBackbone",
+        "class_name": "keras_cv>CSPDarkNetBackbone",
         "config": {
             "stackwise_channels": [96, 192, 384, 768],
             "stackwise_depth": [2, 6, 6, 2],
@@ -89,7 +89,7 @@ backbone_presets_no_weights = {
             "official_name": "CSPDarkNet",
             "path": "csp_darknet",
         },
-        "class_name": "keras_cv.models>CSPDarkNetBackbone",
+        "class_name": "keras_cv>CSPDarkNetBackbone",
         "config": {
             "stackwise_channels": [128, 256, 512, 1024],
             "stackwise_depth": [3, 9, 9, 3],
@@ -110,7 +110,7 @@ backbone_presets_no_weights = {
             "official_name": "CSPDarkNet",
             "path": "csp_darknet",
         },
-        "class_name": "keras_cv.models>CSPDarkNetBackbone",
+        "class_name": "keras_cv>CSPDarkNetBackbone",
         "config": {
             "stackwise_channels": [170, 340, 680, 1360],
             "stackwise_depth": [4, 12, 12, 4],
@@ -135,7 +135,7 @@ backbone_presets_with_weights = {
             "official_name": "CSPDarkNet",
             "path": "csp_darknet",
         },
-        "class_name": "keras_cv.models>CSPDarkNetBackbone",
+        "class_name": "keras_cv>CSPDarkNetBackbone",
         "config": backbone_presets_no_weights["csp_darknet_tiny"]["config"],
         "weights_url": "https://storage.googleapis.com/keras-cv/models/cspdarknettiny/imagenet/classification-v0-notop.h5",  # noqa: E501
         "weights_hash": "0007ae82c95be4d4aef06368a7c38e006381324d77e5df029b04890e18a8ad19",  # noqa: E501
@@ -152,7 +152,7 @@ backbone_presets_with_weights = {
             "official_name": "CSPDarkNet",
             "path": "csp_darknet",
         },
-        "class_name": "keras_cv.models>CSPDarkNetBackbone",
+        "class_name": "keras_cv>CSPDarkNetBackbone",
         "config": backbone_presets_no_weights["csp_darknet_l"]["config"],
         "weights_url": "https://storage.googleapis.com/keras-cv/models/cspdarknetl/imagenet/classification-v0-notop.h5",  # noqa: E501
         "weights_hash": "9303aabfadffbff8447171fce1e941f96d230d8f3cef30d3f05a9c85097f8f1e",  # noqa: E501

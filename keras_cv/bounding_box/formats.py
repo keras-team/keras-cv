@@ -15,7 +15,10 @@
 formats.py contains axis information for each supported format.
 """
 
+from keras_cv.api_export import keras_cv_export
 
+
+@keras_cv_export("keras_cv.bounding_box.XYXY")
 class XYXY:
     """XYXY contains axis indices for the XYXY format.
 
@@ -35,6 +38,7 @@ class XYXY:
     BOTTOM = 3
 
 
+@keras_cv_export("keras_cv.bounding_box.REL_XYXY")
 class REL_XYXY:
     """REL_XYXY contains axis indices for the REL_XYXY format.
 
@@ -56,6 +60,7 @@ class REL_XYXY:
     BOTTOM = 3
 
 
+@keras_cv_export("keras_cv.bounding_box.CENTER_XYWH")
 class CENTER_XYWH:
     """CENTER_XYWH contains axis indices for the CENTER_XYWH format.
 
@@ -75,6 +80,7 @@ class CENTER_XYWH:
     HEIGHT = 3
 
 
+@keras_cv_export("keras_cv.bounding_box.XYWH")
 class XYWH:
     """XYWH contains axis indices for the XYWH format.
 
@@ -94,6 +100,7 @@ class XYWH:
     HEIGHT = 3
 
 
+@keras_cv_export("keras_cv.bounding_box.REL_XYWH")
 class REL_XYWH:
     """REL_XYWH contains axis indices for the XYWH format.
 
@@ -113,6 +120,7 @@ class REL_XYWH:
     HEIGHT = 3
 
 
+@keras_cv_export("keras_cv.bounding_box.YXYX")
 class YXYX:
     """YXYX contains axis indices for the YXYX format.
 
@@ -132,6 +140,7 @@ class YXYX:
     RIGHT = 3
 
 
+@keras_cv_export("keras_cv.bounding_box.REL_YXYX")
 class REL_YXYX:
     """REL_YXYX contains axis indices for the REL_YXYX format.
 

@@ -21,6 +21,7 @@ else:
     keras_backend = keras.backend
 
 from keras_cv import bounding_box
+from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import scope
 from keras_cv.backend.config import multi_backend
@@ -48,7 +49,7 @@ base_class = (
 )
 
 
-@keras.saving.register_keras_serializable(package="keras_cv")
+@keras_cv_export("keras_cv.layers.BaseImageAugmentationLayer")
 class BaseImageAugmentationLayer(base_class):
     """Abstract base layer for image augmentation.
 
@@ -484,7 +485,9 @@ class BaseImageAugmentationLayer(base_class):
                 image=raw_image,
             )
 
-            bounding_boxes = bounding_box.to_ragged(bounding_boxes)
+            bounding_boxes = bounding_box.to_ragged(
+                bounding_boxes, dtype=self.compute_dtype
+            )
             result[BOUNDING_BOXES] = bounding_boxes
 
         if keypoints is not None:

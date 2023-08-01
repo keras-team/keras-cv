@@ -16,6 +16,7 @@ import tensorflow as tf
 
 import keras_cv.utils
 from keras_cv import bounding_box
+from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import ops
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
@@ -33,6 +34,7 @@ supported_keys = [
 ]
 
 
+@keras_cv_export("keras_cv.layers.Resizing")
 class Resizing(BaseImageAugmentationLayer):
     """A preprocessing layer which resizes images.
 

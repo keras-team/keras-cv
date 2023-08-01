@@ -12,13 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 
 
-# TODO(tanzhenyu): consider inherit from LossFunctionWrapper to
-#  get the dimension squeeze.
-@keras.utils.register_keras_serializable(package="keras_cv")
+@keras_cv_export("keras_cv.losses.BinaryPenaltyReducedFocalCrossEntropy")
 class BinaryPenaltyReducedFocalCrossEntropy(keras.losses.Loss):
     """Implements CenterNet modified Focal loss.
 

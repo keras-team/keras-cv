@@ -31,7 +31,7 @@ def load_data():
     )
     return ds.map(
         lambda inputs: {
-            "images": tf.cast(inputs["image"], dtype=tf.float32) / 255.0,
+            "images": tf.cast(inputs["image"], dtype=tf.float32),
             "segmentation_masks": inputs["segmentation_mask"] - 1,
         }
     )

@@ -11,18 +11,24 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""aug_mix_demo.py shows how to use the AugMix preprocessing layer.
 
-from keras_cv.api_export import keras_cv_export
-from keras_cv.utils import preprocessing
+Uses the oxford iiit pet_dataset.  In this script the pets
+are loaded, then are passed through the preprocessing layers.
+Finally, they are shown using matplotlib.
+"""
+import demo_utils
+import tensorflow as tf
+
+from keras_cv.layers import preprocessing
 
 
-@keras_cv_export("keras_cv.bounding_box.ensure_tensor")
-def ensure_tensor(boxes, dtype=None):
-    boxes = boxes.copy()
-    for key in ["boxes", "classes", "confidence"]:
-        if key in boxes:
-            boxes[key] = preprocessing.ensure_tensor(
-                boxes[key],
-                dtype=dtype,
-            )
-    return boxes
+def main():
+    ds = demo_utils.load_oxford_iiit_pet_dataset()
+    augmix = preprocessing.AugMix([0, 255])
+    ds = ds.map(augmix, num_parallel_calls=tf.data.AUTOTUNE)
+    demo_utils.visualize_dataset(ds)
+
+
+if __name__ == "__main__":
+    main()

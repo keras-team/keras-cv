@@ -16,12 +16,13 @@ from typing import Any
 from typing import List
 from typing import Mapping
 
+from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 from keras_cv.backend.config import multi_backend
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+@keras_cv_export("keras_cv.layers.SpatialPyramidPooling")
 class SpatialPyramidPooling(keras.layers.Layer):
     """Implements the Atrous Spatial Pyramid Pooling.
 

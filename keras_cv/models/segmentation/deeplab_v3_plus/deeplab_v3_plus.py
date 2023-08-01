@@ -14,6 +14,7 @@
 
 import copy
 
+from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.layers.spatial_pyramid import SpatialPyramidPooling
 from keras_cv.models.backbones.backbone_presets import backbone_presets
@@ -25,7 +26,7 @@ from keras_cv.utils.python_utils import classproperty
 from keras_cv.utils.train import get_feature_extractor
 
 
-@keras.saving.register_keras_serializable(package="keras_cv")
+@keras_cv_export("keras_cv.models.DeepLabV3Plus")
 class DeepLabV3Plus(Task):
     """A Keras model implementing the DeepLabV3+ architecture for semantic
     segmentation.

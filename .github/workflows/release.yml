@@ -102,7 +102,7 @@ jobs:
         pip install tensorflow==2.13.0
         python -m pip install --upgrade pip setuptools wheel twine
         export BUILD_WITH_CUSTOM_OPS=false
-        python setup.py sdist bdist_wheel
+        python pip_build.py
     - name: Upload wheels
       env:
         TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
