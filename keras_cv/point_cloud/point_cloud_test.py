@@ -61,10 +61,10 @@ class Boxes3DTestCase(TestCase):
             self.assertAllClose(6, np.max(corners[1, i, :, 2]))
 
     def test_within_box2d(self):
-        boxes = tf.constant(
-            [[[0.0, 0.0], [1.0, 0.0], [1.0, 1.0], [0.0, 1.0]]], dtype=tf.float32
+        boxes = np.array(
+            [[[0.0, 0.0], [1.0, 0.0], [1.0, 1.0], [0.0, 1.0]]], dtype="float32"
         )
-        points = tf.constant(
+        points = np.array(
             [
                 [-0.5, -0.5],
                 [0.5, -0.5],
@@ -77,17 +77,17 @@ class Boxes3DTestCase(TestCase):
                 [1.0, 1.0],
                 [0.5, 0.5],
             ],
-            dtype=tf.float32,
+            dtype="float32",
         )
         is_inside = point_cloud.is_within_box2d(points, boxes)
         expected = [[False]] * 8 + [[True]] * 2
         self.assertAllEqual(expected, is_inside)
 
     def test_within_zero_box2d(self):
-        bbox = tf.constant(
-            [[[0.0, 0.0], [0.0, 0.0], [0.0, 0.0], [0.0, 0.0]]], dtype=tf.float32
+        bbox = np.array(
+            [[[0.0, 0.0], [0.0, 0.0], [0.0, 0.0], [0.0, 0.0]]], dtype="float32"
         )
-        points = tf.constant(
+        points = np.array(
             [
                 [-0.5, -0.5],
                 [0.5, -0.5],
@@ -100,16 +100,16 @@ class Boxes3DTestCase(TestCase):
                 [1.0, 1.0],
                 [0.5, 0.5],
             ],
-            dtype=tf.float32,
+            dtype="float32",
         )
         is_inside = point_cloud.is_within_box2d(points, bbox)
         expected = [[False]] * 10
         self.assertAllEqual(expected, is_inside)
 
     def test_is_on_lefthand_side(self):
-        v1 = tf.constant([[0.0, 0.0]], dtype=tf.float32)
-        v2 = tf.constant([[1.0, 0.0]], dtype=tf.float32)
-        p = tf.constant([[0.5, 0.5], [-1.0, -3], [-1.0, 1.0]], dtype=tf.float32)
+        v1 = np.array([[0.0, 0.0]], dtype="float32")
+        v2 = np.array([[1.0, 0.0]], dtype="float32")
+        p = np.array([[0.5, 0.5], [-1.0, -3], [-1.0, 1.0]], dtype="float32")
         res = point_cloud._is_on_lefthand_side(p, v1, v2)
         self.assertAllEqual([[True, False, True]], res)
         res = point_cloud._is_on_lefthand_side(v1, v1, v2)
@@ -124,13 +124,13 @@ class Boxes3DTestCase(TestCase):
         ("with_rotation_3_rad", 3.0),
     )
     def test_box_area(self, angle):
-        boxes = tf.constant(
+        boxes = np.array(
             [
                 [[0.0, 0.0], [1.0, 0.0], [1.0, 1.0], [0.0, 1.0]],
                 [[0.0, 0.0], [2.0, 0.0], [2.0, 1.0], [0.0, 1.0]],
                 [[0.0, 0.0], [2.0, 0.0], [2.0, 2.0], [0.0, 2.0]],
             ],
-            dtype=tf.float32,
+            dtype="float32",
         )
         expected = [[1.0], [2.0], [4.0]]
 
@@ -149,16 +149,16 @@ class Boxes3DTestCase(TestCase):
         num_points, num_boxes = 19, 4
         # rotate the first box by pi / 2 so dim_x and dim_y are swapped.
         # The last box is a cube rotated by 45 degrees.
-        bboxes = tf.constant(
+        bboxes = np.array(
             [
                 [1.0, 2.0, 3.0, 6.0, 0.4, 6.0, np.pi / 2],
                 [4.0, 5.0, 6.0, 7.0, 0.8, 7.0, 0.0],
                 [0.4, 0.3, 0.2, 0.1, 0.1, 0.2, 0.0],
                 [-10.0, -10.0, -10.0, 3.0, 3.0, 3.0, np.pi / 4],
             ],
-            dtype=tf.float32,
+            dtype="float32",
         )
-        points = tf.constant(
+        points = np.array(
             [
                 [1.0, 2.0, 3.0],  # box 0 (centroid)
                 [0.8, 2.0, 3.0],  # box 0 (below x)
@@ -180,7 +180,7 @@ class Boxes3DTestCase(TestCase):
                 [-11.6, -10.0, -10.0],  # box3 (rotated corner point).
                 [-11.4, -11.4, -10.0],  # not in box3, would be if not rotated.
             ],
-            dtype=tf.float32,
+            dtype="float32",
         )
         expected_is_inside = np.array(
             [
@@ -228,8 +228,8 @@ class Boxes3DTestCase(TestCase):
         # This is a validated test case from a real scene.
         #
         # A single point [1, 1, 3].
-        point = tf.constant(
-            [[[5736.94580078, 1264.85168457, 45.0271225]]], dtype=tf.float32
+        point = np.array(
+            [[[5736.94580078, 1264.85168457, 45.0271225]]], dtype="float32"
         )
         # Replicate the point to test broadcasting behavior.
         replicated_points = tf.tile(point, [2, 4, 1])
@@ -238,7 +238,7 @@ class Boxes3DTestCase(TestCase):
         #
         # We negate the translations so that the coordinates are translated
         # such that the car is at the origin.
-        pose = tf.constant(
+        pose = np.array(
             [
                 -5728.77148438,
                 -1264.42236328,
@@ -247,7 +247,7 @@ class Boxes3DTestCase(TestCase):
                 0.03288471,
                 0.00115049,
             ],
-            dtype=tf.float32,
+            dtype="float32",
         )
 
         result = point_cloud.coordinate_transform(replicated_points, pose)
@@ -261,7 +261,7 @@ class Boxes3DTestCase(TestCase):
 
     def testSphericalCoordinatesTransform(self):
         np_xyz = np.random.randn(5, 6, 3)
-        points = tf.constant(np_xyz, dtype=tf.float32)
+        points = np.array(np_xyz, dtype="float32")
         spherical_coordinates = point_cloud.spherical_coordinate_transform(
             points
         )
@@ -288,16 +288,16 @@ class Boxes3DTestCase(TestCase):
         # rotate the first box by pi / 2 so dim_x and dim_y are swapped.
         # The last box is a cube rotated by 45 degrees.
         with tf.device("cpu:0"):
-            bboxes = tf.constant(
+            bboxes = np.array(
                 [
                     [1.0, 2.0, 3.0, 6.0, 0.4, 6.0, np.pi / 2],
                     [4.0, 5.0, 6.0, 7.0, 0.8, 7.0, 0.0],
                     [0.4, 0.3, 0.2, 0.1, 0.1, 0.2, 0.0],
                     [-10.0, -10.0, -10.0, 3.0, 3.0, 3.0, np.pi / 4],
                 ],
-                dtype=tf.float32,
+                dtype="float32",
             )
-            points = tf.constant(
+            points = np.array(
                 [
                     [1.0, 2.0, 3.0],  # box 0 (centroid)
                     [0.8, 2.0, 3.0],  # box 0 (below x)
@@ -323,7 +323,7 @@ class Boxes3DTestCase(TestCase):
                         -10.0,
                     ],  # not in box3, would be if not rotated.
                 ],
-                dtype=tf.float32,
+                dtype="float32",
             )
             res = point_cloud.group_points_by_boxes(points, bboxes)
             expected_result = tf.ragged.constant(
@@ -332,25 +332,23 @@ class Boxes3DTestCase(TestCase):
             self.assertAllClose(expected_result.flat_values, res.flat_values)
 
     def testWithinAFrustum(self):
-        center = tf.constant([1.0, 1.0, 1.0])
-        points = tf.constant(
-            [[0.0, 0.0, 0.0], [1.0, 2.0, 1.0], [1.0, 0.0, 1.0]]
-        )
+        center = np.array([1.0, 1.0, 1.0])
+        points = np.array([[0.0, 0.0, 0.0], [1.0, 2.0, 1.0], [1.0, 0.0, 1.0]])
 
         point_mask = point_cloud.within_a_frustum(
             points, center, r_distance=1.0, theta_width=1.0, phi_width=1.0
         )
-        target_point_mask = tf.constant([False, True, False])
+        target_point_mask = np.array([False, True, False])
         self.assertAllClose(point_mask, target_point_mask)
 
         point_mask = point_cloud.within_a_frustum(
             points, center, r_distance=1.0, theta_width=3.14, phi_width=3.14
         )
-        target_point_mask = tf.constant([False, True, True])
+        target_point_mask = np.array([False, True, True])
         self.assertAllClose(point_mask, target_point_mask)
 
         point_mask = point_cloud.within_a_frustum(
             points, center, r_distance=3.0, theta_width=1.0, phi_width=1.0
         )
-        target_point_mask = tf.constant([False, False, False])
+        target_point_mask = np.array([False, False, False])
         self.assertAllClose(point_mask, target_point_mask)

@@ -19,6 +19,7 @@ from tensorflow.keras.layers import RandomWidth
 from keras_cv.layers.efficient_multihead_attention import (
     SegFormerMultiheadAttention,
 )
+from keras_cv.layers.augmenter import Augmenter
 from keras_cv.layers.feature_pyramid import FeaturePyramid
 from keras_cv.layers.fusedmbconv import FusedMBConvBlock
 from keras_cv.layers.hierarchical_transformer_encoder import (

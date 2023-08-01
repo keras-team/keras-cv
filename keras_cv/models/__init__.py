@@ -13,23 +13,23 @@
 # limitations under the License.
 
 from keras_cv.models import legacy
-from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
-    CSPDarkNetBackbone,
-)
-from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
+from keras_cv.models.backbones.csp_darknet.csp_darknet_aliases import (
     CSPDarkNetLBackbone,
 )
-from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
+from keras_cv.models.backbones.csp_darknet.csp_darknet_aliases import (
     CSPDarkNetMBackbone,
 )
-from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
+from keras_cv.models.backbones.csp_darknet.csp_darknet_aliases import (
     CSPDarkNetSBackbone,
 )
-from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
+from keras_cv.models.backbones.csp_darknet.csp_darknet_aliases import (
     CSPDarkNetTinyBackbone,
 )
-from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
+from keras_cv.models.backbones.csp_darknet.csp_darknet_aliases import (
     CSPDarkNetXLBackbone,
+)
+from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
+    CSPDarkNetBackbone,
 )
 from keras_cv.models.backbones.densenet.densenet_aliases import (
     DenseNet121Backbone,
@@ -122,9 +122,6 @@ from keras_cv.models.object_detection.yolo_v8.yolo_v8_backbone import (
 )
 from keras_cv.models.object_detection.yolo_v8.yolo_v8_detector import (
     YOLOV8Detector,
-)
-from keras_cv.models.object_detection_3d.center_pillar import (
-    MultiHeadCenterPillar,
 )
 from keras_cv.models.segmentation import DeepLabV3Plus
 from keras_cv.models.segmentation import SegFormer
