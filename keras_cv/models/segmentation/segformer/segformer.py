@@ -1,7 +1,16 @@
+import copy
+
 import tensorflow as tf
 
 from keras_cv.backend import keras
+from keras_cv.models.segmentation.segformer.segformer_presets import (  # noqa: E501
+    presets,
+)
+from keras_cv.models.segmentation.segformer.segformer_presets import (  # noqa: E501
+    presets_with_weights,
+)
 from keras_cv.models.task import Task
+from keras_cv.utils.python_utils import classproperty
 from keras_cv.utils.train import get_feature_extractor
 
 
@@ -136,3 +145,14 @@ class SegFormer(Task):
             "backbone": self.backbone,
             "projection_filters": self.projection_filters,
         }
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return copy.deepcopy(presets)
+
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include
+        weights."""
+        return copy.deepcopy(presets_with_weights)
