@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from keras_cv import core
-from keras_cv.backend import keras
+from keras_cv.api_export import keras_cv_export
 from keras_cv.layers import preprocessing as cv_preprocessing
 from keras_cv.layers.preprocessing.random_augmentation_pipeline import (
     RandomAugmentationPipeline,
@@ -21,7 +21,7 @@ from keras_cv.layers.preprocessing.random_augmentation_pipeline import (
 from keras_cv.utils import preprocessing as preprocessing_utils
 
 
-@keras.saving.register_keras_serializable(package="keras_cv")
+@keras_cv_export("keras_cv.layers.RandAugment")
 class RandAugment(RandomAugmentationPipeline):
     """RandAugment performs the Rand Augment operation on input images.
 

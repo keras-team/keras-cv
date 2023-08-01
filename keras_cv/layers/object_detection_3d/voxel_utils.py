@@ -20,9 +20,14 @@ from typing import Union
 import numpy as np
 import tensorflow as tf
 
+from keras_cv.api_export import keras_cv_export
+
 EPSILON = 1e-4
 
 
+@keras_cv_export(
+    "keras_cv.object_detection_3d.voxel_utils.compute_feature_map_ref_xyz"
+)
 def compute_feature_map_ref_xyz(
     voxel_size: Sequence[float],
     spatial_size: Sequence[float],
@@ -65,6 +70,9 @@ def compute_feature_map_ref_xyz(
     return ref
 
 
+@keras_cv_export(
+    "keras_cv.object_detection_3d.voxel_utils.compute_voxel_spatial_size"
+)
 def compute_voxel_spatial_size(
     spatial_size: Sequence[float], voxel_size: Sequence[float]
 ) -> List[int]:
@@ -93,6 +101,9 @@ def compute_voxel_spatial_size(
     return voxel_spatial_size_int
 
 
+@keras_cv_export(
+    "keras_cv.object_detection_3d.voxel_utils.compute_voxel_origin"
+)
 def compute_voxel_origin(
     spatial_size: Sequence[float],
     voxel_size: Sequence[float],
@@ -115,6 +126,9 @@ def compute_voxel_origin(
     return voxel_origin
 
 
+@keras_cv_export(
+    "keras_cv.object_detection_3d.voxel_utils.point_to_voxel_coord"
+)
 def point_to_voxel_coord(
     point_xyz: tf.Tensor, voxel_size: Sequence[float], dtype=tf.int32
 ) -> tf.Tensor:
@@ -145,6 +159,9 @@ def point_to_voxel_coord(
         return tf.cast(point_voxelized_round, dtype=dtype)
 
 
+@keras_cv_export(
+    "keras_cv.object_detection_3d.voxel_utils.voxel_coord_to_point"
+)
 def voxel_coord_to_point(
     voxel_coord: tf.Tensor, voxel_size: Sequence[float], dtype=tf.float32
 ) -> tf.Tensor:
@@ -167,6 +184,7 @@ def voxel_coord_to_point(
         return voxel_coord * tf.constant(voxel_size, dtype=dtype)
 
 
+@keras_cv_export("keras_cv.object_detection_3d.voxel_utils.get_yaw_rotation")
 def get_yaw_rotation(yaw, name=None):
     """Gets a rotation matrix given yaw only.
 
@@ -195,6 +213,7 @@ def get_yaw_rotation(yaw, name=None):
         )
 
 
+@keras_cv_export("keras_cv.object_detection_3d.voxel_utils.inv_loc")
 def inv_loc(rot: tf.Tensor, loc: tf.Tensor) -> tf.Tensor:
     """Invert a location.
     rot and loc can form a transform matrix between two frames.

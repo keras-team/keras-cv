@@ -14,8 +14,10 @@
 
 from tensorflow import keras
 
+from keras_cv.api_export import keras_cv_export
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+
+@keras_cv_export("keras_cv.layers.DropPath")
 class DropPath(keras.__internal__.layers.BaseRandomLayer):
     """
     Implements the DropPath layer. DropPath randomly drops samples during

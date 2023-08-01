@@ -15,6 +15,7 @@
 import numpy as np
 
 from keras_cv import utils
+from keras_cv.api_export import keras_cv_export
 from keras_cv.utils import assert_matplotlib_installed
 from keras_cv.visualization.plot_image_gallery import plot_image_gallery
 
@@ -50,6 +51,7 @@ def transform_segmentation_masks(segmentation_masks, num_classes, value_range):
     return segmentation_masks
 
 
+@keras_cv_export("keras_cv.visualization.plot_segmentation_mask_gallery")
 def plot_segmentation_mask_gallery(
     images,
     value_range,

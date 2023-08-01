@@ -23,6 +23,7 @@ References:
 import copy
 
 from keras_cv import layers as cv_layers
+from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.models import utils
 from keras_cv.models.backbones.backbone import Backbone
@@ -39,7 +40,7 @@ BN_EPSILON = 1e-3
 BN_MOMENTUM = 0.999
 
 
-@keras.saving.register_keras_serializable(package="keras_cv.models")
+@keras_cv_export("keras_cv.models.MobileNetV3Backbone")
 class MobileNetV3Backbone(Backbone):
     """Instantiates the MobileNetV3 architecture.
 
