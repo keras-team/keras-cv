@@ -182,7 +182,7 @@ class HeatmapDecoder(keras.layers.Layer):
         )
         # [B, max_num_box, 7]
         box_decoded = ops.reshape(box_decoded, [b, self.max_num_box, 7])
-        global_xyz = ops.zeros([b, 3], dtype=box_decoded.dtype)
+        global_xyz = np.zeros([b, 3])
         ref_xyz = voxel_utils.compute_feature_map_ref_xyz(
             self.voxel_size, self.spatial_size, global_xyz
         )

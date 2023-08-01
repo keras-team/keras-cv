@@ -169,8 +169,6 @@ class DynamicVoxelization(keras.layers.Layer):
     and max pools all point features inside each voxel.
 
     Args:
-      point_net: a keras Layer that project point feature into another
-        dimension.
       voxel_size: the x, y, z dimension of each voxel.
       spatial_size: the x, y, z boundary of voxels
 
@@ -181,13 +179,11 @@ class DynamicVoxelization(keras.layers.Layer):
 
     def __init__(
         self,
-        point_net: keras.layers.Layer,
         voxel_size: Sequence[float],
         spatial_size: Sequence[float],
         **kwargs,
     ):
         super().__init__(**kwargs)
-        self._point_net = point_net
         self._voxelization_layer = PointToVoxel(
             voxel_size=voxel_size, spatial_size=spatial_size
         )
@@ -199,6 +195,9 @@ class DynamicVoxelization(keras.layers.Layer):
         self._voxel_spatial_size_volume = np.prod(
             self._voxel_spatial_size
         ).item()
+        self.point_net_dense = keras.layers.Dense(128)
+        self.point_net_norm = keras.layers.BatchNormalization()
+        self.point_net_activation = keras.layers.ReLU()
 
     def call(
         self,
@@ -240,9 +239,11 @@ class DynamicVoxelization(keras.layers.Layer):
         )
         # [B, N, dim]
         point_feature = point_feature * point_mask_float
-        point_feature = self._point_net(
-            point_feature, mask=point_mask, training=training
+        point_feature = self.point_net_dense(point_feature)
+        point_feature = self.point_net_norm(
+            point_feature, training=training, mask=point_mask
         )
+        point_feature = self.point_net_activation(point_feature)
         # [B, N, new_dim]
         point_feature = point_feature * point_mask_float
         new_dim = list(point_feature.shape)[-1]

@@ -24,6 +24,7 @@ else:
     from keras_cv.backend.tf_ops import *  # noqa: F403, F401
 
 
+# TODO(ianstenbit): Upstream to Keras Core and remove this unholy hack
 def segment_max(data, segment_ids, num_segments=None, sorted=False):
     if multi_backend():
         if keras.backend.backend() == "jax":

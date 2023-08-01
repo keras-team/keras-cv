@@ -13,11 +13,8 @@
 # limitations under the License.
 import copy
 
-from tensorflow import keras
-from tensorflow.keras import initializers
-from tensorflow.keras import layers
-from tensorflow.keras import regularizers
-
+from keras_cv.api_export import keras_cv_export
+from keras_cv.backend import keras
 from keras_cv.models.backbones.backbone import Backbone
 from keras_cv.models.object_detection_3d.center_pillar_backbone_presets import (
     backbone_presets,
@@ -25,7 +22,7 @@ from keras_cv.models.object_detection_3d.center_pillar_backbone_presets import (
 from keras_cv.utils.python_utils import classproperty
 
 
-@keras.utils.register_keras_serializable(package="keras_cv.models")
+@keras_cv_export("keras_cv.models.CenterPillarBackbone")
 class CenterPillarBackbone(Backbone):
     """A UNet backbone for CenterPillar models.
 
@@ -55,7 +52,7 @@ class CenterPillarBackbone(Backbone):
         input_shape=(None, None, 128),
         **kwargs
     ):
-        input = layers.Input(shape=input_shape)
+        input = keras.layers.Input(shape=input_shape)
         x = input
 
         x = keras.layers.Conv2D(
@@ -104,52 +101,52 @@ def Block(filters, downsample):
     """
 
     def apply(x):
-        input_depth = x.shape.as_list()[-1]
+        input_depth = list(x.shape)[-1]
         stride = 2 if downsample else 1
 
         residual = x
 
-        x = layers.Conv2D(
+        x = keras.layers.Conv2D(
             filters,
             3,
             stride,
             padding="same",
             use_bias=False,
-            kernel_initializer=initializers.VarianceScaling(),
-            kernel_regularizer=regularizers.L2(l2=1e-4),
+            kernel_initializer=keras.initializers.VarianceScaling(),
+            kernel_regularizer=keras.regularizers.L2(l2=1e-4),
         )(x)
-        x = layers.BatchNormalization()(x)
-        x = layers.ReLU()(x)
+        x = keras.layers.BatchNormalization()(x)
+        x = keras.layers.ReLU()(x)
 
-        x = layers.Conv2D(
+        x = keras.layers.Conv2D(
             filters,
             3,
             1,
             padding="same",
             use_bias=False,
-            kernel_initializer=initializers.VarianceScaling(),
-            kernel_regularizer=regularizers.L2(l2=1e-4),
+            kernel_initializer=keras.initializers.VarianceScaling(),
+            kernel_regularizer=keras.regularizers.L2(l2=1e-4),
         )(x)
-        x = layers.BatchNormalization()(x)
-        x = layers.ReLU()(x)
+        x = keras.layers.BatchNormalization()(x)
+        x = keras.layers.ReLU()(x)
 
         if downsample:
-            residual = layers.MaxPool2D(pool_size=2, strides=2, padding="SAME")(
-                residual
-            )
+            residual = keras.layers.MaxPool2D(
+                pool_size=2, strides=2, padding="same"
+            )(residual)
 
         if input_depth != filters:
-            residual = layers.Conv2D(
+            residual = keras.layers.Conv2D(
                 filters,
                 1,
                 1,
                 padding="same",
                 use_bias=False,
-                kernel_initializer=initializers.VarianceScaling(),
-                kernel_regularizer=regularizers.L2(l2=1e-4),
+                kernel_initializer=keras.initializers.VarianceScaling(),
+                kernel_regularizer=keras.regularizers.L2(l2=1e-4),
             )(residual)
-            residual = layers.BatchNormalization()(residual)
-            residual = layers.ReLU()(residual)
+            residual = keras.layers.BatchNormalization()(residual)
+            residual = keras.layers.ReLU()(residual)
 
         x = x + residual
 
@@ -160,16 +157,16 @@ def Block(filters, downsample):
 
 def SkipBlock(filters):
     def apply(x):
-        x = layers.Conv2D(
+        x = keras.layers.Conv2D(
             filters,
             1,
             1,
             use_bias=False,
-            kernel_initializer=initializers.VarianceScaling(),
-            kernel_regularizer=regularizers.L2(l2=1e-4),
+            kernel_initializer=keras.initializers.VarianceScaling(),
+            kernel_regularizer=keras.regularizers.L2(l2=1e-4),
         )(x)
-        x = layers.BatchNormalization()(x)
-        x = layers.ReLU()(x)
+        x = keras.layers.BatchNormalization()(x)
+        x = keras.layers.ReLU()(x)
 
         return x
 
@@ -190,17 +187,17 @@ def DownSampleBlock(filters, num_blocks):
 
 def UpSampleBlock(filters):
     def apply(x, lateral_input):
-        x = layers.Conv2DTranspose(
+        x = keras.layers.Conv2DTranspose(
             filters,
             3,
             2,
             padding="same",
             use_bias=False,
-            kernel_initializer=initializers.VarianceScaling(),
-            kernel_regularizer=regularizers.L2(l2=1e-4),
+            kernel_initializer=keras.initializers.VarianceScaling(),
+            kernel_regularizer=keras.regularizers.L2(l2=1e-4),
         )(x)
-        x = layers.BatchNormalization()(x)
-        x = layers.ReLU()(x)
+        x = keras.layers.BatchNormalization()(x)
+        x = keras.layers.ReLU()(x)
 
         lateral_input = SkipBlock(filters)(lateral_input)
 
