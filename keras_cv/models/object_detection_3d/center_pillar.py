@@ -20,116 +20,6 @@ from keras_cv.backend import ops
 from keras_cv.layers.object_detection_3d.heatmap_decoder import HeatmapDecoder
 
 
-class MultiClassDetectionHead(keras.layers.Layer):
-    """Multi-class object detection head."""
-
-    def __init__(
-        self,
-        num_classes: int,
-        num_head_bin: Sequence[int],
-        share_head: bool = False,
-        name: str = "detection_head",
-    ):
-        super().__init__(name=name)
-
-        self._heads = {}
-        self._head_names = []
-        self._per_class_prediction_size = []
-        self._num_classes = num_classes
-        self._num_head_bin = num_head_bin
-        for i in range(num_classes):
-            self._head_names.append(f"class_{i + 1}")
-            size = 0
-            # 0:1 outputs is for classification
-            size += 2
-            # 2:4 outputs is for location offset
-            size += 3
-            # 5:7 outputs is for dimension offset
-            size += 3
-            # 8:end outputs is for bin-based classification and regression
-            size += 2 * num_head_bin[i]
-            self._per_class_prediction_size.append(size)
-
-        if not share_head:
-            for i in range(num_classes):
-                # 1x1 conv for each voxel/pixel.
-                self._heads[self._head_names[i]] = keras.layers.Conv2D(
-                    filters=self._per_class_prediction_size[i],
-                    kernel_size=(1, 1),
-                    name=f"head_{i + 1}",
-                )
-        else:
-            shared_layer = keras.layers.Conv2D(
-                filters=self._per_class_prediction_size[0],
-                kernel_size=(1, 1),
-                name="shared_head",
-            )
-            for i in range(num_classes):
-                self._heads[self._head_names[i]] = shared_layer
-
-    def call(self, feature: any, training: bool) -> List[any]:
-        del training
-        outputs = {}
-        for head_name in self._head_names:
-            outputs[head_name] = self._heads[head_name](feature)
-        return outputs
-
-
-class MultiClassHeatmapDecoder(keras.layers.Layer):
-    def __init__(
-        self,
-        num_classes,
-        num_head_bin: Sequence[int],
-        anchor_size: Sequence[Sequence[float]],
-        max_pool_size: Sequence[int],
-        max_num_box: Sequence[int],
-        heatmap_threshold: Sequence[float],
-        voxel_size: Sequence[float],
-        spatial_size: Sequence[float],
-        **kwargs,
-    ):
-        super().__init__(**kwargs)
-        self.num_classes = num_classes
-        self.class_ids = list(range(1, num_classes + 1))
-        self.num_head_bin = num_head_bin
-        self.anchor_size = anchor_size
-        self.max_pool_size = max_pool_size
-        self.max_num_box = max_num_box
-        self.heatmap_threshold = heatmap_threshold
-        self.voxel_size = voxel_size
-        self.spatial_size = spatial_size
-        self.decoders = {}
-        for i, class_id in enumerate(self.class_ids):
-            self.decoders[f"class_{class_id}"] = HeatmapDecoder(
-                class_id=class_id,
-                num_head_bin=self.num_head_bin[i],
-                anchor_size=self.anchor_size[i],
-                max_pool_size=self.max_pool_size[i],
-                max_num_box=self.max_num_box[i],
-                heatmap_threshold=self.heatmap_threshold[i],
-                voxel_size=self.voxel_size,
-                spatial_size=self.spatial_size,
-            )
-
-    def call(self, predictions):
-        box_predictions = []
-        class_predictions = []
-        box_confidence = []
-        for k, v in predictions.items():
-            boxes, classes, confidence = self.decoders[k](v)
-            box_predictions.append(boxes)
-            class_predictions.append(classes)
-            box_confidence.append(confidence)
-
-        return {
-            "3d_boxes": {
-                "boxes": ops.concatenate(box_predictions, axis=1),
-                "classes": ops.concatenate(class_predictions, axis=1),
-                "confidence": ops.concatenate(box_confidence, axis=1),
-            }
-        }
-
-
 class MultiHeadCenterPillar(keras.Model):
     """Multi headed model based on CenterNet heatmap and PointPillar.
 
@@ -275,10 +165,112 @@ class MultiHeadCenterPillar(keras.Model):
             x={}, y=y_true, y_pred=y_pred, sample_weight=sample_weight
         )
 
-    # def train_step(self, data):
-    #     x, y, sample_weight = keras.utils.unpack_x_y_sample_weight(data)
-    #     with tf.GradientTape() as tape:
-    #         predictions = self(x, training=True)
-    #         loss = self.compute_loss(predictions, y)
-    #     self.optimizer.minimize(loss, self.trainable_variables, tape=tape)
-    #     return self.compute_metrics({}, {}, {}, sample_weight={})
+
+class MultiClassDetectionHead(keras.layers.Layer):
+    """Multi-class object detection head."""
+
+    def __init__(
+        self,
+        num_classes: int,
+        num_head_bin: Sequence[int],
+        share_head: bool = False,
+        name: str = "detection_head",
+    ):
+        super().__init__(name=name)
+
+        self._heads = {}
+        self._head_names = []
+        self._per_class_prediction_size = []
+        self._num_classes = num_classes
+        self._num_head_bin = num_head_bin
+        for i in range(num_classes):
+            self._head_names.append(f"class_{i + 1}")
+            size = 0
+            # 0:1 outputs is for classification
+            size += 2
+            # 2:4 outputs is for location offset
+            size += 3
+            # 5:7 outputs is for dimension offset
+            size += 3
+            # 8:end outputs is for bin-based classification and regression
+            size += 2 * num_head_bin[i]
+            self._per_class_prediction_size.append(size)
+
+        if not share_head:
+            for i in range(num_classes):
+                # 1x1 conv for each voxel/pixel.
+                self._heads[self._head_names[i]] = keras.layers.Conv2D(
+                    filters=self._per_class_prediction_size[i],
+                    kernel_size=(1, 1),
+                    name=f"head_{i + 1}",
+                )
+        else:
+            shared_layer = keras.layers.Conv2D(
+                filters=self._per_class_prediction_size[0],
+                kernel_size=(1, 1),
+                name="shared_head",
+            )
+            for i in range(num_classes):
+                self._heads[self._head_names[i]] = shared_layer
+
+    def call(self, feature: any, training: bool) -> List[any]:
+        del training
+        outputs = {}
+        for head_name in self._head_names:
+            outputs[head_name] = self._heads[head_name](feature)
+        return outputs
+
+
+class MultiClassHeatmapDecoder(keras.layers.Layer):
+    def __init__(
+        self,
+        num_classes,
+        num_head_bin: Sequence[int],
+        anchor_size: Sequence[Sequence[float]],
+        max_pool_size: Sequence[int],
+        max_num_box: Sequence[int],
+        heatmap_threshold: Sequence[float],
+        voxel_size: Sequence[float],
+        spatial_size: Sequence[float],
+        **kwargs,
+    ):
+        super().__init__(**kwargs)
+        self.num_classes = num_classes
+        self.class_ids = list(range(1, num_classes + 1))
+        self.num_head_bin = num_head_bin
+        self.anchor_size = anchor_size
+        self.max_pool_size = max_pool_size
+        self.max_num_box = max_num_box
+        self.heatmap_threshold = heatmap_threshold
+        self.voxel_size = voxel_size
+        self.spatial_size = spatial_size
+        self.decoders = {}
+        for i, class_id in enumerate(self.class_ids):
+            self.decoders[f"class_{class_id}"] = HeatmapDecoder(
+                class_id=class_id,
+                num_head_bin=self.num_head_bin[i],
+                anchor_size=self.anchor_size[i],
+                max_pool_size=self.max_pool_size[i],
+                max_num_box=self.max_num_box[i],
+                heatmap_threshold=self.heatmap_threshold[i],
+                voxel_size=self.voxel_size,
+                spatial_size=self.spatial_size,
+            )
+
+    def call(self, predictions):
+        box_predictions = []
+        class_predictions = []
+        box_confidence = []
+        for k, v in predictions.items():
+            boxes, classes, confidence = self.decoders[k](v)
+            box_predictions.append(boxes)
+            class_predictions.append(classes)
+            box_confidence.append(confidence)
+
+        return {
+            "3d_boxes": {
+                "boxes": ops.concatenate(box_predictions, axis=1),
+                "classes": ops.concatenate(class_predictions, axis=1),
+                "confidence": ops.concatenate(box_confidence, axis=1),
+            }
+        }

@@ -12,11 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
 import tensorflow as tf
+from tensorflow.python.ops.numpy_ops import np_config
+
 from keras_cv.backend import keras
 from keras_cv.backend.config import multi_backend
-import pytest
-
 from keras_cv.layers.object_detection_3d.voxelization import DynamicVoxelization
 from keras_cv.models.object_detection_3d.center_pillar import (
     MultiClassDetectionHead,
@@ -32,11 +33,13 @@ from keras_cv.models.object_detection_3d.center_pillar_backbone import (
 )
 from keras_cv.tests.test_case import TestCase
 
-from tensorflow.python.ops.numpy_ops import np_config
 np_config.enable_numpy_behavior()
 
-@pytest.mark.skipif(multi_backend() and keras.backend.backend() == "torch",
-reason="CenterPillar does not yet support PyTorch.")
+
+@pytest.mark.skipif(
+    multi_backend() and keras.backend.backend() == "torch",
+    reason="CenterPillar does not yet support PyTorch.",
+)
 class CenterPillarTest(TestCase):
     def test_center_pillar_call(self):
         voxel_net = DynamicVoxelization(
