@@ -16,10 +16,9 @@ from typing import Sequence
 from typing import Tuple
 
 import numpy as np
-import tensorflow as tf
-from tensorflow import keras
 
-from keras_cv.api_export import keras_cv_export
+from keras_cv.backend import keras
+from keras_cv.backend import ops
 from keras_cv.layers.object_detection_3d import voxel_utils
 
 EPSILON = 1e-4
@@ -27,8 +26,8 @@ VOXEL_FEATURE_MIN = -1000
 
 
 def compute_point_voxel_id(
-    point_voxel_xyz: tf.Tensor, voxel_spatial_size: Sequence[int]
-) -> tf.Tensor:
+    point_voxel_xyz: any, voxel_spatial_size: Sequence[int]
+) -> any:
     """Computes point voxel IDs.
 
     Args:
@@ -38,32 +37,31 @@ def compute_point_voxel_id(
     Returns:
       point_voxel_id: [B, N] unique ID of each voxel.
     """
-    batch_size, _, dim = point_voxel_xyz.shape.as_list()
+    batch_size, _, dim = list(point_voxel_xyz.shape)
     if batch_size is None:
-        batch_size = tf.shape(point_voxel_xyz)[0]
+        batch_size = ops.shape(point_voxel_xyz)[0]
     assert dim == len(voxel_spatial_size), f"{point_voxel_xyz.shape}"
 
     voxel_spatial_size_prod = [
         np.prod(voxel_spatial_size[i:]).item() for i in range(dim)
     ]
     voxel_spatial_size_prod_shift = voxel_spatial_size_prod[1:] + [1]
-    point_voxel_xyz_multiplied = point_voxel_xyz * tf.constant(
+    point_voxel_xyz_multiplied = point_voxel_xyz * ops.array(
         voxel_spatial_size_prod_shift, dtype=point_voxel_xyz.dtype
     )
     # [B, N]
-    point_voxel_id = tf.math.reduce_sum(point_voxel_xyz_multiplied, axis=-1)
+    point_voxel_id = ops.sum(point_voxel_xyz_multiplied, axis=-1)
 
     if batch_size == 1:
         return point_voxel_id
 
     batch_multiplier = (
-        tf.range(batch_size, dtype=tf.int32) * voxel_spatial_size_prod[0]
+        ops.arange(batch_size, dtype="int32") * voxel_spatial_size_prod[0]
     )
-    batch_multiplier = batch_multiplier[:, tf.newaxis]
+    batch_multiplier = ops.expand_dims(batch_multiplier, axis=-1)
     return point_voxel_id + batch_multiplier
 
 
-@keras_cv_export("keras_cv.layers.PointToVoxel")
 class PointToVoxel(keras.layers.Layer):
     """Voxelization layer."""
 
@@ -96,9 +94,9 @@ class PointToVoxel(keras.layers.Layer):
     # TODO(tanzhenyu): consider using keras masking.
     def call(
         self,
-        point_xyz: tf.Tensor,
-        point_mask: tf.Tensor,
-    ) -> Tuple[tf.Tensor, tf.Tensor, tf.Tensor]:
+        point_xyz: any,
+        point_mask: any,
+    ) -> Tuple[any, any, any]:
         """Dynamically voxelizes points.
 
         B: batch_size.
@@ -117,17 +115,17 @@ class PointToVoxel(keras.layers.Layer):
         """
         # [B, N, dim]
         # convert from point coordinate to voxel index
-        point_voxel_xyz_float = voxel_utils.point_to_voxel_coord(
-            point_xyz, self._voxel_size, dtype=point_xyz.dtype
+        point_voxel_xyz_float = ops.round(
+            point_xyz / ops.array(self._voxel_size, point_xyz.dtype)
         )
         # [B, N, dim]
         # delta to the nearest voxel
-        point_voxel_feature = point_xyz - voxel_utils.voxel_coord_to_point(
-            point_voxel_xyz_float, self._voxel_size, dtype=point_xyz.dtype
+        point_voxel_feature = point_xyz - (
+            point_voxel_xyz_float * ops.array(self._voxel_size)
         )
 
         # [B, N, dim]
-        point_voxel_xyz_int = tf.cast(point_voxel_xyz_float, dtype=tf.int32)
+        point_voxel_xyz_int = ops.cast(point_voxel_xyz_float, "int32")
         # [dim]
         # get xmin, ymin, zmin
         voxel_origin = voxel_utils.compute_voxel_origin(
@@ -136,24 +134,22 @@ class PointToVoxel(keras.layers.Layer):
 
         # [B, N, dim]
         # convert point voxel to positive voxel index
-        point_voxel_xyz = (
-            point_voxel_xyz_int - voxel_origin[tf.newaxis, tf.newaxis, :]
+        point_voxel_xyz = point_voxel_xyz_int - ops.expand_dims(
+            ops.expand_dims(voxel_origin, axis=0), axis=0
         )
 
         # [B, N]
         # remove points outside the voxel boundary
-        point_voxel_mask = tf.logical_and(
+        point_voxel_mask = ops.logical_and(
             point_voxel_xyz >= 0,
             point_voxel_xyz
-            < tf.constant(
-                self._voxel_spatial_size, dtype=point_voxel_xyz.dtype
-            ),
+            < ops.array(self._voxel_spatial_size, dtype=point_voxel_xyz.dtype),
         )
-        point_voxel_mask = tf.math.reduce_all(point_voxel_mask, axis=-1)
-        point_voxel_mask = tf.logical_and(point_voxel_mask, point_mask)
+        point_voxel_mask = ops.all(point_voxel_mask, axis=-1)
+        point_voxel_mask = ops.logical_and(point_voxel_mask, point_mask)
 
         # [B, N]
-        point_voxel_mask_int = tf.cast(point_voxel_mask, dtype=tf.int32)
+        point_voxel_mask_int = ops.cast(point_voxel_mask, dtype="int32")
         # [B, N] for voxel_id, int constant for num_voxels, in the range of
         # [0, B * num_voxels]
         point_voxel_id = compute_point_voxel_id(
@@ -165,7 +161,6 @@ class PointToVoxel(keras.layers.Layer):
         return point_voxel_feature, point_voxel_id, point_voxel_mask
 
 
-@keras_cv_export("keras_cv.layers.DynamicVoxelization")
 class DynamicVoxelization(keras.layers.Layer):
     """Dynamic voxelization and pool layer.
 
@@ -207,11 +202,11 @@ class DynamicVoxelization(keras.layers.Layer):
 
     def call(
         self,
-        point_xyz: tf.Tensor,
-        point_feature: tf.Tensor,
-        point_mask: tf.Tensor,
+        point_xyz: any,
+        point_feature: any,
+        point_mask: any,
         training: bool,
-    ) -> tf.Tensor:
+    ) -> any:
         """Voxelizes and learns voxel features with a point net.
 
         B: batch_size.
@@ -235,14 +230,14 @@ class DynamicVoxelization(keras.layers.Layer):
         ) = self._voxelization_layer(point_xyz=point_xyz, point_mask=point_mask)
         # TODO(tanzhenyu): move compute_point_voxel_id to here, so PointToVoxel
         #  layer is more generic.
-        point_feature = tf.concat([point_feature, point_voxel_feature], axis=-1)
-        batch_size = (
-            point_feature.shape.as_list()[0] or tf.shape(point_feature)[0]
+        point_feature = ops.concatenate(
+            [point_feature, point_voxel_feature], axis=-1
         )
+        batch_size = list(point_feature.shape)[0] or ops.shape(point_feature)[0]
         # [B, N, 1]
-        point_mask_float = tf.cast(point_voxel_mask, point_feature.dtype)[
-            ..., tf.newaxis
-        ]
+        point_mask_float = ops.expand_dims(
+            ops.cast(point_voxel_mask, point_feature.dtype), axis=-1
+        )
         # [B, N, dim]
         point_feature = point_feature * point_mask_float
         point_feature = self._point_net(
@@ -250,22 +245,22 @@ class DynamicVoxelization(keras.layers.Layer):
         )
         # [B, N, new_dim]
         point_feature = point_feature * point_mask_float
-        new_dim = point_feature.shape.as_list()[-1]
-        point_feature = tf.reshape(point_feature, [-1, new_dim])
-        point_voxel_id = tf.reshape(point_voxel_id, [-1])
+        new_dim = list(point_feature.shape)[-1]
+        point_feature = ops.reshape(point_feature, [-1, new_dim])
+        point_voxel_id = ops.cast(ops.reshape(point_voxel_id, [-1]), "int32")
         # [B * num_voxels, new_dim]
-        voxel_feature = tf.math.unsorted_segment_max(
+        voxel_feature = ops.segment_max(
             point_feature,
             point_voxel_id,
             batch_size * self._voxel_spatial_size_volume,
         )
         # unsorted_segment_max sets empty values to -inf(float).
         voxel_feature_valid_mask = voxel_feature > VOXEL_FEATURE_MIN
-        voxel_feature = voxel_feature * tf.cast(
+        voxel_feature = voxel_feature * ops.cast(
             voxel_feature_valid_mask, dtype=voxel_feature.dtype
         )
         out_shape = [batch_size] + self._voxel_spatial_size + [new_dim]
         if out_shape[-2] == 1:
             out_shape = out_shape[:-2] + [out_shape[-1]]
-        voxel_feature = tf.reshape(voxel_feature, out_shape)
+        voxel_feature = ops.reshape(voxel_feature, out_shape)
         return voxel_feature

@@ -21,7 +21,6 @@ import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 
-from keras_cv.api_export import keras_cv_export
 from keras_cv.layers.object_detection_3d import voxel_utils
 
 # Infinite voxel size.
@@ -322,7 +321,6 @@ def compute_top_k_heatmap_idx(heatmap: tf.Tensor, k: int) -> tf.Tensor:
     return res
 
 
-@keras_cv_export("keras_cv.layers.CenterNetLabelEncoder")
 class CenterNetLabelEncoder(keras.layers.Layer):
     """Transforms the raw sparse labels into class specific dense training
     labels.
@@ -414,8 +412,10 @@ class CenterNetLabelEncoder(keras.layers.Layer):
         )
         global_xyz = tf.zeros([b, 3], dtype=point_xyz.dtype)
         # [B, H, W, Z, 3]
-        feature_map_ref_xyz = voxel_utils.compute_feature_map_ref_xyz(
-            self._voxel_size, self._spatial_size, global_xyz
+        feature_map_ref_xyz = tf.constant(
+            voxel_utils.compute_feature_map_ref_xyz(
+                self._voxel_size, self._spatial_size, global_xyz
+            )
         )
         # convert from global box point xyz to offset w.r.t center of feature
         # map.

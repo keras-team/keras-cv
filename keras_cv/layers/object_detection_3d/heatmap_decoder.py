@@ -16,14 +16,13 @@ from typing import Sequence
 from typing import Tuple
 
 import numpy as np
-import tensorflow as tf
-from tensorflow import keras
 
-from keras_cv.api_export import keras_cv_export
+from keras_cv.backend import keras
+from keras_cv.backend import ops
 from keras_cv.layers.object_detection_3d import voxel_utils
 
 
-def decode_bin_heading(predictions: tf.Tensor, num_bin: int) -> tf.Tensor:
+def decode_bin_heading(predictions: any, num_bin: int) -> any:
     """Decode bin heading.
 
     Computes the box heading (orientation) by decoding the bin predictions. The
@@ -44,63 +43,63 @@ def decode_bin_heading(predictions: tf.Tensor, num_bin: int) -> tf.Tensor:
       ValueError: If the rank of `predictions` is not 2 or `predictions` tensor
         does not more than the expected number of dimensions.
     """
-    with tf.name_scope("decode_bin_heading"):
-        if len(predictions.shape) != 2:
-            raise ValueError(
-                "The rank of the prediction tensor is expected to be 2. "
-                f"Instead it is : {len(predictions.shape)}."
-            )
-
-        # Get the index of the bin with the maximum score to build a tensor of
-        # [N].
-        bin_idx = tf.math.argmax(
-            predictions[:, 0:num_bin], axis=-1, output_type=tf.int32
+    # with keras.backend.name_scope("decode_bin_heading"):
+    if len(predictions.shape) != 2:
+        raise ValueError(
+            "The rank of the prediction tensor is expected to be 2. "
+            f"Instead it is : {len(predictions.shape)}."
         )
-        bin_idx_float = tf.cast(bin_idx, dtype=predictions.dtype)
-        residual_norm = tf.gather(
-            predictions[:, num_bin : num_bin * 2],
-            bin_idx[:, tf.newaxis],
-            axis=-1,
-            batch_dims=1,
-        )[:, 0]
 
-        # Divide 2pi into equal sized bins to compute the angle per class/bin.
-        angle_per_class = (2 * np.pi) / num_bin
-        residual_angle = residual_norm * (angle_per_class / 2)
+    # Get the index of the bin with the maximum score to build a tensor of
+    # [N].
+    bin_idx = ops.argmax(predictions[:, 0:num_bin], axis=-1)
+    bin_idx_float = ops.cast(bin_idx, dtype=predictions.dtype)
+    residual_norm = ops.take_along_axis(
+        predictions[:, num_bin : num_bin * 2],
+        ops.expand_dims(bin_idx, axis=-1),
+        axis=-1,
+    )[:, 0]
 
-        # bin_center is computed using the bin_idx and angle_per class,
-        # (e.g., 0, 30, 60, 90, 120, ..., 270, 300, 330). Then residual is
-        # added.
-        heading = tf.math.floormod(
-            bin_idx_float * angle_per_class + residual_angle, 2 * np.pi
-        )
-        heading_mask = heading > np.pi
-        heading = tf.where(heading_mask, heading - 2 * np.pi, heading)
+    # Divide 2pi into equal sized bins to compute the angle per class/bin.
+    angle_per_class = (2 * np.pi) / num_bin
+    residual_angle = residual_norm * (angle_per_class / 2)
+
+    # bin_center is computed using the bin_idx and angle_per class,
+    # (e.g., 0, 30, 60, 90, 120, ..., 270, 300, 330). Then residual is
+    # added.
+    heading = ops.mod(
+        bin_idx_float * angle_per_class + residual_angle, 2 * np.pi
+    )
+    heading_mask = heading > np.pi
+    heading = ops.where(heading_mask, heading - 2 * np.pi, heading)
     return heading
 
 
 def decode_bin_box(pd, num_head_bin, anchor_size):
     """Decode bin based box encoding."""
-    with tf.name_scope("decode_bin_box"):
-        delta = []
-        start = 0
-        for dim in [0, 1, 2]:
-            delta.append(pd[:, start])
-            start = start + 1
+    # with keras.backend.name_scope("decode_bin_box"):
+    delta = []
+    start = 0
+    for dim in [0, 1, 2]:
+        delta.append(pd[:, start])
+        start = start + 1
 
-        heading = decode_bin_heading(pd[:, start:], num_head_bin)
-        start = start + num_head_bin * 2
+    heading = decode_bin_heading(pd[:, start:], num_head_bin)
+    start = start + num_head_bin * 2
 
-        size_res_norm = pd[:, start : start + 3]
-        # [N,3]
-        lwh = size_res_norm * list(anchor_size) + list(anchor_size)
+    size_res_norm = pd[:, start : start + 3]
+    # [N,3]
+    lwh = size_res_norm * ops.array(list(anchor_size)) + ops.array(
+        list(anchor_size)
+    )
 
-        loc = tf.stack(delta, axis=-1)
-        box = tf.concat([loc, lwh, heading[:, tf.newaxis]], axis=-1)
-        return box
+    loc = ops.stack(delta, axis=-1)
+    box = ops.concatenate(
+        [loc, lwh, ops.expand_dims(heading, axis=-1)], axis=-1
+    )
+    return box
 
 
-@keras_cv_export("keras_cv.layers.HeatmapDecoder")
 class HeatmapDecoder(keras.layers.Layer):
     """A Keras layer that decodes predictions of a 3d object detection model.
 
@@ -138,44 +137,43 @@ class HeatmapDecoder(keras.layers.Layer):
         self.spatial_size = spatial_size
         self.built = True
 
-    def call(
-        self, prediction: tf.Tensor
-    ) -> Tuple[tf.Tensor, tf.Tensor, tf.Tensor]:
+    def call(self, prediction: any) -> Tuple[any, any, any]:
         """Accepts raw predictions, and returns decoded boxes.
 
         Args:
             prediction: float Tensor.
         """
-        heatmap = tf.nn.softmax(prediction[..., :2])[..., 1:2]
-        heatmap_pool = tf.nn.max_pool2d(heatmap, self.max_pool_size, 1, "SAME")
+        heatmap = ops.softmax(prediction[..., :2])[..., 1:2]
+        heatmap_pool = ops.max_pool(heatmap, self.max_pool_size, 1, "same")
         heatmap_mask = heatmap > self.heatmap_threshold
-        heatmap_local_maxima_mask = tf.math.equal(heatmap, heatmap_pool)
+        heatmap_local_maxima_mask = ops.equal(heatmap, heatmap_pool)
         # [B, H, W, 1]
-        heatmap_mask = tf.math.logical_and(
-            heatmap_mask, heatmap_local_maxima_mask
-        )
+        heatmap_mask = ops.logical_and(heatmap_mask, heatmap_local_maxima_mask)
         # [B, H, W, 1]
-        heatmap = tf.where(heatmap_mask, heatmap, 0)
+        heatmap = ops.where(heatmap_mask, heatmap, 0)
         # [B, H, W]
-        heatmap = tf.squeeze(heatmap, axis=-1)
+        heatmap = ops.squeeze(heatmap, axis=-1)
 
-        b, h, w = voxel_utils.combined_static_and_dynamic_shape(heatmap)
-        heatmap = tf.reshape(heatmap, [b, h * w])
-        _, top_index = tf.math.top_k(heatmap, k=self.max_num_box)
+        b, h, w = voxel_utils.combined_static_and_dynamic_shape_core(heatmap)
+        heatmap = ops.reshape(heatmap, [b, h * w])
+        _, top_index = ops.top_k(heatmap, k=self.max_num_box)
 
         # [B, H, W, ?]
         box_prediction = prediction[:, :, :, 2:]
-        f = box_prediction.get_shape().as_list()[-1]
-        box_prediction = tf.reshape(box_prediction, [b, h * w, f])
-        heatmap = tf.reshape(heatmap, [b, h * w])
+        f = list(box_prediction.shape)[-1]
+        box_prediction = ops.reshape(box_prediction, [b, h * w, f])
+        heatmap = ops.reshape(heatmap, [b, h * w])
         # [B, max_num_box, ?]
-        box_prediction = tf.gather(box_prediction, top_index, batch_dims=1)
+        box_prediction = ops.take_along_axis(
+            box_prediction, ops.expand_dims(top_index, axis=-1), axis=1
+        )
+        # print(ops.take_along_axis(box_prediction, top_index, axis=0).shape)
         # [B, max_num_box]
-        box_score = tf.gather(heatmap, top_index, batch_dims=1)
-        box_class = tf.ones_like(box_score, dtype=tf.int32) * self.class_id
+        box_score = ops.take_along_axis(heatmap, top_index, axis=1)
+        box_class = ops.ones_like(box_score, "int32") * self.class_id
         # [B*max_num_box, ?]
-        f = box_prediction.get_shape().as_list()[-1]
-        box_prediction_reshape = tf.reshape(
+        f = list(box_prediction.shape)[-1]
+        box_prediction_reshape = ops.reshape(
             box_prediction, [b * self.max_num_box, f]
         )
         # [B*max_num_box, 7]
@@ -183,20 +181,22 @@ class HeatmapDecoder(keras.layers.Layer):
             box_prediction_reshape, self.num_head_bin, self.anchor_size
         )
         # [B, max_num_box, 7]
-        box_decoded = tf.reshape(box_decoded, [b, self.max_num_box, 7])
-        global_xyz = tf.zeros([b, 3], dtype=box_decoded.dtype)
+        box_decoded = ops.reshape(box_decoded, [b, self.max_num_box, 7])
+        global_xyz = ops.zeros([b, 3], dtype=box_decoded.dtype)
         ref_xyz = voxel_utils.compute_feature_map_ref_xyz(
             self.voxel_size, self.spatial_size, global_xyz
         )
         # [B, H, W, 3]
-        ref_xyz = tf.squeeze(ref_xyz, axis=-2)
-        f = ref_xyz.get_shape().as_list()[-1]
-        ref_xyz = tf.reshape(ref_xyz, [b, h * w, f])
+        ref_xyz = ops.squeeze(ref_xyz, axis=-2)
+        f = list(ref_xyz.shape)[-1]
+        ref_xyz = ops.reshape(ref_xyz, [b, h * w, f])
         # [B, max_num_box, 3]
-        ref_xyz = tf.gather(ref_xyz, top_index, batch_dims=1)
+        ref_xyz = ops.take_along_axis(
+            ref_xyz, ops.expand_dims(top_index, axis=-1), axis=1
+        )
 
         box_decoded_cxyz = ref_xyz + box_decoded[:, :, :3]
-        box_decoded = tf.concat(
+        box_decoded = ops.concatenate(
             [box_decoded_cxyz, box_decoded[:, :, 3:]], axis=-1
         )
         return box_decoded, box_class, box_score
