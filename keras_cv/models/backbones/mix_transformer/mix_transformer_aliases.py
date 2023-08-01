@@ -62,17 +62,22 @@ class MiTB0Backbone(MiTBackbone):
                 "input_tensor": input_tensor,
             }
         )
-        return MiTBackbone.from_preset("MiT_B0", **kwargs)
+        return MiTBackbone.from_preset("mit_b0", **kwargs)
 
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
-        return {}
+        return {
+            "mit_b0_imagenet": copy.deepcopy(
+                backbone_presets["mit_b0_imagenet"]
+            ),
+        }
 
     @classproperty
     def presets_with_weights(cls):
-        """Dictionary of preset names and configurations."""
-        return {}
+        """Dictionary of preset names and configurations that include
+        weights."""
+        return cls.presets
 
 
 class MiTB1Backbone(MiTBackbone):
@@ -91,7 +96,7 @@ class MiTB1Backbone(MiTBackbone):
                 "input_tensor": input_tensor,
             }
         )
-        return MiTBackbone.from_preset("MiT_B1", **kwargs)
+        return MiTBackbone.from_preset("mit_b1", **kwargs)
 
     @classproperty
     def presets(cls):
@@ -120,7 +125,7 @@ class MiTB2Backbone(MiTBackbone):
                 "input_tensor": input_tensor,
             }
         )
-        return MiTBackbone.from_preset("MiT_B2", **kwargs)
+        return MiTBackbone.from_preset("mit_b2", **kwargs)
 
     @classproperty
     def presets(cls):
@@ -149,7 +154,7 @@ class MiTB3Backbone(MiTBackbone):
                 "input_tensor": input_tensor,
             }
         )
-        return MiTBackbone.from_preset("MiT_B3", **kwargs)
+        return MiTBackbone.from_preset("mit_b3", **kwargs)
 
     @classproperty
     def presets(cls):
@@ -178,7 +183,7 @@ class MiTB4Backbone(MiTBackbone):
                 "input_tensor": input_tensor,
             }
         )
-        return MiTBackbone.from_preset("MiT_B4", **kwargs)
+        return MiTBackbone.from_preset("mit_b4", **kwargs)
 
     @classproperty
     def presets(cls):
@@ -207,7 +212,7 @@ class MiTB5Backbone(MiTBackbone):
                 "input_tensor": input_tensor,
             }
         )
-        return MiTBackbone.from_preset("MiT_B5", **kwargs)
+        return MiTBackbone.from_preset("mit_b5", **kwargs)
 
     @classproperty
     def presets(cls):

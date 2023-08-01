@@ -14,7 +14,7 @@
 """MiT model preset configurations."""
 
 backbone_presets_no_weights = {
-    "MiT_B0": {
+    "mit_b0": {
         "metadata": {
             "description": (
                 "MiT (MixTransformer) model with 8 transformer blocks."
@@ -32,7 +32,7 @@ backbone_presets_no_weights = {
             "input_tensor": None,
         },
     },
-    "MiT_B1": {
+    "mit_b1": {
         "metadata": {
             "description": (
                 "MiT (MixTransformer) model with 8 transformer blocks."
@@ -50,7 +50,7 @@ backbone_presets_no_weights = {
             "input_tensor": None,
         },
     },
-    "MiT_B2": {
+    "mit_b2": {
         "metadata": {
             "description": (
                 "MiT (MixTransformer) model with 16 transformer blocks."
@@ -68,7 +68,7 @@ backbone_presets_no_weights = {
             "input_tensor": None,
         },
     },
-    "MiT_B3": {
+    "mit_b3": {
         "metadata": {
             "description": (
                 "MiT (MixTransformer) model with 28 transformer blocks."
@@ -86,7 +86,7 @@ backbone_presets_no_weights = {
             "input_tensor": None,
         },
     },
-    "MiT_B4": {
+    "mit_b4": {
         "metadata": {
             "description": (
                 "MiT (MixTransformer) model with 41 transformer blocks."
@@ -104,7 +104,7 @@ backbone_presets_no_weights = {
             "input_tensor": None,
         },
     },
-    "MiT_B5": {
+    "mit_b5": {
         "metadata": {
             "description": (
                 "MiT (MixTransformer) model with 52 transformer blocks."
@@ -124,7 +124,28 @@ backbone_presets_no_weights = {
     },
 }
 
-backbone_presets_with_weights = {}
+backbone_presets_with_weights = {
+    "mit_b0_imagenet": {
+        "metadata": {
+            "description": (
+                "MiT (MixTransformer) model with 8 transformer blocks."
+            ),
+            "params": 3321962,
+            "official_name": "MiT",
+            "path": "mit",
+        },
+        "class_name": "keras_cv.models>MiTBackbone",
+        "config": {
+            "embedding_dims": [32, 64, 160, 256],
+            "depths": [2, 2, 2, 2],
+            "include_rescaling": True,
+            "input_shape": (224, 224, 3),
+            "input_tensor": None,
+        },
+        "weights_url": "https://storage.googleapis.com/keras-cv/models/mitb0/imagenet/classification-v0.h5",  # noqa: E501
+        "weights_hash": "8e0c416cd330b6fa0bcfb3a5ccc43edcbcabf6a463aee3c2a9b6a1398c207d10",  # noqa: E501
+    },
+}
 
 backbone_presets = {
     **backbone_presets_no_weights,

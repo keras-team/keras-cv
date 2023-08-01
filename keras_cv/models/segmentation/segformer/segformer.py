@@ -39,7 +39,7 @@ class SegFormer(Task):
 
     images = np.ones(shape=(1, 96, 96, 3))
     labels = np.zeros(shape=(1, 96, 96, 1))
-    backbone = keras_cv.models.MiTBackbone.from_preset("MiT_B0")
+    backbone = keras_cv.models.MiTBackbone.from_preset("mit_b0_imagenet")
     model = keras_cv.models.segmentation.SegFormer(
         num_classes=1, backbone=backbone,
     )
@@ -61,7 +61,7 @@ class SegFormer(Task):
         self,
         backbone,
         num_classes,
-        projection_filters=None,
+        projection_filters=256,
         **kwargs,
     ):
         """ """
