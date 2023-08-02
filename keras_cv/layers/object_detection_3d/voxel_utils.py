@@ -53,8 +53,8 @@ def compute_feature_map_ref_xyz(
     # [H, W, Z, 3]
     ref = voxel_coord * np.array(voxel_size)
     # [1, H, W, Z, 3] + [B, 1, 1, 1, 3] -> [B, H, W, Z, 3]
-    ref = np.expand_dims(ref, axis=0) + np.expand_dims(
-        np.expand_dims(np.expand_dims(global_xyz, axis=1), axis=1), axis=1
+    ref = np.expand_dims(ref, axis=0) + ops.expand_dims(
+        ops.expand_dims(ops.expand_dims(global_xyz, axis=1), axis=1), axis=1
     )
     return ref
 

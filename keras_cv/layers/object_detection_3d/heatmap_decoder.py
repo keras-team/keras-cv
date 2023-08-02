@@ -87,8 +87,10 @@ def decode_bin_box(pd, num_head_bin, anchor_size):
 
         size_res_norm = pd[:, start : start + 3]
         # [N,3]
-        lwh = size_res_norm * ops.array(list(anchor_size)) + ops.array(
-            list(anchor_size)
+        lwh = ops.cast(
+            size_res_norm * ops.array(list(anchor_size))
+            + ops.array(list(anchor_size)),
+            pd.dtype,
         )
 
         loc = ops.stack(delta, axis=-1)
@@ -166,12 +168,11 @@ class HeatmapDecoder(keras.layers.Layer):
         box_prediction = ops.take_along_axis(
             box_prediction, ops.expand_dims(top_index, axis=-1), axis=1
         )
-        # print(ops.take_along_axis(box_prediction, top_index, axis=0).shape)
         # [B, max_num_box]
         box_score = ops.take_along_axis(heatmap, top_index, axis=1)
         box_class = ops.ones_like(box_score, "int32") * self.class_id
         # [B*max_num_box, ?]
-        f = list(box_prediction.shape)[-1]
+        f = ops.shape(box_prediction)[-1]
         box_prediction_reshape = ops.reshape(
             box_prediction, [b * self.max_num_box, f]
         )
@@ -181,7 +182,7 @@ class HeatmapDecoder(keras.layers.Layer):
         )
         # [B, max_num_box, 7]
         box_decoded = ops.reshape(box_decoded, [b, self.max_num_box, 7])
-        global_xyz = np.zeros([b, 3])
+        global_xyz = ops.zeros([b, 3])
         ref_xyz = voxel_utils.compute_feature_map_ref_xyz(
             self.voxel_size, self.spatial_size, global_xyz
         )
@@ -194,7 +195,9 @@ class HeatmapDecoder(keras.layers.Layer):
             ref_xyz, ops.expand_dims(top_index, axis=-1), axis=1
         )
 
-        box_decoded_cxyz = ref_xyz + box_decoded[:, :, :3]
+        box_decoded_cxyz = ops.cast(
+            ref_xyz + box_decoded[:, :, :3], box_decoded.dtype
+        )
         box_decoded = ops.concatenate(
             [box_decoded_cxyz, box_decoded[:, :, 3:]], axis=-1
         )

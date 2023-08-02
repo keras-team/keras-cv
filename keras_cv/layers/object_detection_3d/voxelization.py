@@ -107,8 +107,9 @@ class PointToVoxel(keras.layers.Layer):
         )
         # [B, N, dim]
         # delta to the nearest voxel
-        point_voxel_feature = point_xyz - (
-            point_voxel_xyz_float * ops.array(self._voxel_size)
+        point_voxel_feature = ops.cast(
+            point_xyz - (point_voxel_xyz_float * ops.array(self._voxel_size)),
+            point_xyz.dtype,
         )
 
         # [B, N, dim]

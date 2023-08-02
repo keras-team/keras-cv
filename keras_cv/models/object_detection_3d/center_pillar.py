@@ -68,9 +68,7 @@ class MultiHeadCenterPillar(Task):
             "point_mask": point_mask,
         }
 
-        voxel_feature = voxel_net(
-            point_xyz, point_feature, ops.squeeze(point_mask, axis=-1)
-        )
+        voxel_feature = voxel_net(point_xyz, point_feature, point_mask[..., 0])
         voxel_feature = backbone(voxel_feature)
         predictions = multiclass_head(voxel_feature)
 
@@ -155,8 +153,12 @@ class MultiHeadCenterPillar(Task):
             x={}, y=y_true, y_pred=y_pred, sample_weight=sample_weight
         )
 
-    def predict_step(self, data):
-        return self._prediction_decoder(super().predict_step(data))
+    def predict_step(self, *args):
+        outputs = super().predict_step(*args)
+        if isinstance(outputs, tuple):
+            return self._prediction_decoder(outputs[0]), outputs[1]
+        else:
+            return self._prediction_decoder(outputs)
 
     @classproperty
     def presets(cls):

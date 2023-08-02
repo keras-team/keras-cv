@@ -42,6 +42,8 @@ _KERAS_CORE_ALIASES = {
 
 if multi_backend():
     import keras_core as keras
+
+    keras.backend.name_scope = keras.src.backend.name_scope
 else:
     from tensorflow import keras
 

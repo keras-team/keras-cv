@@ -148,7 +148,7 @@ def Block(filters, downsample):
             residual = keras.layers.BatchNormalization()(residual)
             residual = keras.layers.ReLU()(residual)
 
-        x = x + residual
+        x = keras.layers.Add()([x, residual])
 
         return x
 
@@ -201,7 +201,7 @@ def UpSampleBlock(filters):
 
         lateral_input = SkipBlock(filters)(lateral_input)
 
-        x = x + lateral_input
+        x = keras.layers.Add()([x, lateral_input])
         x = Block(filters, downsample=False)(x)
 
         return x
