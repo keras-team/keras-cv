@@ -15,19 +15,9 @@
 import os
 
 import numpy as np
-import pytest
 
 from keras_cv.backend import keras
 from keras_cv.backend import ops
-from keras_cv.models.segmentation.segment_anything.sam_image_encoder import (
-    ImageEncoder,
-)
-from keras_cv.models.segmentation.segment_anything.sam_image_encoder import (
-    MultiHeadAttentionWithRelativePE,
-)
-from keras_cv.models.segmentation.segment_anything.sam_image_encoder import (
-    WindowedTransformerEncoder,
-)
 from keras_cv.models.segmentation.segment_anything.sam_mask_decoder import (
     MaskDecoder,
 )
@@ -44,63 +34,6 @@ from keras_cv.tests.test_case import TestCase
 
 
 class TestSAM(TestCase):
-    def test_multi_head_attention_with_relative_pe(self):
-        attention_with_rel_pe = MultiHeadAttentionWithRelativePE(
-            num_heads=16,
-            key_dim=1280 // 16,
-            use_bias=True,
-            input_size=(64, 64),
-        )
-        x = np.ones(shape=(1, 64, 64, 1280))
-        x_out = ops.convert_to_numpy(attention_with_rel_pe(x))
-        self.assertEqual(x_out.shape, (1, 64, 64, 1280))
-
-    def test_windowed_transformer_encoder(self):
-        windowed_transformer_encoder = WindowedTransformerEncoder(
-            project_dim=1280,
-            mlp_dim=1280 * 4,
-            num_heads=16,
-            use_bias=True,
-            use_rel_pos=True,
-            window_size=14,
-            input_size=(64, 64),
-        )
-        x = np.ones((1, 64, 64, 1280))
-        x_out = ops.convert_to_numpy(windowed_transformer_encoder(x))
-        self.assertEqual(x_out.shape, (1, 64, 64, 1280))
-        self.assertAllClose(x_out, np.ones_like(x_out))
-
-    @pytest.mark.extra_large
-    def test_image_encoder(self):
-        image_encoder = ImageEncoder(
-            img_size=1024,
-            patch_size=16,
-            in_chans=3,
-            embed_dim=1280,
-            depth=32,
-            mlp_dim=1280 * 4,
-            num_heads=16,
-            out_chans=256,
-            use_bias=True,
-            use_rel_pos=True,
-            window_size=14,
-            global_attention_indices=[7, 15, 23, 31],
-        )
-        x = np.ones((1, 1024, 1024, 3))
-        x_out = ops.convert_to_numpy(image_encoder(x))
-        num_parameters = sum(
-            np.prod(tuple(x.shape)) for x in image_encoder.trainable_variables
-        )
-        self.assertEqual(x_out.shape, (1, 64, 64, 256))
-        self.assertEqual(num_parameters, 637_026_048)
-
-        # saving test
-        path = os.path.join(self.get_temp_dir(), "sam_tf_image_encoder.keras")
-        image_encoder.save(path)
-        loaded_model = keras.saving.load_model(path)
-        x_out_loaded = ops.convert_to_numpy(loaded_model(x))
-        self.assertAllClose(x_out, x_out_loaded)
-
     def get_points_labels_box_mask(self, B):
         prompt_encoder = PromptEncoder(
             embed_dim=256,
@@ -189,7 +122,7 @@ class TestSAM(TestCase):
             box,
             input_mask,
         ) = self.get_points_labels_box_mask(1)
-        image_embeddings = np.random.randn(1, 64, 64, 256)
+        image_embeddings = np.random.randn(1, 64, 64, 256).astype(np.float32)
 
         sparse_embeddings, _ = prompt_encoder(
             points=points, labels=labels, box=box, mask=input_mask

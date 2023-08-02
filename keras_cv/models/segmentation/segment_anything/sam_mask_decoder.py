@@ -151,33 +151,6 @@ class MaskDecoder(keras.models.Model):
         self.iou_token.build(None)
         self.mask_tokens.build(None)
 
-        self.built = False
-
-    def build(
-        self,
-        image_embeddings_shape,
-        image_pe_shape,
-        sparse_prompt_embeddings_shape,
-        dense_prompt_embeddings_shape,
-        *args,
-        **kwargs,
-    ):
-        transformer_image_embed_shape = [
-            None,
-            image_embeddings_shape[1],
-            image_embeddings_shape[2],
-            image_embeddings_shape[3],
-        ]
-        tokens_shape = [
-            None,
-            1 + self.num_mask_tokens + sparse_prompt_embeddings_shape[1],
-            self.transformer_dim,
-        ]
-        self.transformer.build(
-            image_embedding_shape=transformer_image_embed_shape,
-            image_pe_shape=transformer_image_embed_shape,
-            point_embedding_shape=tokens_shape,
-        )
         self.output_upscaling.build([None, None, None, self.transformer_dim])
 
         for mlp in self.output_hypernetworks_mlps:

@@ -88,6 +88,18 @@ from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_aliases import (
 from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_aliases import (
     EfficientNetV1Backbone,
 )
+from keras_cv.models.backbones.detectron2.detectron2_backbone import (
+    ViTDetBackbone,
+)
+from keras_cv.models.backbones.detectron2.detectron2_aliases import (
+    SAMViTDetBBackbone,
+)
+from keras_cv.models.backbones.detectron2.detectron2_aliases import (
+    SAMViTDetLBackbone,
+)
+from keras_cv.models.backbones.detectron2.detectron2_aliases import (
+    SAMViTDetHBackbone,
+)
 from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_aliases import (
     EfficientNetV2B0Backbone,
 )
@@ -166,7 +178,6 @@ from keras_cv.models.object_detection.yolo_v8.yolo_v8_detector import (
     YOLOV8Detector,
 )
 from keras_cv.models.segmentation import DeepLabV3Plus
-from keras_cv.models.segmentation.segment_anything import ImageEncoder
 from keras_cv.models.segmentation.segment_anything import MaskDecoder
 from keras_cv.models.segmentation.segment_anything import PromptEncoder
 from keras_cv.models.segmentation.segment_anything import TwoWayTransformer

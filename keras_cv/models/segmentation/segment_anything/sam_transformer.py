@@ -57,7 +57,12 @@ class MultiHeadAttentionWithDownsampling(keras.layers.Layer):
         # Upsample
         self.out_proj = keras.layers.Dense(self.key_dim * self.num_heads)
 
-        self.built = False
+        self.query_proj.build([self.num_heads * self.key_dim])
+        self.key_proj.build([self.num_heads * self.key_dim])
+        self.value_proj.build([self.num_heads * self.key_dim])
+        self.out_proj.build([self.internal_dims * self.num_heads])
+
+        self.built = True
 
     def __separate_heads(self, x):
         B, N, C = x.shape
@@ -68,14 +73,6 @@ class MultiHeadAttentionWithDownsampling(keras.layers.Layer):
         B, N_H, N_T, C_PH = x.shape
         x = ops.transpose(x, axes=(0, 2, 1, 3))
         return ops.reshape(x, (B, N_T, N_H * C_PH))
-
-    def build(self, query_shape, value_shape, key_shape):
-        self.query_proj.build(query_shape)
-        self.key_proj.build(key_shape)
-        self.value_proj.build(value_shape)
-        self.out_proj.build([self.internal_dims * self.num_heads])
-
-        self.built = True
 
     def call(self, query, value, key):
         query = self.query_proj(query)
@@ -170,34 +167,14 @@ class TwoWayMultiHeadAttention(keras.layers.Layer):
         )
         self.layer_norm4 = keras.layers.LayerNormalization(epsilon=1e-5)
 
-        self.built = False
-
-    def build(self, queries_shape, keys_shape, query_pe_shape, key_pe_shape):
-        self.self_attention.build(
-            query_shape=queries_shape,
-            value_shape=queries_shape,
-            key_shape=queries_shape,
-        )
-        self.layer_norm1.build(queries_shape)
-        self.cross_attention_token_to_image.build(
-            query_shape=queries_shape,
-            key_shape=keys_shape,
-            value_shape=keys_shape,
-        )
-        self.layer_norm2.build(queries_shape)
-        self.mlp_block.build(queries_shape)
-        self.layer_norm3.build(queries_shape)
-        self.cross_attention_image_to_token.build(
-            query_shape=keys_shape,
-            key_shape=queries_shape,
-            value_shape=queries_shape,
-        )
-        self.layer_norm4.build(keys_shape)
+        self.layer_norm1.build([None, None, self.num_heads * self.key_dim])
+        self.layer_norm2.build([None, None, self.num_heads * self.key_dim])
+        self.layer_norm3.build([None, None, self.num_heads * self.key_dim])
+        self.layer_norm4.build([None, None, self.num_heads * self.key_dim])
 
         self.built = True
 
     def call(self, queries, keys, query_pe, key_pe):
-        # print("Actual queries_shape:", queries.shape)
         if self.skip_first_layer_pe:
             queries = self.self_attention(
                 query=queries, value=queries, key=queries
@@ -325,26 +302,7 @@ class TwoWayTransformer(keras.layers.Layer):
         )
         self.final_layer_norm = keras.layers.LayerNormalization(epsilon=1e-5)
 
-        self.built = False
-
-    def build(
-        self, image_embedding_shape, image_pe_shape, point_embedding_shape
-    ):
-        B, H, W, C = image_embedding_shape
-        image_embedding_shape = [B, H * W, C]
-        for layer in self.layers:
-            layer.build(
-                queries_shape=point_embedding_shape,
-                keys_shape=image_embedding_shape,
-                query_pe_shape=point_embedding_shape,
-                key_pe_shape=image_embedding_shape,
-            )
-        self.final_attention_token_to_image.build(
-            query_shape=point_embedding_shape,
-            key_shape=image_embedding_shape,
-            value_shape=image_embedding_shape,
-        )
-        self.final_layer_norm.build(point_embedding_shape)
+        self.final_layer_norm.build([None, None, self.embedding_dim])
 
         self.built = True
 
