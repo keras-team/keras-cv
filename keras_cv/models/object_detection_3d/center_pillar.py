@@ -12,15 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List
-from typing import Sequence
+import copy
 
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 from keras_cv.layers.object_detection_3d.heatmap_decoder import HeatmapDecoder
+from keras_cv.models.object_detection_3d.center_pillar_backbone_presets import (
+    backbone_presets,
+)
+from keras_cv.models.task import Task
+from keras_cv.utils.python_utils import classproperty
 
 
-class MultiHeadCenterPillar(keras.Model):
+class MultiHeadCenterPillar(Task):
     """Multi headed model based on CenterNet heatmap and PointPillar.
 
     This model builds box classification and regression for each class
@@ -29,18 +33,17 @@ class MultiHeadCenterPillar(keras.Model):
     regression heads on the feature map.
 
     Args:
-      backbone: the backbone to apply to voxelized features.
-      voxel_net: the voxel_net that takes point cloud feature and convert
-        to voxelized features.
-      multiclass_head: a multi class head which returns a dict of heatmap
-        prediction and regression prediction per class.
-      label_encoder: a LabelEncoder that takes point cloud xyz and point cloud
-        features and returns a multi class labels which is a dict of heatmap,
-        box location and top_k heatmap index per class.
-      prediction_decoder: a multi class heatmap prediction decoder that returns
-        a dict of decoded boxes, box class, and box confidence score per class.
-
-
+        backbone: the backbone to apply to voxelized features.
+        voxel_net: the voxel_net that takes point cloud feature and convert
+            to voxelized features. KerasCV offers a `DynamicVoxelization` layer
+            in `keras_cv.layers` which is a reasonable default for most
+            detection use cases.
+        multiclass_head: A keras.layers.Layer which takes the backbone output
+            and returns a dict of heatmap prediction and regression prediction
+            per class.
+        prediction_decoder: a multi class heatmap prediction decoder that
+            returns a dict of decoded boxes, box class, and box confidence score
+            per class.
     """
 
     def __init__(
@@ -51,31 +54,29 @@ class MultiHeadCenterPillar(keras.Model):
         prediction_decoder,
         **kwargs,
     ):
-        super().__init__(**kwargs)
-        self._voxelization_layer = voxel_net
-        self._unet_layer = backbone
+        point_xyz = keras.layers.Input((None, 3), name="point_xyz")
+        point_feature = keras.layers.Input((None, 4), name="point_feature")
+        point_mask = keras.layers.Input(
+            (None, 1), name="point_mask", dtype="bool"
+        )
+
+        inputs = {
+            "point_xyz": point_xyz,
+            "point_feature": point_feature,
+            "point_mask": point_mask,
+        }
+
+        voxel_feature = voxel_net(
+            point_xyz, point_feature, ops.squeeze(point_mask, axis=-1)
+        )
+        voxel_feature = backbone(voxel_feature)
+        predictions = multiclass_head(voxel_feature)
+
+        super().__init__(inputs=inputs, outputs=predictions, **kwargs)
+        self._backbone = backbone
         self._multiclass_head = multiclass_head
         self._prediction_decoder = prediction_decoder
         self._head_names = self._multiclass_head._head_names
-        self.built = True
-
-    def call(self, input_dict, training=None):
-        point_xyz, point_feature, point_mask = (
-            input_dict["point_xyz"],
-            input_dict["point_feature"],
-            input_dict["point_mask"],
-        )
-        voxel_feature = self._voxelization_layer(
-            point_xyz, point_feature, point_mask, training=training
-        )
-        voxel_feature = self._unet_layer(voxel_feature, training=training)
-        predictions = self._multiclass_head(voxel_feature, training=training)
-        if not training:
-            predictions = self._prediction_decoder(
-                predictions, training=training
-            )
-        # returns dict {"class_1": concat_pred_1, "class_2": concat_pred_2}
-        return predictions
 
     def compile(self, heatmap_loss=None, box_loss=None, **kwargs):
         """Compiles the MultiHeadCenterPillar.
@@ -109,7 +110,7 @@ class MultiHeadCenterPillar(keras.Model):
         y_true = {}
         sample_weight = {}
 
-        for head_name in ["class_1", "class_2"]:
+        for head_name in self._head_names:
             prediction = predictions[head_name]
             heatmap_pred = ops.softmax(prediction[..., :2])[..., 1]
             box_pred = prediction[..., 2:]
@@ -133,29 +134,16 @@ class MultiHeadCenterPillar(keras.Model):
                 ops.sum(ops.cast(box_center_mask, "float32"), axis=[1, 2]), 1
             )
 
-            heatmap_loss_scale = 10.0
-            class_loss_scale = 2.0 if head_name == "class_1" else 1.0
-
-            class_loss_scale /= 128.0
-
-            sample_weight["box_" + head_name] = (
-                class_loss_scale
-                * ops.cast(box_regression_mask, "float32")
-                / ops.broadcast_to(
-                    ops.expand_dims(num_boxes, axis=-1),
-                    box_regression_mask.shape,
-                )
+            sample_weight["box_" + head_name] = ops.cast(
+                box_regression_mask, "float32"
+            ) / ops.broadcast_to(
+                ops.expand_dims(num_boxes, axis=-1), box_regression_mask.shape
             )
-            sample_weight["heatmap_" + head_name] = (
-                heatmap_loss_scale
-                * class_loss_scale
-                * ops.ones_like(heatmap)
-                / ops.broadcast_to(
-                    ops.expand_dims(
-                        ops.expand_dims(num_boxes, axis=-1), axis=-1
-                    ),
-                    heatmap.shape,
-                )
+            sample_weight["heatmap_" + head_name] = ops.ones_like(
+                heatmap
+            ) / ops.broadcast_to(
+                ops.expand_dims(ops.expand_dims(num_boxes, axis=-1), axis=-1),
+                heatmap.shape,
             )
 
             y_pred["box_" + head_name] = box_pred
@@ -165,55 +153,55 @@ class MultiHeadCenterPillar(keras.Model):
             x={}, y=y_true, y_pred=y_pred, sample_weight=sample_weight
         )
 
+    def predict_step(self, data):
+        return self._prediction_decoder(super().predict_step(data))
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return copy.deepcopy(backbone_presets)
+
+    @classproperty
+    def backbone_presets(cls):
+        """Dictionary of preset names and configurations of compatible
+        backbones."""
+        return copy.deepcopy(backbone_presets)
+
 
 class MultiClassDetectionHead(keras.layers.Layer):
-    """Multi-class object detection head."""
+    """Multi-class object detection head for CenterPillar.
+    This head includes a 1x1 convolution layer for each class which is called
+    on the output of the CenterPillar's backbone. The outputs are per-class
+    prediction heatmaps which must be decoded into 3D boxes.
+    Args:
+        num_classes: int, the number of box classes to predict.
+        num_head_bin: list of ints, the number of heading bins to use for each
+            respective box class.
+    """
 
     def __init__(
         self,
-        num_classes: int,
-        num_head_bin: Sequence[int],
-        share_head: bool = False,
-        name: str = "detection_head",
+        num_classes,
+        num_head_bin,
+        name="detection_head",
     ):
         super().__init__(name=name)
 
         self._heads = {}
         self._head_names = []
-        self._per_class_prediction_size = []
         self._num_classes = num_classes
         self._num_head_bin = num_head_bin
         for i in range(num_classes):
             self._head_names.append(f"class_{i + 1}")
-            size = 0
-            # 0:1 outputs is for classification
-            size += 2
-            # 2:4 outputs is for location offset
-            size += 3
-            # 5:7 outputs is for dimension offset
-            size += 3
-            # 8:end outputs is for bin-based classification and regression
-            size += 2 * num_head_bin[i]
-            self._per_class_prediction_size.append(size)
-
-        if not share_head:
-            for i in range(num_classes):
-                # 1x1 conv for each voxel/pixel.
-                self._heads[self._head_names[i]] = keras.layers.Conv2D(
-                    filters=self._per_class_prediction_size[i],
-                    kernel_size=(1, 1),
-                    name=f"head_{i + 1}",
-                )
-        else:
-            shared_layer = keras.layers.Conv2D(
-                filters=self._per_class_prediction_size[0],
+            # 1x1 conv for each voxel/pixel.
+            self._heads[self._head_names[i]] = keras.layers.Conv2D(
+                # 2 for class, 3 for location, 3 for size, 2N for heading
+                filters=8 + 2 * num_head_bin[i],
                 kernel_size=(1, 1),
                 name="shared_head",
             )
-            for i in range(num_classes):
-                self._heads[self._head_names[i]] = shared_layer
 
-    def call(self, feature: any, training: bool) -> List[any]:
+    def call(self, feature, training):
         del training
         outputs = {}
         for head_name in self._head_names:
@@ -222,16 +210,46 @@ class MultiClassDetectionHead(keras.layers.Layer):
 
 
 class MultiClassHeatmapDecoder(keras.layers.Layer):
+    """Heatmap decoder for CenterPillar models.
+
+    The heatmap decoder converts a sparse heatmap of box predictions into a
+    padded dense set of decoded predicted boxes.
+
+    The input to the heatmap decoder is a spatial heatmap of encoded box
+    predictions, and the output is decoded 3D boxes in CENTER_XYZ_DXDYDZ_PHI
+    format.
+
+    Args:
+        num_classes: int, the number of box classes to predict.
+        num_head_bin: list of ints, the number of heading bins for each
+            respective class.
+        anchor_size: list of length-3 lists of floats, the 3D anchor sizes for
+            each respective class.
+        max_pool_size: list of ints, the 2D pooling size for the heatmap, to be
+            used before box decoding.
+        max_num_box: list of ints, the maximum number of boxes to return for
+            each class. The top K boxes will be returned, and if fewer than K
+            boxes are predicted, the outputs will be padded to contain K boxes.
+        heatmap_threshold: list of floats, the heatmap confidence threshold to
+            be used for each respective class to determine whether or not a box
+            prediction is strong enough to decode and return.
+        voxel_size: list of floats, the size of the voxels that were used to
+            voxelize inputs to the CenterPillar model for each respective class.
+        spatial_size: list of floats, the global 3D size of the heatmap for each
+            respective class. `spatial_size[i] / voxel_size[i]` equals the
+            size of the `i`th rank of the input heatmap.
+    """
+
     def __init__(
         self,
         num_classes,
-        num_head_bin: Sequence[int],
-        anchor_size: Sequence[Sequence[float]],
-        max_pool_size: Sequence[int],
-        max_num_box: Sequence[int],
-        heatmap_threshold: Sequence[float],
-        voxel_size: Sequence[float],
-        spatial_size: Sequence[float],
+        num_head_bin,
+        anchor_size,
+        max_pool_size,
+        max_num_box,
+        heatmap_threshold,
+        voxel_size,
+        spatial_size,
         **kwargs,
     ):
         super().__init__(**kwargs)

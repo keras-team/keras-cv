@@ -72,7 +72,7 @@ class CenterPillarTest(TestCase):
         )
         point_xyz = tf.random.normal([2, 1000, 3])
         point_feature = tf.random.normal([2, 1000, 4])
-        point_mask = tf.constant(True, shape=[2, 1000])
+        point_mask = tf.constant(True, shape=[2, 1000, 1])
         outputs = model(
             {
                 "point_xyz": point_xyz,
@@ -114,7 +114,7 @@ class CenterPillarTest(TestCase):
         )
         point_xyz = tf.random.normal([2, 1000, 3])
         point_feature = tf.random.normal([2, 1000, 4])
-        point_mask = tf.constant(True, shape=[2, 1000])
+        point_mask = tf.constant(True, shape=[2, 1000, 1])
         outputs = model.predict(
             {
                 "point_xyz": point_xyz,
