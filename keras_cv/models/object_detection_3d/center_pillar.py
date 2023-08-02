@@ -14,6 +14,7 @@
 
 import copy
 
+from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 from keras_cv.layers.object_detection_3d.heatmap_decoder import HeatmapDecoder
@@ -24,6 +25,7 @@ from keras_cv.models.task import Task
 from keras_cv.utils.python_utils import classproperty
 
 
+@keras_cv_export("keras_cv.models.MultiHeadCenterPillar")
 class MultiHeadCenterPillar(Task):
     """Multi headed model based on CenterNet heatmap and PointPillar.
 
@@ -170,9 +172,11 @@ class MultiHeadCenterPillar(Task):
 
 class MultiClassDetectionHead(keras.layers.Layer):
     """Multi-class object detection head for CenterPillar.
+
     This head includes a 1x1 convolution layer for each class which is called
     on the output of the CenterPillar's backbone. The outputs are per-class
     prediction heatmaps which must be decoded into 3D boxes.
+
     Args:
         num_classes: int, the number of box classes to predict.
         num_head_bin: list of ints, the number of heading bins to use for each
@@ -191,17 +195,19 @@ class MultiClassDetectionHead(keras.layers.Layer):
         self._head_names = []
         self._num_classes = num_classes
         self._num_head_bin = num_head_bin
+
         for i in range(num_classes):
             self._head_names.append(f"class_{i + 1}")
+
             # 1x1 conv for each voxel/pixel.
             self._heads[self._head_names[i]] = keras.layers.Conv2D(
                 # 2 for class, 3 for location, 3 for size, 2N for heading
                 filters=8 + 2 * num_head_bin[i],
                 kernel_size=(1, 1),
-                name="shared_head",
+                name=f"head_{i + 1}",
             )
 
-    def call(self, feature, training):
+    def call(self, feature, training=True):
         del training
         outputs = {}
         for head_name in self._head_names:

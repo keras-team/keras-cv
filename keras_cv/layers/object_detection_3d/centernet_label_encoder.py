@@ -21,6 +21,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 
+from keras_cv.api_export import keras_cv_export
 from keras_cv.layers.object_detection_3d import voxel_utils
 
 # Infinite voxel size.
@@ -321,6 +322,7 @@ def compute_top_k_heatmap_idx(heatmap: tf.Tensor, k: int) -> tf.Tensor:
     return res
 
 
+@keras_cv_export("keras_cv.layers.CenterNetLabelEncoder")
 class CenterNetLabelEncoder(keras.layers.Layer):
     """Transforms the raw sparse labels into class specific dense training
     labels.

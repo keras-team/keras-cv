@@ -12,17 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Sequence
-from typing import Tuple
-
 import numpy as np
 
+from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 from keras_cv.layers.object_detection_3d import voxel_utils
 
 
-def decode_bin_heading(predictions: any, num_bin: int) -> any:
+def decode_bin_heading(predictions, num_bin):
     """Decode bin heading.
 
     Computes the box heading (orientation) by decoding the bin predictions. The
@@ -43,63 +41,64 @@ def decode_bin_heading(predictions: any, num_bin: int) -> any:
       ValueError: If the rank of `predictions` is not 2 or `predictions` tensor
         does not more than the expected number of dimensions.
     """
-    # with keras.backend.name_scope("decode_bin_heading"):
-    if len(predictions.shape) != 2:
-        raise ValueError(
-            "The rank of the prediction tensor is expected to be 2. "
-            f"Instead it is : {len(predictions.shape)}."
+    with keras.backend.name_scope("decode_bin_heading"):
+        if len(predictions.shape) != 2:
+            raise ValueError(
+                "The rank of the prediction tensor is expected to be 2. "
+                f"Instead it is : {len(predictions.shape)}."
+            )
+
+        # Get the index of the bin with the maximum score to build a tensor of
+        # [N].
+        bin_idx = ops.argmax(predictions[:, 0:num_bin], axis=-1)
+        bin_idx_float = ops.cast(bin_idx, dtype=predictions.dtype)
+        residual_norm = ops.take_along_axis(
+            predictions[:, num_bin : num_bin * 2],
+            ops.expand_dims(bin_idx, axis=-1),
+            axis=-1,
+        )[:, 0]
+
+        # Divide 2pi into equal sized bins to compute the angle per class/bin.
+        angle_per_class = (2 * np.pi) / num_bin
+        residual_angle = residual_norm * (angle_per_class / 2)
+
+        # bin_center is computed using the bin_idx and angle_per class,
+        # (e.g., 0, 30, 60, 90, 120, ..., 270, 300, 330). Then residual is
+        # added.
+        heading = ops.mod(
+            bin_idx_float * angle_per_class + residual_angle, 2 * np.pi
         )
-
-    # Get the index of the bin with the maximum score to build a tensor of
-    # [N].
-    bin_idx = ops.argmax(predictions[:, 0:num_bin], axis=-1)
-    bin_idx_float = ops.cast(bin_idx, dtype=predictions.dtype)
-    residual_norm = ops.take_along_axis(
-        predictions[:, num_bin : num_bin * 2],
-        ops.expand_dims(bin_idx, axis=-1),
-        axis=-1,
-    )[:, 0]
-
-    # Divide 2pi into equal sized bins to compute the angle per class/bin.
-    angle_per_class = (2 * np.pi) / num_bin
-    residual_angle = residual_norm * (angle_per_class / 2)
-
-    # bin_center is computed using the bin_idx and angle_per class,
-    # (e.g., 0, 30, 60, 90, 120, ..., 270, 300, 330). Then residual is
-    # added.
-    heading = ops.mod(
-        bin_idx_float * angle_per_class + residual_angle, 2 * np.pi
-    )
-    heading_mask = heading > np.pi
-    heading = ops.where(heading_mask, heading - 2 * np.pi, heading)
-    return heading
+        heading_mask = heading > np.pi
+        heading = ops.where(heading_mask, heading - 2 * np.pi, heading)
+        return heading
 
 
 def decode_bin_box(pd, num_head_bin, anchor_size):
     """Decode bin based box encoding."""
-    # with keras.backend.name_scope("decode_bin_box"):
-    delta = []
-    start = 0
-    for dim in [0, 1, 2]:
-        delta.append(pd[:, start])
-        start = start + 1
+    with keras.backend.name_scope("decode_bin_box"):
+        delta = []
+        start = 0
+        for dim in [0, 1, 2]:
+            delta.append(pd[:, start])
+            start = start + 1
 
-    heading = decode_bin_heading(pd[:, start:], num_head_bin)
-    start = start + num_head_bin * 2
+        heading = decode_bin_heading(pd[:, start:], num_head_bin)
+        start = start + num_head_bin * 2
 
-    size_res_norm = pd[:, start : start + 3]
-    # [N,3]
-    lwh = size_res_norm * ops.array(list(anchor_size)) + ops.array(
-        list(anchor_size)
-    )
+        size_res_norm = pd[:, start : start + 3]
+        # [N,3]
+        lwh = size_res_norm * ops.array(list(anchor_size)) + ops.array(
+            list(anchor_size)
+        )
 
-    loc = ops.stack(delta, axis=-1)
-    box = ops.concatenate(
-        [loc, lwh, ops.expand_dims(heading, axis=-1)], axis=-1
-    )
-    return box
+        loc = ops.stack(delta, axis=-1)
+        box = ops.concatenate(
+            [loc, lwh, ops.expand_dims(heading, axis=-1)], axis=-1
+        )
+        return box
 
 
+@keras_cv_export("keras_cv.layers.HeatmapDecoder")
 class HeatmapDecoder(keras.layers.Layer):
     """A Keras layer that decodes predictions of a 3d object detection model.
 
@@ -116,14 +115,14 @@ class HeatmapDecoder(keras.layers.Layer):
 
     def __init__(
         self,
-        class_id: int,
-        num_head_bin: int,
-        anchor_size: Sequence[float],
-        max_pool_size: int,
-        max_num_box: int,
-        heatmap_threshold: float,
-        voxel_size: Sequence[float],
-        spatial_size: Sequence[float],
+        class_id,
+        num_head_bin,
+        anchor_size,
+        max_pool_size,
+        max_num_box,
+        heatmap_threshold,
+        voxel_size,
+        spatial_size,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -137,7 +136,7 @@ class HeatmapDecoder(keras.layers.Layer):
         self.spatial_size = spatial_size
         self.built = True
 
-    def call(self, prediction: any) -> Tuple[any, any, any]:
+    def call(self, prediction):
         """Accepts raw predictions, and returns decoded boxes.
 
         Args:
@@ -154,7 +153,7 @@ class HeatmapDecoder(keras.layers.Layer):
         # [B, H, W]
         heatmap = ops.squeeze(heatmap, axis=-1)
 
-        b, h, w = voxel_utils.combined_static_and_dynamic_shape_core(heatmap)
+        b, h, w = voxel_utils.combined_static_and_dynamic_shape(heatmap)
         heatmap = ops.reshape(heatmap, [b, h * w])
         _, top_index = ops.top_k(heatmap, k=self.max_num_box)
 

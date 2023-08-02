@@ -12,11 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Sequence
-from typing import Tuple
-
 import numpy as np
 
+from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 from keras_cv.layers.object_detection_3d import voxel_utils
@@ -25,9 +23,7 @@ EPSILON = 1e-4
 VOXEL_FEATURE_MIN = -1000
 
 
-def compute_point_voxel_id(
-    point_voxel_xyz: any, voxel_spatial_size: Sequence[int]
-) -> any:
+def compute_point_voxel_id(point_voxel_xyz, voxel_spatial_size):
     """Computes point voxel IDs.
 
     Args:
@@ -65,12 +61,7 @@ def compute_point_voxel_id(
 class PointToVoxel(keras.layers.Layer):
     """Voxelization layer."""
 
-    def __init__(
-        self,
-        voxel_size: Sequence[float],
-        spatial_size: Sequence[float],
-        **kwargs,
-    ):
+    def __init__(self, voxel_size, spatial_size, **kwargs):
         """Voxelization layer constructor.
 
         Args:
@@ -92,11 +83,7 @@ class PointToVoxel(keras.layers.Layer):
         )
 
     # TODO(tanzhenyu): consider using keras masking.
-    def call(
-        self,
-        point_xyz: any,
-        point_mask: any,
-    ) -> Tuple[any, any, any]:
+    def call(self, point_xyz, point_mask):
         """Dynamically voxelizes points.
 
         B: batch_size.
@@ -161,6 +148,7 @@ class PointToVoxel(keras.layers.Layer):
         return point_voxel_feature, point_voxel_id, point_voxel_mask
 
 
+@keras_cv_export("keras_cv.layers.DynamicVoxelization")
 class DynamicVoxelization(keras.layers.Layer):
     """Dynamic voxelization and pool layer.
 
@@ -177,12 +165,7 @@ class DynamicVoxelization(keras.layers.Layer):
 
     """
 
-    def __init__(
-        self,
-        voxel_size: Sequence[float],
-        spatial_size: Sequence[float],
-        **kwargs,
-    ):
+    def __init__(self, voxel_size, spatial_size, **kwargs):
         super().__init__(**kwargs)
         self._voxelization_layer = PointToVoxel(
             voxel_size=voxel_size, spatial_size=spatial_size
@@ -198,14 +181,9 @@ class DynamicVoxelization(keras.layers.Layer):
         self.point_net_dense = keras.layers.Dense(128)
         self.point_net_norm = keras.layers.BatchNormalization()
         self.point_net_activation = keras.layers.ReLU()
+        self.built = True
 
-    def call(
-        self,
-        point_xyz: any,
-        point_feature: any,
-        point_mask: any,
-        training: bool,
-    ) -> any:
+    def call(self, point_xyz, point_feature, point_mask, training=True):
         """Voxelizes and learns voxel features with a point net.
 
         B: batch_size.
@@ -265,3 +243,6 @@ class DynamicVoxelization(keras.layers.Layer):
             out_shape = out_shape[:-2] + [out_shape[-1]]
         voxel_feature = ops.reshape(voxel_feature, out_shape)
         return voxel_feature
+
+    def compute_output_shape(self, input_shape):
+        return tuple([input_shape[0]] + self._voxel_spatial_size[:-1] + [128])
