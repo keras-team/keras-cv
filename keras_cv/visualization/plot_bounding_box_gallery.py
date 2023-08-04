@@ -174,12 +174,4 @@ def plot_bounding_box_gallery(
             ),
         ]
 
-    plot_image_gallery(
-        plotted_images,
-        value_range,
-        legend_handles=legend_handles,
-        rows=rows,
-        cols=cols,
-        **kwargs
-    )
-    return plt.gcf()
+    return plot_image_gallery(...)
