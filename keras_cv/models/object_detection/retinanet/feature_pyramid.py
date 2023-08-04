@@ -17,7 +17,10 @@ from keras_cv.backend import keras
 from keras_cv.backend import ops
 
 
-@keras_cv_export("keras_cv.models.retinanet.FeaturePyramid")
+@keras_cv_export(
+    "keras_cv.models.retinanet.FeaturePyramid",
+    package="keras_cv.models.retinanet",
+)
 class FeaturePyramid(keras.layers.Layer):
     """Builds the Feature Pyramid with the feature maps from the backbone."""
 

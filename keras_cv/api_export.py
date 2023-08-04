@@ -22,27 +22,28 @@ except ImportError:
     namex = None
 
 
-def maybe_register_serializable(symbol):
+def maybe_register_serializable(symbol, package):
     if isinstance(symbol, types.FunctionType) or hasattr(symbol, "get_config"):
-        keras.saving.register_keras_serializable(package="keras_cv")(symbol)
+        keras.saving.register_keras_serializable(package=package)(symbol)
 
 
 if namex:
 
     class keras_cv_export(namex.export):
-        def __init__(self, path):
+        def __init__(self, path, package="keras_cv"):
             super().__init__(package="keras_cv", path=path)
+            self.package = package
 
         def __call__(self, symbol):
-            maybe_register_serializable(symbol)
+            maybe_register_serializable(symbol, self.package)
             return super().__call__(symbol)
 
 else:
 
     class keras_cv_export:
-        def __init__(self, path):
-            pass
+        def __init__(self, path, package="keras_cv"):
+            self.package = package
 
         def __call__(self, symbol):
-            maybe_register_serializable(symbol)
+            maybe_register_serializable(symbol, self.package)
             return symbol
