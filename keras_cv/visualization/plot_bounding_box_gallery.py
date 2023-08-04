@@ -174,4 +174,11 @@ def plot_bounding_box_gallery(
             ),
         ]
 
-    return plot_image_gallery(...)
+    return plot_image_gallery(
+        plotted_images,
+        value_range,
+        legend_handles=legend_handles,
+        rows=rows,
+        cols=cols,
+        **kwargs
+    )

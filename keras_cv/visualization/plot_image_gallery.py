@@ -117,8 +117,6 @@ def plot_image_gallery(
     """
     assert_matplotlib_installed("plot_bounding_box_gallery")
 
-    if path is None and not show:
-        plt.ioff()
     
     if path is not None and show:
         raise ValueError(
@@ -181,11 +179,10 @@ def plot_image_gallery(
     if path is None and show is None:
         #If path is None and show is None
         # Default to showing the image
-        show = True
-        return fig,axes
+        return fig
     
     if path is None and not show:
-        return fig, axes
+        return
     
     if path is not None:
         plt.savefig(
@@ -197,6 +194,5 @@ def plot_image_gallery(
         )
         plt.close()
     elif show:
-        plt.ion()
         plt.show()
         plt.close()
