@@ -177,8 +177,6 @@ def plot_image_gallery(
             current_axis.axis("off")
 
     if path is None and show is None:
-        #If path is None and show is None
-        # Default to showing the image
         return fig
     
     if path is None and not show:
