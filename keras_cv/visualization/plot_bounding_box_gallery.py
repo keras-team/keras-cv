@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import functools
-
+import matplotlib.pyplot as plt
 import numpy as np
 
 import keras_cv
