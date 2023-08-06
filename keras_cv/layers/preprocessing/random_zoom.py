@@ -213,7 +213,7 @@ class RandomZoom(VectorizedBaseImageAugmentationLayer):
             self.get_zoom_matrix(zooms, mask_hd, mask_wd),
             fill_mode=self.fill_mode,
             fill_value=self.fill_value,
-            interpolation=self.interpolation,
+            interpolation="nearest",
         )
         outputs.set_shape(original_shape)
         return outputs
