@@ -13,6 +13,7 @@
 # limitations under the License.
 import copy
 
+from keras_cv.api_export import keras_cv_export
 from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone import (
     EfficientNetV2Backbone,
 )
@@ -40,6 +41,7 @@ ALIAS_BASE_DOCSTRING = """Instantiates the {name} architecture.
 """  # noqa: E501
 
 
+@keras_cv_export("keras_cv.models.EfficientNetV2SBackbone")
 class EfficientNetV2SBackbone(EfficientNetV2Backbone):
     def __new__(
         cls,
@@ -78,6 +80,7 @@ class EfficientNetV2SBackbone(EfficientNetV2Backbone):
         }
 
 
+@keras_cv_export("keras_cv.models.EfficientNetV2MBackbone")
 class EfficientNetV2MBackbone(EfficientNetV2Backbone):
     def __new__(
         cls,
@@ -112,6 +115,7 @@ class EfficientNetV2MBackbone(EfficientNetV2Backbone):
         return {}
 
 
+@keras_cv_export("keras_cv.models.EfficientNetV2LBackbone")
 class EfficientNetV2LBackbone(EfficientNetV2Backbone):
     def __new__(
         cls,
@@ -146,6 +150,7 @@ class EfficientNetV2LBackbone(EfficientNetV2Backbone):
         return {}
 
 
+@keras_cv_export("keras_cv.models.EfficientNetV2B0Backbone")
 class EfficientNetV2B0Backbone(EfficientNetV2Backbone):
     def __new__(
         cls,
@@ -184,6 +189,7 @@ class EfficientNetV2B0Backbone(EfficientNetV2Backbone):
         }
 
 
+@keras_cv_export("keras_cv.models.EfficientNetV2B1Backbone")
 class EfficientNetV2B1Backbone(EfficientNetV2Backbone):
     def __new__(
         cls,
@@ -222,6 +228,7 @@ class EfficientNetV2B1Backbone(EfficientNetV2Backbone):
         }
 
 
+@keras_cv_export("keras_cv.models.EfficientNetV2B2Backbone")
 class EfficientNetV2B2Backbone(EfficientNetV2Backbone):
     def __new__(
         cls,
@@ -260,6 +267,7 @@ class EfficientNetV2B2Backbone(EfficientNetV2Backbone):
         }
 
 
+@keras_cv_export("keras_cv.models.EfficientNetV2B3Backbone")
 class EfficientNetV2B3Backbone(EfficientNetV2Backbone):
     def __new__(
         cls,

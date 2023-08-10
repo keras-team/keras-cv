@@ -3,8 +3,8 @@
 # Licensed under the terms in https://github.com/keras-team/keras-cv/blob/master/keras_cv/layers/preprocessing_3d/waymo/LICENSE  # noqa: E501
 
 import tensorflow as tf
-from tensorflow import keras
 
+from keras_cv.api_export import keras_cv_export
 from keras_cv.layers.preprocessing_3d import base_augmentation_layer_3d
 from keras_cv.point_cloud import is_within_any_box3d
 
@@ -13,7 +13,7 @@ BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
 BOX_LABEL_INDEX = base_augmentation_layer_3d.BOX_LABEL_INDEX
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+@keras_cv_export("keras_cv.layers.RandomDropBox")
 class RandomDropBox(base_augmentation_layer_3d.BaseAugmentationLayer3D):
     """A preprocessing layer which randomly drops object bounding boxes and
     points during training.

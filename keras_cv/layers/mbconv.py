@@ -13,6 +13,7 @@
 # limitations under the License.
 
 
+from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 
 BN_AXIS = 3
@@ -27,7 +28,7 @@ CONV_KERNEL_INITIALIZER = {
 }
 
 
-@keras.saving.register_keras_serializable(package="keras_cv")
+@keras_cv_export("keras_cv.layers.MBConvBlock")
 class MBConvBlock(keras.layers.Layer):
     def __init__(
         self,

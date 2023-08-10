@@ -3,9 +3,9 @@
 # Licensed under the terms in https://github.com/keras-team/keras-cv/blob/master/keras_cv/layers/preprocessing_3d/waymo/LICENSE  # noqa: E501
 
 import tensorflow as tf
-from tensorflow import keras
 
 from keras_cv import point_cloud
+from keras_cv.api_export import keras_cv_export
 from keras_cv.layers.preprocessing_3d import base_augmentation_layer_3d
 
 POINT_CLOUDS = base_augmentation_layer_3d.POINT_CLOUDS
@@ -14,7 +14,7 @@ POINTCLOUD_LABEL_INDEX = base_augmentation_layer_3d.POINTCLOUD_LABEL_INDEX
 POINTCLOUD_FEATURE_INDEX = base_augmentation_layer_3d.POINTCLOUD_FEATURE_INDEX
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+@keras_cv_export("keras_cv.layers.FrustumRandomPointFeatureNoise")
 class FrustumRandomPointFeatureNoise(
     base_augmentation_layer_3d.BaseAugmentationLayer3D
 ):

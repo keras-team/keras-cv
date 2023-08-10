@@ -47,6 +47,8 @@ import tensorflow as tf
 import tensorflow_datasets as tfds
 from tensorflow import keras
 
+from keras_cv.api_export import keras_cv_export
+
 VOC_URL = "https://host.robots.ox.ac.uk/pascal/VOC/voc2012/VOCtrainval_11-May-2012.tar"  # noqa: E501
 
 """
@@ -463,6 +465,7 @@ def _build_sbd_dataset_from_metadata(metadata):
     return dataset
 
 
+@keras_cv_export("keras_cv.datasets.pascal_voc.segmentation.load")
 def load(
     split="sbd_train",
     data_dir=None,
