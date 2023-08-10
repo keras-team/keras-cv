@@ -11,13 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import copy
 
 from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_backbone import (
     EfficientNetV1Backbone,
-)
-from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_backbone_presets import (  # noqa: E501
-    backbone_presets,
 )
 from keras_cv.utils.python_utils import classproperty
 
@@ -275,6 +271,7 @@ class EfficientNetV1B7Backbone(EfficientNetV1Backbone):
         """Dictionary of preset names and configurations that include
         weights."""
         return {}
+
 
 setattr(
     EfficientNetV1B0Backbone,
