@@ -156,7 +156,7 @@ class CLIPAttention(keras.layers.Layer):
         attn_weights = attn_weights + attention_mask
         attn_weights = ops.reshape(attn_weights, (-1, tgt_len, src_len))
 
-        attn_weights = ops.softmax(attn_weights)
+        attn_weights = ops.softmax(attn_weights, axis=-1)
         attn_output = attn_weights @ value_states
 
         attn_output = ops.reshape(
