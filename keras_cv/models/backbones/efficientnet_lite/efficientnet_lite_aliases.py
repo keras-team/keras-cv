@@ -32,7 +32,7 @@ ALIAS_DOCSTRING = """Instantiates the {name} architecture.
             to use as image input for the model.
     Usage:
     ```python
-    input_data = tf.ones(shape=(8, 224, 224, 3))
+    input_data = np.ones(shape=(8, 224, 224, 3))
 
     # Randomly initialized backbone
     model = {name}Backbone()
