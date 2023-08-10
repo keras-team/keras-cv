@@ -21,7 +21,7 @@ from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_backbone_presets 
 )
 from keras_cv.utils.python_utils import classproperty
 
-ALIAS_BASE_DOCSTRING = """Instantiates the {name} architecture.
+ALIAS_DOCSTRING = """Instantiates the {name} architecture.
 
     Reference:
     - [EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks](https://arxiv.org/abs/1905.11946)
@@ -58,11 +58,7 @@ class EfficientNetV1B0Backbone(EfficientNetV1Backbone):
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
-        return {
-            "efficientnetv1_b0": copy.deepcopy(
-                backbone_presets["efficientnetv1_b0"]
-            ),
-        }
+        return {}
 
     @classproperty
     def presets_with_weights(cls):
@@ -92,11 +88,7 @@ class EfficientNetV1B1Backbone(EfficientNetV1Backbone):
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
-        return {
-            "efficientnetv1_b1": copy.deepcopy(
-                backbone_presets["efficientnetv1_b1"]
-            ),
-        }
+        return {}
 
     @classproperty
     def presets_with_weights(cls):
@@ -126,11 +118,7 @@ class EfficientNetV1B2Backbone(EfficientNetV1Backbone):
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
-        return {
-            "efficientnetv1_b2": copy.deepcopy(
-                backbone_presets["efficientnetv1_b2"]
-            ),
-        }
+        return {}
 
     @classproperty
     def presets_with_weights(cls):
@@ -160,11 +148,7 @@ class EfficientNetV1B3Backbone(EfficientNetV1Backbone):
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
-        return {
-            "efficientnetv1_b3": copy.deepcopy(
-                backbone_presets["efficientnetv1_b3"]
-            ),
-        }
+        return {}
 
     @classproperty
     def presets_with_weights(cls):
@@ -194,11 +178,7 @@ class EfficientNetV1B4Backbone(EfficientNetV1Backbone):
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
-        return {
-            "efficientnetv1_b4": copy.deepcopy(
-                backbone_presets["efficientnetv1_b4"]
-            ),
-        }
+        return {}
 
     @classproperty
     def presets_with_weights(cls):
@@ -228,11 +208,7 @@ class EfficientNetV1B5Backbone(EfficientNetV1Backbone):
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
-        return {
-            "efficientnetv1_b5": copy.deepcopy(
-                backbone_presets["efficientnetv1_b5"]
-            ),
-        }
+        return {}
 
     @classproperty
     def presets_with_weights(cls):
@@ -262,11 +238,7 @@ class EfficientNetV1B6Backbone(EfficientNetV1Backbone):
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
-        return {
-            "efficientnetv1_b6": copy.deepcopy(
-                backbone_presets["efficientnetv1_b6"]
-            ),
-        }
+        return {}
 
     @classproperty
     def presets_with_weights(cls):
@@ -296,11 +268,7 @@ class EfficientNetV1B7Backbone(EfficientNetV1Backbone):
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
-        return {
-            "efficientnetv1_b7": copy.deepcopy(
-                backbone_presets["efficientnetv1_b7"]
-            ),
-        }
+        return {}
 
     @classproperty
     def presets_with_weights(cls):
@@ -308,28 +276,43 @@ class EfficientNetV1B7Backbone(EfficientNetV1Backbone):
         weights."""
         return {}
 
-
-EfficientNetV1B0Backbone.__doc__ = ALIAS_BASE_DOCSTRING.format(
-    name="EfficientNetV1B0"
+setattr(
+    EfficientNetV1B0Backbone,
+    "__doc__",
+    ALIAS_DOCSTRING.format(name="EfficientNetV1B0"),
 )
-EfficientNetV1B1Backbone.__doc__ = ALIAS_BASE_DOCSTRING.format(
-    name="EfficientNetV1B1"
+setattr(
+    EfficientNetV1B1Backbone,
+    "__doc__",
+    ALIAS_DOCSTRING.format(name="EfficientNetV1B1"),
 )
-EfficientNetV1B2Backbone.__doc__ = ALIAS_BASE_DOCSTRING.format(
-    name="EfficientNetV1B2"
+setattr(
+    EfficientNetV1B2Backbone,
+    "__doc__",
+    ALIAS_DOCSTRING.format(name="EfficientNetV1B2"),
 )
-EfficientNetV1B3Backbone.__doc__ = ALIAS_BASE_DOCSTRING.format(
-    name="EfficientNetV1B3"
+setattr(
+    EfficientNetV1B3Backbone,
+    "__doc__",
+    ALIAS_DOCSTRING.format(name="EfficientNetV1B3"),
 )
-EfficientNetV1B4Backbone.__doc__ = ALIAS_BASE_DOCSTRING.format(
-    name="EfficientNetV1B4"
+setattr(
+    EfficientNetV1B4Backbone,
+    "__doc__",
+    ALIAS_DOCSTRING.format(name="EfficientNetV1B4"),
 )
-EfficientNetV1B5Backbone.__doc__ = ALIAS_BASE_DOCSTRING.format(
-    name="EfficientNetV1B5"
+setattr(
+    EfficientNetV1B5Backbone,
+    "__doc__",
+    ALIAS_DOCSTRING.format(name="EfficientNetV1B5"),
 )
-EfficientNetV1B6Backbone.__doc__ = ALIAS_BASE_DOCSTRING.format(
-    name="EfficientNetV1B6"
+setattr(
+    EfficientNetV1B6Backbone,
+    "__doc__",
+    ALIAS_DOCSTRING.format(name="EfficientNetV1B6"),
 )
-EfficientNetV1B7Backbone.__doc__ = ALIAS_BASE_DOCSTRING.format(
-    name="EfficientNetV1B7"
+setattr(
+    EfficientNetV1B7Backbone,
+    "__doc__",
+    ALIAS_DOCSTRING.format(name="EfficientNetV1B7"),
 )
