@@ -333,9 +333,7 @@ class StableDiffusionBase:
 
     @staticmethod
     def _get_pos_ids():
-        return ops.expand_dims(
-            ops.arange(MAX_PROMPT_LENGTH, dtype="float32"), 0
-        )
+        return ops.expand_dims(ops.arange(MAX_PROMPT_LENGTH, dtype="int32"), 0)
 
 
 @keras_cv_export("keras_cv.models.StableDiffusion")
