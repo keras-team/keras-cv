@@ -28,10 +28,10 @@ import math
 
 import numpy as np
 
+from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 from keras_cv.backend import random
-from keras_cv.api_export import keras_cv_export
 from keras_cv.models.stable_diffusion.clip_tokenizer import SimpleTokenizer
 from keras_cv.models.stable_diffusion.constants import _ALPHAS_CUMPROD
 from keras_cv.models.stable_diffusion.constants import _UNCONDITIONAL_TOKENS
@@ -340,9 +340,8 @@ class StableDiffusionBase:
 
     @staticmethod
     def _get_pos_ids():
-        return ops.convert_to_tensor(
-            [list(range(MAX_PROMPT_LENGTH))],
-            dtype="int32",
+        return ops.expand_dims(
+            ops.arange(MAX_PROMPT_LENGTH, dtype="float32"), 0
         )
 
 

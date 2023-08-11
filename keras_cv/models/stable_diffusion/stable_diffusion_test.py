@@ -56,7 +56,7 @@ class StableDiffusionTest(TestCase):
         text_encoding = stablediff.encode_text(prompt)
         self.assertAllClose(
             text_encoding[0][1][0:5],
-            [0.029033, -1.325784,  0.308457, -0.061469,  0.03983],
+            [0.029033, -1.325784, 0.308457, -0.061469, 0.03983],
             atol=1e-4,
         )
 
