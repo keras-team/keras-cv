@@ -135,6 +135,33 @@ class RandomCrop(VectorizedBaseImageAugmentationLayer):
     def augment_labels(self, labels, transformations, **kwargs):
         return labels
 
+    def augment_segmentation_masks(self, segmentation_masks, transformations, **kwargs):
+        batch_size = tf.shape(segmentation_masks)[0]
+        channel = tf.shape(segmentation_masks)[-1]
+        heights, widths = self._get_image_shape(segmentation_masks)
+        h_diffs = heights - self.height
+        w_diffs = widths - self.width
+        # broadcast
+        h_diffs = (
+            tf.ones(
+                shape=(batch_size, self.height, self.width, channel),
+                dtype=tf.int32,
+            )
+            * h_diffs[:, tf.newaxis, tf.newaxis, :]
+        )
+        w_diffs = (
+            tf.ones(
+                shape=(batch_size, self.height, self.width, channel),
+                dtype=tf.int32,
+            )
+            * w_diffs[:, tf.newaxis, tf.newaxis, :]
+        )
+        return tf.where(
+            tf.math.logical_and(h_diffs >= 0, w_diffs >= 0),
+            self._crop_images(segmentation_masks, transformations),
+            self._resize_images(segmentation_masks),
+        )
+    
     def augment_bounding_boxes(
         self, bounding_boxes, transformations, raw_images=None, **kwargs
     ):
