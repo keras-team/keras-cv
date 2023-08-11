@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from tensorflow import keras
-
+from keras_cv.backend import keras
 
 class PaddedConv2D(keras.layers.Layer):
     def __init__(self, filters, kernel_size, padding=0, strides=1, **kwargs):

@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import tensorflow as tf
-from tensorflow import keras
+from keras_cv.backend import keras
+from keras_cv.backend import ops
 
 from keras_cv.models.stable_diffusion.__internal__.layers.padded_conv2d import (
     PaddedConv2D,
@@ -35,20 +35,20 @@ class AttentionBlock(keras.layers.Layer):
         q, k, v = self.q(x), self.k(x), self.v(x)
 
         # Compute attention
-        shape = tf.shape(q)
+        shape = ops.shape(q)
         h, w, c = shape[1], shape[2], shape[3]
-        q = tf.reshape(q, (-1, h * w, c))  # b, hw, c
-        k = tf.transpose(k, (0, 3, 1, 2))
-        k = tf.reshape(k, (-1, c, h * w))  # b, c, hw
+        q = ops.reshape(q, (-1, h * w, c))  # b, hw, c
+        k = ops.transpose(k, (0, 3, 1, 2))
+        k = ops.reshape(k, (-1, c, h * w))  # b, c, hw
         y = q @ k
-        y = y * 1 / tf.sqrt(tf.cast(c, self.compute_dtype))
+        y = y * 1 / ops.sqrt(ops.cast(c, self.compute_dtype))
         y = keras.activations.softmax(y)
 
         # Attend to values
-        v = tf.transpose(v, (0, 3, 1, 2))
-        v = tf.reshape(v, (-1, c, h * w))
-        y = tf.transpose(y, (0, 2, 1))
+        v = ops.transpose(v, (0, 3, 1, 2))
+        v = ops.reshape(v, (-1, c, h * w))
+        y = ops.transpose(y, (0, 2, 1))
         x = v @ y
-        x = tf.transpose(x, (0, 2, 1))
-        x = tf.reshape(x, (-1, h, w, c))
+        x = ops.transpose(x, (0, 2, 1))
+        x = ops.reshape(x, (-1, h, w, c))
         return self.proj_out(x) + inputs
