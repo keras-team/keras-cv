@@ -29,7 +29,7 @@ class StableDiffusionTest(TestCase):
         stablediff = StableDiffusion(128, 128)
 
         img = stablediff.text_to_image(prompt, seed=1337, num_steps=5)
-        self.assertAllEqual(img[0][13:14, 13:14, :][0][0], [66,  38, 185])
+        self.assertAllEqual(img[0][13:14, 13:14, :][0][0], [66, 38, 185])
 
         # Verify that the step-by-step creation flow creates an identical output
         text_encoding = stablediff.encode_text(prompt)
@@ -70,11 +70,15 @@ class StableDiffusionTest(TestCase):
 
     @pytest.mark.tf_keras_only
     def test_mixed_precision(self):
-        mixed_precision.set_global_policy("mixed_float16")
-        stablediff = StableDiffusion(128, 128)
-        _ = stablediff.text_to_image("Testing123 haha!", num_steps=2)
-        # Clean up global policy
-        mixed_precision.set_global_policy("float32")
+        try:
+            mixed_precision.set_global_policy("mixed_float16")
+            stablediff = StableDiffusion(128, 128)
+            _ = stablediff.text_to_image("Testing123 haha!", num_steps=2)
+        except Exception as e:
+            raise (e)
+        finally:
+            # Clean up global policy
+            mixed_precision.set_global_policy("float32")
 
     def test_generate_image_rejects_noise_and_seed(self):
         stablediff = StableDiffusion(128, 128)

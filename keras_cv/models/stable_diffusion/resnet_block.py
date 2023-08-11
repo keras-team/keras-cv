@@ -13,10 +13,7 @@
 # limitations under the License.
 
 from keras_cv.backend import keras
-
-from keras_cv.models.stable_diffusion.padded_conv2d import (
-    PaddedConv2D,
-)
+from keras_cv.models.stable_diffusion.padded_conv2d import PaddedConv2D
 
 
 class ResnetBlock(keras.layers.Layer):

@@ -14,10 +14,7 @@
 
 from keras_cv.backend import keras
 from keras_cv.backend import ops
-
-from keras_cv.models.stable_diffusion.padded_conv2d import (
-    PaddedConv2D,
-)
+from keras_cv.models.stable_diffusion.padded_conv2d import PaddedConv2D
 
 
 class AttentionBlock(keras.layers.Layer):

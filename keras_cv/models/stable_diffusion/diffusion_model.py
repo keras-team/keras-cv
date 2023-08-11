@@ -14,9 +14,7 @@
 
 from keras_cv.backend import keras
 from keras_cv.backend import ops
-from keras_cv.models.stable_diffusion.padded_conv2d import (
-    PaddedConv2D,
-)
+from keras_cv.models.stable_diffusion.padded_conv2d import PaddedConv2D
 
 
 class DiffusionModel(keras.Model):
@@ -28,9 +26,11 @@ class DiffusionModel(keras.Model):
         name=None,
         download_weights=True,
     ):
-        context = keras.layers.Input((max_text_length, 768))
-        t_embed_input = keras.layers.Input((320,))
-        latent = keras.layers.Input((img_height // 8, img_width // 8, 4))
+        context = keras.layers.Input((max_text_length, 768), name="context")
+        t_embed_input = keras.layers.Input((320,), name="timestep_embedding")
+        latent = keras.layers.Input(
+            (img_height // 8, img_width // 8, 4), name="latent"
+        )
 
         t_emb = keras.layers.Dense(1280)(t_embed_input)
         t_emb = keras.layers.Activation("swish")(t_emb)
@@ -122,9 +122,11 @@ class DiffusionModelV2(keras.Model):
         name=None,
         download_weights=True,
     ):
-        context = keras.layers.Input((max_text_length, 1024))
-        t_embed_input = keras.layers.Input((320,))
-        latent = keras.layers.Input((img_height // 8, img_width // 8, 4))
+        context = keras.layers.Input((max_text_length, 1024), name="context")
+        t_embed_input = keras.layers.Input((320,), name="timestep_embedding")
+        latent = keras.layers.Input(
+            (img_height // 8, img_width // 8, 4), name="latent"
+        )
 
         t_emb = keras.layers.Dense(1280)(t_embed_input)
         t_emb = keras.layers.Activation("swish")(t_emb)

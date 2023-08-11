@@ -120,7 +120,7 @@ class StableDiffusionBase:
         phrase = inputs + [49407] * (MAX_PROMPT_LENGTH - len(inputs))
         phrase = ops.convert_to_tensor([phrase], dtype="int32")
 
-        context = self.text_encoder.predict(
+        context = self.text_encoder.predict_on_batch(
             {"tokens": phrase, "positions": self._get_pos_ids()}
         )
 
@@ -217,10 +217,18 @@ class StableDiffusionBase:
             latent_prev = latent  # Set aside the previous latent vector
             t_emb = self._get_timestep_embedding(timestep, batch_size)
             unconditional_latent = self.diffusion_model.predict_on_batch(
-                [latent, t_emb, unconditional_context]
+                {
+                    "latent": latent,
+                    "timestep_embedding": t_emb,
+                    "context": unconditional_context,
+                }
             )
             latent = self.diffusion_model.predict_on_batch(
-                [latent, t_emb, context]
+                {
+                    "latent": latent,
+                    "timestep_embedding": t_emb,
+                    "context": context,
+                }
             )
             latent = unconditional_latent + unconditional_guidance_scale * (
                 latent - unconditional_latent
@@ -246,7 +254,7 @@ class StableDiffusionBase:
             dtype="int32",
         )
         unconditional_context = self.text_encoder.predict_on_batch(
-            [unconditional_tokens, self._get_pos_ids()]
+            {"tokens": unconditional_tokens, "positions": self._get_pos_ids()}
         )
 
         return unconditional_context

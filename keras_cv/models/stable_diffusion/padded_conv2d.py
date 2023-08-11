@@ -14,6 +14,7 @@
 
 from keras_cv.backend import keras
 
+
 class PaddedConv2D(keras.layers.Layer):
     def __init__(self, filters, kernel_size, padding=0, strides=1, **kwargs):
         super().__init__(**kwargs)
