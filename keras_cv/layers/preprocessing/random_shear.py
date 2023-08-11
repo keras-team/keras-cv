@@ -218,6 +218,31 @@ class RandomShear(VectorizedBaseImageAugmentationLayer):
 
     def augment_labels(self, labels, transformations, **kwargs):
         return labels
+    
+    def augment_segmentation_masks(self, segmentation_masks, transformations, **kwargs):
+        x, y = transformations["shear_x"], transformations["shear_y"]
+
+        if x is not None:
+            transforms_x = self._build_shear_x_transform_matrix(x)
+            segmentation_masks = preprocessing.transform(
+                images=segmentation_masks,
+                transforms=transforms_x,
+                interpolation=self.interpolation,
+                fill_mode=self.fill_mode,
+                fill_value=self.fill_value,
+            )
+
+        if y is not None:
+            transforms_y = self._build_shear_y_transform_matrix(y)
+            segmentation_masks = preprocessing.transform(
+                images=segmentation_masks,
+                transforms=transforms_y,
+                interpolation=self.interpolation,
+                fill_mode=self.fill_mode,
+                fill_value=self.fill_value,
+            )
+
+        return segmentation_masks
 
     def augment_bounding_boxes(
         self, bounding_boxes, transformations, images=None, **kwargs
