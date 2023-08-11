@@ -255,7 +255,7 @@ class StableDiffusionBase:
         """Extends a tensor by repeating it to fit the shape of the given batch
         size."""
         text_embedding = ops.squeeze(text_embedding)
-        if text_embedding.shape.rank == 2:
+        if len(text_embedding.shape) == 2:
             text_embedding = ops.repeat(
                 ops.expand_dims(text_embedding, axis=0), batch_size, axis=0
             )
