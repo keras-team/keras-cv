@@ -47,13 +47,13 @@ class RandomShearTest(TestCase):
         self.assertTrue(tf.math.reduce_any(xs[1] == fill_value))
         self.assertTrue(tf.math.reduce_any(xs[1] == 1.0))
         self.assertTrue(
-            tf.match.reduce_any(ys_segmentation_masks[0] == fill_value)
+            tf.math.reduce_any(ys_segmentation_masks[0] == fill_value)
         )
-        self.assertTrue(tf.match.reduce_any(ys_segmentation_masks[0] == 2.0))
+        self.assertTrue(tf.math.reduce_any(ys_segmentation_masks[0] == 2.0))
         self.assertTrue(
-            tf.match.reduce_any(ys_segmentation_masks[1] == fill_value)
+            tf.math.reduce_any(ys_segmentation_masks[1] == fill_value)
         )
-        self.assertTrue(tf.match.reduce_any(ys_segmentation_masks[1] == 1.0))
+        self.assertTrue(tf.math.reduce_any(ys_segmentation_masks[1] == 1.0))
 
     def test_return_shapes(self):
         """test return dict keys and value pairs"""
@@ -85,7 +85,7 @@ class RandomShearTest(TestCase):
                 "images": xs,
                 "targets": ys_labels,
                 "bounding_boxes": ys_bounding_boxes,
-                "ys_segmentation_masks": ys_segmentation_masks,
+                "segmentation_masks": ys_segmentation_masks,
             }
         )
         xs, ys_labels, ys_bounding_boxes, ys_segmentation_masks = (
