@@ -23,14 +23,13 @@ from keras_cv.tests.test_case import TestCase
 
 @pytest.mark.extra_large
 class StableDiffusionTest(TestCase):
+    @pytest.mark.large
     def test_end_to_end_golden_value(self):
         prompt = "a caterpillar smoking a hookah while sitting on a mushroom"
         stablediff = StableDiffusion(128, 128)
 
         img = stablediff.text_to_image(prompt, seed=1337, num_steps=5)
-        self.assertAllClose(
-            img[0][13:14, 13:14, :][0][0], [0, 135, 75], atol=1e-4
-        )
+        self.assertAllEqual(img[0][13:14, 13:14, :][0][0], [66,  38, 185])
 
         # Verify that the step-by-step creation flow creates an identical output
         text_encoding = stablediff.encode_text(prompt)

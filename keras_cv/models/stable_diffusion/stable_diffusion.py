@@ -120,8 +120,8 @@ class StableDiffusionBase:
         phrase = inputs + [49407] * (MAX_PROMPT_LENGTH - len(inputs))
         phrase = ops.convert_to_tensor([phrase], dtype="int32")
 
-        context = self.text_encoder.predict_on_batch(
-            [phrase, self._get_pos_ids()]
+        context = self.text_encoder.predict(
+            {"tokens": phrase, "positions": self._get_pos_ids()}
         )
 
         return context
