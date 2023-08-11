@@ -14,7 +14,7 @@
 
 from keras_cv.backend import keras
 
-from keras_cv.models.stable_diffusion.__internal__.layers.padded_conv2d import (
+from keras_cv.models.stable_diffusion.padded_conv2d import (
     PaddedConv2D,
 )
 
