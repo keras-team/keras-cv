@@ -66,7 +66,6 @@ class StableDiffusionBase:
         self._diffusion_model = None
         self._decoder = None
         self._tokenizer = None
-        self.seed_generator = random.SeedGenerator(seed=42)
 
         self.jit_compile = jit_compile
 
@@ -327,16 +326,10 @@ class StableDiffusionBase:
         return alphas, alphas_prev
 
     def _get_initial_diffusion_noise(self, batch_size, seed):
-        if seed is not None:
-            return random.normal(
-                (batch_size, self.img_height // 8, self.img_width // 8, 4),
-                seed=seed,
-            )
-        else:
-            return random.normal(
-                (batch_size, self.img_height // 8, self.img_width // 8, 4),
-                seed=self.seed_generator,
-            )
+        return random.normal(
+            (batch_size, self.img_height // 8, self.img_width // 8, 4),
+            seed=seed,
+        )
 
     @staticmethod
     def _get_pos_ids():
