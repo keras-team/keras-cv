@@ -54,7 +54,9 @@ def compute_point_voxel_id(point_voxel_xyz, voxel_spatial_size):
     batch_multiplier = (
         ops.arange(batch_size, dtype="int32") * voxel_spatial_size_prod[0]
     )
-    batch_multiplier = ops.expand_dims(batch_multiplier, axis=-1)
+    batch_multiplier = ops.cast(
+        ops.expand_dims(batch_multiplier, axis=-1), point_voxel_id.dtype
+    )
     return point_voxel_id + batch_multiplier
 
 

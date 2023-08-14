@@ -50,7 +50,9 @@ def decode_bin_heading(predictions, num_bin):
 
         # Get the index of the bin with the maximum score to build a tensor of
         # [N].
-        bin_idx = ops.argmax(predictions[:, 0:num_bin], axis=-1)
+        bin_idx = ops.cast(
+            ops.argmax(predictions[:, 0:num_bin], axis=-1), "int32"
+        )
         bin_idx_float = ops.cast(bin_idx, dtype=predictions.dtype)
         residual_norm = ops.take_along_axis(
             predictions[:, num_bin : num_bin * 2],
@@ -88,8 +90,9 @@ def decode_bin_box(pd, num_head_bin, anchor_size):
         size_res_norm = pd[:, start : start + 3]
         # [N,3]
         lwh = ops.cast(
-            size_res_norm * ops.array(list(anchor_size))
-            + ops.array(list(anchor_size)),
+            size_res_norm
+            * ops.array(list(anchor_size), dtype=size_res_norm.dtype)
+            + ops.array(list(anchor_size), dtype=size_res_norm.dtype),
             pd.dtype,
         )
 
