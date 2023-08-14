@@ -13,13 +13,10 @@
 # limitations under the License.
 
 import tensorflow as tf
-from tensorflow.python.ops.numpy_ops import np_config
 
 from keras_cv.backend import keras
 from keras_cv.layers.object_detection_3d.voxelization import DynamicVoxelization
 from keras_cv.tests.test_case import TestCase
-
-np_config.enable_numpy_behavior()
 
 
 class VoxelizationTest(TestCase):
@@ -44,7 +41,7 @@ class VoxelizationTest(TestCase):
         # (20 - (-20)) / 0.1 = 400, (20 - (-20) ) / 1000 = 0.4
         # the last dimension is replaced with MLP dimension, z dimension is
         # skipped
-        self.assertEqual(output.shape, [1, 400, 400, 128])
+        self.assertEqual(output.shape, (1, 400, 400, 128))
 
     def test_voxelization_output_shape_with_z(self):
         layer = DynamicVoxelization(
@@ -68,13 +65,14 @@ class VoxelizationTest(TestCase):
         # (15 - (-15)) / 1 = 30
         # the last dimension is replaced with MLP dimension, z dimension is
         # skipped
-        self.assertEqual(output.shape, [1, 400, 400, 30, 128])
+        self.assertEqual(output.shape, (1, 400, 400, 30, 128))
 
     def test_voxelization_numerical(self):
         layer = DynamicVoxelization(
             voxel_size=[1.0, 1.0, 10.0],
             spatial_size=[-5, 5, -5, 5, -2, 2],
         )
+        # Make the point net a no-op to allow us to verify the voxelization.
         layer.point_net_dense = keras.layers.Lambda(lambda x: x)
         layer.point_net_norm = keras.layers.Lambda(lambda x: x)
         layer.point_net_activation = keras.layers.Lambda(lambda x: x)

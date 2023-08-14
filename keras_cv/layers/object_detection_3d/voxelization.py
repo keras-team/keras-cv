@@ -102,13 +102,17 @@ class PointToVoxel(keras.layers.Layer):
         """
         # [B, N, dim]
         # convert from point coordinate to voxel index
-        point_voxel_xyz_float = ops.round(
-            point_xyz / ops.array(self._voxel_size, point_xyz.dtype)
+        point_voxel_xyz_float = ops.floor(
+            point_xyz / ops.array(self._voxel_size, point_xyz.dtype) + 0.5
         )
         # [B, N, dim]
         # delta to the nearest voxel
         point_voxel_feature = ops.cast(
-            point_xyz - (point_voxel_xyz_float * ops.array(self._voxel_size)),
+            point_xyz
+            - (
+                point_voxel_xyz_float
+                * ops.array(self._voxel_size, dtype=point_voxel_xyz_float.dtype)
+            ),
             point_xyz.dtype,
         )
 
@@ -122,8 +126,9 @@ class PointToVoxel(keras.layers.Layer):
 
         # [B, N, dim]
         # convert point voxel to positive voxel index
-        point_voxel_xyz = point_voxel_xyz_int - ops.expand_dims(
-            ops.expand_dims(voxel_origin, axis=0), axis=0
+        point_voxel_xyz = point_voxel_xyz_int - ops.cast(
+            ops.expand_dims(ops.expand_dims(voxel_origin, axis=0), axis=0),
+            point_voxel_xyz_int.dtype,
         )
 
         # [B, N]
@@ -140,8 +145,9 @@ class PointToVoxel(keras.layers.Layer):
         point_voxel_mask_int = ops.cast(point_voxel_mask, dtype="int32")
         # [B, N] for voxel_id, int constant for num_voxels, in the range of
         # [0, B * num_voxels]
-        point_voxel_id = compute_point_voxel_id(
-            point_voxel_xyz, self._voxel_spatial_size
+        point_voxel_id = ops.cast(
+            compute_point_voxel_id(point_voxel_xyz, self._voxel_spatial_size),
+            point_voxel_mask_int.dtype,
         )
         # [B, N]
         point_voxel_id = point_voxel_id * point_voxel_mask_int
