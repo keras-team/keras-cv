@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from keras_cv.backend.config import multi_backend
-from keras_cv.backend import keras
 
 if multi_backend():
     from keras_core.src.backend import vectorized_map  # noqa: F403, F401

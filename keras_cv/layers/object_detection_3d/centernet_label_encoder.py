@@ -243,7 +243,9 @@ def scatter_to_dense_heatmap(
         point_voxel_xyz_i, mask_i, heatmap_i, point_box_id_i = args
         mask_index = tf.where(mask_i)
 
-        point_voxel_xyz_i = tf.gather_nd(point_voxel_xyz_i, mask_index)
+        point_voxel_xyz_i = tf.cast(
+            tf.gather_nd(point_voxel_xyz_i, mask_index), tf.int32
+        )
         heatmap_i = tf.gather_nd(heatmap_i, mask_index)
         point_box_id_i = tf.gather_nd(point_box_id_i, mask_index)
 
@@ -417,12 +419,14 @@ class CenterNetLabelEncoder(keras.layers.Layer):
         feature_map_ref_xyz = tf.constant(
             voxel_utils.compute_feature_map_ref_xyz(
                 self._voxel_size, self._spatial_size, global_xyz
-            )
+            ),
         )
         # convert from global box point xyz to offset w.r.t center of feature
         # map.
         # [B, H, W, Z, 3]
-        dense_box_3d_center = dense_box_3d[..., :3] - feature_map_ref_xyz
+        dense_box_3d_center = dense_box_3d[..., :3] - tf.cast(
+            feature_map_ref_xyz, dense_box_3d.dtype
+        )
         # [B, H, W, Z, 7]
         dense_box_3d = tf.concat(
             [dense_box_3d_center, dense_box_3d[..., 3:]], axis=-1
