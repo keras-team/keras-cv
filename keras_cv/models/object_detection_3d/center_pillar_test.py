@@ -14,7 +14,6 @@
 
 import pytest
 import tensorflow as tf
-from tensorflow.python.ops.numpy_ops import np_config
 
 from keras_cv.backend import keras
 from keras_cv.backend.config import multi_backend
@@ -32,8 +31,6 @@ from keras_cv.models.object_detection_3d.center_pillar_backbone import (
     CenterPillarBackbone,
 )
 from keras_cv.tests.test_case import TestCase
-
-np_config.enable_numpy_behavior()
 
 
 @pytest.mark.skipif(
