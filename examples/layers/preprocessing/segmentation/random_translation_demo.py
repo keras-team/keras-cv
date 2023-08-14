@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """random_translation_demo.py shows how to use the RandomTranslation
-preprocessing layer. Uses the oxford iiit pet_dataset. In this 
-script the pets are loaded, then are passed through the 
+preprocessing layer. Uses the oxford iiit pet_dataset. In this
+script the pets are loaded, then are passed through the
 preprocessing layers. Finally, they are shown using matplotlib.
 """
 import demo_utils
