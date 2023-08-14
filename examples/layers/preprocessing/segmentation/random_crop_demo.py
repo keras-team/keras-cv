@@ -11,8 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""random_crop_demo.py shows how to use the RandomCrop preprocessing layer.
-Uses the oxford iiit pet_dataset.  In this script the pets
+"""random_crop_demo.py shows how to use the RandomCrop preprocessing
+layer. Uses the oxford iiit pet_dataset.  In this script the pets
 are loaded, then are passed through the preprocessing layers.
 Finally, they are shown using matplotlib.
 """
@@ -25,8 +25,8 @@ from keras_cv.layers import preprocessing
 def main():
     ds = demo_utils.load_oxford_iiit_pet_dataset()
 
-    #crop the image and mask, originally sized 160x160,
-    #to dimensions of 100x100.
+    # crop the image and mask, originally sized 160x160,
+    # to dimensions of 100x100.
     randomcutout = preprocessing.RandomCrop(100, 100)
     ds = ds.map(randomcutout, num_parallel_calls=tf.data.AUTOTUNE)
     demo_utils.visualize_dataset(ds)
