@@ -222,7 +222,7 @@ class RandomTranslation(VectorizedBaseImageAugmentationLayer):
         output = preprocessing_utils.transform(
             segmentation_masks,
             preprocessing_utils.get_translation_matrix(translations),
-            interpolation=self.interpolation,
+            interpolation="nearest",
             fill_mode=self.fill_mode,
             fill_value=self.fill_value,
         )
