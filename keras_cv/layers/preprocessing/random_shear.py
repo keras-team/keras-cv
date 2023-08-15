@@ -239,7 +239,7 @@ class RandomShear(VectorizedBaseImageAugmentationLayer):
             segmentation_masks = preprocessing.transform(
                 images=segmentation_masks,
                 transforms=transforms_y,
-                interpolation=self.interpolation,
+                interpolation="nearest",
                 fill_mode=self.fill_mode,
                 fill_value=self.fill_value,
             )
