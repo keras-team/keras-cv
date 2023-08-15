@@ -72,10 +72,10 @@ def group_points_by_boxes(points, boxes):
       box, all the point indices that belong to the box.
 
     """
-    num_boxes = boxes.get_shape().as_list()[-2] or tf.shape(boxes)[-2]
+    num_boxes = boxes.shape[-2] or tf.shape(boxes)[-2]
     # [..., num_points]
     box_indices = within_box3d_index(points, boxes)
-    num_points = points.get_shape().as_list()[-2] or tf.shape(points)[-2]
+    num_points = points.shape[-2] or tf.shape(points)[-2]
     point_indices = tf.range(num_points, dtype=tf.int32)
 
     def group_per_sample(box_index):
