@@ -87,7 +87,7 @@ def group_points_by_boxes(points, boxes):
         )
         return res
 
-    boxes_rank = boxes.shape.rank
+    boxes_rank = len(boxes.shape)
     if boxes_rank == 2:
         return group_per_sample(box_indices)
     elif boxes_rank == 3:
