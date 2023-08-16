@@ -178,9 +178,6 @@ def plot_image_gallery(
     if path is None and show is None:
         return fig
 
-    if path is None and not show:
-        return
-
     if path is not None:
         plt.savefig(
             fname=path,
