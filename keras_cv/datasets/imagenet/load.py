@@ -75,6 +75,7 @@ def load(
         split="train", tfrecord_path="gs://my-bucket/imagenet-tfrecords"
     )
     ```
+    
     References:
     [ImageNet Dataset Research Paper](https://arxiv.org/pdf/1409.0575.pdf)
     [ImageNet Dataset Website](https://www.image-net.org/)
