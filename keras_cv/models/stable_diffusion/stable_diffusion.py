@@ -234,9 +234,9 @@ class StableDiffusionBase:
                 latent - unconditional_latent
             )
             a_t, a_prev = alphas[index], alphas_prev[index]
-            pred_x0 = (latent_prev - math.sqrt(1 - a_t) * latent) / math.sqrt(
-                a_t
-            )
+            pred_x0 = (
+                latent_prev - ops.array(math.sqrt(1 - a_t)) * latent
+            ) / math.sqrt(a_t)
             latent = (
                 ops.array(latent) * math.sqrt(1.0 - a_prev)
                 + math.sqrt(a_prev) * pred_x0
