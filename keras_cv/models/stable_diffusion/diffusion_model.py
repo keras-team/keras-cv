@@ -14,6 +14,7 @@
 
 from keras_cv.backend import keras
 from keras_cv.backend import ops
+from keras_cv.backend.config import multi_backend
 from keras_cv.models.stable_diffusion.padded_conv2d import PaddedConv2D
 
 
@@ -288,8 +289,8 @@ class BasicTransformerBlock(keras.layers.Layer):
 
     def call(self, inputs):
         inputs, context = inputs
-        x = self.attn1([self.norm1(inputs), None]) + inputs
-        x = self.attn2([self.norm2(x), context]) + x
+        x = self.attn1(self.norm1(inputs), context=None) + inputs
+        x = self.attn2(self.norm2(x), context=context) + x
         return self.dense(self.geglu(self.norm3(x))) + x
 
 
@@ -304,9 +305,9 @@ class CrossAttention(keras.layers.Layer):
         self.head_size = head_size
         self.out_proj = keras.layers.Dense(num_heads * head_size)
 
-    def call(self, inputs):
-        inputs, context = inputs
-        context = inputs if context is None else context
+    def call(self, inputs, context=None):
+        if context is None:
+            context = inputs
         q, k, v = self.to_q(inputs), self.to_k(context), self.to_v(context)
         q = ops.reshape(
             q, (-1, inputs.shape[1], self.num_heads, self.head_size)
@@ -364,5 +365,8 @@ class GEGLU(keras.layers.Layer):
 def td_dot(a, b):
     aa = ops.reshape(a, (-1, a.shape[2], a.shape[3]))
     bb = ops.reshape(b, (-1, b.shape[2], b.shape[3]))
-    cc = keras.backend.batch_dot(aa, bb)
+    if multi_backend():
+        cc = keras.src.legacy.backend.batch_dot(aa, bb)
+    else:
+        cc = keras.backend.batch_dot(aa, bb)
     return ops.reshape(cc, (-1, a.shape[1], cc.shape[1], cc.shape[2]))

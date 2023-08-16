@@ -19,7 +19,8 @@ import html
 from functools import lru_cache
 
 import regex as re
-from tensorflow import keras
+
+from keras_cv.backend import keras
 
 
 @lru_cache()
