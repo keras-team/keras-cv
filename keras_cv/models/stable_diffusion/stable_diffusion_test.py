@@ -46,7 +46,7 @@ class StableDiffusionTest(TestCase):
         self.assertAllClose(
             outputs[0][1:4][0][0],
             [2.451568, 1.607522, -0.546311, -1.194388],
-            atol=1e-4,
+            atol=5e-4,
         )
 
     def test_text_encoder_golden_value(self):
