@@ -14,7 +14,6 @@
 
 from keras_cv.backend import keras
 from keras_cv.backend import ops
-from keras_cv.backend.config import multi_backend
 from keras_cv.models.stable_diffusion.padded_conv2d import PaddedConv2D
 
 
@@ -365,8 +364,5 @@ class GEGLU(keras.layers.Layer):
 def td_dot(a, b):
     aa = ops.reshape(a, (-1, a.shape[2], a.shape[3]))
     bb = ops.reshape(b, (-1, b.shape[2], b.shape[3]))
-    if multi_backend():
-        cc = keras.src.legacy.backend.batch_dot(aa, bb)
-    else:
-        cc = keras.backend.batch_dot(aa, bb)
+    cc = keras.layers.Dot(axes=(2, 1))([aa, bb])
     return ops.reshape(cc, (-1, a.shape[1], cc.shape[1], cc.shape[2]))
