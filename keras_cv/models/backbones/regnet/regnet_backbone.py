@@ -27,9 +27,6 @@ from keras_cv.models.backbones.backbone import Backbone
 from keras_cv.models.backbones.regnet.regnet_backbone_presets import (
     backbone_presets,
 )
-from keras_cv.models.backbones.regnet.regnet_backbone_presets import (
-    backbone_presets_with_weights,
-)
 from keras_cv.utils.python_utils import classproperty
 
 
@@ -126,12 +123,6 @@ class RegNetBackbone(Backbone):
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return copy.deepcopy(backbone_presets)
-
-    @classproperty
-    def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include
-        weights."""
-        return copy.deepcopy(backbone_presets_with_weights)
 
 
 def apply_conv2d_bn(
