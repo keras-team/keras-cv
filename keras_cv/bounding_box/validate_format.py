@@ -13,7 +13,10 @@
 # limitations under the License.
 import tensorflow as tf
 
+from keras_cv.api_export import keras_cv_export
 
+
+@keras_cv_export("keras_cv.bounding_box.validate_format")
 def validate_format(bounding_boxes, variable_name="bounding_boxes"):
     """validates that a given set of bounding boxes complies with KerasCV
     format.

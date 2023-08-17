@@ -16,11 +16,13 @@ from typing import Any
 from typing import List
 from typing import Mapping
 
-import tensorflow as tf
-from tensorflow import keras
+from keras_cv.api_export import keras_cv_export
+from keras_cv.backend import keras
+from keras_cv.backend import ops
+from keras_cv.backend.config import multi_backend
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+@keras_cv_export("keras_cv.layers.SpatialPyramidPooling")
 class SpatialPyramidPooling(keras.layers.Layer):
     """Implements the Atrous Spatial Pyramid Pooling.
 
@@ -64,10 +66,12 @@ class SpatialPyramidPooling(keras.layers.Layer):
         self.num_channels = num_channels
         self.activation = activation
         self.dropout = dropout
+        # TODO(ianstenbit): Remove this once TF 2.14 is released which adds
+        # XLA support for resizing with bilinear interpolation.
+        if multi_backend() and keras.backend.backend() == "tensorflow":
+            self.supports_jit = False
 
     def build(self, input_shape):
-        height = input_shape[1]
-        width = input_shape[2]
         channels = input_shape[3]
 
         # This is the parallel networks that process the input features with
@@ -119,7 +123,6 @@ class SpatialPyramidPooling(keras.layers.Layer):
                 ),
                 keras.layers.BatchNormalization(),
                 keras.layers.Activation(self.activation),
-                keras.layers.Resizing(height, width, interpolation="bilinear"),
             ]
         )
         self.aspp_parallel_channels.append(pool_sequential)
@@ -142,20 +145,27 @@ class SpatialPyramidPooling(keras.layers.Layer):
         """Calls the Atrous Spatial Pyramid Pooling layer on an input.
 
         Args:
-          inputs: A `tf.Tensor` of shape [batch, height, width, channels]
+          inputs: A tensor of shape [batch, height, width, channels]
 
         Returns:
-          A `tf.Tensor` of shape [batch, height, width, num_channels]
+          A tensor of shape [batch, height, width, num_channels]
         """
         result = []
 
         for channel in self.aspp_parallel_channels:
-            temp = tf.cast(channel(inputs, training=training), inputs.dtype)
+            temp = ops.cast(channel(inputs, training=training), inputs.dtype)
             result.append(temp)
 
-        result = tf.concat(result, axis=-1)
+        result[-1] = keras.layers.Resizing(
+            inputs.shape[1], inputs.shape[2], interpolation="bilinear"
+        )(result[-1])
+
+        result = ops.concatenate(result, axis=-1)
         result = self.projection(result, training=training)
         return result
+
+    def compute_output_shape(self, input_shape):
+        return tuple(input_shape[:-1]) + (self.num_channels,)
 
     def get_config(self) -> Mapping[str, Any]:
         config = {

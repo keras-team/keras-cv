@@ -18,6 +18,7 @@ and is adapted from https://github.com/ultralytics/ultralytics/blob/main/ultraly
 import tensorflow as tf
 
 from keras_cv import bounding_box
+from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 from keras_cv.bounding_box.iou import compute_ciou
@@ -91,7 +92,7 @@ def select_candidates_in_gts(xy_centers, gt_bboxes, epsilon=1e-9):
     return ops.min(bbox_deltas, axis=-1, initial=float("inf")) > epsilon
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+@keras_cv_export("keras_cv.models.yolov8.LabelEncoder")
 class YOLOV8LabelEncoder(keras.layers.Layer):
     """
     Encodes ground truth boxes to target boxes and class labels for training a

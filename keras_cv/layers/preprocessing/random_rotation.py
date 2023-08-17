@@ -16,7 +16,7 @@ import numpy as np
 import tensorflow as tf
 
 from keras_cv import bounding_box
-from keras_cv.backend import keras
+from keras_cv.api_export import keras_cv_export
 from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     VectorizedBaseImageAugmentationLayer,
 )
@@ -28,7 +28,7 @@ H_AXIS = -3
 W_AXIS = -2
 
 
-@keras.saving.register_keras_serializable(package="keras_cv")
+@keras_cv_export("keras_cv.layers.RandomRotation")
 class RandomRotation(VectorizedBaseImageAugmentationLayer):
     """A preprocessing layer which randomly rotates images.
 

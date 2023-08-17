@@ -13,23 +13,23 @@
 # limitations under the License.
 
 from keras_cv.models import legacy
-from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
-    CSPDarkNetBackbone,
-)
-from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
+from keras_cv.models.backbones.csp_darknet.csp_darknet_aliases import (
     CSPDarkNetLBackbone,
 )
-from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
+from keras_cv.models.backbones.csp_darknet.csp_darknet_aliases import (
     CSPDarkNetMBackbone,
 )
-from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
+from keras_cv.models.backbones.csp_darknet.csp_darknet_aliases import (
     CSPDarkNetSBackbone,
 )
-from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
+from keras_cv.models.backbones.csp_darknet.csp_darknet_aliases import (
     CSPDarkNetTinyBackbone,
 )
-from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
+from keras_cv.models.backbones.csp_darknet.csp_darknet_aliases import (
     CSPDarkNetXLBackbone,
+)
+from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
+    CSPDarkNetBackbone,
 )
 from keras_cv.models.backbones.densenet.densenet_aliases import (
     DenseNet121Backbone,
@@ -42,6 +42,24 @@ from keras_cv.models.backbones.densenet.densenet_aliases import (
 )
 from keras_cv.models.backbones.densenet.densenet_backbone import (
     DenseNetBackbone,
+)
+from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_aliases import (  # noqa: E501
+    EfficientNetLiteB0Backbone,
+)
+from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_aliases import (  # noqa: E501
+    EfficientNetLiteB1Backbone,
+)
+from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_aliases import (  # noqa: E501
+    EfficientNetLiteB2Backbone,
+)
+from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_aliases import (  # noqa: E501
+    EfficientNetLiteB3Backbone,
+)
+from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_aliases import (  # noqa: E501
+    EfficientNetLiteB4Backbone,
+)
+from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_backbone import (  # noqa: E501
+    EfficientNetLiteBackbone,
 )
 from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_aliases import (
     EfficientNetV1B0Backbone,
@@ -146,9 +164,6 @@ from keras_cv.models.object_detection.yolo_v8.yolo_v8_backbone import (
 )
 from keras_cv.models.object_detection.yolo_v8.yolo_v8_detector import (
     YOLOV8Detector,
-)
-from keras_cv.models.object_detection_3d.center_pillar import (
-    MultiHeadCenterPillar,
 )
 from keras_cv.models.segmentation import DeepLabV3Plus
 from keras_cv.models.stable_diffusion import StableDiffusion

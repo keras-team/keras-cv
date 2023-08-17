@@ -13,11 +13,13 @@
 # limitations under the License.
 
 
+from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 from keras_cv.bounding_box.iou import compute_ciou
 
 
+@keras_cv_export("keras_cv.losses.CIoULoss")
 class CIoULoss(keras.losses.Loss):
     """Implements the Complete IoU (CIoU) Loss
 

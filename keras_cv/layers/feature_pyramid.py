@@ -14,9 +14,10 @@
 
 from tensorflow import keras
 
+from keras_cv.api_export import keras_cv_export
 
-# TODO(scottzhu): Register it later due to the conflict in the retinanet
-# @keras.utils.register_keras_serializable(package="keras_cv")
+
+@keras_cv_export("keras_cv.layers.FeaturePyramid")
 class FeaturePyramid(keras.layers.Layer):
     """Implements a Feature Pyramid Network.
 

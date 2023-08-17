@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import numpy as np
 import tensorflow as tf
 
 from keras_cv.layers import preprocessing
@@ -21,7 +22,7 @@ class RandomSharpnessTest(TestCase):
     def test_random_sharpness_preserves_output_shape(self):
         img_shape = (50, 50, 3)
         xs = tf.stack(
-            [2 * tf.ones(img_shape), tf.ones(img_shape)],
+            [2 * np.ones(img_shape), np.ones(img_shape)],
             axis=0,
         )
 
@@ -33,7 +34,7 @@ class RandomSharpnessTest(TestCase):
 
     def test_random_sharpness_blur_effect_single_channel(self):
         xs = tf.expand_dims(
-            tf.constant(
+            np.array(
                 [
                     [0, 0, 0, 0, 0, 0, 0],
                     [0, 0, 0, 0, 0, 0, 0],
@@ -54,7 +55,7 @@ class RandomSharpnessTest(TestCase):
         self.assertEqual(xs.shape, ys.shape)
 
         result = tf.expand_dims(
-            tf.constant(
+            np.array(
                 [
                     [0, 0, 0, 0, 0, 0, 0],
                     [0, 0, 0, 0, 0, 0, 0],

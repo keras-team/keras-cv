@@ -15,7 +15,7 @@
 import tensorflow as tf
 
 from keras_cv import bounding_box
-from keras_cv.backend import keras
+from keras_cv.api_export import keras_cv_export
 from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     BATCHED,
 )
@@ -29,12 +29,15 @@ from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer impo
     LABELS,
 )
 from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
+    SEGMENTATION_MASKS,
+)
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     VectorizedBaseImageAugmentationLayer,
 )
 from keras_cv.utils import preprocessing as preprocessing_utils
 
 
-@keras.saving.register_keras_serializable(package="keras_cv")
+@keras_cv_export("keras_cv.layers.Mosaic")
 class Mosaic(VectorizedBaseImageAugmentationLayer):
     """Mosaic implements the mosaic data augmentation technique.
 
@@ -129,7 +132,9 @@ class Mosaic(VectorizedBaseImageAugmentationLayer):
             "on KerasCV."
         )
 
-    def augment_images(self, images, transformations, **kwargs):
+    def augment_images(
+        self, images, transformations, resize_method="bilinear", **kwargs
+    ):
         batch_size = tf.shape(images)[0]
         input_height, input_width, _ = images.shape[1:]
 
@@ -159,6 +164,7 @@ class Mosaic(VectorizedBaseImageAugmentationLayer):
             tf.cast(cropping_boxes, tf.float32),
             tf.range(batch_size),
             [input_height, input_width],
+            method=resize_method,
         )
         # tf.image.crop_and_resize will always output float32, so we need to
         # recast tf.image.crop_and_resize outputs
@@ -166,6 +172,13 @@ class Mosaic(VectorizedBaseImageAugmentationLayer):
         # one we squeeze axis 0
         outputs = tf.cast(outputs, self.compute_dtype)
         return outputs
+
+    def augment_segmentation_masks(
+        self, segmentation_masks, transformations, **kwargs
+    ):
+        return self.augment_images(
+            segmentation_masks, transformations, resize_method="nearest"
+        )
 
     def augment_labels(self, labels, transformations, images=None, **kwargs):
         input_height, input_width, _ = images.shape[1:]
@@ -283,11 +296,17 @@ class Mosaic(VectorizedBaseImageAugmentationLayer):
         images = inputs.get(IMAGES, None)
         labels = inputs.get(LABELS, None)
         bounding_boxes = inputs.get(BOUNDING_BOXES, None)
-        if images is None or (labels is None and bounding_boxes is None):
+        segmentation_masks = inputs.get(SEGMENTATION_MASKS, None)
+        if images is None or (
+            labels is None
+            and bounding_boxes is None
+            and segmentation_masks is None
+        ):
             raise ValueError(
                 "Mosaic expects inputs in a dictionary with format "
-                '{"images": images, "labels": labels}. or'
-                '{"images": images, "bounding_boxes": bounding_boxes}'
+                '{"images": images, "labels": labels} or'
+                '{"images": images, "bounding_boxes": bounding_boxes} or'
+                '{"images": images, "segmentation_masks": masks}.'
                 f"Got: inputs = {inputs}"
             )
         if labels is not None and not labels.dtype.is_floating:

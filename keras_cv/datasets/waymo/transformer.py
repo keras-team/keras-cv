@@ -22,6 +22,7 @@ from typing import Tuple
 import numpy as np
 import tensorflow as tf
 
+from keras_cv.api_export import keras_cv_export
 from keras_cv.utils import assert_waymo_open_dataset_installed
 
 try:
@@ -609,6 +610,7 @@ def _box_3d_global_to_vehicle(
     return tf.concat([new_center, dim, new_heading[..., tf.newaxis]], axis=-1)
 
 
+@keras_cv_export("keras_cv.datasets.waymo.build_tensors_from_wod_frame")
 def build_tensors_from_wod_frame(frame) -> Dict[str, tf.Tensor]:
     """Builds tensors from a Waymo Open Dataset frame.
 
@@ -673,6 +675,7 @@ def build_tensors_from_wod_frame(frame) -> Dict[str, tf.Tensor]:
     }
 
 
+@keras_cv_export("keras_cv.datasets.waymo.pad_or_trim_tensors")
 def pad_or_trim_tensors(
     frame: Dict[str, tf.Tensor], max_num_point=199600, max_num_label_box=1000
 ) -> Dict[str, tf.Tensor]:
@@ -720,6 +723,7 @@ def pad_or_trim_tensors(
     return frame
 
 
+@keras_cv_export("keras_cv.datasets.waymo.transform_to_vehicle_frame")
 def transform_to_vehicle_frame(
     frame: Dict[str, tf.Tensor]
 ) -> Dict[str, tf.Tensor]:
@@ -772,6 +776,7 @@ def transform_to_vehicle_frame(
     return frame
 
 
+@keras_cv_export("keras_cv.datasets.waymo.convert_to_center_pillar_inputs")
 def convert_to_center_pillar_inputs(
     frame: Dict[str, tf.Tensor]
 ) -> Dict[str, Any]:
@@ -802,6 +807,7 @@ def convert_to_center_pillar_inputs(
     return y
 
 
+@keras_cv_export("keras_cv.datasets.waymo.build_tensors_for_augmentation")
 def build_tensors_for_augmentation(
     frame: Dict[str, tf.Tensor]
 ) -> Tuple[tf.Tensor, tf.Tensor]:

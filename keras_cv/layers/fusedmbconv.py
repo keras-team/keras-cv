@@ -13,6 +13,7 @@
 # limitations under the License.
 
 
+from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 
 BN_AXIS = 3
@@ -27,7 +28,7 @@ CONV_KERNEL_INITIALIZER = {
 }
 
 
-@keras.saving.register_keras_serializable(package="keras_cv")
+@keras_cv_export("keras_cv.layers.FusedMBConvBlock")
 class FusedMBConvBlock(keras.layers.Layer):
     """
     Implementation of the FusedMBConv block (Fused Mobile Inverted Residual
@@ -168,6 +169,13 @@ class FusedMBConvBlock(keras.layers.Layer):
             name=self.name + "project_bn",
         )
 
+        if self.survival_probability:
+            self.dropout = keras.layers.Dropout(
+                self.survival_probability,
+                noise_shape=(None, 1, 1, 1),
+                name=self.name + "drop",
+            )
+
     def build(self, input_shape):
         if self.name is None:
             self.name = keras.backend.get_uid("block0")
@@ -209,11 +217,7 @@ class FusedMBConvBlock(keras.layers.Layer):
         # Residual:
         if self.strides == 1 and self.input_filters == self.output_filters:
             if self.survival_probability:
-                x = keras.layers.Dropout(
-                    self.survival_probability,
-                    noise_shape=(None, 1, 1, 1),
-                    name=self.name + "drop",
-                )(x)
+                x = self.dropout(x)
             x = keras.layers.add([x, inputs], name=self.name + "add")
         return x
 
