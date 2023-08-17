@@ -26,9 +26,11 @@ try:
 except ImportError:
     WODDetectionEvaluator = None
 
+from keras_cv.api_export import keras_cv_export
 from keras_cv.bounding_box_3d import CENTER_XYZ_DXDYDZ_PHI
 
 
+@keras_cv_export("keras_cv.callbacks.WaymoEvaluationCallback")
 class WaymoEvaluationCallback(Callback):
     def __init__(self, validation_data, config=None, **kwargs):
         """Creates a callback to evaluate Waymo Open Dataset (WOD) metrics on a

@@ -15,13 +15,13 @@
 import tensorflow as tf
 
 from keras_cv import bounding_box
-from keras_cv.backend import keras
+from keras_cv.api_export import keras_cv_export
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
 
 
-@keras.saving.register_keras_serializable(package="keras_cv")
+@keras_cv_export("keras_cv.layers.MixUp")
 class MixUp(BaseImageAugmentationLayer):
     """MixUp implements the MixUp data augmentation technique.
 

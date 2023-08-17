@@ -1,4 +1,4 @@
-# Copyright 2022 The KerasCV Authors
+# Copyright 2023 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,14 +14,14 @@
 
 import tensorflow as tf
 
-from keras_cv.backend import keras
+from keras_cv.api_export import keras_cv_export
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
 from keras_cv.utils import fill_utils
 
 
-@keras.saving.register_keras_serializable(package="keras_cv")
+@keras_cv_export("keras_cv.layers.CutMix")
 class CutMix(BaseImageAugmentationLayer):
     """CutMix implements the CutMix data augmentation technique.
 
@@ -31,21 +31,18 @@ class CutMix(BaseImageAugmentationLayer):
             the smoothing values are sampled. Defaults to 1.0, which is a
             recommended value when training an imagenet1k classification model.
         seed: Integer. Used to create a random seed.
+
     References:
        - [CutMix paper]( https://arxiv.org/abs/1905.04899).
 
-    Sample usage:
-    ```python
-    (images, labels), _ = keras.datasets.cifar10.load_data()
-    labels = tf.one_hot(labels.squeeze(), 10)
-
-    cutmix = keras_cv.layers.preprocessing.cut_mix.CutMix(10)
-    output = cutmix({"images": images[:32], "labels": labels[:32]})
-    # output == {'images': updated_images, 'labels': updated_labels}
-    ```
     """
 
-    def __init__(self, alpha=1.0, seed=None, **kwargs):
+    def __init__(
+        self,
+        alpha=1.0,
+        seed=None,
+        **kwargs,
+    ):
         super().__init__(seed=seed, **kwargs)
         self.alpha = alpha
         self.seed = seed
@@ -63,16 +60,37 @@ class CutMix(BaseImageAugmentationLayer):
         self._validate_inputs(inputs)
         images = inputs.get("images", None)
         labels = inputs.get("labels", None)
+        segmentation_masks = inputs.get("segmentation_masks", None)
 
-        if images is None or labels is None:
-            raise ValueError(
-                "CutMix expects inputs in a dictionary with format "
-                '{"images": images, "labels": labels}.'
-                f"Got: inputs = {inputs}"
+        (
+            images,
+            lambda_sample,
+            permutation_order,
+            random_center_height,
+            random_center_width,
+            cut_width,
+            cut_height,
+        ) = self._cutmix(images)
+
+        if labels is not None:
+            labels = self._update_labels(
+                labels, lambda_sample, permutation_order
             )
-        images, labels = self._update_labels(*self._cutmix(images, labels))
+            inputs["labels"] = labels
+
+        if segmentation_masks is not None:
+            segmentation_masks = self._update_segmentation_masks(
+                segmentation_masks,
+                permutation_order,
+                random_center_height,
+                random_center_width,
+                cut_width,
+                cut_height,
+            )
+            inputs["segmentation_masks"] = segmentation_masks
+
         inputs["images"] = images
-        inputs["labels"] = labels
+
         return inputs
 
     def _augment(self, inputs):
@@ -82,7 +100,7 @@ class CutMix(BaseImageAugmentationLayer):
             "expected. Please call the layer with 2 or more samples."
         )
 
-    def _cutmix(self, images, labels):
+    def _cutmix(self, images):
         """Apply cutmix."""
         input_shape = tf.shape(images)
         batch_size, image_height, image_width = (
@@ -129,30 +147,60 @@ class CutMix(BaseImageAugmentationLayer):
 
         return (
             images,
-            tf.cast(labels, dtype=self.compute_dtype),
             lambda_sample,
             permutation_order,
+            random_center_height,
+            random_center_width,
+            cut_width,
+            cut_height,
         )
 
-    def _update_labels(self, images, labels, lambda_sample, permutation_order):
+    def _update_labels(self, labels, lambda_sample, permutation_order):
         cutout_labels = tf.gather(labels, permutation_order)
 
         lambda_sample = tf.reshape(lambda_sample, [-1, 1])
         labels = lambda_sample * labels + (1.0 - lambda_sample) * cutout_labels
-        return images, labels
+
+        return labels
+
+    def _update_segmentation_masks(
+        self,
+        segmentation_masks,
+        permutation_order,
+        random_center_height,
+        random_center_width,
+        cut_width,
+        cut_height,
+    ):
+        cutout_segmentation_masks = tf.gather(
+            segmentation_masks, permutation_order
+        )
+
+        segmentation_masks = fill_utils.fill_rectangle(
+            segmentation_masks,
+            random_center_width,
+            random_center_height,
+            cut_width,
+            cut_height,
+            cutout_segmentation_masks,
+        )
+
+        return segmentation_masks
 
     def _validate_inputs(self, inputs):
+        images = inputs.get("images", None)
         labels = inputs.get("labels", None)
-        if labels is None:
+        segmentation_masks = inputs.get("segmentation_masks", None)
+
+        if images is None or (labels is None and segmentation_masks is None):
             raise ValueError(
-                "CutMix expects 'labels' to be present in its inputs. "
-                "CutMix relies on both images an labels. "
-                "Please pass a dictionary with keys 'images' "
-                "containing the image Tensor, and 'labels' containing "
-                "the classification labels. "
-                "For example, `cut_mix({'images': images, 'labels': labels})`."
+                "CutMix expects inputs in a dictionary with format "
+                '{"images": images, "labels": labels}. or'
+                '{"images": images, "segmentation_masks": segmentation_masks}. '
+                f"Got: inputs = {inputs}."
             )
-        if not labels.dtype.is_floating:
+
+        if labels is not None and not labels.dtype.is_floating:
             raise ValueError(
                 f"CutMix received labels with type {labels.dtype}. "
                 "Labels must be of type float."

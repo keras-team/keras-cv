@@ -15,9 +15,11 @@ import tensorflow as tf
 
 import keras_cv.bounding_box.validate_format as validate_format
 from keras_cv import backend
+from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 
 
+@keras_cv_export("keras_cv.bounding_box.to_ragged")
 def to_ragged(bounding_boxes, sentinel=-1, dtype=tf.float32):
     """converts a Dense padded bounding box `tf.Tensor` to a `tf.RaggedTensor`.
 

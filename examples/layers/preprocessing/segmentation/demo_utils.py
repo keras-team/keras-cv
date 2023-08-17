@@ -28,6 +28,7 @@ std = tf.constant([0.229, 0.224, 0.225])
 def normalize(input_image, input_mask):
     input_image = tf.image.convert_image_dtype(input_image, tf.float32)
     input_image = (input_image - mean) / tf.maximum(std, backend.epsilon())
+    input_image = input_image / 255
     input_mask -= 1
     return input_image, input_mask
 
@@ -44,7 +45,6 @@ def to_dict(datapoint):
     input_mask = tf.one_hot(
         tf.squeeze(tf.cast(input_mask, tf.int32), axis=-1), depth=3
     )
-    input_image = tf.transpose(input_image, (2, 0, 1))
     return {"images": input_image, "segmentation_masks": input_mask}
 
 
@@ -78,5 +78,4 @@ def visualize_dataset(ds):
             samples["images"][0],
             samples["segmentation_masks"][0],
         )
-        sample_image = tf.transpose(sample_image, (1, 2, 0))
         display([sample_image, sample_mask])

@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numpy as np
 import tensorflow as tf
 
 from keras_cv.layers import preprocessing
@@ -23,12 +24,12 @@ class RandomJpegQualityTest(TestCase):
         layer = preprocessing.RandomJpegQuality(factor=[0, 100])
 
         # RGB
-        xs = tf.ones((2, 512, 512, 3))
+        xs = np.ones((2, 512, 512, 3))
         xs = layer(xs)
         self.assertEqual(xs.shape, [2, 512, 512, 3])
 
         # greyscale
-        xs = tf.ones((2, 512, 512, 1))
+        xs = np.ones((2, 512, 512, 1))
         xs = layer(xs)
         self.assertEqual(xs.shape, [2, 512, 512, 1])
 
@@ -37,8 +38,8 @@ class RandomJpegQualityTest(TestCase):
 
         # RGB
         xs = tf.cast(
-            tf.ones((512, 512, 3)),
-            dtype=tf.float32,
+            np.ones((512, 512, 3)),
+            dtype="float32",
         )
 
         xs = layer(xs)
@@ -46,8 +47,8 @@ class RandomJpegQualityTest(TestCase):
 
         # greyscale
         xs = tf.cast(
-            tf.ones((512, 512, 1)),
-            dtype=tf.float32,
+            np.ones((512, 512, 1)),
+            dtype="float32",
         )
 
         xs = layer(xs)
@@ -57,11 +58,11 @@ class RandomJpegQualityTest(TestCase):
         layer = preprocessing.RandomJpegQuality(factor=[0, 100])
 
         # RGB
-        xs = tf.ones((2, 256, 512, 3))
+        xs = np.ones((2, 256, 512, 3))
         xs = layer(xs)
         self.assertEqual(xs.shape, [2, 256, 512, 3])
 
         # greyscale
-        xs = tf.ones((2, 256, 512, 1))
+        xs = np.ones((2, 256, 512, 1))
         xs = layer(xs)
         self.assertEqual(xs.shape, [2, 256, 512, 1])

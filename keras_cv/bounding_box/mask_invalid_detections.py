@@ -13,11 +13,13 @@
 # limitations under the License.
 
 from keras_cv import backend
+from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import ops
 from keras_cv.bounding_box.to_ragged import to_ragged
 from keras_cv.bounding_box.validate_format import validate_format
 
 
+@keras_cv_export("keras_cv.bounding_box.mask_invalid_detections")
 def mask_invalid_detections(bounding_boxes, output_ragged=False):
     """masks out invalid detections with -1s.
 

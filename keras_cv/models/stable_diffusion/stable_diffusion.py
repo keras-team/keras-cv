@@ -30,6 +30,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 
+from keras_cv.api_export import keras_cv_export
 from keras_cv.models.stable_diffusion.clip_tokenizer import SimpleTokenizer
 from keras_cv.models.stable_diffusion.constants import _ALPHAS_CUMPROD
 from keras_cv.models.stable_diffusion.constants import _UNCONDITIONAL_TOKENS
@@ -340,6 +341,7 @@ class StableDiffusionBase:
         )
 
 
+@keras_cv_export("keras_cv.models.StableDiffusion")
 class StableDiffusion(StableDiffusionBase):
     """Keras implementation of Stable Diffusion.
 
@@ -425,6 +427,7 @@ class StableDiffusion(StableDiffusionBase):
         return self._diffusion_model
 
 
+@keras_cv_export("keras_cv.models.StableDiffusionV2")
 class StableDiffusionV2(StableDiffusionBase):
     """Keras implementation of Stable Diffusion v2.
 

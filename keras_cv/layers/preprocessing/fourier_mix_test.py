@@ -26,18 +26,35 @@ class FourierMixTest(TestCase):
         ys = tf.random.categorical(tf.math.log([[0.5, 0.5]]), 2)
         ys = tf.squeeze(ys)
         ys = tf.one_hot(ys, num_classes)
+        # randomly sample segmentation mask
+        ys_segmentation_masks = tf.cast(
+            tf.stack(
+                [2 * tf.ones((512, 512)), tf.ones((512, 512))],
+                axis=0,
+            ),
+            tf.uint8,
+        )
+        ys_segmentation_masks = tf.one_hot(ys_segmentation_masks, 3)
 
         layer = FourierMix()
-        outputs = layer({"images": xs, "labels": ys})
-        xs, ys = (
+        outputs = layer(
+            {
+                "images": xs,
+                "labels": ys,
+                "segmentation_masks": ys_segmentation_masks,
+            }
+        )
+        xs, ys, ys_segmentation_masks = (
             outputs["images"],
             outputs["labels"],
+            outputs["segmentation_masks"],
         )
 
         self.assertEqual(xs.shape, [2, 512, 512, 3])
         self.assertEqual(ys.shape, [2, 10])
+        self.assertEqual(ys_segmentation_masks.shape, [2, 512, 512, 3])
 
-    def test_fourier_mix_call_results(self):
+    def test_fourier_mix_call_results_with_labels(self):
         xs = tf.cast(
             tf.stack(
                 [2 * tf.ones((4, 4, 3)), tf.ones((4, 4, 3))],
@@ -58,6 +75,40 @@ class FourierMixTest(TestCase):
         # No labels should still be close to their originals
         self.assertNotAllClose(ys, 1.0)
         self.assertNotAllClose(ys, 0.0)
+
+    def test_mix_up_call_results_with_masks(self):
+        xs = tf.cast(
+            tf.stack(
+                [2 * tf.ones((4, 4, 3)), tf.ones((4, 4, 3))],
+                axis=0,
+            ),
+            tf.float32,
+        )
+        ys_segmentation_masks = tf.cast(
+            tf.stack(
+                [2 * tf.ones((4, 4)), tf.ones((4, 4))],
+                axis=0,
+            ),
+            tf.uint8,
+        )
+        ys_segmentation_masks = tf.one_hot(ys_segmentation_masks, 3)
+
+        layer = FourierMix()
+        outputs = layer(
+            {"images": xs, "segmentation_masks": ys_segmentation_masks}
+        )
+        xs, ys_segmentation_masks = (
+            outputs["images"],
+            outputs["segmentation_masks"],
+        )
+
+        # None of the individual values should still be close to 1 or 0
+        self.assertNotAllClose(xs, 1.0)
+        self.assertNotAllClose(xs, 2.0)
+
+        # No masks should still be close to their originals
+        self.assertNotAllClose(ys_segmentation_masks, 1.0)
+        self.assertNotAllClose(ys_segmentation_masks, 0.0)
 
     def test_in_tf_function(self):
         xs = tf.cast(

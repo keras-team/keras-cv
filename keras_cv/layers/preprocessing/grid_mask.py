@@ -16,7 +16,7 @@ import tensorflow as tf
 
 from keras_cv import core
 from keras_cv import layers as cv_layers
-from keras_cv.backend import keras
+from keras_cv.api_export import keras_cv_export
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
@@ -34,7 +34,7 @@ def _center_crop(mask, width, height):
     return tf.image.crop_to_bounding_box(mask, h_start, w_start, height, width)
 
 
-@keras.saving.register_keras_serializable(package="keras_cv")
+@keras_cv_export("keras_cv.layers.GridMask")
 class GridMask(BaseImageAugmentationLayer):
     """GridMask class for grid-mask augmentation.
 

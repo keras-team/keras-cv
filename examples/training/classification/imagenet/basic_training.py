@@ -25,14 +25,10 @@ import sys
 
 import tensorflow as tf
 from absl import flags
-from tensorflow import keras
-from tensorflow.keras import callbacks
-from tensorflow.keras import losses
-from tensorflow.keras import metrics
-from tensorflow.keras import optimizers
 
 import keras_cv
 from keras_cv import models
+from keras_cv.backend import keras
 from keras_cv.datasets import imagenet
 
 """
@@ -57,9 +53,6 @@ flags.DEFINE_string(
 )
 flags.DEFINE_string(
     "imagenet_path", None, "Directory from which to load Imagenet."
-)
-flags.DEFINE_string(
-    "backup_path", None, "Directory which will be used for training backups."
 )
 flags.DEFINE_string(
     "weights_path",
@@ -367,14 +360,14 @@ callback or with the LRWarmup scheduler.
 
 with strategy.scope():
     if FLAGS.learning_rate_schedule == COSINE_DECAY_WITH_WARMUP:
-        optimizer = optimizers.SGD(
+        optimizer = keras.optimizers.SGD(
             weight_decay=FLAGS.weight_decay,
             learning_rate=schedule,
             momentum=0.9,
             use_ema=FLAGS.use_ema,
         )
     else:
-        optimizer = optimizers.SGD(
+        optimizer = keras.optimizers.SGD(
             weight_decay=FLAGS.weight_decay,
             learning_rate=INITIAL_LEARNING_RATE,
             momentum=0.9,
@@ -386,7 +379,7 @@ with strategy.scope():
 Next, we pick a loss function. We use CategoricalCrossentropy with label
 smoothing.
 """
-loss_fn = losses.CategoricalCrossentropy(label_smoothing=0.1)
+loss_fn = keras.losses.CategoricalCrossentropy(label_smoothing=0.1)
 
 
 """
@@ -395,8 +388,8 @@ accuracy.
 """
 with strategy.scope():
     training_metrics = [
-        metrics.CategoricalAccuracy(),
-        metrics.TopKCategoricalAccuracy(k=5),
+        keras.metrics.CategoricalAccuracy(),
+        keras.metrics.TopKCategoricalAccuracy(k=5),
     ]
 
 """
@@ -404,19 +397,18 @@ As a last piece of configuration, we configure callbacks for the method.
 We use EarlyStopping, BackupAndRestore, and a model checkpointing callback.
 """
 model_callbacks = [
-    callbacks.EarlyStopping(patience=20),
-    callbacks.BackupAndRestore(FLAGS.backup_path),
-    callbacks.ModelCheckpoint(
+    keras.callbacks.EarlyStopping(patience=20),
+    keras.callbacks.ModelCheckpoint(
         FLAGS.weights_path, save_weights_only=True, save_best_only=True
     ),
-    callbacks.TensorBoard(
+    keras.callbacks.TensorBoard(
         log_dir=FLAGS.tensorboard_path, write_steps_per_second=True
     ),
 ]
 
 if FLAGS.learning_rate_schedule == REDUCE_ON_PLATEAU:
     model_callbacks.append(
-        callbacks.ReduceLROnPlateau(
+        keras.callbacks.ReduceLROnPlateau(
             monitor="val_loss",
             factor=0.1,
             patience=10,

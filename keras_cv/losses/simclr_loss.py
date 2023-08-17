@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 
@@ -25,6 +26,7 @@ def l2_normalize(x, axis):
     return ops.multiply(x, norm)
 
 
+@keras_cv_export("keras_cv.losses.SimCLRLoss")
 class SimCLRLoss(keras.losses.Loss):
     """Implements SimCLR Cosine Similarity loss.
 

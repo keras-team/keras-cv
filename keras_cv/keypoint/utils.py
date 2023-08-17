@@ -14,10 +14,13 @@
 """Utility functions for keypoint transformation."""
 import tensorflow as tf
 
+from keras_cv.api_export import keras_cv_export
+
 H_AXIS = -3
 W_AXIS = -2
 
 
+@keras_cv_export("keras_cv.keypoint.filter_out_of_image")
 def filter_out_of_image(keypoints, image):
     """Discards keypoints if falling outside of the image.
 

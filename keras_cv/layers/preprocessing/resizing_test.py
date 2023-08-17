@@ -243,18 +243,18 @@ class ResizingTest(TestCase):
         boxes = {
             "boxes": tf.ragged.stack(
                 [
-                    tf.ones((3, 4), dtype=tf.float32),
-                    tf.ones((5, 4), dtype=tf.float32),
-                    tf.ones((3, 4), dtype=tf.float32),
-                    tf.ones((2, 4), dtype=tf.float32),
+                    np.ones((3, 4), dtype="float32"),
+                    np.ones((5, 4), dtype="float32"),
+                    np.ones((3, 4), dtype="float32"),
+                    np.ones((2, 4), dtype="float32"),
                 ],
             ),
             "classes": tf.ragged.stack(
                 [
-                    tf.ones((3,), dtype=tf.float32),
-                    tf.ones((5,), dtype=tf.float32),
-                    tf.ones((3,), dtype=tf.float32),
-                    tf.ones((2,), dtype=tf.float32),
+                    np.ones((3,), dtype="float32"),
+                    np.ones((5,), dtype="float32"),
+                    np.ones((3,), dtype="float32"),
+                    np.ones((2,), dtype="float32"),
                 ],
             ),
         }
@@ -282,18 +282,18 @@ class ResizingTest(TestCase):
         boxes = {
             "boxes": tf.ragged.stack(
                 [
-                    tf.ones((3, 4), dtype=tf.float32),
-                    tf.ones((5, 4), dtype=tf.float32),
-                    tf.ones((3, 4), dtype=tf.float32),
-                    tf.ones((2, 4), dtype=tf.float32),
+                    np.ones((3, 4), dtype="float32"),
+                    np.ones((5, 4), dtype="float32"),
+                    np.ones((3, 4), dtype="float32"),
+                    np.ones((2, 4), dtype="float32"),
                 ],
             ),
             "classes": tf.ragged.stack(
                 [
-                    tf.ones((3,), dtype=tf.float32),
-                    tf.ones((5,), dtype=tf.float32),
-                    tf.ones((3,), dtype=tf.float32),
-                    tf.ones((2,), dtype=tf.float32),
+                    np.ones((3,), dtype="float32"),
+                    np.ones((5,), dtype="float32"),
+                    np.ones((3,), dtype="float32"),
+                    np.ones((2,), dtype="float32"),
                 ],
             ),
         }
@@ -307,9 +307,9 @@ class ResizingTest(TestCase):
             outputs["images"].shape.as_list(),
         )
 
-        self.assertAllEqual(outputs["images"][1][:, :8, :], tf.ones((16, 8, 3)))
+        self.assertAllEqual(outputs["images"][1][:, :8, :], np.ones((16, 8, 3)))
         self.assertAllEqual(
-            outputs["images"][1][:, -8:, :], tf.zeros((16, 8, 3))
+            outputs["images"][1][:, -8:, :], np.zeros((16, 8, 3))
         )
 
     def test_resize_with_mask(self):
