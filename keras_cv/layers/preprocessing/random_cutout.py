@@ -123,20 +123,7 @@ class RandomCutout(BaseImageAugmentationLayer):
     def augment_segmentation_mask(
         self, segmentation_masks, transformation=None, **kwargs
     ):
-        """Apply random cutout."""
-        inputs = tf.expand_dims(segmentation_masks, 0)
-        center_x, center_y, rectangle_height, rectangle_width = transformation
-
-        rectangle_fill = self._compute_rectangle_fill(inputs)
-        inputs = fill_utils.fill_rectangle(
-            inputs,
-            center_x,
-            center_y,
-            rectangle_width,
-            rectangle_height,
-            rectangle_fill,
-        )
-        return inputs[0]
+        return segmentation_masks
 
     def _compute_rectangle_position(self, inputs):
         input_shape = tf.shape(inputs)
