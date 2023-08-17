@@ -21,18 +21,11 @@ from keras_cv.tests.test_case import TestCase
 class RandomCutoutTest(TestCase):
     def _run_test(self, height_factor, width_factor):
         img_shape = (40, 40, 3)
-        mask_shape = (40, 40, 3)
         xs = tf.stack(
             [2 * np.ones(img_shape), np.ones(img_shape)],
             axis=0,
         )
         xs = tf.cast(xs, tf.float32)
-
-        ys_segmentation_masks = tf.stack(
-            [2 * np.ones(mask_shape), np.ones(mask_shape)],
-            axis=0,
-        )
-        ys_segmentation_masks = tf.cast(ys_segmentation_masks, tf.float32)
 
         fill_value = 0.0
         layer = preprocessing.RandomCutout(
@@ -43,21 +36,12 @@ class RandomCutoutTest(TestCase):
             seed=1,
         )
         xs = layer(xs)
-        ys_segmentation_masks = layer(ys_segmentation_masks)
 
         # Some pixels should be replaced with fill value
         self.assertTrue(tf.math.reduce_any(xs[0] == fill_value))
         self.assertTrue(tf.math.reduce_any(xs[0] == 2.0))
         self.assertTrue(tf.math.reduce_any(xs[1] == fill_value))
         self.assertTrue(tf.math.reduce_any(xs[1] == 1.0))
-        self.assertTrue(
-            tf.math.reduce_any(ys_segmentation_masks[0] == fill_value)
-        )
-        self.assertTrue(tf.math.reduce_any(ys_segmentation_masks[0] == 2.0))
-        self.assertTrue(
-            tf.math.reduce_any(ys_segmentation_masks[1] == fill_value)
-        )
-        self.assertTrue(tf.math.reduce_any(ys_segmentation_masks[1] == 1.0))
 
     def test_return_shapes(self):
         xs = np.ones((2, 512, 512, 3))
@@ -107,13 +91,6 @@ class RandomCutoutTest(TestCase):
             ),
             tf.float32,
         )
-        ys_segmentation_masks = tf.cast(
-            tf.stack(
-                [2 * np.ones((40, 40, 1)), np.ones((40, 40, 1))],
-                axis=0,
-            ),
-            tf.float32,
-        )
 
         patch_value = 0.0
         layer = preprocessing.RandomCutout(
@@ -124,36 +101,20 @@ class RandomCutoutTest(TestCase):
             seed=1,
         )
         xs = layer(xs)
-        ys_segmentation_masks = layer(ys_segmentation_masks)
 
         # Some pixels should be replaced with fill value
         self.assertTrue(tf.math.reduce_any(xs[0] == patch_value))
         self.assertTrue(tf.math.reduce_any(xs[0] == 2.0))
         self.assertTrue(tf.math.reduce_any(xs[1] == patch_value))
         self.assertTrue(tf.math.reduce_any(xs[1] == 1.0))
-        self.assertTrue(
-            tf.math.reduce_any(ys_segmentation_masks[0] == patch_value)
-        )
-        self.assertTrue(tf.math.reduce_any(ys_segmentation_masks[0] == 2.0))
-        self.assertTrue(
-            tf.math.reduce_any(ys_segmentation_masks[1] == patch_value)
-        )
-        self.assertTrue(tf.math.reduce_any(ys_segmentation_masks[1] == 1.0))
 
     def test_random_cutout_call_tiny_image(self):
         img_shape = (4, 4, 3)
-        mask_shape = (4, 4, 3)
         xs = tf.stack(
             [2 * np.ones(img_shape), np.ones(img_shape)],
             axis=0,
         )
         xs = tf.cast(xs, tf.float32)
-
-        ys_segmentation_masks = tf.stack(
-            [2 * np.ones(mask_shape), np.ones(mask_shape)],
-            axis=0,
-        )
-        ys_segmentation_masks = tf.cast(ys_segmentation_masks, tf.float32)
 
         fill_value = 0.0
         layer = preprocessing.RandomCutout(
@@ -164,30 +125,15 @@ class RandomCutoutTest(TestCase):
             seed=1,
         )
         xs = layer(xs)
-        ys_segmentation_masks = layer(ys_segmentation_masks)
 
         # Some pixels should be replaced with fill value
         self.assertTrue(tf.math.reduce_any(xs[0] == fill_value))
         self.assertTrue(tf.math.reduce_any(xs[0] == 2.0))
         self.assertTrue(tf.math.reduce_any(xs[1] == fill_value))
         self.assertTrue(tf.math.reduce_any(xs[1] == 1.0))
-        self.assertTrue(
-            tf.math.reduce_any(ys_segmentation_masks[0] == fill_value)
-        )
-        self.assertTrue(tf.math.reduce_any(ys_segmentation_masks[0] == 2.0))
-        self.assertTrue(
-            tf.math.reduce_any(ys_segmentation_masks[1] == fill_value)
-        )
-        self.assertTrue(tf.math.reduce_any(ys_segmentation_masks[1] == 1.0))
 
     def test_in_tf_function(self):
         xs = tf.cast(
-            tf.stack(
-                [2 * np.ones((100, 100, 1)), np.ones((100, 100, 1))], axis=0
-            ),
-            tf.float32,
-        )
-        ys_segmentation_masks = tf.cast(
             tf.stack(
                 [2 * np.ones((100, 100, 1)), np.ones((100, 100, 1))], axis=0
             ),
@@ -208,18 +154,9 @@ class RandomCutoutTest(TestCase):
             return layer(x)
 
         xs = augment(xs)
-        ys_segmentation_masks = augment(ys_segmentation_masks)
 
         # Some pixels should be replaced with fill value
         self.assertTrue(tf.math.reduce_any(xs[0] == patch_value))
         self.assertTrue(tf.math.reduce_any(xs[0] == 2.0))
         self.assertTrue(tf.math.reduce_any(xs[1] == patch_value))
         self.assertTrue(tf.math.reduce_any(xs[1] == 1.0))
-        self.assertTrue(
-            tf.math.reduce_any(ys_segmentation_masks[0] == patch_value)
-        )
-        self.assertTrue(tf.math.reduce_any(ys_segmentation_masks[0] == 2.0))
-        self.assertTrue(
-            tf.math.reduce_any(ys_segmentation_masks[1] == patch_value)
-        )
-        self.assertTrue(tf.math.reduce_any(ys_segmentation_masks[1] == 1.0))
