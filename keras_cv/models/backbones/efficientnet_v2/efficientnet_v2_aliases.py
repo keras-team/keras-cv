@@ -20,9 +20,6 @@ from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone import (
 from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone_presets import (  # noqa: E501
     backbone_presets,
 )
-from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone_presets import (  # noqa: E501
-    backbone_presets_with_weights,
-)
 from keras_cv.utils.python_utils import classproperty
 
 ALIAS_DOCSTRING = """Instantiates the {name} architecture.
@@ -64,8 +61,8 @@ class EfficientNetV2SBackbone(EfficientNetV2Backbone):
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return {
-            "efficientnetv2_s": copy.deepcopy(
-                backbone_presets["efficientnetv2_s"]
+            "efficientnetv2_s_imagenet": copy.deepcopy(
+                backbone_presets["efficientnetv2_s_imagenet"]
             ),
         }
 
@@ -73,11 +70,7 @@ class EfficientNetV2SBackbone(EfficientNetV2Backbone):
     def presets_with_weights(cls):
         """Dictionary of preset names and configurations that include
         weights."""
-        return {
-            "efficientnetv2_s_imagenet": copy.deepcopy(
-                backbone_presets_with_weights["efficientnetv2_s_imagenet"]
-            ),
-        }
+        return cls.presets
 
 
 @keras_cv_export("keras_cv.models.EfficientNetV2MBackbone")
@@ -165,8 +158,8 @@ class EfficientNetV2B0Backbone(EfficientNetV2Backbone):
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return {
-            "efficientnetv2_b0": copy.deepcopy(
-                backbone_presets["efficientnetv2_b0"]
+            "efficientnetv2_b0_imagenet": copy.deepcopy(
+                backbone_presets["efficientnetv2_b0_imagenet"]
             ),
         }
 
@@ -174,11 +167,7 @@ class EfficientNetV2B0Backbone(EfficientNetV2Backbone):
     def presets_with_weights(cls):
         """Dictionary of preset names and configurations that include
         weights."""
-        return {
-            "efficientnetv2_b0_imagenet": copy.deepcopy(
-                backbone_presets_with_weights["efficientnetv2_b0_imagenet"]
-            ),
-        }
+        return cls.presets
 
 
 @keras_cv_export("keras_cv.models.EfficientNetV2B1Backbone")
@@ -204,8 +193,8 @@ class EfficientNetV2B1Backbone(EfficientNetV2Backbone):
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return {
-            "efficientnetv2_b1": copy.deepcopy(
-                backbone_presets["efficientnetv2_b1"]
+            "efficientnetv2_b1_imagenet": copy.deepcopy(
+                backbone_presets["efficientnetv2_b1_imagenet"]
             ),
         }
 
@@ -213,11 +202,7 @@ class EfficientNetV2B1Backbone(EfficientNetV2Backbone):
     def presets_with_weights(cls):
         """Dictionary of preset names and configurations that include
         weights."""
-        return {
-            "efficientnetv2_b1_imagenet": copy.deepcopy(
-                backbone_presets_with_weights["efficientnetv2_b1_imagenet"]
-            ),
-        }
+        return cls.presets
 
 
 @keras_cv_export("keras_cv.models.EfficientNetV2B2Backbone")
@@ -243,8 +228,8 @@ class EfficientNetV2B2Backbone(EfficientNetV2Backbone):
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return {
-            "efficientnetv2_b2": copy.deepcopy(
-                backbone_presets["efficientnetv2_b2"]
+            "efficientnetv2_b2_imagenet": copy.deepcopy(
+                backbone_presets["efficientnetv2_b2_imagenet"]
             ),
         }
 
@@ -252,11 +237,7 @@ class EfficientNetV2B2Backbone(EfficientNetV2Backbone):
     def presets_with_weights(cls):
         """Dictionary of preset names and configurations that include
         weights."""
-        return {
-            "efficientnetv2_b2_imagenet": copy.deepcopy(
-                backbone_presets_with_weights["efficientnetv2_b2_imagenet"]
-            ),
-        }
+        return cls.presets
 
 
 @keras_cv_export("keras_cv.models.EfficientNetV2B3Backbone")
