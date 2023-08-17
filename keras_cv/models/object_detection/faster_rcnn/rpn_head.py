@@ -12,9 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO @ariG23498
-# Device a way to remove tf import
-import tensorflow as tf
+import tree
 
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
@@ -35,9 +33,7 @@ class RPNHead(keras.layers.Layer):
 
     def build(self, input_shape):
         if isinstance(input_shape, (dict, list, tuple)):
-            # TODO @ariG23498
-            # Device a way to remove tf import
-            input_shape = tf.nest.flatten(input_shape)
+            input_shape = tree.flatten(input_shape)
             input_shape = input_shape[0]
         filters = input_shape[-1]
         self.conv = keras.layers.Conv2D(
@@ -65,7 +61,7 @@ class RPNHead(keras.layers.Layer):
 
     def call(self, feature_map, training=None):
         def call_single_level(f_map):
-            batch_size = f_map.get_shape().as_list()[0] or tf.shape(f_map)[0]
+            batch_size = f_map.get_shape().as_list()[0] or ops.shape(f_map)[0]
             # [BS, H, W, C]
             t = self.conv(f_map)
             # [BS, H, W, K]

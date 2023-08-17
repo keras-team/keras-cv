@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO(ariG23498): Remove TF import
-import tensorflow as tf
+import tree
 
 import keras_cv
 from keras_cv import bounding_box
@@ -62,26 +61,17 @@ class FasterRCNN(Task):
     References:
         - [FasterRCNN](https://arxiv.org/pdf/1506.01497.pdf)
 
-    Usage:
-    ```python
-    retinanet = keras_cv.models.FasterRCNN(
-        num_classes=20,
-        bounding_box_format="xywh",
-        backbone=None,
-    )
-    ```
-
     Args:
+        backbone: `keras.Model`. Must implement the
+            `pyramid_level_inputs` property with keys "P2", "P3", "P4", and "P5"
+            and layer names as values. If `None`, defaults to
+            `keras_cv.models.ResNet50Backbone()`.
         num_classes: the number of classes in your dataset excluding the
             background class. classes should be represented by integers in the
             range [0, num_classes).
         bounding_box_format: The format of bounding boxes of model output. Refer
             [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
             for more details on supported bounding box formats.
-        backbone: Optional `keras.Model`. Must implement the
-            `pyramid_level_inputs` property with keys "P2", "P3", "P4", and "P5"
-            and layer names as values. If `None`, defaults to
-            `keras_cv.models.ResNet50Backbone()`.
         anchor_generator: (Optional) a `keras_cv.layers.AnchorGenerator`. It is
             used in the model to match ground truth boxes and labels with
             anchors, or with region proposals. By default it uses the sizes and
@@ -102,6 +92,44 @@ class FasterRCNN(Task):
             box prediction and softmaxed score prediction, and returns NMSed box
             prediction, NMSed softmaxed score prediction, NMSed class
             prediction, and NMSed valid detection.
+    
+    Examples:
+
+    ```python
+    images = np.ones((1, 512, 512, 3))
+    labels = {
+        "boxes": [
+            [
+                [0, 0, 100, 100],
+                [100, 100, 200, 200],
+                [300, 300, 100, 100],
+            ]
+        ],
+        "classes": [[1, 1, 1]],
+    }
+    model = keras_cv.models.FasterRCNN(
+        num_classes=20,
+        bounding_box_format="xywh",
+        backbone=keras_cv.models.ResNet50Backbone.from_preset(
+            "resnet50_imagenet"
+        )
+    )
+
+    # Evaluate model without box decoding and NMS
+    model(images)
+
+    # Prediction with box decoding and NMS
+    model.predict(images)
+
+    # Train model
+    model.compile(
+        classification_loss='focal',
+        box_loss='smoothl1',
+        optimizer=keras.optimizers.SGD(global_clipnorm=10.0),
+        jit_compile=False,
+    )
+    model.fit(images, labels)
+    ```  
     """  # noqa: E501
 
     def __init__(
@@ -198,8 +226,8 @@ class FasterRCNN(Task):
             decoded_rpn_boxes, rpn_scores, training=training
         )
         rois = _clip_boxes(rois, "yxyx", image_shape)
-        rpn_boxes = ops.concat(tf.nest.flatten(rpn_boxes), axis=1)
-        rpn_scores = ops.concat(tf.nest.flatten(rpn_scores), axis=1)
+        rpn_boxes = ops.concat(tree.flatten(rpn_boxes), axis=1)
+        rpn_scores = ops.concat(tree.flatten(rpn_scores), axis=1)
         return rois, feature_map, rpn_boxes, rpn_scores
 
     def _call_rcnn(self, rois, feature_map, training=None):
@@ -304,7 +332,7 @@ class FasterRCNN(Task):
             rpn_cls_targets,
             rpn_cls_weights,
         ) = self.rpn_labeler(
-            tf.concat(tf.nest.flatten(anchors), axis=0), boxes, classes
+            ops.concat(tree.flatten(anchors), axis=0), boxes, classes
         )
         rpn_box_weights /= (
             self.rpn_labeler.samples_per_image * global_batch * 0.25
@@ -431,6 +459,14 @@ class FasterRCNN(Task):
             "rcnn_head": self.rcnn_head,
         }
 
+    # def presets(cls):
+    #     return super().presets
+    
+    # def presets_with_weights(cls):
+    #     return super().presets_with_weights
+    
+    # def backbone_presets(cls):
+    #     return super().backbone_presets
 
 def _validate_and_get_loss(loss, loss_name):
     if isinstance(loss, str):

@@ -17,6 +17,9 @@ from keras_cv.models.object_detection.faster_rcnn.feature_pyramid import (
 from keras_cv.models.object_detection.faster_rcnn.rcnn_head import (
     RCNNHead,
 )
-from keras_cv.models.object_detection.faster_rcnn.rpn_head import (  # noqa: E501
+from keras_cv.models.object_detection.faster_rcnn.rpn_head import (   # noqa: E501
     RPNHead,
+)
+from keras_cv.models.object_detection.faster_rcnn.faster_rcnn import (# noqa: E501
+    FasterRCNN,
 )
