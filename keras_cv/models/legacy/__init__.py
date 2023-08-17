@@ -24,14 +24,6 @@ from keras_cv.models.legacy.convnext import ConvNeXtTiny
 from keras_cv.models.legacy.convnext import ConvNeXtXLarge
 from keras_cv.models.legacy.darknet import DarkNet21
 from keras_cv.models.legacy.darknet import DarkNet53
-from keras_cv.models.legacy.efficientnet_v1 import EfficientNetB0
-from keras_cv.models.legacy.efficientnet_v1 import EfficientNetB1
-from keras_cv.models.legacy.efficientnet_v1 import EfficientNetB2
-from keras_cv.models.legacy.efficientnet_v1 import EfficientNetB3
-from keras_cv.models.legacy.efficientnet_v1 import EfficientNetB4
-from keras_cv.models.legacy.efficientnet_v1 import EfficientNetB5
-from keras_cv.models.legacy.efficientnet_v1 import EfficientNetB6
-from keras_cv.models.legacy.efficientnet_v1 import EfficientNetB7
 from keras_cv.models.legacy.mlp_mixer import MLPMixerB16
 from keras_cv.models.legacy.mlp_mixer import MLPMixerB32
 from keras_cv.models.legacy.mlp_mixer import MLPMixerL16
