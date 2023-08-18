@@ -18,6 +18,7 @@ from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 
+
 @keras_cv_export(
     "keras_cv.models.faster_rcnn.RPNHead",
     package="keras_cv.models.faster_rcnn",

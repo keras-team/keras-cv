@@ -12,7 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import copy
+
 import tree
+from absl import logging
 
 import keras_cv
 from keras_cv import bounding_box
@@ -21,21 +24,6 @@ from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 from keras_cv.bounding_box.converters import _decode_deltas_to_boxes
-# from keras_cv.models.backbones.backbone_presets import backbone_presets
-# from keras_cv.models.backbones.backbone_presets import (
-#     backbone_presets_with_weights,
-# )
-from keras_cv.models.object_detection.__internal__ import unpack_input
-from keras_cv.models.object_detection.faster_rcnn import FeaturePyramid
-from keras_cv.models.object_detection.faster_rcnn import RPNHead
-from keras_cv.models.object_detection.faster_rcnn import RCNNHead
-# from keras_cv.models.object_detection.retinanet import RetinaNetLabelEncoder
-# from keras_cv.models.object_detection.retinanet.retinanet_presets import (
-#     retinanet_presets,
-# )
-from keras_cv.models.task import Task
-# from keras_cv.utils.python_utils import classproperty
-from keras_cv.utils.train import get_feature_extractor
 
 # All the imports from legacy
 from keras_cv.bounding_box.utils import _clip_boxes
@@ -45,7 +33,19 @@ from keras_cv.layers.object_detection.roi_align import _ROIAligner
 from keras_cv.layers.object_detection.roi_generator import ROIGenerator
 from keras_cv.layers.object_detection.roi_sampler import _ROISampler
 from keras_cv.layers.object_detection.rpn_label_encoder import _RpnLabelEncoder
-from keras_cv.models.object_detection import predict_utils
+from keras_cv.models.backbones.backbone_presets import backbone_presets
+from keras_cv.models.backbones.backbone_presets import (
+    backbone_presets_with_weights,
+)
+from keras_cv.models.object_detection.__internal__ import unpack_input
+from keras_cv.models.object_detection.faster_rcnn.feature_pyramid import (
+    FeaturePyramid,
+)
+from keras_cv.models.object_detection.faster_rcnn.rcnn_head import RCNNHead
+from keras_cv.models.object_detection.faster_rcnn.rpn_head import RPNHead
+from keras_cv.models.task import Task
+from keras_cv.utils.python_utils import classproperty
+from keras_cv.utils.train import get_feature_extractor
 
 BOX_VARIANCE = [0.1, 0.1, 0.2, 0.2]
 
@@ -92,7 +92,7 @@ class FasterRCNN(Task):
             box prediction and softmaxed score prediction, and returns NMSed box
             prediction, NMSed softmaxed score prediction, NMSed class
             prediction, and NMSed valid detection.
-    
+
     Examples:
 
     ```python
@@ -129,7 +129,7 @@ class FasterRCNN(Task):
         jit_compile=False,
     )
     model.fit(images, labels)
-    ```  
+    ```
     """  # noqa: E501
 
     def __init__(
@@ -200,11 +200,12 @@ class FasterRCNN(Task):
         )
         self._prediction_decoder = (
             prediction_decoder
-            or cv_layers.MultiClassNonMaxSuppression(
+            or cv_layers.NonMaxSuppression(
                 bounding_box_format=bounding_box_format,
                 from_logits=False,
-                max_detections_per_class=10,
-                max_detections=10,
+                iou_threshold=0.5,
+                confidence_threshold=0.5,
+                max_detections=100,
             )
         )
 
@@ -226,15 +227,15 @@ class FasterRCNN(Task):
             decoded_rpn_boxes, rpn_scores, training=training
         )
         rois = _clip_boxes(rois, "yxyx", image_shape)
-        rpn_boxes = ops.concat(tree.flatten(rpn_boxes), axis=1)
-        rpn_scores = ops.concat(tree.flatten(rpn_scores), axis=1)
+        rpn_boxes = ops.concatenate(tree.flatten(rpn_boxes), axis=1)
+        rpn_scores = ops.concatenate(tree.flatten(rpn_scores), axis=1)
         return rois, feature_map, rpn_boxes, rpn_scores
 
     def _call_rcnn(self, rois, feature_map, training=None):
         feature_map = self.roi_pooler(feature_map, rois)
         # [BS, H*W*K, pool_shape*C]
         feature_map = ops.reshape(
-            feature_map, ops.concat([ops.shape(rois)[:2], [-1]], axis=0)
+            feature_map, ops.concatenate([ops.shape(rois)[:2], [-1]], axis=0)
         )
         # [BS, H*W*K, 4], [BS, H*W*K, num_classes + 1]
         rcnn_box_pred, rcnn_cls_pred = self.rcnn_head(
@@ -320,11 +321,6 @@ class FasterRCNN(Task):
 
     def compute_loss(self, images, boxes, classes, training):
         local_batch = images.get_shape().as_list()[0]
-        if tf.distribute.has_strategy():
-            num_sync = tf.distribute.get_strategy().num_replicas_in_sync
-        else:
-            num_sync = 1
-        global_batch = local_batch * num_sync
         anchors = self.anchor_generator(image_shape=tuple(images[0].shape))
         (
             rpn_box_targets,
@@ -332,16 +328,16 @@ class FasterRCNN(Task):
             rpn_cls_targets,
             rpn_cls_weights,
         ) = self.rpn_labeler(
-            ops.concat(tree.flatten(anchors), axis=0), boxes, classes
+            ops.concatenate(tree.flatten(anchors), axis=0), boxes, classes
         )
         rpn_box_weights /= (
-            self.rpn_labeler.samples_per_image * global_batch * 0.25
+            self.rpn_labeler.samples_per_image * local_batch * 0.25
         )
-        rpn_cls_weights /= self.rpn_labeler.samples_per_image * global_batch
+        rpn_cls_weights /= self.rpn_labeler.samples_per_image * local_batch
         rois, feature_map, rpn_box_pred, rpn_cls_pred = self._call_rpn(
             images, anchors, training=training
         )
-        rois = tf.stop_gradient(rois)
+        rois = ops.stop_gradient(rois)
         (
             rois,
             box_targets,
@@ -349,8 +345,8 @@ class FasterRCNN(Task):
             cls_targets,
             cls_weights,
         ) = self.roi_sampler(rois, boxes, classes)
-        box_weights /= self.roi_sampler.num_sampled_rois * global_batch * 0.25
-        cls_weights /= self.roi_sampler.num_sampled_rois * global_batch
+        box_weights /= self.roi_sampler.num_sampled_rois * local_batch * 0.25
+        cls_weights /= self.roi_sampler.num_sampled_rois * local_batch
         box_pred, cls_pred = self._call_rcnn(
             rois, feature_map, training=training
         )
@@ -376,48 +372,24 @@ class FasterRCNN(Task):
             x=images, y=y_true, y_pred=y_pred, sample_weight=weights
         )
 
-    def train_step(self, data):
-        images, y = unpack_input(data)
+    def train_step(self, *args):
+        data = args[-1]
+        args = args[:-1]
+        x, y = unpack_input(data)
+        return super().train_step(*args, (x, y))
 
-        boxes = y["boxes"]
-        if len(y["classes"].shape) != 2:
-            raise ValueError(
-                "Expected 'classes' to be a tf.Tensor of rank 2. "
-                f"Got y['classes'].shape={y['classes'].shape}."
-            )
-        # TODO(tanzhenyu): remove this hack and perform broadcasting elsewhere
-        classes = tf.expand_dims(y["classes"], axis=-1)
-        with tf.GradientTape() as tape:
-            total_loss = self.compute_loss(
-                images, boxes, classes, training=True
-            )
-            reg_losses = []
-            if self.weight_decay:
-                for var in self.trainable_variables:
-                    if "bn" not in var.name:
-                        reg_losses.append(
-                            self.weight_decay * tf.nn.l2_loss(var)
-                        )
-                l2_loss = tf.math.add_n(reg_losses)
-            total_loss += l2_loss
-        self.optimizer.minimize(total_loss, self.trainable_variables, tape=tape)
-        return self.compute_metrics(images, {}, {}, sample_weight={})
+    def test_step(self, *args):
+        data = args[-1]
+        args = args[:-1]
+        x, y = unpack_input(data)
+        return super().test_step(*args, (x, y))
 
-    def test_step(self, data):
-        images, y = unpack_input(data)
-
-        boxes = y["boxes"]
-        if len(y["classes"].shape) != 2:
-            raise ValueError(
-                "Expected 'classes' to be a tf.Tensor of rank 2. "
-                f"Got y['classes'].shape={y['classes'].shape}."
-            )
-        classes = tf.expand_dims(y["classes"], axis=-1)
-        self.compute_loss(images, boxes, classes, training=False)
-        return self.compute_metrics(images, {}, {}, sample_weight={})
-
-    def make_predict_function(self, force=False):
-        return predict_utils.make_predict_function(self, force=force)
+    def predict_step(self, *args):
+        outputs = super().predict_step(*args)
+        if type(outputs) is tuple:
+            return self.decode_predictions(outputs[0], args[-1]), outputs[1]
+        else:
+            return self.decode_predictions(outputs, args[-1])
 
     @property
     def prediction_decoder(self):
@@ -459,14 +431,29 @@ class FasterRCNN(Task):
             "rcnn_head": self.rcnn_head,
         }
 
-    # def presets(cls):
-    #     return super().presets
-    
-    # def presets_with_weights(cls):
-    #     return super().presets_with_weights
-    
-    # def backbone_presets(cls):
-    #     return super().backbone_presets
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        # return copy.deepcopy({**backbone_presets, **fasterrcnn_presets})
+        return copy.deepcopy({**backbone_presets})
+
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include
+        weights."""
+        return copy.deepcopy(
+            # {**backbone_presets_with_weights, **fasterrcnn_presets}
+            {
+                **backbone_presets_with_weights,
+            }
+        )
+
+    @classproperty
+    def backbone_presets(cls):
+        """Dictionary of preset names and configurations of compatible
+        backbones."""
+        return copy.deepcopy(backbone_presets)
+
 
 def _validate_and_get_loss(loss, loss_name):
     if isinstance(loss, str):

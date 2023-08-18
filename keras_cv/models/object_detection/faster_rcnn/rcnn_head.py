@@ -15,6 +15,7 @@
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 
+
 @keras_cv_export(
     "keras_cv.models.faster_rcnn.RCNNHead",
     package="keras_cv.models.faster_rcnn",
@@ -68,4 +69,3 @@ class RCNNHead(keras.layers.Layer):
         }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
-

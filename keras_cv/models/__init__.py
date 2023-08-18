@@ -131,6 +131,7 @@ from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
     ResNetV2Backbone,
 )
 from keras_cv.models.classification.image_classifier import ImageClassifier
+from keras_cv.models.object_detection.faster_rcnn.faster_rcnn import FasterRCNN
 from keras_cv.models.object_detection.retinanet.retinanet import RetinaNet
 from keras_cv.models.object_detection.yolo_v8.yolo_v8_backbone import (
     YOLOV8Backbone,
@@ -141,6 +142,3 @@ from keras_cv.models.object_detection.yolo_v8.yolo_v8_detector import (
 from keras_cv.models.segmentation import DeepLabV3Plus
 from keras_cv.models.stable_diffusion import StableDiffusion
 from keras_cv.models.stable_diffusion import StableDiffusionV2
-from keras_cv.models.object_detection.faster_rcnn.faster_rcnn import (
-    FasterRCNN,
-)

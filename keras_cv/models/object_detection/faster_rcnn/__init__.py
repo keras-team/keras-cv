@@ -11,15 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from keras_cv.models.object_detection.faster_rcnn.feature_pyramid import (
-    FeaturePyramid,
-)
-from keras_cv.models.object_detection.faster_rcnn.rcnn_head import (
-    RCNNHead,
-)
-from keras_cv.models.object_detection.faster_rcnn.rpn_head import (   # noqa: E501
-    RPNHead,
-)
-from keras_cv.models.object_detection.faster_rcnn.faster_rcnn import (# noqa: E501
+from keras_cv.models.object_detection.faster_rcnn.faster_rcnn import (  # noqa: E501
     FasterRCNN,
 )
