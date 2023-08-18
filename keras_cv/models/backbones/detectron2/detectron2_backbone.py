@@ -14,9 +14,11 @@
 
 import copy
 
+from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.layers.detectron2_layers import ViTDetPatchingAndEmbedding
 from keras_cv.layers.detectron2_layers import WindowedTransformerEncoder
+from keras_cv.layers.serializable_sequential import SerializableSequential
 from keras_cv.models.backbones.backbone import Backbone
 from keras_cv.models.backbones.detectron2.detectron2_backbone_presets import (
     backbone_presets,
@@ -24,7 +26,7 @@ from keras_cv.models.backbones.detectron2.detectron2_backbone_presets import (
 from keras_cv.utils.python_utils import classproperty
 
 
-@keras.utils.register_keras_serializable(package="keras_cv.models")
+@keras_cv_export("keras_cv.models.ViTDetBackbone")
 class ViTDetBackbone(Backbone):
     """A ViT image encoder that uses a windowed transformer encoder and
     relative positional encodings.
@@ -130,7 +132,7 @@ class ViTDetBackbone(Backbone):
                 input_size=(img_size // patch_size, img_size // patch_size),
             )
             self.transformer_blocks.append(block)
-        self.bottleneck = keras.models.Sequential(
+        self.bottleneck = SerializableSequential(
             [
                 keras.layers.Conv2D(
                     filters=out_chans, kernel_size=1, use_bias=False
@@ -159,6 +161,13 @@ class ViTDetBackbone(Backbone):
         )
 
         self.built = True
+
+    @property
+    def pyramid_level_inputs(self):
+        raise NotImplementedError(
+            "The `ViTDetBackbone` model doesn't compute"
+            " pyramid level features."
+        )
 
     def call(self, x):
         B, _, _, _ = x.shape

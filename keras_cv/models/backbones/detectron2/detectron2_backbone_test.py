@@ -25,8 +25,8 @@ from keras_cv.models.backbones.detectron2.detectron2_aliases import (
 from keras_cv.tests.test_case import TestCase
 
 
-@pytest.mark.extra_large
 class TestViTDetBackbone(TestCase):
+    @pytest.mark.extra_large
     def test_call_and_save(self):
         model = SAMViTDetBBackbone()
         x = np.ones((1, 1024, 1024, 3))
@@ -43,3 +43,8 @@ class TestViTDetBackbone(TestCase):
         loaded_model = keras.saving.load_model(path)
         x_out_loaded = ops.convert_to_numpy(loaded_model(x))
         self.assertAllClose(x_out, x_out_loaded)
+
+    def test_pyramid_level_inputs_error(self):
+        model = SAMViTDetBBackbone()
+        with self.assertRaises(NotImplementedError, msg="doesn't compute"):
+            model.pyramid_level_inputs

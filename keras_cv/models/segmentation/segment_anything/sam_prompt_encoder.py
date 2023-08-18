@@ -14,11 +14,12 @@
 
 import math
 
+from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 
 
-@keras.saving.register_keras_serializable(package="keras_cv")
+@keras_cv_export("keras_cv.layers.RandomFrequencyPositionalEmbeddings")
 class RandomFrequencyPositionalEmbeddings(keras.layers.Layer):
     def __init__(self, num_positional_features, scale, **kwargs):
         """Positional encoding using random spatial frequencies.
@@ -104,7 +105,7 @@ class RandomFrequencyPositionalEmbeddings(keras.layers.Layer):
         return config
 
 
-@keras.saving.register_keras_serializable(package="keras_cv")
+@keras_cv_export("keras_cv.models.PromptEncoder")
 class PromptEncoder(keras.models.Model):
     """Prompt Encoder for the segment anything model.
 

@@ -12,10 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+@keras_cv_export("keras_cv.layers.MLPBlock")
 class MLPBlock(keras.layers.Layer):
     def __init__(self, embedding_dim, mlp_dim, activation="gelu", **kwargs):
         """A MLP block with architecture

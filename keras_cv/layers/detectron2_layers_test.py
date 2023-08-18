@@ -16,6 +16,7 @@ import numpy as np
 
 from keras_cv.backend import ops
 from keras_cv.layers.detectron2_layers import MultiHeadAttentionWithRelativePE
+from keras_cv.layers.detectron2_layers import ViTDetPatchingAndEmbedding
 from keras_cv.layers.detectron2_layers import WindowedTransformerEncoder
 from keras_cv.tests.test_case import TestCase
 
@@ -46,3 +47,9 @@ class TestDetectron2Layers(TestCase):
         x_out = ops.convert_to_numpy(windowed_transformer_encoder(x))
         self.assertEqual(x_out.shape, (1, 64, 64, 1280))
         self.assertAllClose(x_out, np.ones_like(x_out))
+
+    def test_vit_patching_and_embedding(self):
+        vit_patching_and_embedding = ViTDetPatchingAndEmbedding()
+        x = np.ones((1, 1024, 1024, 3))
+        x_out = vit_patching_and_embedding(x)
+        self.assertEqual(x_out.shape, (1, 64, 64, 768))

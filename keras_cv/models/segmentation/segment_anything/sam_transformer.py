@@ -12,12 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 from keras_cv.models.segmentation.segment_anything.sam_layers import MLPBlock
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+@keras_cv_export("keras_cv.layers.MultiHeadAttentionWithDownsampling")
 class MultiHeadAttentionWithDownsampling(keras.layers.Layer):
     """Multi-Head Attention with downsampling.
 
@@ -107,7 +108,7 @@ class MultiHeadAttentionWithDownsampling(keras.layers.Layer):
         return config
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+@keras_cv_export("keras_cv.layers.TwoWayMultiHeadAttention")
 class TwoWayMultiHeadAttention(keras.layers.Layer):
     """Two-way multi-head attention layer.
 
@@ -224,7 +225,7 @@ class TwoWayMultiHeadAttention(keras.layers.Layer):
         return config
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+@keras_cv_export("keras_cv.layers.TwoWayTransformer")
 class TwoWayTransformer(keras.layers.Layer):
     """A two-way cross-attention transformer decoder.
 
