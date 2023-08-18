@@ -2,10 +2,10 @@ import math
 
 from keras_cv.backend import keras
 from keras_cv.backend import ops
-from keras_cv.layers.efficient_multihead_attention import (
+from keras_cv.layers.regularization.drop_path import DropPath
+from keras_cv.layers.segformer_multihead_attention import (
     SegFormerMultiheadAttention,
 )
-from keras_cv.layers.regularization.drop_path import DropPath
 
 
 @keras_cv_export("keras_cv.layers.HierarchicalTransformerEncoder")
@@ -88,6 +88,7 @@ class HierarchicalTransformerEncoder(keras.layers.Layer):
         config = super().get_config()
         config.update(
             {
+                "mlp": keras.saving.serialize_keras_object(self.mlp),
                 "project_dim": self.project_dim,
                 "num_heads": self.num_heads,
                 "drop_prop": self.drop_prop,
