@@ -8,7 +8,7 @@ from keras_cv.layers.efficient_multihead_attention import (
 from keras_cv.layers.regularization.drop_path import DropPath
 
 
-@keras.saving.register_keras_serializable(package="keras_cv")
+@keras_cv_export("keras_cv.layers.HierarchicalTransformerEncoder")
 class HierarchicalTransformerEncoder(keras.layers.Layer):
     """
     Hierarchical transformer encoder block implementation as a Keras Layer.

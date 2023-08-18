@@ -4,7 +4,7 @@ from keras_cv.backend import keras
 from keras_cv.backend import ops
 
 
-@keras.saving.register_keras_serializable(package="keras_cv")
+@keras_cv_export("keras_cv.layers.SegFormerMultiheadAttention")
 class SegFormerMultiheadAttention(keras.layers.Layer):
     def __init__(self, project_dim, num_heads, sr_ratio):
         """

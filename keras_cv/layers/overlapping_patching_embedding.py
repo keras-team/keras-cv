@@ -2,7 +2,7 @@ from keras_cv.backend import keras
 from keras_cv.backend import ops
 
 
-@keras.saving.register_keras_serializable(package="keras_cv")
+@keras_cv_export("keras_cv.layers.OverlappingPatchingAndEmbedding")
 class OverlappingPatchingAndEmbedding(keras.layers.Layer):
     def __init__(self, project_dim=32, patch_size=7, stride=4, **kwargs):
         """
