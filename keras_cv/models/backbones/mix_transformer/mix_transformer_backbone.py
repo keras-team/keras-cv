@@ -26,6 +26,7 @@ import copy
 import numpy as np
 
 from keras_cv import layers as cv_layers
+from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 from keras_cv.models import utils
