@@ -45,7 +45,7 @@ class MiTBackbone(Backbone):
         self,
         include_rescaling,
         depths,
-        input_shape=(None, None, 3),
+        input_shape=(224, 224, 3),
         input_tensor=None,
         embedding_dims=None,
         **kwargs,
@@ -111,8 +111,10 @@ class MiTBackbone(Backbone):
 
         super().__init__(inputs=inputs, outputs=x, **kwargs)
 
-        self.num_stages = num_stages
-        self.output_channels = embedding_dims
+        self.depths = depths
+        self.embedding_dims = embedding_dims
+        self.include_rescaling = include_rescaling
+        self.input_tensor = input_tensor
         self.pyramid_level_inputs = {
             f"P{i + 1}": name for i, name in enumerate(pyramid_level_inputs)
         }
@@ -121,10 +123,11 @@ class MiTBackbone(Backbone):
         config = super().get_config()
         config.update(
             {
-                "channels": self.channels,
-                "num_stages": self.num_stages,
-                "output_channels": self.output_channels,
-                "pyramid_level_inputs": self.pyramid_level_inputs,
+                "depths": self.depths,
+                "embedding_dims": self.embedding_dims,
+                "include_rescaling": self.include_rescaling,
+                "input_shape": self.input_shape[1:],
+                "input_tensor": self.input_tensor,
             }
         )
         return config

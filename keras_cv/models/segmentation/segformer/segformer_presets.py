@@ -13,21 +13,25 @@
 # limitations under the License.
 """SegFormer model preset configurations."""
 
-from keras_cv.models.backbones.mix_transformer.mix_transformer_backbone import (
-    MiTBackbone,
+from keras_cv.backend import keras
+from keras_cv.models.backbones.mix_transformer.mix_transformer_backbone_presets import (
+    backbone_presets,
 )
 
 presets_no_weights = {
     "segformer_b0": {
         "metadata": {
-            "description": ("SegFormer model with MiTB0 backbone."),
+            "description": (
+                "SegFormer model with a pretrained MiTB0 backbone."
+            ),
             "params": 3719027,
             "official_name": "SegFormerB0",
             "path": "segformer_b0",
         },
         "class_name": "keras_cv.models>SegFormer",
         "config": {
-            "backbone": MiTBackbone.from_preset("mit_b0_imagenet"),
+            "num_classes": 19,
+            "backbone": backbone_presets["mit_b0_imagenet"],
         },
     },
     "segformer_b1": {
@@ -38,9 +42,7 @@ presets_no_weights = {
             "path": "segformer_b1",
         },
         "class_name": "keras_cv.models>SegFormer",
-        "config": {
-            "backbone": MiTBackbone.from_preset("mit_b1"),
-        },
+        "config": {"num_classes": 19, "backbone": backbone_presets["mit_b1"]},
     },
     "segformer_b2": {
         "metadata": {
@@ -50,9 +52,7 @@ presets_no_weights = {
             "path": "segformer_b2",
         },
         "class_name": "keras_cv.models>SegFormer",
-        "config": {
-            "backbone": MiTBackbone.from_preset("mit_b2"),
-        },
+        "config": {"num_classes": 19, "backbone": backbone_presets["mit_b2"]},
     },
     "segformer_b3": {
         "metadata": {
@@ -62,9 +62,7 @@ presets_no_weights = {
             "path": "segformer_b3",
         },
         "class_name": "keras_cv.models>SegFormer",
-        "config": {
-            "backbone": MiTBackbone.from_preset("mit_b3"),
-        },
+        "config": {"num_classes": 19, "backbone": backbone_presets["mit_b3"]},
     },
     "segformer_b4": {
         "metadata": {
@@ -74,9 +72,7 @@ presets_no_weights = {
             "path": "segformer_b4",
         },
         "class_name": "keras_cv.models>SegFormer",
-        "config": {
-            "backbone": MiTBackbone.from_preset("mit_b4"),
-        },
+        "config": {"num_classes": 19, "backbone": backbone_presets["mit_b4"]},
     },
     "segformer_b5": {
         "metadata": {
@@ -86,9 +82,7 @@ presets_no_weights = {
             "path": "segformer_b5",
         },
         "class_name": "keras_cv.models>SegFormer",
-        "config": {
-            "backbone": MiTBackbone.from_preset("mit_b5"),
-        },
+        "config": {"num_classes": 19, "backbone": backbone_presets["mit_b5"]},
     },
 }
 

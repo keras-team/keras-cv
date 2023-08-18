@@ -1,7 +1,5 @@
 import copy
 
-import tensorflow as tf
-
 from keras_cv.backend import keras
 from keras_cv.models.segmentation.segformer.segformer_presets import (  # noqa: E501
     presets,
@@ -73,7 +71,6 @@ class SegFormer(Task):
         projection_filters=256,
         **kwargs,
     ):
-        """ """
         if not isinstance(backbone, keras.layers.Layer) or not isinstance(
             backbone, keras.Model
         ):
@@ -96,7 +93,7 @@ class SegFormer(Task):
         # Project all multi-level outputs onto the same dimensionality
         # and feature map shape
         multi_layer_outs = []
-        for feature_dim, feature in zip(backbone.output_channels, features):
+        for feature_dim, feature in zip(backbone.embedding_dims, features):
             out = keras.layers.Dense(
                 projection_filters, name=f"linear_{feature_dim}"
             )(feature)
@@ -140,11 +137,15 @@ class SegFormer(Task):
         self.projection_filters = projection_filters
 
     def get_config(self):
-        return {
-            "num_classes": self.num_classes,
-            "backbone": self.backbone,
-            "projection_filters": self.projection_filters,
-        }
+        config = super().get_config()
+        config.update(
+            {
+                "num_classes": self.num_classes,
+                "backbone": self.backbone,
+                "projection_filters": self.projection_filters,
+                "backbone": keras.saving.serialize_keras_object(self.backbone),
+            }
+        )
 
     @classproperty
     def presets(cls):
