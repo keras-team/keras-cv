@@ -15,12 +15,13 @@
 
 import os
 
+from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.utils.python_utils import classproperty
 from keras_cv.utils.python_utils import format_docstring
 
 
-@keras.saving.register_keras_serializable(package="keras_cv")
+@keras_cv_export("keras_cv.models.Task")
 class Task(keras.Model):
     """Base class for Task models."""
 

@@ -36,7 +36,7 @@ class MobileNetV3PresetSmokeTest(TestCase):
         self.input_batch = np.ones(shape=(8, 224, 224, 3))
 
     def test_backbone_output(self):
-        model = MobileNetV3Backbone.from_preset("mobilenet_v3_large_imagenet")
+        model = MobileNetV3Backbone.from_preset("mobilenet_v3_small_imagenet")
         outputs = model(self.input_batch)
 
         # The forward pass from a preset should be stable!
@@ -45,7 +45,7 @@ class MobileNetV3PresetSmokeTest(TestCase):
         # We should only update these numbers if we are updating a weights
         # file, or have found a discrepancy with the upstream source.
         outputs = outputs[0, 0, 0, :5]
-        expected = [0.27, 0.01, 0.29, 0.08, -0.12]
+        expected = [0.25, 1.13, -0.26, 0.10, 0.03]
         # Keep a high tolerance, so we are robust to different hardware.
         self.assertAllClose(
             ops.convert_to_numpy(outputs), expected, atol=0.01, rtol=0.01

@@ -14,8 +14,10 @@
 
 from tensorflow import keras
 
+from keras_cv.api_export import keras_cv_export
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+
+@keras_cv_export("keras_cv.layers.StochasticDepth")
 class StochasticDepth(keras.layers.Layer):
     """
     Implements the Stochastic Depth layer. It randomly drops residual branches

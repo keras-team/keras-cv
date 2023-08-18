@@ -16,10 +16,11 @@ import tensorflow as tf
 from tensorflow import keras
 
 from keras_cv import bounding_box
+from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import assert_tf_keras
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+@keras_cv_export("keras_cv.layers.ROIPooler")
 class ROIPooler(keras.layers.Layer):
     """
     Pooling feature map of dynamic shape into region of interest (ROI) of fixed

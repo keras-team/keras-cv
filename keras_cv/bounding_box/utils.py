@@ -14,10 +14,12 @@
 """Utility functions for working with bounding boxes."""
 
 from keras_cv import bounding_box
+from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import ops
 from keras_cv.bounding_box.formats import XYWH
 
 
+@keras_cv_export("keras_cv.bounding_box.is_relative")
 def is_relative(bounding_box_format):
     """A util to check if a bounding box format uses relative coordinates"""
     if (
@@ -34,6 +36,7 @@ def is_relative(bounding_box_format):
     return bounding_box_format.startswith("rel")
 
 
+@keras_cv_export("keras_cv.bounding_box.as_relative")
 def as_relative(bounding_box_format):
     """A util to get the relative equivalent of a provided bounding box format.
 
@@ -61,8 +64,7 @@ def _relative_area(boxes, bounding_box_format):
     )
 
 
-# bounding_boxes is a dictionary with shape:
-# {"boxes": [None, None, 4], "mask": [None, None]}
+@keras_cv_export("keras_cv.bounding_box.clip_to_image")
 def clip_to_image(
     bounding_boxes, bounding_box_format, images=None, image_shape=None
 ):
