@@ -58,9 +58,14 @@ class RandomZoomTest(TestCase):
             ),
         }
         # Check output shape of images
-        self.assertAllEqual(expected_output["images"].shape, actual_output["images"].shape)
+        self.assertAllEqual(
+            expected_output["images"].shape, actual_output["images"].shape
+        )
         # Check output shape of segmentation masks
-        self.assertAllEqual(expected_output["segmentation_masks"].shape, actual_output["segmentation_masks"].shape)
+        self.assertAllEqual(
+            expected_output["segmentation_masks"].shape,
+            actual_output["segmentation_masks"].shape,
+        )
 
     def test_random_zoom_in_numeric(self):
         for dtype in (np.int64, np.float32):
