@@ -67,6 +67,24 @@ from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_aliases import (
 from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_aliases import (
     EfficientNetV2SBackbone,
 )
+from keras_cv.models.backbones.mix_transformer.mix_transformer_aliases import (
+    MiTB0Backbone,
+)
+from keras_cv.models.backbones.mix_transformer.mix_transformer_aliases import (
+    MiTB1Backbone,
+)
+from keras_cv.models.backbones.mix_transformer.mix_transformer_aliases import (
+    MiTB2Backbone,
+)
+from keras_cv.models.backbones.mix_transformer.mix_transformer_aliases import (
+    MiTB3Backbone,
+)
+from keras_cv.models.backbones.mix_transformer.mix_transformer_aliases import (
+    MiTB4Backbone,
+)
+from keras_cv.models.backbones.mix_transformer.mix_transformer_aliases import (
+    MiTB5Backbone,
+)
 from keras_cv.models.backbones.mix_transformer.mix_transformer_backbone import (
     MiTBackbone,
 )
