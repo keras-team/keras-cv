@@ -17,7 +17,7 @@ from tensorflow.keras.layers import RandomHeight
 from tensorflow.keras.layers import RandomWidth
 
 from keras_cv.layers.augmenter import Augmenter
-from keras_cv.layers.efficient_multihead_attention import (
+from keras_cv.layers.segformer_multihead_attention import (
     SegFormerMultiheadAttention,
 )
 from keras_cv.layers.feature_pyramid import FeaturePyramid
