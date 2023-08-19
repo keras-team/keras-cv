@@ -28,7 +28,7 @@ presets_no_weights = {
             "official_name": "SegFormerB0",
             "path": "segformer_b0",
         },
-        "class_name": "keras_cv.models>SegFormer",
+        "class_name": "keras_cv>SegFormer",
         "config": {
             "num_classes": 19,
             "backbone": backbone_presets["mit_b0_imagenet"],
@@ -41,7 +41,7 @@ presets_no_weights = {
             "official_name": "SegFormerB1",
             "path": "segformer_b1",
         },
-        "class_name": "keras_cv.models>SegFormer",
+        "class_name": "keras_cv>SegFormer",
         "config": {"num_classes": 19, "backbone": backbone_presets["mit_b1"]},
     },
     "segformer_b2": {
@@ -51,7 +51,7 @@ presets_no_weights = {
             "official_name": "SegFormerB2",
             "path": "segformer_b2",
         },
-        "class_name": "keras_cv.models>SegFormer",
+        "class_name": "keras_cv>SegFormer",
         "config": {"num_classes": 19, "backbone": backbone_presets["mit_b2"]},
     },
     "segformer_b3": {
@@ -61,7 +61,7 @@ presets_no_weights = {
             "official_name": "SegFormerB3",
             "path": "segformer_b3",
         },
-        "class_name": "keras_cv.models>SegFormer",
+        "class_name": "keras_cv>SegFormer",
         "config": {"num_classes": 19, "backbone": backbone_presets["mit_b3"]},
     },
     "segformer_b4": {
@@ -71,7 +71,7 @@ presets_no_weights = {
             "official_name": "SegFormerB4",
             "path": "segformer_b4",
         },
-        "class_name": "keras_cv.models>SegFormer",
+        "class_name": "keras_cv>SegFormer",
         "config": {"num_classes": 19, "backbone": backbone_presets["mit_b4"]},
     },
     "segformer_b5": {
@@ -81,7 +81,7 @@ presets_no_weights = {
             "official_name": "SegFormerB5",
             "path": "segformer_b5",
         },
-        "class_name": "keras_cv.models>SegFormer",
+        "class_name": "keras_cv>SegFormer",
         "config": {"num_classes": 19, "backbone": backbone_presets["mit_b5"]},
     },
 }

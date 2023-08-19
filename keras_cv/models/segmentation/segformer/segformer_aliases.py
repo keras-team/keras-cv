@@ -42,14 +42,12 @@ ALIAS_DOCSTRING = """SegFormer model.
 class SegFormerB0(SegFormer):
     def __new__(
         cls,
-        backbone=None,
-        num_classes=None,
+        num_classes=19,
         **kwargs,
     ):
         # Pack args in kwargs
         kwargs.update(
             {
-                "backbone": backbone,
                 "num_classes": num_classes,
             }
         )
@@ -72,14 +70,12 @@ class SegFormerB0(SegFormer):
 class SegFormerB1(SegFormer):
     def __new__(
         cls,
-        backbone=None,
-        num_classes=None,
+        num_classes=19,
         **kwargs,
     ):
         # Pack args in kwargs
         kwargs.update(
             {
-                "backbone": backbone,
                 "num_classes": num_classes,
             }
         )
@@ -102,14 +98,12 @@ class SegFormerB1(SegFormer):
 class SegFormerB2(SegFormer):
     def __new__(
         cls,
-        backbone=None,
-        num_classes=None,
+        num_classes=19,
         **kwargs,
     ):
         # Pack args in kwargs
         kwargs.update(
             {
-                "backbone": backbone,
                 "num_classes": num_classes,
             }
         )
@@ -132,14 +126,12 @@ class SegFormerB2(SegFormer):
 class SegFormerB3(SegFormer):
     def __new__(
         cls,
-        backbone=None,
-        num_classes=None,
+        num_classes=19,
         **kwargs,
     ):
         # Pack args in kwargs
         kwargs.update(
             {
-                "backbone": backbone,
                 "num_classes": num_classes,
             }
         )
@@ -162,14 +154,12 @@ class SegFormerB3(SegFormer):
 class SegFormerB4(SegFormer):
     def __new__(
         cls,
-        backbone=None,
-        num_classes=None,
+        num_classes=19,
         **kwargs,
     ):
         # Pack args in kwargs
         kwargs.update(
             {
-                "backbone": backbone,
                 "num_classes": num_classes,
             }
         )
@@ -192,14 +182,12 @@ class SegFormerB4(SegFormer):
 class SegFormerB5(SegFormer):
     def __new__(
         cls,
-        backbone=None,
-        num_classes=None,
+        num_classes=19,
         **kwargs,
     ):
         # Pack args in kwargs
         kwargs.update(
             {
-                "backbone": backbone,
                 "num_classes": num_classes,
             }
         )

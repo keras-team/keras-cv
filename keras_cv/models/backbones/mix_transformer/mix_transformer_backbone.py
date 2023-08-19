@@ -40,7 +40,7 @@ from keras_cv.models.backbones.mix_transformer.mix_transformer_backbone_presets 
 from keras_cv.utils.python_utils import classproperty
 
 
-@keras_cv_export("keras_cv.layers.MiTBackbone")
+@keras_cv_export("keras_cv.models.MiTBackbone")
 class MiTBackbone(Backbone):
     def __init__(
         self,

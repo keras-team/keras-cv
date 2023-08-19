@@ -23,7 +23,7 @@ backbone_presets_no_weights = {
             "official_name": "MiT",
             "path": "mit",
         },
-        "class_name": "keras_cv.models>MiTBackbone",
+        "class_name": "keras_cv>MiTBackbone",
         "config": {
             "embedding_dims": [32, 64, 160, 256],
             "depths": [2, 2, 2, 2],
@@ -41,7 +41,7 @@ backbone_presets_no_weights = {
             "official_name": "MiT",
             "path": "mit",
         },
-        "class_name": "keras_cv.models>MiTBackbone",
+        "class_name": "keras_cv>MiTBackbone",
         "config": {
             "embedding_dims": [64, 128, 320, 512],
             "depths": [2, 2, 2, 2],
@@ -59,7 +59,7 @@ backbone_presets_no_weights = {
             "official_name": "MiT",
             "path": "mit",
         },
-        "class_name": "keras_cv.models>MiTBackbone",
+        "class_name": "keras_cv>MiTBackbone",
         "config": {
             "embedding_dims": [64, 128, 320, 512],
             "depths": [3, 4, 6, 3],
@@ -77,7 +77,7 @@ backbone_presets_no_weights = {
             "official_name": "MiT",
             "path": "mit",
         },
-        "class_name": "keras_cv.models>MiTBackbone",
+        "class_name": "keras_cv>MiTBackbone",
         "config": {
             "embedding_dims": [64, 128, 320, 512],
             "depths": [3, 4, 18, 3],
@@ -95,7 +95,7 @@ backbone_presets_no_weights = {
             "official_name": "MiT",
             "path": "mit",
         },
-        "class_name": "keras_cv.models>MiTBackbone",
+        "class_name": "keras_cv>MiTBackbone",
         "config": {
             "embedding_dims": [64, 128, 320, 512],
             "depths": [3, 8, 27, 3],
@@ -113,7 +113,7 @@ backbone_presets_no_weights = {
             "official_name": "MiT",
             "path": "mit",
         },
-        "class_name": "keras_cv.models>MiTBackbone",
+        "class_name": "keras_cv>MiTBackbone",
         "config": {
             "embedding_dims": [64, 128, 320, 512],
             "depths": [3, 6, 40, 3],
@@ -134,7 +134,7 @@ backbone_presets_with_weights = {
             "official_name": "MiT",
             "path": "mit",
         },
-        "class_name": "keras_cv.models>MiTBackbone",
+        "class_name": "keras_cv>MiTBackbone",
         "config": {
             "embedding_dims": [32, 64, 160, 256],
             "depths": [2, 2, 2, 2],

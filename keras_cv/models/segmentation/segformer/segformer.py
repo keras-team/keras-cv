@@ -1,3 +1,17 @@
+# Copyright 2023 The KerasCV Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import copy
 
 from keras_cv.api_export import keras_cv_export
@@ -13,7 +27,7 @@ from keras_cv.utils.python_utils import classproperty
 from keras_cv.utils.train import get_feature_extractor
 
 
-@keras_cv_export("keras_cv.layers.SegFormer")
+@keras_cv_export("keras_cv.models.segmentation.SegFormer")
 class SegFormer(Task):
     """A Keras model implementing the SegFormer architecture for semantic
     segmentation.
