@@ -47,8 +47,9 @@ class SegFormer(Task):
             values.
         num_classes: int, the number of classes for the detection model,
             including the background class.
-        projection_filters: int, default 256, number of filters in the convolution layer
-            projecting the concatenated features into a segmentation map.
+        projection_filters: int, default 256, number of filters in the
+            convolution layer projecting the concatenated features into
+            a segmentation map.
 
     Examples:
 
@@ -155,7 +156,6 @@ class SegFormer(Task):
         config.update(
             {
                 "num_classes": self.num_classes,
-                "backbone": self.backbone,
                 "projection_filters": self.projection_filters,
                 "backbone": keras.saving.serialize_keras_object(self.backbone),
             }

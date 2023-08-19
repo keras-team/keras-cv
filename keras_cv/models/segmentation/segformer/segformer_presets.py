@@ -13,7 +13,6 @@
 # limitations under the License.
 """SegFormer model preset configurations."""
 
-from keras_cv.backend import keras
 from keras_cv.models.backbones.mix_transformer.mix_transformer_backbone_presets import (
     backbone_presets,
 )

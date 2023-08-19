@@ -25,24 +25,29 @@ from keras_cv.layers.segformer_multihead_attention import (
 class HierarchicalTransformerEncoder(keras.layers.Layer):
     """
     Hierarchical transformer encoder block implementation as a Keras Layer.
-    The layer uses `SegFormerMultiheadAttention` as a `MultiHeadAttention` alternative for
-    computational efficiency, and is meant to be used within the SegFormer architecture.
+    The layer uses `SegFormerMultiheadAttention` as a `MultiHeadAttention`
+    alternative for computational efficiency, and is meant to be used
+    within the SegFormer architecture.
 
     References:
-        - [SegFormer: Simple and Efficient Design for Semantic Segmentation with Transformers](https://arxiv.org/abs/2105.15203) (CVPR 2021)
-        - [Official PyTorch implementation](https://github.com/NVlabs/SegFormer/blob/master/mmseg/models/backbones/mix_transformer.py)
-        - [Ported from the TensorFlow implementation from DeepVision](https://github.com/DavidLandup0/deepvision/blob/main/deepvision/layers/hierarchical_transformer_encoder.py)
+        - [SegFormer: Simple and Efficient Design for Semantic Segmentation with Transformers](https://arxiv.org/abs/2105.15203) (CVPR 2021) # noqa: E501
+        - [Official PyTorch implementation](https://github.com/NVlabs/SegFormer/blob/master/mmseg/models/backbones/mix_transformer.py) # noqa: E501
+        - [Ported from the TensorFlow implementation from DeepVision](https://github.com/DavidLandup0/deepvision/blob/main/deepvision/layers/hierarchical_transformer_encoder.py) # noqa: E501
 
     Args:
         project_dim: the dimensionality of the projection of the encoder, and
-            output of the `SegFormerMultiheadAttention` layer. Due to the residual addition
-            the input dimensionality has to be equal to the output dimensionality.
-        num_heads: the number of heads for the `SegFormerMultiheadAttention` layer
-        drop_prob: default 0.0, the probability of dropping a random sample using the `DropPath` layer.
+            output of the `SegFormerMultiheadAttention` layer. Due to the
+            residual addition the input dimensionality has to be equal to
+            the output dimensionality.
+        num_heads: the number of heads for the `SegFormerMultiheadAttention`
+            layer
+        drop_prob: default 0.0, the probability of dropping a random sample
+            using the `DropPath` layer.
         layer_norm_epsilon: default 1e-06, the epsilon for `LayerNormalization`
             layers
-        sr_ratio: default 1, the ratio to use within `SegFormerMultiheadAttention`. If set to > 1,
-            a `Conv2D` layer is used to reduce the length of the sequence.
+        sr_ratio: default 1, the ratio to use within `SegFormerMultiheadAttention`. # noqa: E501
+             If set to > 1, a `Conv2D` layer is used to reduce the length of
+             the sequence.
 
     Basic usage:
 
