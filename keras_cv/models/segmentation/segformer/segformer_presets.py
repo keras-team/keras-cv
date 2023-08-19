@@ -20,9 +20,7 @@ from keras_cv.models.backbones.mix_transformer.mix_transformer_backbone_presets 
 presets_no_weights = {
     "segformer_b0": {
         "metadata": {
-            "description": (
-                "SegFormer model with a pretrained MiTB0 backbone."
-            ),
+            "description": ("SegFormer model with MiTB0 backbone."),
             "params": 3719027,
             "official_name": "SegFormerB0",
             "path": "segformer_b0",
@@ -30,7 +28,7 @@ presets_no_weights = {
         "class_name": "keras_cv>SegFormer",
         "config": {
             "num_classes": 19,
-            "backbone": backbone_presets["mit_b0_imagenet"],
+            "backbone": backbone_presets["mit_b0"],
         },
     },
     "segformer_b1": {
@@ -85,7 +83,23 @@ presets_no_weights = {
     },
 }
 
-presets_with_weights = {}
+presets_with_weights = {
+    "segformer_b0_imagenet": {
+        "metadata": {
+            "description": (
+                "SegFormer model with a pretrained MiTB0 backbone."
+            ),
+            "params": 3719027,
+            "official_name": "SegFormerB0",
+            "path": "segformer_b0",
+        },
+        "class_name": "keras_cv>SegFormer",
+        "config": {
+            "num_classes": 19,
+            "backbone": backbone_presets["mit_b0_imagenet"],
+        },
+    },
+}
 
 presets = {
     **presets_no_weights,
