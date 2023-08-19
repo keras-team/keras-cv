@@ -150,6 +150,7 @@ class SegFormer(Task):
 
         self.num_classes = num_classes
         self.projection_filters = projection_filters
+        self.backbone = backbone
 
     def get_config(self):
         config = super().get_config()
