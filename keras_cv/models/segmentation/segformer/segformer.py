@@ -160,6 +160,7 @@ class SegFormer(Task):
                 "backbone": keras.saving.serialize_keras_object(self.backbone),
             }
         )
+        return config
 
     @classproperty
     def presets(cls):
