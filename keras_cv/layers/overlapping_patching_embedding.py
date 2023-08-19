@@ -21,14 +21,15 @@ from keras_cv.backend import ops
 class OverlappingPatchingAndEmbedding(keras.layers.Layer):
     def __init__(self, project_dim=32, patch_size=7, stride=4, **kwargs):
         """
-        Overlapping Patching and Embedding layer. Differs from `PatchingAndEmbedding` in that the patch size
-        does not affect the sequence length. It's fully derived from the `stride` parameter.
-        Additionally, no positional embedding is done as part of the layer - only a projection using a `Conv2D` layer.
+        Overlapping Patching and Embedding layer. Differs from `PatchingAndEmbedding`
+        in that the patch size does not affect the sequence length. It's fully derived
+        from the `stride` parameter. Additionally, no positional embedding is done
+        as part of the layer - only a projection using a `Conv2D` layer.
 
         References:
-            - [SegFormer: Simple and Efficient Design for Semantic Segmentation with Transformers](https://arxiv.org/abs/2105.15203) (CVPR 2021)
-            - [Official PyTorch implementation](https://github.com/NVlabs/SegFormer/blob/master/mmseg/models/backbones/mix_transformer.py)
-            - [Ported from the TensorFlow implementation from DeepVision](https://github.com/DavidLandup0/deepvision/blob/main/deepvision/layers/hierarchical_transformer_encoder.py)
+            - [SegFormer: Simple and Efficient Design for Semantic Segmentation with Transformers](https://arxiv.org/abs/2105.15203) (CVPR 2021) # noqa: E501
+            - [Official PyTorch implementation](https://github.com/NVlabs/SegFormer/blob/master/mmseg/models/backbones/mix_transformer.py) # noqa: E501
+            - [Ported from the TensorFlow implementation from DeepVision](https://github.com/DavidLandup0/deepvision/blob/main/deepvision/layers/hierarchical_transformer_encoder.py) # noqa: E501
 
         Args:
             project_dim: the dimensionality of the projection of the encoder, and

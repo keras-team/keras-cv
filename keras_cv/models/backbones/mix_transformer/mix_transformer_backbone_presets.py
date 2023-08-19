@@ -128,7 +128,7 @@ backbone_presets_with_weights = {
     "mit_b0_imagenet": {
         "metadata": {
             "description": (
-                "MiT (MixTransformer) model with 8 transformer blocks. Pre-trained on ImageNet-1K and scores 69% top-1 accuracy on the validation set."
+                "MiT (MixTransformer) model with 8 transformer blocks. Pre-trained on ImageNet-1K and scores 69% top-1 accuracy on the validation set."  # noqa: E501
             ),
             "params": 3321962,
             "official_name": "MiT",

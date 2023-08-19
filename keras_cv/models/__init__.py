@@ -133,9 +133,6 @@ from keras_cv.models.backbones.mix_transformer.mix_transformer_aliases import (
 from keras_cv.models.backbones.mix_transformer.mix_transformer_aliases import (
     MiTBackbone,
 )
-from keras_cv.models.backbones.mix_transformer.mix_transformer_backbone import (
-    MiTBackbone,
-)
 from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_aliases import (
     MobileNetV3LargeBackbone,
 )
@@ -190,7 +187,6 @@ from keras_cv.models.object_detection.yolo_v8.yolo_v8_detector import (
     YOLOV8Detector,
 )
 from keras_cv.models.segmentation import DeepLabV3Plus
-from keras_cv.models.segmentation import SegFormer
 from keras_cv.models.segmentation.segformer.segformer_aliases import SegFormer
 from keras_cv.models.segmentation.segformer.segformer_aliases import SegFormerB0
 from keras_cv.models.segmentation.segformer.segformer_aliases import SegFormerB1

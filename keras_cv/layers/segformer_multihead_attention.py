@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import math
-
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
@@ -24,17 +22,18 @@ class SegFormerMultiheadAttention(keras.layers.Layer):
     def __init__(self, project_dim, num_heads, sr_ratio):
         """
         Efficient MultiHeadAttention implementation as a Keras layer.
-        A huge bottleneck in scaling transformers is the self-attention layer with an O(n^2) complexity.
+        A huge bottleneck in scaling transformers is the self-attention layer
+        with an O(n^2) complexity.
 
-        SegFormerMultiheadAttention performs a sequence reduction (SR) operation with a given ratio, to reduce
-        the sequence length before performing key and value projections, reducing the O(n^2) complexity to O(n^2/R) where
-        R is the sequence reduction ratio.
+        SegFormerMultiheadAttention performs a sequence reduction (SR) operation
+        with a given ratio, to reduce the sequence length before performing key and value projections,
+        reducing the O(n^2) complexity to O(n^2/R) where R is the sequence reduction ratio.
 
         References:
-        - [SegFormer: Simple and Efficient Design for Semantic Segmentation with Transformers](https://arxiv.org/abs/2105.15203) (CVPR 2021)
-        - [NVlabs' official implementation](https://github.com/NVlabs/SegFormer/blob/master/mmseg/models/backbones/mix_transformer.py)
-        - [@sithu31296's reimplementation](https://github.com/sithu31296/semantic-segmentation/blob/main/semseg/models/backbones/mit.py)
-        - [Ported from the TensorFlow implementation from DeepVision](https://github.com/DavidLandup0/deepvision/blob/main/deepvision/layers/efficient_attention.py)
+        - [SegFormer: Simple and Efficient Design for Semantic Segmentation with Transformers](https://arxiv.org/abs/2105.15203) (CVPR 2021) # noqa: E501
+        - [NVlabs' official implementation](https://github.com/NVlabs/SegFormer/blob/master/mmseg/models/backbones/mix_transformer.py) # noqa: E501
+        - [@sithu31296's reimplementation](https://github.com/sithu31296/semantic-segmentation/blob/main/semseg/models/backbones/mit.py) # noqa: E501
+        - [Ported from the TensorFlow implementation from DeepVision](https://github.com/DavidLandup0/deepvision/blob/main/deepvision/layers/efficient_attention.py) # noqa: E501
 
         Args:
             project_dim: the dimensionality of the projection of the `SegFormerMultiheadAttention` layer.
