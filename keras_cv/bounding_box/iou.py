@@ -97,7 +97,7 @@ def compute_iou(
         [KerasCV bounding box documentation](https://keras.io/api/keras_cv/bounding_box/formats/).
       use_masking: whether masking will be applied. This will mask all `boxes1`
         or `boxes2` that have values less than 0 in all its 4 dimensions.
-        Default to `False`.
+        Defaults to `False`.
       mask_val: int to mask those returned IOUs if the masking is True.
         Defaults to `-1`.
 

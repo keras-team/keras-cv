@@ -58,8 +58,8 @@ class GridMask(BaseImageAugmentationLayer):
             Defaults to `(0, 0.5)`.
         rotation_factor:
             The rotation_factor will be used to randomly rotate the grid_mask
-            during training. Default to 0.1, which results in an output rotating
-            by a random amount in the range [-10% * 2pi, 10% * 2pi].
+            during training. `0.1` results in an output rotating by a random
+            amount in the range [-10% * 2pi, 10% * 2pi]. Defaults to `0.1`.
 
             A float represented as fraction of 2 Pi, or a tuple of size 2
             representing lower and upper bound for rotating clockwise and

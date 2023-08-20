@@ -27,7 +27,7 @@ ALIAS_DOCSTRING = """Instantiates the {name} architecture.
         include_rescaling: bool, whether to rescale the inputs. If set
             to `True`, inputs will be passed through a `Rescaling(1/255.0)`
             layer.
-        input_shape: optional shape tuple, defaults to (None, None, 3).
+        input_shape: optional shape tuple. Defaults to `(None, None, 3)`.
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
             to use as image input for the model.
 """  # noqa: E501

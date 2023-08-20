@@ -40,8 +40,8 @@ def as_backbone(self, min_level=None, max_level=None):
     the input image.
     Args:
         min_level: optional int, the lowest level of feature to be included in
-            the output. Defaults to model's lowest feature level
-            (based on the model structure).
+            the output. `None` uses model's lowest feature level
+            (based on the model structure). Defaults to `None`.
         max_level: optional int, the highest level of feature to be included in
             the output. Defaults to model's highest feature level
             (based on the model structure).
