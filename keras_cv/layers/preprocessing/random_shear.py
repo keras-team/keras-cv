@@ -18,14 +18,14 @@ import tensorflow as tf
 
 import keras_cv
 from keras_cv import bounding_box
-from keras_cv.backend import keras
+from keras_cv.api_export import keras_cv_export
 from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     VectorizedBaseImageAugmentationLayer,
 )
 from keras_cv.utils import preprocessing
 
 
-@keras.saving.register_keras_serializable(package="keras_cv")
+@keras_cv_export("keras_cv.layers.RandomShear")
 class RandomShear(VectorizedBaseImageAugmentationLayer):
     """A preprocessing layer which randomly shears images.
 

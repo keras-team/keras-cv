@@ -15,6 +15,7 @@
 
 import copy
 
+from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.models.backbones.backbone_presets import backbone_presets
 from keras_cv.models.backbones.backbone_presets import (
@@ -27,7 +28,7 @@ from keras_cv.models.task import Task
 from keras_cv.utils.python_utils import classproperty
 
 
-@keras.saving.register_keras_serializable(package="keras_cv.models")
+@keras_cv_export("keras_cv.models.ImageClassifier")
 class ImageClassifier(Task):
     """Image classifier with pooling and dense layer prediction head.
 

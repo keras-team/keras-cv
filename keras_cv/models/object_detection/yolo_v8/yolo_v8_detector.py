@@ -16,6 +16,7 @@ import warnings
 
 import keras_cv
 from keras_cv import bounding_box
+from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 from keras_cv.losses.ciou_loss import CIoULoss
@@ -319,7 +320,7 @@ def dist2bbox(distance, anchor_points):
     return ops.concatenate((x1y1, x2y2), axis=-1)  # xyxy bbox
 
 
-@keras.saving.register_keras_serializable(package="keras_cv")
+@keras_cv_export("keras_cv.models.YOLOV8Detector")
 class YOLOV8Detector(Task):
     """Implements the YOLOV8 architecture for object detection.
 

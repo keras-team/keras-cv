@@ -13,18 +13,16 @@
 # limitations under the License.
 import copy
 
+from keras_cv.api_export import keras_cv_export
 from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone import (
     EfficientNetV2Backbone,
 )
 from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone_presets import (  # noqa: E501
     backbone_presets,
 )
-from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone_presets import (  # noqa: E501
-    backbone_presets_with_weights,
-)
 from keras_cv.utils.python_utils import classproperty
 
-ALIAS_BASE_DOCSTRING = """Instantiates the {name} architecture.
+ALIAS_DOCSTRING = """Instantiates the {name} architecture.
 
     Reference:
     - [EfficientNetV2: Smaller Models and Faster Training](https://arxiv.org/abs/2104.00298)
@@ -40,6 +38,7 @@ ALIAS_BASE_DOCSTRING = """Instantiates the {name} architecture.
 """  # noqa: E501
 
 
+@keras_cv_export("keras_cv.models.EfficientNetV2SBackbone")
 class EfficientNetV2SBackbone(EfficientNetV2Backbone):
     def __new__(
         cls,
@@ -62,8 +61,8 @@ class EfficientNetV2SBackbone(EfficientNetV2Backbone):
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return {
-            "efficientnetv2_s": copy.deepcopy(
-                backbone_presets["efficientnetv2_s"]
+            "efficientnetv2_s_imagenet": copy.deepcopy(
+                backbone_presets["efficientnetv2_s_imagenet"]
             ),
         }
 
@@ -71,13 +70,10 @@ class EfficientNetV2SBackbone(EfficientNetV2Backbone):
     def presets_with_weights(cls):
         """Dictionary of preset names and configurations that include
         weights."""
-        return {
-            "efficientnetv2_s_imagenet": copy.deepcopy(
-                backbone_presets_with_weights["efficientnetv2_s_imagenet"]
-            ),
-        }
+        return cls.presets
 
 
+@keras_cv_export("keras_cv.models.EfficientNetV2MBackbone")
 class EfficientNetV2MBackbone(EfficientNetV2Backbone):
     def __new__(
         cls,
@@ -99,11 +95,7 @@ class EfficientNetV2MBackbone(EfficientNetV2Backbone):
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
-        return {
-            "efficientnetv2_m": copy.deepcopy(
-                backbone_presets["efficientnetv2_m"]
-            ),
-        }
+        return {}
 
     @classproperty
     def presets_with_weights(cls):
@@ -112,6 +104,7 @@ class EfficientNetV2MBackbone(EfficientNetV2Backbone):
         return {}
 
 
+@keras_cv_export("keras_cv.models.EfficientNetV2LBackbone")
 class EfficientNetV2LBackbone(EfficientNetV2Backbone):
     def __new__(
         cls,
@@ -133,11 +126,7 @@ class EfficientNetV2LBackbone(EfficientNetV2Backbone):
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
-        return {
-            "efficientnetv2_l": copy.deepcopy(
-                backbone_presets["efficientnetv2_l"]
-            ),
-        }
+        return {}
 
     @classproperty
     def presets_with_weights(cls):
@@ -146,6 +135,7 @@ class EfficientNetV2LBackbone(EfficientNetV2Backbone):
         return {}
 
 
+@keras_cv_export("keras_cv.models.EfficientNetV2B0Backbone")
 class EfficientNetV2B0Backbone(EfficientNetV2Backbone):
     def __new__(
         cls,
@@ -168,8 +158,8 @@ class EfficientNetV2B0Backbone(EfficientNetV2Backbone):
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return {
-            "efficientnetv2_b0": copy.deepcopy(
-                backbone_presets["efficientnetv2_b0"]
+            "efficientnetv2_b0_imagenet": copy.deepcopy(
+                backbone_presets["efficientnetv2_b0_imagenet"]
             ),
         }
 
@@ -177,13 +167,10 @@ class EfficientNetV2B0Backbone(EfficientNetV2Backbone):
     def presets_with_weights(cls):
         """Dictionary of preset names and configurations that include
         weights."""
-        return {
-            "efficientnetv2_b0_imagenet": copy.deepcopy(
-                backbone_presets_with_weights["efficientnetv2_b0_imagenet"]
-            ),
-        }
+        return cls.presets
 
 
+@keras_cv_export("keras_cv.models.EfficientNetV2B1Backbone")
 class EfficientNetV2B1Backbone(EfficientNetV2Backbone):
     def __new__(
         cls,
@@ -206,8 +193,8 @@ class EfficientNetV2B1Backbone(EfficientNetV2Backbone):
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return {
-            "efficientnetv2_b1": copy.deepcopy(
-                backbone_presets["efficientnetv2_b1"]
+            "efficientnetv2_b1_imagenet": copy.deepcopy(
+                backbone_presets["efficientnetv2_b1_imagenet"]
             ),
         }
 
@@ -215,13 +202,10 @@ class EfficientNetV2B1Backbone(EfficientNetV2Backbone):
     def presets_with_weights(cls):
         """Dictionary of preset names and configurations that include
         weights."""
-        return {
-            "efficientnetv2_b1_imagenet": copy.deepcopy(
-                backbone_presets_with_weights["efficientnetv2_b1_imagenet"]
-            ),
-        }
+        return cls.presets
 
 
+@keras_cv_export("keras_cv.models.EfficientNetV2B2Backbone")
 class EfficientNetV2B2Backbone(EfficientNetV2Backbone):
     def __new__(
         cls,
@@ -244,8 +228,8 @@ class EfficientNetV2B2Backbone(EfficientNetV2Backbone):
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return {
-            "efficientnetv2_b2": copy.deepcopy(
-                backbone_presets["efficientnetv2_b2"]
+            "efficientnetv2_b2_imagenet": copy.deepcopy(
+                backbone_presets["efficientnetv2_b2_imagenet"]
             ),
         }
 
@@ -253,13 +237,10 @@ class EfficientNetV2B2Backbone(EfficientNetV2Backbone):
     def presets_with_weights(cls):
         """Dictionary of preset names and configurations that include
         weights."""
-        return {
-            "efficientnetv2_b2_imagenet": copy.deepcopy(
-                backbone_presets_with_weights["efficientnetv2_b2_imagenet"]
-            ),
-        }
+        return cls.presets
 
 
+@keras_cv_export("keras_cv.models.EfficientNetV2B3Backbone")
 class EfficientNetV2B3Backbone(EfficientNetV2Backbone):
     def __new__(
         cls,
@@ -290,24 +271,38 @@ class EfficientNetV2B3Backbone(EfficientNetV2Backbone):
         return {}
 
 
-EfficientNetV2B0Backbone.__doc__ = ALIAS_BASE_DOCSTRING.format(
-    name="EfficientNetV2B0"
+setattr(
+    EfficientNetV2SBackbone,
+    "__doc__",
+    ALIAS_DOCSTRING.format(name="EfficientNetV2S"),
 )
-EfficientNetV2B1Backbone.__doc__ = ALIAS_BASE_DOCSTRING.format(
-    name="EfficientNetV2B1"
+setattr(
+    EfficientNetV2MBackbone,
+    "__doc__",
+    ALIAS_DOCSTRING.format(name="EfficientNetV2M"),
 )
-EfficientNetV2B2Backbone.__doc__ = ALIAS_BASE_DOCSTRING.format(
-    name="EfficientNetV2B2"
+setattr(
+    EfficientNetV2LBackbone,
+    "__doc__",
+    ALIAS_DOCSTRING.format(name="EfficientNetV2L"),
 )
-EfficientNetV2B3Backbone.__doc__ = ALIAS_BASE_DOCSTRING.format(
-    name="EfficientNetV2B3"
+setattr(
+    EfficientNetV2B0Backbone,
+    "__doc__",
+    ALIAS_DOCSTRING.format(name="EfficientNetV2B0"),
 )
-EfficientNetV2SBackbone.__doc__ = ALIAS_BASE_DOCSTRING.format(
-    name="EfficientNetV2S"
+setattr(
+    EfficientNetV2B1Backbone,
+    "__doc__",
+    ALIAS_DOCSTRING.format(name="EfficientNetV2B1"),
 )
-EfficientNetV2MBackbone.__doc__ = ALIAS_BASE_DOCSTRING.format(
-    name="EfficientNetV2M"
+setattr(
+    EfficientNetV2B2Backbone,
+    "__doc__",
+    ALIAS_DOCSTRING.format(name="EfficientNetV2B2"),
 )
-EfficientNetV2LBackbone.__doc__ = ALIAS_BASE_DOCSTRING.format(
-    name="EfficientNetV2L"
+setattr(
+    EfficientNetV2B3Backbone,
+    "__doc__",
+    ALIAS_DOCSTRING.format(name="EfficientNetV2B3"),
 )

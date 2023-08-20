@@ -15,6 +15,8 @@
 
 import tensorflow as tf
 
+from keras_cv.api_export import keras_cv_export
+
 
 # Internal exception
 class _RequiresImagesException(Exception):
@@ -58,6 +60,7 @@ FROM_XY_CONVERTERS = {
 }
 
 
+@keras_cv_export("keras_cv.keypoint.convert_format")
 def convert_format(keypoints, source, target, images=None, dtype=None):
     """Converts keypoints from one format to another.
 

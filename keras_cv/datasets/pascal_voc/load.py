@@ -16,6 +16,7 @@ import tensorflow as tf
 import tensorflow_datasets as tfds
 
 from keras_cv import bounding_box
+from keras_cv.api_export import keras_cv_export
 
 
 def curry_map_function(bounding_box_format):
@@ -40,6 +41,7 @@ def curry_map_function(bounding_box_format):
     return apply
 
 
+@keras_cv_export("keras_cv.datasets.pascal_voc.load")
 def load(
     split,
     bounding_box_format,

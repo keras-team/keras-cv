@@ -19,6 +19,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 
+from keras_cv.api_export import keras_cv_export
 from keras_cv.layers.object_detection_3d import voxel_utils
 
 EPSILON = 1e-4
@@ -62,6 +63,7 @@ def compute_point_voxel_id(
     return point_voxel_id + batch_multiplier
 
 
+@keras_cv_export("keras_cv.layers.PointToVoxel")
 class PointToVoxel(keras.layers.Layer):
     """Voxelization layer."""
 
@@ -163,6 +165,7 @@ class PointToVoxel(keras.layers.Layer):
         return point_voxel_feature, point_voxel_id, point_voxel_mask
 
 
+@keras_cv_export("keras_cv.layers.DynamicVoxelization")
 class DynamicVoxelization(keras.layers.Layer):
     """Dynamic voxelization and pool layer.
 

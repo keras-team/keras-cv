@@ -28,7 +28,10 @@ try:
 except:
     patches = None
 
+from keras_cv.api_export import keras_cv_export
 
+
+@keras_cv_export("keras_cv.visualization.plot_bounding_box_gallery")
 def plot_bounding_box_gallery(
     images,
     value_range,
@@ -171,7 +174,7 @@ def plot_bounding_box_gallery(
             ),
         ]
 
-    plot_image_gallery(
+    return plot_image_gallery(
         plotted_images,
         value_range,
         legend_handles=legend_handles,

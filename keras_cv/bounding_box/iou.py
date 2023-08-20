@@ -15,6 +15,7 @@
 import math
 
 from keras_cv import bounding_box
+from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 
@@ -60,6 +61,7 @@ def _compute_intersection(boxes1, boxes2):
     return intersect_height * intersect_width
 
 
+@keras_cv_export("keras_cv.bounding_box.compute_iou")
 def compute_iou(
     boxes1,
     boxes2,
@@ -170,6 +172,7 @@ def compute_iou(
     return iou_lookup_table
 
 
+@keras_cv_export("keras_cv.bounding_box.compute_ciou")
 def compute_ciou(box1, box2, bounding_box_format, eps=1e-7):
     """
     Computes the Complete IoU (CIoU) between two bounding boxes or between

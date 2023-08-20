@@ -15,6 +15,8 @@
 import tensorflow as tf
 from tensorflow.keras import layers
 
+from keras_cv.api_export import keras_cv_export
+
 
 def parse_imagenet_example(img_size, crop_to_aspect_ratio):
     """Function to parse a TFRecord example into an image and label"""
@@ -54,6 +56,7 @@ def parse_imagenet_example(img_size, crop_to_aspect_ratio):
     return apply
 
 
+@keras_cv_export("keras_cv.datasets.imagenet.load")
 def load(
     split,
     tfrecord_path,

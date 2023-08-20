@@ -16,6 +16,7 @@ import copy
 import tensorflow as tf
 from tensorflow import keras
 
+from keras_cv.api_export import keras_cv_export
 from keras_cv.layers.object_detection_3d.heatmap_decoder import HeatmapDecoder
 from keras_cv.models.object_detection_3d.center_pillar_backbone_presets import (
     backbone_presets,
@@ -24,6 +25,7 @@ from keras_cv.models.task import Task
 from keras_cv.utils.python_utils import classproperty
 
 
+@keras_cv_export("keras_cv.models.MultiHeadCenterPillar")
 class MultiHeadCenterPillar(Task):
     """Multi headed model based on CenterNet heatmap and PointPillar.
 

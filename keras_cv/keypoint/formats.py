@@ -15,7 +15,10 @@
 formats.py contains axis information for each supported format.
 """
 
+from keras_cv.api_export import keras_cv_export
 
+
+@keras_cv_export("keras_cv.keypoint.XY")
 class XY:
     """XY contains axis indices for the XY format.
 
@@ -38,6 +41,7 @@ class XY:
     CONFIDENCE = 3
 
 
+@keras_cv_export("keras_cv.keypoint.REL_XY")
 class REL_XY:
     """REL_XY contains axis indices for the REL_XY format.
 

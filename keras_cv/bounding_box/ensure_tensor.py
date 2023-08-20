@@ -12,9 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from keras_cv.api_export import keras_cv_export
 from keras_cv.utils import preprocessing
 
 
+@keras_cv_export("keras_cv.bounding_box.ensure_tensor")
 def ensure_tensor(boxes, dtype=None):
     boxes = boxes.copy()
     for key in ["boxes", "classes", "confidence"]:

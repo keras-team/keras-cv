@@ -16,6 +16,7 @@
 
 import tensorflow as tf
 
+from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 from keras_cv.backend.scope import tf_data
@@ -298,6 +299,7 @@ FROM_XYXY_CONVERTERS = {
 }
 
 
+@keras_cv_export("keras_cv.bounding_box.convert_format")
 @tf_data
 def convert_format(
     boxes, source, target, images=None, image_shape=None, dtype="float32"

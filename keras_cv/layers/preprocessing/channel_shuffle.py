@@ -14,13 +14,13 @@
 
 import tensorflow as tf
 
-from keras_cv.backend import keras
+from keras_cv.api_export import keras_cv_export
 from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     VectorizedBaseImageAugmentationLayer,
 )
 
 
-@keras.saving.register_keras_serializable(package="keras_cv")
+@keras_cv_export("keras_cv.layers.ChannelShuffle")
 class ChannelShuffle(VectorizedBaseImageAugmentationLayer):
     """Shuffle channels of an input image.
 

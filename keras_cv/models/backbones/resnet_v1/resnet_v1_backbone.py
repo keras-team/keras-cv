@@ -20,6 +20,7 @@ Reference:
 
 import copy
 
+from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.models import utils
 from keras_cv.models.backbones.backbone import Backbone
@@ -35,7 +36,7 @@ BN_AXIS = 3
 BN_EPSILON = 1.001e-5
 
 
-@keras.saving.register_keras_serializable(package="keras_cv.models")
+@keras_cv_export("keras_cv.models.ResNetBackbone")
 class ResNetBackbone(Backbone):
     """Instantiates the ResNet architecture.
 

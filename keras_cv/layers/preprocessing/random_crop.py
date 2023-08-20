@@ -17,7 +17,7 @@ import tensorflow as tf
 
 from keras_cv import bounding_box
 from keras_cv import layers as cv_layers
-from keras_cv.backend import keras
+from keras_cv.api_export import keras_cv_export
 from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     VectorizedBaseImageAugmentationLayer,
 )
@@ -28,7 +28,7 @@ H_AXIS = -3
 W_AXIS = -2
 
 
-@keras.saving.register_keras_serializable(package="keras_cv")
+@keras_cv_export("keras_cv.layers.RandomCrop")
 class RandomCrop(VectorizedBaseImageAugmentationLayer):
     """A preprocessing layer which randomly crops images.
 
@@ -78,11 +78,17 @@ class RandomCrop(VectorizedBaseImageAugmentationLayer):
         return ragged_spec
 
     def get_random_transformation_batch(self, batch_size, **kwargs):
-        tops = self._random_generator.random_uniform(
-            shape=(batch_size, 1), minval=0, maxval=1, dtype=tf.float32
+        tops = tf.cast(
+            self._random_generator.random_uniform(
+                shape=(batch_size, 1), minval=0, maxval=1
+            ),
+            self.compute_dtype,
         )
-        lefts = self._random_generator.random_uniform(
-            shape=(batch_size, 1), minval=0, maxval=1, dtype=tf.float32
+        lefts = tf.cast(
+            self._random_generator.random_uniform(
+                shape=(batch_size, 1), minval=0, maxval=1
+            ),
+            self.compute_dtype,
         )
         return {"tops": tops, "lefts": lefts}
 
@@ -212,13 +218,14 @@ class RandomCrop(VectorizedBaseImageAugmentationLayer):
     def _crop_images(self, images, transformations):
         batch_size = tf.shape(images)[0]
         heights, widths = self._get_image_shape(images)
-        heights = tf.cast(heights, dtype=tf.float32)
-        widths = tf.cast(widths, dtype=tf.float32)
+        heights = tf.cast(heights, dtype=self.compute_dtype)
+        widths = tf.cast(widths, dtype=self.compute_dtype)
 
         tops = transformations["tops"]
         lefts = transformations["lefts"]
         x1s = lefts * (widths - self.width)
         y1s = tops * (heights - self.height)
+
         x2s = x1s + self.width
         y2s = y1s + self.height
         # normalize
@@ -229,8 +236,8 @@ class RandomCrop(VectorizedBaseImageAugmentationLayer):
         boxes = tf.concat([y1s, x1s, y2s, x2s], axis=-1)
 
         images = tf.image.crop_and_resize(
-            images,
-            boxes,
+            tf.cast(images, tf.float32),
+            tf.cast(boxes, tf.float32),
             tf.range(batch_size),
             [self.height, self.width],
             method="nearest",
@@ -246,8 +253,8 @@ class RandomCrop(VectorizedBaseImageAugmentationLayer):
         tops = transformation["tops"]
         lefts = transformation["lefts"]
         heights, widths = self._get_image_shape(images)
-        heights = tf.cast(heights, dtype=tf.float32)
-        widths = tf.cast(widths, dtype=tf.float32)
+        heights = tf.cast(heights, dtype=self.compute_dtype)
+        widths = tf.cast(widths, dtype=self.compute_dtype)
 
         # compute offsets for xyxy bounding_boxes
         top_offsets = tf.cast(
@@ -259,7 +266,9 @@ class RandomCrop(VectorizedBaseImageAugmentationLayer):
             dtype=self.compute_dtype,
         )
 
-        x1s, y1s, x2s, y2s = tf.split(boxes, 4, axis=-1)
+        x1s, y1s, x2s, y2s = tf.split(
+            tf.cast(boxes, self.compute_dtype), 4, axis=-1
+        )
         x1s -= tf.expand_dims(left_offsets, axis=1)
         y1s -= tf.expand_dims(top_offsets, axis=1)
         x2s -= tf.expand_dims(left_offsets, axis=1)
@@ -269,11 +278,13 @@ class RandomCrop(VectorizedBaseImageAugmentationLayer):
 
     def _resize_bounding_boxes(self, images, boxes):
         heights, widths = self._get_image_shape(images)
-        heights = tf.cast(heights, dtype=tf.float32)
-        widths = tf.cast(widths, dtype=tf.float32)
+        heights = tf.cast(heights, dtype=self.compute_dtype)
+        widths = tf.cast(widths, dtype=self.compute_dtype)
         x_scale = tf.cast(self.width / widths, dtype=self.compute_dtype)
         y_scale = tf.cast(self.height / heights, dtype=self.compute_dtype)
-        x1s, y1s, x2s, y2s = tf.split(boxes, 4, axis=-1)
+        x1s, y1s, x2s, y2s = tf.split(
+            tf.cast(boxes, self.compute_dtype), 4, axis=-1
+        )
         outputs = tf.concat(
             [
                 x1s * x_scale[:, tf.newaxis, :],

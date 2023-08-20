@@ -15,14 +15,14 @@
 import tensorflow as tf
 
 from keras_cv import layers
-from keras_cv.backend import keras
+from keras_cv.api_export import keras_cv_export
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
 from keras_cv.utils import preprocessing
 
 
-@keras.saving.register_keras_serializable(package="keras_cv")
+@keras_cv_export("keras_cv.layers.AugMix")
 class AugMix(BaseImageAugmentationLayer):
     """Performs the AugMix data augmentation technique.
 
@@ -307,11 +307,32 @@ class AugMix(BaseImageAugmentationLayer):
         )
         return augmented
 
-    def augment_image(self, image, transformation=None, **kwargs):
+    def get_random_transformation(
+        self,
+        image=None,
+        label=None,
+        bounding_boxes=None,
+        keypoints=None,
+        segmentation_mask=None,
+    ):
+        # Generate random values of chain_mixing_weights and weight_sample
         chain_mixing_weights = self._sample_from_dirichlet(
             tf.ones([self.num_chains]) * self.alpha
         )
         weight_sample = self._sample_from_beta(self.alpha, self.alpha)
+
+        # Create a transformation config containing the random values
+        transformation = {
+            "chain_mixing_weights": chain_mixing_weights,
+            "weight_sample": weight_sample,
+        }
+
+        return transformation
+
+    def augment_image(self, image, transformation=None, **kwargs):
+        # Extract chain_mixing_weights and weight_sample from the provided transformation # noqa: E501
+        chain_mixing_weights = transformation["chain_mixing_weights"]
+        weight_sample = transformation["weight_sample"]
 
         result = tf.zeros_like(image)
         curr_chain = tf.constant([0], dtype=tf.int32)
@@ -328,6 +349,35 @@ class AugMix(BaseImageAugmentationLayer):
 
     def augment_label(self, label, transformation=None, **kwargs):
         return label
+
+    def augment_segmentation_mask(
+        self, segmentation_masks, transformation=None, **kwargs
+    ):
+        # Extract chain_mixing_weights and weight_sample from the provided transformation # noqa: E501
+        chain_mixing_weights = transformation["chain_mixing_weights"]
+        weight_sample = transformation["weight_sample"]
+
+        result = tf.zeros_like(segmentation_masks)
+        curr_chain = tf.constant([0], dtype=tf.int32)
+
+        (
+            segmentation_masks,
+            chain_mixing_weights,
+            curr_chain,
+            result,
+        ) = tf.while_loop(
+            lambda segmentation_masks, chain_mixing_weights, curr_chain, result: tf.less(  # noqa: E501
+                curr_chain, self.num_chains
+            ),
+            self._loop_on_width,
+            [segmentation_masks, chain_mixing_weights, curr_chain, result],
+        )
+
+        # Apply the mixing of segmentation_masks similar to images
+        result = (
+            weight_sample * segmentation_masks + (1 - weight_sample) * result
+        )
+        return result
 
     def get_config(self):
         config = {

@@ -14,6 +14,7 @@
 
 import copy
 
+from keras_cv.api_export import keras_cv_export
 from keras_cv.models.backbones.densenet.densenet_backbone import (
     DenseNetBackbone,
 )
@@ -49,6 +50,7 @@ ALIAS_DOCSTRING = """DenseNetBackbone model with {num_layers} layers.
 """  # noqa: E501
 
 
+@keras_cv_export("keras_cv.models.DenseNet121Backbone")
 class DenseNet121Backbone(DenseNetBackbone):
     def __new__(
         cls,
@@ -82,6 +84,7 @@ class DenseNet121Backbone(DenseNetBackbone):
         return cls.presets
 
 
+@keras_cv_export("keras_cv.models.DenseNet169Backbone")
 class DenseNet169Backbone(DenseNetBackbone):
     def __new__(
         cls,
@@ -115,6 +118,7 @@ class DenseNet169Backbone(DenseNetBackbone):
         return cls.presets
 
 
+@keras_cv_export("keras_cv.models.DenseNet201Backbone")
 class DenseNet201Backbone(DenseNetBackbone):
     def __new__(
         cls,

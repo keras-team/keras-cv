@@ -13,6 +13,7 @@
 # limitations under the License.
 import copy
 
+from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 from keras_cv.models import utils
@@ -67,8 +68,7 @@ def apply_spatial_pyramid_pooling_fast(
     return out
 
 
-# TODO(ianstenbit) This should probably just be a CSPDarknet
-@keras.utils.register_keras_serializable(package="keras_cv.models")
+@keras_cv_export("keras_cv.models.YOLOV8Backbone")
 class YOLOV8Backbone(Backbone):
     """Implements the YOLOV8 backbone for object detection.
 

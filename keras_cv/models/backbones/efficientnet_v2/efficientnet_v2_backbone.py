@@ -14,6 +14,7 @@
 import copy
 import math
 
+from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.layers import FusedMBConvBlock
 from keras_cv.layers import MBConvBlock
@@ -28,7 +29,7 @@ from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone_presets 
 from keras_cv.utils.python_utils import classproperty
 
 
-@keras.saving.register_keras_serializable(package="keras_cv.models")
+@keras_cv_export("keras_cv.models.EfficientNetV2Backbone")
 class EfficientNetV2Backbone(Backbone):
     """Instantiates the EfficientNetV2 architecture.
 

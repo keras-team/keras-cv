@@ -15,10 +15,12 @@
 import warnings
 
 from keras_cv import bounding_box
+from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 
 
+@keras_cv_export("keras_cv.losses.GIoULoss")
 class GIoULoss(keras.losses.Loss):
     """Implements the Generalized IoU Loss
 

@@ -15,8 +15,10 @@
 from tensorflow import keras
 from tensorflow.keras import layers
 
+from keras_cv.api_export import keras_cv_export
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+
+@keras_cv_export("keras_cv.layers.TransformerEncoder")
 class TransformerEncoder(layers.Layer):
     """
     Transformer encoder block implementation as a Keras Layer.

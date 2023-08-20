@@ -19,6 +19,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 
+from keras_cv.api_export import keras_cv_export
 from keras_cv.layers.object_detection_3d import voxel_utils
 
 
@@ -99,6 +100,7 @@ def decode_bin_box(pd, num_head_bin, anchor_size):
         return box
 
 
+@keras_cv_export("keras_cv.layers.HeatmapDecoder")
 class HeatmapDecoder(keras.layers.Layer):
     """A Keras layer that decodes predictions of a 3d object detection model.
 

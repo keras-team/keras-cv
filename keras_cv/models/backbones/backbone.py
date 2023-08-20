@@ -15,11 +15,13 @@
 
 import os
 
+from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.utils.python_utils import classproperty
 from keras_cv.utils.python_utils import format_docstring
 
 
+@keras_cv_export("keras_cv.models.Backbone")
 class Backbone(keras.Model):
     """Base class for Backbone models.
 

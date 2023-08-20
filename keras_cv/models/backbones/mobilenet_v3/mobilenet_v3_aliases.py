@@ -14,6 +14,7 @@
 
 import copy
 
+from keras_cv.api_export import keras_cv_export
 from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_backbone import (
     MobileNetV3Backbone,
 )
@@ -50,6 +51,7 @@ ALIAS_DOCSTRING = """MobileNetV3Backbone model with {num_layers} layers.
 """  # noqa: E501
 
 
+@keras_cv_export("keras_cv.models.MobileNetV3SmallBackbone")
 class MobileNetV3SmallBackbone(MobileNetV3Backbone):
     def __new__(
         cls,
@@ -79,6 +81,7 @@ class MobileNetV3SmallBackbone(MobileNetV3Backbone):
         return {}
 
 
+@keras_cv_export("keras_cv.models.MobileNetV3LargeBackbone")
 class MobileNetV3LargeBackbone(MobileNetV3Backbone):
     def __new__(
         cls,
