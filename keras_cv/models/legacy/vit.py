@@ -152,7 +152,7 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
         include_top: bool, whether to include the fully-connected layer at the
             top of the network. If provided, num_classes must be provided.
         num_classes: optional int, number of classes to classify images into,
-            only to be specified if `include_top` is True.
+            only to be specified if `include_top` is `True`.
         weights: one of `None` (random initialization), a pretrained weight file
             path, or a reference to pre-trained weights
             (e.g. 'imagenet/classification') (see available pre-trained weights
@@ -166,14 +166,14 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
             when `include_top` is `False`.
             - `None` means that the output of the model will be the 4D tensor
                 output of the last convolutional block.
-            - `avg` means that global average pooling will be applied to the
+            - `"avg"` means that global average pooling will be applied to the
                 output of the last convolutional block, and thus the output of
                 the model will be a 2D tensor.
-            - `max` means that global max pooling will be applied.
-            - `token_pooling`, means that the token at the start of the
+            - `"max"` means that global max pooling will be applied.
+            - `"token_pooling"`, means that the token at the start of the
                 sequences is used instead of regular pooling.
-            Defaults to "token_pooling".
-        name: (Optional) name to pass to the model. Defaults to "{name}".
+            Defaults to `"token_pooling"`.
+        name: (Optional) name to pass to the model. Defaults to `"{name}"`.
         classifier_activation: A `str` or callable. The activation function to
             use on the "top" layer. Ignored unless `include_top=True`. Set
             `classifier_activation=None` to return the logits of the "top"
@@ -213,7 +213,7 @@ class ViT(keras.Model):
                 be applied.
             - `token_pooling`, means that the token at the start of the
                 sequences is used instead of regular pooling.
-            Defaults to "token_pooling".
+            Defaults to `"token_pooling"`.
         num_classes: optional number of classes to classify images
             into, only to be specified if `include_top` is True.
                     mlp_dim:

@@ -30,7 +30,7 @@ class MultiClassNonMaxSuppression(keras.layers.Layer):
         [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
         for more details on supported bounding box
         formats.
-      from_logits: boolean, True means input score is logits, False means
+      from_logits: boolean, `True` means input score is logits, `False` means
         confidence.
       iou_threshold: a float value in the range [0, 1] representing the minimum
         IoU threshold for two boxes to be considered same for suppression.

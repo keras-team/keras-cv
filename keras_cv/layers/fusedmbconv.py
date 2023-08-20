@@ -65,7 +65,7 @@ class FusedMBConvBlock(keras.layers.Layer):
             Defaults to `0.0`.
         bn_momentum: the BatchNormalization momentum. Defaults to `0.9`.
         activation: the activation function used between
-            convolution operations. Defaults to "swish".
+            convolution operations. Defaults to `"swish"`.
         survival_probability: float, the optional dropout rate to apply before
             the output convolution. Defaults to `0.8`.
 

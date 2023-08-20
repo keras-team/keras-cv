@@ -71,7 +71,7 @@ def load(
         shuffle_files: (Optional) whether to shuffle files. Defaults to
             `True`.
         dataset: (Optional) the PascalVOC dataset to load from. Should be either
-            'voc/2007' or 'voc/2012'. Defaults to 'voc/2007'.
+            `"voc/2007"` or `"voc/2012"`. Defaults to `"voc/2007"`.
 
     Returns:
         tf.data.Dataset containing PascalVOC. Each entry is a dictionary

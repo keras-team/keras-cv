@@ -40,8 +40,8 @@ def corners_to_mask(bounding_boxes, mask_shape):
             output width and height of masks.
 
     Returns:
-        boolean masks with shape (batch_size, width, height) where True values
-            indicate positions within bounding box coordinates.
+        boolean masks with shape `(batch_size, width, height)` where `True`
+            values indicate positions within bounding box coordinates.
     """
     mask_width, mask_height = mask_shape
     x0, y0, x1, y1 = tf.split(bounding_boxes, [1, 1, 1, 1], axis=-1)

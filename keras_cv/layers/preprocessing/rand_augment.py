@@ -65,8 +65,8 @@ class RandAugment(RandomAugmentationPipeline):
             implementation, the behavior is identical to sampling an Identity
             augmentation 10/11th of the time. Defaults to `1.0`.
         geometric: whether to include geometric augmentations. This
-            should be set to False when performing object detection. Defaults to
-            `True`.
+            should be set to `False` when performing object detection.
+            Defaults to `True`.
     Usage:
     ```python
     (x_test, y_test), _ = keras.datasets.cifar10.load_data()

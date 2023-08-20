@@ -56,7 +56,7 @@ class OldRandomZoom(BaseImageAugmentationLayer):
         represented as a single float, this value is used for both the upper and
         lower bound. For instance, `width_factor=(0.2, 0.3)` result in an output
         zooming out between 20% to 30%. `width_factor=(-0.3, -0.2)` result in an
-        output zooming in between 20% to 30%. When None: zooming
+        output zooming in between 20% to 30%. When `None`: zooming
         vertical and horizontal directions by preserving the aspect ratio. If
         height_factor=0 and width_factor=None, it would result in images with
         no zoom at all. Defaults to `None`.

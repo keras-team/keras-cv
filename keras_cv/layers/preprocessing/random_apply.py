@@ -35,7 +35,7 @@ class RandomApply(BaseImageAugmentationLayer):
             layer. This is useful when using `MixUp()`, `CutMix()`, `Mosaic()`,
             etc.
         auto_vectorize: bool, whether to use tf.vectorized_map or tf.map_fn for
-            batched input. Setting this to True might give better performance
+            batched input. Setting this to `True` might give better performance
             but currently doesn't work with XLA. Defaults to `False`.
         seed: integer, controls random behaviour.
 

@@ -50,7 +50,7 @@ class ROISamplerTest(TestCase):
         _, sampled_gt_boxes, _, sampled_gt_classes, _ = roi_sampler(
             rois, gt_boxes, gt_classes
         )
-        # given we only choose 1 positive sample, and `append_label` is False,
+        # given we only choose 1 positive sample, and `append_label` is `False`,
         # only the 2nd ROI is chosen.
         expected_gt_boxes = tf.constant(
             [[0.0, 0.0, 0, 0.0], [0.0, 0.0, 0, 0.0]]
@@ -95,9 +95,9 @@ class ROISamplerTest(TestCase):
         sampled_rois, sampled_gt_boxes, _, sampled_gt_classes, _ = roi_sampler(
             rois, gt_boxes, gt_classes
         )
-        # given we only choose 1 positive sample, and `append_label` is False,
+        # given we only choose 1 positive sample, and `append_label` is `False`,
         # only the 2nd ROI is chosen. No negative samples exist given we
-        # select positive_threshold to be 0.1. (the minimum IOU is 1/7)
+        # select positive_threshold to be `0.1`. (the minimum IOU is 1/7)
         # given num_sampled_rois=2, it selects the 1st ROI as well.
         expected_rois = tf.constant([[5, 5, 10, 10], [0.0, 0.0, 5.0, 5.0]])
         expected_rois = expected_rois[tf.newaxis, ...]
