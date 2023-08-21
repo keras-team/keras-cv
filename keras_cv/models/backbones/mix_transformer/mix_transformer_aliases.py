@@ -50,7 +50,7 @@ class MiTB0Backbone(MiTBackbone):
     def __new__(
         cls,
         include_rescaling=True,
-        input_shape=(None, None, 3),
+        input_shape=(224, 224, 3),
         input_tensor=None,
         **kwargs,
     ):
@@ -84,7 +84,7 @@ class MiTB1Backbone(MiTBackbone):
     def __new__(
         cls,
         include_rescaling=True,
-        input_shape=(None, None, 3),
+        input_shape=(224, 224, 3),
         input_tensor=None,
         **kwargs,
     ):
@@ -113,7 +113,7 @@ class MiTB2Backbone(MiTBackbone):
     def __new__(
         cls,
         include_rescaling=True,
-        input_shape=(None, None, 3),
+        input_shape=(224, 224, 3),
         input_tensor=None,
         **kwargs,
     ):
@@ -142,7 +142,7 @@ class MiTB3Backbone(MiTBackbone):
     def __new__(
         cls,
         include_rescaling=True,
-        input_shape=(None, None, 3),
+        input_shape=(224, 224, 3),
         input_tensor=None,
         **kwargs,
     ):
@@ -171,7 +171,7 @@ class MiTB4Backbone(MiTBackbone):
     def __new__(
         cls,
         include_rescaling=True,
-        input_shape=(None, None, 3),
+        input_shape=(224, 224, 3),
         input_tensor=None,
         **kwargs,
     ):
@@ -200,7 +200,7 @@ class MiTB5Backbone(MiTBackbone):
     def __new__(
         cls,
         include_rescaling=True,
-        input_shape=(None, None, 3),
+        input_shape=(224, 224, 3),
         input_tensor=None,
         **kwargs,
     ):

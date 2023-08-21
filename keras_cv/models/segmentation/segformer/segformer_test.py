@@ -14,16 +14,18 @@
 
 import os
 
+import numpy as np
 import pytest
 import tensorflow as tf
-from absl.testing import parameterized
-from tensorflow import keras
 
+from keras_cv.backend import keras
+from keras_cv.backend import ops
 from keras_cv.models import MiTBackbone
 from keras_cv.models import SegFormer
+from keras_cv.tests.test_case import TestCase
 
 
-class SegFormerTest(tf.test.TestCase, parameterized.TestCase):
+class SegFormerTest(TestCase):
     def test_segformer_construction(self):
         backbone = MiTBackbone.from_preset("mit_b0", input_shape=[512, 512, 3])
         model = SegFormer(backbone=backbone, num_classes=1)
@@ -34,25 +36,25 @@ class SegFormerTest(tf.test.TestCase, parameterized.TestCase):
         )
 
     @pytest.mark.large
-    def test_segformer_plus_call(self):
+    def test_segformer_call(self):
         backbone = MiTBackbone.from_preset("mit_b0", input_shape=[512, 512, 3])
         model = SegFormer(backbone=backbone, num_classes=1)
-        images = tf.random.uniform((2, 512, 512, 3))
+        images = np.random.uniform(size=(2, 512, 512, 3))
         _ = model(images)
         _ = model.predict(images)
 
     @pytest.mark.large
     def test_weights_change(self):
-        target_size = [512, 512, 3]
+        target_size = [512, 512, 2]
 
-        images = tf.ones(shape=[1] + target_size)
+        images = tf.ones(shape=[1] + [512, 512, 3])
         labels = tf.zeros(shape=[1] + target_size)
         ds = tf.data.Dataset.from_tensor_slices((images, labels))
         ds = ds.repeat(2)
         ds = ds.batch(2)
 
         backbone = MiTBackbone.from_preset("mit_b0", input_shape=[512, 512, 3])
-        model = SegFormer(backbone=backbone, num_classes=1)
+        model = SegFormer(backbone=backbone, num_classes=2)
 
         model.compile(
             optimizer="adam",
@@ -65,25 +67,21 @@ class SegFormerTest(tf.test.TestCase, parameterized.TestCase):
         updated_weights = model.get_weights()
 
         for w1, w2 in zip(original_weights, updated_weights):
-            self.assertNotAllClose(w1, w2)
-            self.assertFalse(tf.math.reduce_any(tf.math.is_nan(w2)))
+            self.assertNotAllEqual(w1, w2)
+            self.assertFalse(ops.any(ops.isnan(w2)))
 
-    @parameterized.named_parameters(
-        ("tf_format", "tf", "model"),
-        ("keras_format", "keras_v3", "model.keras"),
-    )
     @pytest.mark.large  # Saving is slow, so mark these large.
-    def test_saved_model(self, save_format, filename):
+    def test_saved_model(self):
         target_size = [512, 512, 3]
 
         backbone = MiTBackbone.from_preset("mit_b0", input_shape=[512, 512, 3])
         model = SegFormer(backbone=backbone, num_classes=1)
 
-        input_batch = tf.ones(shape=[2] + target_size)
+        input_batch = np.ones(shape=[2] + target_size)
         model_output = model(input_batch)
 
-        save_path = os.path.join(self.get_temp_dir(), filename)
-        model.save(save_path, save_format=save_format)
+        save_path = os.path.join(self.get_temp_dir(), "model.keras")
+        model.save(save_path, save_format="keras_v3")
         restored_model = keras.models.load_model(save_path)
 
         # Check we got the real object back.

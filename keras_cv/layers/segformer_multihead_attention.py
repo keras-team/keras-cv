@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import math
+
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
@@ -70,12 +72,8 @@ class SegFormerMultiheadAttention(keras.layers.Layer):
 
     def call(self, x):
         input_shape = ops.shape(x)
-        H, W = ops.sqrt(ops.cast(input_shape[1], "float32")), ops.sqrt(
-            ops.cast(input_shape[1], "float32")
-        )
-        B, C = ops.cast(input_shape[0], "float32"), ops.cast(
-            input_shape[2], "float32"
-        )
+        H, W = int(math.sqrt(input_shape[1])), int(math.sqrt(input_shape[1]))
+        B, C = input_shape[0], input_shape[2]
 
         q = self.q(x)
         q = ops.reshape(
@@ -126,5 +124,6 @@ class SegFormerMultiheadAttention(keras.layers.Layer):
             ops.transpose(attn, [0, 2, 1, 3]),
             [input_shape[0], input_shape[1], input_shape[2]],
         )
+
         x = self.proj(attn)
         return x
