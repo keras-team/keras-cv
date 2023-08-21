@@ -15,6 +15,7 @@
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
+from keras_cv.backend import random
 
 
 @keras_cv_export("keras_cv.layers.DropPath")
@@ -55,10 +56,10 @@ class DropPath(keras.layers.Layer):
         if self.rate == 0.0 or not training:
             return x
         else:
-            drop_map_shape = (x.shape[0],) + (1,) * (len(x.shape) - 1)
+            batch_size = x.shape[0] or ops.shape(x)[0]
+            drop_map_shape = (batch_size,) + (1,) * (len(x.shape) - 1)
             drop_map = ops.cast(
-                keras.random.uniform(drop_map_shape, seed=self.seed)
-                > self.rate,
+                random.uniform(drop_map_shape, seed=self.seed) > self.rate,
                 x.dtype,
             )
             x = x / (1.0 - self.rate)
