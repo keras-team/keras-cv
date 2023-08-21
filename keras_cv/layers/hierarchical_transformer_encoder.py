@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import math
+
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
@@ -128,10 +130,8 @@ class HierarchicalTransformerEncoder(keras.layers.Layer):
         def call(self, x):
             x = self.fc1(x)
             shape = ops.shape(x)
-            B, C = ops.cast(shape[0], "float32"), ops.cast(shape[-1], "float32")
-            H, W = ops.sqrt(ops.cast(shape[1], "float32")), ops.sqrt(
-                ops.cast(shape[1], "float32")
-            )
+            H, W = int(math.sqrt(shape[1])), int(math.sqrt(shape[1]))
+            B, C = shape[0], shape[2]
             x = ops.reshape(x, (B, H, W, C))
             x = self.dwconv(x)
             x = ops.reshape(x, (B, -1, C))
