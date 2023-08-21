@@ -218,7 +218,7 @@ class FusedMBConvBlock(keras.layers.Layer):
         if self.strides == 1 and self.input_filters == self.output_filters:
             if self.survival_probability:
                 x = self.dropout(x)
-            x = keras.layers.add([x, inputs], name=self.name + "add")
+            x = keras.layers.Add(name=self.name + "add")([x, inputs])
         return x
 
     def get_config(self):
