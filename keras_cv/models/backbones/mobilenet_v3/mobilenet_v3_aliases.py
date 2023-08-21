@@ -73,12 +73,16 @@ class MobileNetV3SmallBackbone(MobileNetV3Backbone):
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
-        return {}
+        return {
+            "mobilenet_v3_small_imagenet": copy.deepcopy(
+                backbone_presets["mobilenet_v3_small_imagenet"]
+            ),
+        }
 
     @classproperty
     def presets_with_weights(cls):
         """Dictionary of preset names and configurations."""
-        return {}
+        return cls.presets
 
 
 @keras_cv_export("keras_cv.models.MobileNetV3LargeBackbone")
