@@ -97,8 +97,8 @@ class MiTBackbone(Backbone):
             # call in `OverlappingPatchingAndEmbedding`
             stride = 4 if i == 0 else 2
             new_height, new_width = (
-                int(ops.shape(x)[1] / stride),
-                int(ops.shape(x)[2] / stride),
+                int(x.shape[1] / stride),
+                int(x.shape[2] / stride),
             )
 
             x = patch_embedding_layers[i](x)
