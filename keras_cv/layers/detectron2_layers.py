@@ -15,7 +15,7 @@
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
-from keras_cv.models.segmentation.segment_anything.sam_layers import MLPBlock
+from keras_cv.models.segmentation.segment_anything.sam_layers import MLP
 
 
 @keras_cv_export("keras_cv.layers.MultiHeadAttentionWithRelativePE")
@@ -79,16 +79,17 @@ class MultiHeadAttentionWithRelativePE(keras.layers.Layer):
                 trainable=True,
             )
 
+    def build(self, input_shape=None):
         self.qkv.build([self.key_dim * self.num_heads])
         self.projection.build([self.key_dim * self.num_heads])
-
         self.built = True
 
     def compute_output_shape(self, input_shape):
         return input_shape
 
     def call(self, x):
-        B, H, W, C = x.shape
+        shape = ops.shape(x)
+        B, H, W, C = shape[0], shape[1], shape[2], shape[3]
         qkv = ops.transpose(
             ops.reshape(
                 self.qkv(x), (B, H * W, 3, self.num_heads, self.key_dim)
@@ -200,11 +201,18 @@ class WindowedTransformerEncoder(keras.layers.Layer):
             if window_size == 0
             else (window_size, window_size),
         )
-        self.mlp_block = MLPBlock(project_dim, mlp_dim, activation)
+        self.mlp_block = MLP(
+            mlp_dim,
+            project_dim,
+            num_layers=2,
+            activation="gelu",
+        )
 
+    def build(self, input_shape=None):
         self.layer_norm1.build([None, None, None, self.project_dim])
         self.layer_norm2.build([None, None, None, self.project_dim])
-
+        self.attention.build()
+        self.mlp_block.build([None, None, None, self.project_dim])
         self.built = True
 
     def compute_output_shape(self, input_shape):
@@ -274,8 +282,6 @@ class ViTDetPatchingAndEmbedding(keras.layers.Layer):
         self.strides = strides
         self.embed_dim = embed_dim
 
-        self.built = False
-
     def build(self, input_shape):
         self.projection.build(input_shape)
         self.built = True
@@ -299,6 +305,43 @@ class ViTDetPatchingAndEmbedding(keras.layers.Layer):
         return config
 
 
+@keras_cv_export("keras_cv.layers.AddPositionalEmbedding")
+class AddPositionalEmbedding(keras.layers.Layer):
+    def __init__(self, img_size, patch_size, embed_dim, **kwargs):
+        super().__init__(**kwargs)
+        self.img_size = img_size
+        self.patch_size = patch_size
+        self.embed_dim = embed_dim
+        self.pos_embed = self.add_weight(
+            name="pos_embed",
+            shape=(
+                1,
+                img_size // patch_size,
+                img_size // patch_size,
+                embed_dim,
+            ),
+            initializer="zeros",
+            trainable=True,
+        )
+
+    def compute_output_shape(self, input_shape):
+        return input_shape
+
+    def call(self, x):
+        return x + self.pos_embed
+
+    def get_confg(self):
+        config = super().get_config()
+        config.update(
+            {
+                "img_size": self.img_size,
+                "patch_size": self.patch_size,
+                "embed_dim": self.embed_dim,
+            }
+        )
+        return config
+
+
 def get_rel_pos(query_size, key_size, rel_pos):
     """
     Get relative positional embeddings according to the relative positions of
@@ -313,10 +356,10 @@ def get_rel_pos(query_size, key_size, rel_pos):
         tensor: Extracted positional embeddings according to relative
             positions.
     """
-    max_rel_dist = 2 * max(query_size, key_size) - 1
+    max_rel_dist = 2 * ops.maximum(query_size, key_size) - 1
     if rel_pos.shape[0] != max_rel_dist:
         rel_pos_resized = ops.image.resize(
-            images=ops.reshape(
+            image=ops.reshape(
                 rel_pos, (1, rel_pos.shape[0], rel_pos.shape[1], 1)
             ),
             size=(max_rel_dist, rel_pos.shape[1]),
@@ -325,16 +368,16 @@ def get_rel_pos(query_size, key_size, rel_pos):
         rel_pos_resized = ops.squeeze(rel_pos_resized, axis=(0, -1))
     else:
         rel_pos_resized = rel_pos
-    query_coordinates = ops.arange(query_size, dtype="float32")[:, None] * max(
-        key_size / query_size, 1.0
+    query_coordinates = ops.arange(query_size, dtype="float32")[:, None] * (
+        ops.cast(ops.maximum(key_size // query_size, 1), dtype="float32")
     )
-    key_coordinates = ops.arange(key_size, dtype="float32")[None, :] * max(
-        query_size / key_size, 1.0
+    key_coordinates = ops.arange(key_size, dtype="float32")[None, :] * (
+        ops.cast(ops.maximum(query_size // key_size, 1), dtype="float32")
     )
-    relative_coordinates = (query_coordinates - key_coordinates) + (
-        key_size - 1
-    ) * max(query_size / key_size, 1.0)
-    relative_coordinates = ops.cast(relative_coordinates, dtype="int64")
+    relative_coordinates = (query_coordinates - key_coordinates) + ops.cast(
+        key_size - 1, dtype="float32"
+    ) * ops.cast(ops.maximum(query_size // key_size, 1), dtype="float32")
+    relative_coordinates = ops.cast(relative_coordinates, dtype="int32")
     return ops.take(rel_pos_resized, relative_coordinates, 0)
 
 
@@ -368,7 +411,8 @@ def add_decomposed_rel_pos(
     rel_heights = get_rel_pos(query_height, key_height, rel_pos_h)
     rel_widths = get_rel_pos(query_width, key_width, rel_pos_w)
 
-    B, _, C = queries.shape
+    shape = ops.shape(queries)
+    B, C = shape[0], shape[2]
     rel_queries = ops.reshape(queries, (B, query_height, query_width, C))
     rel_heights = ops.einsum("bhwc,hkc->bhwk", rel_queries, rel_heights)
     rel_widths = ops.einsum("bhwc,wkc->bhwk", rel_queries, rel_widths)
@@ -385,7 +429,8 @@ def add_decomposed_rel_pos(
 
 
 def window_partition(x, window_size):
-    B, H, W, C = x.shape
+    shape = ops.shape(x)
+    B, H, W, C = shape[0], shape[1], shape[2], shape[3]
     pad_height = (window_size - H % window_size) % window_size
     pad_width = (window_size - W % window_size) % window_size
     if pad_height > 0 or pad_width > 0:
@@ -412,7 +457,7 @@ def window_partition(x, window_size):
 def window_unpartition(windows, window_size, HW_padded, HW):
     H_padded, W_padded = HW_padded
     H, W = HW
-    B = windows.shape[0] // (
+    B = ops.shape(windows)[0] // (
         (H_padded // window_size) * (W_padded // window_size)
     )
     x = ops.reshape(

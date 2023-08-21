@@ -33,7 +33,7 @@ from keras_cv.models.segmentation.segment_anything.sam_transformer import (
 from keras_cv.tests.test_case import TestCase
 
 
-class TestSAM(TestCase):
+class SAMTest(TestCase):
     def get_points_labels_box_mask(self, B):
         prompt_encoder = PromptEncoder(
             embed_dim=256,

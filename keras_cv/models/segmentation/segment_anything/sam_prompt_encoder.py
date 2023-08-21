@@ -17,6 +17,7 @@ import math
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
+from keras_cv.layers.serializable_sequential import SerializableSequential
 
 
 @keras_cv_export("keras_cv.layers.RandomFrequencyPositionalEmbeddings")
@@ -176,7 +177,7 @@ class PromptEncoder(keras.models.Model):
         self.bottom_right_corner_embed = keras.layers.Embedding(1, embed_dim)
         self.not_a_point_embed = keras.layers.Embedding(1, embed_dim)
 
-        self.mask_downscaler = keras.models.Sequential(
+        self.mask_downscaler = SerializableSequential(
             [
                 keras.layers.Conv2D(
                     mask_in_chans // 4, kernel_size=2, strides=2

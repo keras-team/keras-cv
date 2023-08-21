@@ -16,9 +16,10 @@ import copy
 
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
+from keras_cv.layers.detectron2_layers import AddPositionalEmbedding
 from keras_cv.layers.detectron2_layers import ViTDetPatchingAndEmbedding
 from keras_cv.layers.detectron2_layers import WindowedTransformerEncoder
-from keras_cv.layers.serializable_sequential import SerializableSequential
+from keras_cv.models import utils
 from keras_cv.models.backbones.backbone import Backbone
 from keras_cv.models.backbones.detectron2.detectron2_backbone_presets import (
     backbone_presets,
@@ -67,9 +68,10 @@ class ViTDetBackbone(Backbone):
 
     def __init__(
         self,
-        img_size=1024,
+        input_shape=(1024, 1024, 3),
+        input_tensor=None,
+        include_rescaling=False,
         patch_size=16,
-        in_chans=3,
         embed_dim=1280,
         depth=32,
         mlp_dim=1280 * 4,
@@ -83,44 +85,39 @@ class ViTDetBackbone(Backbone):
         layer_norm_epsilon=1e-6,
         **kwargs
     ):
-        super().__init__(**kwargs)
-        self.img_size = img_size
-        self.patch_size = patch_size
-        self.in_chans = in_chans
-        self.embed_dim = embed_dim
-        self.depth = depth
-        self.mlp_dim = mlp_dim
-        self.num_heads = num_heads
-        self.out_chans = out_chans
-        self.use_bias = use_bias
-        self.use_rel_pos = use_rel_pos
-        self.use_abs_pos = use_abs_pos
-        self.window_size = window_size
-        self.global_attention_indices = global_attention_indices
-        self.layer_norm_epsilon = layer_norm_epsilon
+        img_input = utils.parse_model_inputs(input_shape, input_tensor)
 
-        self.patch_embed = ViTDetPatchingAndEmbedding(
+        # Check that the input image is well specified.
+        if img_input.shape[-3] is None or img_input.shape[-2] is None:
+            raise ValueError(
+                "Height and width of the image must be specified"
+                " in `input_shape`."
+            )
+        if img_input.shape[-3] != img_input.shape[-2]:
+            raise ValueError(
+                "Input image must be square i.e. the height must"
+                " be equal to the width in the `input_shape`"
+                " tuple/tensor."
+            )
+
+        img_size = img_input.shape[-3]
+
+        x = img_input
+
+        if include_rescaling:
+            # Use common rescaling strategy across keras_cv
+            x = keras.layers.Rescaling(1.0 / 255.0)(x)
+
+        x = ViTDetPatchingAndEmbedding(
             kernel_size=(patch_size, patch_size),
             strides=(patch_size, patch_size),
             embed_dim=embed_dim,
-        )
-        if self.use_abs_pos:
-            self.pos_embed = self.add_weight(
-                name="pos_embed",
-                shape=(
-                    1,
-                    self.img_size // self.patch_size,
-                    self.img_size // self.patch_size,
-                    self.embed_dim,
-                ),
-                initializer="zeros",
-                trainable=True,
-            )
-        else:
-            self.pos_embed = None
-        self.transformer_blocks = []
+        )(x)
+        if use_abs_pos:
+            x = AddPositionalEmbedding(img_size, patch_size, embed_dim)(x)
+
         for i in range(depth):
-            block = WindowedTransformerEncoder(
+            x = WindowedTransformerEncoder(
                 project_dim=embed_dim,
                 mlp_dim=mlp_dim,
                 num_heads=num_heads,
@@ -130,9 +127,8 @@ class ViTDetBackbone(Backbone):
                 if i not in global_attention_indices
                 else 0,
                 input_size=(img_size // patch_size, img_size // patch_size),
-            )
-            self.transformer_blocks.append(block)
-        self.bottleneck = SerializableSequential(
+            )(x)
+        x = keras.models.Sequential(
             [
                 keras.layers.Conv2D(
                     filters=out_chans, kernel_size=1, use_bias=False
@@ -146,21 +142,24 @@ class ViTDetBackbone(Backbone):
                 ),
                 keras.layers.LayerNormalization(epsilon=1e-6),
             ]
-        )
+        )(x)
 
-        self.patch_embed.build(
-            [None, self.img_size, self.img_size, self.in_chans]
-        )
-        self.bottleneck.build(
-            [
-                None,
-                self.img_size // self.patch_size,
-                self.img_size // self.patch_size,
-                self.embed_dim,
-            ]
-        )
+        super().__init__(inputs=img_input, outputs=x, **kwargs)
 
-        self.built = True
+        self.patch_size = patch_size
+        self.embed_dim = embed_dim
+        self.depth = depth
+        self.mlp_dim = mlp_dim
+        self.num_heads = num_heads
+        self.out_chans = out_chans
+        self.use_bias = use_bias
+        self.use_rel_pos = use_rel_pos
+        self.use_abs_pos = use_abs_pos
+        self.window_size = window_size
+        self.global_attention_indices = global_attention_indices
+        self.layer_norm_epsilon = layer_norm_epsilon
+        self.input_tensor = input_tensor
+        self.include_rescaling = include_rescaling
 
     @property
     def pyramid_level_inputs(self):
@@ -169,22 +168,14 @@ class ViTDetBackbone(Backbone):
             " pyramid level features."
         )
 
-    def call(self, x):
-        B, _, _, _ = x.shape
-        x = self.patch_embed(x)
-        if self.pos_embed is not None:
-            x = x + self.pos_embed
-        for block in self.transformer_blocks:
-            x = block(x)
-        return self.bottleneck(x)
-
     def get_config(self):
         config = super().get_config()
         config.update(
             {
-                "img_size": self.img_size,
+                "input_shape": self.input_shape,
+                "input_tensor": self.input_tensor,
+                "include_rescaling": self.include_rescaling,
                 "patch_size": self.patch_size,
-                "in_chans": self.in_chans,
                 "embed_dim": self.embed_dim,
                 "depth": self.depth,
                 "mlp_dim": self.mlp_dim,

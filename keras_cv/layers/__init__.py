@@ -17,6 +17,7 @@ from tensorflow.keras.layers import RandomHeight
 from tensorflow.keras.layers import RandomWidth
 
 from keras_cv.layers.augmenter import Augmenter
+from keras_cv.layers.detectron2_layers import AddPositionalEmbedding
 from keras_cv.layers.detectron2_layers import MultiHeadAttentionWithRelativePE
 from keras_cv.layers.detectron2_layers import ViTDetPatchingAndEmbedding
 from keras_cv.layers.detectron2_layers import WindowedTransformerEncoder

@@ -15,7 +15,7 @@
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
-from keras_cv.models.segmentation.segment_anything.sam_layers import MLPBlock
+from keras_cv.models.segmentation.segment_anything.sam_layers import MLP
 
 
 @keras_cv_export("keras_cv.layers.MultiHeadAttentionWithDownsampling")
@@ -58,10 +58,10 @@ class MultiHeadAttentionWithDownsampling(keras.layers.Layer):
         # Upsample
         self.out_proj = keras.layers.Dense(self.key_dim * self.num_heads)
 
-        self.query_proj.build([self.num_heads * self.key_dim])
-        self.key_proj.build([self.num_heads * self.key_dim])
-        self.value_proj.build([self.num_heads * self.key_dim])
-        self.out_proj.build([self.internal_dims * self.num_heads])
+        self.query_proj.build([None, None, self.num_heads * self.key_dim])
+        self.key_proj.build([None, None, self.num_heads * self.key_dim])
+        self.value_proj.build([None, None, self.num_heads * self.key_dim])
+        self.out_proj.build([None, None, self.internal_dims * self.num_heads])
 
         self.built = True
 
@@ -156,7 +156,12 @@ class TwoWayMultiHeadAttention(keras.layers.Layer):
         )
         self.layer_norm2 = keras.layers.LayerNormalization(epsilon=1e-5)
 
-        self.mlp_block = MLPBlock(key_dim * num_heads, mlp_dim, activation)
+        self.mlp_block = MLP(
+            mlp_dim,
+            key_dim * num_heads,
+            num_layers=2,
+            activation=activation,
+        )
 
         self.layer_norm3 = keras.layers.LayerNormalization(epsilon=1e-5)
         self.cross_attention_image_to_token = (
@@ -170,6 +175,7 @@ class TwoWayMultiHeadAttention(keras.layers.Layer):
 
         self.layer_norm1.build([None, None, self.num_heads * self.key_dim])
         self.layer_norm2.build([None, None, self.num_heads * self.key_dim])
+        self.mlp_block.build([None, None, self.num_heads * self.key_dim])
         self.layer_norm3.build([None, None, self.num_heads * self.key_dim])
         self.layer_norm4.build([None, None, self.num_heads * self.key_dim])
 
