@@ -29,7 +29,7 @@ The provided table gives an overview of the different augmentation layers availa
 | RandomContrast | ✅ | ✅ | ✅ | ✅ |
 | RandomCropAndResize | ❌ | ✅ | ✅ | ❌ |
 | RandomCrop | ✅ | ❌ | ✅ | ✅ |
-| RandomCutout | ❌ | ❌ | ❌ | ✅ |
+| RandomCutout | ❌ | ✅ | ❌ | ✅ |
 | RandomFlip | ✅ | ✅ | ✅ | ✅ |
 | RandomGaussianBlur | ❌ | ✅ | ✅ | ✅ |
 | RandomHue | ✅ | ✅ | ✅ | ✅ |
