@@ -39,7 +39,7 @@ The provided table gives an overview of the different augmentation layers availa
 | RandomSharpness | ✅ | ✅ | ✅ | ✅ |
 | RandomShear | ✅ | ✅ | ✅ | ✅ |
 | RandomTranslation | ✅ | ✅ | ✅ | ✅ |
-| RandomZoom | ✅ | ❌ | ❌ | ✅ |
+| RandomZoom | ✅ | ✅ | ❌ | ✅ |
 | RepeatedAugmentation <sup>+</sup> | - | - | - | - |
 | Rescaling | ❌ | ✅ | ✅ | ✅ |
 | Resizing | ❌ | ✅ | ✅ | ❌ |
