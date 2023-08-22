@@ -37,7 +37,7 @@ The provided table gives an overview of the different augmentation layers availa
 | RandomRotation | ✅ | ✅ | ✅ | ✅ |
 | RandomSaturation | ✅ | ✅ | ✅ | ✅ |
 | RandomSharpness | ✅ | ✅ | ✅ | ✅ |
-| RandomShear | ✅ | ❌ | ✅ | ✅ |
+| RandomShear | ✅ | ✅ | ✅ | ✅ |
 | RandomTranslation | ✅ | ✅ | ✅ | ✅ |
 | RandomZoom | ✅ | ❌ | ❌ | ✅ |
 | RepeatedAugmentation <sup>+</sup> | - | - | - | - |
