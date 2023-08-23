@@ -42,7 +42,7 @@ ALIAS_DOCSTRING = """SegFormer model.
 class SegFormerB0(SegFormer):
     def __new__(
         cls,
-        num_classes=19,
+        num_classes,
         **kwargs,
     ):
         # Pack args in kwargs
@@ -70,7 +70,7 @@ class SegFormerB0(SegFormer):
 class SegFormerB1(SegFormer):
     def __new__(
         cls,
-        num_classes=19,
+        num_classes,
         **kwargs,
     ):
         # Pack args in kwargs
@@ -98,7 +98,7 @@ class SegFormerB1(SegFormer):
 class SegFormerB2(SegFormer):
     def __new__(
         cls,
-        num_classes=19,
+        num_classes,
         **kwargs,
     ):
         # Pack args in kwargs
@@ -126,7 +126,7 @@ class SegFormerB2(SegFormer):
 class SegFormerB3(SegFormer):
     def __new__(
         cls,
-        num_classes=19,
+        num_classes,
         **kwargs,
     ):
         # Pack args in kwargs
@@ -154,7 +154,7 @@ class SegFormerB3(SegFormer):
 class SegFormerB4(SegFormer):
     def __new__(
         cls,
-        num_classes=19,
+        num_classes,
         **kwargs,
     ):
         # Pack args in kwargs
@@ -182,7 +182,7 @@ class SegFormerB4(SegFormer):
 class SegFormerB5(SegFormer):
     def __new__(
         cls,
-        num_classes=19,
+        num_classes,
         **kwargs,
     ):
         # Pack args in kwargs

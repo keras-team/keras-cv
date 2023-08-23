@@ -27,7 +27,6 @@ presets_no_weights = {
         },
         "class_name": "keras_cv>SegFormer",
         "config": {
-            "num_classes": 19,
             "backbone": backbone_presets["mit_b0"],
         },
     },
@@ -39,7 +38,7 @@ presets_no_weights = {
             "path": "segformer_b1",
         },
         "class_name": "keras_cv>SegFormer",
-        "config": {"num_classes": 19, "backbone": backbone_presets["mit_b1"]},
+        "config": {"backbone": backbone_presets["mit_b1"]},
     },
     "segformer_b2": {
         "metadata": {
@@ -49,7 +48,7 @@ presets_no_weights = {
             "path": "segformer_b2",
         },
         "class_name": "keras_cv>SegFormer",
-        "config": {"num_classes": 19, "backbone": backbone_presets["mit_b2"]},
+        "config": {"backbone": backbone_presets["mit_b2"]},
     },
     "segformer_b3": {
         "metadata": {
@@ -59,7 +58,7 @@ presets_no_weights = {
             "path": "segformer_b3",
         },
         "class_name": "keras_cv>SegFormer",
-        "config": {"num_classes": 19, "backbone": backbone_presets["mit_b3"]},
+        "config": {"backbone": backbone_presets["mit_b3"]},
     },
     "segformer_b4": {
         "metadata": {
@@ -69,7 +68,7 @@ presets_no_weights = {
             "path": "segformer_b4",
         },
         "class_name": "keras_cv>SegFormer",
-        "config": {"num_classes": 19, "backbone": backbone_presets["mit_b4"]},
+        "config": {"backbone": backbone_presets["mit_b4"]},
     },
     "segformer_b5": {
         "metadata": {
@@ -79,7 +78,7 @@ presets_no_weights = {
             "path": "segformer_b5",
         },
         "class_name": "keras_cv>SegFormer",
-        "config": {"num_classes": 19, "backbone": backbone_presets["mit_b5"]},
+        "config": {"backbone": backbone_presets["mit_b5"]},
     },
 }
 
@@ -95,7 +94,6 @@ presets_with_weights = {
         },
         "class_name": "keras_cv>SegFormer",
         "config": {
-            "num_classes": 19,
             "backbone": backbone_presets["mit_b0_imagenet"],
         },
     },
