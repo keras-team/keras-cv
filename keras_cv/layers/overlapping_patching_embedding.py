@@ -37,7 +37,7 @@ class OverlappingPatchingAndEmbedding(keras.layers.Layer):
             patch_size: integer, the size of the patches to encode.
                 Defaults to `7`.
             stride: integer, the stride to use for the patching before
-                projection. Defaults to 5`.
+                projection. Defaults to `5`.
 
         Basic usage:
 

@@ -59,19 +59,16 @@ class MiTBackbone(Backbone):
             - [Based on the TensorFlow implementation from DeepVision](https://github.com/DavidLandup0/deepvision/tree/main/deepvision/models/classification/mix_transformer) # noqa: E501
 
         Args:
-            backbone: `keras.Model`. The backbone network for the model that is
-                used as a feature extractor for the SegFormer encoder.
-                It is *intended* to be used only with the MiT backbone model which
-                was created specifically for SegFormers. It should either be a
-                `keras_cv.models.backbones.backbone.Backbone` or a `tf.keras.Model`
-                that implements the `pyramid_level_inputs` property with keys
-                "P2", "P3", "P4", and "P5" and layer names as
-                values.
-            num_classes: int, the number of classes for the detection model,
-                including the background class.
-            projection_filters: int, number of filters in the
-                convolution layer projecting the concatenated features into
-                a segmentation map. Defaults to `256`.
+            include_rescaling: bool, whether to rescale the inputs. If set
+                to `True`, inputs will be passed through a `Rescaling(1/255.0)`
+                layer.
+            depths: the number of transformer encoders to be used per stage in the
+                network
+            embedding_dims: the embedding dims per hierarchical stage, used as
+                the levels of the feature pyramid
+            input_shape: optional shape tuple, defaults to (None, None, 3).
+            input_tensor: optional Keras tensor (i.e. output of `keras.layers.Input()`)
+                to use as image input for the model.
 
         Examples:
 
@@ -84,9 +81,6 @@ class MiTBackbone(Backbone):
         images = np.ones(shape=(1, 96, 96, 3))
         labels = np.zeros(shape=(1, 96, 96, 1))
         backbone = keras_cv.models.MiTBackbone.from_preset("mit_b0_imagenet")
-        model = keras_cv.models.segmentation.SegFormer(
-            num_classes=1, backbone=backbone,
-        )
 
         # Evaluate model
         model(images)
