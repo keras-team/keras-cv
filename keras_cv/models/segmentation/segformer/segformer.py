@@ -47,9 +47,9 @@ class SegFormer(Task):
             values.
         num_classes: int, the number of classes for the detection model,
             including the background class.
-        projection_filters: int, default 256, number of filters in the
+        projection_filters: int, number of filters in the
             convolution layer projecting the concatenated features into
-            a segmentation map.
+            a segmentation map. Defaults to 256`.
 
     Examples:
 

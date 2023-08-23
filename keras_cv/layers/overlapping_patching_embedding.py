@@ -32,10 +32,12 @@ class OverlappingPatchingAndEmbedding(keras.layers.Layer):
             - [Ported from the TensorFlow implementation from DeepVision](https://github.com/DavidLandup0/deepvision/blob/main/deepvision/layers/hierarchical_transformer_encoder.py) # noqa: E501
 
         Args:
-            project_dim: integer, default 32, the dimensionality of the projection
-            patch_size: integer, default 7, the size of the patches to encode
-            stride: integer, default 4, the stride to use for the patching before
-                projection
+            project_dim: integer, the dimensionality of the projection.
+                Defaults to `32`.
+            patch_size: integer, the size of the patches to encode.
+                Defaults to `7`.
+            stride: integer, the stride to use for the patching before
+                projection. Defaults to 5`.
 
         Basic usage:
 

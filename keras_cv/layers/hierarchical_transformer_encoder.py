@@ -42,14 +42,14 @@ class HierarchicalTransformerEncoder(keras.layers.Layer):
             Due to the residual addition the input dimensionality has to be
             equal to the output dimensionality.
         num_heads: integer, the number of heads for the
-            `SegFormerMultiheadAttention` layer
-        drop_prob: float, default 0.0, the probability of dropping a random
-            sample using the `DropPath` layer.
-        layer_norm_epsilon: float, default 1e-06, the epsilon for
-            `LayerNormalization` layers
-        sr_ratio: integer, default 1, the ratio to use within
+            `SegFormerMultiheadAttention` layer.
+        drop_prob: float, the probability of dropping a random
+            sample using the `DropPath` layer. Defaults to `0.0`.
+        layer_norm_epsilon: float, the epsilon for
+            `LayerNormalization` layers. Defaults to `1e-06`
+        sr_ratio: integer, the ratio to use within
             `SegFormerMultiheadAttention`. If set to > 1, a `Conv2D`
-             layer is used to reduce the length of the sequence.
+             layer is used to reduce the length of the sequence. Defaults to `1`.
 
     Basic usage:
 
