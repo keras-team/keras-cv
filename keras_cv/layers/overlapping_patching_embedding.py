@@ -32,14 +32,10 @@ class OverlappingPatchingAndEmbedding(keras.layers.Layer):
             - [Ported from the TensorFlow implementation from DeepVision](https://github.com/DavidLandup0/deepvision/blob/main/deepvision/layers/hierarchical_transformer_encoder.py) # noqa: E501
 
         Args:
-            project_dim: the dimensionality of the projection of the encoder, and
-                output of the `MultiHeadAttention`
-            num_heads: the number of heads for the `MultiHeadAttention` layer
-            drop_prob: default 0.0, the probability of dropping a random sample using the `DropPath` layer.
-            layer_norm_epsilon: default 1e-06, the epsilon for `LayerNormalization`
-                layers
-            sr_ratio: default 1, the ratio to use within `SegFormerMultiheadAttention`. If set to > 1,
-                a `Conv2D` layer is used to reduce the length of the sequence.
+            project_dim: integer, default 32, the dimensionality of the projection
+            patch_size: integer, default 7, the size of the patches to encode
+            stride: integer, default 4, the stride to use for the patching before
+                projection
 
         Basic usage:
 

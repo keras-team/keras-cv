@@ -51,6 +51,55 @@ class MiTBackbone(Backbone):
         embedding_dims=None,
         **kwargs,
     ):
+        """A Keras model implementing the MixTransformer architecture to be
+        used as a backbone for the SegFormer architecture.
+
+        References:
+            - [SegFormer: Simple and Efficient Design for Semantic Segmentation with Transformers](https://arxiv.org/abs/2105.15203) # noqa: E501
+            - [Based on the TensorFlow implementation from DeepVision](https://github.com/DavidLandup0/deepvision/tree/main/deepvision/models/classification/mix_transformer) # noqa: E501
+
+        Args:
+            backbone: `keras.Model`. The backbone network for the model that is
+                used as a feature extractor for the SegFormer encoder.
+                It is *intended* to be used only with the MiT backbone model which
+                was created specifically for SegFormers. It should either be a
+                `keras_cv.models.backbones.backbone.Backbone` or a `tf.keras.Model`
+                that implements the `pyramid_level_inputs` property with keys
+                "P2", "P3", "P4", and "P5" and layer names as
+                values.
+            num_classes: int, the number of classes for the detection model,
+                including the background class.
+            projection_filters: int, default 256, number of filters in the
+                convolution layer projecting the concatenated features into
+                a segmentation map.
+
+        Examples:
+
+        Using the class with a `backbone`:
+
+        ```python
+        import tensorflow as tf
+        import keras_cv
+
+        images = np.ones(shape=(1, 96, 96, 3))
+        labels = np.zeros(shape=(1, 96, 96, 1))
+        backbone = keras_cv.models.MiTBackbone.from_preset("mit_b0_imagenet")
+        model = keras_cv.models.segmentation.SegFormer(
+            num_classes=1, backbone=backbone,
+        )
+
+        # Evaluate model
+        model(images)
+
+        # Train model
+        model.compile(
+            optimizer="adam",
+            loss=keras.losses.BinaryCrossentropy(from_logits=False),
+            metrics=["accuracy"],
+        )
+        model.fit(images, labels, epochs=3)
+        ```
+        """
         drop_path_rate = 0.1
         dpr = [x for x in np.linspace(0.0, drop_path_rate, sum(depths))]
         blockwise_num_heads = [1, 2, 5, 8]

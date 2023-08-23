@@ -38,9 +38,12 @@ class SegFormerMultiheadAttention(keras.layers.Layer):
         - [Ported from the TensorFlow implementation from DeepVision](https://github.com/DavidLandup0/deepvision/blob/main/deepvision/layers/efficient_attention.py) # noqa: E501
 
         Args:
-            project_dim: the dimensionality of the projection of the `SegFormerMultiheadAttention` layer.
-            num_heads: the number of heads to use in the attention computation.
-            sr_ratio: the sequence reduction ratio to perform on the sequence before key and value projections.
+            project_dim: integer, the dimensionality of the projection
+                of the `SegFormerMultiheadAttention` layer.
+            num_heads: integer, the number of heads to use in the
+                attention computation.
+            sr_ratio: integer, the sequence reduction ratio to perform
+                on the sequence before key and value projections.
 
         Basic usage:
 
