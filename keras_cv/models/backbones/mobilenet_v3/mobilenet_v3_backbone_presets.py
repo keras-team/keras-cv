@@ -191,7 +191,7 @@ backbone_presets_with_weights = {
                 "convolution layers. "
                 "Pre-trained on the ImageNet 2012 classification task."
             ),
-            "params": 2_994_518,
+            "params": 2994518,
             "official_name": "MobileNetV3",
             "path": "mobilenetv3",
         },
@@ -203,12 +203,12 @@ backbone_presets_with_weights = {
     "mobilenet_v3_small_imagenet": {
         "metadata": {
             "description": (
-                "MobileNetV3 model with 28 layers where the batch "
+                "MobileNetV3 model with 14 layers where the batch "
                 "normalization and hard-swish activation are applied after the "
                 "convolution layers. "
                 "Pre-trained on the ImageNet 2012 classification task."
             ),
-            "params": 2_994_518,
+            "params": 933502,
             "official_name": "MobileNetV3",
             "path": "mobilenetv3",
         },

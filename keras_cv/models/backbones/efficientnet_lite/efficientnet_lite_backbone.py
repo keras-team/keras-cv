@@ -362,5 +362,5 @@ def apply_efficient_net_lite_block(
             x = keras.layers.Dropout(
                 dropout_rate, noise_shape=(None, 1, 1, 1), name=name + "drop"
             )(x)
-        x = keras.layers.add([x, inputs], name=name + "add")
+        x = keras.layers.Add(name=name + "add")([x, inputs])
     return x
