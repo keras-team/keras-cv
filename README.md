@@ -67,6 +67,7 @@ using it on top of your backend of choice:
 ```python
 import keras_cv
 import keras_core as keras
+import numpy as np
 
 filepath = keras.utils.get_file(origin="https://i.imgur.com/gCNcJJI.jpg")
 image = np.array(keras.utils.load_img(filepath))
