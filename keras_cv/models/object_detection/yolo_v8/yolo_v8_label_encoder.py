@@ -225,7 +225,7 @@ class YOLOV8LabelEncoder(keras.layers.Layer):
 
         # return zeros if no gt boxes are present
         return ops.cond(
-            max_num_boxes > 0,
+            ops.array(max_num_boxes > 0),
             lambda: encode_to_targets(
                 pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt
             ),
