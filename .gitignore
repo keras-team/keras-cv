@@ -16,3 +16,4 @@ __pycache__/
 .vscode/
 .devcontainer/
 .coverage
+.history

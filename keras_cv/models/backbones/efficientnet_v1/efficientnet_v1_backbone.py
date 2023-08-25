@@ -449,6 +449,6 @@ def apply_efficientnet_block(
                 noise_shape=(None, 1, 1, 1),
                 name=name + "drop",
             )(x)
-        x = keras.layers.add([x, inputs], name=name + "add")
+        x = keras.layers.Add(name=name + "add")([x, inputs])
 
     return x

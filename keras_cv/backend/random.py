@@ -12,8 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from keras_cv.models.segmentation.deeplab_v3_plus import DeepLabV3Plus
-from keras_cv.models.segmentation.segformer import SegFormer
-from keras_cv.models.segmentation.segment_anything import MaskDecoder
-from keras_cv.models.segmentation.segment_anything import PromptEncoder
-from keras_cv.models.segmentation.segment_anything import TwoWayTransformer
+from keras_cv.backend.config import multi_backend
+
+if multi_backend():
+    from keras_core.random import *  # noqa: F403, F401
+else:
+    from keras_core.src.backend.tensorflow.random import *  # noqa: F403, F401
