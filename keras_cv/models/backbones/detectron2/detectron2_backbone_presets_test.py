@@ -20,7 +20,7 @@ import pytest
 
 from keras_cv.backend import ops
 from keras_cv.models.backbones.detectron2.detectron2_aliases import (
-    SAMViTDetBBackbone,
+    ViTDetBBackbone,
 )
 from keras_cv.models.backbones.detectron2.detectron2_backbone import (
     ViTDetBackbone,
@@ -40,7 +40,7 @@ class ViTDetPresetSmokeTest(TestCase):
         self.input_batch = np.ones(shape=(1, 1024, 1024, 3))
 
     def test_backbone_output(self):
-        model = ViTDetBackbone.from_preset("sam_vitdet_b")
+        model = ViTDetBackbone.from_preset("vitdet_b")
         outputs = model(self.input_batch)
 
         # The forward pass from a preset should be stable!
@@ -50,7 +50,7 @@ class ViTDetPresetSmokeTest(TestCase):
         # file, or have found a discrepancy with the upstream source.
 
         expected = np.load(
-            pathlib.Path(__file__).parent / "data" / "sam_vitdet_b_out.npz"
+            pathlib.Path(__file__).parent / "data" / "vitdet_b_out.npz"
         )
         # Keep a high tolerance, so we are robust to different hardware.
         self.assertAllClose(
@@ -61,11 +61,11 @@ class ViTDetPresetSmokeTest(TestCase):
         )
 
     def test_applications_model_output(self):
-        model = SAMViTDetBBackbone()
+        model = ViTDetBBackbone()
         model(self.input_batch)
 
     def test_applications_model_output_with_preset(self):
-        model = SAMViTDetBBackbone.from_preset("sam_vitdet_b")
+        model = ViTDetBBackbone.from_preset("vitdet_b")
         model(self.input_batch)
 
     def test_preset_docstring(self):

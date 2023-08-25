@@ -12,103 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import math
-
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 from keras_cv.layers.serializable_sequential import SerializableSequential
+from keras_cv.models.segmentation.segment_anything.sam_layers import (
+    RandomFrequencyPositionalEmbeddings,
+)
 
 
-@keras_cv_export("keras_cv.layers.RandomFrequencyPositionalEmbeddings")
-class RandomFrequencyPositionalEmbeddings(keras.layers.Layer):
-    def __init__(self, num_positional_features, scale, **kwargs):
-        """Positional encoding using random spatial frequencies.
-
-        This layer maps coordinates/points in 2D space to positional
-        encodings using random spatial frequencies.
-
-        Args:
-            num_positional_features (int): Number of positional features
-                in the output.
-            scale (float): The standard deviation of the random frequencies.
-        """
-        super().__init__(**kwargs)
-        self.num_positional_features = num_positional_features
-        self.scale = scale
-        init_func = lambda *a, **kw: self.scale * ops.random.normal(
-            shape=(2, self.num_positional_features), dtype=self.dtype
-        )
-        self.positional_encoding_gaussian_matrix = self.add_weight(
-            name="positional_emcoding_gaussian_matrix",
-            shape=(2, self.num_positional_features),
-            dtype=self.dtype,
-            trainable=False,
-            initializer=init_func,
-        )
-
-        self.built = True
-
-    def __positional_encodings(self, coords):
-        coords = 2 * coords - 1
-        coords = coords @ self.positional_encoding_gaussian_matrix
-        coords = 2 * math.pi * coords
-        return ops.concatenate([ops.sin(coords), ops.cos(coords)], axis=-1)
-
-    def call(self, size):
-        """Generate a positional encoding for an image of any given size.
-
-        Args:
-            size (int): The size of the image.
-
-        Returns:
-            tensor: Positional encoding of the image.
-        """
-        H, W = size
-        H, W = ops.cast(H, "int64"), ops.cast(W, "int64")
-        grid = ops.ones(shape=(H, W), dtype=self.dtype)
-        y_embed = ops.cumsum(grid, axis=0) - 0.5
-        x_embed = ops.cumsum(grid, axis=1) - 0.5
-        y_embed = y_embed / ops.cast(H, self.dtype)
-        x_embed = x_embed / ops.cast(W, self.dtype)
-        return self.__positional_encodings(
-            ops.stack([x_embed, y_embed], axis=-1)
-        )
-
-    def call_with_coords(self, coords_input, image_size):
-        """Positionally encode points that are not normalized to `[0, 1]`.
-
-        Args:
-            coords_input (tensor): 2D coordinates/points to map.
-            image_size (tuple[int, int]): Height and width of the image
-                being prompted.
-
-        Returns:
-            tensor: Positional encodings of the normalized coordinates.
-        """
-        coords_normalized = ops.stack(
-            [
-                coords_input[..., 0] / image_size[1],
-                coords_input[..., 1] / image_size[0],
-            ],
-            axis=-1,
-        )
-        return self.__positional_encodings(coords_normalized)
-
-    def get_config(self):
-        config = super().get_config()
-        config.update(
-            {
-                "num_positional_features": self.num_positional_features,
-                "scale": self.scale,
-            }
-        )
-        return config
-
-
-@keras_cv_export("keras_cv.models.PromptEncoder")
-class PromptEncoder(keras.models.Model):
-    """Prompt Encoder for the segment anything model.
+@keras_cv_export("keras_cv.models.SAMPromptEncoder")
+class SAMPromptEncoder(keras.models.Model):
+    """Prompt Encoder for the Segment Anything Model (SAM).
 
     The prompt encoder generates encodings for three types of prompts:
 
@@ -226,7 +141,7 @@ class PromptEncoder(keras.models.Model):
             padding_label = -ops.ones((labels.shape[0], 1), dtype=self.dtype)
             points = ops.concatenate([points, padding_point], axis=1)
             labels = ops.concatenate([labels, padding_label], axis=1)
-        point_embeddings = self.positional_embedding_layer.call_with_coords(
+        point_embeddings = self.positional_embedding_layer.encode_coordinates(
             points, self.input_image_size
         )
         labels = ops.broadcast_to(labels[..., None], point_embeddings.shape)
@@ -248,7 +163,7 @@ class PromptEncoder(keras.models.Model):
     def __embed_box(self, box):
         box = box + 0.5
         coords = ops.reshape(box, (-1, 2, 2))
-        corner_embedding = self.positional_embedding_layer.call_with_coords(
+        corner_embedding = self.positional_embedding_layer.encode_coordinates(
             coords, self.input_image_size
         )
         top_left_embedding = (

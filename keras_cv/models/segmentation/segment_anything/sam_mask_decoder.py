@@ -15,13 +15,13 @@
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
+from keras_cv.layers.detectron2_layers import MLP
 from keras_cv.layers.serializable_sequential import SerializableSequential
-from keras_cv.models.segmentation.segment_anything.sam_layers import MLP
 
 
-@keras_cv_export("keras_cv.models.MaskDecoder")
-class MaskDecoder(keras.models.Model):
-    """Mask decoder for the segment anything model.
+@keras_cv_export("keras_cv.models.SAMMaskDecoder")
+class SAMMaskDecoder(keras.models.Model):
+    """Mask decoder for the Segment Anything Model (SAM).
 
     This lightweight module efficiently maps the image embedding and a set of
     prompt embeddings to an output mask. Before applying the transformer

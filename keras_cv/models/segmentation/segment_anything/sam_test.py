@@ -18,14 +18,14 @@ import numpy as np
 
 from keras_cv.backend import keras
 from keras_cv.backend import ops
+from keras_cv.models.segmentation.segment_anything.sam_layers import (
+    TwoWayMultiHeadAttention,
+)
 from keras_cv.models.segmentation.segment_anything.sam_mask_decoder import (
-    MaskDecoder,
+    SAMMaskDecoder,
 )
 from keras_cv.models.segmentation.segment_anything.sam_prompt_encoder import (
-    PromptEncoder,
-)
-from keras_cv.models.segmentation.segment_anything.sam_transformer import (
-    TwoWayMultiHeadAttention,
+    SAMPromptEncoder,
 )
 from keras_cv.models.segmentation.segment_anything.sam_transformer import (
     TwoWayTransformer,
@@ -35,7 +35,7 @@ from keras_cv.tests.test_case import TestCase
 
 class SAMTest(TestCase):
     def get_points_labels_box_mask(self, B):
-        prompt_encoder = PromptEncoder(
+        prompt_encoder = SAMPromptEncoder(
             embed_dim=256,
             image_embedding_size=(64, 64),
             input_image_size=(1024, 1024),
@@ -184,7 +184,7 @@ class SAMTest(TestCase):
             points=points, labels=labels, box=box, mask=input_mask
         )
         image_embeddings = np.random.randn(1, 64, 64, 256)
-        mask_decoder = MaskDecoder(
+        mask_decoder = SAMMaskDecoder(
             transformer_dim=256,
             transformer=TwoWayTransformer(
                 depth=2, embedding_dim=256, mlp_dim=2048, num_heads=8

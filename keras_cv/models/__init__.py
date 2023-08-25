@@ -44,13 +44,13 @@ from keras_cv.models.backbones.densenet.densenet_backbone import (
     DenseNetBackbone,
 )
 from keras_cv.models.backbones.detectron2.detectron2_aliases import (
-    SAMViTDetBBackbone,
+    ViTDetBBackbone,
 )
 from keras_cv.models.backbones.detectron2.detectron2_aliases import (
-    SAMViTDetHBackbone,
+    ViTDetHBackbone,
 )
 from keras_cv.models.backbones.detectron2.detectron2_aliases import (
-    SAMViTDetLBackbone,
+    ViTDetLBackbone,
 )
 from keras_cv.models.backbones.detectron2.detectron2_backbone import (
     ViTDetBackbone,
@@ -199,8 +199,8 @@ from keras_cv.models.object_detection.yolo_v8.yolo_v8_detector import (
     YOLOV8Detector,
 )
 from keras_cv.models.segmentation import DeepLabV3Plus
-from keras_cv.models.segmentation import MaskDecoder
-from keras_cv.models.segmentation import PromptEncoder
+from keras_cv.models.segmentation import SAMMaskDecoder
+from keras_cv.models.segmentation import SAMPromptEncoder
 from keras_cv.models.segmentation import TwoWayTransformer
 from keras_cv.models.segmentation.segformer.segformer_aliases import SegFormer
 from keras_cv.models.segmentation.segformer.segformer_aliases import SegFormerB0

@@ -22,7 +22,7 @@ from keras_cv.models.backbones.detectron2.detectron2_backbone_presets import (
 )
 from keras_cv.utils.python_utils import classproperty
 
-ALIAS_DOCSTRING = """{SAM}VitDet{size}Backbone model.
+ALIAS_DOCSTRING = """VitDet{size}Backbone model.
 
     Reference:
         - [Detectron2](https://github.com/facebookresearch/detectron2)
@@ -36,24 +36,24 @@ ALIAS_DOCSTRING = """{SAM}VitDet{size}Backbone model.
     input_data = np.ones(shape=(1, 1024, 1024, 3))
 
     # Randomly initialized backbone
-    model = {SAM}VitDet{size}Backbone()
+    model = VitDet{size}Backbone()
     output = model(input_data)
     ```
 """  # noqa: E501
 
 
-class SAMViTDetBBackbone(ViTDetBackbone):
+class ViTDetBBackbone(ViTDetBackbone):
     def __new__(
         cls,
         **kwargs,
     ):
-        return ViTDetBackbone.from_preset("sam_vitdet_b", **kwargs)
+        return ViTDetBackbone.from_preset("vitdet_b", **kwargs)
 
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return {
-            "sam_vitdet_b": copy.deepcopy(backbone_presets["sam_vitdet_b"]),
+            "vitdet_b": copy.deepcopy(backbone_presets["vitdet_b"]),
         }
 
     @classproperty
@@ -63,18 +63,18 @@ class SAMViTDetBBackbone(ViTDetBackbone):
         return cls.presets
 
 
-class SAMViTDetLBackbone(ViTDetBackbone):
+class ViTDetLBackbone(ViTDetBackbone):
     def __new__(
         cls,
         **kwargs,
     ):
-        return ViTDetBackbone.from_preset("sam_vitdet_l", **kwargs)
+        return ViTDetBackbone.from_preset("vitdet_l", **kwargs)
 
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return {
-            "sam_vitdet_l": copy.deepcopy(backbone_presets["sam_vitdet_l"]),
+            "vitdet_l": copy.deepcopy(backbone_presets["vitdet_l"]),
         }
 
     @classproperty
@@ -84,18 +84,18 @@ class SAMViTDetLBackbone(ViTDetBackbone):
         return cls.presets
 
 
-class SAMViTDetHBackbone(ViTDetBackbone):
+class ViTDetHBackbone(ViTDetBackbone):
     def __new__(
         cls,
         **kwargs,
     ):
-        return ViTDetBackbone.from_preset("sam_vitdet_h", **kwargs)
+        return ViTDetBackbone.from_preset("vitdet_h", **kwargs)
 
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return {
-            "sam_vitdet_h": copy.deepcopy(backbone_presets["sam_vitdet_h"]),
+            "vitdet_h": copy.deepcopy(backbone_presets["vitdet_h"]),
         }
 
     @classproperty
@@ -105,12 +105,6 @@ class SAMViTDetHBackbone(ViTDetBackbone):
         return cls.presets
 
 
-setattr(
-    SAMViTDetBBackbone, "__doc__", ALIAS_DOCSTRING.format(SAM="SAM", size="B")
-)
-setattr(
-    SAMViTDetLBackbone, "__doc__", ALIAS_DOCSTRING.format(SAM="SAM", size="L")
-)
-setattr(
-    SAMViTDetHBackbone, "__doc__", ALIAS_DOCSTRING.format(SAM="SAM", size="H")
-)
+setattr(ViTDetBBackbone, "__doc__", ALIAS_DOCSTRING.format(size="B"))
+setattr(ViTDetLBackbone, "__doc__", ALIAS_DOCSTRING.format(size="L"))
+setattr(ViTDetHBackbone, "__doc__", ALIAS_DOCSTRING.format(size="H"))

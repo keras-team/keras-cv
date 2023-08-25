@@ -13,10 +13,10 @@
 # limitations under the License.
 
 from keras_cv.models.segmentation.segment_anything.sam_mask_decoder import (
-    MaskDecoder,
+    SAMMaskDecoder,
 )
 from keras_cv.models.segmentation.segment_anything.sam_prompt_encoder import (
-    PromptEncoder,
+    SAMPromptEncoder,
 )
 from keras_cv.models.segmentation.segment_anything.sam_transformer import (
     TwoWayTransformer,

@@ -15,7 +15,171 @@
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
-from keras_cv.models.segmentation.segment_anything.sam_layers import MLP
+from keras_cv.layers.serializable_sequential import SerializableSequential
+
+
+@keras_cv_export("keras_cv.layers.MLP")
+class MLP(keras.layers.Layer):
+    """A MLP block with architecture
+    `input_dim -> [hidden_dim] * (num_layers - 1) -> output_dim`.
+
+    Args:
+        hidden_dim (int): The number of units in the hidden layers.
+        output_dim (int): The number of units in the output layer.
+        num_layers (int): The total number of dense layers to use.
+        activation (str): Activation to use in the hidden layers.
+            Default is `"relu"`.
+    """
+
+    def __init__(
+        self, hidden_dim, output_dim, num_layers, activation="relu", **kwargs
+    ):
+        super().__init__(**kwargs)
+        self.hidden_dim = hidden_dim
+        self.output_dim = output_dim
+        self.num_layers = num_layers
+        self.activation = activation
+        h = [hidden_dim] * (num_layers - 1)
+        self.dense_net = []
+        for hidden_dim in h:
+            self.dense_net.append(keras.layers.Dense(hidden_dim))
+            self.dense_net.append(keras.layers.Activation(activation))
+        self.dense_net.append(keras.layers.Dense(output_dim))
+        self.dense_net = SerializableSequential(self.dense_net)
+
+    def build(self, input_shape):
+        self.dense_net.build(input_shape)
+        self.built = True
+
+    def call(self, x):
+        return self.dense_net(x)
+
+    def get_config(self):
+        config = super().get_config()
+        config.update(
+            {
+                "hidden_dim": self.hidden_dim,
+                "output_dim": self.output_dim,
+                "num_layers": self.num_layers,
+                "activation": self.activation,
+            }
+        )
+        return config
+
+
+@keras_cv_export("keras_cv.layers.AddRelativePositionalEmbedding")
+class AddRelativePositionalEmbedding(keras.layers.Layer):
+    def __init__(self, input_size, key_dim, **kwargs):
+        super().__init__(**kwargs)
+        self.input_size = input_size
+        self.key_dim = key_dim
+        self.rel_pos_h = self.add_weight(
+            name="rel_pos_h",
+            shape=(2 * self.input_size[0] - 1, self.key_dim),
+            initializer="zeros",
+            trainable=True,
+        )
+        self.rel_pos_w = self.add_weight(
+            name="rel_pos_w",
+            shape=(2 * self.input_size[1] - 1, self.key_dim),
+            initializer="zeros",
+            trainable=True,
+        )
+        self.built = True
+
+    def _get_rel_pos(self, query_size, key_size, rel_pos):
+        """
+        Get relative positional embeddings according to the relative positions
+        of query and key sizes.
+
+        Args:
+            query_size (int): The number of features of the queries.
+            key_size (int): The number of features of the keys.
+            rel_pos (tensor): Relative positional embedding tensor.
+
+        Returns:
+            tensor: Extracted positional embeddings according to relative
+                positions.
+        """
+        max_rel_dist = 2 * ops.maximum(query_size, key_size) - 1
+
+        def _interpolate():
+            rel_pos_resized = ops.image.resize(
+                image=ops.reshape(
+                    rel_pos, (1, rel_pos.shape[0], rel_pos.shape[1], 1)
+                ),
+                size=(max_rel_dist, rel_pos.shape[1]),
+                interpolation="bilinear",
+            )
+            rel_pos_resized = ops.squeeze(rel_pos_resized, axis=(0, -1))
+            return rel_pos_resized
+
+        rel_pos_resized = ops.cond(
+            rel_pos.shape[0] != max_rel_dist,
+            _interpolate,
+            lambda *a, **kw: rel_pos,
+        )
+        query_coordinates = ops.arange(query_size, dtype="float32")[:, None] * (
+            ops.cast(ops.maximum(key_size // query_size, 1), dtype="float32")
+        )
+        key_coordinates = ops.arange(key_size, dtype="float32")[None, :] * (
+            ops.cast(ops.maximum(query_size // key_size, 1), dtype="float32")
+        )
+        relative_coordinates = (query_coordinates - key_coordinates) + ops.cast(
+            key_size - 1, dtype="float32"
+        ) * ops.cast(ops.maximum(query_size // key_size, 1), dtype="float32")
+        relative_coordinates = ops.cast(relative_coordinates, dtype="int32")
+        return ops.take(rel_pos_resized, relative_coordinates, 0)
+
+    def call(self, attention_map, queries, query_size, key_size):
+        """
+        Calculate decomposed Relative Positional Embeddings from :paper:`mvitv2`.
+
+        Args:
+            attention_map (tensor): Attention map.
+            queries (tensor): Queries in the attention layer with shape
+                `(B, q_h * q_w, C)`.
+            query_size (tuple[int, int]): Spatial sequence size of queries with
+                `(q_h, q_w)`.
+            key_size (tuple[int, int]): Spatial sequence size of keys with
+                `(k_h, k_w)`.
+
+        Returns:
+            tensor: attention map with added relative positional embeddings.
+
+        References:
+            - https://github.com/facebookresearch/mvit/blob/19786631e330df9f3622e5402b4a419a263a2c80/mvit/models/attention.py  # noqa: E501
+        """
+        query_size = ops.cast(query_size, "int32")
+        key_size = ops.cast(key_size, "int32")
+        query_height, query_width = query_size[0], query_size[1]
+        key_height, key_width = key_size[0], key_size[1]
+        rel_heights = self._get_rel_pos(
+            query_height, key_height, self.rel_pos_h
+        )
+        rel_widths = self._get_rel_pos(query_width, key_width, self.rel_pos_w)
+
+        shape = ops.shape(queries)
+        B, C = shape[0], shape[2]
+        rel_queries = ops.reshape(queries, (B, query_height, query_width, C))
+        rel_heights = ops.einsum("bhwc,hkc->bhwk", rel_queries, rel_heights)
+        rel_widths = ops.einsum("bhwc,wkc->bhwk", rel_queries, rel_widths)
+
+        attention_map = ops.reshape(
+            attention_map, (B, query_height, query_width, key_height, key_width)
+        )
+        attention_map = attention_map + rel_heights[..., :, None]
+        attention_map = attention_map + rel_widths[..., None, :]
+        attention_map = ops.reshape(
+            attention_map,
+            (B, query_height * query_width, key_height * key_width),
+        )
+        return attention_map
+
+    def get_config(self):
+        config = super().get_config()
+        config.update({"input_size": self.input_size, "key_dim": self.key_dim})
+        return config
 
 
 @keras_cv_export("keras_cv.layers.MultiHeadAttentionWithRelativePE")
@@ -52,31 +216,22 @@ class MultiHeadAttentionWithRelativePE(keras.layers.Layer):
         self.key_dim = key_dim
         self.scale = self.key_dim**-0.5
         self.use_bias = use_bias
+        self.input_size = input_size
+        self.use_rel_pos = use_rel_pos
 
         self.qkv = keras.layers.Dense(
             key_dim * self.num_heads * 3, use_bias=self.use_bias
         )
         self.projection = keras.layers.Dense(key_dim * self.num_heads)
 
-        self.input_size = input_size
-        self.use_rel_pos = use_rel_pos
         if self.use_rel_pos:
             if input_size is None:
                 raise ValueError(
                     "Input size must be provided if using relative "
                     "positional encoding."
                 )
-            self.rel_pos_h = self.add_weight(
-                name="rel_pos_h",
-                shape=(2 * self.input_size[0] - 1, self.key_dim),
-                initializer="zeros",
-                trainable=True,
-            )
-            self.rel_pos_w = self.add_weight(
-                name="rel_pos_w",
-                shape=(2 * self.input_size[1] - 1, self.key_dim),
-                initializer="zeros",
-                trainable=True,
+            self.add_decomposed_reative_pe = AddRelativePositionalEmbedding(
+                self.input_size, self.key_dim
             )
 
     def build(self, input_shape=None):
@@ -103,13 +258,11 @@ class MultiHeadAttentionWithRelativePE(keras.layers.Layer):
         )
 
         if self.use_rel_pos:
-            attention_map = add_decomposed_rel_pos(
+            attention_map = self.add_decomposed_reative_pe(
                 attention_map,
-                queries,
-                self.rel_pos_h,
-                self.rel_pos_w,
-                (H, W),
-                (H, W),
+                queries=queries,
+                query_size=(H, W),
+                key_size=(H, W),
             )
         attention_map = ops.softmax(attention_map, axis=-1)
         x = ops.reshape(
@@ -132,6 +285,74 @@ class MultiHeadAttentionWithRelativePE(keras.layers.Layer):
                 "input_size": self.input_size,
             }
         )
+        return config
+
+
+@keras_cv_export("keras_cv.layers.WindowPartitioning")
+class WindowPartitioning(keras.layers.Layer):
+    def __init__(self, window_size, **kwargs):
+        super().__init__(**kwargs)
+        self.window_size = window_size
+        self.built = True
+
+    def partition(self, x):
+        shape = ops.shape(x)
+        B, H, W, C = shape[0], shape[1], shape[2], shape[3]
+        pad_height = (
+            self.window_size - H % self.window_size
+        ) % self.window_size
+        pad_width = (self.window_size - W % self.window_size) % self.window_size
+        if pad_height > 0 or pad_width > 0:
+            x = ops.pad(x, ((0, 0), (0, pad_height), (0, pad_width), (0, 0)))
+        H_padded, W_padded = H + pad_height, W + pad_width
+        x = ops.reshape(
+            x,
+            (
+                B,
+                H_padded // self.window_size,
+                self.window_size,
+                W_padded // self.window_size,
+                self.window_size,
+                C,
+            ),
+        )
+        windows = ops.reshape(
+            ops.transpose(x, axes=(0, 1, 3, 2, 4, 5)),
+            (-1, self.window_size, self.window_size, C),
+        )
+        return windows, (H_padded, W_padded)
+
+    def unpartition(self, windows, HW_padded, HW):
+        H_padded, W_padded = HW_padded
+        H, W = HW
+        B = ops.shape(windows)[0] // (
+            (H_padded // self.window_size) * (W_padded // self.window_size)
+        )
+        x = ops.reshape(
+            windows,
+            (
+                B,
+                H_padded // self.window_size,
+                W_padded // self.window_size,
+                self.window_size,
+                self.window_size,
+                -1,
+            ),
+        )
+        x = ops.reshape(
+            ops.transpose(x, axes=(0, 1, 3, 2, 4, 5)),
+            (B, H_padded, W_padded, -1),
+        )
+        return x[:, :H, :W, :]
+
+    def call(self, x, HW_padded=None, HW=None, mode="partition"):
+        if mode == "partition":
+            return self.partition(x)
+        return self.unpartition(x, HW_padded, HW)
+
+    def get_config(self):
+        config = super().get_config()
+        config.update({"window_size": self.window_size})
         return config
 
 
@@ -207,6 +428,7 @@ class WindowedTransformerEncoder(keras.layers.Layer):
             num_layers=2,
             activation="gelu",
         )
+        self.window_partitioning = WindowPartitioning(window_size)
 
     def build(self, input_shape=None):
         self.layer_norm1.build([None, None, None, self.project_dim])
@@ -225,12 +447,14 @@ class WindowedTransformerEncoder(keras.layers.Layer):
         if self.window_size > 0:
             H, W = x.shape[1], x.shape[2]
 
-            x, HW_padded = window_partition(x, self.window_size)
+            x, HW_padded = self.window_partitioning(x, mode="partition")
 
         x = self.attention(x)
         # Reverse Window Partition
         if self.window_size > 0:
-            x = window_unpartition(x, self.window_size, HW_padded, (H, W))
+            x = self.window_partitioning(
+                x, HW_padded=HW_padded, HW=(H, W), mode="unpartition"
+            )
 
         x = shortcut + x
         x = x + self.mlp_block(self.layer_norm2(x))
@@ -305,7 +529,9 @@ class ViTDetPatchingAndEmbedding(keras.layers.Layer):
         return config
 
 
-@keras_cv_export("keras_cv.layers.AddPositionalEmbedding")
+# TODO: Merge this with the `keras_cv.layers.PatchingAndEmbedding` class once
+# it has been ported to Keras Core.
+@keras_cv_export("keras_cv.layers.detectron2.AddPositionalEmbedding")
 class AddPositionalEmbedding(keras.layers.Layer):
     def __init__(self, img_size, patch_size, embed_dim, **kwargs):
         super().__init__(**kwargs)
@@ -340,138 +566,3 @@ class AddPositionalEmbedding(keras.layers.Layer):
             }
         )
         return config
-
-
-def get_rel_pos(query_size, key_size, rel_pos):
-    """
-    Get relative positional embeddings according to the relative positions of
-    query and key sizes.
-
-    Args:
-        query_size (int): The number of features of the queries.
-        key_size (int): The number of features of the keys.
-        rel_pos (tensor): Relative positional embedding tensor.
-
-    Returns:
-        tensor: Extracted positional embeddings according to relative
-            positions.
-    """
-    max_rel_dist = 2 * ops.maximum(query_size, key_size) - 1
-    if rel_pos.shape[0] != max_rel_dist:
-        rel_pos_resized = ops.image.resize(
-            image=ops.reshape(
-                rel_pos, (1, rel_pos.shape[0], rel_pos.shape[1], 1)
-            ),
-            size=(max_rel_dist, rel_pos.shape[1]),
-            interpolation="bilinear",
-        )
-        rel_pos_resized = ops.squeeze(rel_pos_resized, axis=(0, -1))
-    else:
-        rel_pos_resized = rel_pos
-    query_coordinates = ops.arange(query_size, dtype="float32")[:, None] * (
-        ops.cast(ops.maximum(key_size // query_size, 1), dtype="float32")
-    )
-    key_coordinates = ops.arange(key_size, dtype="float32")[None, :] * (
-        ops.cast(ops.maximum(query_size // key_size, 1), dtype="float32")
-    )
-    relative_coordinates = (query_coordinates - key_coordinates) + ops.cast(
-        key_size - 1, dtype="float32"
-    ) * ops.cast(ops.maximum(query_size // key_size, 1), dtype="float32")
-    relative_coordinates = ops.cast(relative_coordinates, dtype="int32")
-    return ops.take(rel_pos_resized, relative_coordinates, 0)
-
-
-def add_decomposed_rel_pos(
-    attention_map, queries, rel_pos_h, rel_pos_w, query_size, key_size
-):
-    """
-    Calculate decomposed Relative Positional Embeddings from :paper:`mvitv2`.
-
-    Args:
-        attention_map (tensor): Attention map.
-        queries (tensor): Queries in the attention layer with shape
-            `(B, q_h * q_w, C)`.
-        rel_pos_h (tensor): Relative position embeddings `(Lh, C)` for height
-            axis.
-        rel_pos_w (tensor): relative position embeddings `(Lw, C)` for width
-            axis.
-        query_size (tuple[int, int]): Spatial sequence size of queries with
-            `(q_h, q_w)`.
-        key_size (tuple[int, int]): Spatial sequence size of keys with
-            `(k_h, k_w)`.
-
-    Returns:
-        tensor: attention map with added relative positional embeddings.
-
-    References:
-        - https://github.com/facebookresearch/mvit/blob/19786631e330df9f3622e5402b4a419a263a2c80/mvit/models/attention.py  # noqa: E501
-    """
-    query_height, query_width = query_size
-    key_height, key_width = key_size
-    rel_heights = get_rel_pos(query_height, key_height, rel_pos_h)
-    rel_widths = get_rel_pos(query_width, key_width, rel_pos_w)
-
-    shape = ops.shape(queries)
-    B, C = shape[0], shape[2]
-    rel_queries = ops.reshape(queries, (B, query_height, query_width, C))
-    rel_heights = ops.einsum("bhwc,hkc->bhwk", rel_queries, rel_heights)
-    rel_widths = ops.einsum("bhwc,wkc->bhwk", rel_queries, rel_widths)
-
-    attention_map = ops.reshape(
-        attention_map, (B, query_height, query_width, key_height, key_width)
-    )
-    attention_map = attention_map + rel_heights[..., :, None]
-    attention_map = attention_map + rel_widths[..., None, :]
-    attention_map = ops.reshape(
-        attention_map, (B, query_height * query_width, key_height * key_width)
-    )
-    return attention_map
-
-
-def window_partition(x, window_size):
-    shape = ops.shape(x)
-    B, H, W, C = shape[0], shape[1], shape[2], shape[3]
-    pad_height = (window_size - H % window_size) % window_size
-    pad_width = (window_size - W % window_size) % window_size
-    if pad_height > 0 or pad_width > 0:
-        x = ops.pad(x, ((0, 0), (0, pad_height), (0, pad_width), (0, 0)))
-    H_padded, W_padded = H + pad_height, W + pad_width
-    x = ops.reshape(
-        x,
-        (
-            B,
-            H_padded // window_size,
-            window_size,
-            W_padded // window_size,
-            window_size,
-            C,
-        ),
-    )
-    windows = ops.reshape(
-        ops.transpose(x, axes=(0, 1, 3, 2, 4, 5)),
-        (-1, window_size, window_size, C),
-    )
-    return windows, (H_padded, W_padded)
-
-
-def window_unpartition(windows, window_size, HW_padded, HW):
-    H_padded, W_padded = HW_padded
-    H, W = HW
-    B = ops.shape(windows)[0] // (
-        (H_padded // window_size) * (W_padded // window_size)
-    )
-    x = ops.reshape(
-        windows,
-        (
-            B,
-            H_padded // window_size,
-            W_padded // window_size,
-            window_size,
-            window_size,
-            -1,
-        ),
-    )
-    x = ops.reshape(
-        ops.transpose(x, axes=(0, 1, 3, 2, 4, 5)), (B, H_padded, W_padded, -1)
-    )
-    return x[:, :H, :W, :]

@@ -14,7 +14,7 @@
 """VitDet model preset configurations."""
 
 backbone_presets = {
-    "sam_vitdet_b": {
+    "vitdet_b": {
         "metadata": {
             "description": (
                 "VitDet Backbone for the segment anything model with 12 "
@@ -42,10 +42,10 @@ backbone_presets = {
             "window_size": 14,
             "global_attention_indices": [2, 5, 8, 11],
         },
-        # "weights_url": "https://storage.googleapis.com/keras-cv/models/segment_anything/sam_vit_b.weights.h5",  # noqa: E501
+        # "weights_url": "https://storage.googleapis.com/keras-cv/models/segment_anything/vitdet_b.weights.h5",  # noqa: E501
         # "weights_hash": None
     },
-    "sam_vitdet_l": {
+    "vitdet_l": {
         "metadata": {
             "description": (
                 "VitDet Backbone for the segment anything model with 24 "
@@ -73,10 +73,10 @@ backbone_presets = {
             "window_size": 14,
             "global_attention_indices": [5, 11, 17, 23],
         },
-        # "weights_url": "https://storage.googleapis.com/keras-cv/models/segment_anything/sam_vit_l.weights.h5",  # noqa: E501
+        # "weights_url": "https://storage.googleapis.com/keras-cv/models/segment_anything/vitdet_l.weights.h5",  # noqa: E501
         # "weights_hash": None
     },
-    "sam_vitdet_h": {
+    "vitdet_h": {
         "metadata": {
             "description": (
                 "VitDet Backbone  for the segment anything model "
@@ -104,7 +104,7 @@ backbone_presets = {
             "window_size": 14,
             "global_attention_indices": [7, 15, 23, 31],
         },
-        # "weights_url": "https://storage.googleapis.com/keras-cv/models/segment_anything/sam_vit_h.weights.h5",  # noqa: E501
+        # "weights_url": "https://storage.googleapis.com/keras-cv/models/segment_anything/vitdet_h.weights.h5",  # noqa: E501
         # "weights_hash": None
     },
 }
