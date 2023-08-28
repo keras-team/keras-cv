@@ -88,12 +88,12 @@ class DenseNetBackbone(Backbone):
             x = keras.layers.Rescaling(1 / 255.0)(x)
 
         x = keras.layers.Conv2D(
-            64, 7, strides=2, use_bias=False, padding="same", name="conv1/conv"
+            64, 7, strides=2, use_bias=False, padding="same", name="conv1_conv"
         )(x)
         x = keras.layers.BatchNormalization(
-            axis=BN_AXIS, epsilon=BN_EPSILON, name="conv1/bn"
+            axis=BN_AXIS, epsilon=BN_EPSILON, name="conv1_bn"
         )(x)
-        x = keras.layers.Activation("relu", name="conv1/relu")(x)
+        x = keras.layers.Activation("relu", name="conv1_relu")(x)
         x = keras.layers.MaxPooling2D(
             3, strides=2, padding="same", name="pool1"
         )(x)

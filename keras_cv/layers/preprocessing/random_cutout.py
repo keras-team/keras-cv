@@ -120,6 +120,11 @@ class RandomCutout(BaseImageAugmentationLayer):
     def augment_label(self, label, transformation=None, **kwargs):
         return label
 
+    def augment_segmentation_mask(
+        self, segmentation_masks, transformation=None, **kwargs
+    ):
+        return segmentation_masks
+
     def _compute_rectangle_position(self, inputs):
         input_shape = tf.shape(inputs)
         image_height, image_width = (

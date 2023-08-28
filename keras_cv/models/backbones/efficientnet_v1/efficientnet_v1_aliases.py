@@ -11,22 +11,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import copy
 
-from keras_cv.api_export import keras_cv_export
-from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone import (
-    EfficientNetV2Backbone,
-)
-from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone_presets import (  # noqa: E501
-    backbone_presets,
+from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_backbone import (
+    EfficientNetV1Backbone,
 )
 from keras_cv.utils.python_utils import classproperty
 
 ALIAS_DOCSTRING = """Instantiates the {name} architecture.
 
     Reference:
-    - [EfficientNetV2: Smaller Models and Faster Training](https://arxiv.org/abs/2104.00298)
-      (ICML 2021)
+    - [EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks](https://arxiv.org/abs/1905.11946)
+      (ICML 2019)
 
     Args:
         include_rescaling: bool, whether to rescale the inputs. If set
@@ -38,8 +33,7 @@ ALIAS_DOCSTRING = """Instantiates the {name} architecture.
 """  # noqa: E501
 
 
-@keras_cv_export("keras_cv.models.EfficientNetV2SBackbone")
-class EfficientNetV2SBackbone(EfficientNetV2Backbone):
+class EfficientNetV1B0Backbone(EfficientNetV1Backbone):
     def __new__(
         cls,
         include_rescaling=True,
@@ -55,42 +49,7 @@ class EfficientNetV2SBackbone(EfficientNetV2Backbone):
                 "input_tensor": input_tensor,
             }
         )
-        return EfficientNetV2Backbone.from_preset("efficientnetv2_s", **kwargs)
-
-    @classproperty
-    def presets(cls):
-        """Dictionary of preset names and configurations."""
-        return {
-            "efficientnetv2_s_imagenet": copy.deepcopy(
-                backbone_presets["efficientnetv2_s_imagenet"]
-            ),
-        }
-
-    @classproperty
-    def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include
-        weights."""
-        return cls.presets
-
-
-@keras_cv_export("keras_cv.models.EfficientNetV2MBackbone")
-class EfficientNetV2MBackbone(EfficientNetV2Backbone):
-    def __new__(
-        cls,
-        include_rescaling=True,
-        input_shape=(None, None, 3),
-        input_tensor=None,
-        **kwargs,
-    ):
-        # Pack args in kwargs
-        kwargs.update(
-            {
-                "include_rescaling": include_rescaling,
-                "input_shape": input_shape,
-                "input_tensor": input_tensor,
-            }
-        )
-        return EfficientNetV2Backbone.from_preset("efficientnetv2_m", **kwargs)
+        return EfficientNetV1Backbone.from_preset("efficientnetv1_b0", **kwargs)
 
     @classproperty
     def presets(cls):
@@ -104,8 +63,7 @@ class EfficientNetV2MBackbone(EfficientNetV2Backbone):
         return {}
 
 
-@keras_cv_export("keras_cv.models.EfficientNetV2LBackbone")
-class EfficientNetV2LBackbone(EfficientNetV2Backbone):
+class EfficientNetV1B1Backbone(EfficientNetV1Backbone):
     def __new__(
         cls,
         include_rescaling=True,
@@ -121,7 +79,7 @@ class EfficientNetV2LBackbone(EfficientNetV2Backbone):
                 "input_tensor": input_tensor,
             }
         )
-        return EfficientNetV2Backbone.from_preset("efficientnetv2_l", **kwargs)
+        return EfficientNetV1Backbone.from_preset("efficientnetv1_b1", **kwargs)
 
     @classproperty
     def presets(cls):
@@ -135,8 +93,7 @@ class EfficientNetV2LBackbone(EfficientNetV2Backbone):
         return {}
 
 
-@keras_cv_export("keras_cv.models.EfficientNetV2B0Backbone")
-class EfficientNetV2B0Backbone(EfficientNetV2Backbone):
+class EfficientNetV1B2Backbone(EfficientNetV1Backbone):
     def __new__(
         cls,
         include_rescaling=True,
@@ -152,26 +109,21 @@ class EfficientNetV2B0Backbone(EfficientNetV2Backbone):
                 "input_tensor": input_tensor,
             }
         )
-        return EfficientNetV2Backbone.from_preset("efficientnetv2_b0", **kwargs)
+        return EfficientNetV1Backbone.from_preset("efficientnetv1_b2", **kwargs)
 
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
-        return {
-            "efficientnetv2_b0_imagenet": copy.deepcopy(
-                backbone_presets["efficientnetv2_b0_imagenet"]
-            ),
-        }
+        return {}
 
     @classproperty
     def presets_with_weights(cls):
         """Dictionary of preset names and configurations that include
         weights."""
-        return cls.presets
+        return {}
 
 
-@keras_cv_export("keras_cv.models.EfficientNetV2B1Backbone")
-class EfficientNetV2B1Backbone(EfficientNetV2Backbone):
+class EfficientNetV1B3Backbone(EfficientNetV1Backbone):
     def __new__(
         cls,
         include_rescaling=True,
@@ -187,26 +139,21 @@ class EfficientNetV2B1Backbone(EfficientNetV2Backbone):
                 "input_tensor": input_tensor,
             }
         )
-        return EfficientNetV2Backbone.from_preset("efficientnetv2_b1", **kwargs)
+        return EfficientNetV1Backbone.from_preset("efficientnetv1_b3", **kwargs)
 
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
-        return {
-            "efficientnetv2_b1_imagenet": copy.deepcopy(
-                backbone_presets["efficientnetv2_b1_imagenet"]
-            ),
-        }
+        return {}
 
     @classproperty
     def presets_with_weights(cls):
         """Dictionary of preset names and configurations that include
         weights."""
-        return cls.presets
+        return {}
 
 
-@keras_cv_export("keras_cv.models.EfficientNetV2B2Backbone")
-class EfficientNetV2B2Backbone(EfficientNetV2Backbone):
+class EfficientNetV1B4Backbone(EfficientNetV1Backbone):
     def __new__(
         cls,
         include_rescaling=True,
@@ -222,26 +169,21 @@ class EfficientNetV2B2Backbone(EfficientNetV2Backbone):
                 "input_tensor": input_tensor,
             }
         )
-        return EfficientNetV2Backbone.from_preset("efficientnetv2_b2", **kwargs)
+        return EfficientNetV1Backbone.from_preset("efficientnetv1_b4", **kwargs)
 
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
-        return {
-            "efficientnetv2_b2_imagenet": copy.deepcopy(
-                backbone_presets["efficientnetv2_b2_imagenet"]
-            ),
-        }
+        return {}
 
     @classproperty
     def presets_with_weights(cls):
         """Dictionary of preset names and configurations that include
         weights."""
-        return cls.presets
+        return {}
 
 
-@keras_cv_export("keras_cv.models.EfficientNetV2B3Backbone")
-class EfficientNetV2B3Backbone(EfficientNetV2Backbone):
+class EfficientNetV1B5Backbone(EfficientNetV1Backbone):
     def __new__(
         cls,
         include_rescaling=True,
@@ -257,7 +199,67 @@ class EfficientNetV2B3Backbone(EfficientNetV2Backbone):
                 "input_tensor": input_tensor,
             }
         )
-        return EfficientNetV2Backbone.from_preset("efficientnetv2_b3", **kwargs)
+        return EfficientNetV1Backbone.from_preset("efficientnetv1_b5", **kwargs)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
+
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include
+        weights."""
+        return {}
+
+
+class EfficientNetV1B6Backbone(EfficientNetV1Backbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
+        **kwargs,
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return EfficientNetV1Backbone.from_preset("efficientnetv1_b6", **kwargs)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
+
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include
+        weights."""
+        return {}
+
+
+class EfficientNetV1B7Backbone(EfficientNetV1Backbone):
+    def __new__(
+        cls,
+        include_rescaling=True,
+        input_shape=(None, None, 3),
+        input_tensor=None,
+        **kwargs,
+    ):
+        # Pack args in kwargs
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+                "input_shape": input_shape,
+                "input_tensor": input_tensor,
+            }
+        )
+        return EfficientNetV1Backbone.from_preset("efficientnetv1_b7", **kwargs)
 
     @classproperty
     def presets(cls):
@@ -272,37 +274,42 @@ class EfficientNetV2B3Backbone(EfficientNetV2Backbone):
 
 
 setattr(
-    EfficientNetV2SBackbone,
+    EfficientNetV1B0Backbone,
     "__doc__",
-    ALIAS_DOCSTRING.format(name="EfficientNetV2S"),
+    ALIAS_DOCSTRING.format(name="EfficientNetV1B0"),
 )
 setattr(
-    EfficientNetV2MBackbone,
+    EfficientNetV1B1Backbone,
     "__doc__",
-    ALIAS_DOCSTRING.format(name="EfficientNetV2M"),
+    ALIAS_DOCSTRING.format(name="EfficientNetV1B1"),
 )
 setattr(
-    EfficientNetV2LBackbone,
+    EfficientNetV1B2Backbone,
     "__doc__",
-    ALIAS_DOCSTRING.format(name="EfficientNetV2L"),
+    ALIAS_DOCSTRING.format(name="EfficientNetV1B2"),
 )
 setattr(
-    EfficientNetV2B0Backbone,
+    EfficientNetV1B3Backbone,
     "__doc__",
-    ALIAS_DOCSTRING.format(name="EfficientNetV2B0"),
+    ALIAS_DOCSTRING.format(name="EfficientNetV1B3"),
 )
 setattr(
-    EfficientNetV2B1Backbone,
+    EfficientNetV1B4Backbone,
     "__doc__",
-    ALIAS_DOCSTRING.format(name="EfficientNetV2B1"),
+    ALIAS_DOCSTRING.format(name="EfficientNetV1B4"),
 )
 setattr(
-    EfficientNetV2B2Backbone,
+    EfficientNetV1B5Backbone,
     "__doc__",
-    ALIAS_DOCSTRING.format(name="EfficientNetV2B2"),
+    ALIAS_DOCSTRING.format(name="EfficientNetV1B5"),
 )
 setattr(
-    EfficientNetV2B3Backbone,
+    EfficientNetV1B6Backbone,
     "__doc__",
-    ALIAS_DOCSTRING.format(name="EfficientNetV2B3"),
+    ALIAS_DOCSTRING.format(name="EfficientNetV1B6"),
+)
+setattr(
+    EfficientNetV1B7Backbone,
+    "__doc__",
+    ALIAS_DOCSTRING.format(name="EfficientNetV1B7"),
 )

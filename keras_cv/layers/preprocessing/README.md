@@ -29,7 +29,7 @@ The provided table gives an overview of the different augmentation layers availa
 | RandomContrast | ✅ | ✅ | ✅ | ✅ |
 | RandomCropAndResize | ❌ | ✅ | ✅ | ❌ |
 | RandomCrop | ✅ | ❌ | ✅ | ✅ |
-| RandomCutout | ❌ | ❌ | ❌ | ✅ |
+| RandomCutout | ❌ | ✅ | ❌ | ✅ |
 | RandomFlip | ✅ | ✅ | ✅ | ✅ |
 | RandomGaussianBlur | ❌ | ✅ | ✅ | ✅ |
 | RandomHue | ✅ | ✅ | ✅ | ✅ |
@@ -37,9 +37,9 @@ The provided table gives an overview of the different augmentation layers availa
 | RandomRotation | ✅ | ✅ | ✅ | ✅ |
 | RandomSaturation | ✅ | ✅ | ✅ | ✅ |
 | RandomSharpness | ✅ | ✅ | ✅ | ✅ |
-| RandomShear | ✅ | ❌ | ✅ | ✅ |
+| RandomShear | ✅ | ✅ | ✅ | ✅ |
 | RandomTranslation | ✅ | ✅ | ✅ | ✅ |
-| RandomZoom | ✅ | ❌ | ❌ | ✅ |
+| RandomZoom | ✅ | ✅ | ❌ | ✅ |
 | RepeatedAugmentation <sup>+</sup> | - | - | - | - |
 | Rescaling | ❌ | ✅ | ✅ | ✅ |
 | Resizing | ❌ | ✅ | ✅ | ❌ |

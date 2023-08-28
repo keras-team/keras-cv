@@ -19,6 +19,9 @@ from tensorflow.keras.layers import RandomWidth
 from keras_cv.layers.augmenter import Augmenter
 from keras_cv.layers.feature_pyramid import FeaturePyramid
 from keras_cv.layers.fusedmbconv import FusedMBConvBlock
+from keras_cv.layers.hierarchical_transformer_encoder import (
+    HierarchicalTransformerEncoder,
+)
 from keras_cv.layers.mbconv import MBConvBlock
 from keras_cv.layers.object_detection.anchor_generator import AnchorGenerator
 from keras_cv.layers.object_detection.box_matcher import BoxMatcher
@@ -32,6 +35,9 @@ from keras_cv.layers.object_detection_3d.centernet_label_encoder import (
     CenterNetLabelEncoder,
 )
 from keras_cv.layers.object_detection_3d.voxelization import DynamicVoxelization
+from keras_cv.layers.overlapping_patching_embedding import (
+    OverlappingPatchingAndEmbedding,
+)
 from keras_cv.layers.preprocessing.aug_mix import AugMix
 from keras_cv.layers.preprocessing.auto_contrast import AutoContrast
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
@@ -124,6 +130,9 @@ from keras_cv.layers.regularization.drop_path import DropPath
 from keras_cv.layers.regularization.dropblock_2d import DropBlock2D
 from keras_cv.layers.regularization.squeeze_excite import SqueezeAndExcite2D
 from keras_cv.layers.regularization.stochastic_depth import StochasticDepth
+from keras_cv.layers.segformer_multihead_attention import (
+    SegFormerMultiheadAttention,
+)
 from keras_cv.layers.spatial_pyramid import SpatialPyramidPooling
 from keras_cv.layers.transformer_encoder import TransformerEncoder
 from keras_cv.layers.vit_layers import PatchingAndEmbedding
