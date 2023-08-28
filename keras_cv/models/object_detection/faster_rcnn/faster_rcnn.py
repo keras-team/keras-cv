@@ -64,8 +64,7 @@ class FasterRCNN(Task):
     Args:
         backbone: `keras.Model`. Must implement the
             `pyramid_level_inputs` property with keys "P2", "P3", "P4", and "P5"
-            and layer names as values. If `None`, defaults to
-            `keras_cv.models.ResNet50Backbone()`.
+            and layer names as values.
         num_classes: the number of classes in your dataset excluding the
             background class. classes should be represented by integers in the
             range [0, num_classes).
