@@ -28,6 +28,7 @@ backbone_presets = {
             "stackwise_down_blocks": [6, 2, 1],
             "stackwise_down_filters": [128, 256, 512],
             "stackwise_up_filters": [512, 256, 256],
+            "input_shape": (None, None, 128),
         },
     },
 }

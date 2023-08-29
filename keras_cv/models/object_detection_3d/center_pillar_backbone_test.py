@@ -12,12 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
 import tensorflow as tf
 
+from keras_cv.backend import keras
+from keras_cv.backend.config import multi_backend
 from keras_cv.models.object_detection_3d import CenterPillarBackbone
 from keras_cv.tests.test_case import TestCase
 
 
+@pytest.mark.skipif(
+    multi_backend() and keras.backend.backend() == "torch",
+    reason="CenterPillar does not yet support PyTorch.",
+)
 class CenterPillarBackboneTest(TestCase):
     def test_output_shape(self):
         x = tf.random.normal((1, 16, 16, 5))
