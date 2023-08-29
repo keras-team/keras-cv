@@ -45,23 +45,29 @@ class RandomCutoutTest(TestCase):
 
     def test_return_shapes(self):
         xs = np.ones((2, 512, 512, 3))
+        ys_segmentation_masks = np.ones((2, 512, 512, 3))
 
         layer = preprocessing.RandomCutout(
             height_factor=0.5, width_factor=0.5, seed=1
         )
         xs = layer(xs)
+        ys_segmentation_masks = layer(ys_segmentation_masks)
 
         self.assertEqual(xs.shape, [2, 512, 512, 3])
+        self.assertEqual(ys_segmentation_masks.shape, [2, 512, 512, 3])
 
     def test_return_shapes_single_element(self):
         xs = np.ones((512, 512, 3))
+        ys_segmentation_masks = np.ones((512, 512, 3))
 
         layer = preprocessing.RandomCutout(
             height_factor=0.5, width_factor=0.5, seed=1
         )
         xs = layer(xs)
+        ys_segmentation_masks = layer(ys_segmentation_masks)
 
         self.assertEqual(xs.shape, [512, 512, 3])
+        self.assertEqual(ys_segmentation_masks.shape, [512, 512, 3])
 
     def test_random_cutout_single_float(self):
         self._run_test(0.5, 0.5)

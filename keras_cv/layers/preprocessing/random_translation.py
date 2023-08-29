@@ -201,6 +201,34 @@ class RandomTranslation(VectorizedBaseImageAugmentationLayer):
     def augment_labels(self, labels, transformations, **kwargs):
         return labels
 
+    def augment_segmentation_masks(
+        self, segmentation_masks, transformations, **kwargs
+    ):
+        segmentation_masks = preprocessing_utils.ensure_tensor(
+            segmentation_masks, self.compute_dtype
+        )
+        original_shape = segmentation_masks.shape
+        mask_shape = tf.shape(segmentation_masks)
+        img_hd = tf.cast(mask_shape[H_AXIS], tf.float32)
+        img_wd = tf.cast(mask_shape[W_AXIS], tf.float32)
+        height_translations = transformations["height_translations"]
+        width_translations = transformations["width_translations"]
+        height_translations = height_translations * img_hd
+        width_translations = width_translations * img_wd
+        translations = tf.cast(
+            tf.concat([width_translations, height_translations], axis=1),
+            dtype=tf.float32,
+        )
+        output = preprocessing_utils.transform(
+            segmentation_masks,
+            preprocessing_utils.get_translation_matrix(translations),
+            interpolation="nearest",
+            fill_mode=self.fill_mode,
+            fill_value=self.fill_value,
+        )
+        output.set_shape(original_shape)
+        return output
+
     def augment_bounding_boxes(
         self, bounding_boxes, transformations, images=None, **kwargs
     ):

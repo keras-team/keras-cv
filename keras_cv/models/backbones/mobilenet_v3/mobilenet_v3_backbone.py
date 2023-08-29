@@ -126,7 +126,7 @@ class MobileNetV3Backbone(Backbone):
             axis=CHANNEL_AXIS,
             epsilon=BN_EPSILON,
             momentum=BN_MOMENTUM,
-            name="Conv/BatchNorm",
+            name="Conv_BatchNorm",
         )(x)
         x = apply_hard_swish(x)
 
@@ -161,7 +161,7 @@ class MobileNetV3Backbone(Backbone):
             axis=CHANNEL_AXIS,
             epsilon=BN_EPSILON,
             momentum=BN_MOMENTUM,
-            name="Conv_1/BatchNorm",
+            name="Conv_1_BatchNorm",
         )(x)
         x = apply_hard_swish(x)
 
@@ -291,11 +291,11 @@ def apply_inverted_res_block(
             activation = keras.activations.get(activation)
 
     shortcut = x
-    prefix = "expanded_conv/"
+    prefix = "expanded_conv_"
     infilters = x.shape[CHANNEL_AXIS]
 
     if expansion_index > 0:
-        prefix = f"expanded_conv_{expansion_index}/"
+        prefix = f"expanded_conv_{expansion_index}_"
 
         x = keras.layers.Conv2D(
             adjust_channels(infilters * expansion),
@@ -308,14 +308,14 @@ def apply_inverted_res_block(
             axis=CHANNEL_AXIS,
             epsilon=BN_EPSILON,
             momentum=BN_MOMENTUM,
-            name=prefix + "expand/BatchNorm",
+            name=prefix + "expand_BatchNorm",
         )(x)
         x = activation(x)
 
     if stride == 2:
         x = keras.layers.ZeroPadding2D(
             padding=utils.correct_pad_downsample(x, kernel_size),
-            name=prefix + "depthwise/pad",
+            name=prefix + "depthwise_pad",
         )(x)
 
     x = keras.layers.DepthwiseConv2D(
@@ -329,7 +329,7 @@ def apply_inverted_res_block(
         axis=CHANNEL_AXIS,
         epsilon=BN_EPSILON,
         momentum=BN_MOMENTUM,
-        name=prefix + "depthwise/BatchNorm",
+        name=prefix + "depthwise_BatchNorm",
     )(x)
     x = activation(x)
 
@@ -353,7 +353,7 @@ def apply_inverted_res_block(
         axis=CHANNEL_AXIS,
         epsilon=BN_EPSILON,
         momentum=BN_MOMENTUM,
-        name=prefix + "project/BatchNorm",
+        name=prefix + "project_BatchNorm",
     )(x)
 
     if stride == 1 and infilters == filters:
