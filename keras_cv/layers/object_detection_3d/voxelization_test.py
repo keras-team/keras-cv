@@ -73,9 +73,10 @@ class VoxelizationTest(TestCase):
             spatial_size=[-5, 5, -5, 5, -2, 2],
         )
         # Make the point net a no-op to allow us to verify the voxelization.
-        layer.point_net_dense = keras.layers.Lambda(lambda x: x)
+        layer.point_net_dense = keras.layers.Identity()
+        # TODO(ianstenbit): use Identity here once it supports masking
         layer.point_net_norm = keras.layers.Lambda(lambda x: x)
-        layer.point_net_activation = keras.layers.Lambda(lambda x: x)
+        layer.point_net_activation = keras.layers.Identity()
         point_xyz = tf.constant(
             [
                 [

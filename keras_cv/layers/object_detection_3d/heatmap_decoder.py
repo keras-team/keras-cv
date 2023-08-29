@@ -158,13 +158,13 @@ class HeatmapDecoder(keras.layers.Layer):
         # [B, H, W]
         heatmap = ops.squeeze(heatmap, axis=-1)
 
-        b, h, w = voxel_utils.combined_static_and_dynamic_shape(heatmap)
+        b, h, w = ops.shape(heatmap)
         heatmap = ops.reshape(heatmap, [b, h * w])
         _, top_index = ops.top_k(heatmap, k=self.max_num_box)
 
         # [B, H, W, ?]
         box_prediction = prediction[:, :, :, 2:]
-        f = list(box_prediction.shape)[-1]
+        f = box_prediction.shape[-1]
         box_prediction = ops.reshape(box_prediction, [b, h * w, f])
         heatmap = ops.reshape(heatmap, [b, h * w])
         # [B, max_num_box, ?]
