@@ -53,7 +53,7 @@ class RetinaNet(Task):
     ```python
     images = np.ones((1, 512, 512, 3))
     labels = {
-        "boxes": "boxes": tf.cast([
+        "boxes": tf.cast([
             [
                 [0, 0, 100, 100],
                 [100, 100, 200, 200],
