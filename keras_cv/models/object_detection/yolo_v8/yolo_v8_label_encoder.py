@@ -249,3 +249,19 @@ class YOLOV8LabelEncoder(keras.layers.Layer):
                 ops.zeros_like(scores[..., 0]),
             ),
         )
+
+    def count_params(self):
+        # The label encoder has no weights, so we short-circuit the weight
+        # counting to avoid having to `build` this layer unnecessarily.
+        return 0
+
+    def get_config(self):
+        config = {
+            "max_anchor_matches": self.max_anchor_matches,
+            "num_classes": self.num_classes,
+            "alpha": self.alpha,
+            "beta": self.beta,
+            "epsilon": self.epsilon,
+        }
+        base_config = super().get_config()
+        return dict(list(base_config.items()) + list(config.items()))
