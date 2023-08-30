@@ -79,6 +79,11 @@ class YOLOV8LabelEncoder(keras.layers.Layer):
     def assign(
         self, scores, decode_bboxes, anchors, gt_labels, gt_bboxes, gt_mask
     ):
+        """Assigns ground-truth boxes to anchors.
+
+        Uses the task-aligned assignment strategy for matching ground truth
+        and anchor boxes based on prediction scores and IoU.
+        """
         num_anchors = anchors.shape[0]
 
         # Box scores are the predicted scores for each anchor, ground truth box
