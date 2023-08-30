@@ -93,14 +93,11 @@ class YOLOV8LabelEncoder(keras.layers.Layer):
 
         # Overlaps are the IoUs of each predicted box and each GT box.
         # Shape: (B, num_gt_boxes, num_anchors)
-        print(ops.expand_dims(gt_bboxes, axis=2).shape)
-        print(ops.expand_dims(decode_bboxes, axis=1).shape)
         overlaps = compute_ciou(
             ops.expand_dims(gt_bboxes, axis=2),
             ops.expand_dims(decode_bboxes, axis=1),
             bounding_box_format="xyxy",
         )
-        print(overlaps.shape)
 
         # Alignment metrics are a combination of box scores and overlaps, per
         # the task-aligned-assignment formula.
@@ -111,8 +108,6 @@ class YOLOV8LabelEncoder(keras.layers.Layer):
         )
         alignment_metrics = ops.where(gt_mask, alignment_metrics, 0)
 
-        # TODO(ianstenbit): Whether to include next 2 lines is ambiguous.
-        # If we include them, make line 134 ops.where(positive_metrics, ...
         # Only anchors which are inside of relevant GT boxes are considered
         # for assignment.
         # This is a boolean tensor of shape (B, num_gt_boxes, num_anchors)
@@ -128,16 +123,7 @@ class YOLOV8LabelEncoder(keras.layers.Layer):
         candidate_metrics, candidate_idxs = ops.top_k(
             alignment_metrics, self.max_anchor_matches
         )
-        positive_metrics = candidate_metrics > 0
-
-        matching_anchors = ops.take(anchors, candidate_idxs, axis=-0)
-        matching_anchors_in_gt_boxes = is_anchor_center_within_box(
-            matching_anchors, gt_bboxes
-        )
-        candidate_anchors = ops.logical_and(
-            matching_anchors_in_gt_boxes, positive_metrics
-        )
-        candidate_idxs = ops.where(candidate_anchors, candidate_idxs, -1)
+        candidate_idxs = ops.where(candidate_metrics > 0, candidate_idxs, -1)
 
         # We now compute a dense grid of anchors and GT boxes. This is useful
         # for picking a GT box when an anchor matches to 2, as well as returning
@@ -152,17 +138,28 @@ class YOLOV8LabelEncoder(keras.layers.Layer):
         overlaps *= anchors_matched_gt_box
         # In cases where one anchor matches to 2 GT boxes, we pick the GT box
         # with the highest overlap as a max.
-        gt_box_matches_per_anchor = ops.where(
-            ops.max(overlaps, axis=1) > 0, ops.argmax(overlaps, axis=1), -1
-        )
+        gt_box_matches_per_anchor = ops.argmax(overlaps, axis=1)
+        gt_box_matches_per_anchor_mask = ops.max(overlaps, axis=1) > 0
+        # TODO(ianstenbit): Once ops.take_along_axis supports -1 in Torch,
+        # replace gt_box_matches_per_anchor with
+        # ops.where(
+        #     ops.max(overlaps, axis=1) > 0, ops.argmax(overlaps, axis=1), -1
+        # )
+        # and get rid of the manual masking
         gt_box_matches_per_anchor = ops.cast(gt_box_matches_per_anchor, "int32")
 
         # We select the GT boxes and labels that correspond to anchor matches.
         bbox_labels = ops.take_along_axis(
             gt_bboxes, gt_box_matches_per_anchor[:, :, None], axis=1
         )
+        bbox_labels = ops.where(
+            gt_box_matches_per_anchor_mask[:, :, None], bbox_labels, -1
+        )
         class_labels = ops.take_along_axis(
             gt_labels, gt_box_matches_per_anchor, axis=1
+        )
+        class_labels = ops.where(
+            gt_box_matches_per_anchor_mask, class_labels, -1
         )
 
         class_labels = ops.one_hot(
