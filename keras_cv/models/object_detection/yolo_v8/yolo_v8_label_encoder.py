@@ -11,8 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Label encoder for YOLOV8. This uses the TOOD Task Aligned Assigner approach,
-and is adapted from https://github.com/fcjian/TOOD/blob/master/mmdet/core/bbox/assigners/task_aligned_assigner.py
+"""Label encoder for YOLOV8. This uses the TOOD Task Aligned Assigner approach.
+See https://arxiv.org/abs/2108.07755 for more info, as well as a reference
+implementation at https://github.com/fcjian/TOOD/blob/master/mmdet/core/bbox/assigners/task_aligned_assigner.py
 """  # noqa: E501
 
 import tensorflow as tf
