@@ -53,14 +53,14 @@ class RetinaNet(Task):
     ```python
     images = np.ones((1, 512, 512, 3))
     labels = {
-        "boxes": [
+        "boxes": "boxes": tf.cast([
             [
                 [0, 0, 100, 100],
                 [100, 100, 200, 200],
                 [300, 300, 100, 100],
             ]
-        ],
-        "classes": [[1, 1, 1]],
+        ], dtype=tf.float32),
+        "classes": tf.cast([[1, 1, 1]], dtype=tf.float32),
     }
     model = keras_cv.models.RetinaNet(
         num_classes=20,
