@@ -93,13 +93,14 @@ class YOLOV8LabelEncoder(keras.layers.Layer):
 
         # Overlaps are the IoUs of each predicted box and each GT box.
         # Shape: (B, num_gt_boxes, num_anchors)
-        overlaps = (
-            compute_ciou(
-                ops.expand_dims(gt_bboxes, axis=2),
-                ops.expand_dims(decode_bboxes, axis=1),
-                bounding_box_format="xyxy",
-            ),
+        print(ops.expand_dims(gt_bboxes, axis=2).shape)
+        print(ops.expand_dims(decode_bboxes, axis=1).shape)
+        overlaps = compute_ciou(
+            ops.expand_dims(gt_bboxes, axis=2),
+            ops.expand_dims(decode_bboxes, axis=1),
+            bounding_box_format="xyxy",
         )
+        print(overlaps.shape)
 
         # Alignment metrics are a combination of box scores and overlaps, per
         # the task-aligned-assignment formula.
@@ -184,6 +185,10 @@ class YOLOV8LabelEncoder(keras.layers.Layer):
         )
         class_labels *= normalized_alignment_metrics[:, :, None]
 
+        # On TF backend, the final "4" becomes a dynamic shape so we include
+        # this to force it to a static shape of 4. This does not actually
+        # reshape the Tensor.
+        bbox_labels = ops.reshape(bbox_labels, (-1, num_anchors, 4))
         return (
             ops.stop_gradient(bbox_labels),
             ops.stop_gradient(class_labels),
