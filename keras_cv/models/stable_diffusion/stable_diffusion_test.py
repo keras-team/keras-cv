@@ -23,6 +23,7 @@ from keras_cv.tests.test_case import TestCase
 
 @pytest.mark.extra_large
 class StableDiffusionTest(TestCase):
+    @pytest.mark.tf_keras_only
     @pytest.mark.large
     def test_end_to_end_golden_value(self):
         prompt = "a caterpillar smoking a hookah while sitting on a mushroom"
