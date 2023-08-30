@@ -240,4 +240,4 @@ def compute_ciou(box1, box2, bounding_box_format, eps=1e-7):
     )
     alpha = v / (v - iou + (1 + eps))
 
-    return iou - (rho2 / c2 + v * alpha)
+    return ops.squeeze(iou - (rho2 / c2 + v * alpha), axis=-1)
