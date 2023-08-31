@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import keras_core
 import pytest
 import tensorflow as tf
 from packaging import version
-import keras_core
 
 from keras_cv.backend.config import multi_backend
 
