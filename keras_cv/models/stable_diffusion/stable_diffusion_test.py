@@ -21,7 +21,7 @@ from keras_cv.models import StableDiffusion
 from keras_cv.tests.test_case import TestCase
 
 
-@pytest.mark.tf_keras_only
+@pytest.mark.tf_only
 class StableDiffusionTest(TestCase):
     @pytest.mark.large
     def test_end_to_end_golden_value(self):
