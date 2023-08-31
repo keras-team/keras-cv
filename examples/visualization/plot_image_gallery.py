@@ -5,7 +5,7 @@ Author: [lukewood](https://lukewood.xyz), updated by
 Date created: 2022/10/16
 Last modified: 2022/06/24
 Description: Visualize ground truth and predicted bounding boxes for a given
-             dataset.
+            dataset.
 """
 
 """

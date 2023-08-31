@@ -43,6 +43,51 @@ from keras_cv.models.backbones.densenet.densenet_aliases import (
 from keras_cv.models.backbones.densenet.densenet_backbone import (
     DenseNetBackbone,
 )
+from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_aliases import (  # noqa: E501
+    EfficientNetLiteB0Backbone,
+)
+from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_aliases import (  # noqa: E501
+    EfficientNetLiteB1Backbone,
+)
+from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_aliases import (  # noqa: E501
+    EfficientNetLiteB2Backbone,
+)
+from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_aliases import (  # noqa: E501
+    EfficientNetLiteB3Backbone,
+)
+from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_aliases import (  # noqa: E501
+    EfficientNetLiteB4Backbone,
+)
+from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_backbone import (  # noqa: E501
+    EfficientNetLiteBackbone,
+)
+from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_aliases import (
+    EfficientNetV1B0Backbone,
+)
+from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_aliases import (
+    EfficientNetV1B1Backbone,
+)
+from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_aliases import (
+    EfficientNetV1B2Backbone,
+)
+from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_aliases import (
+    EfficientNetV1B3Backbone,
+)
+from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_aliases import (
+    EfficientNetV1B4Backbone,
+)
+from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_aliases import (
+    EfficientNetV1B5Backbone,
+)
+from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_aliases import (
+    EfficientNetV1B6Backbone,
+)
+from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_aliases import (
+    EfficientNetV1B7Backbone,
+)
+from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_aliases import (
+    EfficientNetV1Backbone,
+)
 from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_aliases import (
     EfficientNetV2B0Backbone,
 )
@@ -66,6 +111,27 @@ from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_aliases import (
 )
 from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_aliases import (
     EfficientNetV2SBackbone,
+)
+from keras_cv.models.backbones.mix_transformer.mix_transformer_aliases import (
+    MiTB0Backbone,
+)
+from keras_cv.models.backbones.mix_transformer.mix_transformer_aliases import (
+    MiTB1Backbone,
+)
+from keras_cv.models.backbones.mix_transformer.mix_transformer_aliases import (
+    MiTB2Backbone,
+)
+from keras_cv.models.backbones.mix_transformer.mix_transformer_aliases import (
+    MiTB3Backbone,
+)
+from keras_cv.models.backbones.mix_transformer.mix_transformer_aliases import (
+    MiTB4Backbone,
+)
+from keras_cv.models.backbones.mix_transformer.mix_transformer_aliases import (
+    MiTB5Backbone,
+)
+from keras_cv.models.backbones.mix_transformer.mix_transformer_aliases import (
+    MiTBackbone,
 )
 from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_aliases import (
     MobileNetV3LargeBackbone,
@@ -121,5 +187,12 @@ from keras_cv.models.object_detection.yolo_v8.yolo_v8_detector import (
     YOLOV8Detector,
 )
 from keras_cv.models.segmentation import DeepLabV3Plus
+from keras_cv.models.segmentation.segformer.segformer_aliases import SegFormer
+from keras_cv.models.segmentation.segformer.segformer_aliases import SegFormerB0
+from keras_cv.models.segmentation.segformer.segformer_aliases import SegFormerB1
+from keras_cv.models.segmentation.segformer.segformer_aliases import SegFormerB2
+from keras_cv.models.segmentation.segformer.segformer_aliases import SegFormerB3
+from keras_cv.models.segmentation.segformer.segformer_aliases import SegFormerB4
+from keras_cv.models.segmentation.segformer.segformer_aliases import SegFormerB5
 from keras_cv.models.stable_diffusion import StableDiffusion
 from keras_cv.models.stable_diffusion import StableDiffusionV2

@@ -12,13 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from tensorflow import keras
-
 from keras_cv.api_export import keras_cv_export
+from keras_cv.backend import keras
+from keras_cv.backend import ops
+from keras_cv.backend import random
 
 
 @keras_cv_export("keras_cv.layers.DropPath")
-class DropPath(keras.__internal__.layers.BaseRandomLayer):
+class DropPath(keras.layers.Layer):
     """
     Implements the DropPath layer. DropPath randomly drops samples during
     training with a probability of `rate`. Note that this layer drops individual
@@ -47,7 +48,7 @@ class DropPath(keras.__internal__.layers.BaseRandomLayer):
     """  # noqa: E501
 
     def __init__(self, rate=0.5, seed=None, **kwargs):
-        super().__init__(seed=seed, **kwargs)
+        super().__init__(**kwargs)
         self.rate = rate
         self.seed = seed
 
@@ -55,12 +56,13 @@ class DropPath(keras.__internal__.layers.BaseRandomLayer):
         if self.rate == 0.0 or not training:
             return x
         else:
-            keep_prob = 1 - self.rate
-            drop_map_shape = (x.shape[0],) + (1,) * (len(x.shape) - 1)
-            drop_map = keras.backend.random_bernoulli(
-                drop_map_shape, p=keep_prob, seed=self.seed
+            batch_size = x.shape[0] or ops.shape(x)[0]
+            drop_map_shape = (batch_size,) + (1,) * (len(x.shape) - 1)
+            drop_map = ops.cast(
+                random.uniform(drop_map_shape, seed=self.seed) > self.rate,
+                x.dtype,
             )
-            x = x / keep_prob
+            x = x / (1.0 - self.rate)
             x = x * drop_map
             return x
 
