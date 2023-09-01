@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 import tensorflow as tf
-from keras import utils
+from tensorflow.keras import utils
 
 
 def parse_weights(weights, include_top, model_type):

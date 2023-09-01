@@ -12,13 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import keras
 import tensorflow as tf
 
-if hasattr(keras, "src"):
-    keras_backend = keras.src.backend
+if hasattr(tf.keras, "src"):
+    keras_backend = tf.keras.src.backend
 else:
-    keras_backend = keras.backend
+    keras_backend = tf.keras.backend
 
 from keras_cv import bounding_box
 from keras_cv.api_export import keras_cv_export

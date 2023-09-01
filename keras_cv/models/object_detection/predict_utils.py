@@ -15,13 +15,13 @@
 import tensorflow as tf
 
 try:
-    from keras.src.engine.training import _minimum_control_deps
-    from keras.src.engine.training import reduce_per_replica
-    from keras.src.utils import tf_utils
+    from tf.keras.src.engine.training import _minimum_control_deps
+    from tf.keras.src.engine.training import reduce_per_replica
+    from tf.keras.src.utils import tf_utils
 except ImportError:
-    from keras.engine.training import _minimum_control_deps
-    from keras.engine.training import reduce_per_replica
-    from keras.utils import tf_utils
+    from tf.keras.engine.training import _minimum_control_deps
+    from tf.keras.engine.training import reduce_per_replica
+    from tf.keras.utils import tf_utils
 
 
 def make_predict_function(model, force=False):
