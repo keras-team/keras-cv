@@ -12,9 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
 import tensorflow as tf
-from tensorflow import keras
 
+from keras_cv.backend import keras
+from keras_cv.backend.config import multi_backend
 from keras_cv.layers.object_detection_3d.voxelization import DynamicVoxelization
 from keras_cv.models.object_detection_3d.center_pillar import (
     MultiClassDetectionHead,
@@ -31,24 +33,22 @@ from keras_cv.models.object_detection_3d.center_pillar_backbone import (
 from keras_cv.tests.test_case import TestCase
 
 
+@pytest.mark.skipif(
+    multi_backend() and keras.backend.backend() == "torch",
+    reason="CenterPillar does not yet support PyTorch.",
+)
 class CenterPillarTest(TestCase):
-    def get_point_net(self):
-        return keras.Sequential(
-            [
-                keras.layers.Dense(10),
-                keras.layers.Dense(20),
-            ]
-        )
-
     def test_center_pillar_call(self):
         voxel_net = DynamicVoxelization(
-            point_net=self.get_point_net(),
             voxel_size=[0.1, 0.1, 1000],
             spatial_size=[-20, 20, -20, 20, -20, 20],
         )
         # dimensions computed from voxel_net
-        backbone = CenterPillarBackbone.from_preset(
-            "center_pillar_waymo_open_dataset", input_shape=(None, None, 20)
+        backbone = CenterPillarBackbone(
+            stackwise_down_blocks=[1, 1],
+            stackwise_down_filters=[64, 128],
+            stackwise_up_filters=[128, 64],
+            input_shape=(None, None, 128),
         )
         decoder = MultiClassHeatmapDecoder(
             num_classes=2,
@@ -81,17 +81,19 @@ class CenterPillarTest(TestCase):
             },
             training=True,
         )
-        self.assertEqual(outputs["class_1"].shape, [2, 400, 400, 12])
-        self.assertEqual(outputs["class_2"].shape, [2, 400, 400, 12])
+        self.assertEqual(outputs["class_1"].shape, (2, 400, 400, 12))
+        self.assertEqual(outputs["class_2"].shape, (2, 400, 400, 12))
 
     def test_center_pillar_predict(self):
         voxel_net = DynamicVoxelization(
-            point_net=self.get_point_net(),
             voxel_size=[0.1, 0.1, 1000],
             spatial_size=[-20, 20, -20, 20, -20, 20],
         )
-        backbone = CenterPillarBackbone.from_preset(
-            "center_pillar_waymo_open_dataset", input_shape=(None, None, 20)
+        backbone = CenterPillarBackbone(
+            stackwise_down_blocks=[1, 1],
+            stackwise_down_filters=[64, 128],
+            stackwise_up_filters=[128, 64],
+            input_shape=(None, None, 128),
         )
         decoder = MultiClassHeatmapDecoder(
             num_classes=2,
