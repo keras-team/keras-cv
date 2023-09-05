@@ -74,6 +74,12 @@ class DeepLabV3PlusTest(TestCase):
             self.assertNotAllEqual(w1, w2)
             self.assertFalse(ops.any(ops.isnan(w2)))
 
+    def test_with_model_preset(self):
+        model = DeepLabV3Plus.from_preset("deeplab_v3_plus_resnet50_pascalvoc")
+        images = np.random.uniform(size=(2, 512, 512, 3))
+        _ = model(images)
+        _ = model.predict(images)
+
     @parameterized.named_parameters(
         ("tf_format", "tf", "model"),
         ("keras_format", "keras_v3", "model.keras"),
