@@ -238,8 +238,9 @@ class DeepLabV3Plus(Task):
     def presets_with_weights(cls):
         """Dictionary of preset names and configurations that include
         weights."""
-        return copy.deepcopy(backbone_presets_with_weights,
-                             deeplab_v3_plus_presets)
+        return copy.deepcopy(
+            backbone_presets_with_weights, deeplab_v3_plus_presets
+        )
 
     @classproperty
     def backbone_presets(cls):

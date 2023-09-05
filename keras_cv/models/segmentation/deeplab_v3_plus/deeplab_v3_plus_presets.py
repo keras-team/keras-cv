@@ -30,7 +30,8 @@ deeplab_v3_plus_presets = {
         },
         "config": {
             "backbone": resnet_v2_backbone_presets.backbone_presets[
-              "resnet50_v2"],
+                "resnet50_v2"
+            ],
             # 21 used as an implicit background class marginally improves
             # performance.
             "num_classes": 21,
