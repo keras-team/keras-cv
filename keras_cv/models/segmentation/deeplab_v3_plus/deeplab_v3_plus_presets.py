@@ -19,17 +19,18 @@ deeplab_v3_plus_presets = {
         "metadata": {
             "description": (
                 "DeeplabV3Plus with a ResNet50 v2 backbone. "
-                "Trained on PascalVOC 2012 Semantic segmentation class, which "
+                "Trained on PascalVOC 2012 Semantic segmentation task, which "
                 "consists of 20 classes and one background class. This model "
                 "achieves a final categorical accuracy of 89.34% on evaluation "
                 "dataset."
             ),
             "params": 39191488,
             "official_name": "DeeplabV3Plus",
-            "path": "deeplabv3plus",
+            "path": "deeplab_v3_plus",
         },
         "config": {
-            "backbone": resnet_v2_backbone_presets.backbone_presets["resnet50_v2"],
+            "backbone": resnet_v2_backbone_presets.backbone_presets[
+              "resnet50_v2"],
             # 21 used as an implicit background class marginally improves
             # performance.
             "num_classes": 21,

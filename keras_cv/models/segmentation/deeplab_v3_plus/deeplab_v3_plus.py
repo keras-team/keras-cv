@@ -21,7 +21,7 @@ from keras_cv.models.backbones.backbone_presets import backbone_presets
 from keras_cv.models.backbones.backbone_presets import (
     backbone_presets_with_weights,
 )
-from keras_cv.models.segmentation.deeplab_v3_plus.deeplab_v3_plus_presets import (
+from keras_cv.models.segmentation.deeplab_v3_plus.deeplab_v3_plus_presets import (  # noqa: E501
     deeplab_v3_plus_presets,
 )
 from keras_cv.models.task import Task
