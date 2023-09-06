@@ -137,35 +137,27 @@ class MultiHeadCenterPillar(Task):
 
             # TODO(ianstenbit): loss heatmap threshold should be configurable.
             box_regression_mask = (
-                ops.squeeze(
-                    ops.take(
-                        ops.reshape(heatmap, (ops.shape(heatmap)[0], -1)),
-                        index[..., 0] * ops.shape(heatmap)[1] + index[..., 1],
-                        axis=1,
-                    ),
-                    axis=0,
+                ops.take_along_axis(
+                    ops.reshape(heatmap, (heatmap.shape[0], -1)),
+                    index[..., 0] * heatmap.shape[1] + index[..., 1],
+                    axis=1,
                 )
                 > 0.95
             )
 
-            box = ops.squeeze(
-                ops.take(
-                    ops.reshape(box, (ops.shape(box)[0], -1, 7)),
-                    index[..., 0] * ops.shape(box)[1] + index[..., 1],
-                    axis=1,
-                ),
-                axis=0,
+            box = ops.take_along_axis(
+                ops.reshape(box, (ops.shape(box)[0], -1, 7)),
+                index[..., 0] * ops.shape(box)[1] + index[..., 1],
+                axis=1,
             )
-            box_pred = ops.squeeze(
-                ops.take(
-                    ops.reshape(
-                        box_pred,
-                        (ops.shape(box_pred)[0], -1, ops.shape(box_pred)[-1]),
-                    ),
-                    index[..., 0] * ops.shape(box_pred)[1] + index[..., 1],
-                    axis=1,
+
+            box_pred = ops.take_along_axis(
+                ops.reshape(
+                    box_pred,
+                    (ops.shape(box_pred)[0], -1, ops.shape(box_pred)[-1]),
                 ),
-                axis=0,
+                index[..., 0] * ops.shape(box_pred)[1] + index[..., 1],
+                axis=1,
             )
 
             box_center_mask = heatmap > 0.99
