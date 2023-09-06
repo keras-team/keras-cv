@@ -194,15 +194,7 @@ def build_centerpillar_model():
     Our first model component is a voxelization layer. This will be used to
     dynamically map coordinates of a point to a voxel in 3D space.
     """
-    voxelization_point_net = tf.keras.Sequential(
-        [
-            tf.keras.layers.Dense(voxelization_feature_size),
-            tf.keras.layers.BatchNormalization(fused=False),
-            tf.keras.layers.ReLU(),
-        ]
-    )
     voxelization_layer = DynamicVoxelization(
-        point_net=voxelization_point_net,
         voxel_size=voxel_size,
         spatial_size=spatial_size,
     )
@@ -283,28 +275,24 @@ dataset = dataset.map(
 
 """
 Now we can build and compile our model!
-We use a one device strategy in this tutorial, but any strategy will work.
 """
 
-strategy = tf.distribute.OneDeviceStrategy("/gpu:0")
+car_box_loss = keras_cv.losses.CenterNetBoxLoss(
+    num_heading_bins=12, anchor_size=car_anchor_size, reduction="sum"
+)
+pedestrian_box_loss = keras_cv.losses.CenterNetBoxLoss(
+    num_heading_bins=4, anchor_size=pedestrian_anchor_size, reduction="sum"
+)
 
-with strategy.scope():
-    car_box_loss = keras_cv.losses.CenterNetBoxLoss(
-        num_heading_bins=12, anchor_size=car_anchor_size, reduction="sum"
-    )
-    pedestrian_box_loss = keras_cv.losses.CenterNetBoxLoss(
-        num_heading_bins=4, anchor_size=pedestrian_anchor_size, reduction="sum"
-    )
+model = build_centerpillar_model()
 
-    model = build_centerpillar_model()
-
-    model.compile(
-        optimizer="adam",
-        heatmap_loss=keras_cv.losses.BinaryPenaltyReducedFocalCrossEntropy(
-            reduction="sum"
-        ),
-        box_loss=[car_box_loss, pedestrian_box_loss],
-    )
+model.compile(
+    optimizer="adam",
+    heatmap_loss=keras_cv.losses.BinaryPenaltyReducedFocalCrossEntropy(
+        reduction="sum"
+    ),
+    box_loss=[car_box_loss, pedestrian_box_loss],
+)
 
 """
 Finally, we can train and evaluate our model!
