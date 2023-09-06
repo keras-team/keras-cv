@@ -232,14 +232,14 @@ class DeepLabV3Plus(Task):
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
-        return copy.deepcopy(backbone_presets, deeplab_v3_plus_presets)
+        return copy.deepcopy({**backbone_presets, **deeplab_v3_plus_presets})
 
     @classproperty
     def presets_with_weights(cls):
         """Dictionary of preset names and configurations that include
         weights."""
         return copy.deepcopy(
-            backbone_presets_with_weights, deeplab_v3_plus_presets
+            {**backbone_presets_with_weights, **deeplab_v3_plus_presets}
         )
 
     @classproperty

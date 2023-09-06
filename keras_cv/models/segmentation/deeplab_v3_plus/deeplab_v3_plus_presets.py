@@ -11,7 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""RetinaNet Task presets."""
+"""DeepLabV3Plus presets."""
+
 from keras_cv.models.backbones.resnet_v2 import resnet_v2_backbone_presets
 
 deeplab_v3_plus_presets = {
@@ -21,11 +22,11 @@ deeplab_v3_plus_presets = {
                 "DeeplabV3Plus with a ResNet50 v2 backbone. "
                 "Trained on PascalVOC 2012 Semantic segmentation task, which "
                 "consists of 20 classes and one background class. This model "
-                "achieves a final categorical accuracy of 89.34% on evaluation "
-                "dataset."
+                "achieves a final categorical accuracy of 89.34% and mIoU of "
+                "0.6391 on evaluation dataset."
             ),
             "params": 39191488,
-            "official_name": "DeeplabV3Plus",
+            "official_name": "DeepLabV3Plus",
             "path": "deeplab_v3_plus",
         },
         "config": {
