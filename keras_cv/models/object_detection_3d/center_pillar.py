@@ -327,8 +327,11 @@ class MultiClassHeatmapDecoder(keras.layers.Layer):
         box_predictions = []
         class_predictions = []
         box_confidence = []
-        for k, v in predictions.items():
-            boxes, classes, confidence = self.decoders[k](v)
+        for class_id in self.class_ids:
+            class_tag = f"class_{class_id}"
+            boxes, classes, confidence = self.decoders[class_tag](
+                predictions[class_tag]
+            )
             box_predictions.append(boxes)
             class_predictions.append(classes)
             box_confidence.append(confidence)
