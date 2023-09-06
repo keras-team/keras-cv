@@ -100,6 +100,7 @@ class StableDiffusionTest(TestCase):
 
 @pytest.mark.extra_large
 class StableDiffusionMultiFrameworkTest(TestCase):
+    @pytest.mark.filterwarnings("ignore::UserWarning")  # Torch + jit_compile
     def test_end_to_end(self):
         prompt = "a caterpillar smoking a hookah while sitting on a mushroom"
         stablediff = StableDiffusion(128, 128)
