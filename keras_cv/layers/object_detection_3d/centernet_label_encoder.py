@@ -422,10 +422,8 @@ class CenterNetLabelEncoder(keras.layers.Layer):
             )
             global_xyz = tf.zeros([b, 3], dtype=point_xyz.dtype)
             # [B, H, W, Z, 3]
-            feature_map_ref_xyz = tf.constant(
-                voxel_utils.compute_feature_map_ref_xyz(
-                    self._voxel_size, self._spatial_size, global_xyz
-                ),
+            feature_map_ref_xyz = voxel_utils.compute_feature_map_ref_xyz(
+                self._voxel_size, self._spatial_size, global_xyz
             )
             # convert from global box point xyz to offset w.r.t center of
             # feature map.
