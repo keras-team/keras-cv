@@ -37,7 +37,9 @@ def _generate_frames(segments, transformer):
     return _generator
 
 
-@keras_cv_export("keras_cv.datasets.waymo.load")
+@keras_cv_export(
+    "keras_cv.datasets.waymo.load", package="keras_cv.datasets.waymo"
+)
 def load(
     tfrecord_path,
     transformer=transformer.build_tensors_from_wod_frame,
