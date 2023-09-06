@@ -16,12 +16,13 @@ from typing import Any
 from typing import List
 from typing import Mapping
 
+from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 from keras_cv.backend.config import multi_backend
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+@keras_cv_export("keras_cv.layers.SpatialPyramidPooling")
 class SpatialPyramidPooling(keras.layers.Layer):
     """Implements the Atrous Spatial Pyramid Pooling.
 
@@ -90,6 +91,7 @@ class SpatialPyramidPooling(keras.layers.Layer):
                 keras.layers.Activation(self.activation),
             ]
         )
+        conv_sequential.build(input_shape)
         self.aspp_parallel_channels.append(conv_sequential)
 
         # Channel 2 and afterwards are based on self.dilation_rates, and each of
@@ -108,6 +110,7 @@ class SpatialPyramidPooling(keras.layers.Layer):
                     keras.layers.Activation(self.activation),
                 ]
             )
+            conv_sequential.build(input_shape)
             self.aspp_parallel_channels.append(conv_sequential)
 
         # Last channel is the global average pooling with conv2D 1x1 kernel.
@@ -124,10 +127,11 @@ class SpatialPyramidPooling(keras.layers.Layer):
                 keras.layers.Activation(self.activation),
             ]
         )
+        pool_sequential.build(input_shape)
         self.aspp_parallel_channels.append(pool_sequential)
 
         # Final projection layers
-        self.projection = keras.Sequential(
+        projection = keras.Sequential(
             [
                 keras.layers.Conv2D(
                     filters=self.num_channels,
@@ -139,6 +143,11 @@ class SpatialPyramidPooling(keras.layers.Layer):
                 keras.layers.Dropout(rate=self.dropout),
             ],
         )
+        projection_input_channels = (
+            2 + len(self.dilation_rates)
+        ) * self.num_channels
+        projection.build(tuple(input_shape[:-1]) + (projection_input_channels,))
+        self.projection = projection
 
     def call(self, inputs, training=None):
         """Calls the Atrous Spatial Pyramid Pooling layer on an input.

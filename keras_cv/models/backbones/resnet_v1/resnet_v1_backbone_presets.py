@@ -25,7 +25,7 @@ backbone_presets_no_weights = {
             "official_name": "ResNetV1",
             "path": "resnet_v1",
         },
-        "class_name": "keras_cv.models>ResNetBackbone",
+        "class_name": "keras_cv>ResNetBackbone",
         "config": {
             "stackwise_filters": [64, 128, 256, 512],
             "stackwise_blocks": [2, 2, 2, 2],
@@ -47,7 +47,7 @@ backbone_presets_no_weights = {
             "official_name": "ResNetV1",
             "path": "resnet_v1",
         },
-        "class_name": "keras_cv.models>ResNetBackbone",
+        "class_name": "keras_cv>ResNetBackbone",
         "config": {
             "stackwise_filters": [64, 128, 256, 512],
             "stackwise_blocks": [3, 4, 6, 3],
@@ -69,7 +69,7 @@ backbone_presets_no_weights = {
             "official_name": "ResNetV1",
             "path": "resnet_v1",
         },
-        "class_name": "keras_cv.models>ResNetBackbone",
+        "class_name": "keras_cv>ResNetBackbone",
         "config": {
             "stackwise_filters": [64, 128, 256, 512],
             "stackwise_blocks": [3, 4, 6, 3],
@@ -91,7 +91,7 @@ backbone_presets_no_weights = {
             "official_name": "ResNetV1",
             "path": "resnet_v1",
         },
-        "class_name": "keras_cv.models>ResNetBackbone",
+        "class_name": "keras_cv>ResNetBackbone",
         "config": {
             "stackwise_filters": [64, 128, 256, 512],
             "stackwise_blocks": [3, 4, 23, 3],
@@ -113,7 +113,7 @@ backbone_presets_no_weights = {
             "official_name": "ResNetV1",
             "path": "resnet_v1",
         },
-        "class_name": "keras_cv.models>ResNetBackbone",
+        "class_name": "keras_cv>ResNetBackbone",
         "config": {
             "stackwise_filters": [64, 128, 256, 512],
             "stackwise_blocks": [3, 8, 36, 3],
@@ -139,7 +139,7 @@ backbone_presets_with_weights = {
             "official_name": "ResNetV1",
             "path": "resnet_v1",
         },
-        "class_name": "keras_cv.models>ResNetBackbone",
+        "class_name": "keras_cv>ResNetBackbone",
         "config": backbone_presets_no_weights["resnet50"]["config"],
         "weights_url": "https://storage.googleapis.com/keras-cv/models/resnet50/imagenet/classification-v0-notop.h5",  # noqa: E501
         "weights_hash": "dc5f6d8f929c78d0fc192afecc67b11ac2166e9d8b9ef945742368ae254c07af",  # noqa: E501

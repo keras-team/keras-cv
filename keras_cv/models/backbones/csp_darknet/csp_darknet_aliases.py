@@ -14,6 +14,7 @@
 
 import copy
 
+from keras_cv.api_export import keras_cv_export
 from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
     CSPDarkNetBackbone,
 )
@@ -51,6 +52,7 @@ ALIAS_DOCSTRING = """CSPDarkNetBackbone model with {stackwise_channels} channels
 """  # noqa: E501
 
 
+@keras_cv_export("keras_cv.losses.CSPDarkNetTinyBackbone")
 class CSPDarkNetTinyBackbone(CSPDarkNetBackbone):
     def __new__(
         cls,
@@ -85,6 +87,7 @@ class CSPDarkNetTinyBackbone(CSPDarkNetBackbone):
         return cls.presets
 
 
+@keras_cv_export("keras_cv.losses.CSPDarkNetSBackbone")
 class CSPDarkNetSBackbone(CSPDarkNetBackbone):
     def __new__(
         cls,
@@ -115,6 +118,7 @@ class CSPDarkNetSBackbone(CSPDarkNetBackbone):
         return {}
 
 
+@keras_cv_export("keras_cv.losses.CSPDarkNetMBackbone")
 class CSPDarkNetMBackbone(CSPDarkNetBackbone):
     def __new__(
         cls,
@@ -145,6 +149,7 @@ class CSPDarkNetMBackbone(CSPDarkNetBackbone):
         return {}
 
 
+@keras_cv_export("keras_cv.losses.CSPDarkNetLBackbone")
 class CSPDarkNetLBackbone(CSPDarkNetBackbone):
     def __new__(
         cls,
@@ -179,6 +184,7 @@ class CSPDarkNetLBackbone(CSPDarkNetBackbone):
         return cls.presets
 
 
+@keras_cv_export("keras_cv.losses.CSPDarkNetXLBackbone")
 class CSPDarkNetXLBackbone(CSPDarkNetBackbone):
     def __new__(
         cls,

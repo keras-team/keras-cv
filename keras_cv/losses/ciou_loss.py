@@ -13,11 +13,13 @@
 # limitations under the License.
 
 
+from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 from keras_cv.bounding_box.iou import compute_ciou
 
 
+@keras_cv_export("keras_cv.losses.CIoULoss")
 class CIoULoss(keras.losses.Loss):
     """Implements the Complete IoU (CIoU) Loss
 
@@ -87,9 +89,7 @@ class CIoULoss(keras.losses.Loss):
                 f"y_pred={y_pred.shape[-2]}."
             )
 
-        ciou = ops.squeeze(
-            compute_ciou(y_true, y_pred, self.bounding_box_format), axis=-1
-        )
+        ciou = compute_ciou(y_true, y_pred, self.bounding_box_format)
         return 1 - ciou
 
     def get_config(self):

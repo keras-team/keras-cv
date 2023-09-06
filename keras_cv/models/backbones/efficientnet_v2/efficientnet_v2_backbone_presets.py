@@ -24,7 +24,7 @@ backbone_presets_no_weights = {
             "official_name": "EfficientNetV2",
             "path": "efficientnetv2",
         },
-        "class_name": "keras_cv.models>EfficientNetV2Backbone",
+        "class_name": "keras_cv>EfficientNetV2Backbone",
         "config": {
             "width_coefficient": 1.0,
             "depth_coefficient": 1.0,
@@ -68,7 +68,7 @@ backbone_presets_no_weights = {
             "official_name": "EfficientNetV2",
             "path": "efficientnetv2",
         },
-        "class_name": "keras_cv.models>EfficientNetV2Backbone",
+        "class_name": "keras_cv>EfficientNetV2Backbone",
         "config": {
             "width_coefficient": 1.0,
             "depth_coefficient": 1.0,
@@ -115,7 +115,7 @@ backbone_presets_no_weights = {
             "official_name": "EfficientNetV2",
             "path": "efficientnetv2",
         },
-        "class_name": "keras_cv.models>EfficientNetV2Backbone",
+        "class_name": "keras_cv>EfficientNetV2Backbone",
         "config": {
             "width_coefficient": 1.0,
             "depth_coefficient": 1.0,
@@ -163,7 +163,7 @@ backbone_presets_no_weights = {
             "official_name": "EfficientNetV2",
             "path": "efficientnetv2",
         },
-        "class_name": "keras_cv.models>EfficientNetV2Backbone",
+        "class_name": "keras_cv>EfficientNetV2Backbone",
         "config": {
             "width_coefficient": 1.0,
             "depth_coefficient": 1.0,
@@ -202,7 +202,7 @@ backbone_presets_no_weights = {
             "official_name": "EfficientNetV2",
             "path": "efficientnetv2",
         },
-        "class_name": "keras_cv.models>EfficientNetV2Backbone",
+        "class_name": "keras_cv>EfficientNetV2Backbone",
         "config": {
             "width_coefficient": 1.0,
             "depth_coefficient": 1.1,
@@ -241,7 +241,7 @@ backbone_presets_no_weights = {
             "official_name": "EfficientNetV2",
             "path": "efficientnetv2",
         },
-        "class_name": "keras_cv.models>EfficientNetV2Backbone",
+        "class_name": "keras_cv>EfficientNetV2Backbone",
         "config": {
             "width_coefficient": 1.1,
             "depth_coefficient": 1.2,
@@ -280,7 +280,7 @@ backbone_presets_no_weights = {
             "official_name": "EfficientNetV2",
             "path": "efficientnetv2",
         },
-        "class_name": "keras_cv.models>EfficientNetV2Backbone",
+        "class_name": "keras_cv>EfficientNetV2Backbone",
         "config": {
             "width_coefficient": 1.2,
             "depth_coefficient": 1.4,
@@ -324,7 +324,7 @@ backbone_presets_with_weights = {
             "official_name": "EfficientNetV2",
             "path": "efficientnetv2",
         },
-        "class_name": "keras_cv.models>EfficientNetV2Backbone",
+        "class_name": "keras_cv>EfficientNetV2Backbone",
         "config": {
             "width_coefficient": 1.0,
             "depth_coefficient": 1.0,
@@ -376,7 +376,7 @@ backbone_presets_with_weights = {
             "official_name": "EfficientNetV2",
             "path": "efficientnetv2",
         },
-        "class_name": "keras_cv.models>EfficientNetV2Backbone",
+        "class_name": "keras_cv>EfficientNetV2Backbone",
         "config": {
             "width_coefficient": 1.0,
             "depth_coefficient": 1.0,
@@ -421,7 +421,7 @@ backbone_presets_with_weights = {
             "official_name": "EfficientNetV2",
             "path": "efficientnetv2",
         },
-        "class_name": "keras_cv.models>EfficientNetV2Backbone",
+        "class_name": "keras_cv>EfficientNetV2Backbone",
         "config": {
             "width_coefficient": 1.0,
             "depth_coefficient": 1.1,
@@ -466,7 +466,7 @@ backbone_presets_with_weights = {
             "official_name": "EfficientNetV2",
             "path": "efficientnetv2",
         },
-        "class_name": "keras_cv.models>EfficientNetV2Backbone",
+        "class_name": "keras_cv>EfficientNetV2Backbone",
         "config": {
             "width_coefficient": 1.1,
             "depth_coefficient": 1.2,

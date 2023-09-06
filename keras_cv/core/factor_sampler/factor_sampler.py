@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from tensorflow import keras
+from keras_cv.api_export import keras_cv_export
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+@keras_cv_export("keras_cv.core.FactorSampler")
 class FactorSampler:
     """FactorSampler represents a strength factor for use in an augmentation
     layer.

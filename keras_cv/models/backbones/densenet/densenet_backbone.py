@@ -21,6 +21,7 @@ Reference:
 
 import copy
 
+from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.models import utils
 from keras_cv.models.backbones.backbone import Backbone
@@ -36,7 +37,7 @@ BN_AXIS = 3
 BN_EPSILON = 1.001e-5
 
 
-@keras.saving.register_keras_serializable(package="keras_cv.models")
+@keras_cv_export("keras_cv.models.DenseNetBackbone")
 class DenseNetBackbone(Backbone):
     """Instantiates the DenseNet architecture.
 
@@ -87,12 +88,12 @@ class DenseNetBackbone(Backbone):
             x = keras.layers.Rescaling(1 / 255.0)(x)
 
         x = keras.layers.Conv2D(
-            64, 7, strides=2, use_bias=False, padding="same", name="conv1/conv"
+            64, 7, strides=2, use_bias=False, padding="same", name="conv1_conv"
         )(x)
         x = keras.layers.BatchNormalization(
-            axis=BN_AXIS, epsilon=BN_EPSILON, name="conv1/bn"
+            axis=BN_AXIS, epsilon=BN_EPSILON, name="conv1_bn"
         )(x)
-        x = keras.layers.Activation("relu", name="conv1/relu")(x)
+        x = keras.layers.Activation("relu", name="conv1_relu")(x)
         x = keras.layers.MaxPooling2D(
             3, strides=2, padding="same", name="pool1"
         )(x)

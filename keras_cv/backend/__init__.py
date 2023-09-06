@@ -42,6 +42,8 @@ _KERAS_CORE_ALIASES = {
 
 if multi_backend():
     import keras_core as keras
+
+    keras.backend.name_scope = keras.name_scope
 else:
     from tensorflow import keras
 
@@ -76,6 +78,7 @@ else:
 
 from keras_cv.backend import config  # noqa: E402
 from keras_cv.backend import ops  # noqa: E402
+from keras_cv.backend import random  # noqa: E402
 from keras_cv.backend import tf_ops  # noqa: E402
 
 

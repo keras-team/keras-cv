@@ -13,3 +13,4 @@
 # limitations under the License.
 
 from keras_cv.models.segmentation.deeplab_v3_plus import DeepLabV3Plus
+from keras_cv.models.segmentation.segformer import SegFormer

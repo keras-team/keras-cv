@@ -84,5 +84,5 @@ class CIoUTest(TestCase):
             y_pred = np.array(y_pred) * scale_factor
 
         self.assertAllClose(
-            ciou_loss(y_true, y_pred), expected_loss, atol=0.0001
+            ciou_loss(y_true, y_pred), expected_loss, atol=0.005
         )

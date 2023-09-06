@@ -12,12 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import tensorflow as tf
-from tensorflow import keras
-
-from keras_cv.models.stable_diffusion.__internal__.layers.padded_conv2d import (
-    PaddedConv2D,
-)
+from keras_cv.backend import keras
+from keras_cv.backend import ops
+from keras_cv.models.stable_diffusion.padded_conv2d import PaddedConv2D
 
 
 class DiffusionModel(keras.Model):
@@ -29,9 +26,11 @@ class DiffusionModel(keras.Model):
         name=None,
         download_weights=True,
     ):
-        context = keras.layers.Input((max_text_length, 768))
-        t_embed_input = keras.layers.Input((320,))
-        latent = keras.layers.Input((img_height // 8, img_width // 8, 4))
+        context = keras.layers.Input((max_text_length, 768), name="context")
+        t_embed_input = keras.layers.Input((320,), name="timestep_embedding")
+        latent = keras.layers.Input(
+            (img_height // 8, img_width // 8, 4), name="latent"
+        )
 
         t_emb = keras.layers.Dense(1280)(t_embed_input)
         t_emb = keras.layers.Activation("swish")(t_emb)
@@ -123,9 +122,11 @@ class DiffusionModelV2(keras.Model):
         name=None,
         download_weights=True,
     ):
-        context = keras.layers.Input((max_text_length, 1024))
-        t_embed_input = keras.layers.Input((320,))
-        latent = keras.layers.Input((img_height // 8, img_width // 8, 4))
+        context = keras.layers.Input((max_text_length, 1024), name="context")
+        t_embed_input = keras.layers.Input((320,), name="timestep_embedding")
+        latent = keras.layers.Input(
+            (img_height // 8, img_width // 8, 4), name="latent"
+        )
 
         t_emb = keras.layers.Dense(1280)(t_embed_input)
         t_emb = keras.layers.Activation("swish")(t_emb)
@@ -268,9 +269,9 @@ class SpatialTransformer(keras.layers.Layer):
         _, h, w, c = inputs.shape
         x = self.norm(inputs)
         x = self.proj1(x)
-        x = tf.reshape(x, (-1, h * w, c))
+        x = ops.reshape(x, (-1, h * w, c))
         x = self.transformer_block([x, context])
-        x = tf.reshape(x, (-1, h, w, c))
+        x = ops.reshape(x, (-1, h, w, c))
         return self.proj2(x) + inputs
 
 
@@ -287,8 +288,8 @@ class BasicTransformerBlock(keras.layers.Layer):
 
     def call(self, inputs):
         inputs, context = inputs
-        x = self.attn1([self.norm1(inputs), None]) + inputs
-        x = self.attn2([self.norm2(x), context]) + x
+        x = self.attn1(self.norm1(inputs), context=None) + inputs
+        x = self.attn2(self.norm2(x), context=context) + x
         return self.dense(self.geglu(self.norm3(x))) + x
 
 
@@ -303,31 +304,33 @@ class CrossAttention(keras.layers.Layer):
         self.head_size = head_size
         self.out_proj = keras.layers.Dense(num_heads * head_size)
 
-    def call(self, inputs):
-        inputs, context = inputs
-        context = inputs if context is None else context
+    def call(self, inputs, context=None):
+        if context is None:
+            context = inputs
         q, k, v = self.to_q(inputs), self.to_k(context), self.to_v(context)
-        q = tf.reshape(q, (-1, inputs.shape[1], self.num_heads, self.head_size))
-        k = tf.reshape(
+        q = ops.reshape(
+            q, (-1, inputs.shape[1], self.num_heads, self.head_size)
+        )
+        k = ops.reshape(
             k, (-1, context.shape[1], self.num_heads, self.head_size)
         )
-        v = tf.reshape(
+        v = ops.reshape(
             v, (-1, context.shape[1], self.num_heads, self.head_size)
         )
 
-        q = tf.transpose(q, (0, 2, 1, 3))  # (bs, num_heads, time, head_size)
-        k = tf.transpose(k, (0, 2, 3, 1))  # (bs, num_heads, head_size, time)
-        v = tf.transpose(v, (0, 2, 1, 3))  # (bs, num_heads, time, head_size)
+        q = ops.transpose(q, (0, 2, 1, 3))  # (bs, num_heads, time, head_size)
+        k = ops.transpose(k, (0, 2, 3, 1))  # (bs, num_heads, head_size, time)
+        v = ops.transpose(v, (0, 2, 1, 3))  # (bs, num_heads, time, head_size)
 
         score = td_dot(q, k) * self.scale
         weights = keras.activations.softmax(
             score
         )  # (bs, num_heads, time, time)
         attn = td_dot(weights, v)
-        attn = tf.transpose(
+        attn = ops.transpose(
             attn, (0, 2, 1, 3)
         )  # (bs, time, num_heads, head_size)
-        out = tf.reshape(
+        out = ops.reshape(
             attn, (-1, inputs.shape[1], self.num_heads * self.head_size)
         )
         return self.out_proj(out)
@@ -359,7 +362,7 @@ class GEGLU(keras.layers.Layer):
 
 
 def td_dot(a, b):
-    aa = tf.reshape(a, (-1, a.shape[2], a.shape[3]))
-    bb = tf.reshape(b, (-1, b.shape[2], b.shape[3]))
-    cc = keras.backend.batch_dot(aa, bb)
-    return tf.reshape(cc, (-1, a.shape[1], cc.shape[1], cc.shape[2]))
+    aa = ops.reshape(a, (-1, a.shape[2], a.shape[3]))
+    bb = ops.reshape(b, (-1, b.shape[2], b.shape[3]))
+    cc = keras.layers.Dot(axes=(2, 1))([aa, bb])
+    return ops.reshape(cc, (-1, a.shape[1], cc.shape[1], cc.shape[2]))

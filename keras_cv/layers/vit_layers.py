@@ -15,14 +15,14 @@
 import math
 
 import tensorflow as tf
-from tensorflow import keras
 from tensorflow.keras import layers
 
+from keras_cv.api_export import keras_cv_export
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+
+@keras_cv_export("keras_cv.layers.PatchingAndEmbedding")
 class PatchingAndEmbedding(layers.Layer):
     """
-
     Layer to patchify images, prepend a class token, positionally embed and
     create a projection of patches for Vision Transformers
 

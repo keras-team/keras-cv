@@ -3,9 +3,9 @@
 # Licensed under the terms in https://github.com/keras-team/keras-cv/blob/master/keras_cv/layers/preprocessing_3d/waymo/LICENSE  # noqa: E501
 
 import tensorflow as tf
-from tensorflow import keras
 
 from keras_cv import point_cloud
+from keras_cv.api_export import keras_cv_export
 from keras_cv.layers.preprocessing_3d import base_augmentation_layer_3d
 
 POINT_CLOUDS = base_augmentation_layer_3d.POINT_CLOUDS
@@ -13,7 +13,7 @@ BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
 POINTCLOUD_LABEL_INDEX = base_augmentation_layer_3d.POINTCLOUD_LABEL_INDEX
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+@keras_cv_export("keras_cv.layers.FrustumRandomDroppingPoints")
 class FrustumRandomDroppingPoints(
     base_augmentation_layer_3d.BaseAugmentationLayer3D
 ):

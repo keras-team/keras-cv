@@ -96,19 +96,20 @@ import keras_core as keras
 # Create a preprocessing pipeline with augmentations
 BATCH_SIZE = 16
 NUM_CLASSES = 3
-augmentations = [
-    keras_cv.layers.RandomFlip(),
-    keras_cv.layers.RandAugment(value_range=(0, 255)),
-    keras_cv.layers.CutMix(),
-]
+augmenter = keras_cv.layers.Augmenter(
+    [
+        keras_cv.layers.RandomFlip(),
+        keras_cv.layers.RandAugment(value_range=(0, 255)),
+        keras_cv.layers.CutMix(),
+    ],
+)
 
 def preprocess_data(images, labels, augment=False):
     labels = tf.one_hot(labels, NUM_CLASSES)
     inputs = {"images": images, "labels": labels}
     outputs = inputs
     if augment:
-        for augmentation in augmentations:
-            outputs = augmentation(outputs)
+        outputs = augmenter(outputs)
     return outputs['images'], outputs['labels']
 
 train_dataset, test_dataset = tfds.load(

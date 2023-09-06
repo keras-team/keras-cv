@@ -15,6 +15,7 @@
 import math
 
 from keras_cv import bounding_box
+from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 
@@ -60,6 +61,7 @@ def _compute_intersection(boxes1, boxes2):
     return intersect_height * intersect_width
 
 
+@keras_cv_export("keras_cv.bounding_box.compute_iou")
 def compute_iou(
     boxes1,
     boxes2,
@@ -170,7 +172,8 @@ def compute_iou(
     return iou_lookup_table
 
 
-def compute_ciou(box1, box2, bounding_box_format, eps=1e-7):
+@keras_cv_export("keras_cv.bounding_box.compute_ciou")
+def compute_ciou(boxes1, boxes2, bounding_box_format):
     """
     Computes the Complete IoU (CIoU) between two bounding boxes or between
     two batches of bounding boxes.
@@ -190,8 +193,6 @@ def compute_ciou(box1, box2, bounding_box_format, eps=1e-7):
             Each bounding box is defined by these 4 values. For detailed
             information on the supported formats, see the [KerasCV bounding box
             documentation](https://keras.io/api/keras_cv/bounding_box/formats/).
-        eps (float, optional): A small value to avoid division by zero. Default
-            is 1e-7.
 
     Returns:
         tensor: The CIoU distance between the two bounding boxes.
@@ -200,41 +201,60 @@ def compute_ciou(box1, box2, bounding_box_format, eps=1e-7):
     if bounding_box.is_relative(bounding_box_format):
         target_format = bounding_box.as_relative(target_format)
 
-    box1 = bounding_box.convert_format(
-        box1, source=bounding_box_format, target=target_format
+    boxes1 = bounding_box.convert_format(
+        boxes1, source=bounding_box_format, target=target_format
     )
 
-    box2 = bounding_box.convert_format(
-        box2, source=bounding_box_format, target=target_format
+    boxes2 = bounding_box.convert_format(
+        boxes2, source=bounding_box_format, target=target_format
     )
-    b1_x1, b1_y1, b1_x2, b1_y2 = ops.split(box1, 4, axis=-1)
-    b2_x1, b2_y1, b2_x2, b2_y2 = ops.split(box2, 4, axis=-1)
-    w1, h1 = b1_x2 - b1_x1, b1_y2 - b1_y1 + eps
-    w2, h2 = b2_x2 - b2_x1, b2_y2 - b2_y1 + eps
 
-    # Intersection area
-    inter = ops.maximum(
-        ops.minimum(b1_x2, b2_x2) - ops.maximum(b1_x1, b2_x1), 0
-    ) * ops.maximum(ops.minimum(b1_y2, b2_y2) - ops.maximum(b1_y1, b2_y1), 0)
+    x_min1, y_min1, x_max1, y_max1 = ops.split(boxes1[..., :4], 4, axis=-1)
+    x_min2, y_min2, x_max2, y_max2 = ops.split(boxes2[..., :4], 4, axis=-1)
 
-    # Union Area
-    union = w1 * h1 + w2 * h2 - inter + eps
+    width_1 = x_max1 - x_min1
+    height_1 = y_max1 - y_min1 + keras.backend.epsilon()
+    width_2 = x_max2 - x_min2
+    height_2 = y_max2 - y_min2 + keras.backend.epsilon()
 
-    # IoU
-    iou = inter / union
-
-    cw = ops.maximum(b1_x2, b2_x2) - ops.minimum(
-        b1_x1, b2_x1
-    )  # convex (smallest enclosing box) width
-    ch = ops.maximum(b1_y2, b2_y2) - ops.minimum(b1_y1, b2_y1)  # convex height
-    c2 = cw**2 + ch**2 + eps  # convex diagonal squared
-    rho2 = (
-        (b2_x1 + b2_x2 - b1_x1 - b1_x2) ** 2
-        + (b2_y1 + b2_y2 - b1_y1 - b1_y2) ** 2
-    ) / 4  # center dist ** 2
-    v = ops.power(
-        (4 / math.pi**2) * (ops.arctan(w2 / h2) - ops.arctan(w1 / h1)), 2
+    intersection_area = ops.maximum(
+        ops.minimum(x_max1, x_max2) - ops.maximum(x_min1, x_min2), 0
+    ) * ops.maximum(
+        ops.minimum(y_max1, y_max2) - ops.maximum(y_min1, y_min2), 0
     )
-    alpha = v / (v - iou + (1 + eps))
+    union_area = (
+        width_1 * height_1
+        + width_2 * height_2
+        - intersection_area
+        + keras.backend.epsilon()
+    )
+    iou = ops.squeeze(
+        ops.divide(intersection_area, union_area + keras.backend.epsilon()),
+        axis=-1,
+    )
 
-    return iou - (rho2 / c2 + v * alpha)
+    convex_width = ops.maximum(x_max1, x_max2) - ops.minimum(x_min1, x_min2)
+    convex_height = ops.maximum(y_max1, y_max2) - ops.minimum(y_min1, y_min2)
+    convex_diagonal_squared = ops.squeeze(
+        convex_width**2 + convex_height**2 + keras.backend.epsilon(),
+        axis=-1,
+    )
+    centers_distance_squared = ops.squeeze(
+        ((x_min1 + x_max1) / 2 - (x_min2 + x_max2) / 2) ** 2
+        + ((y_min1 + y_max1) / 2 - (y_min2 + y_max2) / 2) ** 2,
+        axis=-1,
+    )
+
+    v = ops.squeeze(
+        ops.power(
+            (4 / math.pi**2)
+            * (ops.arctan(width_2 / height_2) - ops.arctan(width_1 / height_1)),
+            2,
+        ),
+        axis=-1,
+    )
+    alpha = v / (v - iou + (1 + keras.backend.epsilon()))
+
+    return iou - (
+        centers_distance_squared / convex_diagonal_squared + v * alpha
+    )

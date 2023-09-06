@@ -14,6 +14,7 @@
 
 import math
 
+from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 from keras_cv.bounding_box_3d import CENTER_XYZ_DXDYDZ_PHI
@@ -32,6 +33,7 @@ def l1(y_true, y_pred, sigma=9.0):
     return ops.sum(loss, axis=-1)
 
 
+@keras_cv_export("keras_cv.losses.CenterNetBoxLoss")
 class CenterNetBoxLoss(keras.losses.Loss):
     """Implements a bin-based box regression loss for 3D bounding boxes.
 

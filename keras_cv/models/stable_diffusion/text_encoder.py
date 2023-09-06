@@ -12,9 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import tensorflow as tf
-from tensorflow import keras
-from tensorflow.experimental import numpy as tfnp
+from keras_cv.backend import keras
+from keras_cv.backend import ops
 
 
 class TextEncoder(keras.Model):
@@ -53,7 +52,7 @@ class TextEncoderV2(keras.Model):
         )
         x = CLIPEmbedding(vocab_size, 1024, max_length)([tokens, positions])
         for _ in range(23):
-            x = CLIPEncoderLayer(1024, 16, activation=tf.nn.gelu)(x)
+            x = CLIPEncoderLayer(1024, 16, activation=ops.gelu)(x)
         embedded = keras.layers.LayerNormalization(epsilon=1e-5)(x)
         super().__init__([tokens, positions], embedded, name=name)
 
@@ -66,7 +65,7 @@ class TextEncoderV2(keras.Model):
 
 
 def quick_gelu(x):
-    return x * tf.sigmoid(x * 1.702)
+    return x * ops.sigmoid(x * 1.702)
 
 
 class CLIPEmbedding(keras.layers.Layer):
@@ -121,19 +120,19 @@ class CLIPAttention(keras.layers.Layer):
         self.out_proj = keras.layers.Dense(self.embed_dim)
 
     def reshape_states(self, x, sequence_length, batch_size):
-        x = tf.reshape(
+        x = ops.reshape(
             x, (batch_size, sequence_length, self.num_heads, self.head_dim)
         )
-        return tf.transpose(
+        return ops.transpose(
             x, (0, 2, 1, 3)
         )  # bs, heads, sequence_length, head_dim
 
     def call(self, inputs, attention_mask=None):
         if attention_mask is None and self.causal:
-            length = tf.shape(inputs)[1]
-            attention_mask = tfnp.triu(
-                tf.ones((1, 1, length, length), dtype=self.compute_dtype)
-                * -tfnp.inf,
+            length = ops.shape(inputs)[1]
+            attention_mask = ops.triu(
+                ops.ones((1, 1, length, length), dtype=self.compute_dtype)
+                * -float("inf"),
                 k=1,
             )
 
@@ -144,25 +143,25 @@ class CLIPAttention(keras.layers.Layer):
 
         proj_shape = (-1, tgt_len, self.head_dim)
         query_states = self.reshape_states(query_states, tgt_len, -1)
-        query_states = tf.reshape(query_states, proj_shape)
-        key_states = tf.reshape(key_states, proj_shape)
+        query_states = ops.reshape(query_states, proj_shape)
+        key_states = ops.reshape(key_states, proj_shape)
 
         src_len = tgt_len
-        value_states = tf.reshape(value_states, proj_shape)
-        attn_weights = query_states @ tf.transpose(key_states, (0, 2, 1))
+        value_states = ops.reshape(value_states, proj_shape)
+        attn_weights = query_states @ ops.transpose(key_states, (0, 2, 1))
 
-        attn_weights = tf.reshape(
+        attn_weights = ops.reshape(
             attn_weights, (-1, self.num_heads, tgt_len, src_len)
         )
         attn_weights = attn_weights + attention_mask
-        attn_weights = tf.reshape(attn_weights, (-1, tgt_len, src_len))
+        attn_weights = ops.reshape(attn_weights, (-1, tgt_len, src_len))
 
-        attn_weights = tf.nn.softmax(attn_weights)
+        attn_weights = ops.softmax(attn_weights, axis=-1)
         attn_output = attn_weights @ value_states
 
-        attn_output = tf.reshape(
+        attn_output = ops.reshape(
             attn_output, (-1, self.num_heads, tgt_len, self.head_dim)
         )
-        attn_output = tf.transpose(attn_output, (0, 2, 1, 3))
-        attn_output = tf.reshape(attn_output, (-1, tgt_len, embed_dim))
+        attn_output = ops.transpose(attn_output, (0, 2, 1, 3))
+        attn_output = ops.reshape(attn_output, (-1, tgt_len, embed_dim))
         return self.out_proj(attn_output)

@@ -19,6 +19,7 @@ import numpy as np
 import keras_cv
 from keras_cv import bounding_box
 from keras_cv import layers as cv_layers
+from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 from keras_cv.bounding_box.converters import _decode_deltas_to_boxes
@@ -40,9 +41,7 @@ from keras_cv.utils.train import get_feature_extractor
 BOX_VARIANCE = [0.1, 0.1, 0.2, 0.2]
 
 
-# TODO(jbischof): Generalize `FeaturePyramid` class to allow for any P-levels
-#  and add `feature_pyramid_levels` param.
-@keras.saving.register_keras_serializable(package="keras_cv")
+@keras_cv_export("keras_cv.models.RetinaNet")
 class RetinaNet(Task):
     """A Keras model implementing the RetinaNet meta-architecture.
 
@@ -54,14 +53,14 @@ class RetinaNet(Task):
     ```python
     images = np.ones((1, 512, 512, 3))
     labels = {
-        "boxes": [
+        "boxes": tf.cast([
             [
                 [0, 0, 100, 100],
                 [100, 100, 200, 200],
                 [300, 300, 100, 100],
             ]
-        ],
-        "classes": [[1, 1, 1]],
+        ], dtype=tf.float32),
+        "classes": tf.cast([[1, 1, 1]], dtype=tf.float32),
     }
     model = keras_cv.models.RetinaNet(
         num_classes=20,
@@ -397,10 +396,18 @@ class RetinaNet(Task):
         super().compile(loss=losses, **kwargs)
 
     def compute_loss(self, x, y, y_pred, sample_weight, **kwargs):
+        y_for_label_encoder = bounding_box.convert_format(
+            y,
+            source=self.bounding_box_format,
+            target=self.label_encoder.bounding_box_format,
+            images=x,
+        )
+
+        boxes, classes = self.label_encoder(x, y_for_label_encoder)
+
         box_pred = y_pred["box"]
         cls_pred = y_pred["classification"]
-        boxes = y["box"]
-        classes = y["classification"]
+
         if boxes.shape[-1] != 4:
             raise ValueError(
                 "boxes should have shape (None, None, 4). Got "
@@ -454,50 +461,15 @@ class RetinaNet(Task):
 
     def train_step(self, *args):
         data = args[-1]
+        args = args[:-1]
         x, y = unpack_input(data)
-
-        y_for_label_encoder = bounding_box.convert_format(
-            y,
-            source=self.bounding_box_format,
-            target=self.label_encoder.bounding_box_format,
-            images=x,
-        )
-
-        boxes, classes = self.label_encoder(x, y_for_label_encoder)
-        super_args = args[:-1] + (
-            (
-                x,
-                {"box": boxes, "classification": classes, "unencoded": y},
-            ),
-        )
-
-        return super().train_step(*super_args)
+        return super().train_step(*args, (x, y))
 
     def test_step(self, *args):
         data = args[-1]
+        args = args[:-1]
         x, y = unpack_input(data)
-        y_for_label_encoder = bounding_box.convert_format(
-            y,
-            source=self.bounding_box_format,
-            target=self.label_encoder.bounding_box_format,
-            images=x,
-        )
-        boxes, classes = self.label_encoder(x, y_for_label_encoder)
-        boxes = bounding_box.convert_format(
-            boxes,
-            source=self.label_encoder.bounding_box_format,
-            target=self.bounding_box_format,
-            images=x,
-        )
-
-        super_args = args[:-1] + (
-            (
-                x,
-                {"box": boxes, "classification": classes, "unencoded": y},
-            ),
-        )
-
-        return super().test_step(*super_args)
+        return super().test_step(*args, (x, y))
 
     def compute_metrics(self, x, y, y_pred, sample_weight):
         metrics = {}
@@ -505,10 +477,6 @@ class RetinaNet(Task):
 
         if not self._has_user_metrics:
             return metrics
-
-        # For computing non-loss metrics, we don't care about the encoded
-        # boxes and classes, just the raw input boxes.
-        y = y["unencoded"]
 
         y_pred = self.decode_predictions(y_pred, x)
 

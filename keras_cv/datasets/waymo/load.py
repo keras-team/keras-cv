@@ -24,6 +24,8 @@ try:
 except ImportError:
     waymo_open_dataset = None
 
+from keras_cv.api_export import keras_cv_export
+
 
 def _generate_frames(segments, transformer):
     def _generator():
@@ -35,6 +37,7 @@ def _generate_frames(segments, transformer):
     return _generator
 
 
+@keras_cv_export("keras_cv.datasets.waymo.load")
 def load(
     tfrecord_path,
     transformer=transformer.build_tensors_from_wod_frame,
@@ -43,6 +46,11 @@ def load(
     """
     Loads the Waymo Open Dataset and transforms frames into features as
     tensors.
+
+    References:
+        - [Waymo Dataset Research Paper](https://arxiv.org/abs/1912.04838)
+        - [Waymo Dataset Website](https://waymo.com/open/)
+
     Args:
         tfrecord_path: a string pointing to the directory containing the raw
             tfrecords in the Waymo Open Dataset, or a list of strings pointing
@@ -72,7 +80,7 @@ def load(
     ```
     """
     assert_waymo_open_dataset_installed("keras_cv.datasets.waymo.load()")
-    if type(tfrecord_path) == list:
+    if isinstance(tfrecord_path, list):
         filenames = tfrecord_path
     else:
         filenames = tf.data.TFRecordDataset.list_files(

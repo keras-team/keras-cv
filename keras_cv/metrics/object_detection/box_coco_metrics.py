@@ -21,6 +21,7 @@ import tensorflow.keras as keras
 
 import keras_cv
 from keras_cv import bounding_box
+from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import ops
 
 
@@ -80,6 +81,7 @@ METRIC_MAPPING = {
 }
 
 
+@keras_cv_export("keras_cv.metrics.BoxCOCOMetrics")
 class BoxCOCOMetrics(keras.metrics.Metric):
     """BoxCOCOMetrics computes standard object detection metrics.
 

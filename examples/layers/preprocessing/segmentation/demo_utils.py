@@ -28,6 +28,7 @@ std = tf.constant([0.229, 0.224, 0.225])
 def normalize(input_image, input_mask):
     input_image = tf.image.convert_image_dtype(input_image, tf.float32)
     input_image = (input_image - mean) / tf.maximum(std, backend.epsilon())
+    input_image = input_image / 255
     input_mask -= 1
     return input_image, input_mask
 
