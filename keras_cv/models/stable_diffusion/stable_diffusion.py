@@ -52,7 +52,7 @@ class StableDiffusionBase:
         self,
         img_height=512,
         img_width=512,
-        jit_compile=False,
+        jit_compile=True,
     ):
         # UNet requires multiples of 2**7 = 128
         img_height = round(img_height / 128) * 128
@@ -396,7 +396,7 @@ class StableDiffusion(StableDiffusionBase):
         self,
         img_height=512,
         img_width=512,
-        jit_compile=False,
+        jit_compile=True,
     ):
         super().__init__(img_height, img_width, jit_compile)
         print(
@@ -482,7 +482,7 @@ class StableDiffusionV2(StableDiffusionBase):
         self,
         img_height=512,
         img_width=512,
-        jit_compile=False,
+        jit_compile=True,
     ):
         super().__init__(img_height, img_width, jit_compile)
         print(
