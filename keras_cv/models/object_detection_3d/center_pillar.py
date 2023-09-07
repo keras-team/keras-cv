@@ -72,6 +72,16 @@ class MultiHeadCenterPillar(Task):
         voxel_feature = backbone(voxel_feature)
         predictions = multiclass_head(voxel_feature)
 
+        # A slight hack to get the output names in the model outputs for a
+        # functional model.
+        for head_name in multiclass_head._head_names:
+            predictions[f"box_{head_name}"] = keras.layers.Identity(
+                name=f"box_{head_name}"
+            )(predictions[head_name])
+            predictions[f"heatmap_{head_name}"] = keras.layers.Identity(
+                name=f"heatmap_{head_name}"
+            )(predictions[head_name])
+
         super().__init__(inputs=inputs, outputs=predictions, **kwargs)
         self._backbone = backbone
         self._multiclass_head = multiclass_head
@@ -105,7 +115,10 @@ class MultiHeadCenterPillar(Task):
 
         super().compile(loss=losses, **kwargs)
 
-    def compute_loss(self, predictions=None, targets=None):
+    def compute_loss(self, x, y, y_pred, sample_weight=None, **kwargs):
+        predictions = y_pred
+        targets = y
+
         y_pred = {}
         y_true = {}
         sample_weight = {}
@@ -124,10 +137,33 @@ class MultiHeadCenterPillar(Task):
 
             # TODO(ianstenbit): loss heatmap threshold should be configurable.
             box_regression_mask = (
-                ops.take_along_axis(heatmap, index, axis=1) >= 0.95
+                ops.take_along_axis(
+                    ops.reshape(heatmap, (heatmap.shape[0], -1)),
+                    index[..., 0] * heatmap.shape[1] + index[..., 1],
+                    axis=1,
+                )
+                > 0.95
             )
-            box = ops.take_along_axis(box, index, axis=1)
-            box_pred = ops.take_along_axis(box_pred, index, axis=1)
+
+            box = ops.take_along_axis(
+                ops.reshape(box, (ops.shape(box)[0], -1, 7)),
+                ops.expand_dims(
+                    index[..., 0] * ops.shape(box)[1] + index[..., 1], axis=-1
+                ),
+                axis=1,
+            )
+
+            box_pred = ops.take_along_axis(
+                ops.reshape(
+                    box_pred,
+                    (ops.shape(box_pred)[0], -1, ops.shape(box_pred)[-1]),
+                ),
+                ops.expand_dims(
+                    index[..., 0] * ops.shape(box_pred)[1] + index[..., 1],
+                    axis=-1,
+                ),
+                axis=1,
+            )
 
             box_center_mask = heatmap > 0.99
             num_boxes = ops.maximum(
@@ -137,7 +173,8 @@ class MultiHeadCenterPillar(Task):
             sample_weight["box_" + head_name] = ops.cast(
                 box_regression_mask, "float32"
             ) / ops.broadcast_to(
-                ops.expand_dims(num_boxes, axis=-1), box_regression_mask.shape
+                ops.expand_dims(num_boxes, axis=-1),
+                ops.shape(box_regression_mask),
             )
             sample_weight["heatmap_" + head_name] = ops.ones_like(
                 heatmap
@@ -287,8 +324,11 @@ class MultiClassHeatmapDecoder(keras.layers.Layer):
         box_predictions = []
         class_predictions = []
         box_confidence = []
-        for k, v in predictions.items():
-            boxes, classes, confidence = self.decoders[k](v)
+        for class_id in self.class_ids:
+            class_tag = f"class_{class_id}"
+            boxes, classes, confidence = self.decoders[class_tag](
+                predictions[class_tag]
+            )
             box_predictions.append(boxes)
             class_predictions.append(classes)
             box_confidence.append(confidence)
