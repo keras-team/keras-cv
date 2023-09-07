@@ -147,7 +147,9 @@ class MultiHeadCenterPillar(Task):
 
             box = ops.take_along_axis(
                 ops.reshape(box, (ops.shape(box)[0], -1, 7)),
-                index[..., 0] * ops.shape(box)[1] + index[..., 1],
+                ops.expand_dims(
+                    index[..., 0] * ops.shape(box)[1] + index[..., 1], axis=-1
+                ),
                 axis=1,
             )
 
@@ -156,7 +158,10 @@ class MultiHeadCenterPillar(Task):
                     box_pred,
                     (ops.shape(box_pred)[0], -1, ops.shape(box_pred)[-1]),
                 ),
-                index[..., 0] * ops.shape(box_pred)[1] + index[..., 1],
+                ops.expand_dims(
+                    index[..., 0] * ops.shape(box_pred)[1] + index[..., 1],
+                    axis=-1,
+                ),
                 axis=1,
             )
 
