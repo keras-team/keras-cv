@@ -100,6 +100,7 @@ jobs:
     - name: Build wheels
       run: |
         pip install tensorflow==2.13.0
+        python -m pip install --upgrade setuptools wheel twine
         python -m pip install --upgrade -r requirements.txt
         export BUILD_WITH_CUSTOM_OPS=false
         python pip_build.py
