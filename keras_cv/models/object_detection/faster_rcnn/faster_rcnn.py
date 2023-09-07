@@ -318,7 +318,17 @@ class FasterRCNN(Task):
         }
         super().compile(loss=losses, **kwargs)
 
-    def compute_loss(self, images, boxes, classes, training):
+    def compute_loss(self, x, y, y_pred, sample_weight, **kwargs):
+        images = x
+        boxes = y["boxes"]
+        if len(y["classes"].shape) != 2:
+            raise ValueError(
+                "Expected 'classes' to be a tf.Tensor of rank 2. "
+                f"Got y['classes'].shape={y['classes'].shape}."
+            )
+        # TODO(tanzhenyu): remove this hack and perform broadcasting elsewhere
+        classes = ops.expand_dims(y["classes"], axis=-1)
+
         local_batch = images.get_shape().as_list()[0]
         anchors = self.anchor_generator(image_shape=tuple(images[0].shape))
         (
@@ -334,7 +344,7 @@ class FasterRCNN(Task):
         )
         rpn_cls_weights /= self.rpn_labeler.samples_per_image * local_batch
         rois, feature_map, rpn_box_pred, rpn_cls_pred = self._call_rpn(
-            images, anchors, training=training
+            images, anchors, training=kwargs["training"]
         )
         rois = ops.stop_gradient(rois)
         (
@@ -347,7 +357,7 @@ class FasterRCNN(Task):
         box_weights /= self.roi_sampler.num_sampled_rois * local_batch * 0.25
         cls_weights /= self.roi_sampler.num_sampled_rois * local_batch
         box_pred, cls_pred = self._call_rcnn(
-            rois, feature_map, training=training
+            rois, feature_map, training=kwargs["training"]
         )
         y_true = {
             "rpn_box": rpn_box_targets,
