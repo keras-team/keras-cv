@@ -18,8 +18,8 @@ import types
 import tensorflow as tf
 import tensorflow.keras as keras
 
-import keras_cv
 from keras_cv import bounding_box
+from keras_cv.metrics import coco
 
 
 class HidePrints:
@@ -298,6 +298,4 @@ def compute_pycocotools_metric(y_true, y_pred, bounding_box_format):
         tf.math.reduce_sum(tf.cast(y_pred["classes"] != -1, tf.int32), axis=-1)
     ]
 
-    return keras_cv.metrics.coco.compute_pycoco_metrics(
-        ground_truth, predictions
-    )
+    return coco.compute_pycoco_metrics(ground_truth, predictions)

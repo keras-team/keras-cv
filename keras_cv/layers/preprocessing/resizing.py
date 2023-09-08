@@ -15,11 +15,11 @@
 import tensorflow as tf
 from tensorflow import keras
 
-import keras_cv.utils
 from keras_cv import bounding_box
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
+from keras_cv.utils import get_interpolation
 
 H_AXIS = -3
 W_AXIS = -2
@@ -83,9 +83,7 @@ class Resizing(BaseImageAugmentationLayer):
         self.interpolation = interpolation
         self.crop_to_aspect_ratio = crop_to_aspect_ratio
         self.pad_to_aspect_ratio = pad_to_aspect_ratio
-        self._interpolation_method = keras_cv.utils.get_interpolation(
-            interpolation
-        )
+        self._interpolation_method = get_interpolation(interpolation)
         self.bounding_box_format = bounding_box_format
         self.force_output_dense_images = True
 
@@ -171,7 +169,7 @@ class Resizing(BaseImageAugmentationLayer):
             img_width = tf.cast(img_size[W_AXIS], self.compute_dtype)
             if bounding_boxes is not None:
                 bounding_boxes = bounding_box.to_dense(bounding_boxes)
-                bounding_boxes = keras_cv.bounding_box.convert_format(
+                bounding_boxes = bounding_box.convert_format(
                     bounding_boxes,
                     image_shape=img_size,
                     source=self.bounding_box_format,
@@ -192,7 +190,7 @@ class Resizing(BaseImageAugmentationLayer):
                 method=self._interpolation_method,
             )
             if bounding_boxes is not None:
-                bounding_boxes = keras_cv.bounding_box.convert_format(
+                bounding_boxes = bounding_box.convert_format(
                     bounding_boxes,
                     images=image,
                     source="rel_xyxy",
@@ -202,10 +200,10 @@ class Resizing(BaseImageAugmentationLayer):
                 image, 0, 0, self.height, self.width
             )
             if bounding_boxes is not None:
-                bounding_boxes = keras_cv.bounding_box.clip_to_image(
+                bounding_boxes = bounding_box.clip_to_image(
                     bounding_boxes, images=image, bounding_box_format="xyxy"
                 )
-                bounding_boxes = keras_cv.bounding_box.convert_format(
+                bounding_boxes = bounding_box.convert_format(
                     bounding_boxes,
                     images=image,
                     source="xyxy",
@@ -214,7 +212,7 @@ class Resizing(BaseImageAugmentationLayer):
             inputs["images"] = image
 
             if bounding_boxes is not None:
-                inputs["bounding_boxes"] = keras_cv.bounding_box.to_ragged(
+                inputs["bounding_boxes"] = bounding_box.to_ragged(
                     bounding_boxes
                 )
             return inputs
