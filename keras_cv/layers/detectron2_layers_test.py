@@ -15,6 +15,7 @@
 import numpy as np
 
 from keras_cv.backend import ops
+from keras_cv.layers.detectron2_layers import AddPositionalEmbedding
 from keras_cv.layers.detectron2_layers import MultiHeadAttentionWithRelativePE
 from keras_cv.layers.detectron2_layers import ViTDetPatchingAndEmbedding
 from keras_cv.layers.detectron2_layers import WindowedTransformerEncoder
@@ -53,3 +54,11 @@ class TestDetectron2Layers(TestCase):
         x = np.ones((1, 1024, 1024, 3))
         x_out = vit_patching_and_embedding(x)
         self.assertEqual(x_out.shape, (1, 64, 64, 768))
+
+    def test_add_positional_embedding(self):
+        add_positional_embedding = AddPositionalEmbedding(
+            img_size=1024, patch_size=16, embed_dim=256
+        )
+        x = np.ones((1, 64, 64, 256))
+        x_out = add_positional_embedding(x)
+        self.assertEqual(x_out.shape, (1, 64, 64, 256))

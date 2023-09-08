@@ -60,20 +60,22 @@ class MultiHeadAttentionWithDownsampling(keras.layers.Layer):
         # Upsample
         self.out_proj = keras.layers.Dense(self.key_dim * self.num_heads)
 
+    def build(self, input_shape=None):
         self.query_proj.build([None, None, self.num_heads * self.key_dim])
         self.key_proj.build([None, None, self.num_heads * self.key_dim])
         self.value_proj.build([None, None, self.num_heads * self.key_dim])
         self.out_proj.build([None, None, self.internal_dims * self.num_heads])
-
         self.built = True
 
     def __separate_heads(self, x):
-        B, N, C = x.shape
+        shape = ops.shape(x)
+        B, N, C = shape[0], shape[1], shape[2]
         x = ops.reshape(x, (B, N, self.num_heads, C // self.num_heads))
         return ops.transpose(x, axes=(0, 2, 1, 3))
 
     def __recombine_heads(self, x):
-        B, N_H, N_T, C_PH = x.shape
+        shape = ops.shape(x)
+        B, N_H, N_T, C_PH = shape[0], shape[1], shape[2], shape[3]
         x = ops.transpose(x, axes=(0, 2, 1, 3))
         return ops.reshape(x, (B, N_T, N_H * C_PH))
 
@@ -88,7 +90,7 @@ class MultiHeadAttentionWithDownsampling(keras.layers.Layer):
         value = self.__separate_heads(value)
 
         # Attention
-        C_PH = query.shape[-1]
+        C_PH = ops.shape(query)[-1]
         out = query @ ops.transpose(key, (0, 1, 3, 2))
         out = out / ops.sqrt(ops.cast(C_PH, dtype=self.dtype))
         out = ops.softmax(out, axis=-1)
@@ -175,12 +177,15 @@ class TwoWayMultiHeadAttention(keras.layers.Layer):
         )
         self.layer_norm4 = keras.layers.LayerNormalization(epsilon=1e-5)
 
+    def build(self, input_shape=None):
+        self.self_attention.build()
         self.layer_norm1.build([None, None, self.num_heads * self.key_dim])
+        self.cross_attention_token_to_image.build()
         self.layer_norm2.build([None, None, self.num_heads * self.key_dim])
         self.mlp_block.build([None, None, self.num_heads * self.key_dim])
         self.layer_norm3.build([None, None, self.num_heads * self.key_dim])
+        self.cross_attention_image_to_token.build()
         self.layer_norm4.build([None, None, self.num_heads * self.key_dim])
-
         self.built = True
 
     def call(self, queries, keys, query_pe, key_pe):
@@ -260,25 +265,28 @@ class RandomFrequencyPositionalEmbeddings(keras.layers.Layer):
             initializer=init_func,
         )
 
+    def build(self, input_shape=None):
         self.built = True
 
     def __positional_encodings(self, coords):
-        coords = 2 * coords - 1
+        coords = coords * 2 - 1
         coords = coords @ self.positional_encoding_gaussian_matrix
-        coords = 2 * math.pi * coords
+        coords = coords * (2 * math.pi)
         return ops.concatenate([ops.sin(coords), ops.cos(coords)], axis=-1)
 
     def call(self, size):
+        return self.encode_image(size)
+
+    def encode_image(self, size):
         """Generate a positional encoding for an image of any given size.
 
         Args:
-            size (int): The size of the image.
+            size (tuple[int, int]): The size of the image.
 
         Returns:
             tensor: Positional encoding of the image.
         """
         H, W = size
-        H, W = ops.cast(H, "int64"), ops.cast(W, "int64")
         grid = ops.ones(shape=(H, W), dtype=self.dtype)
         y_embed = ops.cumsum(grid, axis=0) - 0.5
         x_embed = ops.cumsum(grid, axis=1) - 0.5

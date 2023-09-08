@@ -201,6 +201,7 @@ from keras_cv.models.object_detection.yolo_v8.yolo_v8_detector import (
 from keras_cv.models.segmentation import DeepLabV3Plus
 from keras_cv.models.segmentation import SAMMaskDecoder
 from keras_cv.models.segmentation import SAMPromptEncoder
+from keras_cv.models.segmentation import SegmentAnythingModel
 from keras_cv.models.segmentation import TwoWayTransformer
 from keras_cv.models.segmentation.segformer.segformer_aliases import SegFormer
 from keras_cv.models.segmentation.segformer.segformer_aliases import SegFormerB0

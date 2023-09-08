@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from keras_cv.models.segmentation.segment_anything.sam import (
+    SegmentAnythingModel,
+)
 from keras_cv.models.segmentation.segment_anything.sam_mask_decoder import (
     SAMMaskDecoder,
 )

@@ -38,9 +38,11 @@ backbone_presets = {
             "num_heads": 12,
             "out_chans": 256,
             "use_bias": True,
+            "use_abs_pos": True,
             "use_rel_pos": True,
             "window_size": 14,
             "global_attention_indices": [2, 5, 8, 11],
+            "layer_norm_epsilon": 1e-6,
         },
         # "weights_url": "https://storage.googleapis.com/keras-cv/models/segment_anything/vitdet_b.weights.h5",  # noqa: E501
         # "weights_hash": None
@@ -69,9 +71,11 @@ backbone_presets = {
             "num_heads": 16,
             "out_chans": 256,
             "use_bias": True,
+            "use_abs_pos": True,
             "use_rel_pos": True,
             "window_size": 14,
             "global_attention_indices": [5, 11, 17, 23],
+            "layer_norm_epsilon": 1e-6,
         },
         # "weights_url": "https://storage.googleapis.com/keras-cv/models/segment_anything/vitdet_l.weights.h5",  # noqa: E501
         # "weights_hash": None
@@ -100,9 +104,11 @@ backbone_presets = {
             "num_heads": 16,
             "out_chans": 256,
             "use_bias": True,
+            "use_abs_pos": True,
             "use_rel_pos": True,
             "window_size": 14,
             "global_attention_indices": [7, 15, 23, 31],
+            "layer_norm_epsilon": 1e-6,
         },
         # "weights_url": "https://storage.googleapis.com/keras-cv/models/segment_anything/vitdet_h.weights.h5",  # noqa: E501
         # "weights_hash": None

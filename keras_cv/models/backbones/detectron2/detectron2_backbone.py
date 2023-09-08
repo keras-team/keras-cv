@@ -33,23 +33,27 @@ class ViTDetBackbone(Backbone):
     relative positional encodings.
 
     Args:
-        img_size (int, optional): The size of the input image. Defaults to
-            `1024`.
+        input_shape (tuple[int], optional): The size of the input image in
+            `(H, W, C)` format. Defaults to `(1024, 1024, 3)`.
+        input_tensor (KerasTensor, optional): Output of
+            `keras.layers.Input()`) to use as image input for the model.
+            Defaults to `None`.
+        include_rescaling (bool, optional): Whether to rescale the inputs. If
+            set to `True`, inputs will be passed through a
+            `Rescaling(1/255.0)` layer. Defaults to `False`.
         patch_size (int, optional): the patch size to be supplied to the
             Patching layer to turn input images into a flattened sequence of
             patches. Defaults to `16`.
-        in_chans (int, optional): The number of channels in the input image.
-            Defaults to `3`.
         embed_dim (int, optional): The latent dimensionality to be projected
             into in the output of each stacked windowed transformer encoder.
-            Defaults to `1280`.
+            Defaults to `768`.
         depth (int, optional): The number of transformer encoder layers to
-            stack in the Vision Transformer. Defaults to `32`.
-        mlp_dim (_type_, optional): The dimensionality of the hidden Dense
-            layer in the transformer MLP head. Defaults to `1280*4`.
+            stack in the Vision Transformer. Defaults to `12`.
+        mlp_dim (int, optional): The dimensionality of the hidden Dense
+            layer in the transformer MLP head. Defaults to `768*4`.
         num_heads (int, optional): the number of heads to use in the
             `MultiHeadAttentionWithRelativePE` layer of each transformer
-            encoder. Defaults to `16`.
+            encoder. Defaults to `12`.
         out_chans (int, optional): The number of channels (features) in the
             output (image encodings). Defaults to `256`.
         use_bias (bool, optional): Whether to use bias to project the keys,
@@ -57,35 +61,38 @@ class ViTDetBackbone(Backbone):
         use_abs_pos (bool, optional): Whether to add absolute positional
             embeddings to the output patches. Defaults to `True`.
         use_rel_pos (bool, optional): Whether to use relative positional
-            emcodings in the attention layer. Defaults to `False`.
+            emcodings in the attention layer. Defaults to `True`.
         window_size (int, optional): The size of the window for windowed
-            attention in the transformer encoder blocks. Defaults to `0`.
+            attention in the transformer encoder blocks. Defaults to `14`.
         global_attention_indices (list, optional): Indexes for blocks using
-            global attention. Defaults to `[7, 15, 23, 31]`.
+            global attention. Defaults to `[2, 5, 8, 11]`.
         layer_norm_epsilon (int, optional): The epsilon to use in the layer
             normalization blocks in transformer encoder. Defaults to `1e-6`.
     """
 
     def __init__(
         self,
+        *,
         input_shape=(1024, 1024, 3),
         input_tensor=None,
         include_rescaling=False,
         patch_size=16,
-        embed_dim=1280,
-        depth=32,
-        mlp_dim=1280 * 4,
-        num_heads=16,
+        embed_dim=768,
+        depth=12,
+        mlp_dim=768 * 4,
+        num_heads=12,
         out_chans=256,
         use_bias=True,
         use_abs_pos=True,
-        use_rel_pos=False,
-        window_size=0,
-        global_attention_indices=[7, 15, 23, 31],
+        use_rel_pos=True,
+        window_size=14,
+        global_attention_indices=[2, 5, 8, 11],
         layer_norm_epsilon=1e-6,
         **kwargs
     ):
-        img_input = utils.parse_model_inputs(input_shape, input_tensor)
+        img_input = utils.parse_model_inputs(
+            input_shape, input_tensor, name="images"
+        )
 
         # Check that the input image is well specified.
         if img_input.shape[-3] is None or img_input.shape[-2] is None:
@@ -172,7 +179,7 @@ class ViTDetBackbone(Backbone):
         config = super().get_config()
         config.update(
             {
-                "input_shape": self.input_shape,
+                "input_shape": self.input_shape[1:],
                 "input_tensor": self.input_tensor,
                 "include_rescaling": self.include_rescaling,
                 "patch_size": self.patch_size,

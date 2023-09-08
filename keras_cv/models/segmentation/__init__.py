@@ -16,4 +16,5 @@ from keras_cv.models.segmentation.deeplab_v3_plus import DeepLabV3Plus
 from keras_cv.models.segmentation.segformer import SegFormer
 from keras_cv.models.segmentation.segment_anything import SAMMaskDecoder
 from keras_cv.models.segmentation.segment_anything import SAMPromptEncoder
+from keras_cv.models.segmentation.segment_anything import SegmentAnythingModel
 from keras_cv.models.segmentation.segment_anything import TwoWayTransformer

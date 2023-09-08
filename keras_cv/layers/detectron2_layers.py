@@ -12,13 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numpy as np
+
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 from keras_cv.layers.serializable_sequential import SerializableSequential
 
 
-@keras_cv_export("keras_cv.layers.MLP")
 class MLP(keras.layers.Layer):
     """A MLP block with architecture
     `input_dim -> [hidden_dim] * (num_layers - 1) -> output_dim`.
@@ -101,34 +102,31 @@ class AddRelativePositionalEmbedding(keras.layers.Layer):
             tensor: Extracted positional embeddings according to relative
                 positions.
         """
-        max_rel_dist = 2 * ops.maximum(query_size, key_size) - 1
+        max_rel_dist = 2 * max(query_size, key_size) - 1
 
-        def _interpolate():
+        if ops.shape(rel_pos)[0] != max_rel_dist:
             rel_pos_resized = ops.image.resize(
                 image=ops.reshape(
-                    rel_pos, (1, rel_pos.shape[0], rel_pos.shape[1], 1)
+                    rel_pos,
+                    (1, ops.shape(rel_pos)[0], ops.shape(rel_pos)[1], 1),
                 ),
-                size=(max_rel_dist, rel_pos.shape[1]),
+                size=(max_rel_dist, ops.shape(rel_pos)[1]),
                 interpolation="bilinear",
             )
             rel_pos_resized = ops.squeeze(rel_pos_resized, axis=(0, -1))
             return rel_pos_resized
-
-        rel_pos_resized = ops.cond(
-            rel_pos.shape[0] != max_rel_dist,
-            _interpolate,
-            lambda *a, **kw: rel_pos,
+        else:
+            rel_pos_resized = rel_pos
+        query_coordinates = np.arange(query_size, dtype="float32")[:, None] * (
+            max(key_size / query_size, 1.0)
         )
-        query_coordinates = ops.arange(query_size, dtype="float32")[:, None] * (
-            ops.cast(ops.maximum(key_size // query_size, 1), dtype="float32")
+        key_coordinates = np.arange(key_size, dtype="float32")[None, :] * (
+            max(query_size / key_size, 1.0)
         )
-        key_coordinates = ops.arange(key_size, dtype="float32")[None, :] * (
-            ops.cast(ops.maximum(query_size // key_size, 1), dtype="float32")
-        )
-        relative_coordinates = (query_coordinates - key_coordinates) + ops.cast(
-            key_size - 1, dtype="float32"
-        ) * ops.cast(ops.maximum(query_size // key_size, 1), dtype="float32")
-        relative_coordinates = ops.cast(relative_coordinates, dtype="int32")
+        relative_coordinates = (query_coordinates - key_coordinates) + (
+            key_size - 1
+        ) * max(query_size / key_size, 1.0)
+        relative_coordinates = relative_coordinates.astype("int32")
         return ops.take(rel_pos_resized, relative_coordinates, 0)
 
     def call(self, attention_map, queries, query_size, key_size):
@@ -150,8 +148,6 @@ class AddRelativePositionalEmbedding(keras.layers.Layer):
         References:
             - https://github.com/facebookresearch/mvit/blob/19786631e330df9f3622e5402b4a419a263a2c80/mvit/models/attention.py  # noqa: E501
         """
-        query_size = ops.cast(query_size, "int32")
-        key_size = ops.cast(key_size, "int32")
         query_height, query_width = query_size[0], query_size[1]
         key_height, key_width = key_size[0], key_size[1]
         rel_heights = self._get_rel_pos(
@@ -345,11 +341,6 @@ class WindowPartitioning(keras.layers.Layer):
         )
         return x[:, :H, :W, :]
 
-    def call(self, x, HW_padded=None, HW=None, mode="partition"):
-        if mode == "partition":
-            return self.partition(x)
-        return self.unpartition(x, HW_padded, HW)
-
     def get_config(self):
         config = super().get_config()
         config.update({"window_size": self.window_size})
@@ -445,15 +436,14 @@ class WindowedTransformerEncoder(keras.layers.Layer):
         x = self.layer_norm1(x)
         # Window Partition
         if self.window_size > 0:
-            H, W = x.shape[1], x.shape[2]
-
-            x, HW_padded = self.window_partitioning(x, mode="partition")
+            H, W = ops.shape(x)[1], ops.shape(x)[2]
+            x, HW_padded = self.window_partitioning.partition(x)
 
         x = self.attention(x)
         # Reverse Window Partition
         if self.window_size > 0:
-            x = self.window_partitioning(
-                x, HW_padded=HW_padded, HW=(H, W), mode="unpartition"
+            x = self.window_partitioning.unpartition(
+                x, HW_padded=HW_padded, HW=(H, W)
             )
 
         x = shortcut + x

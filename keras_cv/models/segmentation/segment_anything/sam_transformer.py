@@ -47,17 +47,18 @@ class TwoWayTransformer(keras.layers.Layer):
     location and type.
 
     Args:
-        depth (int): The depth of the attention blocks (the number
-            of attention blocks to use).
-        embedding_dim (int): The number of features of the input image and
-            point embeddings.
-        num_heads (int): Number of heads to use in the attention layers.
-        mlp_dim (int): The number of units in the hidden layer of the MLP
-            block used in the attention layers.
+        depth (int, optional): The depth of the attention blocks (the number
+            of attention blocks to use). Defaults to `2`.
+        embed_dim (int, optional): The number of features of the input image
+            and point embeddings. Defaults to `256`.
+        num_heads (int, optional): Number of heads to use in the attention
+            layers. Defaults to `8`.
+        mlp_dim (int, optional): The number of units in the hidden layer of
+            the MLP block used in the attention layers. Defaults to `2048`.
         activation (str, optional): The activation of the MLP block's output
-            layer used in the attention layers. Defaults to "relu".
+            layer used in the attention layers. Defaults to `"relu"`.
         attention_downsample_rate (int, optional): The downsample rate of the
-            attention layers. Defaults to 2.
+            attention layers. Defaults to `2`.
 
     References:
         - [Segment Anything](https://arxiv.org/abs/2304.02643)
@@ -65,17 +66,18 @@ class TwoWayTransformer(keras.layers.Layer):
 
     def __init__(
         self,
-        depth,
-        embedding_dim,
-        num_heads,
-        mlp_dim,
+        *,
+        depth=2,
+        embed_dim=256,
+        num_heads=8,
+        mlp_dim=2048,
         activation="relu",
         attention_downsample_rate=2,
         **kwargs,
     ):
         super().__init__(**kwargs)
         self.depth = depth
-        self.embedding_dim = embedding_dim
+        self.embed_dim = embed_dim
         self.num_heads = num_heads
         self.mlp_dim = mlp_dim
         self.activation = activation
@@ -85,7 +87,7 @@ class TwoWayTransformer(keras.layers.Layer):
             self.layers.append(
                 TwoWayMultiHeadAttention(
                     num_heads=num_heads,
-                    key_dim=embedding_dim // num_heads,
+                    key_dim=embed_dim // num_heads,
                     mlp_dim=mlp_dim,
                     skip_first_layer_pe=(i == 0),
                     attention_downsample_rate=attention_downsample_rate,
@@ -95,20 +97,26 @@ class TwoWayTransformer(keras.layers.Layer):
         self.final_attention_token_to_image = (
             MultiHeadAttentionWithDownsampling(
                 num_heads=num_heads,
-                key_dim=embedding_dim // num_heads,
+                key_dim=embed_dim // num_heads,
                 downsample_rate=attention_downsample_rate,
             )
         )
         self.final_layer_norm = keras.layers.LayerNormalization(epsilon=1e-5)
 
-        self.final_layer_norm.build([None, None, self.embedding_dim])
-
+    def build(self, input_shape=None):
+        for layer in self.layers:
+            layer.build()
+        self.final_attention_token_to_image.build()
+        self.final_layer_norm.build([None, None, self.embed_dim])
         self.built = True
 
     def call(self, image_embedding, image_pe, point_embedding):
-        B, H, W, C = image_embedding.shape
+        shape = ops.shape(image_embedding)
+        B, H, W, C = shape[0], shape[1], shape[2], shape[3]
         image_embedding = ops.reshape(image_embedding, (B, H * W, C))
-        B, H, W, C = image_pe.shape
+
+        shape = ops.shape(image_pe)
+        B, H, W, C = shape[0], shape[1], shape[2], shape[3]
         image_pe = ops.reshape(image_pe, (B, H * W, C))
         queries = point_embedding
         keys = image_embedding
@@ -136,7 +144,7 @@ class TwoWayTransformer(keras.layers.Layer):
         config.update(
             {
                 "depth": self.depth,
-                "embedding_dim": self.embedding_dim,
+                "embed_dim": self.embed_dim,
                 "num_heads": self.num_heads,
                 "mlp_dim": self.mlp_dim,
                 "activation": self.activation,
