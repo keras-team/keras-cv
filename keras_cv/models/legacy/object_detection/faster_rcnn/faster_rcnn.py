@@ -16,9 +16,9 @@ import tensorflow as tf
 from absl import logging
 from tensorflow import keras
 
-import keras_cv
 from keras_cv import bounding_box
 from keras_cv import layers as cv_layers
+from keras_cv import models
 from keras_cv.bounding_box.converters import _decode_deltas_to_boxes
 from keras_cv.bounding_box.utils import _clip_boxes
 from keras_cv.layers.object_detection.anchor_generator import AnchorGenerator
@@ -321,7 +321,7 @@ class FasterRCNN(keras.Model):
         )
         self.roi_pooler = _ROIAligner(bounding_box_format="yxyx")
         self.rcnn_head = rcnn_head or RCNNHead(num_classes)
-        self.backbone = backbone or keras_cv.models.ResNet50Backbone()
+        self.backbone = backbone or models.ResNet50Backbone()
         extractor_levels = ["P2", "P3", "P4", "P5"]
         extractor_layer_names = [
             self.backbone.pyramid_level_inputs[i] for i in extractor_levels

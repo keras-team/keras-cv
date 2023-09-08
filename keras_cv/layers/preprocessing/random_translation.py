@@ -14,7 +14,7 @@
 
 import tensorflow as tf
 
-import keras_cv
+from keras_cv import bounding_box
 from keras_cv.api_export import keras_cv_export
 from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     VectorizedBaseImageAugmentationLayer,
@@ -239,7 +239,7 @@ class RandomTranslation(VectorizedBaseImageAugmentationLayer):
                 "Please specify a bounding box format in the constructor. i.e."
                 "`RandomTranslation(bounding_box_format='xyxy')`"
             )
-        bounding_boxes = keras_cv.bounding_box.convert_format(
+        bounding_boxes = bounding_box.convert_format(
             bounding_boxes,
             source=self.bounding_box_format,
             target="rel_xyxy",
@@ -255,16 +255,16 @@ class RandomTranslation(VectorizedBaseImageAugmentationLayer):
         y2 += tf.expand_dims(transformations["height_translations"], axis=1)
 
         bounding_boxes["boxes"] = tf.concat([x1, y1, x2, y2], axis=-1)
-        bounding_boxes = keras_cv.bounding_box.to_dense(bounding_boxes)
+        bounding_boxes = bounding_box.to_dense(bounding_boxes)
 
-        bounding_boxes = keras_cv.bounding_box.clip_to_image(
+        bounding_boxes = bounding_box.clip_to_image(
             bounding_boxes,
             bounding_box_format="rel_xyxy",
             images=images,
         )
-        bounding_boxes = keras_cv.bounding_box.to_ragged(bounding_boxes)
+        bounding_boxes = bounding_box.to_ragged(bounding_boxes)
 
-        bounding_boxes = keras_cv.bounding_box.convert_format(
+        bounding_boxes = bounding_box.convert_format(
             bounding_boxes,
             source="rel_xyxy",
             target=self.bounding_box_format,

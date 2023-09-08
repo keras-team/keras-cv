@@ -16,7 +16,6 @@ import warnings
 
 import tensorflow as tf
 
-import keras_cv
 from keras_cv import bounding_box
 from keras_cv.api_export import keras_cv_export
 from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
@@ -280,7 +279,7 @@ class RandomShear(VectorizedBaseImageAugmentationLayer):
                 bounding_boxes, default_value=0
             )
 
-        bounding_boxes = keras_cv.bounding_box.convert_format(
+        bounding_boxes = bounding_box.convert_format(
             bounding_boxes,
             source=self.bounding_box_format,
             target="rel_xyxy",
@@ -337,7 +336,7 @@ class RandomShear(VectorizedBaseImageAugmentationLayer):
         bounding_boxes = bounding_box.clip_to_image(
             bounding_boxes, images=images, bounding_box_format="rel_xyxy"
         )
-        bounding_boxes = keras_cv.bounding_box.convert_format(
+        bounding_boxes = bounding_box.convert_format(
             bounding_boxes,
             source="rel_xyxy",
             target=self.bounding_box_format,

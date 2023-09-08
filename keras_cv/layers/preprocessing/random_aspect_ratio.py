@@ -14,12 +14,13 @@
 
 import tensorflow as tf
 
-import keras_cv
 from keras_cv import bounding_box
 from keras_cv.api_export import keras_cv_export
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
+from keras_cv.utils import get_interpolation
+from keras_cv.utils import parse_factor
 
 
 @keras_cv_export("keras_cv.layers.RandomAspectRatio")
@@ -47,8 +48,8 @@ class RandomAspectRatio(BaseImageAugmentationLayer):
         **kwargs
     ):
         super().__init__(**kwargs)
-        self.interpolation = keras_cv.utils.get_interpolation(interpolation)
-        self.factor = keras_cv.utils.parse_factor(
+        self.interpolation = get_interpolation(interpolation)
+        self.factor = parse_factor(
             factor,
             min_value=0.0,
             max_value=None,
