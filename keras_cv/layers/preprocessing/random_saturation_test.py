@@ -12,14 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numpy as np
 import tensorflow as tf
-from tensorflow import keras
 
 from keras_cv import core
+from keras_cv.backend import keras
 from keras_cv.layers import preprocessing
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
+from keras_cv.tests.test_case import TestCase
 from keras_cv.utils import preprocessing as preprocessing_utils
 
 
@@ -106,7 +108,7 @@ class OldRandomSaturation(BaseImageAugmentationLayer):
         return cls(**config)
 
 
-class RandomSaturationTest(tf.test.TestCase):
+class RandomSaturationTest(TestCase):
     def test_preserves_output_shape(self):
         image_shape = (4, 8, 8, 3)
         image = tf.random.uniform(shape=image_shape) * 255.0
@@ -151,7 +153,7 @@ class RandomSaturationTest(tf.test.TestCase):
 
         channel_mean = tf.math.reduce_min(output, axis=-1)
         # Make sure at least one of the channel is 0.0 (fully saturated image)
-        self.assertAllClose(channel_mean, tf.zeros((4, 8, 8)))
+        self.assertAllClose(channel_mean, np.zeros((4, 8, 8)))
 
     def test_adjustment_for_non_rgb_value_range(self):
         image_shape = (4, 8, 8, 3)

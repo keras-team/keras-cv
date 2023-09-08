@@ -13,15 +13,16 @@
 # limitations under the License.
 
 import tensorflow as tf
-from tensorflow import keras
 
+from keras_cv.api_export import keras_cv_export
+from keras_cv.backend import keras
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
 from keras_cv.utils import preprocessing
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+@keras_cv_export("keras_cv.layers.RandomGaussianBlur")
 class RandomGaussianBlur(BaseImageAugmentationLayer):
     """Applies a Gaussian Blur with random strength to an image.
 
@@ -61,7 +62,9 @@ class RandomGaussianBlur(BaseImageAugmentationLayer):
                 )
 
     def get_random_transformation(self, **kwargs):
-        factor = self.factor()
+        # `factor` must not become too small otherwise numerical issues occur.
+        # keras.backend.epsilon() behaves like 0 without causing `nan`s
+        factor = tf.math.maximum(self.factor(), keras.backend.epsilon())
         blur_v = RandomGaussianBlur.get_kernel(factor, self.y)
         blur_h = RandomGaussianBlur.get_kernel(factor, self.x)
         blur_v = tf.reshape(blur_v, [self.y, 1, 1, 1])

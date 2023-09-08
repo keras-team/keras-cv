@@ -14,9 +14,8 @@
 import copy
 import math
 
-from tensorflow import keras
-from tensorflow.keras import layers
-
+from keras_cv.api_export import keras_cv_export
+from keras_cv.backend import keras
 from keras_cv.layers import FusedMBConvBlock
 from keras_cv.layers import MBConvBlock
 from keras_cv.models import utils
@@ -30,7 +29,7 @@ from keras_cv.models.backbones.efficientnet_v2.efficientnet_v2_backbone_presets 
 from keras_cv.utils.python_utils import classproperty
 
 
-@keras.utils.register_keras_serializable(package="keras_cv.models")
+@keras_cv_export("keras_cv.models.EfficientNetV2Backbone")
 class EfficientNetV2Backbone(Backbone):
     """Instantiates the EfficientNetV2 architecture.
 
@@ -67,7 +66,7 @@ class EfficientNetV2Backbone(Backbone):
         min_depth: integer, minimum number of filters.
         activation: activation function to use between each convolutional layer.
         input_shape: optional shape tuple, defaults to (None, None, 3).
-        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
+        input_tensor: optional Keras tensor (i.e. output of `keras.layers.Input()`)
             to use as image input for the model.
 
     Usage:
@@ -133,7 +132,7 @@ class EfficientNetV2Backbone(Backbone):
         x = img_input
 
         if include_rescaling:
-            x = layers.Rescaling(scale=1 / 255.0)(x)
+            x = keras.layers.Rescaling(scale=1 / 255.0)(x)
 
         # Build stem
         stem_filters = round_filters(
@@ -142,7 +141,7 @@ class EfficientNetV2Backbone(Backbone):
             min_depth=min_depth,
             depth_divisor=depth_divisor,
         )
-        x = layers.Conv2D(
+        x = keras.layers.Conv2D(
             filters=stem_filters,
             kernel_size=3,
             strides=2,
@@ -151,11 +150,11 @@ class EfficientNetV2Backbone(Backbone):
             use_bias=False,
             name="stem_conv",
         )(x)
-        x = layers.BatchNormalization(
+        x = keras.layers.BatchNormalization(
             momentum=0.9,
             name="stem_bn",
         )(x)
-        x = layers.Activation(activation, name="stem_activation")(x)
+        x = keras.layers.Activation(activation, name="stem_activation")(x)
 
         # Build blocks
         block_id = 0
@@ -198,7 +197,7 @@ class EfficientNetV2Backbone(Backbone):
                     input_filters = output_filters
 
                 if strides != 1:
-                    pyramid_level_inputs.append(x.node.layer.name)
+                    pyramid_level_inputs.append(utils.get_tensor_input_name(x))
 
                 # 97 is the start of the lowercase alphabet.
                 letter_identifier = chr(j + 97)
@@ -227,7 +226,7 @@ class EfficientNetV2Backbone(Backbone):
             depth_divisor=depth_divisor,
         )
 
-        x = layers.Conv2D(
+        x = keras.layers.Conv2D(
             filters=top_filters,
             kernel_size=1,
             strides=1,
@@ -237,13 +236,15 @@ class EfficientNetV2Backbone(Backbone):
             use_bias=False,
             name="top_conv",
         )(x)
-        x = layers.BatchNormalization(
+        x = keras.layers.BatchNormalization(
             momentum=0.9,
             name="top_bn",
         )(x)
-        x = layers.Activation(activation=activation, name="top_activation")(x)
+        x = keras.layers.Activation(
+            activation=activation, name="top_activation"
+        )(x)
 
-        pyramid_level_inputs.append(x.node.layer.name)
+        pyramid_level_inputs.append(utils.get_tensor_input_name(x))
 
         # Create model.
         super().__init__(inputs=img_input, outputs=x, **kwargs)
@@ -257,7 +258,7 @@ class EfficientNetV2Backbone(Backbone):
         self.activation = activation
         self.input_tensor = input_tensor
         self.pyramid_level_inputs = {
-            i + 1: name for i, name in enumerate(pyramid_level_inputs)
+            f"P{i + 1}": name for i, name in enumerate(pyramid_level_inputs)
         }
         self.stackwise_kernel_sizes = stackwise_kernel_sizes
         self.stackwise_num_repeats = stackwise_num_repeats

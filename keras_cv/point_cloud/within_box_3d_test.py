@@ -20,6 +20,7 @@ import pytest
 import tensorflow as tf
 
 import keras_cv
+from keras_cv.tests.test_case import TestCase
 
 num_points = 200000
 num_boxes = 1000
@@ -30,7 +31,7 @@ def get_points_boxes():
     points = tf.random.uniform(
         shape=[num_points, 2], minval=0, maxval=box_dimension, dtype=tf.float32
     )
-    points_z = 5.0 * tf.ones(shape=[num_points, 1], dtype=tf.float32)
+    points_z = 5.0 * np.ones(shape=[num_points, 1], dtype="float32")
     points = tf.concat([points, points_z], axis=-1)
     boxes_x = tf.random.uniform(
         shape=[num_boxes, 1],
@@ -52,9 +53,9 @@ def get_points_boxes():
         shape=[num_boxes, 1], minval=0, maxval=5.0, dtype=tf.float32
     )
     boxes_dy = tf.math.minimum(box_dimension - boxes_y, boxes_dy)
-    boxes_z = 5.0 * tf.ones([num_boxes, 1], dtype=tf.float32)
-    boxes_dz = 3.0 * tf.ones([num_boxes, 1], dtype=tf.float32)
-    boxes_angle = tf.zeros([num_boxes, 1], dtype=tf.float32)
+    boxes_z = 5.0 * np.ones([num_boxes, 1], dtype="float32")
+    boxes_dz = 3.0 * np.ones([num_boxes, 1], dtype="float32")
+    boxes_angle = np.zeros([num_boxes, 1], dtype="float32")
     boxes = tf.concat(
         [boxes_x, boxes_y, boxes_z, boxes_dx, boxes_dy, boxes_dz, boxes_angle],
         axis=-1,
@@ -62,7 +63,7 @@ def get_points_boxes():
     return points, boxes
 
 
-class WithinBox3DTest(tf.test.TestCase):
+class WithinBox3DTest(TestCase):
     @pytest.mark.skipif(
         "TEST_CUSTOM_OPS" not in os.environ
         or os.environ["TEST_CUSTOM_OPS"] != "true",

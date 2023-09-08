@@ -20,6 +20,7 @@ from tensorflow.keras import optimizers
 
 from keras_cv.losses import SimCLRLoss
 from keras_cv.models import ResNet50V2Backbone
+from keras_cv.tests.test_case import TestCase
 from keras_cv.training import SimCLRAugmenter
 from keras_cv.training import SimCLRTrainer
 
@@ -27,7 +28,7 @@ from keras_cv.training import SimCLRTrainer
 # TODO(jbischof): revisit "extra_large" tag once development resumes.
 # These tests are currently some of the slowest in our repo.
 @pytest.mark.extra_large
-class SimCLRTrainerTest(tf.test.TestCase):
+class SimCLRTrainerTest(TestCase):
     def test_train_without_probing(self):
         simclr_without_probing = SimCLRTrainer(
             self.build_encoder(),

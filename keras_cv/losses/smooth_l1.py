@@ -12,11 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import tensorflow as tf
-from tensorflow import keras
+from keras_cv.api_export import keras_cv_export
+from keras_cv.backend import keras
+from keras_cv.backend import ops
 
 
-# --- Implementing Smooth L1 loss and Focal Loss as keras custom losses ---
+@keras_cv_export("keras_cv.losses.SmoothL1Loss")
 class SmoothL1Loss(keras.losses.Loss):
     """Implements Smooth L1 loss.
 
@@ -36,14 +37,14 @@ class SmoothL1Loss(keras.losses.Loss):
 
     def call(self, y_true, y_pred):
         difference = y_true - y_pred
-        absolute_difference = tf.abs(difference)
+        absolute_difference = ops.abs(difference)
         squared_difference = difference**2
-        loss = tf.where(
+        loss = ops.where(
             absolute_difference < self.l1_cutoff,
             0.5 * squared_difference,
             absolute_difference - 0.5,
         )
-        return keras.backend.mean(loss, axis=-1)
+        return ops.mean(loss, axis=-1)
 
     def get_config(self):
         config = {

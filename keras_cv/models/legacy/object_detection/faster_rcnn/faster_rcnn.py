@@ -16,9 +16,9 @@ import tensorflow as tf
 from absl import logging
 from tensorflow import keras
 
-import keras_cv
 from keras_cv import bounding_box
 from keras_cv import layers as cv_layers
+from keras_cv import models
 from keras_cv.bounding_box.converters import _decode_deltas_to_boxes
 from keras_cv.bounding_box.utils import _clip_boxes
 from keras_cv.layers.object_detection.anchor_generator import AnchorGenerator
@@ -53,10 +53,10 @@ class FeaturePyramid(keras.layers.Layer):
         self.upsample_2x = keras.layers.UpSampling2D(2)
 
     def call(self, inputs, training=None):
-        c2_output = inputs[2]
-        c3_output = inputs[3]
-        c4_output = inputs[4]
-        c5_output = inputs[5]
+        c2_output = inputs["P2"]
+        c3_output = inputs["P3"]
+        c4_output = inputs["P4"]
+        c5_output = inputs["P5"]
 
         c6_output = self.conv_c6_pool(c5_output)
         p6_output = c6_output
@@ -76,11 +76,11 @@ class FeaturePyramid(keras.layers.Layer):
         p2_output = self.conv_c2_3x3(p2_output)
 
         return {
-            2: p2_output,
-            3: p3_output,
-            4: p4_output,
-            5: p5_output,
-            6: p6_output,
+            "P2": p2_output,
+            "P3": p3_output,
+            "P4": p4_output,
+            "P5": p5_output,
+            "P6": p6_output,
         }
 
     def get_config(self):
@@ -248,8 +248,8 @@ class FasterRCNN(keras.Model):
             [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
             for more details on supported bounding box formats.
         backbone: Optional `keras.Model`. Must implement the
-            `pyramid_level_inputs` property with keys 2, 3, 4, and 5 and layer
-            names as values. If `None`, defaults to
+            `pyramid_level_inputs` property with keys "P2", "P3", "P4", and "P5"
+            and layer names as values. If `None`, defaults to
             `keras_cv.models.ResNet50Backbone()`.
         anchor_generator: (Optional) a `keras_cv.layers.AnchorGenerator`. It is
             used in the model to match ground truth boxes and labels with
@@ -290,10 +290,16 @@ class FasterRCNN(keras.Model):
         aspect_ratios = [0.5, 1.0, 2.0]
         self.anchor_generator = anchor_generator or AnchorGenerator(
             bounding_box_format="yxyx",
-            sizes={2: 32.0, 3: 64.0, 4: 128.0, 5: 256.0, 6: 512.0},
+            sizes={
+                "P2": 32.0,
+                "P3": 64.0,
+                "P4": 128.0,
+                "P5": 256.0,
+                "P6": 512.0,
+            },
             scales=scales,
             aspect_ratios=aspect_ratios,
-            strides={i: 2**i for i in range(2, 7)},
+            strides={f"P{i}": 2**i for i in range(2, 7)},
             clip_boxes=True,
         )
         self.rpn_head = RPNHead(
@@ -315,8 +321,8 @@ class FasterRCNN(keras.Model):
         )
         self.roi_pooler = _ROIAligner(bounding_box_format="yxyx")
         self.rcnn_head = rcnn_head or RCNNHead(num_classes)
-        self.backbone = backbone or keras_cv.models.ResNet50Backbone()
-        extractor_levels = [2, 3, 4, 5]
+        self.backbone = backbone or models.ResNet50Backbone()
+        extractor_levels = ["P2", "P3", "P4", "P5"]
         extractor_layer_names = [
             self.backbone.pyramid_level_inputs[i] for i in extractor_levels
         ]
@@ -454,14 +460,13 @@ class FasterRCNN(keras.Model):
         super().compile(loss=losses, **kwargs)
 
     def compute_loss(self, images, boxes, classes, training):
-        image_shape = tf.shape(images[0])
         local_batch = images.get_shape().as_list()[0]
         if tf.distribute.has_strategy():
             num_sync = tf.distribute.get_strategy().num_replicas_in_sync
         else:
             num_sync = 1
         global_batch = local_batch * num_sync
-        anchors = self.anchor_generator(image_shape=image_shape)
+        anchors = self.anchor_generator(image_shape=tuple(images[0].shape))
         (
             rpn_box_targets,
             rpn_box_weights,

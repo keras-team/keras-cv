@@ -11,13 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import numpy as np
 import tensorflow as tf
 from absl.testing import parameterized
 
 from keras_cv import layers
+from keras_cv.tests.test_case import TestCase
 
 
-class RandAugmentTest(tf.test.TestCase, parameterized.TestCase):
+class RandAugmentTest(TestCase):
     @parameterized.named_parameters(
         ("0", 0),
         ("20", 0.2),
@@ -28,7 +30,7 @@ class RandAugmentTest(tf.test.TestCase, parameterized.TestCase):
         rand_augment = layers.RandAugment(
             value_range=(0, 255), rate=0.5, magnitude=magnitude
         )
-        xs = tf.ones((2, 512, 512, 3))
+        xs = np.ones((2, 512, 512, 3))
         ys = rand_augment(xs)
         self.assertEqual(ys.shape, (2, 512, 512, 3))
 
@@ -51,13 +53,13 @@ class RandAugmentTest(tf.test.TestCase, parameterized.TestCase):
         )
 
     @parameterized.named_parameters(
-        ("float32", tf.float32),
-        ("int32", tf.int32),
-        ("uint8", tf.uint8),
+        ("float32", "float32"),
+        ("int32", "int32"),
+        ("uint8", "uint8"),
     )
     def test_runs_with_dtype_input(self, dtype):
         rand_augment = layers.RandAugment(value_range=(0, 255))
-        xs = tf.ones((2, 512, 512, 3), dtype=dtype)
+        xs = np.ones((2, 512, 512, 3), dtype=dtype)
         ys = rand_augment(xs)
         self.assertEqual(ys.shape, (2, 512, 512, 3))
 

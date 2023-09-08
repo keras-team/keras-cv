@@ -12,13 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import tensorflow as tf
-from tensorflow import keras
+import math
 
 from keras_cv import bounding_box
+from keras_cv.api_export import keras_cv_export
+from keras_cv.backend import keras
+from keras_cv.backend import ops
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+@keras_cv_export("keras_cv.layers.AnchorGenerator")
 class AnchorGenerator(keras.layers.Layer):
     """AnchorGenerator generates anchors for multiple feature maps.
 
@@ -56,7 +58,7 @@ class AnchorGenerator(keras.layers.Layer):
     sizes = [32.0, 64.0, 128.0]
     aspect_ratios = [0.5, 1.0, 2.0]
 
-    image = tf.random.uniform((512, 512, 3))
+    image = np.random.uniform(size=(512, 512, 3))
     anchor_generator = cv_layers.AnchorGenerator(
         bounding_box_format="rel_yxyx",
         sizes=sizes,
@@ -150,15 +152,13 @@ class AnchorGenerator(keras.layers.Layer):
     @staticmethod
     def _match_param_structure_to_sizes(params, sizes):
         """broadcast the params to match sizes."""
-        # if isinstance(sizes, (tuple, list)):
-        #     return [params] * len(sizes)
         if not isinstance(sizes, dict):
             raise ValueError(
                 "the structure of `sizes` must be a dict, "
                 f"received sizes={sizes}"
             )
 
-        return tf.nest.map_structure(lambda _: params, sizes)
+        return {key: params for key in sizes.keys()}
 
     def __call__(self, image=None, image_shape=None):
         if image is None and image_shape is None:
@@ -167,19 +167,17 @@ class AnchorGenerator(keras.layers.Layer):
             )
 
         if image is not None:
-            if image.shape.rank != 3:
+            if len(image.shape) != 3:
                 raise ValueError(
                     "Expected `image` to be a Tensor of rank 3. Got "
-                    f"image.shape.rank={image.shape.rank}"
+                    f"image.shape.rank={len(image.shape)}"
                 )
-            image_shape = tf.shape(image)
+            image_shape = image.shape
 
-        anchor_generators = tf.nest.flatten(self.anchor_generators)
-        results = [anchor_gen(image_shape) for anchor_gen in anchor_generators]
-        results = tf.nest.pack_sequence_as(self.anchor_generators, results)
-        for key in results:
+        results = {}
+        for key, generator in self.anchor_generators.items():
             results[key] = bounding_box.convert_format(
-                results[key],
+                generator(image_shape),
                 source="yxyx",
                 target=self.bounding_box_format,
                 image_shape=image_shape,
@@ -237,12 +235,12 @@ class _SingleAnchorGenerator:
         self.dtype = dtype
 
     def __call__(self, image_size):
-        image_height = tf.cast(image_size[0], tf.float32)
-        image_width = tf.cast(image_size[1], tf.float32)
+        image_height = image_size[0]
+        image_width = image_size[1]
 
-        aspect_ratios = tf.cast(self.aspect_ratios, tf.float32)
-        aspect_ratios_sqrt = tf.cast(tf.sqrt(aspect_ratios), dtype=tf.float32)
-        anchor_size = tf.cast(self.sizes, tf.float32)
+        aspect_ratios = ops.cast(self.aspect_ratios, "float32")
+        aspect_ratios_sqrt = ops.cast(ops.sqrt(aspect_ratios), dtype="float32")
+        anchor_size = ops.cast(self.sizes, "float32")
 
         # [K]
         anchor_heights = []
@@ -253,44 +251,54 @@ class _SingleAnchorGenerator:
             anchor_width = anchor_size_t * aspect_ratios_sqrt
             anchor_heights.append(anchor_height)
             anchor_widths.append(anchor_width)
-        anchor_heights = tf.concat(anchor_heights, axis=0)
-        anchor_widths = tf.concat(anchor_widths, axis=0)
-        half_anchor_heights = tf.reshape(0.5 * anchor_heights, [1, 1, -1])
-        half_anchor_widths = tf.reshape(0.5 * anchor_widths, [1, 1, -1])
+        anchor_heights = ops.concatenate(anchor_heights, axis=0)
+        anchor_widths = ops.concatenate(anchor_widths, axis=0)
+        half_anchor_heights = ops.reshape(0.5 * anchor_heights, [1, 1, -1])
+        half_anchor_widths = ops.reshape(0.5 * anchor_widths, [1, 1, -1])
 
-        stride = tf.cast(self.stride, tf.float32)
+        stride = self.stride
         # make sure range of `cx` is within limit of `image_width` with
         # `stride`, also for sizes where `image_width % stride != 0`.
         # [W]
-        cx = tf.range(0.5 * stride, (image_width // stride) * stride, stride)
+        cx = ops.cast(
+            ops.arange(
+                0.5 * stride, math.ceil(image_width / stride) * stride, stride
+            ),
+            "float32",
+        )
         # make sure range of `cy` is within limit of `image_height` with
         # `stride`, also for sizes where `image_height % stride != 0`.
         # [H]
-        cy = tf.range(0.5 * stride, (image_height // stride) * stride, stride)
+        cy = ops.cast(
+            ops.arange(
+                0.5 * stride, math.ceil(image_height / stride) * stride, stride
+            ),
+            "float32",
+        )
         # [H, W]
-        cx_grid, cy_grid = tf.meshgrid(cx, cy)
+        cx_grid, cy_grid = ops.meshgrid(cx, cy)
         # [H, W, 1]
-        cx_grid = tf.expand_dims(cx_grid, axis=-1)
-        cy_grid = tf.expand_dims(cy_grid, axis=-1)
+        cx_grid = ops.expand_dims(cx_grid, axis=-1)
+        cy_grid = ops.expand_dims(cy_grid, axis=-1)
 
-        y_min = tf.reshape(cy_grid - half_anchor_heights, (-1,))
-        y_max = tf.reshape(cy_grid + half_anchor_heights, (-1,))
-        x_min = tf.reshape(cx_grid - half_anchor_widths, (-1,))
-        x_max = tf.reshape(cx_grid + half_anchor_widths, (-1,))
+        y_min = ops.reshape(cy_grid - half_anchor_heights, (-1,))
+        y_max = ops.reshape(cy_grid + half_anchor_heights, (-1,))
+        x_min = ops.reshape(cx_grid - half_anchor_widths, (-1,))
+        x_max = ops.reshape(cx_grid + half_anchor_widths, (-1,))
 
         # [H * W * K, 1]
-        y_min = tf.expand_dims(y_min, axis=-1)
-        y_max = tf.expand_dims(y_max, axis=-1)
-        x_min = tf.expand_dims(x_min, axis=-1)
-        x_max = tf.expand_dims(x_max, axis=-1)
+        y_min = ops.expand_dims(y_min, axis=-1)
+        y_max = ops.expand_dims(y_max, axis=-1)
+        x_min = ops.expand_dims(x_min, axis=-1)
+        x_max = ops.expand_dims(x_max, axis=-1)
 
         if self.clip_boxes:
-            y_min = tf.maximum(tf.minimum(y_min, image_height), 0.0)
-            y_max = tf.maximum(tf.minimum(y_max, image_height), 0.0)
-            x_min = tf.maximum(tf.minimum(x_min, image_width), 0.0)
-            x_max = tf.maximum(tf.minimum(x_max, image_width), 0.0)
+            y_min = ops.maximum(ops.minimum(y_min, image_height), 0.0)
+            y_max = ops.maximum(ops.minimum(y_max, image_height), 0.0)
+            x_min = ops.maximum(ops.minimum(x_min, image_width), 0.0)
+            x_max = ops.maximum(ops.minimum(x_max, image_width), 0.0)
 
         # [H * W * K, 4]
-        return tf.cast(
-            tf.concat([y_min, x_min, y_max, x_max], axis=-1), self.dtype
+        return ops.cast(
+            ops.concatenate([y_min, x_min, y_max, x_max], axis=-1), self.dtype
         )

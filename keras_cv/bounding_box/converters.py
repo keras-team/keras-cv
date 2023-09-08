@@ -13,12 +13,13 @@
 # limitations under the License.
 """Converter functions for working with bounding box formats."""
 
-from typing import List
-from typing import Optional
-from typing import Union
 
 import tensorflow as tf
-from tensorflow import keras
+
+from keras_cv.api_export import keras_cv_export
+from keras_cv.backend import keras
+from keras_cv.backend import ops
+from keras_cv.backend.scope import tf_data
 
 
 # Internal exception to propagate the fact images was not passed to a converter
@@ -27,23 +28,22 @@ class RequiresImagesException(Exception):
     pass
 
 
-ALL_AXES = [1, 1, 1, 1]
+ALL_AXES = 4
 
 
 def _encode_box_to_deltas(
-    anchors: tf.Tensor,
-    boxes: tf.Tensor,
+    anchors,
+    boxes,
     anchor_format: str,
     box_format: str,
-    variance: Optional[Union[List[float], tf.Tensor]] = None,
+    variance=None,
     image_shape=None,
 ):
     """Converts bounding_boxes from `center_yxhw` to delta format."""
     if variance is not None:
-        if tf.is_tensor(variance):
-            var_len = variance.get_shape().as_list()[-1]
-        else:
-            var_len = len(variance)
+        variance = ops.convert_to_tensor(variance, "float32")
+        var_len = variance.shape[-1]
+
         if var_len != 4:
             raise ValueError(f"`variance` must be length 4, got {variance}")
     encoded_anchors = convert_format(
@@ -55,15 +55,15 @@ def _encode_box_to_deltas(
     boxes = convert_format(
         boxes, source=box_format, target="center_yxhw", image_shape=image_shape
     )
-    anchor_dimensions = tf.maximum(
+    anchor_dimensions = ops.maximum(
         encoded_anchors[..., 2:], keras.backend.epsilon()
     )
-    box_dimensions = tf.maximum(boxes[..., 2:], keras.backend.epsilon())
+    box_dimensions = ops.maximum(boxes[..., 2:], keras.backend.epsilon())
     # anchors be unbatched, boxes can either be batched or unbatched.
-    boxes_delta = tf.concat(
+    boxes_delta = ops.concatenate(
         [
             (boxes[..., :2] - encoded_anchors[..., :2]) / anchor_dimensions,
-            tf.math.log(box_dimensions / anchor_dimensions),
+            ops.log(box_dimensions / anchor_dimensions),
         ],
         axis=-1,
     )
@@ -73,22 +73,20 @@ def _encode_box_to_deltas(
 
 
 def _decode_deltas_to_boxes(
-    anchors: tf.Tensor,
-    boxes_delta: tf.Tensor,
+    anchors,
+    boxes_delta,
     anchor_format: str,
     box_format: str,
-    variance: Optional[Union[List[float], tf.Tensor]] = None,
+    variance=None,
     image_shape=None,
 ):
     """Converts bounding_boxes from delta format to `center_yxhw`."""
     if variance is not None:
-        if tf.is_tensor(variance):
-            var_len = variance.get_shape().as_list()[-1]
-        else:
-            var_len = len(variance)
+        variance = ops.convert_to_tensor(variance, "float32")
+        var_len = variance.shape[-1]
+
         if var_len != 4:
             raise ValueError(f"`variance` must be length 4, got {variance}")
-    tf.nest.assert_same_structure(anchors, boxes_delta)
 
     def decode_single_level(anchor, box_delta):
         encoded_anchor = convert_format(
@@ -100,11 +98,11 @@ def _decode_deltas_to_boxes(
         if variance is not None:
             box_delta = box_delta * variance
         # anchors be unbatched, boxes can either be batched or unbatched.
-        box = tf.concat(
+        box = ops.concatenate(
             [
                 box_delta[..., :2] * encoded_anchor[..., 2:]
                 + encoded_anchor[..., :2],
-                tf.math.exp(box_delta[..., 2:]) * encoded_anchor[..., 2:],
+                ops.exp(box_delta[..., 2:]) * encoded_anchor[..., 2:],
             ],
             axis=-1,
         )
@@ -126,29 +124,29 @@ def _decode_deltas_to_boxes(
 
 
 def _center_yxhw_to_xyxy(boxes, images=None, image_shape=None):
-    y, x, height, width = tf.split(boxes, ALL_AXES, axis=-1)
-    return tf.concat(
+    y, x, height, width = ops.split(boxes, ALL_AXES, axis=-1)
+    return ops.concatenate(
         [x - width / 2.0, y - height / 2.0, x + width / 2.0, y + height / 2.0],
         axis=-1,
     )
 
 
 def _center_xywh_to_xyxy(boxes, images=None, image_shape=None):
-    x, y, width, height = tf.split(boxes, ALL_AXES, axis=-1)
-    return tf.concat(
+    x, y, width, height = ops.split(boxes, ALL_AXES, axis=-1)
+    return ops.concatenate(
         [x - width / 2.0, y - height / 2.0, x + width / 2.0, y + height / 2.0],
         axis=-1,
     )
 
 
 def _xywh_to_xyxy(boxes, images=None, image_shape=None):
-    x, y, width, height = tf.split(boxes, ALL_AXES, axis=-1)
-    return tf.concat([x, y, x + width, y + height], axis=-1)
+    x, y, width, height = ops.split(boxes, ALL_AXES, axis=-1)
+    return ops.concatenate([x, y, x + width, y + height], axis=-1)
 
 
 def _xyxy_to_center_yxhw(boxes, images=None, image_shape=None):
-    left, top, right, bottom = tf.split(boxes, ALL_AXES, axis=-1)
-    return tf.concat(
+    left, top, right, bottom = ops.split(boxes, ALL_AXES, axis=-1)
+    return ops.concatenate(
         [
             (top + bottom) / 2.0,
             (left + right) / 2.0,
@@ -161,8 +159,8 @@ def _xyxy_to_center_yxhw(boxes, images=None, image_shape=None):
 
 def _rel_xywh_to_xyxy(boxes, images=None, image_shape=None):
     image_height, image_width = _image_shape(images, image_shape, boxes)
-    x, y, width, height = tf.split(boxes, ALL_AXES, axis=-1)
-    return tf.concat(
+    x, y, width, height = ops.split(boxes, ALL_AXES, axis=-1)
+    return ops.concatenate(
         [
             image_width * x,
             image_height * y,
@@ -178,8 +176,8 @@ def _xyxy_no_op(boxes, images=None, image_shape=None):
 
 
 def _xyxy_to_xywh(boxes, images=None, image_shape=None):
-    left, top, right, bottom = tf.split(boxes, ALL_AXES, axis=-1)
-    return tf.concat(
+    left, top, right, bottom = ops.split(boxes, ALL_AXES, axis=-1)
+    return ops.concatenate(
         [left, top, right - left, bottom - top],
         axis=-1,
     )
@@ -187,21 +185,21 @@ def _xyxy_to_xywh(boxes, images=None, image_shape=None):
 
 def _xyxy_to_rel_xywh(boxes, images=None, image_shape=None):
     image_height, image_width = _image_shape(images, image_shape, boxes)
-    left, top, right, bottom = tf.split(boxes, ALL_AXES, axis=-1)
+    left, top, right, bottom = ops.split(boxes, ALL_AXES, axis=-1)
     left, right = (
         left / image_width,
         right / image_width,
     )
     top, bottom = top / image_height, bottom / image_height
-    return tf.concat(
+    return ops.concatenate(
         [left, top, right - left, bottom - top],
         axis=-1,
     )
 
 
 def _xyxy_to_center_xywh(boxes, images=None, image_shape=None):
-    left, top, right, bottom = tf.split(boxes, ALL_AXES, axis=-1)
-    return tf.concat(
+    left, top, right, bottom = ops.split(boxes, ALL_AXES, axis=-1)
+    return ops.concatenate(
         [
             (left + right) / 2.0,
             (top + bottom) / 2.0,
@@ -214,14 +212,14 @@ def _xyxy_to_center_xywh(boxes, images=None, image_shape=None):
 
 def _rel_xyxy_to_xyxy(boxes, images=None, image_shape=None):
     image_height, image_width = _image_shape(images, image_shape, boxes)
-    left, top, right, bottom = tf.split(
+    left, top, right, bottom = ops.split(
         boxes,
         ALL_AXES,
         axis=-1,
     )
     left, right = left * image_width, right * image_width
     top, bottom = top * image_height, bottom * image_height
-    return tf.concat(
+    return ops.concatenate(
         [left, top, right, bottom],
         axis=-1,
     )
@@ -229,50 +227,50 @@ def _rel_xyxy_to_xyxy(boxes, images=None, image_shape=None):
 
 def _xyxy_to_rel_xyxy(boxes, images=None, image_shape=None):
     image_height, image_width = _image_shape(images, image_shape, boxes)
-    left, top, right, bottom = tf.split(
+    left, top, right, bottom = ops.split(
         boxes,
         ALL_AXES,
         axis=-1,
     )
     left, right = left / image_width, right / image_width
     top, bottom = top / image_height, bottom / image_height
-    return tf.concat(
+    return ops.concatenate(
         [left, top, right, bottom],
         axis=-1,
     )
 
 
 def _yxyx_to_xyxy(boxes, images=None, image_shape=None):
-    y1, x1, y2, x2 = tf.split(boxes, ALL_AXES, axis=-1)
-    return tf.concat([x1, y1, x2, y2], axis=-1)
+    y1, x1, y2, x2 = ops.split(boxes, ALL_AXES, axis=-1)
+    return ops.concatenate([x1, y1, x2, y2], axis=-1)
 
 
 def _rel_yxyx_to_xyxy(boxes, images=None, image_shape=None):
     image_height, image_width = _image_shape(images, image_shape, boxes)
-    top, left, bottom, right = tf.split(
+    top, left, bottom, right = ops.split(
         boxes,
         ALL_AXES,
         axis=-1,
     )
     left, right = left * image_width, right * image_width
     top, bottom = top * image_height, bottom * image_height
-    return tf.concat(
+    return ops.concatenate(
         [left, top, right, bottom],
         axis=-1,
     )
 
 
 def _xyxy_to_yxyx(boxes, images=None, image_shape=None):
-    x1, y1, x2, y2 = tf.split(boxes, ALL_AXES, axis=-1)
-    return tf.concat([y1, x1, y2, x2], axis=-1)
+    x1, y1, x2, y2 = ops.split(boxes, ALL_AXES, axis=-1)
+    return ops.concatenate([y1, x1, y2, x2], axis=-1)
 
 
 def _xyxy_to_rel_yxyx(boxes, images=None, image_shape=None):
     image_height, image_width = _image_shape(images, image_shape, boxes)
-    left, top, right, bottom = tf.split(boxes, ALL_AXES, axis=-1)
+    left, top, right, bottom = ops.split(boxes, ALL_AXES, axis=-1)
     left, right = left / image_width, right / image_width
     top, bottom = top / image_height, bottom / image_height
-    return tf.concat(
+    return ops.concatenate(
         [top, left, bottom, right],
         axis=-1,
     )
@@ -301,6 +299,8 @@ FROM_XYXY_CONVERTERS = {
 }
 
 
+@keras_cv_export("keras_cv.bounding_box.convert_format")
+@tf_data
 def convert_format(
     boxes, source, target, images=None, image_shape=None, dtype="float32"
 ):
@@ -350,12 +350,12 @@ def convert_format(
     ```
 
     Args:
-        boxes: tf.Tensor representing bounding boxes in the format specified in
+        boxes: tensor representing bounding boxes in the format specified in
             the `source` parameter. `boxes` can optionally have extra
             dimensions stacked on the final axis to store metadata. boxes
-            should be a 3D Tensor, with the shape `[batch_size, num_boxes, 4]`.
+            should be a 3D tensor, with the shape `[batch_size, num_boxes, 4]`.
             Alternatively, boxes can be a dictionary with key 'boxes' containing
-            a Tensor matching the aforementioned spec.
+            a tensor matching the aforementioned spec.
         source:One of {" ".join([f'"{f}"' for f in TO_XYXY_CONVERTERS.keys()])}.
             Used to specify the original format of the `boxes` parameter.
         target:One of {" ".join([f'"{f}"' for f in TO_XYXY_CONVERTERS.keys()])}.
@@ -367,7 +367,7 @@ def convert_format(
             dimensions. Required when transforming from a rel format to a
             non-rel format.
         dtype: the data type to use when transforming the boxes, defaults to
-            `tf.float32`.
+            `"float32"`.
     """
     if isinstance(boxes, dict):
         boxes["boxes"] = convert_format(
@@ -380,7 +380,7 @@ def convert_format(
         )
         return boxes
 
-    if boxes.shape[-1] != 4:
+    if boxes.shape[-1] is not None and boxes.shape[-1] != 4:
         raise ValueError(
             "Expected `boxes` to be a Tensor with a final dimension of "
             f"`4`. Instead, got `boxes.shape={boxes.shape}`."
@@ -408,7 +408,7 @@ def convert_format(
             f"{FROM_XYXY_CONVERTERS.keys()}. Got target={target}"
         )
 
-    boxes = tf.cast(boxes, dtype)
+    boxes = ops.cast(boxes, dtype)
     if source == target:
         return boxes
 
@@ -462,10 +462,10 @@ def _format_inputs(boxes, images):
                 "len(boxes.shape)=3 AND len(images.shape)=4."
             )
         if not images_include_batch:
-            images = tf.expand_dims(images, axis=0)
+            images = ops.expand_dims(images, axis=0)
 
     if not boxes_includes_batch:
-        return tf.expand_dims(boxes, axis=0), images, True
+        return ops.expand_dims(boxes, axis=0), images, True
     return boxes, images, False
 
 
@@ -483,7 +483,7 @@ def _validate_image_shape(image_shape):
         return
 
     # tensor
-    if isinstance(image_shape, tf.Tensor):
+    if ops.is_tensor(image_shape):
         if len(image_shape.shape) > 1:
             raise ValueError(
                 "image_shape.shape should be (3), but got "
@@ -505,7 +505,7 @@ def _validate_image_shape(image_shape):
 
 def _format_outputs(boxes, squeeze):
     if squeeze:
-        return tf.squeeze(boxes, axis=0)
+        return ops.squeeze(boxes, axis=0)
     return boxes
 
 
@@ -515,15 +515,13 @@ def _image_shape(images, image_shape, boxes):
 
     if image_shape is None:
         if not isinstance(images, tf.RaggedTensor):
-            image_shape = tf.shape(images)
+            image_shape = ops.shape(images)
             height, width = image_shape[1], image_shape[2]
         else:
-            height = tf.reshape(images.row_lengths(), (-1, 1))
-            width = tf.reshape(
-                tf.reduce_max(images.row_lengths(axis=2), 1), (-1, 1)
-            )
-            height = tf.expand_dims(height, axis=-1)
-            width = tf.expand_dims(width, axis=-1)
+            height = ops.reshape(images.row_lengths(), (-1, 1))
+            width = ops.reshape(ops.max(images.row_lengths(axis=2), 1), (-1, 1))
+            height = ops.expand_dims(height, axis=-1)
+            width = ops.expand_dims(width, axis=-1)
     else:
         height, width = image_shape[0], image_shape[1]
-    return tf.cast(height, boxes.dtype), tf.cast(width, boxes.dtype)
+    return ops.cast(height, boxes.dtype), ops.cast(width, boxes.dtype)

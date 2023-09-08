@@ -13,14 +13,14 @@
 # limitations under the License.
 import numpy as np
 import tensorflow as tf
-from absl.testing import parameterized
 
 from keras_cv import bounding_box
 from keras_cv import core
 from keras_cv import layers
+from keras_cv.tests.test_case import TestCase
 
 
-class JitteredResizeTest(tf.test.TestCase, parameterized.TestCase):
+class JitteredResizeTest(TestCase):
     batch_size = 4
     height = 9
     width = 8
@@ -178,6 +178,31 @@ class JitteredResizeTest(tf.test.TestCase, parameterized.TestCase):
         results = layer(batched_images)
 
         self.assertNotAllClose(results[0], results[1])
+
+    def test_augments_segmentation_masks(self):
+        input_shape = (self.batch_size, self.height, self.width, 3)
+        image = tf.random.uniform(shape=input_shape, seed=self.seed)
+        mask = tf.cast(
+            2 * tf.random.uniform(shape=input_shape, seed=self.seed),
+            tf.int32,
+        )
+
+        inputs = {"images": image, "segmentation_masks": mask}
+
+        layer = layers.JitteredResize(
+            target_size=self.target_size,
+            scale_factor=(3 / 4, 4 / 3),
+            seed=self.seed,
+        )
+        output = layer(inputs, training=True)
+
+        input_image_resized = tf.image.resize(image, self.target_size)
+        input_mask_resized = tf.image.resize(
+            mask, self.target_size, method="nearest"
+        )
+
+        self.assertNotAllClose(output["images"], input_image_resized)
+        self.assertNotAllClose(output["segmentation_masks"], input_mask_resized)
 
     def test_config_with_custom_name(self):
         layer = layers.JitteredResize(

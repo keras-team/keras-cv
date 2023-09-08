@@ -18,9 +18,10 @@ import tensorflow as tf
 from keras_cv.layers.object_detection_3d.centernet_label_encoder import (
     CenterNetLabelEncoder,
 )
+from keras_cv.tests.test_case import TestCase
 
 
-class CenterNetLabelEncoderTest(tf.test.TestCase):
+class CenterNetLabelEncoderTest(TestCase):
     def test_voxelization_output_shape_no_z(self):
         layer = CenterNetLabelEncoder(
             voxel_size=[0.1, 0.1, 1000],

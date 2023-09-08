@@ -12,9 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Contains functions to compute ious of bounding boxes."""
-import tensorflow as tf
+import math
 
 from keras_cv import bounding_box
+from keras_cv.api_export import keras_cv_export
+from keras_cv.backend import keras
+from keras_cv.backend import ops
 
 
 def _compute_area(box):
@@ -26,10 +29,8 @@ def _compute_area(box):
     Returns:
       a float Tensor of [N] or [batch_size, N]
     """
-    y_min, x_min, y_max, x_max = tf.split(
-        box[..., :4], num_or_size_splits=4, axis=-1
-    )
-    return tf.squeeze((y_max - y_min) * (x_max - x_min), axis=-1)
+    y_min, x_min, y_max, x_max = ops.split(box[..., :4], 4, axis=-1)
+    return ops.squeeze((y_max - y_min) * (x_max - x_min), axis=-1)
 
 
 def _compute_intersection(boxes1, boxes2):
@@ -41,29 +42,26 @@ def _compute_intersection(boxes1, boxes2):
     Returns:
       a [N, M] or [batch_size, N, M] float Tensor.
     """
-    y_min1, x_min1, y_max1, x_max1 = tf.split(
-        boxes1[..., :4], num_or_size_splits=4, axis=-1
-    )
-    y_min2, x_min2, y_max2, x_max2 = tf.split(
-        boxes2[..., :4], num_or_size_splits=4, axis=-1
-    )
+    y_min1, x_min1, y_max1, x_max1 = ops.split(boxes1[..., :4], 4, axis=-1)
+    y_min2, x_min2, y_max2, x_max2 = ops.split(boxes2[..., :4], 4, axis=-1)
     boxes2_rank = len(boxes2.shape)
     perm = [1, 0] if boxes2_rank == 2 else [0, 2, 1]
     # [N, M] or [batch_size, N, M]
-    intersect_ymax = tf.minimum(y_max1, tf.transpose(y_max2, perm))
-    intersect_ymin = tf.maximum(y_min1, tf.transpose(y_min2, perm))
-    intersect_xmax = tf.minimum(x_max1, tf.transpose(x_max2, perm))
-    intersect_xmin = tf.maximum(x_min1, tf.transpose(x_min2, perm))
+    intersect_ymax = ops.minimum(y_max1, ops.transpose(y_max2, perm))
+    intersect_ymin = ops.maximum(y_min1, ops.transpose(y_min2, perm))
+    intersect_xmax = ops.minimum(x_max1, ops.transpose(x_max2, perm))
+    intersect_xmin = ops.maximum(x_min1, ops.transpose(x_min2, perm))
 
     intersect_height = intersect_ymax - intersect_ymin
     intersect_width = intersect_xmax - intersect_xmin
-    zeros_t = tf.cast(0, intersect_height.dtype)
-    intersect_height = tf.maximum(zeros_t, intersect_height)
-    intersect_width = tf.maximum(zeros_t, intersect_width)
+    zeros_t = ops.cast(0, intersect_height.dtype)
+    intersect_height = ops.maximum(zeros_t, intersect_height)
+    intersect_width = ops.maximum(zeros_t, intersect_width)
 
     return intersect_height * intersect_width
 
 
+@keras_cv_export("keras_cv.bounding_box.compute_iou")
 def compute_iou(
     boxes1,
     boxes2,
@@ -151,10 +149,10 @@ def compute_iou(
     boxes2_area = _compute_area(boxes2)
     boxes2_area_rank = len(boxes2_area.shape)
     boxes2_axis = 1 if (boxes2_area_rank == 2) else 0
-    boxes1_area = tf.expand_dims(boxes1_area, axis=-1)
-    boxes2_area = tf.expand_dims(boxes2_area, axis=boxes2_axis)
+    boxes1_area = ops.expand_dims(boxes1_area, axis=-1)
+    boxes2_area = ops.expand_dims(boxes2_area, axis=boxes2_axis)
     union_area = boxes1_area + boxes2_area - intersect_area
-    res = tf.math.divide_no_nan(intersect_area, union_area)
+    res = ops.divide(intersect_area, union_area + keras.backend.epsilon())
 
     if boxes1_rank == 2:
         perm = [1, 0]
@@ -164,11 +162,99 @@ def compute_iou(
     if not use_masking:
         return res
 
-    mask_val_t = tf.cast(mask_val, res.dtype) * tf.ones_like(res)
-    boxes1_mask = tf.less(tf.reduce_max(boxes1, axis=-1, keepdims=True), 0.0)
-    boxes2_mask = tf.less(tf.reduce_max(boxes2, axis=-1, keepdims=True), 0.0)
-    background_mask = tf.logical_or(
-        boxes1_mask, tf.transpose(boxes2_mask, perm)
+    mask_val_t = ops.cast(mask_val, res.dtype) * ops.ones_like(res)
+    boxes1_mask = ops.less(ops.max(boxes1, axis=-1, keepdims=True), 0.0)
+    boxes2_mask = ops.less(ops.max(boxes2, axis=-1, keepdims=True), 0.0)
+    background_mask = ops.logical_or(
+        boxes1_mask, ops.transpose(boxes2_mask, perm)
     )
-    iou_lookup_table = tf.where(background_mask, mask_val_t, res)
+    iou_lookup_table = ops.where(background_mask, mask_val_t, res)
     return iou_lookup_table
+
+
+@keras_cv_export("keras_cv.bounding_box.compute_ciou")
+def compute_ciou(boxes1, boxes2, bounding_box_format):
+    """
+    Computes the Complete IoU (CIoU) between two bounding boxes or between
+    two batches of bounding boxes.
+
+    CIoU loss is an extension of GIoU loss, which further improves the IoU
+    optimization for object detection. CIoU loss not only penalizes the
+    bounding box coordinates but also considers the aspect ratio and center
+    distance of the boxes. The length of the last dimension should be 4 to
+    represent the bounding boxes.
+
+    Args:
+        box1 (tensor): tensor representing the first bounding box with
+            shape (..., 4).
+        box2 (tensor): tensor representing the second bounding box with
+            shape (..., 4).
+        bounding_box_format: a case-insensitive string (for example, "xyxy").
+            Each bounding box is defined by these 4 values. For detailed
+            information on the supported formats, see the [KerasCV bounding box
+            documentation](https://keras.io/api/keras_cv/bounding_box/formats/).
+
+    Returns:
+        tensor: The CIoU distance between the two bounding boxes.
+    """
+    target_format = "xyxy"
+    if bounding_box.is_relative(bounding_box_format):
+        target_format = bounding_box.as_relative(target_format)
+
+    boxes1 = bounding_box.convert_format(
+        boxes1, source=bounding_box_format, target=target_format
+    )
+
+    boxes2 = bounding_box.convert_format(
+        boxes2, source=bounding_box_format, target=target_format
+    )
+
+    x_min1, y_min1, x_max1, y_max1 = ops.split(boxes1[..., :4], 4, axis=-1)
+    x_min2, y_min2, x_max2, y_max2 = ops.split(boxes2[..., :4], 4, axis=-1)
+
+    width_1 = x_max1 - x_min1
+    height_1 = y_max1 - y_min1 + keras.backend.epsilon()
+    width_2 = x_max2 - x_min2
+    height_2 = y_max2 - y_min2 + keras.backend.epsilon()
+
+    intersection_area = ops.maximum(
+        ops.minimum(x_max1, x_max2) - ops.maximum(x_min1, x_min2), 0
+    ) * ops.maximum(
+        ops.minimum(y_max1, y_max2) - ops.maximum(y_min1, y_min2), 0
+    )
+    union_area = (
+        width_1 * height_1
+        + width_2 * height_2
+        - intersection_area
+        + keras.backend.epsilon()
+    )
+    iou = ops.squeeze(
+        ops.divide(intersection_area, union_area + keras.backend.epsilon()),
+        axis=-1,
+    )
+
+    convex_width = ops.maximum(x_max1, x_max2) - ops.minimum(x_min1, x_min2)
+    convex_height = ops.maximum(y_max1, y_max2) - ops.minimum(y_min1, y_min2)
+    convex_diagonal_squared = ops.squeeze(
+        convex_width**2 + convex_height**2 + keras.backend.epsilon(),
+        axis=-1,
+    )
+    centers_distance_squared = ops.squeeze(
+        ((x_min1 + x_max1) / 2 - (x_min2 + x_max2) / 2) ** 2
+        + ((y_min1 + y_max1) / 2 - (y_min2 + y_max2) / 2) ** 2,
+        axis=-1,
+    )
+
+    v = ops.squeeze(
+        ops.power(
+            (4 / math.pi**2)
+            * (ops.arctan(width_2 / height_2) - ops.arctan(width_1 / height_1)),
+            2,
+        ),
+        axis=-1,
+    )
+    alpha = v / (v - iou + (1 + keras.backend.epsilon()))
+
+    return iou - (
+        centers_distance_squared / convex_diagonal_squared + v * alpha
+    )

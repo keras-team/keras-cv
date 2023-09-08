@@ -14,8 +14,12 @@
 import tensorflow as tf
 
 import keras_cv.bounding_box.validate_format as validate_format
+from keras_cv import backend
+from keras_cv.api_export import keras_cv_export
+from keras_cv.backend import keras
 
 
+@keras_cv_export("keras_cv.bounding_box.to_ragged")
 def to_ragged(bounding_boxes, sentinel=-1, dtype=tf.float32):
     """converts a Dense padded bounding box `tf.Tensor` to a `tf.RaggedTensor`.
 
@@ -49,6 +53,13 @@ def to_ragged(bounding_boxes, sentinel=-1, dtype=tf.float32):
         dictionary of `tf.RaggedTensor` or 'tf.Tensor' containing the filtered
         bounding boxes.
     """
+    if backend.supports_ragged() is False:
+        raise NotImplementedError(
+            "`bounding_box.to_ragged` was called using a backend which does "
+            "not support ragged tensors. "
+            f"Current backend: {keras.backend.backend()}."
+        )
+
     info = validate_format.validate_format(bounding_boxes)
 
     if info["ragged"]:

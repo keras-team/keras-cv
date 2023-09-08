@@ -17,9 +17,10 @@ import tensorflow as tf
 from absl.testing import parameterized
 
 from keras_cv.layers.preprocessing.random_zoom import RandomZoom
+from keras_cv.tests.test_case import TestCase
 
 
-class RandomZoomTest(tf.test.TestCase, parameterized.TestCase):
+class RandomZoomTest(TestCase):
     @parameterized.named_parameters(
         ("random_zoom_in_4_by_6", -0.4, -0.6),
         ("random_zoom_in_2_by_3", -0.2, -0.3),
@@ -34,20 +35,37 @@ class RandomZoomTest(tf.test.TestCase, parameterized.TestCase):
         orig_height = 5
         orig_width = 8
         channels = 3
-        input = tf.random.uniform(
-            shape=[num_samples, orig_height, orig_width, channels],
-        )
+        input = {
+            "images": tf.random.uniform(
+                shape=[num_samples, orig_height, orig_width, channels],
+            ),
+            "segmentation_masks": tf.random.uniform(
+                shape=[num_samples, orig_height, orig_width, 1],
+                minval=0,
+                maxval=2,
+            ),
+        }
         layer = RandomZoom(height_factor, width_factor)
         actual_output = layer(input)
-        expected_output = tf.random.uniform(
-            shape=(
-                num_samples,
-                orig_height,
-                orig_width,
-                channels,
+        expected_output = {
+            "images": tf.random.uniform(
+                shape=[num_samples, orig_height, orig_width, channels],
             ),
+            "segmentation_masks": tf.random.uniform(
+                shape=[num_samples, orig_height, orig_width, 1],
+                minval=0,
+                maxval=2,
+            ),
+        }
+        # Check output shape of images
+        self.assertAllEqual(
+            expected_output["images"].shape, actual_output["images"].shape
         )
-        self.assertAllEqual(expected_output.shape, actual_output.shape)
+        # Check output shape of segmentation masks
+        self.assertAllEqual(
+            expected_output["segmentation_masks"].shape,
+            actual_output["segmentation_masks"].shape,
+        )
 
     def test_random_zoom_in_numeric(self):
         for dtype in (np.int64, np.float32):

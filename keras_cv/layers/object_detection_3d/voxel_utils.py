@@ -13,21 +13,20 @@
 # limitations under the License.
 
 import math
-from typing import List
-from typing import Sequence
-from typing import Union
 
 import numpy as np
 import tensorflow as tf
+
+from keras_cv.backend import ops
 
 EPSILON = 1e-4
 
 
 def compute_feature_map_ref_xyz(
-    voxel_size: Sequence[float],
-    spatial_size: Sequence[float],
-    global_xyz: tf.Tensor,
-) -> tf.Tensor:
+    voxel_size,
+    spatial_size,
+    global_xyz,
+):
     """Computes the offset xyz locations for each feature map pixel.
 
     Args:
@@ -47,27 +46,20 @@ def compute_feature_map_ref_xyz(
     ]
     voxel_coord = np.concatenate(voxel_coord_meshgrid[..., np.newaxis], axis=-1)
     # [H, W, Z, 3]
-    voxel_coord = tf.constant(voxel_coord, dtype=global_xyz.dtype)
     # [3]
-    voxel_origin = tf.cast(
-        compute_voxel_origin(spatial_size, voxel_size),
-        dtype=global_xyz.dtype,
-    )
+    voxel_origin = (compute_voxel_origin(spatial_size, voxel_size),)
     # [H, W, Z, 3]
     voxel_coord = voxel_coord + voxel_origin
     # [H, W, Z, 3]
-    ref = voxel_coord_to_point(voxel_coord, voxel_size, dtype=global_xyz.dtype)
+    ref = ops.cast(voxel_coord * np.array(voxel_size), global_xyz.dtype)
     # [1, H, W, Z, 3] + [B, 1, 1, 1, 3] -> [B, H, W, Z, 3]
-    ref = (
-        ref[tf.newaxis, ...]
-        + global_xyz[:, tf.newaxis, tf.newaxis, tf.newaxis, :]
+    ref = ops.expand_dims(ref, axis=0) + ops.expand_dims(
+        ops.expand_dims(ops.expand_dims(global_xyz, axis=1), axis=1), axis=1
     )
     return ref
 
 
-def compute_voxel_spatial_size(
-    spatial_size: Sequence[float], voxel_size: Sequence[float]
-) -> List[int]:
+def compute_voxel_spatial_size(spatial_size, voxel_size):
     """Computes how many voxels in each dimension are needed.
 
     Args:
@@ -94,9 +86,9 @@ def compute_voxel_spatial_size(
 
 
 def compute_voxel_origin(
-    spatial_size: Sequence[float],
-    voxel_size: Sequence[float],
-) -> tf.Tensor:
+    spatial_size,
+    voxel_size,
+):
     """Computes voxel origin.
 
     Args:
@@ -107,17 +99,14 @@ def compute_voxel_origin(
       voxel_origin: [dim] the voxel origin.
     """
     voxel_origin = spatial_size[::2]
-    voxel_origin = tf.constant(
-        [o / v for o, v in zip(voxel_origin, voxel_size)], dtype=tf.float32
+    voxel_origin = np.array(
+        [o / v for o, v in zip(voxel_origin, voxel_size)], "float32"
     )
-    voxel_origin = tf.math.round(voxel_origin)
-    voxel_origin = tf.cast(voxel_origin, dtype=tf.int32)
+    voxel_origin = np.round(voxel_origin)
     return voxel_origin
 
 
-def point_to_voxel_coord(
-    point_xyz: tf.Tensor, voxel_size: Sequence[float], dtype=tf.int32
-) -> tf.Tensor:
+def point_to_voxel_coord(point_xyz, voxel_size, dtype=tf.int32):
     """Computes the voxel coord given points.
 
     A voxel x represents [(x-0.5) / voxel_size, (x+0.5) / voxel_size)
@@ -145,9 +134,7 @@ def point_to_voxel_coord(
         return tf.cast(point_voxelized_round, dtype=dtype)
 
 
-def voxel_coord_to_point(
-    voxel_coord: tf.Tensor, voxel_size: Sequence[float], dtype=tf.float32
-) -> tf.Tensor:
+def voxel_coord_to_point(voxel_coord, voxel_size, dtype=tf.float32):
     """Convert voxel coord to expected point in the original coordinate system.
 
     This is the reverse of point_to_voxel_coord.
@@ -195,7 +182,7 @@ def get_yaw_rotation(yaw, name=None):
         )
 
 
-def inv_loc(rot: tf.Tensor, loc: tf.Tensor) -> tf.Tensor:
+def inv_loc(rot, loc):
     """Invert a location.
     rot and loc can form a transform matrix between two frames.
     R = rot, L = loc
@@ -211,43 +198,6 @@ def inv_loc(rot: tf.Tensor, loc: tf.Tensor) -> tf.Tensor:
         rot, loc[..., tf.newaxis], transpose_a=True
     )
     return tf.squeeze(new_loc, axis=-1)
-
-
-def shape_int_compatible(t: tf.Tensor) -> tf.TensorShape:
-    """int32 and int64 compatible tf shape implementation."""
-    # tf.shape int32/int64 requires input and output to be on host.
-    dtype = t.dtype
-    if dtype == tf.int32:
-        t = tf.bitcast(t, tf.float32)
-    if dtype == tf.int64:
-        t = tf.bitcast(t, tf.float64)
-
-    return tf.shape(t)
-
-
-def combined_static_and_dynamic_shape(
-    tensor: tf.Tensor,
-) -> List[Union[tf.Tensor, int]]:
-    """Returns a list containing static and dynamic values for the dimensions.
-
-    Returns a list of static and dynamic values for shape dimensions. This is
-    useful to preserve static shapes when available in reshape operation.
-
-    Args:
-      tensor: A tensor of any type.
-
-    Returns:
-      A list of size tensor.shape.ndims containing integers or a scalar tensor.
-    """
-    static_tensor_shape = tensor.shape.as_list()
-    dynamic_tensor_shape = shape_int_compatible(tensor)
-    combined_shape = []
-    for index, dim in enumerate(static_tensor_shape):
-        if dim is not None:
-            combined_shape.append(dim)
-        else:
-            combined_shape.append(dynamic_tensor_shape[index])
-    return combined_shape
 
 
 def _has_rank(tensor, expected_rank):

@@ -12,12 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
 import tensorflow as tf
 
 from keras_cv.layers.object_detection.rpn_label_encoder import _RpnLabelEncoder
+from keras_cv.tests.test_case import TestCase
 
 
-class RpnLabelEncoderTest(tf.test.TestCase):
+@pytest.mark.tf_keras_only
+class RpnLabelEncoderTest(TestCase):
     def test_rpn_label_encoder(self):
         rpn_encoder = _RpnLabelEncoder(
             anchor_format="xyxy",

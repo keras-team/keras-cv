@@ -17,6 +17,7 @@ from tensorflow import keras
 from tensorflow.keras import backend
 
 from keras_cv import core
+from keras_cv.backend import ops
 
 _TF_INTERPOLATION_METHODS = {
     "bilinear": tf.image.ResizeMethod.BILINEAR,
@@ -376,10 +377,10 @@ def transform(
 
 def ensure_tensor(inputs, dtype=None):
     """Ensures the input is a Tensor, SparseTensor or RaggedTensor."""
-    if not isinstance(inputs, (tf.Tensor, tf.RaggedTensor, tf.SparseTensor)):
-        inputs = tf.convert_to_tensor(inputs, dtype)
+    if not ops.is_tensor(inputs):
+        inputs = ops.convert_to_tensor(inputs, dtype)
     if dtype is not None and inputs.dtype != dtype:
-        inputs = tf.cast(inputs, dtype)
+        inputs = ops.cast(inputs, dtype)
     return inputs
 
 

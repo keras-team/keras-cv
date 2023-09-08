@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import tensorflow as tf
-import tensorflow.keras.backend as K
-from tensorflow import keras
+from keras_cv.api_export import keras_cv_export
+from keras_cv.backend import keras
+from keras_cv.backend import ops
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+@keras_cv_export("keras_cv.losses.FocalLoss")
 class FocalLoss(keras.losses.Loss):
     """Implements Focal loss
 
@@ -44,10 +44,10 @@ class FocalLoss(keras.losses.Loss):
 
     Standalone usage:
     ```python
-    y_true = tf.random.uniform([10], 0, maxval=4)
-    y_pred = tf.random.uniform([10], 0, maxval=4)
+    y_true = np.random.uniform(size=[10], low=0, high=4)
+    y_pred = np.random.uniform(size=[10], low=0, high=4)
     loss = FocalLoss()
-    loss(y_true, y_pred).numpy()
+    loss(y_true, y_pred)
     ```
     Usage with the `compile()` API:
     ```python
@@ -75,20 +75,26 @@ class FocalLoss(keras.losses.Loss):
         )
 
     def call(self, y_true, y_pred):
-        y_pred = tf.convert_to_tensor(y_pred)
-        y_true = tf.cast(y_true, y_pred.dtype)
+        y_pred = ops.convert_to_tensor(y_pred)
+        y_true = ops.cast(y_true, y_pred.dtype)
 
         if self.label_smoothing:
             y_true = self._smooth_labels(y_true)
 
         if self.from_logits:
-            y_pred = tf.nn.sigmoid(y_pred)
+            y_pred = ops.sigmoid(y_pred)
 
-        cross_entropy = K.binary_crossentropy(y_true, y_pred)
+        cross_entropy = ops.binary_crossentropy(y_true, y_pred)
 
-        alpha = tf.where(tf.equal(y_true, 1.0), self.alpha, (1.0 - self.alpha))
+        alpha = ops.where(
+            ops.equal(y_true, 1.0), self.alpha, (1.0 - self.alpha)
+        )
         pt = y_true * y_pred + (1.0 - y_true) * (1.0 - y_pred)
-        loss = alpha * tf.pow(1.0 - pt, self.gamma) * cross_entropy
+        loss = (
+            alpha
+            * ops.cast(ops.power(1.0 - pt, self.gamma), alpha.dtype)
+            * ops.cast(cross_entropy, alpha.dtype)
+        )
         # In most losses you mean over the final axis to achieve a scalar
         # Focal loss however is a special case in that it is meant to focus on
         # a small number of hard examples in a batch. Most of the time this
@@ -97,7 +103,7 @@ class FocalLoss(keras.losses.Loss):
         # If you mean over the final axis you will get a number close to 0,
         # which will encourage your model to exclusively predict background
         # class boxes.
-        return K.sum(loss, axis=-1)
+        return ops.sum(loss, axis=-1)
 
     def get_config(self):
         config = super().get_config()

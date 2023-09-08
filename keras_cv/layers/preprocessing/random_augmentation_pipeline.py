@@ -13,15 +13,16 @@
 # limitations under the License.
 
 import tensorflow as tf
-from tensorflow import keras
 
+from keras_cv.api_export import keras_cv_export
+from keras_cv.backend import keras
 from keras_cv.layers import preprocessing
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+@keras_cv_export("keras_cv.layers.RandomAugmentationPipeline")
 class RandomAugmentationPipeline(BaseImageAugmentationLayer):
     """RandomAugmentationPipeline constructs a pipeline based on provided
     arguments.

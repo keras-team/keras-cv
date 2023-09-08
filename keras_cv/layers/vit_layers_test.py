@@ -11,12 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import numpy as np
 import tensorflow as tf
 
 from keras_cv.layers.vit_layers import PatchingAndEmbedding
+from keras_cv.tests.test_case import TestCase
 
 
-class ViTLayersTest(tf.test.TestCase):
+class ViTLayersTest(TestCase):
     def test_patching_wrong_patch_size(self):
         with self.assertRaisesRegexp(
             ValueError,
@@ -42,11 +44,11 @@ class ViTLayersTest(tf.test.TestCase):
         self.assertEquals(output.shape, [1, 197, 128])
 
     def test_patch_embedding_interpolation(self):
-        inputs = tf.ones([1, 224, 224, 3])
+        inputs = np.ones([1, 224, 224, 3])
         patch_embedding = PatchingAndEmbedding(project_dim=128, patch_size=16)
         patch_embedding.build(inputs.shape)
 
-        positional_embeddings = tf.ones([197, 128])
+        positional_embeddings = np.ones([197, 128])
         (
             output,
             cls,
@@ -59,11 +61,11 @@ class ViTLayersTest(tf.test.TestCase):
         self.assertEquals(output.shape, [1, 1369, 128])
 
     def test_patch_embedding_interpolation_numerical(self):
-        inputs = tf.ones([1, 4, 4, 3])
+        inputs = np.ones([1, 4, 4, 3])
         patch_embedding = PatchingAndEmbedding(project_dim=4, patch_size=1)
         patch_embedding.build(inputs.shape)
 
-        positional_embeddings = tf.ones([17, 4])
+        positional_embeddings = np.ones([17, 4])
         (
             output,
             cls_token,
@@ -72,5 +74,5 @@ class ViTLayersTest(tf.test.TestCase):
         )
 
         self.assertTrue(
-            tf.reduce_all(tf.equal(output, tf.ones([1, 16, 4]))).numpy()
+            tf.reduce_all(tf.equal(output, np.ones([1, 16, 4]))).numpy()
         )

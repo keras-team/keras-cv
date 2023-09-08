@@ -14,13 +14,15 @@
 import tensorflow as tf
 
 from keras_cv.layers.preprocessing.mosaic import Mosaic
+from keras_cv.tests.test_case import TestCase
 
 num_classes = 10
 
 
-class MosaicTest(tf.test.TestCase):
+class MosaicTest(TestCase):
     def test_return_shapes(self):
-        xs = tf.ones((2, 512, 512, 3))
+        input_shape = (2, 512, 512, 3)
+        xs = tf.ones(input_shape)
         # randomly sample labels
         ys_labels = tf.random.categorical(tf.math.log([[0.5, 0.5]]), 2)
         ys_labels = tf.squeeze(ys_labels)
@@ -31,6 +33,9 @@ class MosaicTest(tf.test.TestCase):
             "boxes": tf.random.uniform((2, 3, 4), 0, 1),
             "classes": tf.random.uniform((2, 3), 0, 1),
         }
+        ys_segmentation_masks = tf.cast(
+            2 * tf.random.uniform(input_shape), tf.int32
+        )
         layer = Mosaic(bounding_box_format="xywh")
         # mosaic on labels
         outputs = layer(
@@ -38,18 +43,21 @@ class MosaicTest(tf.test.TestCase):
                 "images": xs,
                 "labels": ys_labels,
                 "bounding_boxes": ys_bounding_boxes,
+                "segmentation_masks": ys_segmentation_masks,
             }
         )
-        xs, ys_labels, ys_bounding_boxes = (
+        xs, ys_labels, ys_bounding_boxes, ys_segmentation_masks = (
             outputs["images"],
             outputs["labels"],
             outputs["bounding_boxes"],
+            outputs["segmentation_masks"],
         )
 
-        self.assertEqual(xs.shape, [2, 512, 512, 3])
+        self.assertEqual(xs.shape, input_shape)
         self.assertEqual(ys_labels.shape, [2, 10])
         self.assertEqual(ys_bounding_boxes["boxes"].shape, [2, None, 4])
         self.assertEqual(ys_bounding_boxes["classes"].shape, [2, None])
+        self.assertEqual(ys_segmentation_masks.shape, input_shape)
 
     def test_in_tf_function(self):
         xs = tf.cast(
@@ -93,16 +101,6 @@ class MosaicTest(tf.test.TestCase):
         layer = Mosaic()
         with self.assertRaisesRegexp(
             ValueError, "Mosaic received a single image to `call`"
-        ):
-            _ = layer(inputs)
-
-    def test_int_labels(self):
-        xs = tf.ones((2, 512, 512, 3))
-        ys = tf.one_hot(tf.constant([1, 0]), 2, dtype=tf.int32)
-        inputs = {"images": xs, "labels": ys}
-        layer = Mosaic()
-        with self.assertRaisesRegexp(
-            ValueError, "Mosaic received labels with type"
         ):
             _ = layer(inputs)
 

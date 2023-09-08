@@ -11,13 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import numpy as np
 import tensorflow as tf
 from absl.testing import parameterized
 
 from keras_cv.layers.preprocessing.solarization import Solarization
+from keras_cv.tests.test_case import TestCase
 
 
-class SolarizationTest(tf.test.TestCase, parameterized.TestCase):
+class SolarizationTest(TestCase):
     @parameterized.named_parameters(
         ("0_255", 0, 255),
         ("64_191", 64, 191),
@@ -32,7 +34,7 @@ class SolarizationTest(tf.test.TestCase, parameterized.TestCase):
             layer=solarization,
             input_value=input_value,
             expected_value=expected_value,
-            dtype=tf.uint8,
+            dtype="uint8",
         )
 
     @parameterized.named_parameters(
@@ -47,7 +49,7 @@ class SolarizationTest(tf.test.TestCase, parameterized.TestCase):
             layer=solarization,
             input_value=input_value,
             expected_value=output_value,
-            dtype=tf.float32,
+            dtype="float32",
         )
 
     @parameterized.named_parameters(
@@ -68,14 +70,14 @@ class SolarizationTest(tf.test.TestCase, parameterized.TestCase):
             layer=solarization,
             input_value=input_value,
             expected_value=output_value,
-            dtype=tf.uint8,
+            dtype="uint8",
         )
 
     def _test_input_output(self, layer, input_value, expected_value, dtype):
-        input = tf.ones(shape=(2, 224, 224, 3), dtype=dtype) * input_value
+        input = np.ones(shape=(2, 224, 224, 3), dtype=dtype) * input_value
         expected_output = tf.clip_by_value(
             (
-                tf.ones(shape=(2, 224, 224, 3), dtype=layer.compute_dtype)
+                np.ones(shape=(2, 224, 224, 3), dtype=layer.compute_dtype)
                 * expected_value
             ),
             0,

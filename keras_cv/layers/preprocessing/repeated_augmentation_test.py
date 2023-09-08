@@ -14,9 +14,10 @@
 import tensorflow as tf
 
 import keras_cv.layers as cv_layers
+from keras_cv.tests.test_case import TestCase
 
 
-class RepeatedAugmentationTest(tf.test.TestCase):
+class RepeatedAugmentationTest(TestCase):
     def test_output_shapes(self):
         repeated_augment = cv_layers.RepeatedAugmentation(
             augmenters=[

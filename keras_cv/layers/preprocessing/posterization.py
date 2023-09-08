@@ -13,15 +13,15 @@
 # limitations under the License.
 
 import tensorflow as tf
-from tensorflow import keras
 
+from keras_cv.api_export import keras_cv_export
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
 from keras_cv.utils.preprocessing import transform_value_range
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+@keras_cv_export("keras_cv.layers.Posterization")
 class Posterization(BaseImageAugmentationLayer):
     """Reduces the number of bits for each color channel.
 

@@ -1,4 +1,8 @@
-Copyright 2022 The KerasCV Authors. All rights reserved.
+Copyright © 2023 The KerasCV Authors
+All code in this repository excluding the code located in
+keras_cv/layers/preprocessing_3d/waymo is licensed under the Apache License,
+Version 2.0. The code appearing in the keras_cv/layers/preprocessing_3d/waymo
+folder is licensed under terms appearing below.
 
                                  Apache License
                            Version 2.0, January 2004
@@ -188,7 +192,7 @@ Copyright 2022 The KerasCV Authors. All rights reserved.
       same "printed page" as the copyright notice for easier
       identification within third-party archives.
 
-   Copyright 2015, The TensorFlow Authors.
+   Copyright 2023 The KerasCV Authors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -201,3 +205,8 @@ Copyright 2022 The KerasCV Authors. All rights reserved.
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
    limitations under the License.
+
+# The following applies only to the code appearing in
+# keras_cv/layers/preprocessing_3d/waymo
+
+License: https://github.com/keras-team/keras-cv/blob/master/keras_cv/layers/preprocessing_3d/waymo/LICENSE

@@ -17,9 +17,10 @@ import tensorflow as tf
 from tensorflow import keras
 
 from keras_cv.models.object_detection.yolox.layers import YoloXHead
+from keras_cv.tests.test_case import TestCase
 
 
-class YoloXHeadTest(tf.test.TestCase):
+class YoloXHeadTest(TestCase):
     def test_num_parameters(self):
         input1 = keras.Input((80, 80, 256))
         input2 = keras.Input((40, 40, 512))

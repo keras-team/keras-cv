@@ -15,16 +15,16 @@
 import warnings
 
 import tensorflow as tf
-from tensorflow import keras
 
 from keras_cv import bounding_box
+from keras_cv.api_export import keras_cv_export
 from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     VectorizedBaseImageAugmentationLayer,
 )
 from keras_cv.utils import preprocessing
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+@keras_cv_export("keras_cv.layers.RandomShear")
 class RandomShear(VectorizedBaseImageAugmentationLayer):
     """A preprocessing layer which randomly shears images.
 
@@ -218,6 +218,33 @@ class RandomShear(VectorizedBaseImageAugmentationLayer):
     def augment_labels(self, labels, transformations, **kwargs):
         return labels
 
+    def augment_segmentation_masks(
+        self, segmentation_masks, transformations, **kwargs
+    ):
+        x, y = transformations["shear_x"], transformations["shear_y"]
+
+        if x is not None:
+            transforms_x = self._build_shear_x_transform_matrix(x)
+            segmentation_masks = preprocessing.transform(
+                images=segmentation_masks,
+                transforms=transforms_x,
+                interpolation="nearest",
+                fill_mode=self.fill_mode,
+                fill_value=self.fill_value,
+            )
+
+        if y is not None:
+            transforms_y = self._build_shear_y_transform_matrix(y)
+            segmentation_masks = preprocessing.transform(
+                images=segmentation_masks,
+                transforms=transforms_y,
+                interpolation="nearest",
+                fill_mode=self.fill_mode,
+                fill_value=self.fill_value,
+            )
+
+        return segmentation_masks
+
     def augment_bounding_boxes(
         self, bounding_boxes, transformations, images=None, **kwargs
     ):
@@ -317,6 +344,11 @@ class RandomShear(VectorizedBaseImageAugmentationLayer):
             dtype=self.compute_dtype,
         )
         return bounding_boxes
+
+    @staticmethod
+    def _format_transform(transform):
+        transform = tf.convert_to_tensor(transform, dtype=tf.float32)
+        return transform[tf.newaxis]
 
     def get_config(self):
         config = super().get_config()

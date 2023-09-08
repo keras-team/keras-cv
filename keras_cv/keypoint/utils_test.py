@@ -12,24 +12,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numpy as np
 import tensorflow as tf
 from absl.testing import parameterized
 
 from keras_cv.keypoint.utils import filter_out_of_image
+from keras_cv.tests.test_case import TestCase
 
 
-class UtilsTestCase(tf.test.TestCase, parameterized.TestCase):
+class UtilsTestCase(TestCase):
     @parameterized.named_parameters(
         (
             "all inside",
-            tf.constant([[10.0, 20.0], [30.0, 40.0], [50.0, 50.0]]),
-            tf.zeros([100, 100, 3]),
+            np.array([[10.0, 20.0], [30.0, 40.0], [50.0, 50.0]]),
+            np.ones([100, 100, 3]),
             tf.ragged.constant([[10.0, 20.0], [30.0, 40.0], [50.0, 50.0]]),
         ),
         (
             "some inside",
-            tf.constant([[10.0, 20.0], [30.0, 40.0], [50.0, 50.0]]),
-            tf.zeros([50, 50, 3]),
+            np.array([[10.0, 20.0], [30.0, 40.0], [50.0, 50.0]]),
+            np.ones([50, 50, 3]),
             tf.ragged.constant([[10.0, 20.0], [30.0, 40.0]]),
         ),
         (
@@ -37,15 +39,15 @@ class UtilsTestCase(tf.test.TestCase, parameterized.TestCase):
             tf.RaggedTensor.from_row_lengths(
                 [[10.0, 20.0], [30.0, 40.0], [50.0, 50.0]], [2, 1]
             ),
-            tf.zeros([50, 50, 3]),
+            np.ones([50, 50, 3]),
             tf.RaggedTensor.from_row_lengths(
                 [[10.0, 20.0], [30.0, 40.0]], [2, 0]
             ),
         ),
         (
             "height - width confusion",
-            tf.constant([[[10.0, 20.0]], [[40.0, 30.0]], [[30.0, 40.0]]]),
-            tf.zeros((50, 40, 3)),
+            np.array([[[10.0, 20.0]], [[40.0, 30.0]], [[30.0, 40.0]]]),
+            np.ones((50, 40, 3)),
             tf.ragged.constant(
                 [[[10.0, 20.0]], [], [[30.0, 40.0]]], ragged_rank=1
             ),

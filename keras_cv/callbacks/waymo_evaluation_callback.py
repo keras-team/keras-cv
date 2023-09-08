@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import tensorflow as tf
-from keras.callbacks import Callback
+from tensorflow.keras.callbacks import Callback
 
+from keras_cv.api_export import keras_cv_export
+from keras_cv.bounding_box_3d import CENTER_XYZ_DXDYDZ_PHI
 from keras_cv.utils import assert_waymo_open_dataset_installed
 
 try:
@@ -26,9 +28,8 @@ try:
 except ImportError:
     WODDetectionEvaluator = None
 
-from keras_cv.bounding_box_3d import CENTER_XYZ_DXDYDZ_PHI
 
-
+@keras_cv_export("keras_cv.callbacks.WaymoEvaluationCallback")
 class WaymoEvaluationCallback(Callback):
     def __init__(self, validation_data, config=None, **kwargs):
         """Creates a callback to evaluate Waymo Open Dataset (WOD) metrics on a

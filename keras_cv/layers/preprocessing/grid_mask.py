@@ -13,10 +13,10 @@
 # limitations under the License.
 
 import tensorflow as tf
-from tensorflow import keras
-from tensorflow.keras import layers
 
 from keras_cv import core
+from keras_cv import layers as cv_layers
+from keras_cv.api_export import keras_cv_export
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
@@ -34,7 +34,7 @@ def _center_crop(mask, width, height):
     return tf.image.crop_to_bounding_box(mask, h_start, w_start, height, width)
 
 
-@keras.utils.register_keras_serializable(package="keras_cv")
+@keras_cv_export("keras_cv.layers.GridMask")
 class GridMask(BaseImageAugmentationLayer):
     """GridMask class for grid-mask augmentation.
 
@@ -118,7 +118,7 @@ class GridMask(BaseImageAugmentationLayer):
         self.fill_mode = fill_mode
         self.fill_value = fill_value
         self.rotation_factor = rotation_factor
-        self.random_rotate = layers.RandomRotation(
+        self.random_rotate = cv_layers.RandomRotation(
             factor=rotation_factor,
             fill_mode="constant",
             fill_value=0.0,

@@ -13,13 +13,13 @@
 # limitations under the License.
 """Tests for KerasCV model utils."""
 
-import tensorflow as tf
-from keras import layers
+from tensorflow.keras import layers
 
 from keras_cv.models import utils
+from keras_cv.tests.test_case import TestCase
 
 
-class ModelUtilTestCase(tf.test.TestCase):
+class ModelUtilTestCase(TestCase):
     def test_parse_model_inputs(self):
         input_shape = (224, 244, 3)
 

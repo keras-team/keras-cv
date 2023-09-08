@@ -12,18 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numpy as np
 import tensorflow as tf
-from absl.testing import parameterized
 
 from keras_cv.layers import preprocessing
+from keras_cv.tests.test_case import TestCase
 
 
-class RandomColorJitterTest(tf.test.TestCase, parameterized.TestCase):
+class RandomColorJitterTest(TestCase):
     # Test 1: Check input and output shape. It should match.
     def test_return_shapes(self):
-        batch_input = tf.ones((2, 512, 512, 3))
-        non_square_batch_input = tf.ones((2, 1024, 512, 3))
-        unbatch_input = tf.ones((512, 512, 3))
+        batch_input = np.ones((2, 512, 512, 3))
+        non_square_batch_input = np.ones((2, 1024, 512, 3))
+        unbatch_input = np.ones((512, 512, 3))
 
         layer = preprocessing.RandomColorJitter(
             value_range=(0, 255),
@@ -57,7 +58,7 @@ class RandomColorJitterTest(tf.test.TestCase, parameterized.TestCase):
 
     # Test 3: Test if it is OK to run on graph mode.
     def test_in_tf_function(self):
-        inputs = tf.ones((2, 512, 512, 3))
+        inputs = np.ones((2, 512, 512, 3))
 
         layer = preprocessing.RandomColorJitter(
             value_range=(0, 255),

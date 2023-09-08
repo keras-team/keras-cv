@@ -15,12 +15,13 @@
 
 import os
 
-from tensorflow import keras
-
+from keras_cv.api_export import keras_cv_export
+from keras_cv.backend import keras
 from keras_cv.utils.python_utils import classproperty
 from keras_cv.utils.python_utils import format_docstring
 
 
+@keras_cv_export("keras_cv.models.Backbone")
 class Backbone(keras.Model):
     """Base class for Backbone models.
 
@@ -48,14 +49,21 @@ class Backbone(keras.Model):
 
     @classproperty
     def presets(cls):
-        """Dictionary of preset names and configurations."""
+        """Dictionary of preset names and configs."""
         return {}
 
     @classproperty
     def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include
-        weights."""
+        """Dictionary of preset names and configs that include weights."""
         return {}
+
+    @classproperty
+    def presets_without_weights(cls):
+        """Dictionary of preset names and configs that don't include weights."""
+        return {
+            preset: cls.presets[preset]
+            for preset in set(cls.presets) - set(cls.presets_with_weights)
+        }
 
     @classmethod
     def from_preset(
@@ -64,8 +72,7 @@ class Backbone(keras.Model):
         load_weights=None,
         **kwargs,
     ):
-        """Instantiate {{model_name}} model from preset architecture and
-        weights.
+        """Instantiate {{model_name}} model from preset config and weights.
 
         Args:
             preset: string. Must be one of "{{preset_names}}".
@@ -158,18 +165,18 @@ class Backbone(keras.Model):
     def pyramid_level_inputs(self):
         """Intermediate model outputs for feature extraction.
 
-        Format is a dictionary with int as key and layer name as value.
-        The int key represent the level of the feature output. A typical feature
-        pyramid has five levels corresponding to scales P3, P4, P5, P6, P7 in
-        the backbone. Scale Pn represents a feature map 2^n times smaller in
-        width and height than the input image.
+        Format is a dictionary with string as key and layer name as value.
+        The string key represents the level of the feature output. A typical
+        feature pyramid has five levels corresponding to scales "P3", "P4",
+        "P5", "P6", "P7" in the backbone. Scale Pn represents a feature map 2^n
+        times smaller in width and height than the input image.
 
         Example:
         ```python
         {
-            3: 'v2_stack_1_block4_out',
-            4: 'v2_stack_2_block6_out',
-            5: 'v2_stack_3_block3_out',
+            'P3': 'v2_stack_1_block4_out',
+            'P4': 'v2_stack_2_block6_out',
+            'P5': 'v2_stack_3_block3_out',
         }
         ```
         """

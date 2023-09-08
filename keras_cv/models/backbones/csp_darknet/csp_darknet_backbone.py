@@ -12,12 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""CSPDarkNet models for KerasCV. """
+"""CSPDarkNet backbone model. """
 import copy
 
-from tensorflow import keras
-from tensorflow.keras import layers
-
+from keras_cv.api_export import keras_cv_export
+from keras_cv.backend import keras
 from keras_cv.models import utils
 from keras_cv.models.backbones.backbone import Backbone
 from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone_presets import (
@@ -42,7 +41,7 @@ from keras_cv.models.backbones.csp_darknet.csp_darknet_utils import (
 from keras_cv.utils.python_utils import classproperty
 
 
-@keras.utils.register_keras_serializable(package="keras_cv.models")
+@keras_cv_export("keras_cv.losses.CSPDarkNetBackbone")
 class CSPDarkNetBackbone(Backbone):
     """This class represents the CSPDarkNet architecture.
 
@@ -64,8 +63,8 @@ class CSPDarkNetBackbone(Backbone):
         use_depthwise: bool, whether a `DarknetConvBlockDepthwise` should be
             used over a `DarknetConvBlock`, defaults to False.
         input_shape: optional shape tuple, defaults to (None, None, 3).
-        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
-            to use as image input for the model.
+        input_tensor: optional Keras tensor (i.e. output of
+            `keras.layers.Input()`) to use as image input for the model.
 
     Returns:
         A `keras.Model` instance.
@@ -111,7 +110,7 @@ class CSPDarkNetBackbone(Backbone):
 
         x = inputs
         if include_rescaling:
-            x = layers.Rescaling(1 / 255.0)(x)
+            x = keras.layers.Rescaling(1 / 255.0)(x)
 
         # stem
         x = Focus(name="stem_focus")(x)
@@ -144,7 +143,9 @@ class CSPDarkNetBackbone(Backbone):
                 residual=(index != len(stackwise_depth) - 1),
                 name=f"dark{index + 2}_csp",
             )(x)
-            pyramid_level_inputs[index + 2] = x.node.layer.name
+            pyramid_level_inputs[f"P{index + 2}"] = utils.get_tensor_input_name(
+                x
+            )
 
         super().__init__(inputs=inputs, outputs=x, **kwargs)
         self.pyramid_level_inputs = pyramid_level_inputs
@@ -179,237 +180,3 @@ class CSPDarkNetBackbone(Backbone):
         """Dictionary of preset names and configurations that include
         weights."""
         return copy.deepcopy(backbone_presets_with_weights)
-
-
-ALIAS_DOCSTRING = """CSPDarkNetBackbone model with {stackwise_channels} channels
-    and {stackwise_depth} depths.
-
-    Reference:
-        - [YoloV4 Paper](https://arxiv.org/abs/1804.02767)
-        - [CSPNet Paper](https://arxiv.org/pdf/1911.11929)
-        - [YoloX Paper](https://arxiv.org/abs/2107.08430)
-
-    For transfer learning use cases, make sure to read the
-    [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
-
-    Args:
-        include_rescaling: bool, whether or not to rescale the inputs. If set to
-            True, inputs will be passed through a `Rescaling(1/255.0)` layer.
-        input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
-            to use as image input for the model.
-        input_shape: optional shape tuple, defaults to (None, None, 3).
-
-    Examples:
-    ```python
-    input_data = tf.ones(shape=(8, 224, 224, 3))
-
-    # Randomly initialized backbone
-    model = CSPDarkNet{name}Backbone()
-    output = model(input_data)
-    ```
-"""  # noqa: E501
-
-
-class CSPDarkNetTinyBackbone(CSPDarkNetBackbone):
-    def __new__(
-        cls,
-        include_rescaling=True,
-        input_shape=(None, None, 3),
-        input_tensor=None,
-        **kwargs,
-    ):
-        # Pack args in kwargs
-        kwargs.update(
-            {
-                "include_rescaling": include_rescaling,
-                "input_shape": input_shape,
-                "input_tensor": input_tensor,
-            }
-        )
-        return CSPDarkNetBackbone.from_preset("csp_darknet_tiny", **kwargs)
-
-    @classproperty
-    def presets(cls):
-        """Dictionary of preset names and configurations."""
-        return {
-            "csp_darknet_tiny_imagenet": copy.deepcopy(
-                backbone_presets["csp_darknet_tiny_imagenet"]
-            )
-        }
-
-    @classproperty
-    def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include
-        weights."""
-        return cls.presets
-
-
-class CSPDarkNetSBackbone(CSPDarkNetBackbone):
-    def __new__(
-        cls,
-        include_rescaling=True,
-        input_shape=(None, None, 3),
-        input_tensor=None,
-        **kwargs,
-    ):
-        # Pack args in kwargs
-        kwargs.update(
-            {
-                "include_rescaling": include_rescaling,
-                "input_shape": input_shape,
-                "input_tensor": input_tensor,
-            }
-        )
-        return CSPDarkNetBackbone.from_preset("csp_darknet_s", **kwargs)
-
-    @classproperty
-    def presets(cls):
-        """Dictionary of preset names and configurations."""
-        return {}
-
-    @classproperty
-    def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include
-        weights."""
-        return {}
-
-
-class CSPDarkNetMBackbone(CSPDarkNetBackbone):
-    def __new__(
-        cls,
-        include_rescaling=True,
-        input_shape=(None, None, 3),
-        input_tensor=None,
-        **kwargs,
-    ):
-        # Pack args in kwargs
-        kwargs.update(
-            {
-                "include_rescaling": include_rescaling,
-                "input_shape": input_shape,
-                "input_tensor": input_tensor,
-            }
-        )
-        return CSPDarkNetBackbone.from_preset("csp_darknet_m", **kwargs)
-
-    @classproperty
-    def presets(cls):
-        """Dictionary of preset names and configurations."""
-        return {}
-
-    @classproperty
-    def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include
-        weights."""
-        return {}
-
-
-class CSPDarkNetLBackbone(CSPDarkNetBackbone):
-    def __new__(
-        cls,
-        include_rescaling=True,
-        input_shape=(None, None, 3),
-        input_tensor=None,
-        **kwargs,
-    ):
-        # Pack args in kwargs
-        kwargs.update(
-            {
-                "include_rescaling": include_rescaling,
-                "input_shape": input_shape,
-                "input_tensor": input_tensor,
-            }
-        )
-        return CSPDarkNetBackbone.from_preset("csp_darknet_l", **kwargs)
-
-    @classproperty
-    def presets(cls):
-        """Dictionary of preset names and configurations."""
-        return {
-            "csp_darknet_l_imagenet": copy.deepcopy(
-                backbone_presets["csp_darknet_l_imagenet"]
-            )
-        }
-
-    @classproperty
-    def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include
-        weights."""
-        return cls.presets
-
-
-class CSPDarkNetXLBackbone(CSPDarkNetBackbone):
-    def __new__(
-        cls,
-        include_rescaling=True,
-        input_shape=(None, None, 3),
-        input_tensor=None,
-        **kwargs,
-    ):
-        # Pack args in kwargs
-        kwargs.update(
-            {
-                "include_rescaling": include_rescaling,
-                "input_shape": input_shape,
-                "input_tensor": input_tensor,
-            }
-        )
-        return CSPDarkNetBackbone.from_preset("csp_darknet_xl", **kwargs)
-
-    @classproperty
-    def presets(cls):
-        """Dictionary of preset names and configurations."""
-        return {}
-
-    @classproperty
-    def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include
-        weights."""
-        return {}
-
-
-setattr(
-    CSPDarkNetTinyBackbone,
-    "__doc__",
-    ALIAS_DOCSTRING.format(
-        name="Tiny",
-        stackwise_channels="[48, 96, 192, 384]",
-        stackwise_depth="[1, 3, 3, 1]",
-    ),
-)
-setattr(
-    CSPDarkNetSBackbone,
-    "__doc__",
-    ALIAS_DOCSTRING.format(
-        name="S",
-        stackwise_channels="[64, 128, 256, 512]",
-        stackwise_depth="[1, 3, 3, 1]",
-    ),
-)
-setattr(
-    CSPDarkNetMBackbone,
-    "__doc__",
-    ALIAS_DOCSTRING.format(
-        name="M",
-        stackwise_channels="[96, 192, 384, 768]",
-        stackwise_depth="[2, 6, 6, 2]",
-    ),
-)
-setattr(
-    CSPDarkNetLBackbone,
-    "__doc__",
-    ALIAS_DOCSTRING.format(
-        name="L",
-        stackwise_channels="[128, 256, 512, 1024]",
-        stackwise_depth="[3, 9, 9, 3]",
-    ),
-)
-setattr(
-    CSPDarkNetXLBackbone,
-    "__doc__",
-    ALIAS_DOCSTRING.format(
-        name="XL",
-        stackwise_channels="[170, 340, 680, 1360]",
-        stackwise_depth="[4, 12, 12, 4]",
-    ),
-)

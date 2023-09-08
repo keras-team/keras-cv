@@ -17,12 +17,12 @@ import math
 import os
 
 import pytest
-import tensorflow as tf
 
 from keras_cv.ops import iou_3d
+from keras_cv.tests.test_case import TestCase
 
 
-class IoU3DTest(tf.test.TestCase):
+class IoU3DTest(TestCase):
     @pytest.mark.skipif(
         "TEST_CUSTOM_OPS" not in os.environ
         or os.environ["TEST_CUSTOM_OPS"] != "true",
@@ -50,7 +50,3 @@ class IoU3DTest(tf.test.TestCase):
         expected_ious = [[1 / 15, 1 / 15], [1, 0.5**0.5]]
 
         self.assertAllClose(iou_3d(box_preds, box_gt), expected_ious)
-
-
-if __name__ == "__main__":
-    tf.test.main()
