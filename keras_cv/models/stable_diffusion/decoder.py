@@ -12,17 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from tensorflow import keras
-
-from keras_cv.models.stable_diffusion.__internal__.layers.attention_block import (  # noqa: E501
+from keras_cv.backend import keras
+from keras_cv.models.stable_diffusion.attention_block import (  # noqa: E501
     AttentionBlock,
 )
-from keras_cv.models.stable_diffusion.__internal__.layers.padded_conv2d import (
-    PaddedConv2D,
-)
-from keras_cv.models.stable_diffusion.__internal__.layers.resnet_block import (
-    ResnetBlock,
-)
+from keras_cv.models.stable_diffusion.padded_conv2d import PaddedConv2D
+from keras_cv.models.stable_diffusion.resnet_block import ResnetBlock
 
 
 class Decoder(keras.Sequential):

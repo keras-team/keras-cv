@@ -16,9 +16,9 @@ import copy
 
 import numpy as np
 
-import keras_cv
 from keras_cv import bounding_box
 from keras_cv import layers as cv_layers
+from keras_cv import losses
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
@@ -53,14 +53,14 @@ class RetinaNet(Task):
     ```python
     images = np.ones((1, 512, 512, 3))
     labels = {
-        "boxes": [
+        "boxes": tf.cast([
             [
                 [0, 0, 100, 100],
                 [100, 100, 200, 200],
                 [300, 300, 100, 100],
             ]
-        ],
-        "classes": [[1, 1, 1]],
+        ], dtype=tf.float32),
+        "classes": tf.cast([[1, 1, 1]], dtype=tf.float32),
     }
     model = keras_cv.models.RetinaNet(
         num_classes=20,
@@ -551,7 +551,7 @@ def _parse_box_loss(loss):
 
     # case insensitive comparison
     if loss.lower() == "smoothl1":
-        return keras_cv.losses.SmoothL1Loss(l1_cutoff=1.0, reduction="sum")
+        return losses.SmoothL1Loss(l1_cutoff=1.0, reduction="sum")
     if loss.lower() == "huber":
         return keras.losses.Huber(reduction="sum")
 
@@ -568,7 +568,7 @@ def _parse_classification_loss(loss):
 
     # case insensitive comparison
     if loss.lower() == "focal":
-        return keras_cv.losses.FocalLoss(from_logits=True, reduction="sum")
+        return losses.FocalLoss(from_logits=True, reduction="sum")
 
     raise ValueError(
         "Expected `classification_loss` to be either a Keras Loss, "

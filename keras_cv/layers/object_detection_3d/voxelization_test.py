@@ -13,24 +13,15 @@
 # limitations under the License.
 
 import tensorflow as tf
-from tensorflow import keras
 
+from keras_cv.backend import keras
 from keras_cv.layers.object_detection_3d.voxelization import DynamicVoxelization
 from keras_cv.tests.test_case import TestCase
 
 
 class VoxelizationTest(TestCase):
-    def get_point_net(self):
-        return keras.Sequential(
-            [
-                keras.layers.Dense(10),
-                keras.layers.Dense(20),
-            ]
-        )
-
     def test_voxelization_output_shape_no_z(self):
         layer = DynamicVoxelization(
-            point_net=self.get_point_net(),
             voxel_size=[0.1, 0.1, 1000],
             spatial_size=[-20, 20, -20, 20, -20, 20],
         )
@@ -50,11 +41,10 @@ class VoxelizationTest(TestCase):
         # (20 - (-20)) / 0.1 = 400, (20 - (-20) ) / 1000 = 0.4
         # the last dimension is replaced with MLP dimension, z dimension is
         # skipped
-        self.assertEqual(output.shape, [1, 400, 400, 20])
+        self.assertEqual(output.shape, (1, 400, 400, 128))
 
     def test_voxelization_output_shape_with_z(self):
         layer = DynamicVoxelization(
-            point_net=self.get_point_net(),
             voxel_size=[0.1, 0.1, 1],
             spatial_size=[-20, 20, -20, 20, -15, 15],
         )
@@ -75,15 +65,18 @@ class VoxelizationTest(TestCase):
         # (15 - (-15)) / 1 = 30
         # the last dimension is replaced with MLP dimension, z dimension is
         # skipped
-        self.assertEqual(output.shape, [1, 400, 400, 30, 20])
+        self.assertEqual(output.shape, (1, 400, 400, 30, 128))
 
     def test_voxelization_numerical(self):
-        point_net = keras.layers.Lambda(lambda x: x)
         layer = DynamicVoxelization(
-            point_net=point_net,
             voxel_size=[1.0, 1.0, 10.0],
             spatial_size=[-5, 5, -5, 5, -2, 2],
         )
+        # Make the point net a no-op to allow us to verify the voxelization.
+        layer.point_net_dense = keras.layers.Identity()
+        # TODO(ianstenbit): use Identity here once it supports masking
+        layer.point_net_norm = keras.layers.Lambda(lambda x: x)
+        layer.point_net_activation = keras.layers.Identity()
         point_xyz = tf.constant(
             [
                 [

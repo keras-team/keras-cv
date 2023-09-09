@@ -11,12 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import copy
 
-import tensorflow as tf
-from tensorflow import keras
-
 from keras_cv.api_export import keras_cv_export
+from keras_cv.backend import keras
+from keras_cv.backend import ops
 from keras_cv.layers.object_detection_3d.heatmap_decoder import HeatmapDecoder
 from keras_cv.models.object_detection_3d.center_pillar_backbone_presets import (
     backbone_presets,
@@ -59,7 +59,7 @@ class MultiHeadCenterPillar(Task):
         point_xyz = keras.layers.Input((None, 3), name="point_xyz")
         point_feature = keras.layers.Input((None, 4), name="point_feature")
         point_mask = keras.layers.Input(
-            (None, 1), name="point_mask", dtype=tf.bool
+            (None, 1), name="point_mask", dtype="bool"
         )
 
         inputs = {
@@ -68,15 +68,21 @@ class MultiHeadCenterPillar(Task):
             "point_mask": point_mask,
         }
 
-        voxel_feature = voxel_net(
-            point_xyz, point_feature, tf.squeeze(point_mask, axis=-1)
-        )
+        voxel_feature = voxel_net(point_xyz, point_feature, point_mask[..., 0])
         voxel_feature = backbone(voxel_feature)
         predictions = multiclass_head(voxel_feature)
 
-        super().__init__(inputs=inputs, outputs=predictions, **kwargs)
+        # A slight hack to get the output names in the model outputs for a
+        # functional model.
+        for head_name in multiclass_head._head_names:
+            predictions[f"box_{head_name}"] = keras.layers.Identity(
+                name=f"box_{head_name}"
+            )(predictions[head_name])
+            predictions[f"heatmap_{head_name}"] = keras.layers.Identity(
+                name=f"heatmap_{head_name}"
+            )(predictions[head_name])
 
-        self._voxelization_layer = voxel_net
+        super().__init__(inputs=inputs, outputs=predictions, **kwargs)
         self._backbone = backbone
         self._multiclass_head = multiclass_head
         self._prediction_decoder = prediction_decoder
@@ -109,14 +115,17 @@ class MultiHeadCenterPillar(Task):
 
         super().compile(loss=losses, **kwargs)
 
-    def compute_loss(self, predictions=None, targets=None):
+    def compute_loss(self, x, y, y_pred, sample_weight=None, **kwargs):
+        predictions = y_pred
+        targets = y
+
         y_pred = {}
         y_true = {}
         sample_weight = {}
 
         for head_name in self._head_names:
             prediction = predictions[head_name]
-            heatmap_pred = tf.nn.softmax(prediction[..., :2])[..., 1]
+            heatmap_pred = ops.softmax(prediction[..., :2])[..., 1]
             box_pred = prediction[..., 2:]
             box = targets[head_name]["boxes"]
             heatmap = targets[head_name]["heatmap"]
@@ -128,20 +137,50 @@ class MultiHeadCenterPillar(Task):
 
             # TODO(ianstenbit): loss heatmap threshold should be configurable.
             box_regression_mask = (
-                tf.gather_nd(heatmap, index, batch_dims=1) >= 0.95
+                ops.take_along_axis(
+                    ops.reshape(heatmap, (heatmap.shape[0], -1)),
+                    index[..., 0] * heatmap.shape[1] + index[..., 1],
+                    axis=1,
+                )
+                > 0.95
             )
-            box = tf.gather_nd(box, index, batch_dims=1)
-            box_pred = tf.gather_nd(box_pred, index, batch_dims=1)
 
-            num_boxes = tf.math.maximum(
-                tf.reduce_sum(tf.cast(box_regression_mask, tf.float32)), 1
+            box = ops.take_along_axis(
+                ops.reshape(box, (ops.shape(box)[0], -1, 7)),
+                ops.expand_dims(
+                    index[..., 0] * ops.shape(box)[1] + index[..., 1], axis=-1
+                ),
+                axis=1,
             )
 
-            sample_weight["box_" + head_name] = (
-                tf.cast(box_regression_mask, tf.float32) / num_boxes
+            box_pred = ops.take_along_axis(
+                ops.reshape(
+                    box_pred,
+                    (ops.shape(box_pred)[0], -1, ops.shape(box_pred)[-1]),
+                ),
+                ops.expand_dims(
+                    index[..., 0] * ops.shape(box_pred)[1] + index[..., 1],
+                    axis=-1,
+                ),
+                axis=1,
             )
-            sample_weight["heatmap_" + head_name] = (
-                tf.ones_like(heatmap) / num_boxes
+
+            box_center_mask = heatmap > 0.99
+            num_boxes = ops.maximum(
+                ops.sum(ops.cast(box_center_mask, "float32"), axis=[1, 2]), 1
+            )
+
+            sample_weight["box_" + head_name] = ops.cast(
+                box_regression_mask, "float32"
+            ) / ops.broadcast_to(
+                ops.expand_dims(num_boxes, axis=-1),
+                ops.shape(box_regression_mask),
+            )
+            sample_weight["heatmap_" + head_name] = ops.ones_like(
+                heatmap
+            ) / ops.broadcast_to(
+                ops.expand_dims(ops.expand_dims(num_boxes, axis=-1), axis=-1),
+                heatmap.shape,
             )
 
             y_pred["box_" + head_name] = box_pred
@@ -151,16 +190,12 @@ class MultiHeadCenterPillar(Task):
             x={}, y=y_true, y_pred=y_pred, sample_weight=sample_weight
         )
 
-    def train_step(self, data):
-        x, y, sample_weight = keras.utils.unpack_x_y_sample_weight(data)
-        with tf.GradientTape() as tape:
-            predictions = self(x, training=True)
-            loss = self.compute_loss(predictions, y)
-        self.optimizer.minimize(loss, self.trainable_variables, tape=tape)
-        return self.compute_metrics({}, {}, {}, sample_weight={})
-
-    def predict_step(self, data):
-        return self._prediction_decoder(super().predict_step(data))
+    def predict_step(self, *args):
+        outputs = super().predict_step(*args)
+        if isinstance(outputs, tuple):
+            return self._prediction_decoder(outputs[0]), outputs[1]
+        else:
+            return self._prediction_decoder(outputs)
 
     @classproperty
     def presets(cls):
@@ -197,7 +232,6 @@ class MultiClassDetectionHead(keras.layers.Layer):
 
         self._heads = {}
         self._head_names = []
-        self._per_class_prediction_size = []
         self._num_classes = num_classes
         self._num_head_bin = num_head_bin
 
@@ -212,7 +246,7 @@ class MultiClassDetectionHead(keras.layers.Layer):
                 name=f"head_{i + 1}",
             )
 
-    def call(self, feature, training):
+    def call(self, feature, training=True):
         del training
         outputs = {}
         for head_name in self._head_names:
@@ -290,16 +324,19 @@ class MultiClassHeatmapDecoder(keras.layers.Layer):
         box_predictions = []
         class_predictions = []
         box_confidence = []
-        for k, v in predictions.items():
-            boxes, classes, confidence = self.decoders[k](v)
+        for class_id in self.class_ids:
+            class_tag = f"class_{class_id}"
+            boxes, classes, confidence = self.decoders[class_tag](
+                predictions[class_tag]
+            )
             box_predictions.append(boxes)
             class_predictions.append(classes)
             box_confidence.append(confidence)
 
         return {
             "3d_boxes": {
-                "boxes": tf.concat(box_predictions, axis=1),
-                "classes": tf.concat(class_predictions, axis=1),
-                "confidence": tf.concat(box_confidence, axis=1),
+                "boxes": ops.concatenate(box_predictions, axis=1),
+                "classes": ops.concatenate(class_predictions, axis=1),
+                "confidence": ops.concatenate(box_confidence, axis=1),
             }
         }

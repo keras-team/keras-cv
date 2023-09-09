@@ -22,6 +22,9 @@ import tensorflow as tf
 from tensorflow import keras
 
 from keras_cv.api_export import keras_cv_export
+from keras_cv.backend import ops
+from keras_cv.backend import scope
+from keras_cv.backend.scope import tf_data
 from keras_cv.layers.object_detection_3d import voxel_utils
 
 # Infinite voxel size.
@@ -54,6 +57,7 @@ def _meshgrid(
     return mesh * voxel_size
 
 
+@tf_data
 def compute_heatmap(
     box_3d: tf.Tensor,
     box_mask: tf.Tensor,
@@ -158,7 +162,7 @@ def compute_heatmap(
         num_box,
         max_num_voxels_per_box,
         _,
-    ) = voxel_utils.combined_static_and_dynamic_shape(point_xyz)
+    ) = ops.shape(point_xyz)
     box_id = tf.range(num_box, dtype=tf.int32)
     box_id = tf.tile(
         box_id[tf.newaxis, :, tf.newaxis],
@@ -243,7 +247,9 @@ def scatter_to_dense_heatmap(
         point_voxel_xyz_i, mask_i, heatmap_i, point_box_id_i = args
         mask_index = tf.where(mask_i)
 
-        point_voxel_xyz_i = tf.gather_nd(point_voxel_xyz_i, mask_index)
+        point_voxel_xyz_i = tf.cast(
+            tf.gather_nd(point_voxel_xyz_i, mask_index), tf.int32
+        )
         heatmap_i = tf.gather_nd(heatmap_i, mask_index)
         point_box_id_i = tf.gather_nd(point_box_id_i, mask_index)
 
@@ -300,6 +306,7 @@ def decode_tensor(
         return tf.stack(t_decoded_list, axis=-1)
 
 
+@tf_data
 def compute_top_k_heatmap_idx(heatmap: tf.Tensor, k: int) -> tf.Tensor:
     """Computes the top_k heatmap indices.
     Args:
@@ -308,7 +315,7 @@ def compute_top_k_heatmap_idx(heatmap: tf.Tensor, k: int) -> tf.Tensor:
     Returns:
       top_k_index: [B, k, 2] for 2 dimensions or [B, k, 3] for 3 dimensions
     """
-    shape = voxel_utils.combined_static_and_dynamic_shape(heatmap)
+    shape = ops.shape(heatmap)
 
     # [B, H*W*Z]
     heatmap_reshape = tf.reshape(heatmap, [shape[0], -1])
@@ -377,80 +384,85 @@ class CenterNetLabelEncoder(keras.layers.Layer):
           Z: number of voxels in z dimension
           k: `top_k_heatmap` slice
         """
-        box_3d = inputs["3d_boxes"]["boxes"]
-        box_mask = inputs["3d_boxes"]["mask"]
-        box_classes = inputs["3d_boxes"]["classes"]
-        # point_xyz - [B, num_boxes * max_num_voxels_per_box, 3]
-        # heatmap - [B, num_boxes * max_num_voxels_per_box]
-        # compute localized heatmap around its radius.
-        point_xyz, point_mask, heatmap, box_id = compute_heatmap(
-            box_3d,
-            box_mask,
-            self._voxel_size,
-            self._max_radius,
-        )
-        # heatmap - [B, H, W, Z]
-        # scatter the localized heatmap to global heatmap in vehicle frame.
-        dense_heatmap, dense_box_id = scatter_to_dense_heatmap(
-            point_xyz,
-            point_mask,
-            box_id,
-            heatmap,
-            self._voxel_size,
-            self._spatial_size,
-        )
-        b, h, w, z = voxel_utils.combined_static_and_dynamic_shape(dense_box_id)
-        # [B, H * W * Z]
-        dense_box_id = tf.reshape(dense_box_id, [b, h * w * z])
-        # mask out invalid boxes to 0, which represents background
-        box_classes = box_classes * tf.cast(box_mask, box_classes.dtype)
-        # [B, H, W, Z]
-        dense_box_classes = tf.reshape(
-            tf.gather(box_classes, dense_box_id, batch_dims=1), [b, h, w, z]
-        )
-        # [B, H, W, Z, 7] in vehicle frame.
-        dense_box_3d = tf.reshape(
-            tf.gather(box_3d, dense_box_id, batch_dims=1), [b, h, w, z, -1]
-        )
-        global_xyz = tf.zeros([b, 3], dtype=point_xyz.dtype)
-        # [B, H, W, Z, 3]
-        feature_map_ref_xyz = voxel_utils.compute_feature_map_ref_xyz(
-            self._voxel_size, self._spatial_size, global_xyz
-        )
-        # convert from global box point xyz to offset w.r.t center of feature
-        # map.
-        # [B, H, W, Z, 3]
-        dense_box_3d_center = dense_box_3d[..., :3] - feature_map_ref_xyz
-        # [B, H, W, Z, 7]
-        dense_box_3d = tf.concat(
-            [dense_box_3d_center, dense_box_3d[..., 3:]], axis=-1
-        )
-
-        centernet_targets = {}
-        for i in range(self._num_classes):
-            # Object class is 1-indexed (0 is background).
-            dense_box_classes_i = tf.cast(
-                tf.math.equal(dense_box_classes, i + 1),
-                dtype=dense_heatmap.dtype,
+        with scope.TFDataScope():
+            box_3d = inputs["3d_boxes"]["boxes"]
+            box_mask = inputs["3d_boxes"]["mask"]
+            box_classes = inputs["3d_boxes"]["classes"]
+            # point_xyz - [B, num_boxes * max_num_voxels_per_box, 3]
+            # heatmap - [B, num_boxes * max_num_voxels_per_box]
+            # compute localized heatmap around its radius.
+            point_xyz, point_mask, heatmap, box_id = compute_heatmap(
+                box_3d,
+                box_mask,
+                self._voxel_size,
+                self._max_radius,
             )
-            dense_heatmap_i = dense_heatmap * dense_box_classes_i
-            dense_box_3d_i = dense_box_3d * dense_box_classes_i[..., tf.newaxis]
-            # Remove z-dimension if this is 2D setup.
-            if self._voxel_size[2] > INF_VOXEL_SIZE:
-                dense_heatmap_i = tf.squeeze(dense_heatmap_i, axis=-1)
-                dense_box_3d_i = tf.squeeze(dense_box_3d_i, axis=-2)
+            # heatmap - [B, H, W, Z]
+            # scatter the localized heatmap to global heatmap in vehicle frame.
+            dense_heatmap, dense_box_id = scatter_to_dense_heatmap(
+                point_xyz,
+                point_mask,
+                box_id,
+                heatmap,
+                self._voxel_size,
+                self._spatial_size,
+            )
+            b, h, w, z = ops.shape(dense_box_id)
+            # [B, H * W * Z]
+            dense_box_id = tf.reshape(dense_box_id, [b, h * w * z])
+            # mask out invalid boxes to 0, which represents background
+            box_classes = box_classes * tf.cast(box_mask, box_classes.dtype)
+            # [B, H, W, Z]
+            dense_box_classes = tf.reshape(
+                tf.gather(box_classes, dense_box_id, batch_dims=1), [b, h, w, z]
+            )
+            # [B, H, W, Z, 7] in vehicle frame.
+            dense_box_3d = tf.reshape(
+                tf.gather(box_3d, dense_box_id, batch_dims=1), [b, h, w, z, -1]
+            )
+            global_xyz = tf.zeros([b, 3], dtype=point_xyz.dtype)
+            # [B, H, W, Z, 3]
+            feature_map_ref_xyz = voxel_utils.compute_feature_map_ref_xyz(
+                self._voxel_size, self._spatial_size, global_xyz
+            )
+            # convert from global box point xyz to offset w.r.t center of
+            # feature map.
+            # [B, H, W, Z, 3]
+            dense_box_3d_center = dense_box_3d[..., :3] - tf.cast(
+                feature_map_ref_xyz, dense_box_3d.dtype
+            )
+            # [B, H, W, Z, 7]
+            dense_box_3d = tf.concat(
+                [dense_box_3d_center, dense_box_3d[..., 3:]], axis=-1
+            )
 
-            top_k_heatmap_feature_idx_i = None
-            if self._top_k_heatmap[i] > 0:
-                top_k_heatmap_feature_idx_i = compute_top_k_heatmap_idx(
-                    dense_heatmap_i, self._top_k_heatmap[i]
+            centernet_targets = {}
+            for i in range(self._num_classes):
+                # Object class is 1-indexed (0 is background).
+                dense_box_classes_i = tf.cast(
+                    tf.math.equal(dense_box_classes, i + 1),
+                    dtype=dense_heatmap.dtype,
                 )
+                dense_heatmap_i = dense_heatmap * dense_box_classes_i
+                dense_box_3d_i = (
+                    dense_box_3d * dense_box_classes_i[..., tf.newaxis]
+                )
+                # Remove z-dimension if this is 2D setup.
+                if self._voxel_size[2] > INF_VOXEL_SIZE:
+                    dense_heatmap_i = tf.squeeze(dense_heatmap_i, axis=-1)
+                    dense_box_3d_i = tf.squeeze(dense_box_3d_i, axis=-2)
 
-            centernet_targets[f"class_{i+1}"] = {
-                "heatmap": dense_heatmap_i,
-                "boxes": dense_box_3d_i,
-                "top_k_index": top_k_heatmap_feature_idx_i,
-            }
+                top_k_heatmap_feature_idx_i = None
+                if self._top_k_heatmap[i] > 0:
+                    top_k_heatmap_feature_idx_i = compute_top_k_heatmap_idx(
+                        dense_heatmap_i, self._top_k_heatmap[i]
+                    )
 
-        inputs.update(centernet_targets)
-        return inputs
+                centernet_targets[f"class_{i+1}"] = {
+                    "heatmap": dense_heatmap_i,
+                    "boxes": dense_box_3d_i,
+                    "top_k_index": top_k_heatmap_feature_idx_i,
+                }
+
+            inputs.update(centernet_targets)
+            return inputs
