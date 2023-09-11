@@ -61,8 +61,9 @@ class TwoWayTransformer(keras.layers.Layer):
             attention layers. Defaults to `2`.
 
     References:
-        - [Segment Anything](https://arxiv.org/abs/2304.02643)
-    """
+        - [Segment Anything paper](https://arxiv.org/abs/2304.02643)
+        - [Segment Anything GitHub](https://github.com/facebookresearch/segment-anything)
+    """  # noqa: E501
 
     def __init__(
         self,

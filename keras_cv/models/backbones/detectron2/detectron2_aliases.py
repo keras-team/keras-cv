@@ -26,7 +26,8 @@ ALIAS_DOCSTRING = """VitDet{size}Backbone model.
 
     Reference:
         - [Detectron2](https://github.com/facebookresearch/detectron2)
-        - [Segment Anything](https://arxiv.org/abs/2304.02643)
+        - [Segment Anything paper](https://arxiv.org/abs/2304.02643)
+        - [Segment Anything GitHub](https://github.com/facebookresearch/segment-anything)
 
     For transfer learning use cases, make sure to read the
     [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).

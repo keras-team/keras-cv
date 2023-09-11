@@ -62,8 +62,9 @@ class SAMMaskDecoder(keras.layers.Layer):
             network. Defaults to `"gelu"`.
 
     References:
-        - [Segment Anything](https://arxiv.org/abs/2304.02643)
-    """
+        - [Segment Anything paper](https://arxiv.org/abs/2304.02643)
+        - [Segment Anything GitHub](https://github.com/facebookresearch/segment-anything)
+    """  # noqa: E501
 
     def __init__(
         self,

@@ -39,7 +39,11 @@ class MultiHeadAttentionWithDownsampling(keras.layers.Layer):
         downsample_rate (int, optional): The factor by which to downscale the
             input features i.e. the input features of size `key_dim` are
             projected down to `key_dim // downsample_rate`.
-    """
+
+    References:
+        - [Segment Anything paper](https://arxiv.org/abs/2304.02643)
+        - [Segment Anything GitHub](https://github.com/facebookresearch/segment-anything)
+    """  # noqa: E501
 
     def __init__(self, num_heads, key_dim, downsample_rate=1, **kwargs):
         super().__init__(**kwargs)
@@ -127,7 +131,11 @@ class TwoWayMultiHeadAttention(keras.layers.Layer):
             in the attention layers. Defaults to 2.
         activation (str, optional): The activation for the mlp block's output
             layer. Defaults to "relu".
-    """
+
+    References:
+        - [Segment Anything paper](https://arxiv.org/abs/2304.02643)
+        - [Segment Anything GitHub](https://github.com/facebookresearch/segment-anything)
+    """  # noqa: E501
 
     def __init__(
         self,
@@ -240,17 +248,22 @@ class TwoWayMultiHeadAttention(keras.layers.Layer):
 
 @keras_cv_export("keras_cv.layers.RandomFrequencyPositionalEmbeddings")
 class RandomFrequencyPositionalEmbeddings(keras.layers.Layer):
+    """Positional encoding using random spatial frequencies.
+
+    This layer maps coordinates/points in 2D space to positional
+    encodings using random spatial frequencies.
+
+    Args:
+        num_positional_features (int): Number of positional features
+            in the output.
+        scale (float): The standard deviation of the random frequencies.
+
+    References:
+        - [Segment Anything paper](https://arxiv.org/abs/2304.02643)
+        - [Segment Anything GitHub](https://github.com/facebookresearch/segment-anything)
+    """  # noqa: E501
+
     def __init__(self, num_positional_features, scale, **kwargs):
-        """Positional encoding using random spatial frequencies.
-
-        This layer maps coordinates/points in 2D space to positional
-        encodings using random spatial frequencies.
-
-        Args:
-            num_positional_features (int): Number of positional features
-                in the output.
-            scale (float): The standard deviation of the random frequencies.
-        """
         super().__init__(**kwargs)
         self.num_positional_features = num_positional_features
         self.scale = scale

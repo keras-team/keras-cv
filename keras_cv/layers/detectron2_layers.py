@@ -30,7 +30,12 @@ class MLP(keras.layers.Layer):
         num_layers (int): The total number of dense layers to use.
         activation (str): Activation to use in the hidden layers.
             Default is `"relu"`.
-    """
+
+    References:
+        - [Segment Anything paper](https://arxiv.org/abs/2304.02643)
+        - [Segment Anything GitHub](https://github.com/facebookresearch/segment-anything)
+        - [Detectron2](https://github.com/facebookresearch/detectron2)
+    """  # noqa: E501
 
     def __init__(
         self, hidden_dim, output_dim, num_layers, activation="relu", **kwargs
@@ -196,7 +201,12 @@ class MultiHeadAttentionWithRelativePE(keras.layers.Layer):
 
     Raises:
         ValueError: When `input_size = None` with `use_rel_pos = True`.
-    """
+
+    References:
+        - [Segment Anything paper](https://arxiv.org/abs/2304.02643)
+        - [Segment Anything GitHub](https://github.com/facebookresearch/segment-anything)
+        - [Detectron2](https://github.com/facebookresearch/detectron2)
+    """  # noqa: E501
 
     def __init__(
         self,
@@ -372,7 +382,12 @@ class WindowedTransformerEncoder(keras.layers.Layer):
             MLP head - should be a function. Defaults to `"gelu"`.
         layer_norm_epsilon (float, optional): The epsilon to use in the layer
             normalization layers. Defaults to `1e-6`.
-    """
+
+    References:
+        - [Segment Anything paper](https://arxiv.org/abs/2304.02643)
+        - [Segment Anything GitHub](https://github.com/facebookresearch/segment-anything)
+        - [Detectron2](https://github.com/facebookresearch/detectron2)
+    """  # noqa: E501
 
     def __init__(
         self,
@@ -481,7 +496,12 @@ class ViTDetPatchingAndEmbedding(keras.layers.Layer):
             Defaults to `(16, 16)`.
         embed_dim (int, optional): Number of filters to use in the
             projection layer i.e. projection size. Defaults to `768`.
-    """
+
+    References:
+        - [Segment Anything paper](https://arxiv.org/abs/2304.02643)
+        - [Segment Anything GitHub](https://github.com/facebookresearch/segment-anything)
+        - [Detectron2](https://github.com/facebookresearch/detectron2)
+    """  # noqa: E501
 
     def __init__(
         self, kernel_size=(16, 16), strides=(16, 16), embed_dim=768, **kwargs

@@ -68,7 +68,12 @@ class ViTDetBackbone(Backbone):
             global attention. Defaults to `[2, 5, 8, 11]`.
         layer_norm_epsilon (int, optional): The epsilon to use in the layer
             normalization blocks in transformer encoder. Defaults to `1e-6`.
-    """
+
+    References:
+        - [Segment Anything paper](https://arxiv.org/abs/2304.02643)
+        - [Segment Anything GitHub](https://github.com/facebookresearch/segment-anything)
+        - [Detectron2](https://github.com/facebookresearch/detectron2)
+    """  # noqa: E501
 
     def __init__(
         self,
