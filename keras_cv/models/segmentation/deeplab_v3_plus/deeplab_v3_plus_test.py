@@ -79,6 +79,7 @@ class DeepLabV3PlusTest(TestCase):
         model = DeepLabV3Plus.from_preset(
             "deeplab_v3_plus_resnet50_pascalvoc",
             num_classes=21,
+            input_shape=[512, 512, 3],
         )
         images = np.random.uniform(size=(2, 512, 512, 3))
         _ = model(images)
