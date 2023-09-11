@@ -14,8 +14,8 @@
 # ==============================================================================
 """Utility functions for models"""
 
-from keras import layers
 from tensorflow import keras
+from tensorflow.keras import layers
 
 
 def parse_model_inputs(input_shape, input_tensor):
