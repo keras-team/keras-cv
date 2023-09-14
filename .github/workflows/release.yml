@@ -3,6 +3,10 @@ name: Release
 on:
   release:
     types: [published]
+
+permissions:
+  contents: read
+
 jobs:
   deploy-with-custom-ops:
     # This job is currently skipped until we cut a release with custom ops.
