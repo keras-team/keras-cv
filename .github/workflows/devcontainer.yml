@@ -11,6 +11,8 @@ on: # rebuild any PRs and main branch changes
       - '.devcontainer/**'
       - 'workflows/**'
 
+permissions:
+  contents: read
 
 jobs:
   build:
