@@ -5,6 +5,10 @@ on:
   pull_request:
   release:
     types: [created]
+
+permissions:
+  contents: read
+
 jobs:
   test:
     name: Test the code with tf.keras
