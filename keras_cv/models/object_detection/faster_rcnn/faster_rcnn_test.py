@@ -12,12 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+
+import numpy as np
 import pytest
 import tensorflow as tf
 from absl.testing import parameterized
 
+import keras_cv
 from keras_cv.backend import keras
-from keras_cv.models import ResNet18V2Backbone
+from keras_cv.backend import ops
+# from keras_cv.models.backbones.test_backbone_presets import (
+#     test_backbone_presets,
+# )
 from keras_cv.models.object_detection.__test_utils__ import (
     _create_bounding_box_dataset,
 )
@@ -26,6 +33,79 @@ from keras_cv.tests.test_case import TestCase
 
 
 class FasterRCNNTest(TestCase):
+    def test_faster_rcnn_construction(self):
+        faster_rcnn = FasterRCNN(
+            num_classes=80,
+            bounding_box_format="xyxy",
+            backbone=keras_cv.models.ResNet18V2Backbone()
+        )
+        faster_rcnn.compile(
+            optimizer=keras.optimizers.Adam(),
+            box_loss="Huber",
+            classification_loss="SparseCategoricalCrossentropy",
+            rpn_box_loss="Huber",
+            rpn_classification_loss="BinaryCrossentropy",
+        )
+
+    @pytest.mark.large  # Fit is slow, so mark these large.
+    def test_faster_rcnn_call(self):
+        faster_rcnn = keras_cv.models.FasterRCNN(
+            num_classes=80,
+            bounding_box_format="xywh",
+            backbone=keras_cv.models.ResNet18V2Backbone(),
+        )
+        images = np.random.uniform(size=(2, 512, 512, 3))
+        _ = faster_rcnn(images)
+        _ = faster_rcnn.predict(images)
+
+    def test_wrong_logits(self):
+        faster_rcnn = keras_cv.models.FasterRCNN(
+            num_classes=80,
+            bounding_box_format="xywh",
+            backbone=keras_cv.models.ResNet18V2Backbone(),
+        )
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "from_logits",
+        ):  
+            faster_rcnn.compile(
+                optimizer=keras.optimizers.SGD(learning_rate=0.25),
+                box_loss=keras_cv.losses.SmoothL1Loss(
+                    l1_cutoff=1.0, reduction="none"
+                ),
+                classification_loss=keras_cv.losses.FocalLoss(
+                    from_logits=False, reduction="none"
+                ),
+                rpn_box_loss=keras_cv.losses.SmoothL1Loss(
+                    l1_cutoff=1.0, reduction="none"
+                ),
+                rpn_classification_loss=keras_cv.losses.FocalLoss(
+                    from_logits=False, reduction="none"
+                ),
+            )
+
+    def test_weights_contained_in_trainable_variables(self):
+        bounding_box_format = "xyxy"
+        faster_rcnn = keras_cv.models.FasterRCNN(
+            num_classes=80,
+            bounding_box_format=bounding_box_format,
+            backbone=keras_cv.models.ResNet18V2Backbone(),
+        )
+        faster_rcnn.backbone.trainable = False
+        faster_rcnn.compile(
+            optimizer=keras.optimizers.Adam(),
+            box_loss="Huber",
+            classification_loss="SparseCategoricalCrossentropy",
+            rpn_box_loss="Huber",
+            rpn_classification_loss="BinaryCrossentropy",
+        )
+        xs, ys = _create_bounding_box_dataset(bounding_box_format)
+
+        # call once
+        _ = faster_rcnn(xs)
+        self.assertEqual(len(faster_rcnn.trainable_variables), 32)
+
     # TODO(ianstenbit): Make FasterRCNN support shapes that are not multiples
     # of 128, perhaps by adding a flag to the anchor generator for whether to
     # include anchors centered outside of the image. (RetinaNet does use those,
@@ -79,7 +159,7 @@ class FasterRCNNTest(TestCase):
                 )
             )
 
-    @pytest.mark.large  # Fit is slow, so mark these large.
+    # @pytest.mark.large  # Fit is slow, so mark these large.
     def test_faster_rcnn_with_dictionary_input_format(self):
         faster_rcnn = FasterRCNN(
             num_classes=20,

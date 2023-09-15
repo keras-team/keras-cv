@@ -24,8 +24,10 @@ from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 from keras_cv.bounding_box.converters import _decode_deltas_to_boxes
-
-# All the imports from legacy
+# from keras_cv.models.backbones.backbone_presets import backbone_presets
+# from keras_cv.models.backbones.backbone_presets import (
+#     backbone_presets_with_weights
+# )
 from keras_cv.bounding_box.utils import _clip_boxes
 from keras_cv.layers.object_detection.anchor_generator import AnchorGenerator
 from keras_cv.layers.object_detection.box_matcher import BoxMatcher
@@ -38,11 +40,10 @@ from keras_cv.models.backbones.backbone_presets import (
     backbone_presets_with_weights,
 )
 from keras_cv.models.object_detection.__internal__ import unpack_input
-from keras_cv.models.object_detection.faster_rcnn.feature_pyramid import (
-    FeaturePyramid,
-)
-from keras_cv.models.object_detection.faster_rcnn.rcnn_head import RCNNHead
-from keras_cv.models.object_detection.faster_rcnn.rpn_head import RPNHead
+from keras_cv.models.object_detection.faster_rcnn import FeaturePyramid
+from keras_cv.models.object_detection.faster_rcnn import RCNNHead
+from keras_cv.models.object_detection.faster_rcnn import RPNHead
+# from keras_cv.models.object_detection.faster_rcnn.faster_rcnn_presets import faster_rcnn_presets
 from keras_cv.models.task import Task
 from keras_cv.utils.python_utils import classproperty
 from keras_cv.utils.train import get_feature_extractor
@@ -56,10 +57,10 @@ class FasterRCNN(Task):
     """A Keras model implementing the FasterRCNN architecture.
 
     Implements the FasterRCNN architecture for object detection. The constructor
-    requires `num_classes`, `bounding_box_format` and a `backbone`.
+    requires `backbone`, `num_classes`, and a `bounding_box_format`.
 
     References:
-        - [FasterRCNN](https://arxiv.org/pdf/1506.01497.pdf)
+        - [FasterRCNN](https://arxiv.org/abs/1506.01497)
 
     Args:
         backbone: `keras.Model`. Must implement the
@@ -260,8 +261,11 @@ class FasterRCNN(Task):
                 box_format=self.bounding_box_format,
                 variance=[0.1, 0.1, 0.2, 0.2],
             )
-
-        return box_pred, cls_pred
+        outputs = {
+            "boxes": box_pred,
+            "classes": cls_pred,
+        }
+        return outputs
 
     # TODO(tanzhenyu): Support compile with metrics.
     def compile(
@@ -344,7 +348,7 @@ class FasterRCNN(Task):
         )
         rpn_cls_weights /= self.rpn_labeler.samples_per_image * local_batch
         rois, feature_map, rpn_box_pred, rpn_cls_pred = self._call_rpn(
-            images, anchors, training=kwargs["training"]
+            images, anchors,
         )
         rois = ops.stop_gradient(rois)
         (
@@ -357,7 +361,7 @@ class FasterRCNN(Task):
         box_weights /= self.roi_sampler.num_sampled_rois * local_batch * 0.25
         cls_weights /= self.roi_sampler.num_sampled_rois * local_batch
         box_pred, cls_pred = self._call_rcnn(
-            rois, feature_map, training=kwargs["training"]
+            rois, feature_map,
         )
         y_true = {
             "rpn_box": rpn_box_targets,
@@ -411,7 +415,7 @@ class FasterRCNN(Task):
 
     def decode_predictions(self, predictions, images):
         # no-op if default decoder is used.
-        box_pred, scores_pred = predictions
+        box_pred, scores_pred = predictions["boxes"], predictions["classes"]
         box_pred = bounding_box.convert_format(
             box_pred,
             source=self.bounding_box_format,

@@ -23,7 +23,7 @@ from tensorflow import keras
 from keras_cv import bounding_box
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import assert_tf_keras
-
+from keras_cv.backend import ops
 
 @keras_cv_export("keras_cv.layers.ROIGenerator")
 class ROIGenerator(keras.layers.Layer):
@@ -148,7 +148,7 @@ class ROIGenerator(keras.layers.Layer):
             # scores can also be [batch_size, num_boxes, 1]
             if len(scores_shape) == 3:
                 scores = tf.squeeze(scores, axis=-1)
-            _, num_boxes = scores.get_shape().as_list()
+            num_boxes = ops.shape(boxes)[1]
             level_pre_nms_topk = min(num_boxes, pre_nms_topk)
             level_post_nms_topk = min(num_boxes, post_nms_topk)
             scores, sorted_indices = tf.nn.top_k(
