@@ -75,15 +75,16 @@ class DeepLabV3PlusTest(TestCase):
             self.assertFalse(ops.any(ops.isnan(w2)))
 
     @pytest.mark.large
-    def test_with_model_preset(self):
+    def test_with_model_preset_forward_pass(self):
         model = DeepLabV3Plus.from_preset(
             "deeplab_v3_plus_resnet50_pascalvoc",
             num_classes=21,
             input_shape=[512, 512, 3],
         )
-        images = np.random.uniform(size=(2, 512, 512, 3))
-        _ = model(images)
-        _ = model.predict(images)
+        image = np.ones((1, 512, 512, 3))
+        output = model(image)
+        expected_output = np.zeros((1, 512, 512, 3))
+        self.assert_all_close(output, expected_output)
 
     @parameterized.named_parameters(
         ("tf_format", "tf", "model"),
