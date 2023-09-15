@@ -16,7 +16,6 @@ from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 from keras_cv.layers.detectron2_layers import MLP
-from keras_cv.layers.serializable_sequential import SerializableSequential
 from keras_cv.models.segmentation.segment_anything.sam_transformer import (
     TwoWayTransformer,
 )
@@ -93,7 +92,7 @@ class SAMMaskDecoder(keras.layers.Layer):
             self.num_mask_tokens, transformer_dim
         )
 
-        self.output_upscaling = SerializableSequential(
+        self.output_upscaling = keras.models.Sequential(
             [
                 keras.layers.Conv2DTranspose(
                     transformer_dim // 4, kernel_size=2, strides=2

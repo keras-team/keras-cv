@@ -15,7 +15,6 @@
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
-from keras_cv.layers.serializable_sequential import SerializableSequential
 from keras_cv.models.segmentation.segment_anything.sam_layers import (
     RandomFrequencyPositionalEmbeddings,
 )
@@ -107,7 +106,7 @@ class SAMPromptEncoder(keras.layers.Layer):
             1, embed_dim, name="not_a_point_embed"
         )
 
-        self.mask_downscaler = SerializableSequential(
+        self.mask_downscaler = keras.models.Sequential(
             [
                 keras.layers.Conv2D(
                     mask_in_chans // 4, kernel_size=2, strides=2

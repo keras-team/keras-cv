@@ -17,7 +17,6 @@ import numpy as np
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
-from keras_cv.layers.serializable_sequential import SerializableSequential
 
 
 class MLP(keras.layers.Layer):
@@ -51,7 +50,7 @@ class MLP(keras.layers.Layer):
             self.dense_net.append(keras.layers.Dense(hidden_dim))
             self.dense_net.append(keras.layers.Activation(activation))
         self.dense_net.append(keras.layers.Dense(output_dim))
-        self.dense_net = SerializableSequential(self.dense_net)
+        self.dense_net = keras.models.Sequential(self.dense_net)
 
     def build(self, input_shape):
         self.dense_net.build(input_shape)
