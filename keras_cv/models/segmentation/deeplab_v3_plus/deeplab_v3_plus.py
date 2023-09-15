@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import copy
-import os
 
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
