@@ -82,6 +82,7 @@ class Task(keras.Model):
         cls,
         preset,
         load_weights=None,
+        input_shape=None,
         **kwargs,
     ):
         """Instantiate {{model_name}} model from preset config and weights.
@@ -93,6 +94,8 @@ class Task(keras.Model):
             load_weights: Whether to load pre-trained weights into model.
                 Defaults to `None`, which follows whether the preset has
                 pretrained weights available.
+            input_shape : input shape that will be passed to backbone
+                initialization, Defaults to `None`.
 
         Examples:
         ```python
@@ -138,6 +141,8 @@ class Task(keras.Model):
 
         # Otherwise must be one of class presets
         config = metadata["config"]
+        if input_shape is not None:
+            config["backbone"]["config"]["input_shape"] = input_shape
         model = cls.from_config({**config, **kwargs})
 
         if preset not in cls.presets_with_weights or load_weights is False:
