@@ -13,9 +13,10 @@
 # limitations under the License.
 
 from typing import Mapping
-
+import tree
+import numpy as np # Used for newaxis
+# TODO (ariG23498): remove tf and correct the type imports
 import tensorflow as tf
-from tensorflow import keras
 
 from keras_cv import bounding_box
 from keras_cv.backend import assert_tf_keras
@@ -23,6 +24,8 @@ from keras_cv.bounding_box import iou
 from keras_cv.layers.object_detection import box_matcher
 from keras_cv.layers.object_detection import sampling
 from keras_cv.utils import target_gather
+from keras_cv.backend import ops
+from keras_cv.backend import keras
 
 
 @keras.utils.register_keras_serializable(package="keras_cv")
@@ -112,7 +115,7 @@ class _RpnLabelEncoder(keras.layers.Layer):
         anchors = anchors_dict
         if isinstance(anchors, dict):
             pack = True
-            anchors = tf.concat(tf.nest.flatten(anchors), axis=0)
+            anchors = ops.concatenate(tree.flatten(anchors), axis=0)
         anchors = bounding_box.convert_format(
             anchors, source=self.anchor_format, target="yxyx"
         )
@@ -126,14 +129,14 @@ class _RpnLabelEncoder(keras.layers.Layer):
         # [num_anchors] or [batch_size, num_anchors]
         matched_gt_indices, matched_vals = self.box_matcher(similarity_mat)
         # [num_anchors] or [batch_size, num_anchors]
-        positive_matches = tf.math.equal(matched_vals, 1)
+        positive_matches = ops.equal(matched_vals, 1)
         # currently SyncOnReadVariable does not support `assign_add` in
         # cross-replica.
         #    self._positives.update_state(
         #        tf.reduce_sum(tf.cast(positive_matches, tf.float32), axis=-1)
         #    )
 
-        negative_matches = tf.math.equal(matched_vals, -1)
+        negative_matches = ops.equal(matched_vals, -1)
         # [num_anchors, 4] or [batch_size, num_anchors, 4]
         matched_gt_boxes = target_gather._target_gather(
             gt_boxes, matched_gt_indices
@@ -148,18 +151,18 @@ class _RpnLabelEncoder(keras.layers.Layer):
             variance=self.box_variance,
         )
         # [num_anchors, 1] or [batch_size, num_anchors, 1]
-        box_sample_weights = tf.cast(
-            positive_matches[..., tf.newaxis], gt_boxes.dtype
+        box_sample_weights = ops.cast(
+            positive_matches[..., np.newaxis], gt_boxes.dtype
         )
 
         # [num_anchors, 1] or [batch_size, num_anchors, 1]
-        positive_mask = tf.expand_dims(positive_matches, axis=-1)
+        positive_mask = ops.expand_dims(positive_matches, axis=-1)
         # set all negative and ignored matches to 0, and all positive matches to
         # 1 [num_anchors, 1] or [batch_size, num_anchors, 1]
-        positive_classes = tf.ones_like(positive_mask, dtype=gt_classes.dtype)
-        negative_classes = tf.zeros_like(positive_mask, dtype=gt_classes.dtype)
+        positive_classes = ops.ones_like(positive_mask, dtype=gt_classes.dtype)
+        negative_classes = ops.zeros_like(positive_mask, dtype=gt_classes.dtype)
         # [num_anchors, 1] or [batch_size, num_anchors, 1]
-        class_targets = tf.where(
+        class_targets = ops.where(
             positive_mask, positive_classes, negative_classes
         )
         # [num_anchors] or [batch_size, num_anchors]
@@ -170,8 +173,8 @@ class _RpnLabelEncoder(keras.layers.Layer):
             self.positive_fraction,
         )
         # [num_anchors, 1] or [batch_size, num_anchors, 1]
-        class_sample_weights = tf.cast(
-            sampled_indicators[..., tf.newaxis], gt_classes.dtype
+        class_sample_weights = ops.cast(
+            sampled_indicators[..., np.newaxis], gt_classes.dtype
         )
         if pack:
             encoded_box_targets = self.unpack_targets(
