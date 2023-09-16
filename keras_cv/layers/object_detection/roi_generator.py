@@ -25,6 +25,7 @@ from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import assert_tf_keras
 from keras_cv.backend import ops
 
+
 @keras_cv_export("keras_cv.layers.ROIGenerator")
 class ROIGenerator(keras.layers.Layer):
     """

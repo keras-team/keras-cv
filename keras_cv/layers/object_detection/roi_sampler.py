@@ -12,19 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numpy as np  # used for newaxis
+
 # TODO (ariG23498): remove tf and correct the type imports
 import tensorflow as tf
 
-import numpy as np # used for newaxis
-
 from keras_cv import bounding_box
 from keras_cv.backend import assert_tf_keras
+from keras_cv.backend import keras
+from keras_cv.backend import ops
 from keras_cv.bounding_box import iou
 from keras_cv.layers.object_detection import box_matcher
 from keras_cv.layers.object_detection import sampling
 from keras_cv.utils import target_gather
-from keras_cv.backend import ops
-from keras_cv.backend import keras
 
 
 @keras.utils.register_keras_serializable(package="keras_cv")

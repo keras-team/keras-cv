@@ -22,8 +22,8 @@ import tensorflow as tf
 
 from keras_cv import bounding_box
 from keras_cv.backend import assert_tf_keras
-from keras_cv.backend import ops
 from keras_cv.backend import keras
+from keras_cv.backend import ops
 
 
 def _feature_bilinear_interpolation(
@@ -60,8 +60,12 @@ def _feature_bilinear_interpolation(
     )
 
     output_size = output_size // 2
-    kernel_y = ops.reshape(kernel_y, [batch_size, num_boxes, output_size * 2, 1])
-    kernel_x = ops.reshape(kernel_x, [batch_size, num_boxes, 1, output_size * 2])
+    kernel_y = ops.reshape(
+        kernel_y, [batch_size, num_boxes, output_size * 2, 1]
+    )
+    kernel_x = ops.reshape(
+        kernel_x, [batch_size, num_boxes, 1, output_size * 2]
+    )
     # Use implicit broadcast to generate the interpolation kernel. The
     # multiplier `4` is for avg pooling.
     interpolation_kernel = kernel_y * kernel_x * 4
@@ -74,7 +78,9 @@ def _feature_bilinear_interpolation(
         features,
         [batch_size * num_boxes, output_size * 2, output_size * 2, num_filters],
     )
-    features = ops.nn.average_pool(features, [1, 2, 2, 1], [1, 2, 2, 1], "VALID")
+    features = ops.nn.average_pool(
+        features, [1, 2, 2, 1], [1, 2, 2, 1], "VALID"
+    )
     features = ops.reshape(
         features, [batch_size, num_boxes, output_size, output_size, num_filters]
     )
@@ -128,8 +134,12 @@ def _compute_grid_positions(
 
     box_grid_y0 = ops.floor(box_grid_y)
     box_grid_x0 = ops.floor(box_grid_x)
-    box_grid_x0 = ops.maximum(ops.cast(0.0, dtype=box_grid_x0.dtype), box_grid_x0)
-    box_grid_y0 = ops.maximum(ops.cast(0.0, dtype=box_grid_y0.dtype), box_grid_y0)
+    box_grid_x0 = ops.maximum(
+        ops.cast(0.0, dtype=box_grid_x0.dtype), box_grid_x0
+    )
+    box_grid_y0 = ops.maximum(
+        ops.cast(0.0, dtype=box_grid_y0.dtype), box_grid_y0
+    )
 
     box_grid_x0 = ops.minimum(
         box_grid_x0, ops.expand_dims(boundaries[:, :, 1], -1)
@@ -226,9 +236,13 @@ def multilevel_crop_and_resize(
             # Concat tensor of [batch_size, height_l * width_l, num_filters] for
             # each level.
             features_all.append(
-                ops.reshape(features[f"P{level}"], [batch_size, -1, num_filters])
+                ops.reshape(
+                    features[f"P{level}"], [batch_size, -1, num_filters]
+                )
             )
-        features_r2 = ops.reshape(ops.concatenate(features_all, 1), [-1, num_filters])
+        features_r2 = ops.reshape(
+            ops.concatenate(features_all, 1), [-1, num_filters]
+        )
 
         # Calculate height_l * width_l for each level.
         level_dim_sizes = [
@@ -253,7 +267,9 @@ def multilevel_crop_and_resize(
         # following the FPN paper to divide by 224.
         levels = ops.cast(
             ops.numpy.floor_divide(
-                ops.numpy.log(ops.numpy.divide(areas_sqrt, 224.0)), # tf.math.divide_no_nan
+                ops.numpy.log(
+                    ops.numpy.divide(areas_sqrt, 224.0)
+                ),  # tf.math.divide_no_nan
                 ops.numpy.log(2.0),
             )
             + 4.0,
@@ -264,7 +280,9 @@ def multilevel_crop_and_resize(
 
         # Projects box location and sizes to corresponding feature levels.
         scale_to_level = ops.cast(
-            ops.numpy.power(keras.backend.constant(2.0), ops.cast(levels, "float32")),
+            ops.numpy.power(
+                keras.backend.constant(2.0), ops.cast(levels, "float32")
+            ),
             dtype=boxes.dtype,
         )
         boxes /= ops.expand_dims(scale_to_level, axis=2)
@@ -337,7 +355,9 @@ def multilevel_crop_and_resize(
         y_indices_offset = ops.tile(
             ops.reshape(
                 y_indices
-                * ops.expand_dims(keras.backend.gather(height_dim_sizes, levels), -1),
+                * ops.expand_dims(
+                    keras.backend.gather(height_dim_sizes, levels), -1
+                ),
                 [batch_size, num_boxes, output_size * 2, 1],
             ),
             [1, 1, 1, output_size * 2],

@@ -19,10 +19,12 @@ from absl import logging
 
 from keras_cv import bounding_box
 from keras_cv import layers as cv_layers
+from keras_cv import models
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 from keras_cv.bounding_box.converters import _decode_deltas_to_boxes
+
 # from keras_cv.models.backbones.backbone_presets import backbone_presets
 # from keras_cv.models.backbones.backbone_presets import (
 #     backbone_presets_with_weights
@@ -42,6 +44,7 @@ from keras_cv.models.object_detection.__internal__ import unpack_input
 from keras_cv.models.object_detection.faster_rcnn import FeaturePyramid
 from keras_cv.models.object_detection.faster_rcnn import RCNNHead
 from keras_cv.models.object_detection.faster_rcnn import RPNHead
+
 # from keras_cv.models.object_detection.faster_rcnn.faster_rcnn_presets import faster_rcnn_presets
 from keras_cv.models.task import Task
 from keras_cv.utils.python_utils import classproperty
@@ -140,8 +143,10 @@ class FasterRCNN(Task):
         label_encoder=None,
         rcnn_head=None,
         prediction_decoder=None,
+        feature_pyramid=None,
         **kwargs,
     ):
+        self.num_classes = num_classes
         self.bounding_box_format = bounding_box_format
         super().__init__(**kwargs)
         scales = [2**x for x in [0]]
@@ -187,7 +192,7 @@ class FasterRCNN(Task):
         self.feature_extractor = get_feature_extractor(
             self.backbone, extractor_layer_names, extractor_levels
         )
-        self.feature_pyramid = FeaturePyramid()
+        self.feature_pyramid = feature_pyramid or FeaturePyramid()
         self.rpn_labeler = label_encoder or _RpnLabelEncoder(
             anchor_format="yxyx",
             ground_truth_box_format="yxyx",
@@ -347,7 +352,8 @@ class FasterRCNN(Task):
         )
         rpn_cls_weights /= self.rpn_labeler.samples_per_image * local_batch
         rois, feature_map, rpn_box_pred, rpn_cls_pred = self._call_rpn(
-            images, anchors,
+            images,
+            anchors,
         )
         rois = ops.stop_gradient(rois)
         (
@@ -360,7 +366,8 @@ class FasterRCNN(Task):
         box_weights /= self.roi_sampler.num_sampled_rois * local_batch * 0.25
         cls_weights /= self.roi_sampler.num_sampled_rois * local_batch
         box_pred, cls_pred = self._call_rcnn(
-            rois, feature_map,
+            rois,
+            feature_map,
         )
         y_true = {
             "rpn_box": rpn_box_targets,
@@ -435,13 +442,53 @@ class FasterRCNN(Task):
         return {
             "num_classes": self.num_classes,
             "bounding_box_format": self.bounding_box_format,
-            "backbone": self.backbone,
-            "anchor_generator": self.anchor_generator,
-            "label_encoder": self.rpn_labeler,
-            "prediction_decoder": self._prediction_decoder,
-            "feature_pyramid": self.feature_pyramid,
-            "rcnn_head": self.rcnn_head,
+            "backbone": keras.saving.serialize_keras_object(self.backbone),
+            "anchor_generator": keras.saving.serialize_keras_object(
+                self.anchor_generator
+            ),
+            "label_encoder": keras.saving.serialize_keras_object(
+                self.rpn_labeler
+            ),
+            "prediction_decoder": keras.saving.serialize_keras_object(
+                self._prediction_decoder
+            ),
+            "feature_pyramid": keras.saving.serialize_keras_object(
+                self.feature_pyramid
+            ),
+            "rcnn_head": keras.saving.serialize_keras_object(self.rcnn_head),
         }
+
+    @classmethod
+    def from_config(cls, config):
+        if "rcnn_head" in config and isinstance(config["rcnn_head"], dict):
+            config["rcnn_head"] = keras.layers.deserialize(config["rcnn_head"])
+        if "feature_pyramid" in config and isinstance(
+            config["feature_pyramid"], dict
+        ):
+            config["feature_pyramid"] = keras.layers.deserialize(
+                config["feature_pyramid"]
+            )
+        if "prediction_decoder" in config and isinstance(
+            config["prediction_decoder"], dict
+        ):
+            config["prediction_decoder"] = keras.layers.deserialize(
+                config["prediction_decoder"]
+            )
+        if "label_encoder" in config and isinstance(
+            config["label_encoder"], dict
+        ):
+            config["label_encoder"] = keras.layers.deserialize(
+                config["label_encoder"]
+            )
+        if "anchor_generator" in config and isinstance(
+            config["anchor_generator"], dict
+        ):
+            config["anchor_generator"] = keras.layers.deserialize(
+                config["anchor_generator"]
+            )
+        if "backbone" in config and isinstance(config["backbone"], dict):
+            config["backbone"] = keras.layers.deserialize(config["backbone"])
+        return super().from_config(config)
 
     @classproperty
     def presets(cls):
