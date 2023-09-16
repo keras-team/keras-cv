@@ -26,8 +26,10 @@ from keras_cv.backend import ops
 class RPNHead(keras.layers.Layer):
     """A Keras layer implementing the RPN architecture.
 
-    Region Proposal Networks (RPN) was first suggested in [FasterRCNN](https://arxiv.org/abs/1506.01497).
-    This is an end to end trainable layer which proposes regions for a detector (RCNN).
+    Region Proposal Networks (RPN) was first suggested in
+    [FasterRCNN](https://arxiv.org/abs/1506.01497).
+    This is an end to end trainable layer which proposes regions
+    for a detector (RCNN).
 
     Args:
         num_achors_per_location: The number of anchors per location.

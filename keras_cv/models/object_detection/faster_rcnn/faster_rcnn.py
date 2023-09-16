@@ -45,7 +45,9 @@ from keras_cv.models.object_detection.faster_rcnn import FeaturePyramid
 from keras_cv.models.object_detection.faster_rcnn import RCNNHead
 from keras_cv.models.object_detection.faster_rcnn import RPNHead
 
-# from keras_cv.models.object_detection.faster_rcnn.faster_rcnn_presets import faster_rcnn_presets
+# from keras_cv.models.object_detection.faster_rcnn.faster_rcnn_presets import (
+#     faster_rcnn_presets
+# )
 from keras_cv.models.task import Task
 from keras_cv.utils.python_utils import classproperty
 from keras_cv.utils.train import get_feature_extractor
