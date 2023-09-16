@@ -17,7 +17,6 @@ import copy
 import tree
 from absl import logging
 
-import keras_cv
 from keras_cv import bounding_box
 from keras_cv import layers as cv_layers
 from keras_cv.api_export import keras_cv_export
@@ -180,7 +179,7 @@ class FasterRCNN(Task):
         )
         self.roi_pooler = _ROIAligner(bounding_box_format="yxyx")
         self.rcnn_head = rcnn_head or RCNNHead(num_classes)
-        self.backbone = backbone or keras_cv.models.ResNet50Backbone()
+        self.backbone = backbone or models.ResNet50Backbone()
         extractor_levels = ["P2", "P3", "P4", "P5"]
         extractor_layer_names = [
             self.backbone.pyramid_level_inputs[i] for i in extractor_levels

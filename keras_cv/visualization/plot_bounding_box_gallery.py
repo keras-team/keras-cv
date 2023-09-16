@@ -16,11 +16,11 @@ import functools
 
 import numpy as np
 
-import keras_cv
-import keras_cv.visualization.draw_bounding_boxes
+from keras_cv import bounding_box
 from keras_cv import utils
 from keras_cv.utils import assert_cv2_installed
 from keras_cv.utils import assert_matplotlib_installed
+from keras_cv.visualization.draw_bounding_boxes import draw_bounding_boxes
 from keras_cv.visualization.plot_image_gallery import plot_image_gallery
 
 try:
@@ -125,7 +125,7 @@ def plot_bounding_box_gallery(
     plotted_images = utils.to_numpy(images)
 
     draw_fn = functools.partial(
-        keras_cv.visualization.draw_bounding_boxes.draw_bounding_boxes,
+        draw_bounding_boxes,
         bounding_box_format="xyxy",
         line_thickness=line_thickness,
         text_thickness=text_thickness,
@@ -136,7 +136,7 @@ def plot_bounding_box_gallery(
         y_true = y_true.copy()
         y_true["boxes"] = utils.to_numpy(y_true["boxes"])
         y_true["classes"] = utils.to_numpy(y_true["classes"])
-        y_true = keras_cv.bounding_box.convert_format(
+        y_true = bounding_box.convert_format(
             y_true, images=images, source=bounding_box_format, target="xyxy"
         )
         plotted_images = draw_fn(
@@ -150,7 +150,7 @@ def plot_bounding_box_gallery(
         y_pred = y_pred.copy()
         y_pred["boxes"] = utils.to_numpy(y_pred["boxes"])
         y_pred["classes"] = utils.to_numpy(y_pred["classes"])
-        y_pred = keras_cv.bounding_box.convert_format(
+        y_pred = bounding_box.convert_format(
             y_pred, images=images, source=bounding_box_format, target="xyxy"
         )
         plotted_images = draw_fn(
