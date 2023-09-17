@@ -17,10 +17,13 @@ import math
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
-from keras_cv.layers.detectron2_layers import MLP
+from keras_cv.layers.vit_det_layers import MLP
 
 
-@keras_cv_export("keras_cv.layers.MultiHeadAttentionWithDownsampling")
+@keras_cv_export(
+    "keras_cv.layers.MultiHeadAttentionWithDownsampling",
+    package="keras_cv.layers",
+)
 class MultiHeadAttentionWithDownsampling(keras.layers.Layer):
     """Multi-Head Attention with downsampling.
 
@@ -116,7 +119,9 @@ class MultiHeadAttentionWithDownsampling(keras.layers.Layer):
         return config
 
 
-@keras_cv_export("keras_cv.layers.TwoWayMultiHeadAttention")
+@keras_cv_export(
+    "keras_cv.layers.TwoWayMultiHeadAttention", package="keras_cv.layers"
+)
 class TwoWayMultiHeadAttention(keras.layers.Layer):
     """Two-way multi-head attention layer.
 
@@ -246,7 +251,10 @@ class TwoWayMultiHeadAttention(keras.layers.Layer):
         return config
 
 
-@keras_cv_export("keras_cv.layers.RandomFrequencyPositionalEmbeddings")
+@keras_cv_export(
+    "keras_cv.layers.RandomFrequencyPositionalEmbeddings",
+    package="keras_cv.layers",
+)
 class RandomFrequencyPositionalEmbeddings(keras.layers.Layer):
     """Positional encoding using random spatial frequencies.
 

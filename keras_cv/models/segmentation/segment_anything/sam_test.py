@@ -14,6 +14,7 @@
 
 import itertools
 import os
+import pathlib
 
 import numpy as np
 import pytest
@@ -21,9 +22,7 @@ from absl.testing import parameterized
 
 from keras_cv.backend import keras
 from keras_cv.backend import ops
-from keras_cv.models.backbones.detectron2.detectron2_aliases import (
-    ViTDetBBackbone,
-)
+from keras_cv.models.backbones.vit_det.vit_det_aliases import ViTDetBBackbone
 from keras_cv.models.segmentation.segment_anything.sam import (
     SegmentAnythingModel,
 )
@@ -311,7 +310,43 @@ class SAMTest(TestCase):
         restored_outputs = restored_model(inputs)
         self.assertAllClose(outputs, restored_outputs)
 
-    def test_model_fit_error(self):
+    @pytest.mark.large
+    def test_end_to_end_model_preset(self):
+        # Define the RNG. Don't change the seed. This seed
+        # was used to generate the inputs for the reference
+        # values.
+        rng = np.random.default_rng(0)
+
+        # Generate the inputs
+        inputs = {
+            "images": 255.0 * rng.random((1, 1024, 1024, 3), dtype=np.float32),
+            "points": np.array(
+                [[[10, 10], [100, 100], [500, 500]]], dtype=np.float32
+            ),
+            "labels": np.array([[0, 1, 0]], dtype=np.float32),
+            "box": np.array(
+                [[[[10.0, 10.0], [100.0, 100.0]]]], dtype=np.float32
+            ),
+            "mask": (rng.random((1, 1, 256, 256, 1)) > 0.5).astype(np.float32),
+        }
+
+        # Run the model
+        model = SegmentAnythingModel.from_preset("sam_base_sa1b")
+        outs = model.predict(inputs)
+
+        # Make sure the weights have been loaded correctly.
+        masks_expected = np.load(
+            pathlib.Path(__file__).parent / "data" / "sam_base_out_masks.npy"
+        )
+        iou_pred_expected = np.load(
+            pathlib.Path(__file__).parent / "data" / "sam_base_out_iou_pred.npy"
+        )
+        self.assertAllClose(outs["masks"], masks_expected, atol=1e-2, rtol=1e-2)
+        self.assertAllClose(
+            outs["iou_pred"], iou_pred_expected, atol=1e-2, rtol=1e-2
+        )
+
+    def test_end_to_end_model_fit_error(self):
         # Build the model
         model = SegmentAnythingModel(
             backbone=self.image_encoder,

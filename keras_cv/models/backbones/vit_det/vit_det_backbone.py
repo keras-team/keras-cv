@@ -16,18 +16,21 @@ import copy
 
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
-from keras_cv.layers.detectron2_layers import AddPositionalEmbedding
-from keras_cv.layers.detectron2_layers import ViTDetPatchingAndEmbedding
-from keras_cv.layers.detectron2_layers import WindowedTransformerEncoder
+from keras_cv.layers.vit_det_layers import AddPositionalEmbedding
+from keras_cv.layers.vit_det_layers import ViTDetPatchingAndEmbedding
+from keras_cv.layers.vit_det_layers import WindowedTransformerEncoder
 from keras_cv.models import utils
 from keras_cv.models.backbones.backbone import Backbone
-from keras_cv.models.backbones.detectron2.detectron2_backbone_presets import (
+from keras_cv.models.backbones.vit_det.vit_det_backbone_presets import (
     backbone_presets,
+)
+from keras_cv.models.backbones.vit_det.vit_det_backbone_presets import (
+    backbone_presets_with_weights,
 )
 from keras_cv.utils.python_utils import classproperty
 
 
-@keras_cv_export("keras_cv.models.ViTDetBackbone")
+@keras_cv_export("keras_cv.models.ViTDetBackbone", package="keras_cv.models")
 class ViTDetBackbone(Backbone):
     """A ViT image encoder that uses a windowed transformer encoder and
     relative positional encodings.
@@ -208,8 +211,8 @@ class ViTDetBackbone(Backbone):
         """Dictionary of preset names and configurations."""
         return copy.deepcopy(backbone_presets)
 
-    # @classproperty
-    # def presets_with_weights(cls):
-    #     """Dictionary of preset names and configurations that include
-    #     weights."""
-    #     return copy.deepcopy(backbone_presets)
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include
+        weights."""
+        return copy.deepcopy(backbone_presets_with_weights)

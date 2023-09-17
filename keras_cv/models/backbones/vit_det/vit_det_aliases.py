@@ -14,10 +14,8 @@
 
 import copy
 
-from keras_cv.models.backbones.detectron2.detectron2_backbone import (
-    ViTDetBackbone,
-)
-from keras_cv.models.backbones.detectron2.detectron2_backbone_presets import (
+from keras_cv.models.backbones.vit_det.vit_det_backbone import ViTDetBackbone
+from keras_cv.models.backbones.vit_det.vit_det_backbone_presets import (
     backbone_presets,
 )
 from keras_cv.utils.python_utils import classproperty
@@ -48,13 +46,15 @@ class ViTDetBBackbone(ViTDetBackbone):
         cls,
         **kwargs,
     ):
-        return ViTDetBackbone.from_preset("vitdet_b", **kwargs)
+        return ViTDetBackbone.from_preset("vitdet_base", **kwargs)
 
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return {
-            "vitdet_b": copy.deepcopy(backbone_presets["vitdet_b"]),
+            "vitdet_base_sa1b": copy.deepcopy(
+                backbone_presets["vitdet_base_sa1b"]
+            ),
         }
 
     @classproperty
@@ -69,13 +69,15 @@ class ViTDetLBackbone(ViTDetBackbone):
         cls,
         **kwargs,
     ):
-        return ViTDetBackbone.from_preset("vitdet_l", **kwargs)
+        return ViTDetBackbone.from_preset("vitdet_large", **kwargs)
 
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return {
-            "vitdet_l": copy.deepcopy(backbone_presets["vitdet_l"]),
+            "vitdet_large_sa1b": copy.deepcopy(
+                backbone_presets["vitdet_large_sa1b"]
+            ),
         }
 
     @classproperty
@@ -90,13 +92,15 @@ class ViTDetHBackbone(ViTDetBackbone):
         cls,
         **kwargs,
     ):
-        return ViTDetBackbone.from_preset("vitdet_h", **kwargs)
+        return ViTDetBackbone.from_preset("vitdet_huge", **kwargs)
 
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return {
-            "vitdet_h": copy.deepcopy(backbone_presets["vitdet_h"]),
+            "vitdet_huge_sa1b": copy.deepcopy(
+                backbone_presets["vitdet_huge_sa1b"]
+            ),
         }
 
     @classproperty

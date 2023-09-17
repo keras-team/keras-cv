@@ -15,13 +15,13 @@
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
-from keras_cv.layers.detectron2_layers import MLP
+from keras_cv.layers.vit_det_layers import MLP
 from keras_cv.models.segmentation.segment_anything.sam_transformer import (
     TwoWayTransformer,
 )
 
 
-@keras_cv_export("keras_cv.layers.SAMMaskDecoder")
+@keras_cv_export("keras_cv.models.SAMMaskDecoder", package="keras_cv.models")
 class SAMMaskDecoder(keras.layers.Layer):
     """Mask decoder for the Segment Anything Model (SAM).
 

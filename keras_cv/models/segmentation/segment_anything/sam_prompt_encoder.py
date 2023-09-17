@@ -20,7 +20,7 @@ from keras_cv.models.segmentation.segment_anything.sam_layers import (
 )
 
 
-@keras_cv_export("keras_cv.layers.SAMPromptEncoder")
+@keras_cv_export("keras_cv.models.SAMPromptEncoder", package="keras_cv.models")
 class SAMPromptEncoder(keras.layers.Layer):
     """Prompt Encoder for the Segment Anything Model (SAM).
 

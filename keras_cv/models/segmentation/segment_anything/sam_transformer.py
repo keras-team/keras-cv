@@ -23,7 +23,7 @@ from keras_cv.models.segmentation.segment_anything.sam_layers import (
 )
 
 
-@keras_cv_export("keras_cv.layers.TwoWayTransformer")
+@keras_cv_export("keras_cv.models.TwoWayTransformer", package="keras_cv.models")
 class TwoWayTransformer(keras.layers.Layer):
     """A two-way cross-attention transformer decoder.
 

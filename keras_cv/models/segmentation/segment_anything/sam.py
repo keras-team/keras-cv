@@ -12,21 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import copy
+
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
-from keras_cv.models.backbones.detectron2.detectron2_backbone import (
-    ViTDetBackbone,
+from keras_cv.models.backbones.backbone_presets import backbone_presets
+from keras_cv.models.backbones.backbone_presets import (
+    backbone_presets_with_weights,
 )
-from keras_cv.models.segmentation.segment_anything.sam_mask_decoder import (
-    SAMMaskDecoder,
-)
-from keras_cv.models.segmentation.segment_anything.sam_prompt_encoder import (
-    SAMPromptEncoder,
+from keras_cv.models.segmentation.segment_anything.sam_presets import (
+    sam_presets,
 )
 from keras_cv.models.task import Task
+from keras_cv.utils.python_utils import classproperty
 
 
-@keras_cv_export("keras_cv.models.SegmentAnythingModel")
+@keras_cv_export(
+    "keras_cv.models.SegmentAnythingModel", package="keras_cv.models"
+)
 class SegmentAnythingModel(Task):
     """
     The Segment Anything (SAM) Model.
@@ -164,21 +167,7 @@ class SegmentAnythingModel(Task):
     isn't support yet. So, calling the `fit` method will fail for now.
     """  # noqa: E501
 
-    def __init__(
-        self,
-        *,
-        backbone: ViTDetBackbone,
-        prompt_encoder: SAMPromptEncoder,
-        mask_decoder: SAMMaskDecoder,
-        **kwargs
-    ):
-        if not isinstance(backbone, ViTDetBackbone):
-            raise ValueError("`backbone` must be a `ViTDetBackbone`.")
-        if not isinstance(prompt_encoder, SAMPromptEncoder):
-            raise ValueError("`prompt_encoder` must be a `SAMPromptEncoder`.")
-        if not isinstance(mask_decoder, SAMMaskDecoder):
-            raise ValueError("`mask_decoder` must be a `SAMMaskDecoder`.")
-
+    def __init__(self, *, backbone, prompt_encoder, mask_decoder, **kwargs):
         # Get the image encoder input -- Images
         backbone_input = backbone.input
 
@@ -248,3 +237,20 @@ class SegmentAnythingModel(Task):
             }
         )
         return super().from_config(config)
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return copy.deepcopy({**backbone_presets, **sam_presets})
+
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include
+        weights."""
+        return copy.deepcopy({**backbone_presets_with_weights, **sam_presets})
+
+    @classproperty
+    def backbone_presets(cls):
+        """Dictionary of preset names and configurations of compatible
+        backbones."""
+        return copy.deepcopy(backbone_presets)

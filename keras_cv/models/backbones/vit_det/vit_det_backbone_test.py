@@ -19,15 +19,13 @@ import pytest
 
 from keras_cv.backend import keras
 from keras_cv.backend import ops
-from keras_cv.models.backbones.detectron2.detectron2_aliases import (
-    ViTDetBBackbone,
-)
+from keras_cv.models.backbones.vit_det.vit_det_aliases import ViTDetBBackbone
 from keras_cv.tests.test_case import TestCase
 
 
 class TestViTDetBackbone(TestCase):
-    @pytest.mark.extra_large
-    def test_call_and_save(self):
+    @pytest.mark.large
+    def test_call(self):
         model = ViTDetBBackbone()
         x = np.ones((1, 1024, 1024, 3))
         x_out = ops.convert_to_numpy(model(x))
@@ -37,12 +35,25 @@ class TestViTDetBackbone(TestCase):
         self.assertEqual(x_out.shape, (1, 64, 64, 256))
         self.assertEqual(num_parameters, 89_670_912)
 
+    @pytest.mark.extra_large
+    def teat_save(self):
         # saving test
+        model = ViTDetBBackbone()
+        x = np.ones((1, 1024, 1024, 3))
+        x_out = ops.convert_to_numpy(model(x))
         path = os.path.join(self.get_temp_dir(), "model.keras")
         model.save(path)
         loaded_model = keras.saving.load_model(path)
         x_out_loaded = ops.convert_to_numpy(loaded_model(x))
         self.assertAllClose(x_out, x_out_loaded)
+
+    @pytest.mark.extra_large
+    def test_fit(self):
+        model = ViTDetBBackbone()
+        x = np.ones((1, 1024, 1024, 3))
+        y = np.zeros((1, 64, 64, 256))
+        model.compile(optimizer="adam", loss="mse", metrics=["mse"])
+        model.fit(x, y, epochs=1)
 
     def test_pyramid_level_inputs_error(self):
         model = ViTDetBBackbone()

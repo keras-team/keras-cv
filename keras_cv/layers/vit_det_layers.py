@@ -72,7 +72,9 @@ class MLP(keras.layers.Layer):
         return config
 
 
-@keras_cv_export("keras_cv.layers.AddRelativePositionalEmbedding")
+@keras_cv_export(
+    "keras_cv.layers.AddRelativePositionalEmbedding", package="keras_cv.layers"
+)
 class AddRelativePositionalEmbedding(keras.layers.Layer):
     def __init__(self, input_size, key_dim, **kwargs):
         super().__init__(**kwargs)
@@ -182,7 +184,10 @@ class AddRelativePositionalEmbedding(keras.layers.Layer):
         return config
 
 
-@keras_cv_export("keras_cv.layers.MultiHeadAttentionWithRelativePE")
+@keras_cv_export(
+    "keras_cv.layers.MultiHeadAttentionWithRelativePE",
+    package="keras_cv.layers",
+)
 class MultiHeadAttentionWithRelativePE(keras.layers.Layer):
     """Multi-head Attention block with relative position embeddings.
 
@@ -293,7 +298,9 @@ class MultiHeadAttentionWithRelativePE(keras.layers.Layer):
         return config
 
 
-@keras_cv_export("keras_cv.layers.WindowPartitioning")
+@keras_cv_export(
+    "keras_cv.layers.WindowPartitioning", package="keras_cv.layers"
+)
 class WindowPartitioning(keras.layers.Layer):
     def __init__(self, window_size, **kwargs):
         super().__init__(**kwargs)
@@ -356,7 +363,9 @@ class WindowPartitioning(keras.layers.Layer):
         return config
 
 
-@keras_cv_export("keras_cv.layers.WindowedTransformerEncoder")
+@keras_cv_export(
+    "keras_cv.layers.WindowedTransformerEncoder", package="keras_cv.layers"
+)
 class WindowedTransformerEncoder(keras.layers.Layer):
     """Transformer blocks with support of window attention and residual
     propagation blocks.
@@ -483,7 +492,9 @@ class WindowedTransformerEncoder(keras.layers.Layer):
         return config
 
 
-@keras_cv_export("keras_cv.layers.ViTDetPatchingAndEmbedding")
+@keras_cv_export(
+    "keras_cv.layers.ViTDetPatchingAndEmbedding", package="keras_cv.layers"
+)
 class ViTDetPatchingAndEmbedding(keras.layers.Layer):
     """Image to Patch Embedding using only a conv layer (without
     layer normalization).
@@ -540,7 +551,9 @@ class ViTDetPatchingAndEmbedding(keras.layers.Layer):
 
 # TODO: Merge this with the `keras_cv.layers.PatchingAndEmbedding` class once
 # it has been ported to Keras Core.
-@keras_cv_export("keras_cv.layers.detectron2.AddPositionalEmbedding")
+@keras_cv_export(
+    "keras_cv.layers.AddPositionalEmbedding", package="keras_cv.layers"
+)
 class AddPositionalEmbedding(keras.layers.Layer):
     def __init__(self, img_size, patch_size, embed_dim, **kwargs):
         super().__init__(**kwargs)

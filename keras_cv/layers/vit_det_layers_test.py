@@ -15,14 +15,14 @@
 import numpy as np
 
 from keras_cv.backend import ops
-from keras_cv.layers.detectron2_layers import AddPositionalEmbedding
-from keras_cv.layers.detectron2_layers import MultiHeadAttentionWithRelativePE
-from keras_cv.layers.detectron2_layers import ViTDetPatchingAndEmbedding
-from keras_cv.layers.detectron2_layers import WindowedTransformerEncoder
+from keras_cv.layers.vit_det_layers import AddPositionalEmbedding
+from keras_cv.layers.vit_det_layers import MultiHeadAttentionWithRelativePE
+from keras_cv.layers.vit_det_layers import ViTDetPatchingAndEmbedding
+from keras_cv.layers.vit_det_layers import WindowedTransformerEncoder
 from keras_cv.tests.test_case import TestCase
 
 
-class TestDetectron2Layers(TestCase):
+class TestViTDetLayers(TestCase):
     def test_multi_head_attention_with_relative_pe(self):
         attention_with_rel_pe = MultiHeadAttentionWithRelativePE(
             num_heads=16,
