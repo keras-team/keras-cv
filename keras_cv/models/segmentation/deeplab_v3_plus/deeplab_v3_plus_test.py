@@ -84,7 +84,7 @@ class DeepLabV3PlusTest(TestCase):
         image = np.ones((1, 512, 512, 3))
         output = model(image)
         expected_output = np.zeros((1, 512, 512, 3))
-        self.assert_all_close(output, expected_output)
+        self.assertAllClose(output, expected_output)
 
     @parameterized.named_parameters(
         ("tf_format", "tf", "model"),
