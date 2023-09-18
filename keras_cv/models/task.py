@@ -95,7 +95,8 @@ class Task(keras.Model):
                 Defaults to `None`, which follows whether the preset has
                 pretrained weights available.
             input_shape : input shape that will be passed to backbone
-                initialization, Defaults to `None`.
+                initialization, Defaults to `None`, which will not be passed to
+                the backbone.
 
         Examples:
         ```python
