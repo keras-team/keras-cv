@@ -32,7 +32,7 @@ from keras_cv.tests.test_case import TestCase
 class DeepLabV3PlusTest(TestCase):
     def test_deeplab_v3_plus_construction(self):
         backbone = ResNet18V2Backbone(input_shape=[512, 512, 3])
-        model = DeepLabV3Plus(backbone=backbone, num_classes=1)
+        model = DeepLabV3Plus(backbone=backbone, num_classes=2)
         model.compile(
             optimizer="adam",
             loss=keras.losses.BinaryCrossentropy(),
@@ -42,7 +42,7 @@ class DeepLabV3PlusTest(TestCase):
     @pytest.mark.large
     def test_deeplab_v3_plus_call(self):
         backbone = ResNet18V2Backbone(input_shape=[512, 512, 3])
-        model = DeepLabV3Plus(backbone=backbone, num_classes=1)
+        model = DeepLabV3Plus(backbone=backbone, num_classes=2)
         images = np.random.uniform(size=(2, 512, 512, 3))
         _ = model(images)
         _ = model.predict(images)
@@ -95,7 +95,7 @@ class DeepLabV3PlusTest(TestCase):
         target_size = [512, 512, 3]
 
         backbone = ResNet18V2Backbone(input_shape=target_size)
-        model = DeepLabV3Plus(backbone=backbone, num_classes=1)
+        model = DeepLabV3Plus(backbone=backbone, num_classes=2)
 
         input_batch = np.ones(shape=[2] + target_size)
         model_output = model(input_batch)

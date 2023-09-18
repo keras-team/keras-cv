@@ -20,7 +20,7 @@ from keras_cv import bounding_box
 from keras_cv import utils
 from keras_cv.utils import assert_cv2_installed
 from keras_cv.utils import assert_matplotlib_installed
-from keras_cv.visualization import draw_bounding_boxes
+from keras_cv.visualization.draw_bounding_boxes import draw_bounding_boxes
 from keras_cv.visualization.plot_image_gallery import plot_image_gallery
 
 try:

@@ -49,7 +49,7 @@ class DeepLabV3Plus(Task):
             somewhat sensible backbone to use in many cases is the
             `keras_cv.models.ResNet50V2Backbone.from_preset("resnet50_v2_imagenet")`.
         num_classes: int, the number of classes for the detection model. Note
-            that the `num_classes` doesn't contain the background class, and the
+            that the `num_classes` contains the background class, and the
             classes from the data should be represented by integers with range
             [0, `num_classes`).
         projection_filters: int, number of filters in the convolution layer
