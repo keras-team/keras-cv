@@ -12,10 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 
 
+@keras_cv_export("keras_cv.models.stable_diffusion.TextEncoder")
 class TextEncoder(keras.Model):
     def __init__(
         self, max_length, vocab_size=49408, name=None, download_weights=True
@@ -40,6 +42,7 @@ class TextEncoder(keras.Model):
             self.load_weights(text_encoder_weights_fpath)
 
 
+@keras_cv_export("keras_cv.models.stable_diffusion.TextEncoderV2")
 class TextEncoderV2(keras.Model):
     def __init__(
         self, max_length, vocab_size=49408, name=None, download_weights=True

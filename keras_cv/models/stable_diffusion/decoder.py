@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.models.stable_diffusion.attention_block import (  # noqa: E501
     AttentionBlock,
@@ -20,6 +21,7 @@ from keras_cv.models.stable_diffusion.padded_conv2d import PaddedConv2D
 from keras_cv.models.stable_diffusion.resnet_block import ResnetBlock
 
 
+@keras_cv_export("keras_cv.models.stable_diffusion.Decoder")
 class Decoder(keras.Sequential):
     def __init__(self, img_height, img_width, name=None, download_weights=True):
         super().__init__(

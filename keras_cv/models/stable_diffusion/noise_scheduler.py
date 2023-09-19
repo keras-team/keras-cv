@@ -16,10 +16,12 @@
 Adapted from https://github.com/huggingface/diffusers/blob/v0.3.0/src/diffusers/schedulers/scheduling_ddpm.py#L56
 """  # noqa: E501
 
+from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import ops
 from keras_cv.backend import random
 
 
+@keras_cv_export("keras_cv.models.stable_diffusion.NoiseScheduler")
 class NoiseScheduler:
     """
     Args:
