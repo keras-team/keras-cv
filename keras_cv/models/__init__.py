@@ -178,6 +178,10 @@ from keras_cv.models.backbones.resnet_v2.resnet_v2_aliases import (
 from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
     ResNetV2Backbone,
 )
+from keras_cv.models.backbones.vit_det.vit_det_aliases import ViTDetBBackbone
+from keras_cv.models.backbones.vit_det.vit_det_aliases import ViTDetHBackbone
+from keras_cv.models.backbones.vit_det.vit_det_aliases import ViTDetLBackbone
+from keras_cv.models.backbones.vit_det.vit_det_backbone import ViTDetBackbone
 from keras_cv.models.classification.image_classifier import ImageClassifier
 from keras_cv.models.object_detection.retinanet.retinanet import RetinaNet
 from keras_cv.models.object_detection.yolo_v8.yolo_v8_backbone import (
@@ -187,6 +191,10 @@ from keras_cv.models.object_detection.yolo_v8.yolo_v8_detector import (
     YOLOV8Detector,
 )
 from keras_cv.models.segmentation import DeepLabV3Plus
+from keras_cv.models.segmentation import SAMMaskDecoder
+from keras_cv.models.segmentation import SAMPromptEncoder
+from keras_cv.models.segmentation import SegmentAnythingModel
+from keras_cv.models.segmentation import TwoWayTransformer
 from keras_cv.models.segmentation.segformer.segformer_aliases import SegFormer
 from keras_cv.models.segmentation.segformer.segformer_aliases import SegFormerB0
 from keras_cv.models.segmentation.segformer.segformer_aliases import SegFormerB1

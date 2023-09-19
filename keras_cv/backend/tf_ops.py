@@ -21,6 +21,7 @@ from keras_core.src.backend.tensorflow.nn import *  # noqa: F403, F401
 from keras_core.src.backend.tensorflow.numpy import *  # noqa: F403, F401
 
 # Some TF APIs where the numpy API doesn't support raggeds that we need
+from tensorflow import broadcast_to  # noqa: F403, F401
 from tensorflow import concat as concatenate  # noqa: F403, F401
 from tensorflow import range as arange  # noqa: F403, F401
 from tensorflow import reduce_all as all  # noqa: F403, F401

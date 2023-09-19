@@ -25,12 +25,14 @@ def get_tensor_input_name(tensor):
         return tensor.node.layer.name
 
 
-def parse_model_inputs(input_shape, input_tensor):
+def parse_model_inputs(input_shape, input_tensor, **kwargs):
     if input_tensor is None:
-        return keras.layers.Input(shape=input_shape)
+        return keras.layers.Input(shape=input_shape, **kwargs)
     else:
         if not keras.backend.is_keras_tensor(input_tensor):
-            return keras.layers.Input(tensor=input_tensor, shape=input_shape)
+            return keras.layers.Input(
+                tensor=input_tensor, shape=input_shape, **kwargs
+            )
         else:
             return input_tensor
 
