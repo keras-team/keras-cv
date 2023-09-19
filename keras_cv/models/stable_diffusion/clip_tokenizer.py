@@ -20,6 +20,7 @@ from functools import lru_cache
 
 import regex as re
 
+from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 
 
@@ -76,6 +77,7 @@ def whitespace_clean(text):
     return text
 
 
+@keras_cv_export("keras_cv.models.stable_diffusion.SimpleTokenizer")
 class SimpleTokenizer:
     def __init__(self, bpe_path=None):
         bpe_path = bpe_path or keras.utils.get_file(
