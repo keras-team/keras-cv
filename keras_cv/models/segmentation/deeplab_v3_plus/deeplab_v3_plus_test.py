@@ -83,7 +83,7 @@ class DeepLabV3PlusTest(TestCase):
         )
         image = np.ones((1, 512, 512, 3))
         output = model(image)
-        expected_output = np.zeros((1, 512, 512, 3))
+        expected_output = np.zeros((1, 512, 512, 21))
         self.assertAllClose(output, expected_output)
 
     @parameterized.named_parameters(
