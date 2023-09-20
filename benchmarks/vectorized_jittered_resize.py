@@ -87,15 +87,15 @@ class OldJitteredResize(BaseImageAugmentationLayer):
             This factor is used to scale the input image.
             To replicate the results of the MaskRCNN paper pass `(0.8, 1.25)`.
         crop_size: (Optional) the size of the image to crop from the scaled
-            image, defaults to `target_size` when not provided.
+            image. Defaults to `target_size`.
         bounding_box_format: The format of bounding boxes of input boxes.
             Refer to
-            https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box/converters.py
+            keras-team/keras-cv/blob/master/keras_cv/bounding_box/converters.py
             for more details on supported bounding box formats.
-        interpolation: String, the interpolation method, defaults to
-            `"bilinear"`. Supports `"bilinear"`, `"nearest"`, `"bicubic"`,
-            `"area"`, `"lanczos3"`, `"lanczos5"`, `"gaussian"`,
-            `"mitchellcubic"`.
+        interpolation: String, the interpolation method.
+            Supports `"bilinear"`, `"nearest"`, `"bicubic"`, `"area"`,
+            `"lanczos3"`, `"lanczos5"`, `"gaussian"`, `"mitchellcubic"`.
+            Defaults to `"bilinear"`.
         seed: (Optional) integer to use as the random seed.
     """
 

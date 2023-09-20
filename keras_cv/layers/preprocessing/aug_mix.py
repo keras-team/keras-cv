@@ -44,15 +44,16 @@ class AugMix(BaseImageAugmentationLayer):
             `keras_cv.FactorSampler`. A value is sampled from the provided
             range. If a float is passed, the range is interpreted as
             `(0, severity)`. This value represents the level of strength of
-            augmentations and is in the range [0, 1]. Defaults to 0.3.
+            augmentations and is in the range [0, 1]. Defaults to `0.3`.
         num_chains: an integer representing the number of different chains to
-            be mixed, defaults to 3.
+            be mixed. Defaults to `3`.
         chain_depth: an integer or range representing the number of
             transformations in the chains. If a range is passed, a random
             `chain_depth` value sampled from a uniform distribution over the
-            given range is called at the start of the chain. Defaults to [1,3].
+            given range is called at the start of the chain.
+            Defaults to `[1,3]`.
         alpha: a float value used as the probability coefficients for the
-            Beta and Dirichlet distributions, defaults to 1.0.
+            Beta and Dirichlet distributions. Defaults to `1.0`.
         seed: Integer. Used to create a random seed.
 
     References:

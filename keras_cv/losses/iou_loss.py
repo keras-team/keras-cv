@@ -41,8 +41,8 @@ class IoULoss(keras.losses.Loss):
             - `"linear"`. The loss will be calculated as 1 - iou
             - `"quadratic"`. The loss will be calculated as 1 - iou<sup>2</sup>
             - `"log"`. The loss will be calculated as -ln(iou)
-            Defaults to "log".
-        axis: the axis along which to mean the ious, defaults to -1.
+            Defaults to `"log"`.
+        axis: the axis along which to mean the ious. Defaults to `-1`.
 
     References:
         - [UnitBox paper](https://arxiv.org/pdf/1608.01471)

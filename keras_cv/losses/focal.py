@@ -28,12 +28,12 @@ class FocalLoss(keras.losses.Loss):
         alpha: a float value between 0 and 1 representing a weighting factor
             used to deal with class imbalance. Positive classes and negative
             classes have alpha and (1 - alpha) as their weighting factors
-            respectively. Defaults to 0.25.
+            respectively. Defaults to `0.25`.
         gamma: a positive float value representing the tunable focusing
-            parameter, defaults to 2.
+            parameter. Defaults to `2.0`.
         from_logits: Whether `y_pred` is expected to be a logits tensor. By
             default, `y_pred` is assumed to encode a probability distribution.
-            Default to `False`.
+            Defaults to `False`.
         label_smoothing: Float in `[0, 1]`. If higher than 0 then smooth the
             labels by squeezing them towards `0.5`, i.e., using
             `1. - 0.5 * label_smoothing` for the target class and

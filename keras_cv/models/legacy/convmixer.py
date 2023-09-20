@@ -75,12 +75,12 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
         include_top: bool, whether to include the fully-connected layer at the
             top of the network. If provided, num_classes must be provided.
         num_classes: integer, optional number of classes to classify images
-            into. Only to be specified if `include_top` is True.
+            into. Only to be specified if `include_top` is `True`.
         weights: one of `None` (random initialization), a pretrained weight file
             path, or a reference to pre-trained weights (e.g.
             'imagenet/classification')(see available pre-trained weights in
             weights.py)
-        input_shape: optional shape tuple, defaults to (None, None, 3).
+        input_shape: optional shape tuple. Defaults to `(None, None, 3)`.
         input_tensor: optional Keras tensor (i.e., output of `layers.Input()`)
             to use as image input for the model.
         pooling: optional pooling mode for feature extraction
@@ -91,7 +91,8 @@ BASE_DOCSTRING = """Instantiates the {name} architecture.
                 output of the last convolutional block, and thus the output of
                 the model will be a 2D tensor.
             - `max` means that global max pooling will be applied.
-        name: string, optional name to pass to the model, defaults to "{name}".
+        name: string, optional name to pass to the model.
+            Defaults to `"{name}"`.
 
     Returns:
       A `keras.Model` instance.
@@ -149,13 +150,13 @@ class ConvMixer(keras.Model):
         kernel_size: integer, kernel size for Conv2D layers.
         include_top: bool, whether to include the fully-connected layer at the
             top of the network.
-        include_rescaling: bool, whether to rescale the inputs. If set to True,
-            inputs will be passed through a `Rescaling(1/255.0)` layer.
-        name: string, optional name to pass to the model, defaults to
+        include_rescaling: bool, whether to rescale the inputs. If set to
+            `True`, inputs will be passed through a `Rescaling(1/255.0)` layer.
+        name: string, optional name to pass to the model. Defaults to
             "ConvMixer".
         weights: one of `None` (random initialization) or the path to the
             weights file to be loaded.
-        input_shape: optional shape tuple, defaults to (None, None, 3).
+        input_shape: optional shape tuple. Defaults to `(None, None, 3)`.
         input_tensor: optional Keras tensor (i.e., output of `layers.Input()`)
             to use as image input for the model.
         pooling: optional pooling mode for feature extraction when `include_top`
@@ -167,7 +168,7 @@ class ConvMixer(keras.Model):
                 the model will be a 2D tensor.
             - `max` means that global max pooling will be applied.
         num_classes: integer, optional number of classes to classify images
-            into. Only to be specified if `include_top` is True.
+            into. Only to be specified if `include_top` is `True`.
         classifier_activation: A `str` or callable. The activation function to
             use on the "top" layer. Ignored unless `include_top=True`. Set
             `classifier_activation=None` to return the logits of the "top"
@@ -204,7 +205,7 @@ class ConvMixer(keras.Model):
 
         if include_top and not num_classes:
             raise ValueError(
-                "If `include_top` is True, you should specify `classes`. "
+                "If `include_top` is `True`, you should specify `classes`. "
                 f"Received: classes={num_classes}"
             )
 

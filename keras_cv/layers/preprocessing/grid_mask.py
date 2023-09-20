@@ -55,12 +55,11 @@ class GridMask(BaseImageAugmentationLayer):
             Floats should be in the range [0, 1]. 0.5 indicates that grid and
             spacing will be of equal size. To always use the same value, pass a
             `keras_cv.ConstantFactorSampler()`.
-
             Defaults to `(0, 0.5)`.
         rotation_factor:
             The rotation_factor will be used to randomly rotate the grid_mask
-            during training. Default to 0.1, which results in an output rotating
-            by a random amount in the range [-10% * 2pi, 10% * 2pi].
+            during training. `0.1` results in an output rotating by a random
+            amount in the range [-10% * 2pi, 10% * 2pi]. Defaults to `0.1`.
 
             A float represented as fraction of 2 Pi, or a tuple of size 2
             representing lower and upper bound for rotating clockwise and
@@ -73,10 +72,10 @@ class GridMask(BaseImageAugmentationLayer):
             amount in the range [-20% * 2pi, 20% * 2pi].
 
         fill_mode: Pixels inside the gridblock are filled according to the given
-            mode (one of `{"constant", "gaussian_noise"}`), defaults to
-            "constant".
+            mode (one of `{"constant", "gaussian_noise"}`).
             - *constant*: Pixels are filled with the same constant value.
             - *gaussian_noise*: Pixels are filled with random gaussian noise.
+            Defaults to `"constant"`.
         fill_value: an integer represents of value to be filled inside the
             gridblock when `fill_mode="constant"`. Valid integer range
             [0 to 255]

@@ -49,14 +49,14 @@ class _ROISampler(keras.layers.Layer):
       roi_matcher: a `BoxMatcher` object that matches proposals with ground
         truth boxes. The positive match must be 1 and negative match must be -1.
         Such assumption is not being validated here.
-      positive_fraction: the positive ratio w.r.t `num_sampled_rois`, defaults
-        to 0.25.
+      positive_fraction: the positive ratio w.r.t `num_sampled_rois`.
+        Defaults to `0.25`.
       background_class: the background class which is used to map returned the
         sampled ground truth which is classified as background.
       num_sampled_rois: the number of sampled proposals per image for
-        further (loss) calculation, defaults to 256.
+        further (loss) calculation. Defaults to `256`.
       append_gt_boxes: boolean, whether gt_boxes will be appended to rois
-        before sample the rois, defaults to True.
+        before sample the rois. Defaults to `True`.
     """  # noqa: E501
 
     def __init__(

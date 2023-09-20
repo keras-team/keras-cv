@@ -56,17 +56,17 @@ class FeaturePyramid(keras.layers.Layer):
         max_level: a python int for the highest level of the pyramid for
             feature extraction.
         num_channels: an integer representing the number of channels for the FPN
-            operations, defaults to 256.
+            operations. Defaults to `256`.
         lateral_layers: a python dict with int keys that matches to each of the
             pyramid level. The values of the dict should be `keras.Layer`, which
             will be called with feature activation outputs from backbone at each
-            level. Defaults to None, and a `keras.Conv2D` layer with kernel 1x1
-            will be created for each pyramid level.
+            level. When `None`: a `keras.Conv2D` layer with kernel 1x1
+            will be created for each pyramid level. Defaults to `None`.
         output_layers: a python dict with int keys that matches to each of the
             pyramid level. The values of the dict should be `keras.Layer`, which
             will be called with feature inputs and merged result from upstream
-            levels. Defaults to None, and a `keras.Conv2D` layer with kernel 3x3
-            will be created for each pyramid level.
+            levels. When `None`: a `keras.Conv2D` layer with kernel 3x3
+            will be created for each pyramid level. Defaults to `None`.
 
     Sample Usage:
     ```python

@@ -32,7 +32,7 @@ class ChannelShuffle(VectorizedBaseImageAugmentationLayer):
         `(..., height, width, channels)`, in `"channels_last"` format
 
     Args:
-        groups: Number of groups to divide the input channels, defaults to 3.
+        groups: Number of groups to divide the input channels. Defaults to `3`.
         seed: Integer. Used to create a random seed.
 
     Usage:

@@ -35,8 +35,8 @@ class BinaryCrossentropy(keras.losses.Loss):
             version of the true labels, where the smoothing squeezes the labels
             towards 0.5.  Larger values of `label_smoothing` correspond to
             heavier smoothing.
-        axis: the axis along which to mean the ious. Defaults to `no_reduction`
-            which implies mean across no axes.
+        axis: the axis along which to mean the ious. When set to `no_reduction`
+            this implies mean across no axes. Defaults to `no_reduction`.
 
     Usage:
     ```python

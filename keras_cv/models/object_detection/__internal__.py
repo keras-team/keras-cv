@@ -53,7 +53,7 @@ def convert_inputs_to_tf_dataset(
             )
         return x
 
-    # batch_size defaults to 32, as it does in fit().
+    # batch_size defaults to `32`, as it does in fit().
     batch_size = batch_size or 32
     # Parse inputs
     inputs = x

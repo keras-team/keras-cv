@@ -30,13 +30,13 @@ class YoloXHead(keras.layers.Layer):
         num_classes: The number of classes to be considered for the
             classification head.
         bias_initializer: Bias Initializer for the final convolution layer for
-            the classification and regression heads. Defaults to None.
+            the classification and regression heads. Defaults to `None`.
         width_multiplier: A float value used to calculate the base width of the
             model this changes based on the detection model being used. Defaults
             to 1.0.
-        num_level: the number of levels in the FPN output. Defaults to 3.
+        num_level: the number of levels in the FPN output. Defaults to `3`.
         activation: the activation applied after the BatchNorm layer. One of
-            "silu", "relu" or "leaky_relu". Defaults to "silu".
+            `"silu"`, `"relu"` or `"leaky_relu"`. Defaults to `"silu"`.
         use_depthwise: a boolean value used to decide whether a depthwise conv
             block should be used over a regular darknet block. Defaults to
             `False`.

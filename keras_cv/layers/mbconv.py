@@ -64,21 +64,22 @@ class MBConvBlock(keras.layers.Layer):
             input_filters: int, the number of input filters
             output_filters: int, the optional number of output filters after
                 Squeeze-Excitation
-            expand_ratio: default 1, the ratio by which input_filters are
-                multiplied to expand the structure in the middle expansion phase
-            kernel_size: default 3, the kernel_size to apply to the expansion
-                phase convolutions
-            strides: default 1, the strides to apply to the expansion phase
-                convolutions
-            se_ratio: default 0.0, Squeeze-Excitation happens before depthwise
-                convolution and before output convolution only if the se_ratio
-                is above 0. The filters used in this phase are chosen as the
-                maximum between 1 and input_filters*se_ratio
-            bn_momentum: default 0.9, the BatchNormalization momentum
-            activation: default "swish", the activation function used between
-                convolution operations
+            expand_ratio: the ratio by which input_filters are
+                multiplied to expand the structure in the middle expansion phase.
+                Defaults to `1`.
+            kernel_size: the kernel_size to apply to the expansion
+                phase convolutions. Defaults to `3`.
+            strides: the strides to apply to the expansion phase
+                convolutions. Defaults to `1`.
+            se_ratio: Squeeze-Excitation happens before depthwise convolution
+                and before output convolution only if the se_ratio is above 0.
+                The filters used in this phase are chosen as the maximum
+                between 1 and input_filters*se_ratio. Defaults to `0.0`.
+            bn_momentum: the BatchNormalization momentum. Defaults to `0.9`.
+            activation: the activation function used between
+                convolution operations. Defaults to `"swish"`.
             survival_probability: float, the optional dropout rate to apply
-                before the output convolution, defaults to 0.8
+                before the output convolution. Defaults to `0.8`.
 
         Returns:
             A `tf.Tensor` representing a feature map, passed through the MBConv

@@ -44,11 +44,11 @@ class RetinaNetLabelEncoder(keras.layers.Layer):
         negative_threshold: the float threshold to set an anchor to negative
             match to gt box. Values below it are negative matches.
         box_variance: The scaling factors used to scale the bounding box
-            targets, defaults to (0.1, 0.1, 0.2, 0.2).
-        background_class: (Optional) The class ID used for the background class,
-            defaults to -1.
-        ignore_class: (Optional) The class ID used for the ignore class,
-            defaults to -2.
+            targets. Defaults to `(0.1, 0.1, 0.2, 0.2)`.
+        background_class: (Optional) The class ID used for the background class.
+            Defaults to `-1`.
+        ignore_class: (Optional) The class ID used for the ignore class.
+            Defaults to `-2`.
     """  # noqa: E501
 
     def __init__(

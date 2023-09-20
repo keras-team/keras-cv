@@ -54,17 +54,17 @@ class Resizing(BaseImageAugmentationLayer):
     Args:
         height: Integer, the height of the output shape.
         width: Integer, the width of the output shape.
-        interpolation: String, the interpolation method, defaults to
-            `"bilinear"`. Supports `"bilinear"`, `"nearest"`, `"bicubic"`,
-            `"area"`, `"lanczos3"`, `"lanczos5"`, `"gaussian"`,
-            `"mitchellcubic"`.
-        crop_to_aspect_ratio: If True, resize the images without aspect ratio
+        interpolation: String, the interpolation method.
+            Supports `"bilinear"`, `"nearest"`, `"bicubic"`, `"area"`,
+            `"lanczos3"`, `"lanczos5"`, `"gaussian"`, `"mitchellcubic"`.
+            Defaults to `"bilinear"`.
+        crop_to_aspect_ratio: If `True`, resize the images without aspect ratio
             distortion. When the original aspect ratio differs from the target
             aspect ratio, the output image will be cropped to return the largest
             possible window in the image (of size `(height, width)`) that
             matches the target aspect ratio. By default,
             (`crop_to_aspect_ratio=False`), aspect ratio may not be preserved.
-        pad_to_aspect_ratio: If True, resize the images without aspect ratio
+        pad_to_aspect_ratio: If `True`, resize the images without aspect ratio
             distortion. When the original aspect ratio differs from the target
             aspect ratio, the output image will be padded to return the largest
             possible resize of the image (of size `(height, width)`) that
@@ -98,7 +98,7 @@ class Resizing(BaseImageAugmentationLayer):
         if pad_to_aspect_ratio and crop_to_aspect_ratio:
             raise ValueError(
                 "`Resizing()` expects at most one of `crop_to_aspect_ratio` or "
-                "`pad_to_aspect_ratio` to be True."
+                "`pad_to_aspect_ratio` to be `True`."
             )
 
         if not pad_to_aspect_ratio and bounding_box_format:

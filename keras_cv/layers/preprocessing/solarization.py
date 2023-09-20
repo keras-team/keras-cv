@@ -47,7 +47,7 @@ class Solarization(VectorizedBaseImageAugmentationLayer):
             interpreted as `(0, addition_factor)`. If specified, this value is
             added to each pixel before solarization and thresholding. The
             addition value should be scaled according to the value range
-            (0, 255), defaults to 0.0.
+            (0, 255). Defaults to `0.0`.
         threshold_factor: (Optional)  A tuple of two floats, a single float or
             a `keras_cv.FactorSampler`. For each augmented image a value is
             sampled from the provided range. If a float is passed, the range is

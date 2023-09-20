@@ -79,8 +79,8 @@ class Backbone(keras.Model):
                 If looking for a preset with pretrained weights, choose one of
                 "{{preset_with_weights_names}}".
             load_weights: Whether to load pre-trained weights into model.
-                Defaults to `None`, which follows whether the preset has
-                pretrained weights available.
+                When `None`, this follows whether the preset has
+                pretrained weights available. Defaults to `None`.
 
         Examples:
         ```python

@@ -48,12 +48,12 @@ class RandomFlip(VectorizedBaseImageAugmentationLayer):
 
     Args:
         mode: String indicating which flip mode to use. Can be `"horizontal"`,
-            `"vertical"`, or `"horizontal_and_vertical"`, defaults to
-            `"horizontal"`. `"horizontal"` is a left-right flip and
-            `"vertical"` is a top-bottom flip.
+            `"vertical"`, or `"horizontal_and_vertical"`. `"horizontal"` is a
+            left-right flip and `"vertical"` is a top-bottom flip.
+            Defaults to `"horizontal"`
         rate: A float that controls the frequency of flipping. 1.0 indicates
             that images are always flipped. 0.0 indicates no flipping.
-            Defaults to 0.5.
+            Defaults to `0.5`.
         seed: Integer. Used to create a random seed.
         bounding_box_format: The format of bounding boxes of input dataset.
             Refer to

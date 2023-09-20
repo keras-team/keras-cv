@@ -40,10 +40,10 @@ class VGG19(keras.Model):
         layers at the top of the network. If provided, num_classes must be
         provided.
       num_classes: int, optional number of classes to classify images into, only
-        to be specified if `include_top` is True.
-      weights: os.PathLike or None, one of `None` (random initialization), or a
+        to be specified if `include_top` is `True`.
+      weights: `os.PathLike` or `None`, one of `None` (random initialization), or a
         pretrained weight file path.
-      input_shape: tuple, optional shape tuple, defaults to (224, 224, 3).
+      input_shape: tuple, optional shape tuple. Defaults to `(224, 224, 3)`.
       input_tensor: Tensor, optional Keras tensor (i.e. output of
         `layers.Input()`) to use as image input for the model.
       pooling: bool, Optional pooling mode for feature extraction
@@ -62,7 +62,7 @@ class VGG19(keras.Model):
         `classifier_activation=None` to return the logits of the "top" layer.
         When loading pretrained weights, `classifier_activation` can only
         be `None` or `"softmax"`.
-      name: (Optional) name to pass to the model, defaults to "VGG19".
+      name: (Optional) name to pass to the model. Defaults to `"VGG19"`.
     Returns:
       A `keras.Model` instance.
     """  # noqa: E501
@@ -89,7 +89,7 @@ class VGG19(keras.Model):
 
         if include_top and not num_classes:
             raise ValueError(
-                "If `include_top` is True, you should specify `num_classes`. "
+                "If `include_top` is `True`, you should specify `num_classes`. "
                 f"Received: num_classes={num_classes}"
             )
 

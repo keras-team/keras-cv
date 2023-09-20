@@ -49,7 +49,7 @@ class AnchorGenerator(keras.layers.Layer):
       strides: iterable of ints that represent the anchor stride size between
         center of anchors at each scale.
       clip_boxes: whether to clip generated anchor boxes to the image
-        size, defaults to `False`.
+        size. Defaults to `False`.
 
     Usage:
     ```python
@@ -211,8 +211,8 @@ class _SingleAnchorGenerator:
       stride: A single int represents the anchor stride size between center of
         each anchor.
       clip_boxes: Boolean to represent whether the anchor coordinates should be
-        clipped to the image size, defaults to `False`.
-      dtype: (Optional) The data type to use for the output anchors, defaults to
+        clipped to the image size. Defaults to `False`.
+      dtype: (Optional) The data type to use for the output anchors. Defaults to
         'float32'.
 
     """

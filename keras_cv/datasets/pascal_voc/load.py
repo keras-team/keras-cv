@@ -68,10 +68,10 @@ def load(
             for more details on supported bounding box formats.
         batch_size: how many instances to include in batches after loading
         shuffle_buffer: the size of the buffer to use in shuffling.
-        shuffle_files: (Optional) whether to shuffle files, defaults to
-            True.
+        shuffle_files: (Optional) whether to shuffle files. Defaults to
+            `True`.
         dataset: (Optional) the PascalVOC dataset to load from. Should be either
-            'voc/2007' or 'voc/2012', defaults to 'voc/2007'.
+            `"voc/2007"` or `"voc/2012"`. Defaults to `"voc/2007"`.
 
     Returns:
         tf.data.Dataset containing PascalVOC. Each entry is a dictionary

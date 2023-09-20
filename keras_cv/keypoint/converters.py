@@ -113,7 +113,7 @@ def convert_format(keypoints, source, target, images=None, dtype=None):
             Required when transforming from a rel format to a non-rel
             format.
         dtype: the data type to use when transforming the boxes.
-            Defaults to None, i.e. `keypoints` dtype.
+            When `None` uses a `keypoints` dtype. Defaults to `None`.
     """
 
     source = source.lower()

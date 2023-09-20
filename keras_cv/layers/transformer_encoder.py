@@ -29,14 +29,15 @@ class TransformerEncoder(layers.Layer):
         mlp_dim: the intermediate dimensionality of the MLP head before
             projecting to `project_dim`
         num_heads: the number of heads for the `MultiHeadAttention` layer
-        mlp_dropout: default 0.1, the dropout rate to apply between the layers
-            of the MLP head of the encoder
-        attention_dropout: default 0.1, the dropout rate to apply in the
-            MultiHeadAttention layer
-        activation: default 'tf.activations.gelu', the activation function to
-            apply in the MLP head - should be a function
-        layer_norm_epsilon: default 1e-06, the epsilon for `LayerNormalization`
-            layers
+        mlp_dropout: the dropout rate to apply between the layers
+            of the MLP head of the encoder. Defaults to `0.1`.
+        attention_dropout: the dropout rate to apply in the
+            MultiHeadAttention layer. Defaults to `0.1`.
+        activation: the activation function to
+            apply in the MLP head - should be a function.
+            Defaults to `tf.activations.gelu`.
+        layer_norm_epsilon: the epsilon for `LayerNormalization`
+            layers. Defaults to `1e-06`.
 
     Basic usage:
 

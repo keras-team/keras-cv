@@ -53,10 +53,10 @@ def draw_bounding_boxes(
             [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
             for more details on supported bounding box formats.
         line_thickness: (Optional) line_thickness for the box and text labels.
-            Defaults to 2.
-        text_thickness: (Optional) the thickness for the text, defaults to
+            Defaults to `2`.
+        text_thickness: (Optional) the thickness for the text. Defaults to
             `1.0`.
-        font_scale: (Optional) scale of font to draw in, defaults to `1.0`.
+        font_scale: (Optional) scale of font to draw in. Defaults to `1.0`.
         class_mapping: (Optional) dictionary from class ID to class label.
 
     Returns:

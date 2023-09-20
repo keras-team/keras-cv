@@ -45,7 +45,7 @@ class RandAugment(RandomAugmentationPipeline):
             This is typically either `[0, 1]` or `[0, 255]` depending
             on how your preprocessing pipeline is set up.
         augmentations_per_image: the number of layers to use in the rand augment
-            policy, defaults to `3`.
+            policy. Defaults to `3`.
         magnitude: magnitude is the mean of the normal distribution used to
             sample the magnitude used for each data augmentation. Magnitude
             should be a float in the range `[0, 1]`. A magnitude of `0`
@@ -65,8 +65,8 @@ class RandAugment(RandomAugmentationPipeline):
             implementation, the behavior is identical to sampling an Identity
             augmentation 10/11th of the time. Defaults to `1.0`.
         geometric: whether to include geometric augmentations. This
-            should be set to False when performing object detection. Defaults to
-            True.
+            should be set to `False` when performing object detection.
+            Defaults to `True`.
     Usage:
     ```python
     (x_test, y_test), _ = keras.datasets.cifar10.load_data()

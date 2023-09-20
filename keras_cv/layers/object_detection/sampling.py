@@ -26,9 +26,9 @@ def balanced_sample(
     batched and unbatched inputs.
 
     Args:
-      positive_matches: [N] or [batch_size, N] boolean Tensor, True for
+      positive_matches: [N] or [batch_size, N] boolean Tensor, `True` for
         indicating the index is a positive sample
-      negative_matches: [N] or [batch_size, N] boolean Tensor, True for
+      negative_matches: [N] or [batch_size, N] boolean Tensor, `True` for
         indicating the index is a negative sample
       num_samples: int, representing the number of samples to collect
       positive_fraction: float. 0.5 means positive samples should be half

@@ -146,7 +146,7 @@ appropriate distribution strategy accordingly. We scale our learning rate and
 batch size based on the number of accelerators being used.
 """
 
-# Try to detect an available TPU. If none is present, defaults to
+# Try to detect an available TPU. If none is present. Defaults to
 # MirroredStrategy
 try:
     tpu = tf.distribute.cluster_resolver.TPUClusterResolver.connect()
@@ -303,10 +303,11 @@ linearly to the target_lr. From there, it will apply a cosine decay to the
 learning rate, after an optional holding period.
 
 args:
-    - [float] start_lr: default 0.0, the starting learning rate at the beginning
-        of training from which the warmup starts
-    - [float] target_lr: default 1e-2, the target (initial) learning rate from
-        which you'd usually start without a LR warmup schedule
+    - [float] start_lr: the starting learning rate at the beginning
+        of training from which the warmup starts. Defaults to `0.0`.
+    - [float] target_lr: the target (initial) learning rate from
+        which you'd usually start without a LR warmup schedule.
+        Defaults to `1e-2`.
     - [int] warmup_steps: number of training steps to warm up for expressed in
         batches
     - [int] total_steps: the total steps (epochs * number of batches per epoch)

@@ -84,12 +84,12 @@ def load(
         batch_size: how many instances to include in batches after loading.
             Should only be specified if img_size is specified (so that images
             can be resized to the same size before batching).
-        shuffle: whether to shuffle the dataset, defaults to True.
+        shuffle: whether to shuffle the dataset. Defaults to `True`.
         shuffle_buffer: the size of the buffer to use in shuffling.
         reshuffle_each_iteration: whether to reshuffle the dataset on every
-            epoch, defaults to False.
-        img_size: the size to resize the images to, defaults to None, indicating
-            that images should not be resized.
+            epoch. Defaults to `False`.
+        img_size: the size to resize the images to, when None, this indicates
+            that images should not be resized. Defaults to `None`.
 
     Returns:
         tf.data.Dataset containing ImageNet. Each entry is a dictionary
