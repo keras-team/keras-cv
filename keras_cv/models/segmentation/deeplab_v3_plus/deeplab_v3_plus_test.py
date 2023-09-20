@@ -74,6 +74,18 @@ class DeepLabV3PlusTest(TestCase):
             self.assertNotAllEqual(w1, w2)
             self.assertFalse(ops.any(ops.isnan(w2)))
 
+    @pytest.mark.large
+    def test_with_model_preset_forward_pass(self):
+        model = DeepLabV3Plus.from_preset(
+            "deeplab_v3_plus_resnet50_pascalvoc",
+            num_classes=21,
+            input_shape=[512, 512, 3],
+        )
+        image = np.ones((1, 512, 512, 3))
+        output = ops.expand_dims(ops.argmax(model(image), axis=-1), axis=-1)
+        expected_output = np.zeros((1, 512, 512, 1))
+        self.assertAllClose(output, expected_output)
+
     @parameterized.named_parameters(
         ("tf_format", "tf", "model"),
         ("keras_format", "keras_v3", "model.keras"),
