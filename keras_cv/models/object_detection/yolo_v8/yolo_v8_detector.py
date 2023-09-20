@@ -362,13 +362,24 @@ class YOLOV8Detector(Task):
         ],
         "classes": [[1, 1, 1]],
     }
+
+    # Convert labels to tensors
+    boxes_tensor = tf.constant(labels["boxes"], dtype=tf.float32)
+    classes_tensor = tf.constant(labels["classes"], dtype=tf.int32)
+
+    # Create a new list that includes the TensorFlow tensors
+    labels_tensor = {
+        "boxes": boxes_tensor,
+        "classes": classes_tensor,
+    }
+
     model = keras_cv.models.YOLOV8Detector(
         num_classes=20,
         bounding_box_format="xywh",
         backbone=keras_cv.models.YOLOV8Backbone.from_preset(
-            "yolo_v8_m_coco"
+            "yolo_v8_m_backbone_coco"
         ),
-        fpn_depth=2.
+        fpn_depth=2
     )
 
     # Evaluate model without box decoding and NMS
@@ -384,7 +395,7 @@ class YOLOV8Detector(Task):
         optimizer=tf.optimizers.SGD(global_clipnorm=10.0),
         jit_compile=False,
     )
-    model.fit(images, labels)
+    model.fit(images, labels_tensor)
     ```
     """  # noqa: E501
 
