@@ -353,24 +353,14 @@ class YOLOV8Detector(Task):
     ```python
     images = tf.ones(shape=(1, 512, 512, 3))
     labels = {
-        "boxes": [
+        "boxes": tf.constant([
             [
                 [0, 0, 100, 100],
                 [100, 100, 200, 200],
                 [300, 300, 100, 100],
             ]
-        ],
-        "classes": [[1, 1, 1]],
-    }
-
-    # Convert labels to tensors
-    boxes_tensor = tf.constant(labels["boxes"], dtype=tf.float32)
-    classes_tensor = tf.constant(labels["classes"], dtype=tf.int32)
-
-    # Create a new list that includes the TensorFlow tensors
-    labels_tensor = {
-        "boxes": boxes_tensor,
-        "classes": classes_tensor,
+        ], dtype=tf.float32),
+        "classes": tf.constant([[1, 1, 1]], dtype=tf.int64),
     }
 
     model = keras_cv.models.YOLOV8Detector(
@@ -395,7 +385,7 @@ class YOLOV8Detector(Task):
         optimizer=tf.optimizers.SGD(global_clipnorm=10.0),
         jit_compile=False,
     )
-    model.fit(images, labels_tensor)
+    model.fit(images, labels)
     ```
     """  # noqa: E501
 
