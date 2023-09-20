@@ -83,7 +83,7 @@ class DeepLabV3PlusTest(TestCase):
         )
         image = np.ones((1, 512, 512, 3))
         output = ops.expand_dims(ops.argmax(model(image), axis=-1), axis=-1)
-        expected_output = np.zeros((1, 512, 512, 21))
+        expected_output = np.zeros((1, 512, 512, 1))
         self.assertAllClose(output, expected_output)
 
     @parameterized.named_parameters(
