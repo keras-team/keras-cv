@@ -18,14 +18,10 @@ jobs:
         # To switch on windows-2022/latest, please verify the bazel version:
         # https://github.com/bazelbuild/bazel/issues/14232#issuecomment-1011247429
         os: ['macos-12', 'windows-2019', 'ubuntu-18.04']
-        py-version: ['3.8', '3.9', '3.10', '3.11']
+        py-version: ['3.9', '3.10', '3.11']
         tf-version: ['2.13.0']
         use-macos-arm: [false]
         include:
-          - os: 'macos-12'
-            tf-version: '2.13.0'
-            py-version: '3.8'
-            use-macos-arm: true
           - os: 'macos-12'
             tf-version: '2.13.0'
             py-version: '3.9'
@@ -100,7 +96,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v1
       with:
-        python-version: 3.8
+        python-version: 3.9
     - name: Build wheels
       run: |
         pip install tensorflow==2.13.0
