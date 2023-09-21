@@ -14,9 +14,6 @@
 
 import numpy as np  # used for newaxis
 
-# TODO (ariG23498): remove tf and correct the type imports
-import tensorflow as tf
-
 from keras_cv import bounding_box
 from keras_cv.backend import assert_tf_keras
 from keras_cv.backend import keras
@@ -88,9 +85,9 @@ class _ROISampler(keras.layers.Layer):
 
     def call(
         self,
-        rois: tf.Tensor,
-        gt_boxes: tf.Tensor,
-        gt_classes: tf.Tensor,
+        rois,
+        gt_boxes,
+        gt_classes,
     ):
         """
         Args:

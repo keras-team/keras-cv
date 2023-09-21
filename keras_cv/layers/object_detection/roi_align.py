@@ -12,14 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict
-from typing import Mapping
-from typing import Optional
-from typing import Tuple
-
-# TODO (ariG23498): remove tf and correct the type imports
-import tensorflow as tf
-
 from keras_cv import bounding_box
 from keras_cv.backend import assert_tf_keras
 from keras_cv.backend import keras
@@ -27,7 +19,9 @@ from keras_cv.backend import ops
 
 
 def _feature_bilinear_interpolation(
-    features: tf.Tensor, kernel_y: tf.Tensor, kernel_x: tf.Tensor
+    features,
+    kernel_y,
+    kernel_x,
 ) -> tf.Tensor:
     """
     Feature bilinear interpolation.
@@ -88,11 +82,11 @@ def _feature_bilinear_interpolation(
 
 
 def _compute_grid_positions(
-    boxes: tf.Tensor,
-    boundaries: tf.Tensor,
-    output_size: int,
-    sample_offset: float,
-) -> Tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
+    boxes,
+    boundaries,
+    output_size,
+    sample_offset,
+):
     """
     Computes the grid position w.r.t. the corresponding feature map.
 
@@ -106,8 +100,8 @@ def _compute_grid_positions(
       boundaries: a 3-D tensor of shape [batch_size, num_boxes, 2] representing
         the boundary (in (y, x)) of the corresponding feature map for each box.
         Any resampled grid points that go beyond the boundary will be clipped.
-      output_size: a scalar indicating the output crop size.
-      sample_offset: a float number in [0, 1] indicates the subpixel sample
+      output_size: a `int` scalar indicating the output crop size.
+      sample_offset: a `float` number in [0, 1] indicates the subpixel sample
         offset from grid point.
 
     Returns:
@@ -177,11 +171,11 @@ def _compute_grid_positions(
 
 
 def multilevel_crop_and_resize(
-    features: Dict[str, tf.Tensor],
-    boxes: tf.Tensor,
-    output_size: int = 7,
-    sample_offset: float = 0.5,
-) -> tf.Tensor:
+    features,
+    boxes,
+    output_size=7,
+    sample_offset=0.5,
+):
     """
     Crop and resize on multilevel feature pyramid.
 
@@ -190,7 +184,7 @@ def multilevel_crop_and_resize(
     and resizing it using the corresponding feature map of that level.
 
     Args:
-      features: A dictionary with key as pyramid level and value as features.
+      features: A dictionary with key as pyramid level and value as features (tensors).
         The pyramid level keys need to be represented by strings like so:
         "P2", "P3", "P4", and so on.
         The features are in shape of [batch_size, height_l, width_l,
@@ -427,9 +421,9 @@ class _ROIAligner(keras.layers.Layer):
 
     def call(
         self,
-        features: Mapping[str, tf.Tensor],
-        boxes: tf.Tensor,
-        training: Optional[bool] = None,
+        features,
+        boxes,
+        training=None,
     ):
         """
 

@@ -12,12 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Mapping
-
 import numpy as np  # Used for newaxis
-
-# TODO (ariG23498): remove tf and correct the type imports
-import tensorflow as tf
 import tree
 
 from keras_cv import bounding_box
@@ -97,9 +92,9 @@ class _RpnLabelEncoder(keras.layers.Layer):
 
     def call(
         self,
-        anchors_dict: Mapping[str, tf.Tensor],
-        gt_boxes: tf.Tensor,
-        gt_classes: tf.Tensor,
+        anchors_dict,
+        gt_boxes,
+        gt_classes,
     ):
         """
         Args:
