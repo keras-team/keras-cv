@@ -135,6 +135,7 @@ class BaseImageAugmentationLayer(base_class):
             seed=seed, force_generator=force_generator
         )
         super().__init__(**kwargs)
+        self.built = True
         self._convert_input_args = False
 
     @property
