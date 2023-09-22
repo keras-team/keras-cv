@@ -84,20 +84,14 @@ class SegmentAnythingModel(Task):
         decoder.
 
     These prompts can be mixed and matched but at least one of the prompts
-    must be present. To turn off a particular prompt, a zero size array of the
-    following shapes must be passed:
+    must be present. To turn off a particular prompt, simply exclude it from
+    the inputs to the model.
 
-    (1) For points prompts, the expected shape is `(batch, num_points, 2)`. If
-        no point prompt is desired, pass an input of shape `(batch, 0, 2)`.
-        The labels must have shape `(batch, 0)` in case of no point prompt.
-    (2) For box prompt, the expected shape is `(batch, 1, 2, 2)`. The second
-        dimension (`box.shape[1]`) represents whether a box prompt is present
-        or not. If no box prompt is present, an input of shape
-        `(batch, 0, 2, 2)` is expected.
-    (3) Similarly, mask prompts have shape `(batch, 1, H, W, 1)`. Here too,
-        the first dimension (`mask.shape[1]`) indicates the presence of a mask
-        prompt. To turn off mask prompts, an input of shape
-        `(batch, 0, H, W, 1)` must be passed.
+    # TODO(ianstenbit): Remove the need for the `1` axes, and fix the box shape.
+    (1) For points prompts, the expected shape is `(batch, num_points, 2)`.
+        The labels must have a corresponding shape of `(batch, num_points)`.
+    (2) For box prompt, the expected shape is `(batch, 1, 2, 2)`.
+    (3) Similarly, mask prompts have shape `(batch, 1, H, W, 1)`.
 
     For example, to pass in all the prompts, do:
 
@@ -125,26 +119,23 @@ class SegmentAnythingModel(Task):
     (i.e. `masks[:, 1:, ...]`) are alternate predictions that can be used if
     they are desired over the first one.
 
-    Now, in case of only points and box prompts, do:
+    Now, in case of only points and box prompts, simply exclude the masks:
 
-    >>> no_input_mask = np.empty((1, 0, 256, 256, 1))
     >>> inputs = {
     ...     "images": image,
     ...     "points": points,
     ...     "labels": labels,
     ...     "boxes": box,
-    ...     "masks": no_input_mask
     ... }
     ...
     >>> outputs = sam.predict(inputs)
     >>> masks, iou_pred = outputs["masks"], outputs["iou_pred"]
 
-    Anothe example is that only points prompts are present.
-    Note that if point prompts are present (i.e. `points.shape[1] != 0`),
-    but no box prompt is present (i.e. `box.shape[1] == 0`), the points must
-    be passed using a zero point and -1 label:
+    # TODO(ianstenbit): Remove the need for this padding.
+    Another example is that only points prompts are present.
+    Note that if point prompts are present but no box prompt is present, the
+    points must be padded using a zero point and -1 label:
 
-    >>> no_box = np.empty((1, 0, 2, 2))
     >>> padded_points = np.concatenate(
     ...     [points, np.zeros((1, 1, 2))], axis=1
     ... )
@@ -156,8 +147,6 @@ class SegmentAnythingModel(Task):
     ...     "images": image,
     ...     "points": padded_points,
     ...     "labels": padded_labels,
-    ...     "boxes": no_box,
-    ...     "masks": no_input_mask
     ... }
     ...
     >>> outputs = sam.predict(inputs)
