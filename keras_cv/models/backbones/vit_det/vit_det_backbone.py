@@ -125,8 +125,8 @@ class ViTDetBackbone(Backbone):
             x = keras.layers.Rescaling(1.0 / 255.0)(x)
 
         # VITDet scales inputs based on the standard ImageNet mean/stddev.
-        x = (x - ops.array([0.229, 0.224, 0.225])) / (
-            ops.array([0.485, 0.456, 0.406])
+        x = (x - ops.array([0.229, 0.224, 0.225], dtype=x.dtype)) / (
+            ops.array([0.485, 0.456, 0.406], dtype=x.dtype)
         )
 
         x = ViTDetPatchingAndEmbedding(
