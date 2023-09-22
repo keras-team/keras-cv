@@ -126,6 +126,7 @@ class SegmentAnythingModel(Task):
     ...     "points": points,
     ...     "labels": labels,
     ...     "boxes": box,
+    ...     "masks": no_input_mask
     ... }
     ...
     >>> outputs = sam.predict(inputs)
