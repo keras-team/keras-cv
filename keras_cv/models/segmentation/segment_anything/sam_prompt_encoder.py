@@ -211,8 +211,8 @@ class SAMPromptEncoder(keras.layers.Layer):
         points, labels, box, mask = (
             inputs["points"],
             inputs["labels"],
-            inputs["box"],
-            inputs["mask"],
+            inputs["boxes"],
+            inputs["masks"],
         )
 
         # Get the batch shape. Since all the inputs must have the

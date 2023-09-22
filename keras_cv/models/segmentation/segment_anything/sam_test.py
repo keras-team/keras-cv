@@ -75,12 +75,12 @@ class SAMTest(TestCase):
             labels = ops.convert_to_tensor(
                 1 * (rng.random((B, 10)) > 0.5), dtype="int32"
             )
-        if "all" in prompts or "box" in prompts:
+        if "all" in prompts or "boxes" in prompts:
             x1y1 = rng.integers(0, 1022, (B, 2))
             x2y2 = rng.integers(x1y1, 1023, (B, 2))
             box = np.stack([x1y1, x2y2], axis=1)
             box = ops.convert_to_tensor(box[:, None, ...], dtype="float32")
-        if "all" in prompts or "mask" in prompts:
+        if "all" in prompts or "masks" in prompts:
             input_mask = ops.convert_to_tensor(
                 1.0 * (rng.random((B, 1, 256, 256, 1)) > 0.5), dtype="float32"
             )
@@ -122,15 +122,20 @@ class SAMTest(TestCase):
         [
             ("_".join(x), x)
             for x in itertools.chain(
-                itertools.combinations(["points", "box", "mask"], 1),
-                itertools.combinations(["points", "box", "mask"], 2),
+                itertools.combinations(["points", "boxes", "masks"], 1),
+                itertools.combinations(["points", "boxes", "masks"], 2),
             )
         ]
     )
     def test_prompt_encoder_partial_prompts(self, prompts):
         points, labels, box, input_mask = self.get_prompts(7, prompts)
         outputs = self.prompt_encoder(
-            {"points": points, "labels": labels, "box": box, "mask": input_mask}
+            {
+                "points": points,
+                "labels": labels,
+                "boxes": box,
+                "masks": input_mask,
+            }
         )
         sparse_embeddings, dense_embeddings = (
             outputs["sparse_embeddings"],
@@ -142,7 +147,7 @@ class SAMTest(TestCase):
             (7, points.shape[1] + box.shape[1] * 2, 256),
         )
         self.assertAllEqual(dense_embeddings.shape, (7, 64, 64, 256))
-        if "mask" not in prompts:
+        if "masks" not in prompts:
             no_mask_embed = ops.broadcast_to(
                 self.prompt_encoder.no_mask_embed(ops.arange(1)),
                 (7, 64, 64, 256),
@@ -154,7 +159,7 @@ class SAMTest(TestCase):
         image_embeddings = np.random.randn(1, 64, 64, 256).astype(np.float32)
 
         prompt_encoder_outputs = self.prompt_encoder(
-            dict(points=points, labels=labels, box=box, mask=input_mask)
+            dict(points=points, labels=labels, boxes=box, masks=input_mask)
         )
         sparse_embeddings = prompt_encoder_outputs["sparse_embeddings"]
 
@@ -242,8 +247,8 @@ class SAMTest(TestCase):
             "images": np.ones((1, 1024, 1024, 3)),
             "points": points,
             "labels": labels,
-            "box": box,
-            "mask": input_mask,
+            "boxes": box,
+            "masks": input_mask,
         }
 
         # Check the number of parameters
@@ -291,8 +296,8 @@ class SAMTest(TestCase):
             "images": ops.ones((1, 1024, 1024, 3)),
             "points": points,
             "labels": labels,
-            "box": box,
-            "mask": input_mask,
+            "boxes": box,
+            "masks": input_mask,
         }
 
         # Forward pass
@@ -324,10 +329,10 @@ class SAMTest(TestCase):
                 [[[10, 10], [100, 100], [500, 500]]], dtype=np.float32
             ),
             "labels": np.array([[0, 1, 0]], dtype=np.float32),
-            "box": np.array(
+            "boxes": np.array(
                 [[[[10.0, 10.0], [100.0, 100.0]]]], dtype=np.float32
             ),
-            "mask": (rng.random((1, 1, 256, 256, 1)) > 0.5).astype(np.float32),
+            "masks": (rng.random((1, 1, 256, 256, 1)) > 0.5).astype(np.float32),
         }
 
         # Run the model
@@ -361,8 +366,8 @@ class SAMTest(TestCase):
             "images": ops.ones((1, 1024, 1024, 3)),
             "points": points,
             "labels": labels,
-            "box": box,
-            "mask": input_mask,
+            "boxes": box,
+            "masks": input_mask,
         }
 
         # Compile the model
