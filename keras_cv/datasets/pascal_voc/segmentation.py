@@ -465,7 +465,10 @@ def _build_sbd_dataset_from_metadata(metadata):
     return dataset
 
 
-@keras_cv_export("keras_cv.datasets.pascal_voc.segmentation.load")
+@keras_cv_export(
+    "keras_cv.datasets.pascal_voc.segmentation.load",
+    package="keras_cv.datasets.pascal_voc_segmentation",
+)
 def load(
     split="sbd_train",
     data_dir=None,

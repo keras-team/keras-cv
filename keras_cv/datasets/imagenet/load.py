@@ -56,7 +56,9 @@ def parse_imagenet_example(img_size, crop_to_aspect_ratio):
     return apply
 
 
-@keras_cv_export("keras_cv.datasets.imagenet.load")
+@keras_cv_export(
+    "keras_cv.datasets.imagenet.load", package="keras_cv.datasets.imagenet"
+)
 def load(
     split,
     tfrecord_path,
