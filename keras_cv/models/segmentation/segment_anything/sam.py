@@ -113,8 +113,8 @@ class SegmentAnythingModel(Task):
     ...     "images": image,
     ...     "points": points,
     ...     "labels": labels,
-    ...     "box": box,
-    ...     "mask": input_mask
+    ...     "boxes": box,
+    ...     "masks": input_mask
     ... }
     ...
     >>> outputs = sam.predict(inputs)
@@ -132,8 +132,8 @@ class SegmentAnythingModel(Task):
     ...     "images": image,
     ...     "points": points,
     ...     "labels": labels,
-    ...     "box": box,
-    ...     "mask": no_input_mask
+    ...     "boxes": box,
+    ...     "masks": no_input_mask
     ... }
     ...
     >>> outputs = sam.predict(inputs)
@@ -156,8 +156,8 @@ class SegmentAnythingModel(Task):
     ...     "images": image,
     ...     "points": padded_points,
     ...     "labels": padded_labels,
-    ...     "box": no_box,
-    ...     "mask": no_input_mask
+    ...     "boxes": no_box,
+    ...     "masks": no_input_mask
     ... }
     ...
     >>> outputs = sam.predict(inputs)
@@ -175,8 +175,8 @@ class SegmentAnythingModel(Task):
         prompt_inputs = {
             "points": keras.Input(shape=[None, 2], name="points"),
             "labels": keras.Input(shape=[None], name="labels"),
-            "box": keras.Input(shape=[None, 2, 2], name="box"),
-            "mask": keras.Input(shape=[None, None, None, 1], name="mask"),
+            "boxes": keras.Input(shape=[None, 2, 2], name="boxes"),
+            "masks": keras.Input(shape=[None, None, None, 1], name="masks"),
         }
 
         # All Inputs -- Images + Prompts
