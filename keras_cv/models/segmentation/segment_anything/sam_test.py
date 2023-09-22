@@ -226,7 +226,8 @@ class SAMTest(TestCase):
             mask_decoder=self.mask_decoder,
         )
 
-        mask_prompts = self.get_prompts(1)
+        # We use box-only prompting for this test.
+        mask_prompts = self.get_prompts(1, "boxes")
         inputs = {
             "images": np.ones((1, 1024, 1024, 3)),
         }
@@ -277,7 +278,7 @@ class SAMTest(TestCase):
         inputs.update(mask_prompts)
 
         # Forward pass
-        outputs = model(inputs)
+        outputs = model.predict(inputs)
 
         # Save the model
         save_path = os.path.join(self.get_temp_dir(), "model.keras")
@@ -288,7 +289,7 @@ class SAMTest(TestCase):
         self.assertIsInstance(restored_model, SegmentAnythingModel)
 
         # Check that output matches.
-        restored_outputs = restored_model(inputs)
+        restored_outputs = restored_model.predict(inputs)
         self.assertAllClose(outputs, restored_outputs)
 
     @pytest.mark.large

@@ -14,8 +14,11 @@
 
 import copy
 
+import numpy as np
+
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
+from keras_cv.backend import ops
 from keras_cv.models.backbones.backbone_presets import backbone_presets
 from keras_cv.models.backbones.backbone_presets import (
     backbone_presets_with_weights,
@@ -192,6 +195,15 @@ class SegmentAnythingModel(Task):
         self.prompt_encoder = prompt_encoder
         self.mask_decoder = mask_decoder
 
+    # TODO(ianstenbit): Do something more elegant to handle empty prompts.
+    def predict_step(self, *args, **kwargs):
+        if len(args) == 2:
+            args = (args[0], _add_placeholder_prompts(args[-1]))
+        else:
+            args = (_add_placeholder_prompts(args[0]),)
+
+        return super().predict_step(*args, **kwargs)
+
     def fit(self, *args, **kwargs):
         raise NotImplementedError(
             "Segment Anything Model only supports inference for now. Training"
@@ -243,3 +255,32 @@ class SegmentAnythingModel(Task):
         """Dictionary of preset names and configurations of compatible
         backbones."""
         return copy.deepcopy(backbone_presets)
+
+
+def _add_placeholder_prompts(inputs):
+    """Adds placeholder prompt inputs for a call to SAM.
+
+    Because SAM is a functional subclass model, all inputs must be specified in
+    calls to the model. However, prompt inputs are all optional, so we have to
+    add placeholders when they're not specified by the user.
+    """
+    inputs = inputs.copy()
+
+    # Get the batch shape based on the image input
+    B = ops.shape(inputs["images"])[0]
+
+    # The type of the placeholders must match the existing inputs with respect
+    # to whether or not they are tensors (as opposed to Numpy arrays).
+    zeros = ops.zeros if ops.is_tensor(inputs["images"]) else np.zeros
+
+    # Fill in missing inputs.
+    if "points" not in inputs:
+        inputs["points"] = zeros((B, 0, 2))
+    if "labels" not in inputs:
+        inputs["labels"] = zeros((B, 0))
+    if "boxes" not in inputs:
+        inputs["boxes"] = zeros((B, 0, 2, 2))
+    if "masks" not in inputs:
+        inputs["masks"] = zeros((B, 0, 256, 256, 1))
+
+    return inputs
