@@ -91,7 +91,7 @@ class SAMTest(TestCase):
         points, labels, box, input_mask = self.get_prompts(7)
 
         outputs = self.prompt_encoder(
-            dict(points=points, labels=labels, box=box, mask=input_mask)
+            dict(points=points, labels=labels, boxes=box, masks=input_mask)
         )
         sparse_embeddings, dense_embeddings, dense_positional_embeddings = (
             outputs["sparse_embeddings"],
@@ -187,7 +187,7 @@ class SAMTest(TestCase):
     def test_two_way_transformer(self):
         points, labels, box, input_mask = self.get_prompts(1)
         prompt_encoder_outputs = self.prompt_encoder(
-            dict(points=points, labels=labels, box=box, mask=input_mask)
+            dict(points=points, labels=labels, boxes=box, masks=input_mask)
         )
         sparse_embeddings = prompt_encoder_outputs["sparse_embeddings"]
         image_embeddings = np.random.randn(1, 64, 64, 256)
@@ -208,7 +208,7 @@ class SAMTest(TestCase):
     def test_mask_decoder(self):
         points, labels, box, input_mask = self.get_prompts(1)
         prompt_encoder_outputs = self.prompt_encoder(
-            dict(points=points, labels=labels, box=box, mask=input_mask)
+            dict(points=points, labels=labels, boxes=box, masks=input_mask)
         )
         sparse_embeddings, dense_embeddings, dense_positional_embeddings = (
             prompt_encoder_outputs["sparse_embeddings"],
