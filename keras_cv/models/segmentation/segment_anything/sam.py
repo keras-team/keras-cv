@@ -146,7 +146,7 @@ class SegmentAnythingModel(Task):
 
     >>> no_box = np.empty((1, 0, 2, 2))
     >>> padded_points = np.concatenate(
-    ...     [points, np.zeros(1, 1, 2)], axis=1
+    ...     [points, np.zeros((1, 1, 2))], axis=1
     ... )
     ...
     >>> padded_labels = np.concatenate(
