@@ -63,36 +63,32 @@ class SAMTest(TestCase):
     def get_prompts(self, B, prompts="all"):
         rng = np.random.default_rng(0)
 
-        points = ops.ones((B, 0, 2))
-        labels = ops.ones((B, 0))
-        box = ops.ones((B, 0, 2, 2))
-        input_mask = ops.ones((B, 0, 256, 256, 1))
+        prompts_dict = {}
 
         if "all" in prompts or "points" in prompts:
-            points = ops.convert_to_tensor(
+            prompts_dict["points"] = ops.convert_to_tensor(
                 rng.integers(0, 1023, (B, 10, 2)), dtype="float32"
             )
-            labels = ops.convert_to_tensor(
+            prompts_dict["labels"] = ops.convert_to_tensor(
                 1 * (rng.random((B, 10)) > 0.5), dtype="int32"
             )
+
         if "all" in prompts or "boxes" in prompts:
             x1y1 = rng.integers(0, 1022, (B, 2))
             x2y2 = rng.integers(x1y1, 1023, (B, 2))
             box = np.stack([x1y1, x2y2], axis=1)
-            box = ops.convert_to_tensor(box[:, None, ...], dtype="float32")
+            prompts_dict["boxes"] = ops.convert_to_tensor(
+                box[:, None, ...], dtype="float32"
+            )
         if "all" in prompts or "masks" in prompts:
-            input_mask = ops.convert_to_tensor(
+            prompts_dict["masks"] = ops.convert_to_tensor(
                 1.0 * (rng.random((B, 1, 256, 256, 1)) > 0.5), dtype="float32"
             )
 
-        return points, labels, box, input_mask
+        return prompts_dict
 
     def test_prompt_encoder_simple(self):
-        points, labels, box, input_mask = self.get_prompts(7)
-
-        outputs = self.prompt_encoder(
-            dict(points=points, labels=labels, boxes=box, masks=input_mask)
-        )
+        outputs = self.prompt_encoder(self.get_prompts(7))
         sparse_embeddings, dense_embeddings, dense_positional_embeddings = (
             outputs["sparse_embeddings"],
             outputs["dense_embeddings"],
@@ -128,23 +124,21 @@ class SAMTest(TestCase):
         ]
     )
     def test_prompt_encoder_partial_prompts(self, prompts):
-        points, labels, box, input_mask = self.get_prompts(7, prompts)
-        outputs = self.prompt_encoder(
-            {
-                "points": points,
-                "labels": labels,
-                "boxes": box,
-                "masks": input_mask,
-            }
-        )
+        prompts_dict = self.get_prompts(7, prompts)
+        outputs = self.prompt_encoder(prompts_dict)
         sparse_embeddings, dense_embeddings = (
             outputs["sparse_embeddings"],
             outputs["dense_embeddings"],
         )
 
+        sparse_embeddings_dim = 0
+        if "points" in prompts:
+            sparse_embeddings_dim += prompts_dict["points"].shape[1]
+        if "boxes" in prompts:
+            sparse_embeddings_dim += prompts_dict["boxes"].shape[1] * 2
         self.assertAllEqual(
             sparse_embeddings.shape,
-            (7, points.shape[1] + box.shape[1] * 2, 256),
+            (7, sparse_embeddings_dim, 256),
         )
         self.assertAllEqual(dense_embeddings.shape, (7, 64, 64, 256))
         if "masks" not in prompts:
@@ -155,12 +149,9 @@ class SAMTest(TestCase):
             self.assertAllClose(dense_embeddings, no_mask_embed)
 
     def test_two_way_multi_head_attention(self):
-        points, labels, box, input_mask = self.get_prompts(1)
         image_embeddings = np.random.randn(1, 64, 64, 256).astype(np.float32)
 
-        prompt_encoder_outputs = self.prompt_encoder(
-            dict(points=points, labels=labels, boxes=box, masks=input_mask)
-        )
+        prompt_encoder_outputs = self.prompt_encoder(self.get_prompts(1))
         sparse_embeddings = prompt_encoder_outputs["sparse_embeddings"]
 
         two_way_attention = TwoWayMultiHeadAttention(
@@ -185,10 +176,7 @@ class SAMTest(TestCase):
         self.assertEqual(keys.shape, (1, 64 * 64, 256))
 
     def test_two_way_transformer(self):
-        points, labels, box, input_mask = self.get_prompts(1)
-        prompt_encoder_outputs = self.prompt_encoder(
-            dict(points=points, labels=labels, boxes=box, masks=input_mask)
-        )
+        prompt_encoder_outputs = self.prompt_encoder(self.get_prompts(1))
         sparse_embeddings = prompt_encoder_outputs["sparse_embeddings"]
         image_embeddings = np.random.randn(1, 64, 64, 256)
         two_way_transformer = TwoWayTransformer(
@@ -206,10 +194,7 @@ class SAMTest(TestCase):
         self.assertEqual(keys.shape, (1, 64 * 64, 256))
 
     def test_mask_decoder(self):
-        points, labels, box, input_mask = self.get_prompts(1)
-        prompt_encoder_outputs = self.prompt_encoder(
-            dict(points=points, labels=labels, boxes=box, masks=input_mask)
-        )
+        prompt_encoder_outputs = self.prompt_encoder(self.get_prompts(1))
         sparse_embeddings, dense_embeddings, dense_positional_embeddings = (
             prompt_encoder_outputs["sparse_embeddings"],
             prompt_encoder_outputs["dense_embeddings"],
@@ -241,15 +226,11 @@ class SAMTest(TestCase):
             mask_decoder=self.mask_decoder,
         )
 
-        points, labels, box, input_mask = self.get_prompts(1)
-
+        mask_prompts = self.get_prompts(1)
         inputs = {
             "images": np.ones((1, 1024, 1024, 3)),
-            "points": points,
-            "labels": labels,
-            "boxes": box,
-            "masks": input_mask,
         }
+        inputs.update(mask_prompts)
 
         # Check the number of parameters
         num_parameters = np.sum([np.prod(x.shape) for x in model.weights])
@@ -289,16 +270,11 @@ class SAMTest(TestCase):
             mask_decoder=self.mask_decoder,
         )
 
-        # Get the inputs
-        points, labels, box, input_mask = self.get_prompts(1)
-
+        mask_prompts = self.get_prompts(1)
         inputs = {
-            "images": ops.ones((1, 1024, 1024, 3)),
-            "points": points,
-            "labels": labels,
-            "boxes": box,
-            "masks": input_mask,
+            "images": np.ones((1, 1024, 1024, 3)),
         }
+        inputs.update(mask_prompts)
 
         # Forward pass
         outputs = model(inputs)
@@ -359,16 +335,11 @@ class SAMTest(TestCase):
             mask_decoder=self.mask_decoder,
         )
 
-        # Get the inputs
-        points, labels, box, input_mask = self.get_prompts(1)
-
+        mask_prompts = self.get_prompts(1)
         inputs = {
-            "images": ops.ones((1, 1024, 1024, 3)),
-            "points": points,
-            "labels": labels,
-            "boxes": box,
-            "masks": input_mask,
+            "images": np.ones((1, 1024, 1024, 3)),
         }
+        inputs.update(mask_prompts)
 
         # Compile the model
         model.compile(
