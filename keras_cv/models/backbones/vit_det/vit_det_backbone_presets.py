@@ -30,7 +30,7 @@ backbone_presets_no_weights = {
         "config": {
             "input_shape": (1024, 1024, 3),
             "input_tensor": None,
-            "include_rescaling": False,
+            "include_rescaling": True,
             "patch_size": 16,
             "embed_dim": 768,
             "depth": 12,
@@ -61,7 +61,7 @@ backbone_presets_no_weights = {
         "config": {
             "input_shape": (1024, 1024, 3),
             "input_tensor": None,
-            "include_rescaling": False,
+            "include_rescaling": True,
             "patch_size": 16,
             "embed_dim": 1024,
             "depth": 24,
@@ -92,7 +92,7 @@ backbone_presets_no_weights = {
         "config": {
             "input_shape": (1024, 1024, 3),
             "input_tensor": None,
-            "include_rescaling": False,
+            "include_rescaling": True,
             "patch_size": 16,
             "embed_dim": 1280,
             "depth": 32,
