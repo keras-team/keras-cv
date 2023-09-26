@@ -24,6 +24,8 @@ as add shims to support older version of `tf.keras`.
 
 import types
 
+from packaging.version import parse
+
 from keras_cv.backend.config import multi_backend
 
 # Keys are of the form: "module.where.attr.exists->module.where.to.alias"
@@ -41,7 +43,13 @@ _KERAS_CORE_ALIASES = {
 
 
 if multi_backend():
-    import keras_core as keras
+    try:
+        import keras
+
+        if keras.__version__ < parse("3.0"):
+            import keras_core as keras
+    except ImportError:
+        import keras_core as keras
 
     keras.backend.name_scope = keras.name_scope
 else:
