@@ -46,7 +46,7 @@ if multi_backend():
     try:
         import keras
 
-        if keras.__version__ < parse("3.0"):
+        if parse(keras.__version__) < parse("3.0"):
             import keras_core as keras
     except ImportError:
         import keras_core as keras
