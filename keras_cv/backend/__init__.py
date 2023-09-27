@@ -43,12 +43,11 @@ _KERAS_CORE_ALIASES = {
 
 
 if multi_backend():
-    try:
-        import keras
+    import keras
 
-        if parse(keras.__version__) < parse("3.0"):
-            import keras_core as keras
-    except ImportError:
+    if not hasattr(keras, "__version__") or parse(keras.__version__) < parse(
+        "3.0"
+    ):
         import keras_core as keras
 
     keras.backend.name_scope = keras.name_scope
