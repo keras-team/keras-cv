@@ -22,7 +22,7 @@ def _feature_bilinear_interpolation(
     features,
     kernel_y,
     kernel_x,
-) -> tf.Tensor:
+):
     """
     Feature bilinear interpolation.
 
