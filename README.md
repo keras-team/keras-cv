@@ -92,7 +92,7 @@ using it on top of your backend of choice:
 
 ```python
 import keras_cv
-import keras_core as keras
+from keras_cv.backend import keras
 
 filepath = keras.utils.get_file(origin="https://i.imgur.com/gCNcJJI.jpg")
 image = np.array(keras.utils.load_img(filepath))
@@ -111,7 +111,7 @@ predictions = model.predict(image_resized)
 import tensorflow as tf
 import keras_cv
 import tensorflow_datasets as tfds
-import keras_core as keras
+from keras_cv.backend import keras
 
 # Create a preprocessing pipeline with augmentations
 BATCH_SIZE = 16
