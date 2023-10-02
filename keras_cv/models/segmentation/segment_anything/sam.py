@@ -31,7 +31,11 @@ from keras_cv.utils.python_utils import classproperty
 
 
 @keras_cv_export(
-    "keras_cv.models.SegmentAnythingModel", package="keras_cv.models"
+    [
+        "keras_cv.models.SegmentAnythingModel",
+        "keras_cv.models.segmentation.SegmentAnythingModel",
+    ],
+    package="keras_cv.models",
 )
 class SegmentAnythingModel(Task):
     """

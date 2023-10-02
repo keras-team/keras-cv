@@ -41,7 +41,9 @@ from keras_cv.utils.train import get_feature_extractor
 BOX_VARIANCE = [0.1, 0.1, 0.2, 0.2]
 
 
-@keras_cv_export("keras_cv.models.RetinaNet")
+@keras_cv_export(
+    ["keras_cv.models.RetinaNet", "keras_cv.models.object_detection.RetinaNet"]
+)
 class RetinaNet(Task):
     """A Keras model implementing the RetinaNet meta-architecture.
 
