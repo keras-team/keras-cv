@@ -27,7 +27,9 @@ from keras_cv.utils.python_utils import classproperty
 from keras_cv.utils.train import get_feature_extractor
 
 
-@keras_cv_export("keras_cv.models.segmentation.SegFormer")
+@keras_cv_export(
+    ["keras_cv.models.SegFormer", "keras_cv.models.segmentation.SegFormer"]
+)
 class SegFormer(Task):
     """A Keras model implementing the SegFormer architecture for semantic
     segmentation.

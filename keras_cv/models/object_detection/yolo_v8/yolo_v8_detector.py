@@ -320,7 +320,12 @@ def dist2bbox(distance, anchor_points):
     return ops.concatenate((x1y1, x2y2), axis=-1)  # xyxy bbox
 
 
-@keras_cv_export("keras_cv.models.YOLOV8Detector")
+@keras_cv_export(
+    [
+        "keras_cv.models.YOLOV8Detector",
+        "keras_cv.models.object_detection.YOLOV8Detector",
+    ]
+)
 class YOLOV8Detector(Task):
     """Implements the YOLOV8 architecture for object detection.
 

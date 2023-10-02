@@ -28,7 +28,12 @@ from keras_cv.models.task import Task
 from keras_cv.utils.python_utils import classproperty
 
 
-@keras_cv_export("keras_cv.models.ImageClassifier")
+@keras_cv_export(
+    [
+        "keras_cv.models.ImageClassifier",
+        "keras_cv.models.classification.ImageClassifier",
+    ]
+)
 class ImageClassifier(Task):
     """Image classifier with pooling and dense layer prediction head.
 
