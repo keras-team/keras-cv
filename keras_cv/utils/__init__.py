@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from keras_cv.utils import test_utils
 from keras_cv.utils.conditional_imports import assert_cv2_installed
 from keras_cv.utils.conditional_imports import assert_matplotlib_installed
 from keras_cv.utils.conditional_imports import (

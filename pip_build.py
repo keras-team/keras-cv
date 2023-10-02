@@ -45,6 +45,10 @@ to_copy = [
 ]
 
 
+def ignore_files(_, filenames):
+    return [f for f in filenames if "test" in f]
+
+
 def build():
     if os.path.exists(build_directory):
         raise ValueError(f"Directory already exists: {build_directory}")
@@ -55,7 +59,9 @@ def build():
         root_path = pathlib.Path(__file__).parent.resolve()
         os.chdir(root_path)
         os.mkdir(build_directory)
-        shutil.copytree(package, os.path.join(build_directory, package))
+        shutil.copytree(
+            package, os.path.join(build_directory, package), ignore=ignore_files
+        )
         for fname in to_copy:
             shutil.copy(fname, os.path.join(f"{build_directory}", fname))
         os.chdir(build_directory)
