@@ -23,7 +23,7 @@ from keras_cv.tests.test_case import TestCase
 
 class FocalTest(TestCase):
     def test_output_shape(self):
-        y_true = np.random.uniform(size=[2, 5], low=0, high=2)
+        y_true = np.random.uniform(size=[2, 5], low=0, high=1)
         y_pred = np.random.uniform(size=[2, 5], low=0, high=1)
 
         focal_loss = FocalLoss(reduction="sum")
@@ -31,7 +31,7 @@ class FocalTest(TestCase):
         self.assertAllEqual(focal_loss(y_true, y_pred).shape, [])
 
     def test_output_shape_reduction_none(self):
-        y_true = np.random.uniform(size=[2, 5], low=0, high=2)
+        y_true = np.random.uniform(size=[2, 5], low=0, high=1)
         y_pred = np.random.uniform(size=[2, 5], low=0, high=1)
 
         focal_loss = FocalLoss(reduction="none")
@@ -44,7 +44,7 @@ class FocalTest(TestCase):
         )
 
     def test_output_shape_from_logits(self):
-        y_true = np.random.uniform(size=[2, 5], low=0, high=2)
+        y_true = np.random.uniform(size=[2, 5], low=0, high=1)
         y_pred = np.random.uniform(size=[2, 5], low=-10, high=10)
 
         focal_loss = FocalLoss(reduction="none", from_logits=True)
