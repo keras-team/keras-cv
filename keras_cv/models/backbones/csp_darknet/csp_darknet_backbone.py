@@ -41,7 +41,7 @@ from keras_cv.models.backbones.csp_darknet.csp_darknet_utils import (
 from keras_cv.utils.python_utils import classproperty
 
 
-@keras_cv_export("keras_cv.losses.CSPDarkNetBackbone")
+@keras_cv_export("keras_cv.models.CSPDarkNetBackbone")
 class CSPDarkNetBackbone(Backbone):
     """This class represents the CSPDarkNet architecture.
 
