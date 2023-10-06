@@ -29,7 +29,12 @@ from keras_cv.utils.python_utils import classproperty
 from keras_cv.utils.train import get_feature_extractor
 
 
-@keras_cv_export("keras_cv.models.DeepLabV3Plus")
+@keras_cv_export(
+    [
+        "keras_cv.models.DeepLabV3Plus",
+        "keras_cv.models.segmentation.DeepLabV3Plus",
+    ]
+)
 class DeepLabV3Plus(Task):
     """A Keras model implementing the DeepLabV3+ architecture for semantic
     segmentation.
