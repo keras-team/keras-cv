@@ -6,24 +6,24 @@
 ![Tensorflow](https://img.shields.io/badge/tensorflow-v2.9.0+-success.svg)
 [![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/keras-team/keras-cv/issues)
 
-KerasCV is a library of modular computer vision components that work natively 
+KerasCV is a library of modular computer vision components that work natively
 with TensorFlow, JAX, or PyTorch. Built on [Keras Core](https://keras.io/keras_core/announcement/),
 these models, layers, metrics, callbacks, etc., can be trained and serialized
-in any framework and re-used in another without costly migrations. See "Using 
-KerasCV with Keras Core" below for more details on multi-framework KerasCV.
+in any framework and re-used in another without costly migrations. See
+"Configuring your backend" below for more details on multi-framework KerasCV.
 
 <img style="width: 440px; max-width: 90%;" src="https://storage.googleapis.com/keras-cv/guides/keras-cv-augmentations.gif">
 
-KerasCV can be understood as a horizontal extension of the Keras API: the 
-components are new first-party Keras objects that are too specialized to be 
-added to core Keras. They receive the same level of polish and backwards 
-compatibility guarantees as the core Keras API, and they are maintained by the 
+KerasCV can be understood as a horizontal extension of the Keras API: the
+components are new first-party Keras objects that are too specialized to be
+added to core Keras. They receive the same level of polish and backwards
+compatibility guarantees as the core Keras API, and they are maintained by the
 Keras team.
 
-Our APIs assist in common computer vision tasks such as data augmentation, 
+Our APIs assist in common computer vision tasks such as data augmentation,
 classification, object detection, segmentation, image generation, and more.
-Applied computer vision engineers can leverage KerasCV to quickly assemble 
-production-grade, state-of-the-art training and inference pipelines for all of 
+Applied computer vision engineers can leverage KerasCV to quickly assemble
+production-grade, state-of-the-art training and inference pipelines for all of
 these common tasks.
 
 ## Quick Links
@@ -48,25 +48,48 @@ pip to install directly from the master branch on github:
 pip install git+https://github.com/keras-team/keras-cv.git tensorflow --upgrade
 ```
 
-## Using KerasCV with Keras Core
+## Configuring your backend
 
-As of version `0.6.0`, KerasCV supports multiple backends with Keras Core out of 
-the box. There are two ways to configure KerasCV to run with multi-backend 
-support:
+**Keras 3** is an upcoming release of the Keras library which supports
+TensorFlow, Jax or Torch as backends. This is supported today in KerasNLP,
+but will not be enabled by default until the official release of Keras 3. If you
+`pip install keras-cv` and run a script or notebook without changes, you will
+be using TensorFlow and **Keras 2**.
 
-1. Via the `KERAS_BACKEND` environment variable. If set, then KerasCV will be 
-using Keras Core with the backend specified (e.g., `KERAS_BACKEND=jax`).
-2. Via the `.keras/keras.json` and `.keras/keras_cv.json` config files (which 
-are automatically created the first time you import KerasCV):
-   - Set your backend of choice in `.keras/keras.json`; e.g., `"backend": "jax"`. 
-   - Set `"multi_backend": True` in `.keras/keras_cv.json`.
+If you would like to enable a preview of the Keras 3 behavior, you can do
+so by setting the `KERAS_BACKEND` environment variable. For example:
 
-Once that configuration step is done, you can just import KerasCV and start 
+```shell
+export KERAS_BACKEND=jax
+```
+
+Or in Colab, with:
+
+```python
+import os
+os.environ["KERAS_BACKEND"] = "jax"
+
+import keras_cv
+```
+
+> [!IMPORTANT]
+> Make sure to set the `KERAS_BACKEND` before import any Keras libraries, it
+> will be used to set up Keras when it is first imported.
+Until the Keras 3 release, KerasCV will use a preview of Keras 3 on PyPI named
+[keras-core](https://pypi.org/project/keras-core/).
+
+> [!IMPORTANT]
+> If you set `KERAS_BACKEND` variable, you should `import keras_core as keras`
+> instead of `import keras`. This is a temporary step until Keras 3 is out!
+To restore the default **Keras 2** behavior, `unset KERAS_BACKEND` before
+importing Keras and KerasCV.
+
+Once that configuration step is done, you can just import KerasCV and start
 using it on top of your backend of choice:
 
 ```python
 import keras_cv
-import keras_core as keras
+from keras_cv.backend import keras
 
 filepath = keras.utils.get_file(origin="https://i.imgur.com/gCNcJJI.jpg")
 image = np.array(keras.utils.load_img(filepath))
@@ -79,19 +102,13 @@ model = keras_cv.models.YOLOV8Detector.from_preset(
 predictions = model.predict(image_resized)
 ```
 
-Until Keras Core is officially released as Keras 3.0, KerasCV will use 
-`tf.keras` as the default backend. To restore this default behavior, simply 
-`unset KERAS_BACKEND` and ensure that  `"multi_backend": False` or is unset in 
-`.keras/keras_cv.json`. You will need to restart the Python runtime for changes 
-to take effect.
-
 ## Quickstart
 
 ```python
 import tensorflow as tf
 import keras_cv
 import tensorflow_datasets as tfds
-import keras_core as keras
+from keras_cv.backend import keras
 
 # Create a preprocessing pipeline with augmentations
 BATCH_SIZE = 16
@@ -157,9 +174,9 @@ We would like to leverage/outsource the Keras community not only for bug reporti
 but also for active development for feature delivery. To achieve this, here is the predefined
 process for how to contribute to this repository:
 
-1) Contributors are always welcome to help us fix an issue, add tests, better documentation. 
+1) Contributors are always welcome to help us fix an issue, add tests, better documentation.
 2) If contributors would like to create a backbone, we usually require a pre-trained weight set
-with the model for one dataset as the first PR, and a training script as a follow-up. The training script will preferably help us reproduce the results claimed from paper. The backbone should be generic but the training script can contain paper specific parameters such as learning rate schedules and weight decays. The training script will be used to produce leaderboard results. 
+with the model for one dataset as the first PR, and a training script as a follow-up. The training script will preferably help us reproduce the results claimed from paper. The backbone should be generic but the training script can contain paper specific parameters such as learning rate schedules and weight decays. The training script will be used to produce leaderboard results.
 Exceptions apply to large transformer-based models which are difficult to train. If this is the case,
 contributors should let us know so the team can help in training the model or providing GCP resources.
 3) If contributors would like to create a meta arch, please try to be aligned with our roadmap and create a PR for design review to make sure the meta arch is modular.
@@ -185,7 +202,7 @@ An example of this can be found in the ImageNet classification training
 All results are reproducible using the training scripts in this repository.
 
 Historically, many models have been trained on image datasets rescaled via manually
-crafted normalization schemes. 
+crafted normalization schemes.
 The most common variant of manually crafted normalization scheme is subtraction of the
 imagenet mean pixel followed by standard deviation normalization based on the imagenet
 pixel standard deviation.
