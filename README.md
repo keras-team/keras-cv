@@ -79,11 +79,8 @@ Until the Keras 3 release, KerasCV will use a preview of Keras 3 on PyPI named
 [keras-core](https://pypi.org/project/keras-core/).
 
 > [!IMPORTANT]
-> If you want to import Keras and guarantee that you're getting the same version
-> that KerasCV is using, just use `from keras_cv.backend import keras`. This
-> will give you the correct version so that your custom Keras code interacts
-> with KerasCV correctly.
-
+> If you set `KERAS_BACKEND` variable, you should `import keras_core as keras`
+> instead of `import keras`. This is a temporary step until Keras 3 is out!
 To restore the default **Keras 2** behavior, `unset KERAS_BACKEND` before
 importing Keras and KerasCV.
 
