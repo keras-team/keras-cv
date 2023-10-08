@@ -22,9 +22,9 @@ Keras team.
 
 Our APIs assist in common computer vision tasks such as data augmentation,
 classification, object detection, segmentation, image generation, and more.
-Applied computer vision engineers can leverage KerasCV to quickly assemble
-production-grade, state-of-the-art training and inference pipelines for all of
-these common tasks.
+Applied computer vision engineers can leverage KerasCV to quickly assemble 
+production-grade, state-of-the-art training and inference pipelines for all
+of these common tasks.
 
 ## Quick Links
 - [List of available models and presets](https://keras.io/api/keras_cv/models/)
