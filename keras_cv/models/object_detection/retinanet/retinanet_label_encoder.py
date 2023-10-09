@@ -232,3 +232,14 @@ class RetinaNetLabelEncoder(keras.layers.Layer):
         }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
+
+    @classmethod
+    def from_config(cls, config):
+        if "anchor_generator" in config and isinstance(
+            config["anchor_generator"], dict
+        ):
+            config["anchor_generator"] = keras.layers.deserialize(
+                config["anchor_generator"]
+            )
+
+        return super().from_config(config)
