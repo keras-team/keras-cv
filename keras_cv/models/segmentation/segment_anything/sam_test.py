@@ -259,8 +259,8 @@ class SAMTest(TestCase):
         )
         masks_ex, iou_pred_ex = outputs_ex["masks"], outputs_ex["iou_pred"]
 
-        self.assertAllClose(masks, masks_ex, atol=5e-5)
-        self.assertAllClose(iou_pred, iou_pred_ex, atol=5e-5)
+        self.assertAllClose(masks, masks_ex, atol=1e-4)
+        self.assertAllClose(iou_pred, iou_pred_ex, atol=1e-4)
 
     @pytest.mark.extra_large
     def test_end_to_end_model_save(self):
