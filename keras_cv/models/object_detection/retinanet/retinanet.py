@@ -524,6 +524,12 @@ class RetinaNet(Task):
             config["label_encoder"] = keras.layers.deserialize(
                 config["label_encoder"]
             )
+        if "prediction_decoder" in config and isinstance(
+            config["prediction_decoder"], dict
+        ):
+            config["prediction_decoder"] = keras.layers.deserialize(
+                config["prediction_decoder"]
+            )
         return super().from_config(config)
 
     @classproperty
