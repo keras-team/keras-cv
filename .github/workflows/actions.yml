@@ -74,7 +74,7 @@ jobs:
         pip install "jax[cpu]"
         pip install torch>=2.0.1+cpu
         pip install torchvision>=0.15.1
-        pip install keras-core
+        pip install keras-nightly
         pip install -e ".[tests]" --progress-bar off --upgrade
     - name: Test with pytest
       env:
