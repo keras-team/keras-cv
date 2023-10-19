@@ -260,7 +260,7 @@ Here is the BibTeX entry:
 ```bibtex
 @misc{wood2022kerascv,
   title={KerasCV},
-  author={Wood, Luke and Tan, Zhenyu and Stenbit, Ian and Bischof, Jonathan and Zhu, Scott, Chollet, Fran\c{c}ois Divyashree Sreepathihalli and others},
+  author={Wood, Luke and Tan, Zhenyu and Stenbit, Ian and Bischof, Jonathan and Zhu, Scott, Chollet, Fran\c{c}ois and Sreepathihalli, Divyashree and others},
   year={2022},
   howpublished={\url{https://github.com/keras-team/keras-cv}},
 }
