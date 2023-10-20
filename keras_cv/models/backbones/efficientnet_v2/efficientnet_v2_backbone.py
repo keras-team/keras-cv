@@ -70,6 +70,7 @@ class EfficientNetV2Backbone(Backbone):
             to use as image input for the model.
 
     Usage:
+
     ```python
     # Construct an EfficientNetV2 from a preset:
     efficientnet = keras_cv.models.EfficientNetV2Backbone.from_preset(
