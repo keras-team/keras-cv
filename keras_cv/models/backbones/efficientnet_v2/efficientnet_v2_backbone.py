@@ -69,7 +69,7 @@ class EfficientNetV2Backbone(Backbone):
         input_tensor: optional Keras tensor (i.e. output of `keras.layers.Input()`)
             to use as image input for the model.
 
-    Usage:
+    Example:
     ```python
     # Construct an EfficientNetV2 from a preset:
     efficientnet = keras_cv.models.EfficientNetV2Backbone.from_preset(
