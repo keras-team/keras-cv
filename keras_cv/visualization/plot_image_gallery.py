@@ -129,7 +129,7 @@ def plot_image_gallery(
         )  # batch_size from within passed `tf.data.Dataset`
     else:
         batch_size = (
-            images.shape[0] if len(images.shape) == 4 else 1
+            np.asarray(images).shape[0] if len(images.shape) == 4 else 1
         )  # batch_size from np.array or single image
 
     rows = rows or int(math.ceil(math.sqrt(batch_size)))
