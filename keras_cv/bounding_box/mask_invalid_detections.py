@@ -23,8 +23,8 @@ from keras_cv.bounding_box.validate_format import validate_format
 def mask_invalid_detections(bounding_boxes, output_ragged=False):
     """masks out invalid detections with -1s.
 
-    This utility is mainly used on the output of non-max supression operations.
-    The output of non-max-supression contains all the detections, even invalid
+    This utility is mainly used on the output of non-max suppression operations.
+    The output of non-max-suppression contains all the detections, even invalid
     ones. Users are expected to use `num_detections` to determine how many boxes
     are in each image.
 
