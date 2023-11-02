@@ -310,7 +310,8 @@ class CrossStagePartial(keras.layers.Layer):
                 )
             )
 
-        self.add = keras.layers.Add()
+        if self.residual:
+            self.add = keras.layers.Add()
         self.concatenate = keras.layers.Concatenate()
 
         self.darknet_conv3 = DarknetConvBlock(

@@ -14,8 +14,11 @@
 
 import copy
 
+import numpy as np
+
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
+from keras_cv.backend import ops
 from keras_cv.models.backbones.backbone_presets import backbone_presets
 from keras_cv.models.backbones.backbone_presets import (
     backbone_presets_with_weights,
@@ -28,7 +31,11 @@ from keras_cv.utils.python_utils import classproperty
 
 
 @keras_cv_export(
-    "keras_cv.models.SegmentAnythingModel", package="keras_cv.models"
+    [
+        "keras_cv.models.SegmentAnythingModel",
+        "keras_cv.models.segmentation.SegmentAnythingModel",
+    ],
+    package="keras_cv.models",
 )
 class SegmentAnythingModel(Task):
     """
@@ -84,20 +91,14 @@ class SegmentAnythingModel(Task):
         decoder.
 
     These prompts can be mixed and matched but at least one of the prompts
-    must be present. To turn off a particular prompt, a zero size array of the
-    following shapes must be passed:
+    must be present. To turn off a particular prompt, simply exclude it from
+    the inputs to the model.
 
-    (1) For points prompts, the expected shape is `(batch, num_points, 2)`. If
-        no point prompt is desired, pass an input of shape `(batch, 0, 2)`.
-        The labels must have shape `(batch, 0)` in case of no point prompt.
-    (2) For box prompt, the expected shape is `(batch, 1, 2, 2)`. The second
-        dimension (`box.shape[1]`) represents whether a box prompt is present
-        or not. If no box prompt is present, an input of shape
-        `(batch, 0, 2, 2)` is expected.
-    (3) Similarly, mask prompts have shape `(batch, 1, H, W, 1)`. Here too,
-        the first dimension (`mask.shape[1]`) indicates the presence of a mask
-        prompt. To turn off mask prompts, an input of shape
-        `(batch, 0, H, W, 1)` must be passed.
+    # TODO(ianstenbit): Remove the need for the `1` axes, and fix the box shape.
+    (1) For points prompts, the expected shape is `(batch, num_points, 2)`.
+        The labels must have a corresponding shape of `(batch, num_points)`.
+    (2) For box prompt, the expected shape is `(batch, 1, 2, 2)`.
+    (3) Similarly, mask prompts have shape `(batch, 1, H, W, 1)`.
 
     For example, to pass in all the prompts, do:
 
@@ -113,8 +114,8 @@ class SegmentAnythingModel(Task):
     ...     "images": image,
     ...     "points": points,
     ...     "labels": labels,
-    ...     "box": box,
-    ...     "mask": input_mask
+    ...     "boxes": box,
+    ...     "masks": input_mask
     ... }
     ...
     >>> outputs = sam.predict(inputs)
@@ -125,28 +126,25 @@ class SegmentAnythingModel(Task):
     (i.e. `masks[:, 1:, ...]`) are alternate predictions that can be used if
     they are desired over the first one.
 
-    Now, in case of only points and box prompts, do:
+    Now, in case of only points and box prompts, simply exclude the masks:
 
-    >>> no_input_mask = np.empty((1, 0, 256, 256, 1))
     >>> inputs = {
     ...     "images": image,
     ...     "points": points,
     ...     "labels": labels,
-    ...     "box": box,
-    ...     "mask": no_input_mask
+    ...     "boxes": box,
     ... }
     ...
     >>> outputs = sam.predict(inputs)
     >>> masks, iou_pred = outputs["masks"], outputs["iou_pred"]
 
-    Anothe example is that only points prompts are present.
-    Note that if point prompts are present (i.e. `points.shape[1] != 0`),
-    but no box prompt is present (i.e. `box.shape[1] == 0`), the points must
-    be passed using a zero point and -1 label:
+    # TODO(ianstenbit): Remove the need for this padding.
+    Another example is that only points prompts are present.
+    Note that if point prompts are present but no box prompt is present, the
+    points must be padded using a zero point and -1 label:
 
-    >>> no_box = np.empty((1, 0, 2, 2))
     >>> padded_points = np.concatenate(
-    ...     [points, np.zeros(1, 1, 2)], axis=1
+    ...     [points, np.zeros((1, 1, 2))], axis=1
     ... )
     ...
     >>> padded_labels = np.concatenate(
@@ -156,8 +154,6 @@ class SegmentAnythingModel(Task):
     ...     "images": image,
     ...     "points": padded_points,
     ...     "labels": padded_labels,
-    ...     "box": no_box,
-    ...     "mask": no_input_mask
     ... }
     ...
     >>> outputs = sam.predict(inputs)
@@ -175,8 +171,8 @@ class SegmentAnythingModel(Task):
         prompt_inputs = {
             "points": keras.Input(shape=[None, 2], name="points"),
             "labels": keras.Input(shape=[None], name="labels"),
-            "box": keras.Input(shape=[None, 2, 2], name="box"),
-            "mask": keras.Input(shape=[None, None, None, 1], name="mask"),
+            "boxes": keras.Input(shape=[None, 2, 2], name="boxes"),
+            "masks": keras.Input(shape=[None, None, None, 1], name="masks"),
         }
 
         # All Inputs -- Images + Prompts
@@ -202,6 +198,15 @@ class SegmentAnythingModel(Task):
         self.backbone = backbone
         self.prompt_encoder = prompt_encoder
         self.mask_decoder = mask_decoder
+
+    # TODO(ianstenbit): Do something more elegant to handle empty prompts.
+    def predict_step(self, *args, **kwargs):
+        if len(args) == 2:
+            args = (args[0], _add_placeholder_prompts(args[-1]))
+        else:
+            args = (_add_placeholder_prompts(args[0]),)
+
+        return super().predict_step(*args, **kwargs)
 
     def fit(self, *args, **kwargs):
         raise NotImplementedError(
@@ -254,3 +259,32 @@ class SegmentAnythingModel(Task):
         """Dictionary of preset names and configurations of compatible
         backbones."""
         return copy.deepcopy(backbone_presets)
+
+
+def _add_placeholder_prompts(inputs):
+    """Adds placeholder prompt inputs for a call to SAM.
+
+    Because SAM is a functional subclass model, all inputs must be specified in
+    calls to the model. However, prompt inputs are all optional, so we have to
+    add placeholders when they're not specified by the user.
+    """
+    inputs = inputs.copy()
+
+    # Get the batch shape based on the image input
+    B = ops.shape(inputs["images"])[0]
+
+    # The type of the placeholders must match the existing inputs with respect
+    # to whether or not they are tensors (as opposed to Numpy arrays).
+    zeros = ops.zeros if ops.is_tensor(inputs["images"]) else np.zeros
+
+    # Fill in missing inputs.
+    if "points" not in inputs:
+        inputs["points"] = zeros((B, 0, 2))
+    if "labels" not in inputs:
+        inputs["labels"] = zeros((B, 0))
+    if "boxes" not in inputs:
+        inputs["boxes"] = zeros((B, 0, 2, 2))
+    if "masks" not in inputs:
+        inputs["masks"] = zeros((B, 0, 256, 256, 1))
+
+    return inputs

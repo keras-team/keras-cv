@@ -208,16 +208,14 @@ class SAMPromptEncoder(keras.layers.Layer):
         return mask_embedding
 
     def call(self, inputs):
-        points, labels, box, mask = (
-            inputs["points"],
-            inputs["labels"],
-            inputs["box"],
-            inputs["mask"],
-        )
+        # Get the batch shape based on any arbitrary input, because batch
+        # shapes must all match.
+        B = ops.shape(next(iter(inputs.values())))[0]
 
-        # Get the batch shape. Since all the inputs must have the
-        # same batch shape, choose one input arbitrarily.
-        B = ops.shape(points)[0]
+        points = inputs.get("points", ops.zeros((B, 0, 2)))
+        labels = inputs.get("labels", ops.zeros((B, 0)))
+        box = inputs.get("boxes", ops.zeros((B, 0, 2, 2)))
+        mask = inputs.get("masks", ops.zeros((B, 0, 256, 256, 1)))
 
         # Compute point embeddings
         point_embeddings = self.__embed_points(points, labels)

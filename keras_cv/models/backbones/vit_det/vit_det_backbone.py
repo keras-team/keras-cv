@@ -16,6 +16,7 @@ import copy
 
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
+from keras_cv.backend import ops
 from keras_cv.layers.vit_det_layers import AddPositionalEmbedding
 from keras_cv.layers.vit_det_layers import ViTDetPatchingAndEmbedding
 from keras_cv.layers.vit_det_layers import WindowedTransformerEncoder
@@ -81,9 +82,9 @@ class ViTDetBackbone(Backbone):
     def __init__(
         self,
         *,
+        include_rescaling,
         input_shape=(1024, 1024, 3),
         input_tensor=None,
-        include_rescaling=False,
         patch_size=16,
         embed_dim=768,
         depth=12,
@@ -122,6 +123,11 @@ class ViTDetBackbone(Backbone):
         if include_rescaling:
             # Use common rescaling strategy across keras_cv
             x = keras.layers.Rescaling(1.0 / 255.0)(x)
+
+        # VITDet scales inputs based on the standard ImageNet mean/stddev.
+        x = (x - ops.array([0.485, 0.456, 0.406], dtype=x.dtype)) / (
+            ops.array([0.229, 0.224, 0.225], dtype=x.dtype)
+        )
 
         x = ViTDetPatchingAndEmbedding(
             kernel_size=(patch_size, patch_size),

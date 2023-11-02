@@ -12,11 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 from keras_cv.models.stable_diffusion.padded_conv2d import PaddedConv2D
 
 
+@keras_cv_export("keras_cv.models.stable_diffusion.DiffusionModel")
 class DiffusionModel(keras.Model):
     def __init__(
         self,

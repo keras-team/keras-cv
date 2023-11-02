@@ -16,10 +16,12 @@
 Adapted from https://github.com/huggingface/diffusers/blob/v0.3.0/src/diffusers/schedulers/scheduling_ddpm.py#L56
 """  # noqa: E501
 
+from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import ops
 from keras_cv.backend import random
 
 
+@keras_cv_export("keras_cv.models.stable_diffusion.NoiseScheduler")
 class NoiseScheduler:
     """
     Args:
@@ -29,8 +31,6 @@ class NoiseScheduler:
         beta_schedule: the beta schedule, a mapping from a beta range to a
             sequence of betas for stepping the model. Choose from `linear` or
             `quadratic`.
-        betas: a complete set of betas, in lieu of using one of the existing
-            schedules.
         variance_type: options to clip the variance used when adding noise to
             the de-noised sample. Choose from `fixed_small`, `fixed_small_log`,
             `fixed_large`, `fixed_large_log`, `learned` or `learned_range`.
@@ -63,7 +63,7 @@ class NoiseScheduler:
             raise ValueError(f"Invalid beta schedule: {beta_schedule}.")
 
         self.alphas = 1.0 - self.betas
-        self.alphas_cumprod = ops.math.cumprod(self.alphas)
+        self.alphas_cumprod = ops.cumprod(self.alphas)
 
         self.variance_type = variance_type
         self.clip_sample = clip_sample
