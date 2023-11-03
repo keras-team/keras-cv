@@ -20,6 +20,7 @@ import tensorflow as tf
 from absl.testing import parameterized
 
 import keras_cv
+from keras_cv import backend
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 from keras_cv.models.backbones.test_backbone_presets import (
@@ -248,6 +249,49 @@ class RetinaNetTest(TestCase):
             ),
         )
         model(ops.ones(shape=(2, 224, 224, 3)))
+
+    def test_tf_dataset_data_generator(self):
+        if backend.multi_backend() and keras.backend.backend() != "tensorflow":
+            pytest.skip("TensorFlow required for `tf.data.Dataset` test.")
+
+        def data_generator():
+            image = tf.ones((512, 512, 3), dtype=tf.float32)
+
+            bounding_boxes = {
+                "boxes": tf.ones((3, 4), dtype=tf.float32),
+                "classes": tf.ones((3,), dtype=tf.float32),
+            }
+
+            yield {"images": image, "bounding_boxes": bounding_boxes}
+
+        data = tf.data.Dataset.from_generator(
+            generator=data_generator,
+            output_signature={
+                "images": tf.TensorSpec(shape=(512, 512, 3), dtype=tf.float32),
+                "bounding_boxes": {
+                    "boxes": tf.TensorSpec(shape=(None, 4), dtype=tf.float32),
+                    "classes": tf.TensorSpec(shape=(None,), dtype=tf.float32),
+                },
+            },
+        ).batch(1)
+
+        model = keras_cv.models.RetinaNet(
+            num_classes=2,
+            bounding_box_format="xyxy",
+            backbone=keras_cv.models.ResNet50Backbone.from_preset(
+                "resnet50_imagenet",
+                load_weights=False,
+            ),
+        )
+
+        model.compile(
+            classification_loss="focal",
+            box_loss="smoothl1",
+            optimizer="adam",
+            jit_compile=False,
+        )
+
+        model.fit(data, epochs=1, batch_size=1, steps_per_epoch=1)
 
 
 @pytest.mark.large
