@@ -27,14 +27,14 @@ else:
     _keras_dir = os.path.join(_keras_base_dir, ".keras")
 
 # Attempt to read KerasCV config file.
-_config_path = os.path.expanduser(os.path.join(_keras_dir, "keras-cv.json"))
+_config_path = os.path.expanduser(os.path.join(_keras_dir, "keras_cv.json"))
 if os.path.exists(_config_path):
     try:
         with open(_config_path) as f:
             _config = json.load(f)
     except ValueError:
         _config = {}
-    _MULTI_BACKEND = _config.get("multi_backend", _MULTI_BACKEND)
+    _MULTI_BACKEND = _config.get("z", _MULTI_BACKEND)
 
 # Save config file, if possible.
 if not os.path.exists(_keras_dir):
