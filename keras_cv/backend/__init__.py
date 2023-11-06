@@ -52,7 +52,13 @@ if multi_backend():
 
     keras.backend.name_scope = keras.name_scope
 else:
-    from tensorflow import keras
+    try:
+        import tf_keras as keras
+    except ImportError:
+            raise ImportError(
+                "Keras 2 requires the `tf_keras` package."
+                "Please install it with `pip install tf_keras`."
+            )
 
     if not hasattr(keras, "saving"):
         keras.saving = types.SimpleNamespace()
