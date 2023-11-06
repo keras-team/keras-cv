@@ -184,7 +184,8 @@ def multilevel_crop_and_resize(
     and resizing it using the corresponding feature map of that level.
 
     Args:
-      features: A dictionary with key as pyramid level and value as features (tensors).
+      features: A dictionary with key as pyramid level and value as
+        features (tensors).
         The pyramid level keys need to be represented by strings like so:
         "P2", "P3", "P4", and so on.
         The features are in shape of [batch_size, height_l, width_l,
