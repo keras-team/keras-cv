@@ -235,6 +235,7 @@ class StableDiffusionBase:
                 + unconditional_guidance_scale * (latent - unconditional_latent)
             )
             a_t, a_prev = alphas[index], alphas_prev[index]
+            latent = ops.cast(latent, latent_prev.dtype)
             pred_x0 = (latent_prev - math.sqrt(1 - a_t) * latent) / math.sqrt(
                 a_t
             )
