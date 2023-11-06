@@ -34,7 +34,7 @@ if os.path.exists(_config_path):
             _config = json.load(f)
     except ValueError:
         _config = {}
-    _MULTI_BACKEND = _config.get("z", _MULTI_BACKEND)
+    _MULTI_BACKEND = _config.get("multi_backend", _MULTI_BACKEND)
 
 # Save config file, if possible.
 if not os.path.exists(_keras_dir):
