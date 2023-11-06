@@ -124,7 +124,7 @@ class RetinaNetLabelEncoder(keras.layers.Layer):
             gt_boxes, matched_gt_idx
         )
         matched_gt_boxes = ops.reshape(
-            matched_gt_boxes, (-1, matched_gt_boxes.shape[1], 4)
+            matched_gt_boxes, (-1, ops.shape(matched_gt_boxes)[1], 4)
         )
 
         box_target = bounding_box._encode_box_to_deltas(
@@ -166,7 +166,7 @@ class RetinaNetLabelEncoder(keras.layers.Layer):
         box_shape = ops.shape(gt_boxes)
         batch_size = box_shape[0]
         n_boxes = box_shape[1]
-        box_ids = ops.arange(gt_boxes.shape[1], dtype=matched_gt_idx.dtype)
+        box_ids = ops.arange(n_boxes, dtype=matched_gt_idx.dtype)
         matched_ids = ops.expand_dims(matched_gt_idx, axis=-1)
         matches = box_ids == matched_ids
         matches = ops.any(matches, axis=1)
@@ -197,7 +197,8 @@ class RetinaNetLabelEncoder(keras.layers.Layer):
                 f"Received `type(images)={type(images)}`."
             )
 
-        image_shape = tuple(images[0].shape)
+        image_shape = ops.shape(images)
+        image_shape = (image_shape[1], image_shape[2], image_shape[3])
         box_labels = bounding_box.to_dense(box_labels)
         if len(box_labels["classes"].shape) == 2:
             box_labels["classes"] = ops.expand_dims(
@@ -215,7 +216,7 @@ class RetinaNetLabelEncoder(keras.layers.Layer):
         result = self._encode_sample(box_labels, anchor_boxes, image_shape)
         encoded_box_targets = result["boxes"]
         encoded_box_targets = ops.reshape(
-            encoded_box_targets, (-1, encoded_box_targets.shape[1], 4)
+            encoded_box_targets, (-1, ops.shape(encoded_box_targets)[1], 4)
         )
         class_targets = result["classes"]
         return encoded_box_targets, class_targets
