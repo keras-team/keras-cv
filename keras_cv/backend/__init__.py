@@ -26,6 +26,7 @@ import types
 
 from packaging.version import parse
 
+from keras_cv.backend.config import detect_if_tensorflow_uses_keras_3
 from keras_cv.backend.config import multi_backend
 
 # Keys are of the form: "module.where.attr.exists->module.where.to.alias"
@@ -43,11 +44,9 @@ _KERAS_CORE_ALIASES = {
 
 
 if multi_backend():
-    import keras
-
-    if not hasattr(keras, "__version__") or parse(keras.__version__) < parse(
-        "3.0"
-    ):
+    if detect_if_tensorflow_uses_keras_3():
+        from tensorflow import keras
+    else:
         import keras_core as keras
 
     keras.backend.name_scope = keras.name_scope
