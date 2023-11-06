@@ -10,4 +10,5 @@ black
 pytest
 pycocotools
 build
+keras-core>=0.1.6
 namex
