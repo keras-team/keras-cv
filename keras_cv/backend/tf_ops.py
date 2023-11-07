@@ -32,8 +32,6 @@ elif config.multi_backend():
     from keras_core.src.backend.tensorflow.nn import *  # noqa: F403, F401
     from keras_core.src.backend.tensorflow.numpy import *  # noqa: F403, F401
 
-else:
-    from tensorflow.keras import *
 # Some TF APIs where the numpy API doesn't support raggeds that we need
 from tensorflow import broadcast_to  # noqa: F403, F401
 from tensorflow import concat as concatenate  # noqa: F403, F401
