@@ -49,11 +49,9 @@ def detect_if_keras_3():
         return False
 
 
-if detect_if_keras_3():
-    _MULTI_BACKEND = True
-
-
 if detect_if_tensorflow_uses_keras_3():
+    _MULTI_BACKEND = True
+elif detect_if_keras_3():
     _MULTI_BACKEND = True
 
 # Attempt to read KerasCV config file.
@@ -64,7 +62,7 @@ if os.path.exists(_config_path):
             _config = json.load(f)
     except ValueError:
         _config = {}
-    _MULTI_BACKEND = _config.gest("multi_backend", _MULTI_BACKEND)
+    _MULTI_BACKEND = _config.get("multi_backend", _MULTI_BACKEND)
 
 # Save config file, if possible.
 if not os.path.exists(_keras_dir):
