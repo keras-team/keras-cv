@@ -46,6 +46,7 @@ if detect_if_tensorflow_uses_keras_3():
     from tensorflow import keras
 elif multi_backend():
     import keras
+
     if not hasattr(keras, "__version__") or parse(keras.__version__) < parse(
         "3.0"
     ):

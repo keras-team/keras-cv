@@ -14,8 +14,6 @@
 import json
 import os
 
-from packaging.version import parse
-
 _MULTI_BACKEND = False
 
 # Set Keras base dir path given KERAS_HOME env variable, if applicable.
@@ -43,6 +41,7 @@ def detect_if_tensorflow_uses_keras_3():
 
 def detect_if_keras_3():
     import keras
+
     if hasattr(keras, "__version__") and keras.__version__.startswith("3."):
         return True
     else:
