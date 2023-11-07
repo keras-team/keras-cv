@@ -43,7 +43,7 @@ def detect_if_tensorflow_uses_keras_3():
 
 def detect_if_keras_3():
     import keras
-    if hasattr(keras, "__version__") or parse(keras.__version__) == parse("3.0"):
+    if hasattr(keras, "__version__") and keras.__version__.startswith("3."):
         return True
     else:
         return False
