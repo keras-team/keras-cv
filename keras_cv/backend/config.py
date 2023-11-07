@@ -14,6 +14,8 @@
 import json
 import os
 
+from packaging.version import parse
+
 _MULTI_BACKEND = False
 
 # Set Keras base dir path given KERAS_HOME env variable, if applicable.
@@ -39,6 +41,18 @@ def detect_if_tensorflow_uses_keras_3():
     return False
 
 
+def detect_if_keras_3():
+    import keras
+    if hasattr(keras, "__version__") or parse(keras.__version__) == parse("3.0"):
+        return True
+    else:
+        return False
+
+
+if detect_if_keras_3():
+    _MULTI_BACKEND = True
+
+
 if detect_if_tensorflow_uses_keras_3():
     _MULTI_BACKEND = True
 
@@ -50,7 +64,7 @@ if os.path.exists(_config_path):
             _config = json.load(f)
     except ValueError:
         _config = {}
-    _MULTI_BACKEND = _config.get("multi_backend", _MULTI_BACKEND)
+    _MULTI_BACKEND = _config.gest("multi_backend", _MULTI_BACKEND)
 
 # Save config file, if possible.
 if not os.path.exists(_keras_dir):
