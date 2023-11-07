@@ -13,16 +13,7 @@
 # limitations under the License.
 from keras_cv.backend import config
 
-if config.detect_if_keras_3() or config.detect_if_tensorflow_uses_keras_3():
-    from keras.src.backend.tensorflow import *  # noqa: F403, F401
-    from keras.src.backend.tensorflow import (
-        convert_to_numpy,
-    )  # noqa: F403, F401
-    from keras.src.backend.tensorflow.core import *  # noqa: F403, F401
-    from keras.src.backend.tensorflow.math import *  # noqa: F403, F401
-    from keras.src.backend.tensorflow.nn import *  # noqa: F403, F401
-    from keras.src.backend.tensorflow.numpy import *  # noqa: F403, F401
-elif config.multi_backend():
+if config.multi_backend():
     from keras_core.src.backend.tensorflow import *  # noqa: F403, F401
     from keras_core.src.backend.tensorflow import (
         convert_to_numpy,
