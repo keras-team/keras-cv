@@ -39,16 +39,7 @@ def detect_if_tensorflow_uses_keras_3():
     return False
 
 
-def detect_if_keras_3():
-    import keras
-
-    if hasattr(keras, "__version__") and keras.__version__.startswith("3."):
-        return True
-    else:
-        return False
-
-
-if detect_if_tensorflow_uses_keras_3() or detect_if_keras_3():
+if detect_if_tensorflow_uses_keras_3():
     _MULTI_BACKEND = True
 
 # Attempt to read KerasCV config file.
