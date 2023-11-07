@@ -148,13 +148,10 @@ class FasterRCNN(Task):
         feature_pyramid=None,
         **kwargs,
     ):
-        self.num_classes = num_classes
-        self.bounding_box_format = bounding_box_format
-        super().__init__(**kwargs)
         scales = [2**x for x in [0]]
         aspect_ratios = [0.5, 1.0, 2.0]
-        self.anchor_generator = anchor_generator or AnchorGenerator(
-            bounding_box_format="yxyx",
+        anchor_generator = anchor_generator or AnchorGenerator(
+            bounding_box_format=bounding_box_format,
             sizes={
                 "P2": 32.0,
                 "P3": 64.0,
@@ -167,14 +164,68 @@ class FasterRCNN(Task):
             strides={f"P{i}": 2**i for i in range(2, 7)},
             clip_boxes=True,
         )
-        self.rpn_head = RPNHead(
+        rpn_head = RPNHead(
             num_anchors_per_location=len(scales) * len(aspect_ratios)
         )
-        self.roi_generator = ROIGenerator(
-            bounding_box_format="yxyx",
+        roi_generator = ROIGenerator(
+            bounding_box_format=bounding_box_format,
             nms_score_threshold_train=float("-inf"),
             nms_score_threshold_test=float("-inf"),
         )
+        roi_pooler = _ROIAligner(bounding_box_format=bounding_box_format)
+        rcnn_head = rcnn_head or RCNNHead(num_classes)
+        backbone = backbone or models.ResNet50Backbone()
+        extractor_levels = ["P2", "P3", "P4", "P5"]
+        extractor_layer_names = [
+            backbone.pyramid_level_inputs[i] for i in extractor_levels
+        ]
+        feature_extractor = get_feature_extractor(
+            backbone, extractor_layer_names, extractor_levels
+        )
+        feature_pyramid = feature_pyramid or FeaturePyramid()
+
+        # Begin construction of forward pass
+        image_shape = feature_extractor.input_shape[1:]
+        images = keras.layers.Input(image_shape, name="images")
+        anchors = anchor_generator(image_shape=image_shape)
+
+        # Calling the RPN block
+        backbone_outputs = feature_extractor(images)
+        feature_map = feature_pyramid(backbone_outputs)
+        # [BS, num_anchors, 4], [BS, num_anchors, 1]
+        rpn_boxes, rpn_scores = rpn_head(feature_map)
+        # the decoded format is center_xywh, convert to yxyx
+        decoded_rpn_boxes = _decode_deltas_to_boxes(
+            anchors=anchors,
+            boxes_delta=rpn_boxes,
+            anchor_format=bounding_box_format,
+            box_format=bounding_box_format,
+            variance=BOX_VARIANCE,
+        )
+        rois, _ = roi_generator(decoded_rpn_boxes, rpn_scores)
+        rois = _clip_boxes(rois, bounding_box_format, image_shape)
+
+        # Calling the RCNN block
+        feature_map = roi_pooler(feature_map, rois)
+        # [BS, H*W*K, pool_shape*C]
+        feature_map = ops.reshape(
+            feature_map, ops.concatenate([ops.shape(rois)[:2], [-1]], axis=0)
+        )
+        # [BS, H*W*K, 4], [BS, H*W*K, num_classes + 1]
+        rcnn_box_pred, rcnn_cls_pred = self.rcnn_head(
+            feature_map,
+        )
+
+        inputs = {"images": images}
+        outputs = {"box": rcnn_box_pred, "classification": rcnn_cls_pred}
+
+        super().__init__(inputs=inputs, outputs=outputs, **kwargs)
+
+        self.num_classes = num_classes
+        self.bounding_box_format = bounding_box_format
+        self.anchor_generator = anchor_generator
+        self.rpn_head = rpn_head
+        self.roi_generator = roi_generator
         self.box_matcher = BoxMatcher(
             thresholds=[0.0, 0.5], match_values=[-2, -1, 1]
         )
@@ -184,17 +235,11 @@ class FasterRCNN(Task):
             background_class=num_classes,
             num_sampled_rois=512,
         )
-        self.roi_pooler = _ROIAligner(bounding_box_format="yxyx")
-        self.rcnn_head = rcnn_head or RCNNHead(num_classes)
-        self.backbone = backbone or models.ResNet50Backbone()
-        extractor_levels = ["P2", "P3", "P4", "P5"]
-        extractor_layer_names = [
-            self.backbone.pyramid_level_inputs[i] for i in extractor_levels
-        ]
-        self.feature_extractor = get_feature_extractor(
-            self.backbone, extractor_layer_names, extractor_levels
-        )
-        self.feature_pyramid = feature_pyramid or FeaturePyramid()
+        self.roi_pooler = roi_pooler
+        self.rcnn_head = rcnn_head
+        self.backbone = backbone
+        self.feature_extractor = feature_extractor
+        self.feature_pyramid = feature_pyramid
         self.rpn_labeler = label_encoder or _RpnLabelEncoder(
             anchor_format="yxyx",
             ground_truth_box_format="yxyx",
@@ -248,30 +293,6 @@ class FasterRCNN(Task):
             feature_map, training=training
         )
         return rcnn_box_pred, rcnn_cls_pred
-
-    def call(self, images, training=None):
-        image_shape = ops.shape(images[0])
-        anchors = self.anchor_generator(image_shape=image_shape)
-        rois, feature_map, _, _ = self._call_rpn(
-            images, anchors, training=training
-        )
-        box_pred, cls_pred = self._call_rcnn(
-            rois, feature_map, training=training
-        )
-        if not training:
-            # box_pred is on "center_yxhw" format, convert to target format.
-            box_pred = _decode_deltas_to_boxes(
-                anchors=rois,
-                boxes_delta=box_pred,
-                anchor_format="yxyx",
-                box_format=self.bounding_box_format,
-                variance=[0.1, 0.1, 0.2, 0.2],
-            )
-        outputs = {
-            "boxes": box_pred,
-            "classes": cls_pred,
-        }
-        return outputs
 
     # TODO(tanzhenyu): Support compile with metrics.
     def compile(
