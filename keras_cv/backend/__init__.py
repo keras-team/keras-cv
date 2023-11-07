@@ -24,10 +24,11 @@ as add shims to support older version of `tf.keras`.
 
 import types
 
+from keras_cv.backend.config import (
+    detect_if_tensorflow_uses_keras_3,
+    multi_backend,
+)
 from packaging.version import parse
-
-from keras_cv.backend.config import detect_if_tensorflow_uses_keras_3
-from keras_cv.backend.config import multi_backend
 
 # Keys are of the form: "module.where.attr.exists->module.where.to.alias"
 # Value are of the form: ["attr1", "attr2", ...] or
@@ -42,9 +43,7 @@ _KERAS_CORE_ALIASES = {
     "models->saving": ["load_model"],
 }
 
-if detect_if_tensorflow_uses_keras_3():
-    from tensorflow import keras
-elif multi_backend():
+if (not detect_if_tensorflow_uses_keras_3()) and multi_backend():
     import keras
 
     if not hasattr(keras, "__version__") or parse(keras.__version__) < parse(
