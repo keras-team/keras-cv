@@ -49,9 +49,7 @@ def detect_if_keras_3():
         return False
 
 
-if detect_if_tensorflow_uses_keras_3():
-    _MULTI_BACKEND = True
-elif detect_if_keras_3():
+if detect_if_tensorflow_uses_keras_3() or detect_if_keras_3():
     _MULTI_BACKEND = True
 
 # Attempt to read KerasCV config file.

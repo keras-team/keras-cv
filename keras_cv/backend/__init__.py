@@ -42,12 +42,11 @@ _KERAS_CORE_ALIASES = {
     "models->saving": ["load_model"],
 }
 
-
-if multi_backend():
+if detect_if_tensorflow_uses_keras_3():
+    from tensorflow import keras
+elif multi_backend():
     import keras
-    if detect_if_tensorflow_uses_keras_3():
-        from tensorflow import keras
-    elif not hasattr(keras, "__version__") or parse(keras.__version__) < parse(
+    if not hasattr(keras, "__version__") or parse(keras.__version__) < parse(
         "3.0"
     ):
         import keras_core as keras
