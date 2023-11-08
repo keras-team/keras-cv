@@ -18,9 +18,7 @@ from keras_cv.backend.config import detect_if_tensorflow_uses_keras_3
 from tensorflow import keras
 
 if detect_if_tensorflow_uses_keras_3():
-    from keras_cv.layers import check_keras_version_layer
-
-    base_layer = check_keras_version_layer
+    base_layer = tf.keras.layers.Layer
 else:
     from tensorflow.keras.__internal__.layers import BaseRandomLayer
 
