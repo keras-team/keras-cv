@@ -15,14 +15,14 @@ from keras_cv.backend import config
 
 if config.multi_backend():
     try:
-        from keras.backend.tensorflow import *  # noqa: F403, F401
-        from keras.backend.tensorflow import (
+        from tensorflow.keras.backend.tensorflow import *  # noqa: F403, F401
+        from tensorflow.keras.backend.tensorflow import (
             convert_to_numpy,
         )  # noqa: F403, F401
-        from keras.backend.tensorflow.core import *  # noqa: F403, F401
-        from keras.backend.tensorflow.math import *  # noqa: F403, F401
-        from keras.backend.tensorflow.nn import *  # noqa: F403, F401
-        from keras.backend.tensorflow.numpy import *  # noqa: F403, F401
+        from tensorflow.keras.backend.tensorflow.core import *  # noqa: F403, F401
+        from tensorflow.keras.backend.tensorflow.math import *  # noqa: F403, F401
+        from tensorflow.keras.backend.tensorflow.nn import *  # noqa: F403, F401
+        from tensorflow.keras.backend.tensorflow.numpy import *  # noqa: F403, F401
     except ImportError:
         from keras_core.src.backend.tensorflow import *  # noqa: F403, F401
         from keras_core.src.backend.tensorflow import (
