@@ -1,4 +1,4 @@
-# Copyright 2023 The KerasNLP Authors
+# Copyright 2023 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,9 +18,15 @@ import tensorflow as tf
 from keras_cv.backend import config
 
 if config.detect_if_tensorflow_uses_keras_3():
+    import keras
     from keras import *  # noqa: F403, F401
+
+    keras.backend.name_scope = keras.name_scope
 elif config.multi_backend():
     from keras_core import *  # noqa: F403, F401
+    from keras_core import keras
+
+    keras.backend.name_scope = keras.name_scope
 else:
     from tensorflow import keras
     from tensorflow.keras import *  # noqa: F403, F401
