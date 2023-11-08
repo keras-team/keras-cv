@@ -154,6 +154,8 @@ class DropBlock2D(base_layer):
         seed=None,
         **kwargs,
     ):
+        if detect_if_tensorflow_uses_keras_3():
+            raise ImportError("this layer is not supported in keras 3")
         super().__init__(seed=seed, **kwargs)
         if not 0.0 <= rate <= 1.0:
             raise ValueError(
