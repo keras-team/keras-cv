@@ -1,7 +1,7 @@
 absl-py
 packaging
 pandas
-tf-nightly==2.16.0.dev20231026  # Pin a working nightly until rc0.
+tensorflow
 tensorflow-datasets
 flake8
 regex

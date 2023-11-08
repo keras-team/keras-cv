@@ -33,9 +33,10 @@ jobs:
           ${{ runner.os }}-pip-
     - name: Install dependencies
       run: |
-        pip install tensorflow>=2.13.0 keras-core
+        pip install tensorflow>=2.13.0
         pip install torch>=2.0.1+cpu
         pip install "jax[cpu]"
+        keras-core
         pip install -e ".[tests]" --progress-bar off --upgrade
     - name: Test with pytest
       env:
