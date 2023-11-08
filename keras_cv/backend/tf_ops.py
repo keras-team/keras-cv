@@ -24,15 +24,12 @@ if config.multi_backend():
     from keras_core.src.backend.tensorflow.numpy import *  # noqa: F403, F401
 
 # Some TF APIs where the numpy API doesn't support raggeds that we need
+from keras.src.preprocessing import image  # noqa: F403, F401
 from tensorflow import broadcast_to  # noqa: F403, F401
 from tensorflow import repeat  # noqa: F403, F401
 from tensorflow import reshape  # noqa: F403, F401
 from tensorflow import split  # noqa: F403, F401
 from tensorflow import concat as concatenate  # noqa: F403, F401
-from tensorflow import keras as tensorflow_keras
 from tensorflow import range as arange  # noqa: F403, F401
 from tensorflow import reduce_all as all  # noqa: F403, F401
 from tensorflow import reduce_max as max  # noqa: F403, F401
-from tensorflow_keras.preprocessing.image import (
-    smart_resize,
-)  # noqa: F403, F401
