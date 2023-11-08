@@ -16,6 +16,7 @@ import tensorflow as tf
 
 try:
     # To-do: these imports need to fixed - Issue 2134
+    # https://github.com/keras-team/keras-cv/issues/2134
     # from keras.src.engine.training import _minimum_control_deps
     # from keras.src.engine.training import reduce_per_replica
     from keras.src.utils import tf_utils

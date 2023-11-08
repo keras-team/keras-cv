@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import tensorflow as tf
-
 from keras_cv.backend.config import detect_if_tensorflow_uses_keras_3
 
 if detect_if_tensorflow_uses_keras_3():
@@ -153,6 +152,8 @@ class DropBlock2D(base_layer):
         seed=None,
         **kwargs,
     ):
+        # To-do: remove this once th elayer is ported to keras 3
+        # https://github.com/keras-team/keras-cv/issues/2136
         if detect_if_tensorflow_uses_keras_3():
             raise ValueError(
                 "This layer is not yet compatible with Keras 3."
