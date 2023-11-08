@@ -18,5 +18,5 @@ from tensorflow import keras
 class CheckKerasVersionLayer(keras.layers.Layer):
     """check keras version and raise an error if the layer is not supported"""
 
-    def __init__(self, **kwargs):
+    def __init__(self, seed, **kwargs):
         raise ValueError("This layer is not supported in keras 3")
