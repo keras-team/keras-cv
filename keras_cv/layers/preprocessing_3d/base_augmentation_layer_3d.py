@@ -13,9 +13,18 @@
 # limitations under the License.
 
 import tensorflow as tf
+from keras_cv.api_export import keras_cv_export
+from keras_cv.backend.config import detect_if_tensorflow_uses_keras_3
 from tensorflow import keras
 
-from keras_cv.api_export import keras_cv_export
+if detect_if_tensorflow_uses_keras_3():
+    from keras_cv.layers import check_keras_version_layer
+
+    base_layer = check_keras_version_layer
+else:
+    from tensorflow.keras.__internal__.layers import BaseRandomLayer
+
+    base_layer = BaseRandomLayer
 
 POINT_CLOUDS = "point_clouds"
 BOUNDING_BOXES = "bounding_boxes"
@@ -29,7 +38,7 @@ POINTCLOUD_FEATURE_INDEX = 4
 
 
 @keras_cv_export("keras_cv.layers.BaseAugmentationLayer3D")
-class BaseAugmentationLayer3D(keras.__internal__.layers.BaseRandomLayer):
+class BaseAugmentationLayer3D(base_layer):
     """Abstract base layer for data augmentation for 3D perception.
 
     This layer contains base functionalities for preprocessing layers which

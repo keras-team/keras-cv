@@ -13,14 +13,23 @@
 # limitations under the License.
 
 import tensorflow as tf
-from tensorflow.keras.__internal__.layers import BaseRandomLayer
+from keras_cv.backend.config import detect_if_tensorflow_uses_keras_3
+
+if detect_if_tensorflow_uses_keras_3():
+    from keras_cv.layers import check_keras_version_layer
+
+    base_layer = check_keras_version_layer
+else:
+    from tensorflow.keras.__internal__.layers import BaseRandomLayer
+
+    base_layer = BaseRandomLayer
 
 from keras_cv.api_export import keras_cv_export
 from keras_cv.utils import conv_utils
 
 
 @keras_cv_export("keras_cv.layers.DropBlock2D")
-class DropBlock2D(BaseRandomLayer):
+class DropBlock2D(base_layer):
     """Applies DropBlock regularization to input features.
 
     DropBlock is a form of structured dropout, where units in a contiguous
