@@ -15,6 +15,7 @@
 import types
 
 import tensorflow as tf
+
 from keras_cv.backend import config
 
 if config.detect_if_tensorflow_uses_keras_3():
