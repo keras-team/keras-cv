@@ -15,6 +15,9 @@
 from keras_cv.backend.config import multi_backend
 
 if multi_backend():
-    from keras_core.random import *  # noqa: F403, F401
+    try:
+        from keras.random import *  # noqa: F403, F401
+    except ImportError:
+        from keras_core.random import *  # noqa: F403, F401
 else:
-    from keras_core.src.backend.tensorflow.random import *  # noqa: F403, F401
+    from keras.src.backend.tensorflow.random import *  # noqa: F403, F401
