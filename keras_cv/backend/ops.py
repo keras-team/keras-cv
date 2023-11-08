@@ -15,14 +15,12 @@ from keras_cv.backend.config import detect_if_tensorflow_uses_keras_3
 from keras_cv.backend.config import multi_backend
 
 if detect_if_tensorflow_uses_keras_3():
-    from tensorflow.keras.backend import vectorized_map  # noqa: F403, F401
     from tensorflow.keras.ops import *  # noqa: F403, F401
     from tensorflow.keras.utils.image_utils import (  # noqa: F403, F401
         smart_resize,
     )
 else:
     try:
-        from keras.src.backend import vectorized_map  # noqa: F403, F401
         from keras.src.ops import *  # noqa: F403, F401
         from keras.src.utils.image_utils import smart_resize  # noqa: F403, F401
     # Import error means Keras isn't installed, or is Keras 2.
