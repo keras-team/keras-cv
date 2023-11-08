@@ -14,7 +14,6 @@
 from keras_cv.backend import config
 
 if config.multi_backend():
-    from keras.src.preprocessing import image  # noqa: F403, F401
     from keras_core.src.backend.tensorflow import *  # noqa: F403, F401
     from keras_core.src.backend.tensorflow import (
         convert_to_numpy,
