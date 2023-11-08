@@ -13,9 +13,8 @@
 # limitations under the License.
 
 import tensorflow as tf
-
 from keras_cv.api_export import keras_cv_export
-from keras_cv.backend import detect_if_tensorflow_uses_keras_3
+from keras_cv.backend.config import detect_if_tensorflow_uses_keras_3
 
 if detect_if_tensorflow_uses_keras_3():
     base_layer = tf.keras.layers.Layer
