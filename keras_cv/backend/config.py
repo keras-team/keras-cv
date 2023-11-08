@@ -78,3 +78,17 @@ if "KERAS_BACKEND" in os.environ and os.environ["KERAS_BACKEND"]:
 
 def multi_backend():
     return _MULTI_BACKEND
+
+
+def backend():
+    """Check the backend framework."""
+    if not multi_backend():
+        return "tensorflow"
+    if not detect_if_tensorflow_uses_keras_3():
+        import keras_core
+
+        return keras_core.config.backend()
+
+    from tensorflow import keras
+
+    return keras.config.backend()

@@ -11,8 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from keras_cv.backend.config import backend
 from keras_cv.backend.config import detect_if_tensorflow_uses_keras_3
-from keras_cv.backend.config import multi_backend
 
 if detect_if_tensorflow_uses_keras_3():
     from tensorflow.keras.backend import vectorized_map  # noqa: F403, F401
@@ -20,7 +20,7 @@ if detect_if_tensorflow_uses_keras_3():
     from tensorflow.keras.utils.image_utils import (  # noqa: F403, F401
         smart_resize,
     )
-elif multi_backend():
+else:
     try:
         from keras.src.backend import vectorized_map  # noqa: F403, F401
         from keras.src.ops import *  # noqa: F403, F401
@@ -32,5 +32,5 @@ elif multi_backend():
         from keras_core.src.utils.image_utils import (  # noqa: F403, F401
             smart_resize,
         )
-else:
+if backend() == "Tensorflow":
     from keras_cv.backend.tf_ops import *  # noqa: F403, F401

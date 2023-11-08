@@ -36,3 +36,7 @@ def multi_backend():
 
 def detect_if_tensorflow_uses_keras_3():
     return config.detect_if_tensorflow_uses_keras_3()
+
+
+def backend():
+    return config.backend()
