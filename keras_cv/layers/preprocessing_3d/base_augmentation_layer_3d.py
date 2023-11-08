@@ -105,7 +105,10 @@ class BaseAugmentationLayer3D(base_layer):
 
     def __init__(self, seed=None, **kwargs):
         if detect_if_tensorflow_uses_keras_3():
-            raise ValueError("This layer is not available in keras 3 yet.")
+            raise ValueError(
+                "This layer is not yet compatible with Keras 3."
+                "Please switch to Keras 2 to use this layer."
+            )
         else:
             super().__init__(seed=seed, **kwargs)
             self.auto_vectorize = False
