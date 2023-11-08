@@ -14,6 +14,7 @@
 from keras_cv.backend import config
 
 if config.multi_backend():
+    from keras.src.preprocessing import image  # noqa: F403, F401
     from keras_core.src.backend.tensorflow import *  # noqa: F403, F401
     from keras_core.src.backend.tensorflow import (
         convert_to_numpy,
@@ -24,7 +25,6 @@ if config.multi_backend():
     from keras_core.src.backend.tensorflow.numpy import *  # noqa: F403, F401
 
 # Some TF APIs where the numpy API doesn't support raggeds that we need
-from keras.src.preprocessing import image  # noqa: F403, F401
 from tensorflow import broadcast_to  # noqa: F403, F401
 from tensorflow import repeat  # noqa: F403, F401
 from tensorflow import reshape  # noqa: F403, F401

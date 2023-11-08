@@ -21,7 +21,7 @@ as add shims to support older version of `tf.keras`.
 - `keras`: The full `keras` API (via `keras_core` or `tf.keras`).
 - `ops`: `keras_core.ops`, always tf-backed if using `tf.keras`.
 """
-
+"""
 import types
 
 from keras_cv.backend.config import (
@@ -83,20 +83,9 @@ else:
 
     # TF Keras doesn't have this rename.
     keras.activations.silu = keras.activations.swish
-
+"""
 from keras_cv.backend import config  # noqa: E402
+from keras_cv.backend import keras  # noqa: E402
 from keras_cv.backend import ops  # noqa: E402
 from keras_cv.backend import random  # noqa: E402
 from keras_cv.backend import tf_ops  # noqa: E402
-
-
-def assert_tf_keras(src):
-    if multi_backend():
-        raise NotImplementedError(
-            f"KerasCV component {src} does not yet support Keras Core, and can "
-            "only be used in `tf.keras`."
-        )
-
-
-def supports_ragged():
-    return not multi_backend()
