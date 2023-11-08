@@ -18,17 +18,17 @@ import tensorflow as tf
 from keras_cv.backend import config
 
 if config.detect_if_tensorflow_uses_keras_3():
-    import keras
+    import keras  # noqa: F403, F401
     from keras import *  # noqa: F403, F401
 
     keras.backend.name_scope = keras.name_scope
 elif config.multi_backend():
+    import keras_core as keras  # noqa: F403, F401
     from keras_core import *  # noqa: F403, F401
-    from keras_core import keras
 
     keras.backend.name_scope = keras.name_scope
 else:
-    from tensorflow import keras
+    from tensorflow import keras  # noqa: F403, F401
     from tensorflow.keras import *  # noqa: F403, F401
 
     # Shims to handle symbol renames for older `tf.keras` versions.
