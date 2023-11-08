@@ -40,15 +40,3 @@ else:
         saving.register_keras_serializable = utils.register_keras_serializable
     # TF Keras doesn't have this rename.
     keras.activations.silu = keras.activations.swish
-
-
-def assert_tf_keras(src):
-    if multi_backend():
-        raise NotImplementedError(
-            f"KerasCV component {src} does not yet support Keras Core, and can "
-            "only be used in `tf.keras`."
-        )
-
-
-def supports_ragged():
-    return not multi_backend()
