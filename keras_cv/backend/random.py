@@ -20,4 +20,4 @@ if multi_backend():
     except ImportError:
         from keras_core.random import *  # noqa: F403, F401
 else:
-    from keras.src.backend.tensorflow.random import *  # noqa: F403, F401
+    from tensorflow.random import *  # noqa: F403, F401

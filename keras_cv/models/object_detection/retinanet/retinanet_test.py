@@ -251,7 +251,10 @@ class RetinaNetTest(TestCase):
         model(ops.ones(shape=(2, 224, 224, 3)))
 
     def test_tf_dataset_data_generator(self):
-        if backend.multi_backend() and keras.backend.backend() != "tensorflow":
+        if (
+            backend.config.multi_backend()
+            and keras.backend.backend() != "tensorflow"
+        ):
             pytest.skip("TensorFlow required for `tf.data.Dataset` test.")
 
         def data_generator():
