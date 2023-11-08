@@ -109,9 +109,10 @@ class BaseAugmentationLayer3D(base_layer):
 
     def __init__(self, seed=None, **kwargs):
         if detect_if_tensorflow_uses_keras_3():
-            raise ImportError("this layer is not supported in keras 3")
-        super().__init__(seed=seed, **kwargs)
-        self.auto_vectorize = False
+            pass
+        else:
+            super().__init__(seed=seed, **kwargs)
+            self.auto_vectorize = False
 
     @property
     def auto_vectorize(self):

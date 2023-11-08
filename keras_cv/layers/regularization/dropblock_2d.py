@@ -155,21 +155,23 @@ class DropBlock2D(base_layer):
         **kwargs,
     ):
         if detect_if_tensorflow_uses_keras_3():
-            raise ImportError("this layer is not supported in keras 3")
-        super().__init__(seed=seed, **kwargs)
-        if not 0.0 <= rate <= 1.0:
-            raise ValueError(
-                f"rate must be a number between 0 and 1. " f"Received: {rate}"
-            )
+            pass
+        else:
+            super().__init__(seed=seed, **kwargs)
+            if not 0.0 <= rate <= 1.0:
+                raise ValueError(
+                    f"rate must be a number between 0 and 1. "
+                    f"Received: {rate}"
+                )
 
-        self._rate = rate
-        (
-            self._dropblock_height,
-            self._dropblock_width,
-        ) = conv_utils.normalize_tuple(
-            value=block_size, n=2, name="block_size", allow_zero=False
-        )
-        self.seed = seed
+            self._rate = rate
+            (
+                self._dropblock_height,
+                self._dropblock_width,
+            ) = conv_utils.normalize_tuple(
+                value=block_size, n=2, name="block_size", allow_zero=False
+            )
+            self.seed = seed
 
     def call(self, x, training=None):
         if not training or self._rate == 0.0:
