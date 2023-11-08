@@ -33,6 +33,6 @@ from tensorflow import keras as tensorflow_keras
 from tensorflow import range as arange  # noqa: F403, F401
 from tensorflow import reduce_all as all  # noqa: F403, F401
 from tensorflow import reduce_max as max  # noqa: F403, F401
-from tensorflow.keras.preprocessing.image import (
+from tensorflow_keras.preprocessing.image import (
     smart_resize,
 )  # noqa: F403, F401
