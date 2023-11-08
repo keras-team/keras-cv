@@ -15,4 +15,4 @@ class CheckKerasVersionLayer(keras.layers.Layer):
     """check keras version and raise an error if the layer is not supported"""
 
     def __init__(self, layers):
-        raise ValueError "This layer is not supported in keras 3"
+        raise ValueError("This layer is not supported in keras 3")
