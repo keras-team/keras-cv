@@ -28,3 +28,11 @@ def assert_tf_keras(src):
 
 def supports_ragged():
     return not config.multi_backend()
+
+
+def multi_backend():
+    return config.multi_backend()
+
+
+def detect_if_tensorflow_uses_keras_3():
+    return config.detect_if_tensorflow_uses_keras_3()
