@@ -13,14 +13,22 @@
 # limitations under the License.
 
 import tensorflow as tf
-from tensorflow.keras.__internal__.layers import BaseRandomLayer
+
+from keras_cv.backend import config
+
+if config.keras_3():
+    base_layer = tf.keras.layers.Layer
+else:
+    from tensorflow.keras.__internal__.layers import BaseRandomLayer
+
+    base_layer = BaseRandomLayer
 
 from keras_cv.api_export import keras_cv_export
 from keras_cv.utils import conv_utils
 
 
 @keras_cv_export("keras_cv.layers.DropBlock2D")
-class DropBlock2D(BaseRandomLayer):
+class DropBlock2D(base_layer):
     """Applies DropBlock regularization to input features.
 
     DropBlock is a form of structured dropout, where units in a contiguous
@@ -145,20 +153,29 @@ class DropBlock2D(BaseRandomLayer):
         seed=None,
         **kwargs,
     ):
-        super().__init__(seed=seed, **kwargs)
-        if not 0.0 <= rate <= 1.0:
+        # To-do: remove this once th elayer is ported to keras 3
+        # https://github.com/keras-team/keras-cv/issues/2136
+        if config.keras_3():
             raise ValueError(
-                f"rate must be a number between 0 and 1. " f"Received: {rate}"
+                "This layer is not yet compatible with Keras 3."
+                "Please switch to Keras 2 to use this layer."
             )
+        else:
+            super().__init__(seed=seed, **kwargs)
+            if not 0.0 <= rate <= 1.0:
+                raise ValueError(
+                    f"rate must be a number between 0 and 1. "
+                    f"Received: {rate}"
+                )
 
-        self._rate = rate
-        (
-            self._dropblock_height,
-            self._dropblock_width,
-        ) = conv_utils.normalize_tuple(
-            value=block_size, n=2, name="block_size", allow_zero=False
-        )
-        self.seed = seed
+            self._rate = rate
+            (
+                self._dropblock_height,
+                self._dropblock_width,
+            ) = conv_utils.normalize_tuple(
+                value=block_size, n=2, name="block_size", allow_zero=False
+            )
+            self.seed = seed
 
     def call(self, x, training=None):
         if not training or self._rate == 0.0:

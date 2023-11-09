@@ -26,8 +26,31 @@ else:
         _keras_base_dir = "/tmp"
     _keras_dir = os.path.join(_keras_base_dir, ".keras")
 
+
+def detect_if_tensorflow_uses_keras_3():
+    # We follow the version of keras that tensorflow is configured to use.
+    from tensorflow import keras
+
+    # Note that only recent versions of keras have a `version()` function.
+    if hasattr(keras, "version") and keras.version().startswith("3."):
+        return True
+
+    # No `keras.version()` means we are on an old version of keras.
+    return False
+
+
+_USE_KERAS_3 = detect_if_tensorflow_uses_keras_3()
+if _USE_KERAS_3:
+    _MULTI_BACKEND = True
+
+
+def keras_3():
+    """Check if Keras 3 is being used."""
+    return _USE_KERAS_3
+
+
 # Attempt to read KerasCV config file.
-_config_path = os.path.expanduser(os.path.join(_keras_dir, "keras-cv.json"))
+_config_path = os.path.expanduser(os.path.join(_keras_dir, "keras_cv.json"))
 if os.path.exists(_config_path):
     try:
         with open(_config_path) as f:
@@ -62,3 +85,17 @@ if "KERAS_BACKEND" in os.environ and os.environ["KERAS_BACKEND"]:
 
 def multi_backend():
     return _MULTI_BACKEND
+
+
+def backend():
+    """Check the backend framework."""
+    if not multi_backend():
+        return "tensorflow"
+    if not keras_3():
+        import keras_core
+
+        return keras_core.config.backend()
+
+    from tensorflow import keras
+
+    return keras.config.backend()

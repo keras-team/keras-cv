@@ -15,12 +15,14 @@
 import tensorflow as tf
 
 try:
-    from keras.src.engine.training import _minimum_control_deps
-    from keras.src.engine.training import reduce_per_replica
+    # To-do: these imports need to fixed - Issue 2134
+    # https://github.com/keras-team/keras-cv/issues/2134
+    # from keras.src.engine.training import _minimum_control_deps
+    # from keras.src.engine.training import reduce_per_replica
     from keras.src.utils import tf_utils
 except ImportError:
-    from keras.engine.training import _minimum_control_deps
-    from keras.engine.training import reduce_per_replica
+    # from keras.engine.training import _minimum_control_deps
+    # from keras.engine.training import reduce_per_replica
     from keras.utils import tf_utils
 
 
@@ -34,8 +36,8 @@ def make_predict_function(model, force=False):
         def run_step(data):
             outputs = model.predict_step(data)
             # Ensure counter is updated only if `test_step` succeeds.
-            with tf.control_dependencies(_minimum_control_deps(outputs)):
-                model._predict_counter.assign_add(1)
+            # with tf.control_dependencies(_minimum_control_deps(outputs)):
+            model._predict_counter.assign_add(1)
             return outputs
 
         if model._jit_compile:
@@ -45,9 +47,9 @@ def make_predict_function(model, force=False):
 
         data = next(iterator)
         outputs = model.distribute_strategy.run(run_step, args=(data,))
-        outputs = reduce_per_replica(
-            outputs, model.distribute_strategy, reduction="concat"
-        )
+        # outputs = reduce_per_replica(
+        #    outputs, model.distribute_strategy, reduction="concat"
+        # )
         # Note that this is the only deviation from the base keras.Model
         # implementation. We add the decode_step inside of the computation
         # graph but outside of the distribute_strategy (i.e on host CPU).
