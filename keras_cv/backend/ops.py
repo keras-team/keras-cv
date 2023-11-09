@@ -11,7 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from keras_cv.backend.config import keras_3, multi_backend
+from keras_cv.backend.config import keras_3
+from keras_cv.backend.config import multi_backend
 
 if keras_3():
     from keras.ops import *  # noqa: F403, F401
@@ -24,8 +25,8 @@ else:
     except ImportError:
         from keras_core.src.backend import vectorized_map  # noqa: F403, F401
         from keras_core.src.ops import *  # noqa: F403, F401
-        from keras_core.src.utils.image_utils import (
+        from keras_core.src.utils.image_utils import (  # noqa: F403, F401
             smart_resize,
-        )  # noqa: F403, F401
+        )
 if not multi_backend():
     from keras_cv.backend.tf_ops import *  # noqa: F403, F401
