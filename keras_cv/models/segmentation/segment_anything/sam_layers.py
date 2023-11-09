@@ -275,7 +275,7 @@ class RandomFrequencyPositionalEmbeddings(keras.layers.Layer):
         super().__init__(**kwargs)
         self.num_positional_features = num_positional_features
         self.scale = scale
-        init_func = lambda *a, **kw: self.scale * ops.random.normal(
+        init_func = lambda *a, **kw: self.scale * keras.random.normal(
             shape=(2, self.num_positional_features), dtype=self.dtype
         )
         self.positional_encoding_gaussian_matrix = self.add_weight(
