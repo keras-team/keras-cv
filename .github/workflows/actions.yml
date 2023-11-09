@@ -76,7 +76,6 @@ jobs:
         pip install torchvision>=0.15.1
         pip uninstall -y tensorflow
         pip uninstall -y keras
-        pip uninstall -y keras-core
         pip install tf-nightly==2.16.0.dev20231103  # Pin a working nightly until rc0.
     - name: Test with pytest
       env:
