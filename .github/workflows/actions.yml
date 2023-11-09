@@ -75,6 +75,7 @@ jobs:
         pip install torch>=2.0.1+cpu
         pip install torchvision>=0.15.1
         pip install -e ".[tests]" --progress-bar off --upgrade
+        pip unsinstall keras-core
     - name: Test with pytest
       env:
         TEST_CUSTOM_OPS: false # TODO(ianstenbit): test custom ops, or figure out what our story is here
