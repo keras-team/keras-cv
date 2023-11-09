@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from keras_cv.backend.config import multi_backend
+from keras_cv.backend.config import keras_3
 
-if multi_backend():
-    from keras_core.random import *  # noqa: F403, F401
+if keras_3():
+    from keras.random import *  # noqa: F403, F401
 else:
-    from keras_core.src.backend.tensorflow.random import *  # noqa: F403, F401
+    from keras_core.random import *  # noqa: F403, F401
