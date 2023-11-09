@@ -33,7 +33,7 @@ jobs:
           ${{ runner.os }}-pip-
     - name: Install dependencies
       run: |
-        pip install tensorflow==2.14
+        pip install tensorflow~=2.14
         pip install torch>=2.0.1+cpu
         pip install "jax[cpu]"
         pip install keras-core
@@ -74,7 +74,6 @@ jobs:
         pip install "jax[cpu]"
         pip install torch>=2.0.1+cpu
         pip install torchvision>=0.15.1
-        pip install keras-core
         pip install -e ".[tests]" --progress-bar off --upgrade
     - name: Test with pytest
       env:
@@ -117,7 +116,7 @@ jobs:
           ${{ runner.os }}-pip-
     - name: Install dependencies
       run: |
-        pip install tensorflow==2.14
+        pip install tensorflow~=2.14
         pip install -e ".[tests]" --progress-bar off --upgrade
     - name: Lint
       run: bash shell/lint.sh
