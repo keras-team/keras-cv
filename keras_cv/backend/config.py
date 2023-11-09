@@ -39,8 +39,15 @@ def detect_if_tensorflow_uses_keras_3():
     return False
 
 
-if detect_if_tensorflow_uses_keras_3():
+_USE_KERAS_3 = detect_if_tensorflow_uses_keras_3()
+if _USE_KERAS_3:
     _MULTI_BACKEND = True
+
+
+def keras_3():
+    """Check if Keras 3 is being used."""
+    return _USE_KERAS_3
+
 
 # Attempt to read KerasCV config file.
 _config_path = os.path.expanduser(os.path.join(_keras_dir, "keras_cv.json"))
@@ -84,7 +91,7 @@ def backend():
     """Check the backend framework."""
     if not multi_backend():
         return "tensorflow"
-    if not detect_if_tensorflow_uses_keras_3():
+    if not keras_3():
         import keras_core
 
         return keras_core.config.backend()

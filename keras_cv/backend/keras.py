@@ -14,11 +14,19 @@
 
 import types
 
-import tensorflow as tf
-
 from keras_cv.backend import config
 
-if config.detect_if_tensorflow_uses_keras_3():
+_KERAS_CORE_ALIASES = {
+    "utils->saving": [
+        "register_keras_serializable",
+        "deserialize_keras_object",
+        "serialize_keras_object",
+        "get_registered_object",
+    ],
+    "models->saving": ["load_model"],
+}
+
+if config.keras_3():
     import keras  # noqa: F403, F401
     from keras import *  # noqa: F403, F401
 
@@ -32,18 +40,31 @@ else:
     from tensorflow import keras  # noqa: F403, F401
     from tensorflow.keras import *  # noqa: F403, F401
 
-    # Shims to handle symbol renames for older `tf.keras` versions.
-    if not hasattr(tf.keras, "saving"):
-        saving = types.SimpleNamespace()
-    else:
-        from tensorflow.keras import saving
-    from tensorflow.keras import utils
+    if not hasattr(keras, "saving"):
+        keras.saving = types.SimpleNamespace()
 
-    if not hasattr(saving, "deserialize_keras_object"):
-        saving.deserialize_keras_object = utils.deserialize_keras_object
-    if not hasattr(saving, "serialize_keras_object"):
-        saving.serialize_keras_object = utils.serialize_keras_object
-    if not hasattr(saving, "register_keras_serializable"):
-        saving.register_keras_serializable = utils.register_keras_serializable
+    # add aliases
+    for key, value in _KERAS_CORE_ALIASES.items():
+        src, _, dst = key.partition("->")
+        src = src.split(".")
+        dst = dst.split(".")
+
+        src_mod, dst_mod = keras, keras
+
+        # navigate to where we want to alias the attributes
+        for mod in src:
+            src_mod = getattr(src_mod, mod)
+        for mod in dst:
+            dst_mod = getattr(dst_mod, mod)
+
+        # add an alias for each attribute
+        for attr in value:
+            if isinstance(attr, tuple):
+                src_attr, dst_attr = attr
+            else:
+                src_attr, dst_attr = attr, attr
+            attr_val = getattr(src_mod, src_attr)
+            setattr(dst_mod, dst_attr, attr_val)
+
     # TF Keras doesn't have this rename.
     keras.activations.silu = keras.activations.swish

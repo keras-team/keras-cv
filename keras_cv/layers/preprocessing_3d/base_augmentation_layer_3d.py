@@ -15,9 +15,9 @@
 import tensorflow as tf
 
 from keras_cv.api_export import keras_cv_export
-from keras_cv.backend.config import detect_if_tensorflow_uses_keras_3
+from keras_cv.backend import config
 
-if detect_if_tensorflow_uses_keras_3():
+if config.keras_3():
     base_layer = tf.keras.layers.Layer
 else:
     base_layer = tf.keras.__internal__.layers.BaseRandomLayer
@@ -106,7 +106,7 @@ class BaseAugmentationLayer3D(base_layer):
     def __init__(self, seed=None, **kwargs):
         # To-do: remove this once th elayer is ported to keras 3
         # https://github.com/keras-team/keras-cv/issues/2136
-        if detect_if_tensorflow_uses_keras_3():
+        if config.keras_3():
             raise ValueError(
                 "This layer is not yet compatible with Keras 3."
                 "Please switch to Keras 2 to use this layer."

@@ -20,7 +20,7 @@ import tensorflow as tf
 from absl.testing import parameterized
 
 import keras_cv
-from keras_cv import backend
+from keras_cv.backend import config
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 from keras_cv.models.backbones.test_backbone_presets import (
@@ -251,10 +251,7 @@ class RetinaNetTest(TestCase):
         model(ops.ones(shape=(2, 224, 224, 3)))
 
     def test_tf_dataset_data_generator(self):
-        if (
-            backend.config.multi_backend()
-            and keras.backend.backend() != "tensorflow"
-        ):
+        if config.backend() != "tensorflow":
             pytest.skip("TensorFlow required for `tf.data.Dataset` test.")
 
         def data_generator():
