@@ -1,7 +1,7 @@
 absl-py
 packaging
 pandas
-tensorflow
+tf-nightly-cpu==2.16.0.dev20231103  # Pin a working nightly until rc0.
 tensorflow-datasets
 flake8
 regex
