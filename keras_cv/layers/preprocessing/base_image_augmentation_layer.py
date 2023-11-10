@@ -119,7 +119,7 @@ class BaseImageAugmentationLayer(base_class):
     ```
 
     Note that since the randomness is also a common functionality, this layer
-    also includes a keras_backend.RandomGenerator, which can be used to
+    also includes RandomGenerator, which can be used to
     produce the random numbers. The random number generator is stored in the
     `self._seed_generator` attribute.
     """

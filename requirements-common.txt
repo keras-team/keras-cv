@@ -1,0 +1,15 @@
+# Library deps.
+absl-py
+regex
+pandas
+keras-core>=0.1.6
+tensorflow-datasets
+pycocotools
+# Tooling deps.
+packaging
+flake8
+isort
+black
+pytest
+build
+namex
