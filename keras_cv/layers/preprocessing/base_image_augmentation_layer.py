@@ -25,6 +25,7 @@ from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import scope
 from keras_cv.backend.config import multi_backend
+from keras_cv.backend.random import RandomGenerator
 from keras_cv.utils import preprocessing
 
 # In order to support both unbatched and batched inputs, the horizontal
@@ -124,14 +125,14 @@ class BaseImageAugmentationLayer(base_class):
     ```
 
     Note that since the randomness is also a common functionality, this layer
-    also includes a keras_backend.RandomGenerator, which can be used to
+    also includes RandomGenerator, which can be used to
     produce the random numbers. The random number generator is stored in the
     `self._random_generator` attribute.
     """
 
     def __init__(self, seed=None, **kwargs):
         force_generator = kwargs.pop("force_generator", False)
-        self._random_generator = keras_backend.RandomGenerator(
+        self._random_generator = RandomGenerator(
             seed=seed, force_generator=force_generator
         )
         super().__init__(**kwargs)

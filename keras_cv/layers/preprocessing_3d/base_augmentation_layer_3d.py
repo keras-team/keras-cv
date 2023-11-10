@@ -98,7 +98,7 @@ class BaseAugmentationLayer3D(base_layer):
     ```
 
     Note that since the randomness is also a common functionality, this layer
-    also includes a keras.backend.RandomGenerator, which can be used to
+    also includes RandomGenerator, which can be used to
     produce the random numbers. The random number generator is stored in the
     `self._random_generator` attribute.
     """
