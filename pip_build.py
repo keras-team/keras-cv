@@ -28,6 +28,7 @@ python3 pip_build.py --install
 ```
 """
 import argparse
+import datetime
 import glob
 import os
 import pathlib
@@ -49,14 +50,34 @@ def ignore_files(_, filenames):
     return [f for f in filenames if "test" in f]
 
 
-def build():
+def export_version_string(version, is_nightly=False):
+    """Export Version and Package Name."""
+    if is_nightly:
+        date = datetime.datetime.now()
+        version += f".dev{date.strftime('%Y%m%d%H')}"
+        # Replaces `name="keras-cv"` in `setup.py` with `keras-cv-nightly`
+        with open("setup.py") as f:
+            setup_contents = f.read()
+        with open("setup.py", "w") as f:
+            setup_contents = setup_contents.replace(
+                'name="keras-cv"', 'name="keras-cv-nightly"'
+            )
+            f.write(setup_contents)
+
+    # Make sure to export the __version__ string
+    with open(os.path.join(package, "__init__.py")) as f:
+        init_contents = f.read()
+    with open(os.path.join(package, "__init__.py"), "w") as f:
+        f.write(init_contents + "\n\n" + f'__version__ = "{version}"\n')
+
+
+def build(root_path, is_nightly=False):
     if os.path.exists(build_directory):
         raise ValueError(f"Directory already exists: {build_directory}")
 
     whl_path = None
     try:
         # Copy sources (`keras_cv/` directory and setup files) to build dir
-        root_path = pathlib.Path(__file__).parent.resolve()
         os.chdir(root_path)
         os.mkdir(build_directory)
         shutil.copytree(
@@ -75,10 +96,7 @@ def build():
         # Make sure to export the __version__ string
         from keras_cv.src import __version__  # noqa: E402
 
-        with open(os.path.join(package, "__init__.py")) as f:
-            init_contents = f.read()
-        with open(os.path.join(package, "__init__.py"), "w") as f:
-            f.write(init_contents + "\n\n" + f'__version__ = "{__version__}"\n')
+        export_version_string(__version__, is_nightly)
 
         # Build the package
         os.system("python3 -m build")
@@ -115,7 +133,13 @@ if __name__ == "__main__":
         action="store_true",
         help="Whether to install the generated wheel file.",
     )
+    parser.add_argument(
+        "--nightly",
+        action="store_true",
+        help="Whether to generate nightly wheel file.",
+    )
     args = parser.parse_args()
-    whl_path = build()
+    root_path = pathlib.Path(__file__).parent.resolve()
+    whl_path = build(root_path, args.nightly)
     if whl_path and args.install:
         install_whl(whl_path)
