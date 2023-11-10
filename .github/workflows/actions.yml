@@ -3,6 +3,7 @@ name: Tests
 on:
   push:
   pull_request:
+  workflow_call:
   release:
     types: [created]
 
@@ -10,7 +11,7 @@ permissions:
   contents: read
 
 jobs:
-  test:
+  keras2:
     name: Test the code with tf.keras
     runs-on: ubuntu-latest
     steps:
