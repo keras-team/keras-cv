@@ -18,13 +18,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
 from keras import backend
+from tensorflow import keras
+
 from keras_cv.backend import random
 from keras_cv.layers import RandomZoom
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
 from keras_cv.utils import preprocessing as preprocessing_utils
-from tensorflow import keras
 
 # In order to support both unbatched and batched inputs, the horizontal
 # and vertical axis is reverse indexed

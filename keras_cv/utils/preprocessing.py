@@ -13,10 +13,12 @@
 # limitations under the License.
 
 import tensorflow as tf
-from keras_cv import core
-from keras_cv.backend import ops, random
 from tensorflow import keras
 from tensorflow.keras import backend
+
+from keras_cv import core
+from keras_cv.backend import ops
+from keras_cv.backend import random
 
 _TF_INTERPOLATION_METHODS = {
     "bilinear": tf.image.ResizeMethod.BILINEAR,
@@ -183,14 +185,19 @@ def random_inversion(seed_generator):
     Returns:
       either -1, or -1.
     """
-    negate = keras.backend.uniform((), 0, 1, dtype=tf.float32) > 0.5
+    negate = (
+        keras.backend.uniform((), 0, 1, dtype=tf.float32, seed=seed_generator)
+        > 0.5
+    )
     negate = tf.cond(negate, lambda: -1.0, lambda: 1.0)
     return negate
 
 
 def batch_random_inversion(seed_generator, batch_size):
     """Same as `random_inversion` but for batched inputs."""
-    negate = random.uniform((batch_size, 1), 0, 1, dtype=tf.float32)
+    negate = random.uniform(
+        (batch_size, 1), 0, 1, dtype=tf.float32, seed=seed_generator
+    )
     negate = tf.where(negate > 0.5, -1.0, 1.0)
     return negate
 

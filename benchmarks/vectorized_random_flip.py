@@ -28,7 +28,7 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     BOUNDING_BOXES,
 )
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
     IMAGES,
 )
 
@@ -103,11 +103,11 @@ class OldRandomFlip(BaseImageAugmentationLayer):
         flip_vertical = False
         if self.horizontal:
             flip_horizontal = (
-                random.uniform(shape=[]) > 0.5, seed=self._seed_generator
+                random.uniform(shape=[], seed=self._seed_generator) > 0.5
             )
         if self.vertical:
             flip_vertical = (
-                random.uniform(shape=[]) > 0.5, seed=self._seed_generator
+                random.uniform(shape=[], seed=self._seed_generator) > 0.5
             )
         return {
             "flip_horizontal": tf.cast(flip_horizontal, dtype=tf.bool),
