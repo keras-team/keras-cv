@@ -20,6 +20,7 @@ import tensorflow as tf
 from tensorflow import keras
 
 from keras_cv import bounding_box
+from keras_cv.backend import random
 from keras_cv.layers import RandomFlip
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
@@ -102,11 +103,11 @@ class OldRandomFlip(BaseImageAugmentationLayer):
         flip_vertical = False
         if self.horizontal:
             flip_horizontal = (
-                self._random_generator.random_uniform(shape=[]) > 0.5
+                random.uniform(shape=[]) > 0.5, seed=self._seed_generator
             )
         if self.vertical:
             flip_vertical = (
-                self._random_generator.random_uniform(shape=[]) > 0.5
+                random.uniform(shape=[]) > 0.5, seed=self._seed_generator
             )
         return {
             "flip_horizontal": tf.cast(flip_horizontal, dtype=tf.bool),
