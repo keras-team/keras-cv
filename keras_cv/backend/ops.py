@@ -16,8 +16,6 @@ from keras_cv.backend.config import multi_backend
 
 if keras_3():
     from keras.ops import *  # noqa: F403, F401
-    # TODO: Remove once `is_tensor` is an public API
-    from keras.src.ops import is_tensor  # noqa: F403, F401
     from keras.preprocessing.image import smart_resize  # noqa: F403, F401
 else:
     try:

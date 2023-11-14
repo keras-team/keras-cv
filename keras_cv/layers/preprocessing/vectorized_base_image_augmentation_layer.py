@@ -18,7 +18,6 @@ from keras_cv import bounding_box
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import scope
-from keras_cv.backend.random import RandomGenerator
 from keras_cv.backend.config import multi_backend
 from keras_cv.backend.random import SeedGenerator
 from keras_cv.utils import preprocessing
@@ -99,7 +98,7 @@ class VectorizedBaseImageAugmentationLayer(base_class):
     ```
 
     Note that since the randomness is also a common functionality, this layer
-    also includes RandomGenerator, which can be used to
+    also includes a keras_backend.RandomGenerator, which can be used to
     produce the random numbers. The random number generator is stored in the
     `self._seed_generator` attribute.
     """
