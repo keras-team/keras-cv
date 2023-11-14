@@ -40,7 +40,7 @@ class SeedGenerator:
 def normal(shape, mean=0.0, stddev=1.0, dtype=None, seed=None):
     if isinstance(seed, SeedGenerator):
         seed = seed.next()
-    int_seed = seed[0] + seed[1]
+    int_seed = seed[0] + seed[1] if seed else None
     if keras_3():
         return keras.random.normal(
             shape, mean=mean, stddev=stddev, dtype=dtype, seed=int_seed
@@ -56,7 +56,7 @@ def normal(shape, mean=0.0, stddev=1.0, dtype=None, seed=None):
 def uniform(shape, minval=0.0, maxval=1.0, dtype=None, seed=None):
     if isinstance(seed, SeedGenerator):
         seed = seed.next()
-    int_seed = seed[0] + seed[1]
+    int_seed = seed[0] + seed[1] if seed else None
     if keras_3():
         return keras.random.uniform(
             shape, minval=minval, maxval=maxval, dtype=dtype, seed=int_seed
@@ -72,7 +72,7 @@ def uniform(shape, minval=0.0, maxval=1.0, dtype=None, seed=None):
 def shuffle(x, axis=0, seed=None):
     if isinstance(seed, SeedGenerator):
         seed = seed.next()
-    int_seed = seed[0] + seed[1]
+    int_seed = seed[0] + seed[1] if seed else None
     if keras_3():
         return keras.random.shuffle(x=x, axis=axis, seed=int_seed)
     else:
@@ -84,7 +84,7 @@ def shuffle(x, axis=0, seed=None):
 def categorical(logits, num_samples, dtype="int32", seed=None):
     if isinstance(seed, SeedGenerator):
         seed = seed.next()
-    int_seed = seed[0] + seed[1]
+    int_seed = seed[0] + seed[1] if seed else None
     if keras_3():
         return keras.random.categorical(
             logits=logits, num_samples=num_samples, dtype=dtype, seed=int_seed
