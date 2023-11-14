@@ -13,7 +13,6 @@
 # limitations under the License.
 from keras_cv.backend import keras
 from keras_cv.backend.config import keras_3
-from keras_cv.backend import keras
 
 if keras_3():
     from keras.random import *  # noqa: F403, F401
