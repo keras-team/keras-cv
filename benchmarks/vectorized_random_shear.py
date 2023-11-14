@@ -2,16 +2,17 @@ import time
 import warnings
 from unittest.mock import MagicMock
 
-import keras_cv
 import numpy as np
 import tensorflow as tf
+from matplotlib import pyplot as plt
+
+import keras_cv
 from keras_cv import bounding_box
 from keras_cv.layers import RandomShear
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
 from keras_cv.utils import preprocessing
-from matplotlib import pyplot as plt
 
 
 # Copied from:
