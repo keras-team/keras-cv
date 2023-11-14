@@ -43,15 +43,27 @@ def normal(shape, mean=0.0, stddev=1.0, dtype=None, seed=None):
         init_seed = seed[0] + seed[1]
     else:
         init_seed = seed
+
+    kwargs = {}
+    if dtype:
+        kwargs["dtype"] = dtype
     if keras_3():
         return keras.random.normal(
-            shape, mean=mean, stddev=stddev, dtype=dtype, seed=init_seed
+            shape,
+            mean=mean,
+            stddev=stddev,
+            seed=init_seed,
+            **kwargs,
         )
     else:
         import tensorflow as tf
 
         return tf.random.normal(
-            shape, mean=mean, stddev=stddev, dtype=dtype, seed=init_seed
+            shape,
+            mean=mean,
+            stddev=stddev,
+            seed=init_seed,
+            **kwargs,
         )
 
 
@@ -61,15 +73,28 @@ def uniform(shape, minval=0.0, maxval=1.0, dtype=None, seed=None):
         init_seed = seed[0] + seed[1]
     else:
         init_seed = seed
+    kwargs = {}
+    if dtype:
+        kwargs["dtype"] = dtype
     if keras_3():
         return keras.random.uniform(
-            shape, minval=minval, maxval=maxval, dtype=dtype, seed=init_seed
+            shape,
+            minval=minval,
+            maxval=maxval,
+            dtype=dtype,
+            seed=init_seed,
+            **kwargs,
         )
     else:
         import tensorflow as tf
 
         return tf.random.uniform(
-            shape, minval=minval, maxval=maxval, dtype=dtype, seed=init_seed
+            shape,
+            minval=minval,
+            maxval=maxval,
+            dtype=dtype,
+            seed=init_seed,
+            **kwargs,
         )
 
 
@@ -79,6 +104,7 @@ def shuffle(x, axis=0, seed=None):
         init_seed = seed[0] + seed[1]
     else:
         init_seed = seed
+
     if keras_3():
         return keras.random.shuffle(x=x, axis=axis, seed=init_seed)
     else:
@@ -87,19 +113,28 @@ def shuffle(x, axis=0, seed=None):
         return tf.random.shuffle(x=x, axis=axis, seed=init_seed)
 
 
-def categorical(logits, num_samples, dtype="int32", seed=None):
+def categorical(logits, num_samples, dtype=None, seed=None):
     if isinstance(seed, SeedGenerator):
         seed = seed.next()
         init_seed = seed[0] + seed[1]
     else:
         init_seed = seed
+    kwargs = {}
+    if dtype:
+        kwargs["dtype"] = dtype
     if keras_3():
         return keras.random.categorical(
-            logits=logits, num_samples=num_samples, dtype=dtype, seed=init_seed
+            logits=logits,
+            num_samples=num_samples,
+            seed=init_seed,
+            **kwargs,
         )
     else:
         import tensorflow as tf
 
         return tf.random.categorical(
-            logits=logits, num_samples=num_samples, dtype=dtype, seed=init_seed
+            logits=logits,
+            num_samples=num_samples,
+            seed=init_seed,
+            **kwargs,
         )
