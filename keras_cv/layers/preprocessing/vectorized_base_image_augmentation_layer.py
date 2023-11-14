@@ -22,8 +22,7 @@ else:
 
 from keras_cv import bounding_box
 from keras_cv.api_export import keras_cv_export
-from keras_cv.backend import keras
-from keras_cv.backend import scope
+from keras_cv.backend import keras, scope
 from keras_cv.backend.config import multi_backend
 from keras_cv.utils import preprocessing
 
@@ -110,7 +109,7 @@ class VectorizedBaseImageAugmentationLayer(base_class):
 
     def __init__(self, seed=None, **kwargs):
         force_generator = kwargs.pop("force_generator", False)
-        self._random_generator = keras_backend.RandomGenerator(
+        self._random_generator = keras.backend.SeedGenerator(
             seed=seed, force_generator=force_generator
         )
         super().__init__(**kwargs)
