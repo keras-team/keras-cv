@@ -81,7 +81,6 @@ def uniform(shape, minval=0.0, maxval=1.0, dtype=None, seed=None):
             shape,
             minval=minval,
             maxval=maxval,
-            dtype=dtype,
             seed=init_seed,
             **kwargs,
         )
@@ -92,7 +91,6 @@ def uniform(shape, minval=0.0, maxval=1.0, dtype=None, seed=None):
             shape,
             minval=minval,
             maxval=maxval,
-            dtype=dtype,
             seed=init_seed,
             **kwargs,
         )
