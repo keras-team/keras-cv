@@ -154,6 +154,7 @@ class DropBlock2D(base_layer):
         seed=None,
         **kwargs,
     ):
+        self._seed_generator = random.SeedGenerator(seed=seed)
         # To-do: remove this once th elayer is ported to keras 3
         # https://github.com/keras-team/keras-cv/issues/2136
         if config.keras_3():
