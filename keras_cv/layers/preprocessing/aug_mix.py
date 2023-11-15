@@ -13,9 +13,9 @@
 # limitations under the License.
 
 import tensorflow as tf
-
 from keras_cv import layers
 from keras_cv.api_export import keras_cv_export
+from keras_cv.backend import random
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
@@ -106,7 +106,7 @@ class AugMix(BaseImageAugmentationLayer):
         gamma_sample = tf.random.gamma(
             shape=(),
             alpha=alpha,
-            seed=self._random_generator.make_legacy_seed(),
+            seed=self._seed_generator.next(),
         )
         return gamma_sample / tf.reduce_sum(
             gamma_sample, axis=-1, keepdims=True
@@ -114,24 +114,29 @@ class AugMix(BaseImageAugmentationLayer):
 
     def _sample_from_beta(self, alpha, beta):
         sample_alpha = tf.random.gamma(
-            (), alpha=alpha, seed=self._random_generator.make_legacy_seed()
+            (), alpha=alpha, seed=self._seed_generator.next()
         )
         sample_beta = tf.random.gamma(
-            (), alpha=beta, seed=self._random_generator.make_legacy_seed()
+            (), alpha=beta, seed=self._seed_generator.next()
         )
         return sample_alpha / (sample_alpha + sample_beta)
 
     def _sample_depth(self):
-        return self._random_generator.random_uniform(
+        return random.uniform(
             shape=(),
             minval=self.chain_depth[0],
             maxval=self.chain_depth[1] + 1,
             dtype=tf.int32,
+            seed=self._seed_generator,
         )
 
     def _loop_on_depth(self, depth_level, image_aug):
-        op_index = self._random_generator.random_uniform(
-            shape=(), minval=0, maxval=8, dtype=tf.int32
+        op_index = random.uniform(
+            shape=(),
+            minval=0,
+            maxval=8,
+            dtype=tf.int32,
+            seed=self._seed_generator,
         )
         image_aug = self._apply_op(image_aug, op_index)
         depth_level += 1
@@ -204,7 +209,7 @@ class AugMix(BaseImageAugmentationLayer):
 
     def _shear_x(self, image):
         x = tf.cast(self.severity_factor() * 0.3, tf.float32)
-        x *= preprocessing.random_inversion(self._random_generator)
+        x *= preprocessing.random_inversion(self._seed_generator)
         transform_x = layers.RandomShear._format_transform(
             [1.0, x, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0]
         )
@@ -214,7 +219,7 @@ class AugMix(BaseImageAugmentationLayer):
 
     def _shear_y(self, image):
         y = tf.cast(self.severity_factor() * 0.3, tf.float32)
-        y *= preprocessing.random_inversion(self._random_generator)
+        y *= preprocessing.random_inversion(self._seed_generator)
         transform_x = self._format_random_shear_transform(
             [1.0, 0.0, 0.0, y, 1.0, 0.0, 0.0, 0.0]
         )
@@ -231,7 +236,7 @@ class AugMix(BaseImageAugmentationLayer):
         shape = tf.cast(tf.shape(image), tf.float32)
         x = tf.cast(self.severity_factor() * shape[1] / 3, tf.float32)
         x = tf.expand_dims(tf.expand_dims(x, axis=0), axis=0)
-        x *= preprocessing.random_inversion(self._random_generator)
+        x *= preprocessing.random_inversion(self._seed_generator)
         x = tf.cast(x, tf.int32)
 
         translations = tf.cast(
@@ -246,7 +251,7 @@ class AugMix(BaseImageAugmentationLayer):
         shape = tf.cast(tf.shape(image), tf.float32)
         y = tf.cast(self.severity_factor() * shape[0] / 3, tf.float32)
         y = tf.expand_dims(tf.expand_dims(y, axis=0), axis=0)
-        y *= preprocessing.random_inversion(self._random_generator)
+        y *= preprocessing.random_inversion(self._seed_generator)
         y = tf.cast(y, tf.int32)
 
         translations = tf.cast(
