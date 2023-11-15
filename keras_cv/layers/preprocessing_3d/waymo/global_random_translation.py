@@ -5,7 +5,6 @@
 import tensorflow as tf
 
 from keras_cv.api_export import keras_cv_export
-from keras_cv.backend import random
 from keras_cv.bounding_box_3d import CENTER_XYZ_DXDYDZ_PHI
 from keras_cv.layers.preprocessing_3d import base_augmentation_layer_3d
 from keras_cv.point_cloud import coordinate_transform
@@ -68,26 +67,23 @@ class GlobalRandomTranslation(
         }
 
     def get_random_transformation(self, **kwargs):
-        random_x_translation = random.normal(
+        random_x_translation = self._random_generator.random_normal(
             (),
             mean=0.0,
             stddev=self._x_stddev,
             dtype=self.compute_dtype,
-            seed=self._seed_generator,
         )
-        random_y_translation = random.normal(
+        random_y_translation = self._random_generator.random_normal(
             (),
             mean=0.0,
             stddev=self._y_stddev,
             dtype=self.compute_dtype,
-            seed=self._seed_generator,
         )
-        random_z_translation = random.normal(
+        random_z_translation = self._random_generator.random_normal(
             (),
             mean=0.0,
             stddev=self._z_stddev,
             dtype=self.compute_dtype,
-            seed=self._seed_generator,
         )
         return {
             "pose": tf.stack(

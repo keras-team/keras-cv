@@ -5,7 +5,6 @@
 import tensorflow as tf
 
 from keras_cv.api_export import keras_cv_export
-from keras_cv.backend import random
 from keras_cv.layers.preprocessing_3d import base_augmentation_layer_3d
 
 POINT_CLOUDS = base_augmentation_layer_3d.POINT_CLOUDS
@@ -64,11 +63,10 @@ class GlobalRandomDroppingPoints(
         num_points = point_clouds.get_shape().as_list()[-2]
         # Generate mask along point dimension.
         random_point_mask = (
-            random.uniform(
+            self._random_generator.random_uniform(
                 [1, num_points, 1],
                 minval=0.0,
                 maxval=1,
-                seed=self._seed_generator,
             )
             < self._keep_probability
         )

@@ -16,7 +16,6 @@ import tensorflow as tf
 
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import config
-from keras_cv.backend.random import SeedGenerator
 
 if config.keras_3():
     base_layer = tf.keras.layers.Layer
@@ -101,15 +100,12 @@ class BaseAugmentationLayer3D(base_layer):
     Note that since the randomness is also a common functionality, this layer
     also includes a keras.backend.RandomGenerator, which can be used to
     produce the random numbers. The random number generator is stored in the
-    `self._seed_generator` attribute.
+    `self._random_generator` attribute.
     """
 
     def __init__(self, seed=None, **kwargs):
         # To-do: remove this once th elayer is ported to keras 3
         # https://github.com/keras-team/keras-cv/issues/2136
-        self._seed_generator = SeedGenerator(
-            seed=seed,
-        )
         if config.keras_3():
             raise ValueError(
                 "This layer is not yet compatible with Keras 3."
