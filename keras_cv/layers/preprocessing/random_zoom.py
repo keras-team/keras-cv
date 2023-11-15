@@ -14,12 +14,14 @@
 
 
 import tensorflow as tf
+from tensorflow.keras import backend
+
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import random
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import \
-    VectorizedBaseImageAugmentationLayer  # noqa: E501
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
+    VectorizedBaseImageAugmentationLayer,
+)
 from keras_cv.utils import preprocessing as preprocessing_utils
-from tensorflow.keras import backend
 
 # In order to support both unbatched and batched inputs, the horizontal
 # and vertical axis is reverse indexed

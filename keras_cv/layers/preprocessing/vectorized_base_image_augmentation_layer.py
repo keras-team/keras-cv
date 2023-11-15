@@ -101,7 +101,7 @@ class VectorizedBaseImageAugmentationLayer(base_class):
     Note that since the randomness is also a common functionality, this layer
     also includes a keras_backend.RandomGenerator, which can be used to
     produce the random numbers. The random number generator is stored in the
-    `self._random_generator` attribute.
+    `self._seed_generator` attribute.
     """
 
     def __init__(self, seed=None, **kwargs):
