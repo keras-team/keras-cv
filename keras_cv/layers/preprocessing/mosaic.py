@@ -20,19 +20,19 @@ from keras_cv.backend import random
 from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     BATCHED,
 )
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     BOUNDING_BOXES,
 )
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     IMAGES,
 )
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     LABELS,
 )
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     SEGMENTATION_MASKS,
 )
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     VectorizedBaseImageAugmentationLayer,
 )
 from keras_cv.utils import preprocessing as preprocessing_utils
