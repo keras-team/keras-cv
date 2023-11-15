@@ -16,6 +16,7 @@ import tensorflow as tf
 
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
+from keras_cv.backend import random
 from keras_cv.layers import preprocessing
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
@@ -98,8 +99,12 @@ class RandomAugmentationPipeline(BaseImageAugmentationLayer):
 
         result = inputs
         for _ in range(self.augmentations_per_image):
-            skip_augment = self._random_generator.random_uniform(
-                shape=(), minval=0.0, maxval=1.0, dtype=tf.float32
+            skip_augment = random.uniform(
+                shape=(),
+                minval=0.0,
+                maxval=1.0,
+                dtype=tf.float32,
+                seed=self._seed_generator,
             )
             result = tf.cond(
                 skip_augment > self.rate,

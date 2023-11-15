@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import tensorflow as tf
-
 from keras_cv.api_export import keras_cv_export
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
@@ -74,7 +73,7 @@ class RandomChannelShift(BaseImageAugmentationLayer):
         return shifts
 
     def _get_shift(self):
-        invert = preprocessing.random_inversion(self._random_generator)
+        invert = preprocessing.random_inversion(self._seed_generator)
         return tf.cast(invert * self.factor() * 0.5, dtype=self.compute_dtype)
 
     def augment_image(self, image, transformation=None, **kwargs):
