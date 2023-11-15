@@ -15,6 +15,7 @@
 import tensorflow as tf
 
 from keras_cv.backend import config
+from keras_cv.backend import random
 
 if config.keras_3():
     base_layer = tf.keras.layers.Layer
@@ -216,8 +217,10 @@ class DropBlock2D(base_layer):
 
         valid_block = tf.reshape(valid_block, [1, height, width, 1])
 
-        random_noise = self._random_generator.random_uniform(
-            tf.shape(x), dtype=tf.float32
+        random_noise = random.uniform(
+            tf.shape(x),
+            dtype=tf.float32,
+            seed=self._seed_generator,
         )
         valid_block = tf.cast(valid_block, dtype=tf.float32)
         seed_keep_rate = tf.cast(1 - gamma, dtype=tf.float32)

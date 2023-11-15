@@ -105,6 +105,8 @@ class VectorizedBaseImageAugmentationLayer(base_class):
     """
 
     def __init__(self, seed=None, **kwargs):
+        # TODO: Remove unused force_generator arg
+        _ = kwargs.pop("force_generator", None)
         self._seed_generator = SeedGenerator(
             seed=seed,
         )
