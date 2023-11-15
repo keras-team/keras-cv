@@ -15,6 +15,7 @@
 import tensorflow as tf
 
 from keras_cv.api_export import keras_cv_export
+from keras_cv.backend import random
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
@@ -87,8 +88,12 @@ class RandomChoice(BaseImageAugmentationLayer):
             return super()._batch_augment(inputs)
 
     def _augment(self, inputs, *args, **kwargs):
-        selected_op = self._random_generator.random_uniform(
-            (), minval=0, maxval=len(self.layers), dtype=tf.int32
+        selected_op = random.uniform(
+            (),
+            minval=0,
+            maxval=len(self.layers),
+            dtype=tf.int32,
+            seed=self._seed_generator,
         )
         # Warning:
         # Do not replace the currying function with a lambda.
