@@ -15,8 +15,8 @@
 import tensorflow as tf
 
 from keras_cv import bounding_box
-from keras_cv import random
 from keras_cv.api_export import keras_cv_export
+from keras_cv.backend import random
 from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     VectorizedBaseImageAugmentationLayer,
 )

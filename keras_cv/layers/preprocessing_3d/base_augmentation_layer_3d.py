@@ -16,6 +16,7 @@ import tensorflow as tf
 
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import config
+from keras_cv.backend.random import SeedGenerator
 
 if config.keras_3():
     base_layer = tf.keras.layers.Layer
