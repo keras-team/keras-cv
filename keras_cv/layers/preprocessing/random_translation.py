@@ -13,12 +13,11 @@
 # limitations under the License.
 
 import tensorflow as tf
-
-from keras_cv import bounding_box
+from keras_cv import bounding_box, random
 from keras_cv.api_export import keras_cv_export
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
     VectorizedBaseImageAugmentationLayer,
-)
+)  # noqa: E501
 from keras_cv.utils import preprocessing as preprocessing_utils
 
 H_AXIS = -3
@@ -144,17 +143,19 @@ class RandomTranslation(VectorizedBaseImageAugmentationLayer):
         self.bounding_box_format = bounding_box_format
 
     def get_random_transformation_batch(self, batch_size, **kwargs):
-        height_translations = self._random_generator.random_uniform(
+        height_translations = random.uniform(
             shape=[batch_size, 1],
             minval=self.height_lower,
             maxval=self.height_upper,
             dtype=tf.float32,
+            seed=self._seed_generator,
         )
-        width_translations = self._random_generator.random_uniform(
+        width_translations = random.uniform(
             shape=[batch_size, 1],
             minval=self.width_lower,
             maxval=self.width_upper,
             dtype=tf.float32,
+            seed=self._seed_generator,
         )
         return {
             "height_translations": height_translations,
