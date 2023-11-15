@@ -69,7 +69,7 @@ class RandomFlip(VectorizedBaseImageAugmentationLayer):
         bounding_box_format=None,
         **kwargs,
     ):
-        super().__init__(seed=seed, force_generator=True, **kwargs)
+        super().__init__(seed=seed, **kwargs)
         self.mode = mode
         self.seed = seed
         if mode == HORIZONTAL:
