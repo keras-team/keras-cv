@@ -69,7 +69,7 @@ class RandomChoice(BaseImageAugmentationLayer):
         seed=None,
         **kwargs,
     ):
-        super().__init__(**kwargs, seed=seed, force_generator=True)
+        super().__init__(**kwargs, seed=seed)
         self.layers = layers
         self.auto_vectorize = auto_vectorize
         self.batchwise = batchwise

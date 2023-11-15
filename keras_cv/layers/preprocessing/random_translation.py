@@ -97,7 +97,7 @@ class RandomTranslation(VectorizedBaseImageAugmentationLayer):
         bounding_box_format=None,
         **kwargs,
     ):
-        super().__init__(seed=seed, force_generator=True, **kwargs)
+        super().__init__(seed=seed, **kwargs)
         self.height_factor = height_factor
         if isinstance(height_factor, (tuple, list)):
             self.height_lower = height_factor[0]
