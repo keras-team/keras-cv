@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import keras
 import tensorflow as tf
 
 from keras_cv import bounding_box
@@ -105,6 +104,8 @@ class VectorizedBaseImageAugmentationLayer(base_class):
     """
 
     def __init__(self, seed=None, **kwargs):
+        # TODO: Remove unused force_generator arg
+        _ = kwargs.pop("force_generator", None)
         self._seed_generator = SeedGenerator(
             seed=seed,
         )

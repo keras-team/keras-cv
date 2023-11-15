@@ -55,10 +55,14 @@ class FourierMix(BaseImageAugmentationLayer):
 
     def _sample_from_beta(self, alpha, beta, shape):
         sample_alpha = tf.random.gamma(
-            shape, alpha=alpha, seed=self._seed_generator.next()
+            shape,
+            alpha=alpha,
+            seed=random.make_seed(seed=self._seed_generator),
         )
         sample_beta = tf.random.gamma(
-            shape, alpha=beta, seed=self._seed_generator.next()
+            shape,
+            alpha=beta,
+            seed=random.make_seed(seed=self._seed_generator),
         )
         return sample_alpha / (sample_alpha + sample_beta)
 

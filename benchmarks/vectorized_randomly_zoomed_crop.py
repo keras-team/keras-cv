@@ -19,6 +19,7 @@ import tensorflow as tf
 from tensorflow import keras
 
 from keras_cv import core
+from keras_cv.backend import random
 from keras_cv.layers import RandomlyZoomedCrop
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,

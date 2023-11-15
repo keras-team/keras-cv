@@ -186,8 +186,7 @@ def random_inversion(seed_generator):
       either -1, or -1.
     """
     negate = (
-        keras.backend.uniform((), 0, 1, dtype=tf.float32, seed=seed_generator)
-        > 0.5
+        random.uniform((), 0, 1, dtype=tf.float32, seed=seed_generator) > 0.5
     )
     negate = tf.cond(negate, lambda: -1.0, lambda: 1.0)
     return negate

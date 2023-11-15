@@ -27,23 +27,30 @@ class SeedGenerator:
                 seed=seed, **kwargs
             )
         else:
-            self._current_seed = [0, seed]
+            self._current_seed = [seed, 0]
 
     def next(self, ordered=True):
         if keras_3():
             return self._seed_generator.next(ordered=ordered)
         else:
-            self._current_seed[0] += 1
+            self._current_seed[1] += 1
             return self._current_seed[:]
 
 
-def normal(shape, mean=0.0, stddev=1.0, dtype=None, seed=None):
+def make_seed(seed=None):
     if isinstance(seed, SeedGenerator):
-        seed = seed.next()
-        init_seed = seed[0] + seed[1]
+        seed_0, seed_1 = seed.next()
+        if seed_0 is None:
+            init_seed = seed_1
+        else:
+            init_seed = seed_0 + seed_1
     else:
         init_seed = seed
+    return init_seed
 
+
+def normal(shape, mean=0.0, stddev=1.0, dtype=None, seed=None):
+    init_seed = make_seed(seed)
     kwargs = {}
     if dtype:
         kwargs["dtype"] = dtype
@@ -68,11 +75,7 @@ def normal(shape, mean=0.0, stddev=1.0, dtype=None, seed=None):
 
 
 def uniform(shape, minval=0.0, maxval=1.0, dtype=None, seed=None):
-    if isinstance(seed, SeedGenerator):
-        seed = seed.next()
-        init_seed = seed[0] + seed[1]
-    else:
-        init_seed = seed
+    init_seed = make_seed(seed)
     kwargs = {}
     if dtype:
         kwargs["dtype"] = dtype
@@ -97,12 +100,7 @@ def uniform(shape, minval=0.0, maxval=1.0, dtype=None, seed=None):
 
 
 def shuffle(x, axis=0, seed=None):
-    if isinstance(seed, SeedGenerator):
-        seed = seed.next()
-        init_seed = seed[0] + seed[1]
-    else:
-        init_seed = seed
-
+    init_seed = make_seed(seed)
     if keras_3():
         return keras.random.shuffle(x=x, axis=axis, seed=init_seed)
     else:
@@ -112,11 +110,7 @@ def shuffle(x, axis=0, seed=None):
 
 
 def categorical(logits, num_samples, dtype=None, seed=None):
-    if isinstance(seed, SeedGenerator):
-        seed = seed.next()
-        init_seed = seed[0] + seed[1]
-    else:
-        init_seed = seed
+    init_seed = make_seed(seed)
     kwargs = {}
     if dtype:
         kwargs["dtype"] = dtype
