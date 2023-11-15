@@ -13,12 +13,14 @@
 # limitations under the License.
 
 import tensorflow as tf
+
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import random
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
-from keras_cv.utils import fill_utils, preprocessing
+from keras_cv.utils import fill_utils
+from keras_cv.utils import preprocessing
 
 
 @keras_cv_export("keras_cv.layers.RandomCutout")

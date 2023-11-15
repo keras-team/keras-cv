@@ -237,14 +237,14 @@ class RandomFlipTest(tf.test.TestCase):
         )
 
         with unittest.mock.patch.object(
-            layer._random_generator,
-            "random_uniform",
+            random,
+            "uniform",
             return_value=tf.convert_to_tensor([[0.6]]),
         ):
             output = layer(image)
         with unittest.mock.patch.object(
-            old_layer._random_generator,
-            "random_uniform",
+            random,
+            "uniform",
             return_value=tf.convert_to_tensor(0.6),
         ):
             old_output = old_layer(image)
