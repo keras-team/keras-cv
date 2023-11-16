@@ -186,7 +186,7 @@ class GridMask(BaseImageAugmentationLayer):
             shape=(),
             minval=tf.math.minimum(height * 0.5, width * 0.3),
             maxval=tf.math.maximum(height * 0.5, width * 0.3) + 1,
-            dtype=tf.float32,
+            dtype="float32",
             seed=self._seed_generator,
         )
         rectangle_side_len = tf.cast((ratio) * unit_size, tf.float32)
@@ -196,14 +196,14 @@ class GridMask(BaseImageAugmentationLayer):
             shape=(),
             minval=0.0,
             maxval=unit_size,
-            dtype=tf.float32,
+            dtype="float32",
             seed=self._seed_generator,
         )
         delta_y = random.uniform(
             shape=(),
             minval=0.0,
             maxval=unit_size,
-            dtype=tf.float32,
+            dtype="float32",
             seed=self._seed_generator,
         )
 

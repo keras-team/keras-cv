@@ -149,14 +149,14 @@ class RandomTranslation(VectorizedBaseImageAugmentationLayer):
             shape=[batch_size, 1],
             minval=self.height_lower,
             maxval=self.height_upper,
-            dtype=tf.float32,
+            dtype="float32",
             seed=self._seed_generator,
         )
         width_translations = random.uniform(
             shape=[batch_size, 1],
             minval=self.width_lower,
             maxval=self.width_upper,
-            dtype=tf.float32,
+            dtype="float32",
             seed=self._seed_generator,
         )
         return {

@@ -88,11 +88,10 @@ class RandomChoice(BaseImageAugmentationLayer):
             return super()._batch_augment(inputs)
 
     def _augment(self, inputs, *args, **kwargs):
-        selected_op = random.uniform(
+        selected_op = random.randint(
             (),
             minval=0,
             maxval=len(self.layers),
-            dtype=tf.int32,
             seed=self._seed_generator,
         )
         # Warning:

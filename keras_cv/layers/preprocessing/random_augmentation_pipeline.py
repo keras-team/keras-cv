@@ -103,7 +103,7 @@ class RandomAugmentationPipeline(BaseImageAugmentationLayer):
                 shape=(),
                 minval=0.0,
                 maxval=1.0,
-                dtype=tf.float32,
+                dtype="float32",
                 seed=self._seed_generator,
             )
             result = tf.cond(
