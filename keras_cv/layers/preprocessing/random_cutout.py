@@ -132,18 +132,16 @@ class RandomCutout(BaseImageAugmentationLayer):
             input_shape[0],
             input_shape[1],
         )
-        center_x = random.uniform(
+        center_x = random.randint(
             [1],
             0,
             image_width,
-            dtype=tf.int32,
             seed=self._seed_generator,
         )
-        center_y = random.uniform(
+        center_y = random.randint(
             [1],
             0,
             image_height,
-            dtype=tf.int32,
             seed=self._seed_generator,
         )
         return center_x, center_y

@@ -114,7 +114,7 @@ class OldRandomlyZoomedCrop(BaseImageAugmentationLayer):
             (),
             minval=tf.minimum(0.0, original_height - new_height),
             maxval=tf.maximum(0.0, original_height - new_height),
-            dtype=tf.float32,
+            dtype="float32",
             seed=self._seed_generator,
         )
 
@@ -122,7 +122,7 @@ class OldRandomlyZoomedCrop(BaseImageAugmentationLayer):
             (),
             minval=tf.minimum(0.0, original_width - new_width),
             maxval=tf.maximum(0.0, original_width - new_width),
-            dtype=tf.float32,
+            dtype="float32",
             seed=self._seed_generator,
         )
 

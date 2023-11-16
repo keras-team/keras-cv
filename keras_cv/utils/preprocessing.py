@@ -195,7 +195,7 @@ def random_inversion(seed_generator):
 def batch_random_inversion(seed_generator, batch_size):
     """Same as `random_inversion` but for batched inputs."""
     negate = random.uniform(
-        (batch_size, 1), 0, 1, dtype=tf.float32, seed=seed_generator
+        (batch_size, 1), 0, 1, dtype="float32", seed=seed_generator
     )
     negate = tf.where(negate > 0.5, -1.0, 1.0)
     return negate

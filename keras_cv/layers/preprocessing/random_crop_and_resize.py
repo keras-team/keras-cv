@@ -114,7 +114,7 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
             (),
             minval=tf.minimum(0.0, 1.0 - new_height),
             maxval=tf.maximum(0.0, 1.0 - new_height),
-            dtype=tf.float32,
+            dtype="float32",
             seed=self._seed_generator,
         )
 
@@ -122,7 +122,7 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
             (),
             minval=tf.minimum(0.0, 1.0 - new_width),
             maxval=tf.maximum(0.0, 1.0 - new_width),
-            dtype=tf.float32,
+            dtype="float32",
             seed=self._seed_generator,
         )
 

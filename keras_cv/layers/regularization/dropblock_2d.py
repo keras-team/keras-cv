@@ -220,7 +220,7 @@ class DropBlock2D(base_layer):
 
         random_noise = random.uniform(
             tf.shape(x),
-            dtype=tf.float32,
+            dtype="float32",
             seed=self._seed_generator,
         )
         valid_block = tf.cast(valid_block, dtype=tf.float32)

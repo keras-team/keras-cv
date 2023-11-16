@@ -70,7 +70,7 @@ class RandomHue(VectorizedBaseImageAugmentationLayer):
             (batch_size,),
             0,
             1,
-            tf.float32,
+            "float32",
             seed=self._seed_generator,
         )
         invert = tf.where(

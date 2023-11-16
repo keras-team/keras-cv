@@ -16,9 +16,11 @@ from keras_cv.backend.config import keras_3
 
 if keras_3():
     from keras.random import *  # noqa: F403, F401
+
     # SeedGenerator is imported from `keras.random`
 else:
     from keras_core.random import *  # noqa: F403, F401
+
     class SeedGenerator:
         def __init__(self, seed=None, **kwargs):
             self._current_seed = [seed, 0]
@@ -86,7 +88,8 @@ def uniform(shape, minval=0.0, maxval=1.0, dtype=None, seed=None):
             seed=make_seed(seed),
             **kwargs,
         )
-    
+
+
 def randint(shape, minval=0.0, maxval=1.0, dtype="int32", seed=None):
     kwargs = {}
     if dtype:
