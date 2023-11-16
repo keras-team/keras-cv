@@ -71,11 +71,8 @@ jobs:
           ${{ runner.os }}-pip-
     - name: Install dependencies
       run: |
+        pip install -r reqirements.txt
         pip install -e ".[tests]" --progress-bar off --upgrade
-        pip install "jax[cpu]"
-        pip install torch>=2.0.1+cpu
-        pip install torchvision>=0.15.1
-        pip install tf-nightly==2.16.0.dev20231103  # Pin a working nightly until rc0.
     - name: Test with pytest
       env:
         TEST_CUSTOM_OPS: false # TODO(ianstenbit): test custom ops, or figure out what our story is here
