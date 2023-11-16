@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import numpy as np
+import pytest
 import tensorflow as tf
 
+from keras_cv.backend.config import keras_3
 from keras_cv.layers.preprocessing_3d import base_augmentation_layer_3d
 from keras_cv.tests.test_case import TestCase
 
@@ -68,6 +70,7 @@ class VectorizeDisabledLayer(
         super().__init__(**kwargs)
 
 
+@pytest.mark.skipif(keras_3(), reason="Not implemented for Keras 3")
 class BaseImageAugmentationLayerTest(TestCase):
     def test_auto_vectorize_disabled(self):
         vectorize_disabled_layer = VectorizeDisabledLayer()

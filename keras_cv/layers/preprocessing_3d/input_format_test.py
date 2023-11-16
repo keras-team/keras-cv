@@ -12,9 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import numpy as np
+import pytest
 import tensorflow as tf
 from absl.testing import parameterized
 
+from keras_cv.backend.config import keras_3
 from keras_cv.layers import preprocessing_3d
 from keras_cv.layers.preprocessing_3d import base_augmentation_layer_3d
 from keras_cv.tests.test_case import TestCase
@@ -95,10 +97,10 @@ def convert_to_model_format(inputs):
     }
 
 
+@pytest.mark.skipif(keras_3(), reason="Not implemented for Keras 3")
 class InputFormatTest(TestCase):
     @parameterized.named_parameters(*TEST_CONFIGURATIONS)
-    def DISABLED_test_equivalent_results_with_model_format(self, layer):
-        # TODO: Breaks with Keras 2.
+    def test_equivalent_results_with_model_format(self, layer):
         point_clouds = np.random.random(size=(3, 2, 50, 10)).astype("float32")
         bounding_boxes = np.random.random(size=(3, 2, 10, 9)).astype("float32")
         inputs = {POINT_CLOUDS: point_clouds, BOUNDING_BOXES: bounding_boxes}
