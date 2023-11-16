@@ -127,20 +127,20 @@ class AugMix(BaseImageAugmentationLayer):
         return sample_alpha / (sample_alpha + sample_beta)
 
     def _sample_depth(self):
-        return random.uniform(
+        return random.randint(
             shape=(),
             minval=self.chain_depth[0],
             maxval=self.chain_depth[1] + 1,
-            dtype=tf.int32,
+            dtype="int32",
             seed=self._seed_generator,
         )
 
     def _loop_on_depth(self, depth_level, image_aug):
-        op_index = random.uniform(
+        op_index = random.randint(
             shape=(),
             minval=0,
             maxval=8,
-            dtype=tf.int32,
+            dtype="int32",
             seed=self._seed_generator,
         )
         image_aug = self._apply_op(image_aug, op_index)

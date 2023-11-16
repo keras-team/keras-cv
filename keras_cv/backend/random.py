@@ -16,23 +16,14 @@ from keras_cv.backend.config import keras_3
 
 if keras_3():
     from keras.random import *  # noqa: F403, F401
+    # SeedGenerator is imported from `keras.random`
 else:
     from keras_core.random import *  # noqa: F403, F401
-
-
-class SeedGenerator:
-    def __init__(self, seed=None, **kwargs):
-        if keras_3():
-            self._seed_generator = keras.random.SeedGenerator(
-                seed=seed, **kwargs
-            )
-        else:
+    class SeedGenerator:
+        def __init__(self, seed=None, **kwargs):
             self._current_seed = [seed, 0]
 
-    def next(self, ordered=True):
-        if keras_3():
-            return self._seed_generator.next(ordered=ordered)
-        else:
+        def next(self, ordered=True):
             self._current_seed[1] += 1
             return self._current_seed[:]
 
@@ -50,7 +41,6 @@ def make_seed(seed=None):
 
 
 def normal(shape, mean=0.0, stddev=1.0, dtype=None, seed=None):
-    init_seed = make_seed(seed)
     kwargs = {}
     if dtype:
         kwargs["dtype"] = dtype
@@ -59,7 +49,7 @@ def normal(shape, mean=0.0, stddev=1.0, dtype=None, seed=None):
             shape,
             mean=mean,
             stddev=stddev,
-            seed=init_seed,
+            seed=seed,
             **kwargs,
         )
     else:
@@ -69,13 +59,12 @@ def normal(shape, mean=0.0, stddev=1.0, dtype=None, seed=None):
             shape,
             mean=mean,
             stddev=stddev,
-            seed=init_seed,
+            seed=make_seed(seed),
             **kwargs,
         )
 
 
 def uniform(shape, minval=0.0, maxval=1.0, dtype=None, seed=None):
-    init_seed = make_seed(seed)
     kwargs = {}
     if dtype:
         kwargs["dtype"] = dtype
@@ -84,7 +73,7 @@ def uniform(shape, minval=0.0, maxval=1.0, dtype=None, seed=None):
             shape,
             minval=minval,
             maxval=maxval,
-            seed=init_seed,
+            seed=seed,
             **kwargs,
         )
     else:
@@ -94,7 +83,30 @@ def uniform(shape, minval=0.0, maxval=1.0, dtype=None, seed=None):
             shape,
             minval=minval,
             maxval=maxval,
-            seed=init_seed,
+            seed=make_seed(seed),
+            **kwargs,
+        )
+    
+def randint(shape, minval=0.0, maxval=1.0, dtype="int32", seed=None):
+    kwargs = {}
+    if dtype:
+        kwargs["dtype"] = dtype
+    if keras_3():
+        return keras.random.randint(
+            shape,
+            minval=minval,
+            maxval=maxval,
+            seed=seed,
+            **kwargs,
+        )
+    else:
+        import tensorflow as tf
+
+        return tf.random.uniform(
+            shape,
+            minval=minval,
+            maxval=maxval,
+            seed=make_seed(seed),
             **kwargs,
         )
 
