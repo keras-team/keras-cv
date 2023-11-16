@@ -68,10 +68,16 @@ class GlobalRandomTranslation(
 
     def get_random_transformation(self, **kwargs):
         random_x_translation = self._random_generator.random_normal(
-            (), mean=0.0, stddev=self._x_stddev, dtype=self.compute_dtype
+            (),
+            mean=0.0,
+            stddev=self._x_stddev,
+            dtype=self.compute_dtype,
         )
         random_y_translation = self._random_generator.random_normal(
-            (), mean=0.0, stddev=self._y_stddev, dtype=self.compute_dtype
+            (),
+            mean=0.0,
+            stddev=self._y_stddev,
+            dtype=self.compute_dtype,
         )
         random_z_translation = self._random_generator.random_normal(
             (),

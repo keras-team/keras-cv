@@ -20,6 +20,7 @@ import tensorflow as tf
 from tensorflow import keras
 
 from keras_cv import bounding_box
+from keras_cv.backend import random
 from keras_cv.layers import JitteredResize
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
@@ -258,8 +259,8 @@ class JitteredResizeTest(tf.test.TestCase):
 
         # makes offsets fixed to (0.5, 0.5)
         with unittest.mock.patch.object(
-            layer._random_generator,
-            "random_uniform",
+            random,
+            "uniform",
             return_value=tf.convert_to_tensor([[0.5, 0.5]]),
         ):
             output = layer(image)

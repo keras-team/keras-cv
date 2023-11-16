@@ -7,6 +7,7 @@ import os
 import numpy as np
 import pytest
 
+from keras_cv.backend.config import keras_3
 from keras_cv.layers.preprocessing_3d import base_augmentation_layer_3d
 from keras_cv.layers.preprocessing_3d.waymo.random_copy_paste import (
     RandomCopyPaste,
@@ -19,6 +20,7 @@ OBJECT_POINT_CLOUDS = base_augmentation_layer_3d.OBJECT_POINT_CLOUDS
 OBJECT_BOUNDING_BOXES = base_augmentation_layer_3d.OBJECT_BOUNDING_BOXES
 
 
+@pytest.mark.skipif(keras_3(), reason="Not implemented for Keras 3")
 class RandomCopyPasteTest(TestCase):
     @pytest.mark.skipif(
         "TEST_CUSTOM_OPS" not in os.environ

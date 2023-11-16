@@ -18,6 +18,7 @@ import tensorflow as tf
 from keras_cv import bounding_box
 from keras_cv import layers as cv_layers
 from keras_cv.api_export import keras_cv_export
+from keras_cv.backend import random
 from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     VectorizedBaseImageAugmentationLayer,
 )
@@ -79,14 +80,20 @@ class RandomCrop(VectorizedBaseImageAugmentationLayer):
 
     def get_random_transformation_batch(self, batch_size, **kwargs):
         tops = tf.cast(
-            self._random_generator.random_uniform(
-                shape=(batch_size, 1), minval=0, maxval=1
+            random.uniform(
+                shape=(batch_size, 1),
+                minval=0,
+                maxval=1,
+                seed=self._seed_generator,
             ),
             self.compute_dtype,
         )
         lefts = tf.cast(
-            self._random_generator.random_uniform(
-                shape=(batch_size, 1), minval=0, maxval=1
+            random.uniform(
+                shape=(batch_size, 1),
+                minval=0,
+                maxval=1,
+                seed=self._seed_generator,
             ),
             self.compute_dtype,
         )

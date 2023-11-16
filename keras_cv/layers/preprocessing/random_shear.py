@@ -110,7 +110,7 @@ class RandomShear(VectorizedBaseImageAugmentationLayer):
         transformations = {"shear_x": None, "shear_y": None}
         if self.x_factor is not None:
             invert = preprocessing.batch_random_inversion(
-                self._random_generator, batch_size
+                self._seed_generator, batch_size
             )
             transformations["shear_x"] = (
                 self.x_factor(shape=(batch_size, 1)) * invert
@@ -118,7 +118,7 @@ class RandomShear(VectorizedBaseImageAugmentationLayer):
 
         if self.y_factor is not None:
             invert = preprocessing.batch_random_inversion(
-                self._random_generator, batch_size
+                self._seed_generator, batch_size
             )
             transformations["shear_y"] = (
                 self.y_factor(shape=(batch_size, 1)) * invert

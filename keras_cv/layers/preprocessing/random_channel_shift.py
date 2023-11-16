@@ -74,7 +74,7 @@ class RandomChannelShift(BaseImageAugmentationLayer):
         return shifts
 
     def _get_shift(self):
-        invert = preprocessing.random_inversion(self._random_generator)
+        invert = preprocessing.random_inversion(self._seed_generator)
         return tf.cast(invert * self.factor() * 0.5, dtype=self.compute_dtype)
 
     def augment_image(self, image, transformation=None, **kwargs):

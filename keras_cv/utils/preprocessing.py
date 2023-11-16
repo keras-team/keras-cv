@@ -18,6 +18,7 @@ from tensorflow.keras import backend
 
 from keras_cv import core
 from keras_cv.backend import ops
+from keras_cv.backend import random
 
 _TF_INTERPOLATION_METHODS = {
     "bilinear": tf.image.ResizeMethod.BILINEAR,
@@ -171,28 +172,30 @@ def parse_factor(
     return core.UniformFactorSampler(param[0], param[1], seed=seed)
 
 
-def random_inversion(random_generator):
-    """Randomly returns a -1 or a 1 based on the provided random_generator.
+def random_inversion(seed_generator):
+    """Randomly returns a -1 or a 1 based on the provided seed_generator.
 
     This can be used by KPLs to randomly invert sampled values.
 
     Args:
-        random_generator: a Keras random number generator. An instance can be
-            passed from the `self._random_generator` attribute of
+        seed_generator: a Keras random number generator. An instance can be
+            passed from the `self._seed_generator` attribute of
             a `BaseImageAugmentationLayer`.
 
     Returns:
       either -1, or -1.
     """
-    negate = random_generator.random_uniform((), 0, 1, dtype=tf.float32) > 0.5
+    negate = (
+        random.uniform((), 0, 1, dtype=tf.float32, seed=seed_generator) > 0.5
+    )
     negate = tf.cond(negate, lambda: -1.0, lambda: 1.0)
     return negate
 
 
-def batch_random_inversion(random_generator, batch_size):
+def batch_random_inversion(seed_generator, batch_size):
     """Same as `random_inversion` but for batched inputs."""
-    negate = random_generator.random_uniform(
-        (batch_size, 1), 0, 1, dtype=tf.float32
+    negate = random.uniform(
+        (batch_size, 1), 0, 1, dtype=tf.float32, seed=seed_generator
     )
     negate = tf.where(negate > 0.5, -1.0, 1.0)
     return negate

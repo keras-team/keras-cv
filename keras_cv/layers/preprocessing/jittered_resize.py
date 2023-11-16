@@ -20,6 +20,7 @@ import tensorflow as tf
 
 from keras_cv import bounding_box
 from keras_cv.api_export import keras_cv_export
+from keras_cv.backend import random
 from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     VectorizedBaseImageAugmentationLayer,
 )
@@ -166,8 +167,12 @@ class JitteredResize(VectorizedBaseImageAugmentationLayer):
         max_offsets = tf.where(
             tf.less(max_offsets, 0), tf.zeros_like(max_offsets), max_offsets
         )
-        offsets = max_offsets * self._random_generator.random_uniform(
-            shape=(batch_size, 2), minval=0, maxval=1, dtype=tf.float32
+        offsets = max_offsets * random.uniform(
+            shape=(batch_size, 2),
+            minval=0,
+            maxval=1,
+            dtype=tf.float32,
+            seed=self._seed_generator,
         )
         offsets = tf.cast(offsets, tf.int32)
         return {

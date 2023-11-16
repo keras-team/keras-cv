@@ -1,9 +1,10 @@
 # Copyright 2022 Waymo LLC.
 #
 # Licensed under the terms in https://github.com/keras-team/keras-cv/blob/master/keras_cv/layers/preprocessing_3d/waymo/LICENSE  # noqa: E501
-
 import numpy as np
+import pytest
 
+from keras_cv.backend.config import keras_3
 from keras_cv.layers.preprocessing_3d import base_augmentation_layer_3d
 from keras_cv.layers.preprocessing_3d.waymo.frustum_random_dropping_points import (  # noqa: E501
     FrustumRandomDroppingPoints,
@@ -14,6 +15,7 @@ POINT_CLOUDS = base_augmentation_layer_3d.POINT_CLOUDS
 BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
 
 
+@pytest.mark.skipif(keras_3(), reason="Not implemented for Keras 3")
 class FrustumRandomDroppingPointTest(TestCase):
     def test_augment_point_clouds_and_bounding_boxes(self):
         add_layer = FrustumRandomDroppingPoints(

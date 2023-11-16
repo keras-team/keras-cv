@@ -16,6 +16,7 @@ import tensorflow as tf
 
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
+from keras_cv.backend import random
 from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     VectorizedBaseImageAugmentationLayer,
 )
@@ -65,8 +66,12 @@ class RandomHue(VectorizedBaseImageAugmentationLayer):
         self.seed = seed
 
     def get_random_transformation_batch(self, batch_size, **kwargs):
-        invert = self._random_generator.random_uniform(
-            (batch_size,), 0, 1, tf.float32
+        invert = random.uniform(
+            (batch_size,),
+            0,
+            1,
+            tf.float32,
+            seed=self._seed_generator,
         )
         invert = tf.where(
             invert > 0.5, -tf.ones_like(invert), tf.ones_like(invert)
