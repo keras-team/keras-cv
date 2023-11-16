@@ -63,7 +63,7 @@ class OldRandomHue(BaseImageAugmentationLayer):
         self.seed = seed
 
     def get_random_transformation(self, **kwargs):
-        invert = preprocessing_utils.random_inversion(self._random_generator)
+        invert = preprocessing_utils.random_inversion(self._seed_generator)
         # We must scale self.factor() to the range [-0.5, 0.5]. This is because
         # the tf.image operation performs rotation on the hue saturation value
         # orientation. This can be thought of as an angle in the range

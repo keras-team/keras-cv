@@ -16,6 +16,7 @@ import tensorflow as tf
 
 from keras_cv import bounding_box
 from keras_cv.api_export import keras_cv_export
+from keras_cv.backend import random
 from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     BATCHED,
 )
@@ -96,11 +97,12 @@ class Mosaic(VectorizedBaseImageAugmentationLayer):
 
     def get_random_transformation_batch(self, batch_size, **kwargs):
         # pick 3 indices for every batch to create the mosaic output with.
-        permutation_order = self._random_generator.random_uniform(
+        permutation_order = random.uniform(
             (batch_size, 3),
             minval=0,
             maxval=batch_size,
             dtype=tf.int32,
+            seed=self._seed_generator,
         )
         # concatenate the batches with permutation order to get all 4 images of
         # the mosaic

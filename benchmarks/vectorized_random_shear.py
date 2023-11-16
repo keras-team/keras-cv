@@ -107,7 +107,7 @@ class OldRandomShear(BaseImageAugmentationLayer):
         if constraint is None:
             return None
 
-        invert = preprocessing.random_inversion(self._random_generator)
+        invert = preprocessing.random_inversion(self._seed_generator)
         return invert * constraint()
 
     def augment_image(self, image, transformation=None, **kwargs):

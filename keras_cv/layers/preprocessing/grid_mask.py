@@ -17,6 +17,7 @@ import tensorflow as tf
 from keras_cv import core
 from keras_cv import layers as cv_layers
 from keras_cv.api_export import keras_cv_export
+from keras_cv.backend import random
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
@@ -164,8 +165,10 @@ class GridMask(BaseImageAugmentationLayer):
             fill_value = tf.cast(fill_value, dtype=self.compute_dtype)
         else:
             # gaussian noise
-            fill_value = self._random_generator.random_normal(
-                shape=input_shape, dtype=self.compute_dtype
+            fill_value = random.normal(
+                shape=input_shape,
+                dtype=self.compute_dtype,
+                seed=self._seed_generator,
             )
 
         return mask, fill_value
@@ -179,20 +182,29 @@ class GridMask(BaseImageAugmentationLayer):
         mask_side_len = tf.math.ceil(input_diagonal_len)
 
         # grid unit size
-        unit_size = self._random_generator.random_uniform(
+        unit_size = random.uniform(
             shape=(),
             minval=tf.math.minimum(height * 0.5, width * 0.3),
             maxval=tf.math.maximum(height * 0.5, width * 0.3) + 1,
             dtype=tf.float32,
+            seed=self._seed_generator,
         )
         rectangle_side_len = tf.cast((ratio) * unit_size, tf.float32)
 
         # sample x and y offset for grid units randomly between 0 and unit_size
-        delta_x = self._random_generator.random_uniform(
-            shape=(), minval=0.0, maxval=unit_size, dtype=tf.float32
+        delta_x = random.uniform(
+            shape=(),
+            minval=0.0,
+            maxval=unit_size,
+            dtype=tf.float32,
+            seed=self._seed_generator,
         )
-        delta_y = self._random_generator.random_uniform(
-            shape=(), minval=0.0, maxval=unit_size, dtype=tf.float32
+        delta_y = random.uniform(
+            shape=(),
+            minval=0.0,
+            maxval=unit_size,
+            dtype=tf.float32,
+            seed=self._seed_generator,
         )
 
         # grid size (number of diagonal units in grid)
