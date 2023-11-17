@@ -20,7 +20,6 @@ import tensorflow as tf
 from tensorflow import keras
 
 from keras_cv import bounding_box
-from keras_cv.backend import random
 from keras_cv.layers import Mosaic
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
@@ -102,7 +101,7 @@ class OldMosaic(BaseImageAugmentationLayer):
             minval=0,
             maxval=batch_size,
             dtype=tf.int32,
-            seed=random.make_seed(seed=self._seed_generator),
+            seed=self._random_generator.make_legacy_seed(),
         )
         # concatenate the batches with permutation order to get all 4 images of
         # the mosaic

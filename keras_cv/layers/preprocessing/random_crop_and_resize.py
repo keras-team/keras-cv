@@ -18,7 +18,6 @@ from keras_cv import bounding_box
 from keras_cv import core
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
-from keras_cv.backend import random
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
@@ -110,20 +109,18 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
             tf.sqrt(crop_area_factor * aspect_ratio), 0.0, 1.0
         )
 
-        height_offset = random.uniform(
+        height_offset = self._random_generator.random_uniform(
             (),
             minval=tf.minimum(0.0, 1.0 - new_height),
             maxval=tf.maximum(0.0, 1.0 - new_height),
             dtype=tf.float32,
-            seed=self._seed_generator,
         )
 
-        width_offset = random.uniform(
+        width_offset = self._random_generator.random_uniform(
             (),
             minval=tf.minimum(0.0, 1.0 - new_width),
             maxval=tf.maximum(0.0, 1.0 - new_width),
             dtype=tf.float32,
-            seed=self._seed_generator,
         )
 
         y1 = height_offset
