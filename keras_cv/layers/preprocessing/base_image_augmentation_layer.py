@@ -22,10 +22,8 @@ else:
 
 from keras_cv import bounding_box
 from keras_cv.api_export import keras_cv_export
-from keras_cv.backend import keras
-from keras_cv.backend import scope
+from keras_cv.backend import keras, scope
 from keras_cv.backend.config import multi_backend
-from keras_cv.backend.random import RandomGenerator
 from keras_cv.utils import preprocessing
 
 # In order to support both unbatched and batched inputs, the horizontal
@@ -132,7 +130,7 @@ class BaseImageAugmentationLayer(base_class):
 
     def __init__(self, seed=None, **kwargs):
         force_generator = kwargs.pop("force_generator", False)
-        self._random_generator = RandomGenerator(
+        self._random_generator = keras_backend.RandomGenerator(
             seed=seed, force_generator=force_generator
         )
         super().__init__(**kwargs)
