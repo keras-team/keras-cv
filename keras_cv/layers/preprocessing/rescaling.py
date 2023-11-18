@@ -55,7 +55,9 @@ class Rescaling(BaseImageAugmentationLayer):
     """
 
     def __init__(self, scale, offset=0.0, **kwargs):
+
         super().__init__(**kwargs)
+
         self.scale = scale
         self.offset = offset
 
