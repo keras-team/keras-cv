@@ -15,8 +15,10 @@
 import numpy as np
 import pytest
 import tensorflow as tf
+
 from keras_cv import bounding_box
-from keras_cv.backend import ops, random
+from keras_cv.backend import ops
+from keras_cv.backend import random
 from keras_cv.tests.test_case import TestCase
 
 
