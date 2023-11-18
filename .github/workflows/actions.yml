@@ -71,7 +71,7 @@ jobs:
           ${{ runner.os }}-pip-
     - name: Install dependencies
       run: |
-        pip install -r reqirements.txt
+        pip install -r requirements.txt
         pip install -e ".[tests]" --progress-bar off --upgrade
     - name: Test with pytest
       env:
