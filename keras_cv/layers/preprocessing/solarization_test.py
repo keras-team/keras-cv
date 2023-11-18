@@ -74,10 +74,10 @@ class SolarizationTest(TestCase):
         )
 
     def _test_input_output(self, layer, input_value, expected_value, dtype):
-        input = np.ones(shape=(2, 224, 224, 3), dtype=dtype) * input_value
+        input = tf.ones(shape=(2, 224, 224, 3), dtype=dtype) * input_value
         expected_output = tf.clip_by_value(
             (
-                np.ones(shape=(2, 224, 224, 3), dtype=layer.compute_dtype)
+                tf.ones(shape=(2, 224, 224, 3), dtype=layer.compute_dtype)
                 * expected_value
             ),
             0,
