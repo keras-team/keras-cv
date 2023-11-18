@@ -17,8 +17,6 @@ import unittest
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
-from tensorflow import keras
-
 from keras_cv import bounding_box
 from keras_cv.layers import RandomFlip
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
@@ -26,10 +24,9 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 )
 from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     BOUNDING_BOXES,
-)
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     IMAGES,
 )
+from tensorflow import keras
 
 # In order to support both unbatched and batched inputs, the horizontal
 # and vertical axis is reverse indexed
@@ -101,13 +98,9 @@ class OldRandomFlip(BaseImageAugmentationLayer):
         flip_horizontal = False
         flip_vertical = False
         if self.horizontal:
-            flip_horizontal = (
-                self._random_generator.random_uniform(shape=[]) > 0.5
-            )
+            flip_horizontal = self._random_generator.uniform(shape=[]) > 0.5
         if self.vertical:
-            flip_vertical = (
-                self._random_generator.random_uniform(shape=[]) > 0.5
-            )
+            flip_vertical = self._random_generator.uniform(shape=[]) > 0.5
         return {
             "flip_horizontal": tf.cast(flip_horizontal, dtype=tf.bool),
             "flip_vertical": tf.cast(flip_vertical, dtype=tf.bool),

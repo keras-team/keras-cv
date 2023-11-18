@@ -14,12 +14,11 @@
 
 import numpy as np
 import tensorflow as tf
-
 from keras_cv import bounding_box
 from keras_cv.api_export import keras_cv_export
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
     VectorizedBaseImageAugmentationLayer,
-)
+)  # noqa: E501
 from keras_cv.utils import preprocessing as preprocessing_utils
 
 # In order to support both unbatched and batched inputs, the horizontal
@@ -117,7 +116,7 @@ class RandomRotation(VectorizedBaseImageAugmentationLayer):
     def get_random_transformation_batch(self, batch_size, **kwargs):
         min_angle = self.lower * 2.0 * np.pi
         max_angle = self.upper * 2.0 * np.pi
-        angles = self._random_generator.random_uniform(
+        angles = self._random_generator.uniform(
             shape=[batch_size], minval=min_angle, maxval=max_angle
         )
         return {"angles": angles}

@@ -13,12 +13,11 @@
 # limitations under the License.
 
 import tensorflow as tf
-
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
     VectorizedBaseImageAugmentationLayer,
-)
+)  # noqa: E501
 from keras_cv.utils import preprocessing as preprocessing_utils
 
 
@@ -65,9 +64,7 @@ class RandomHue(VectorizedBaseImageAugmentationLayer):
         self.seed = seed
 
     def get_random_transformation_batch(self, batch_size, **kwargs):
-        invert = self._random_generator.random_uniform(
-            (batch_size,), 0, 1, tf.float32
-        )
+        invert = self._random_generator.uniform((batch_size,), 0, 1, tf.float32)
         invert = tf.where(
             invert > 0.5, -tf.ones_like(invert), tf.ones_like(invert)
         )

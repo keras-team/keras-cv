@@ -13,15 +13,13 @@
 # limitations under the License.
 
 import tensorflow as tf
-
 from keras_cv import core
 from keras_cv import layers as cv_layers
 from keras_cv.api_export import keras_cv_export
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
-from keras_cv.utils import fill_utils
-from keras_cv.utils import preprocessing
+from keras_cv.utils import fill_utils, preprocessing
 
 
 def _center_crop(mask, width, height):
@@ -179,7 +177,7 @@ class GridMask(BaseImageAugmentationLayer):
         mask_side_len = tf.math.ceil(input_diagonal_len)
 
         # grid unit size
-        unit_size = self._random_generator.random_uniform(
+        unit_size = self._random_generator.uniform(
             shape=(),
             minval=tf.math.minimum(height * 0.5, width * 0.3),
             maxval=tf.math.maximum(height * 0.5, width * 0.3) + 1,
@@ -188,10 +186,10 @@ class GridMask(BaseImageAugmentationLayer):
         rectangle_side_len = tf.cast((ratio) * unit_size, tf.float32)
 
         # sample x and y offset for grid units randomly between 0 and unit_size
-        delta_x = self._random_generator.random_uniform(
+        delta_x = self._random_generator.uniform(
             shape=(), minval=0.0, maxval=unit_size, dtype=tf.float32
         )
-        delta_y = self._random_generator.random_uniform(
+        delta_y = self._random_generator.uniform(
             shape=(), minval=0.0, maxval=unit_size, dtype=tf.float32
         )
 

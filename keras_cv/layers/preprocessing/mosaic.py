@@ -13,25 +13,14 @@
 # limitations under the License.
 
 import tensorflow as tf
-
 from keras_cv import bounding_box
 from keras_cv.api_export import keras_cv_export
 from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     BATCHED,
-)
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     BOUNDING_BOXES,
-)
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     IMAGES,
-)
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     LABELS,
-)
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     SEGMENTATION_MASKS,
-)
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     VectorizedBaseImageAugmentationLayer,
 )
 from keras_cv.utils import preprocessing as preprocessing_utils
@@ -96,7 +85,7 @@ class Mosaic(VectorizedBaseImageAugmentationLayer):
 
     def get_random_transformation_batch(self, batch_size, **kwargs):
         # pick 3 indices for every batch to create the mosaic output with.
-        permutation_order = self._random_generator.random_uniform(
+        permutation_order = self._random_generator.uniform(
             (batch_size, 3),
             minval=0,
             maxval=batch_size,

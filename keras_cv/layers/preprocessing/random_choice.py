@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import tensorflow as tf
-
 from keras_cv.api_export import keras_cv_export
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
@@ -87,7 +86,7 @@ class RandomChoice(BaseImageAugmentationLayer):
             return super()._batch_augment(inputs)
 
     def _augment(self, inputs, *args, **kwargs):
-        selected_op = self._random_generator.random_uniform(
+        selected_op = self._random_generator.uniform(
             (), minval=0, maxval=len(self.layers), dtype=tf.int32
         )
         # Warning:

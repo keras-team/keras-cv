@@ -13,12 +13,11 @@
 # limitations under the License.
 
 import tensorflow as tf
-
 from keras_cv import bounding_box
 from keras_cv.api_export import keras_cv_export
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
     VectorizedBaseImageAugmentationLayer,
-)
+)  # noqa: E501
 
 # In order to support both unbatched and batched inputs, the horizontal
 # and vertical axis is reverse indexed
@@ -98,12 +97,12 @@ class RandomFlip(VectorizedBaseImageAugmentationLayer):
         flip_verticals = tf.zeros(shape=(batch_size, 1))
 
         if self.horizontal:
-            flip_horizontals = self._random_generator.random_uniform(
+            flip_horizontals = self._random_generator.uniform(
                 shape=(batch_size, 1)
             )
 
         if self.vertical:
-            flip_verticals = self._random_generator.random_uniform(
+            flip_verticals = self._random_generator.uniform(
                 shape=(batch_size, 1)
             )
 

@@ -13,7 +13,6 @@
 # limitations under the License.
 import numpy as np
 import tensorflow as tf
-
 from keras_cv import bounding_box
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
@@ -30,7 +29,7 @@ class RandomAddLayer(BaseImageAugmentationLayer):
     def get_random_transformation(self, **kwargs):
         if self.fixed_value:
             return self.fixed_value
-        return self._random_generator.random_uniform(
+        return self._random_generator.uniform(
             [], minval=self.value_range[0], maxval=self.value_range[1]
         )
 

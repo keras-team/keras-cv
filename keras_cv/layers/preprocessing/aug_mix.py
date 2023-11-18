@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import tensorflow as tf
-
 from keras_cv import layers
 from keras_cv.api_export import keras_cv_export
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
@@ -122,7 +121,7 @@ class AugMix(BaseImageAugmentationLayer):
         return sample_alpha / (sample_alpha + sample_beta)
 
     def _sample_depth(self):
-        return self._random_generator.random_uniform(
+        return self._random_generator.uniform(
             shape=(),
             minval=self.chain_depth[0],
             maxval=self.chain_depth[1] + 1,
@@ -130,7 +129,7 @@ class AugMix(BaseImageAugmentationLayer):
         )
 
     def _loop_on_depth(self, depth_level, image_aug):
-        op_index = self._random_generator.random_uniform(
+        op_index = self._random_generator.uniform(
             shape=(), minval=0, maxval=8, dtype=tf.int32
         )
         image_aug = self._apply_op(image_aug, op_index)

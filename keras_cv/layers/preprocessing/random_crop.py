@@ -14,13 +14,12 @@
 
 
 import tensorflow as tf
-
 from keras_cv import bounding_box
 from keras_cv import layers as cv_layers
 from keras_cv.api_export import keras_cv_export
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
     VectorizedBaseImageAugmentationLayer,
-)
+)  # noqa: E501
 
 # In order to support both unbatched and batched inputs, the horizontal
 # and vertical axis is reverse indexed
@@ -79,13 +78,13 @@ class RandomCrop(VectorizedBaseImageAugmentationLayer):
 
     def get_random_transformation_batch(self, batch_size, **kwargs):
         tops = tf.cast(
-            self._random_generator.random_uniform(
+            self._random_generator.uniform(
                 shape=(batch_size, 1), minval=0, maxval=1
             ),
             self.compute_dtype,
         )
         lefts = tf.cast(
-            self._random_generator.random_uniform(
+            self._random_generator.uniform(
                 shape=(batch_size, 1), minval=0, maxval=1
             ),
             self.compute_dtype,

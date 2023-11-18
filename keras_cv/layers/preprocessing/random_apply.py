@@ -112,9 +112,7 @@ class RandomApply(BaseImageAugmentationLayer):
         self.built = True
 
     def _should_augment(self):
-        return (
-            self._random_generator.random_uniform(shape=()) > 1.0 - self._rate
-        )
+        return self._random_generator.uniform(shape=()) > 1.0 - self._rate
 
     def _batch_augment(self, inputs):
         if self.batchwise:

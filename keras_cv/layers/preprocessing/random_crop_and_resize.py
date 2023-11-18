@@ -13,9 +13,7 @@
 # limitations under the License.
 
 import tensorflow as tf
-
-from keras_cv import bounding_box
-from keras_cv import core
+from keras_cv import bounding_box, core
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
@@ -109,14 +107,14 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
             tf.sqrt(crop_area_factor * aspect_ratio), 0.0, 1.0
         )
 
-        height_offset = self._random_generator.random_uniform(
+        height_offset = self._random_generator.uniform(
             (),
             minval=tf.minimum(0.0, 1.0 - new_height),
             maxval=tf.maximum(0.0, 1.0 - new_height),
             dtype=tf.float32,
         )
 
-        width_offset = self._random_generator.random_uniform(
+        width_offset = self._random_generator.uniform(
             (),
             minval=tf.minimum(0.0, 1.0 - new_width),
             maxval=tf.maximum(0.0, 1.0 - new_width),

@@ -18,13 +18,12 @@ import unittest
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
-from tensorflow import keras
-
 from keras_cv import bounding_box
 from keras_cv.layers import RandomCrop
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
+from tensorflow import keras
 
 H_AXIS = -3
 W_AXIS = -2
@@ -72,7 +71,7 @@ class OldRandomCrop(BaseImageAugmentationLayer):
         h_diff = image_shape[H_AXIS] - self.height
         w_diff = image_shape[W_AXIS] - self.width
         dtype = image_shape.dtype
-        rands = self._random_generator.random_uniform([2], 0, dtype.max, dtype)
+        rands = self._random_generator.uniform([2], 0, dtype.max, dtype)
         h_start = rands[0] % (h_diff + 1)
         w_start = rands[1] % (w_diff + 1)
         return {"top": h_start, "left": w_start}

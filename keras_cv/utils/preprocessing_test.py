@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import tensorflow as tf
-
 from keras_cv.tests.test_case import TestCase
 from keras_cv.utils import preprocessing
 
@@ -22,7 +21,7 @@ class MockRandomGenerator:
     def __init__(self, value):
         self.value = value
 
-    def random_uniform(self, shape, minval, maxval, dtype=None):
+    def uniform(self, shape, minval, maxval, dtype=None):
         del minval, maxval
         return tf.constant(self.value, dtype=dtype)
 

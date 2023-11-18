@@ -13,11 +13,10 @@
 # limitations under the License.
 
 import tensorflow as tf
-
 from keras_cv.api_export import keras_cv_export
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
     VectorizedBaseImageAugmentationLayer,
-)
+)  # noqa: E501
 
 
 @keras_cv_export("keras_cv.layers.ChannelShuffle")
@@ -55,7 +54,7 @@ class ChannelShuffle(VectorizedBaseImageAugmentationLayer):
         #     [0, 2, 3, 4, 1],
         #     [4, 1, 0, 2, 3]
         # ]
-        indices_distribution = self._random_generator.random_uniform(
+        indices_distribution = self._random_generator.uniform(
             (batch_size, self.groups)
         )
         indices = tf.argsort(indices_distribution, axis=-1)

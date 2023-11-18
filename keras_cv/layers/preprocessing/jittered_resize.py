@@ -17,12 +17,11 @@
 # https://github.com/tensorflow/models/blob/master/official/vision/ops/preprocess_ops.py
 
 import tensorflow as tf
-
 from keras_cv import bounding_box
 from keras_cv.api_export import keras_cv_export
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
     VectorizedBaseImageAugmentationLayer,
-)
+)  # noqa: E501
 from keras_cv.utils import preprocessing as preprocessing_utils
 
 H_AXIS = -3
@@ -166,7 +165,7 @@ class JitteredResize(VectorizedBaseImageAugmentationLayer):
         max_offsets = tf.where(
             tf.less(max_offsets, 0), tf.zeros_like(max_offsets), max_offsets
         )
-        offsets = max_offsets * self._random_generator.random_uniform(
+        offsets = max_offsets * self._random_generator.uniform(
             shape=(batch_size, 2), minval=0, maxval=1, dtype=tf.float32
         )
         offsets = tf.cast(offsets, tf.int32)

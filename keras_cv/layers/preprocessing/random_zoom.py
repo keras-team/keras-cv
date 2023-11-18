@@ -14,13 +14,11 @@
 
 
 import tensorflow as tf
-from tensorflow.keras import backend
-
 from keras_cv.api_export import keras_cv_export
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
-    VectorizedBaseImageAugmentationLayer,
-)
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import \
+    VectorizedBaseImageAugmentationLayer  # noqa: E501
 from keras_cv.utils import preprocessing as preprocessing_utils
+from tensorflow.keras import backend
 
 # In order to support both unbatched and batched inputs, the horizontal
 # and vertical axis is reverse indexed
@@ -140,13 +138,13 @@ class RandomZoom(VectorizedBaseImageAugmentationLayer):
         self.seed = seed
 
     def get_random_transformation_batch(self, batch_size, **kwargs):
-        height_zooms = self._random_generator.random_uniform(
+        height_zooms = self._random_generator.uniform(
             shape=[batch_size, 1],
             minval=1.0 + self.height_lower,
             maxval=1.0 + self.height_upper,
         )
         if self.width_factor is not None:
-            width_zooms = self._random_generator.random_uniform(
+            width_zooms = self._random_generator.uniform(
                 shape=[batch_size, 1],
                 minval=1.0 + self.width_lower,
                 maxval=1.0 + self.width_upper,

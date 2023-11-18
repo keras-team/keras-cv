@@ -18,13 +18,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
 from keras import backend
-from tensorflow import keras
-
 from keras_cv.layers import RandomTranslation
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
 from keras_cv.utils import preprocessing as preprocessing_utils
+from tensorflow import keras
 
 H_AXIS = -3
 W_AXIS = -2
@@ -217,13 +216,13 @@ class OldRandomTranslation(BaseImageAugmentationLayer):
 
     def get_random_transformation(self, image=None, **kwargs):
         batch_size = 1
-        height_translation = self._random_generator.random_uniform(
+        height_translation = self._random_generator.uniform(
             shape=[batch_size, 1],
             minval=self.height_lower,
             maxval=self.height_upper,
             dtype=tf.float32,
         )
-        width_translation = self._random_generator.random_uniform(
+        width_translation = self._random_generator.uniform(
             shape=[batch_size, 1],
             minval=self.width_lower,
             maxval=self.width_upper,
