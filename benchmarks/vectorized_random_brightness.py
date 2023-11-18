@@ -17,12 +17,13 @@ import time
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
+from tensorflow import keras
+
 from keras_cv.layers import RandomBrightness
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
 from keras_cv.utils import preprocessing as preprocessing_utils
-from tensorflow import keras
 
 
 class OldRandomBrightness(BaseImageAugmentationLayer):

@@ -18,12 +18,13 @@ import unittest
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
+from tensorflow import keras
+
 from keras_cv import bounding_box
 from keras_cv.layers import RandomCrop
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
-from tensorflow import keras
 
 H_AXIS = -3
 W_AXIS = -2

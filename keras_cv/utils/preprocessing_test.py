@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import tensorflow as tf
+
 from keras_cv.tests.test_case import TestCase
 from keras_cv.utils import preprocessing
 

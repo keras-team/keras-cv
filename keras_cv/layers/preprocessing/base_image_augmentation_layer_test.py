@@ -13,6 +13,7 @@
 # limitations under the License.
 import numpy as np
 import tensorflow as tf
+
 from keras_cv import bounding_box
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,

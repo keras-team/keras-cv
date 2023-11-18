@@ -3,19 +3,21 @@
 # Licensed under the terms in https://github.com/keras-team/keras-cv/blob/master/keras_cv/layers/preprocessing_3d/waymo/LICENSE  # noqa: E501
 
 import numpy as np
-from tensorflow import keras
-
+import pytest
+from keras_cv.backend.config import keras_3
 from keras_cv.layers.preprocessing_3d import base_augmentation_layer_3d
-from keras_cv.layers.preprocessing_3d.waymo.frustum_random_point_feature_noise import (  # noqa: E501
+from keras_cv.layers.preprocessing_3d.waymo.frustum_random_point_feature_noise import (
     FrustumRandomPointFeatureNoise,
-)
+)  # noqa: E501
 from keras_cv.tests.test_case import TestCase
+from tensorflow import keras
 
 POINT_CLOUDS = base_augmentation_layer_3d.POINT_CLOUDS
 BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
 POINTCLOUD_LABEL_INDEX = base_augmentation_layer_3d.POINTCLOUD_LABEL_INDEX
 
 
+@pytest.mark.skipif(keras_3(), reason="Not implemented in Keras 3")
 class FrustumRandomPointFeatureNoiseTest(TestCase):
     def test_augment_point_clouds_and_bounding_boxes(self):
         add_layer = FrustumRandomPointFeatureNoise(

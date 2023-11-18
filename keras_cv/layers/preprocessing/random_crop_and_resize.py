@@ -13,7 +13,9 @@
 # limitations under the License.
 
 import tensorflow as tf
-from keras_cv import bounding_box, core
+
+from keras_cv import bounding_box
+from keras_cv import core
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (

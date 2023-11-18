@@ -17,7 +17,6 @@ import unittest
 import numpy as np
 import tensorflow as tf
 from absl.testing import parameterized
-
 from keras_cv import layers as cv_layers
 from keras_cv.layers.preprocessing.random_crop import RandomCrop
 from keras_cv.tests.test_case import TestCase
@@ -106,7 +105,7 @@ class RandomCropTest(TestCase):
         layer = RandomCrop(8, 8)
         with unittest.mock.patch.object(
             layer._random_generator,
-            "random_uniform",
+            "uniform",
             return_value=mock_offset,
         ):
             actual_output = layer(inp, training=True)
@@ -120,7 +119,7 @@ class RandomCropTest(TestCase):
         layer = RandomCrop(8, 8)
         with unittest.mock.patch.object(
             layer._random_generator,
-            "random_uniform",
+            "uniform",
             return_value=mock_offset,
         ):
             actual_output = layer(inp, training=True)
@@ -195,7 +194,7 @@ class RandomCropTest(TestCase):
 
         with unittest.mock.patch.object(
             layer._random_generator,
-            "random_uniform",
+            "uniform",
             return_value=mock_offset,
         ):
             actual_output = augment(inp)
