@@ -15,11 +15,10 @@ import unittest
 
 import numpy as np
 import tensorflow as tf
+
 from keras_cv import bounding_box
-from keras_cv.layers.preprocessing.random_flip import (
-    HORIZONTAL_AND_VERTICAL,
-    RandomFlip,
-)
+from keras_cv.layers.preprocessing.random_flip import HORIZONTAL_AND_VERTICAL
+from keras_cv.layers.preprocessing.random_flip import RandomFlip
 from keras_cv.tests.test_case import TestCase
 
 

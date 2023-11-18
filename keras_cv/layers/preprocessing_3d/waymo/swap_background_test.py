@@ -4,6 +4,7 @@
 
 import numpy as np
 import pytest
+
 from keras_cv.backend.config import keras_3
 from keras_cv.layers.preprocessing_3d import base_augmentation_layer_3d
 from keras_cv.layers.preprocessing_3d.waymo.swap_background import (

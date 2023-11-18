@@ -17,6 +17,8 @@ import unittest
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
+from tensorflow import keras
+
 from keras_cv import bounding_box
 from keras_cv.layers import JitteredResize
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
@@ -24,10 +26,11 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 )
 from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     BOUNDING_BOXES,
+)
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
     IMAGES,
 )
 from keras_cv.utils import preprocessing as preprocessing_utils
-from tensorflow import keras
 
 
 class OldJitteredResize(BaseImageAugmentationLayer):

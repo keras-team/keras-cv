@@ -17,8 +17,6 @@ import time
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
-from tensorflow import keras
-
 from keras_cv import bounding_box
 from keras_cv.layers import Mosaic
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
@@ -26,11 +24,10 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 )
 from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     IMAGES,
-)
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     LABELS,
 )
 from keras_cv.utils import preprocessing as preprocessing_utils
+from tensorflow import keras
 
 
 class OldMosaic(BaseImageAugmentationLayer):
@@ -101,7 +98,9 @@ class OldMosaic(BaseImageAugmentationLayer):
             minval=0,
             maxval=batch_size,
             dtype=tf.int32,
-            seed=self._random_generator.make_legacy_seed(),
+            seed=self._random_generator.uniform(
+                shape=[], minval=0, maxval=9999, dtype="int32"
+            ),
         )
         # concatenate the batches with permutation order to get all 4 images of
         # the mosaic

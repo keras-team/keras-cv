@@ -4,11 +4,12 @@
 
 import numpy as np
 import pytest
+from tensorflow import keras
+
 from keras_cv.backend.config import keras_3
 from keras_cv.layers.preprocessing_3d import base_augmentation_layer_3d
 from keras_cv.layers.preprocessing_3d.waymo.random_drop_box import RandomDropBox
 from keras_cv.tests.test_case import TestCase
-from tensorflow import keras
 
 POINT_CLOUDS = base_augmentation_layer_3d.POINT_CLOUDS
 BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES

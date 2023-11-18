@@ -17,6 +17,7 @@ import unittest
 import numpy as np
 import tensorflow as tf
 from absl.testing import parameterized
+
 from keras_cv import layers as cv_layers
 from keras_cv.layers.preprocessing.random_crop import RandomCrop
 from keras_cv.tests.test_case import TestCase

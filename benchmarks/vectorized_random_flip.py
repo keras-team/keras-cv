@@ -17,6 +17,8 @@ import unittest
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
+from tensorflow import keras
+
 from keras_cv import bounding_box
 from keras_cv.layers import RandomFlip
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
@@ -24,9 +26,10 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 )
 from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     BOUNDING_BOXES,
+)
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
     IMAGES,
 )
-from tensorflow import keras
 
 # In order to support both unbatched and batched inputs, the horizontal
 # and vertical axis is reverse indexed

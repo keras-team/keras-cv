@@ -7,11 +7,12 @@ import os
 import numpy as np
 import pytest
 import tensorflow as tf
+
 from keras_cv.backend.config import keras_3
 from keras_cv.layers.preprocessing_3d import base_augmentation_layer_3d
-from keras_cv.layers.preprocessing_3d.waymo.group_points_by_bounding_boxes import (
+from keras_cv.layers.preprocessing_3d.waymo.group_points_by_bounding_boxes import (  # noqa: E501
     GroupPointsByBoundingBoxes,
-)  # noqa: E501
+)
 from keras_cv.tests.test_case import TestCase
 
 POINT_CLOUDS = base_augmentation_layer_3d.POINT_CLOUDS
