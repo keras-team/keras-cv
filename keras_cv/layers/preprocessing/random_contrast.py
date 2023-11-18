@@ -67,7 +67,7 @@ class RandomContrast(VectorizedBaseImageAugmentationLayer):
     """
 
     def __init__(self, value_range, factor, seed=None, **kwargs):
-        super().__init__(seed=seed, **kwargs)
+        super().__init__(seed=seed, force_generator=True, **kwargs)
         if isinstance(factor, (tuple, list)):
             min = 1 - factor[0]
             max = 1 + factor[1]

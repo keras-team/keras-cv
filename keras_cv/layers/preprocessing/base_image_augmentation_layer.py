@@ -12,14 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import keras
 import tensorflow as tf
+
+if hasattr(keras, "src"):
+    keras_backend = keras.src.backend
+else:
+    keras_backend = keras.backend
 
 from keras_cv import bounding_box
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import scope
 from keras_cv.backend.config import multi_backend
-from keras_cv.backend.random import SeedGenerator
 from keras_cv.utils import preprocessing
 
 # In order to support both unbatched and batched inputs, the horizontal
@@ -121,14 +126,13 @@ class BaseImageAugmentationLayer(base_class):
     Note that since the randomness is also a common functionality, this layer
     also includes a keras_backend.RandomGenerator, which can be used to
     produce the random numbers. The random number generator is stored in the
-    `self._seed_generator` attribute.
+    `self._random_generator` attribute.
     """
 
     def __init__(self, seed=None, **kwargs):
-        # TODO: Remove unused force_generator arg
-        _ = kwargs.pop("force_generator", None)
-        self._seed_generator = SeedGenerator(
-            seed=seed,
+        force_generator = kwargs.pop("force_generator", False)
+        self._random_generator = keras_backend.RandomGenerator(
+            seed=seed, force_generator=force_generator
         )
         super().__init__(**kwargs)
         self.built = True
