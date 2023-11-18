@@ -33,8 +33,4 @@ else:
             smart_resize,
         )
 if not multi_backend():
-    from tensorflow.keras.preprocessing.image import (  # noqa: F403, F401
-        smart_resize,
-    )
-
     from keras_cv.backend.tf_ops import *  # noqa: F403, F401
