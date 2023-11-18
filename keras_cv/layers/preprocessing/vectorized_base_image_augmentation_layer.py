@@ -115,6 +115,7 @@ class VectorizedBaseImageAugmentationLayer(base_class):
             self._random_generator = tf.random.get_global_generator()
         super().__init__(**kwargs)
         self._convert_input_args = False
+        self._allow_non_tensor_positional_args = True
 
     @property
     def force_output_dense_images(self):

@@ -37,6 +37,7 @@ class RepeatedAugmentationTest(TestCase):
         self.assertEqual(outputs["images"].shape, (16, 512, 512, 3))
         self.assertEqual(outputs["labels"].shape, (16,))
 
+    @pytest.mark.skipif(keras_3(), reason="disabling test for Keras 3")
     def test_with_mix_up(self):
         repeated_augment = cv_layers.RepeatedAugmentation(
             augmenters=[
