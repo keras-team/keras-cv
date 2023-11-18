@@ -15,18 +15,17 @@
 import numpy as np
 import pytest
 import tensorflow as tf
-
 from keras_cv import bounding_box
-from keras_cv.backend import ops
+from keras_cv.backend import ops, random
 from keras_cv.tests.test_case import TestCase
 
 
 class MaskInvalidDetectionsTest(TestCase):
     def test_correctly_masks_based_on_max_dets(self):
         bounding_boxes = {
-            "boxes": ops.random.uniform((4, 100, 4)),
-            "num_detections": ops.array([2, 3, 4, 2]),
-            "classes": ops.random.uniform((4, 100)),
+            "boxes": random.uniform((4, 100, 4)),
+            "num_detections": tf.constant([2, 3, 4, 2]),
+            "classes": random.uniform((4, 100)),
         }
 
         result = bounding_box.mask_invalid_detections(bounding_boxes)
