@@ -11,13 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import numpy as np
 import pytest
 import tensorflow as tf
+
 from keras_cv import bounding_box
 from keras_cv.backend import ops
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import \
-    VectorizedBaseImageAugmentationLayer  # noqa: E501
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
+    VectorizedBaseImageAugmentationLayer,
+)
 from keras_cv.tests.test_case import TestCase
 
 
