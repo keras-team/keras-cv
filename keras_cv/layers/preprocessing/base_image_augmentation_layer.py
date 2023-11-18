@@ -25,6 +25,7 @@ from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import scope
 from keras_cv.backend.config import multi_backend
+from keras_cv.backend.random import RandomGenerator
 from keras_cv.utils import preprocessing
 
 # In order to support both unbatched and batched inputs, the horizontal
@@ -131,12 +132,14 @@ class BaseImageAugmentationLayer(base_class):
 
     def __init__(self, seed=None, **kwargs):
         force_generator = kwargs.pop("force_generator", False)
-        self._random_generator = keras_backend.RandomGenerator(
+        self._random_generator = RandomGenerator(
             seed=seed, force_generator=force_generator
         )
         super().__init__(**kwargs)
         self.built = True
         self._convert_input_args = False
+        # Allows numpy arrays to be passed to layer's call args in Keras 3
+        self._allow_non_tensor_positional_args = True
 
     @property
     def force_output_ragged_images(self):
