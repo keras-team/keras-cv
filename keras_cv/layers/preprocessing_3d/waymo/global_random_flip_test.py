@@ -16,7 +16,7 @@ POINT_CLOUDS = base_augmentation_layer_3d.POINT_CLOUDS
 BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
 
 
-@pytest.mark.skipif(keras_3(), reason="Not implemented for Keras 3")
+@pytest.mark.skipif(keras_3(), reason="Not implemented in Keras 3")
 class GlobalRandomFlipTest(TestCase):
     def test_augment_random_point_clouds_and_bounding_boxes(self):
         add_layer = GlobalRandomFlip()

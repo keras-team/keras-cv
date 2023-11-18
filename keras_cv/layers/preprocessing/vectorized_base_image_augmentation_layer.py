@@ -12,14 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import keras
 import tensorflow as tf
+
+if hasattr(keras, "src"):
+    keras_backend = keras.src.backend
+else:
+    keras_backend = keras.backend
 
 from keras_cv import bounding_box
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import scope
 from keras_cv.backend.config import multi_backend
-from keras_cv.backend.random import SeedGenerator
 from keras_cv.utils import preprocessing
 
 H_AXIS = -3
@@ -100,15 +105,14 @@ class VectorizedBaseImageAugmentationLayer(base_class):
     Note that since the randomness is also a common functionality, this layer
     also includes a keras_backend.RandomGenerator, which can be used to
     produce the random numbers. The random number generator is stored in the
-    `self._seed_generator` attribute.
+    `self._random_generator` attribute.
     """
 
     def __init__(self, seed=None, **kwargs):
-        # TODO: Remove unused force_generator arg
-        _ = kwargs.pop("force_generator", None)
-        self._seed_generator = SeedGenerator(
-            seed=seed,
-        )
+        if seed:
+            self._random_generator = tf.random.Generator.from_seed(seed=seed)
+        else:
+            self._random_generator = tf.random.get_global_generator()
         super().__init__(**kwargs)
         self._convert_input_args = False
 

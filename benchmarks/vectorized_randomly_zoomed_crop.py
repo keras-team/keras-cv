@@ -19,7 +19,6 @@ import tensorflow as tf
 from tensorflow import keras
 
 from keras_cv import core
-from keras_cv.backend import random
 from keras_cv.layers import RandomlyZoomedCrop
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
@@ -110,20 +109,18 @@ class OldRandomlyZoomedCrop(BaseImageAugmentationLayer):
 
         new_width = crop_size[1] * tf.sqrt(aspect_ratio)
 
-        height_offset = random.uniform(
+        height_offset = self._random_generator.uniform(
             (),
             minval=tf.minimum(0.0, original_height - new_height),
             maxval=tf.maximum(0.0, original_height - new_height),
             dtype=tf.float32,
-            seed=self._seed_generator,
         )
 
-        width_offset = random.uniform(
+        width_offset = self._random_generator.uniform(
             (),
             minval=tf.minimum(0.0, original_width - new_width),
             maxval=tf.maximum(0.0, original_width - new_width),
             dtype=tf.float32,
-            seed=self._seed_generator,
         )
 
         new_height = new_height / original_height

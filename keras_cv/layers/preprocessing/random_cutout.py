@@ -15,7 +15,6 @@
 import tensorflow as tf
 
 from keras_cv.api_export import keras_cv_export
-from keras_cv.backend import random
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
@@ -132,19 +131,11 @@ class RandomCutout(BaseImageAugmentationLayer):
             input_shape[0],
             input_shape[1],
         )
-        center_x = random.uniform(
-            [1],
-            0,
-            image_width,
-            dtype=tf.int32,
-            seed=self._seed_generator,
+        center_x = self._random_generator.uniform(
+            [1], 0, image_width, dtype=tf.int32
         )
-        center_y = random.uniform(
-            [1],
-            0,
-            image_height,
-            dtype=tf.int32,
-            seed=self._seed_generator,
+        center_y = self._random_generator.uniform(
+            [1], 0, image_height, dtype=tf.int32
         )
         return center_x, center_y
 

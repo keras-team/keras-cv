@@ -20,7 +20,6 @@ import tensorflow as tf
 from keras import backend
 from tensorflow import keras
 
-from keras_cv.backend import random
 from keras_cv.layers import RandomTranslation
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
@@ -142,7 +141,7 @@ class OldRandomTranslation(BaseImageAugmentationLayer):
         fill_value=0.0,
         **kwargs,
     ):
-        super().__init__(seed=seed, force_generator=True, **kwargs)
+        super().__init__(seed=seed, **kwargs)
         self.height_factor = height_factor
         if isinstance(height_factor, (tuple, list)):
             self.height_lower = height_factor[0]
@@ -218,19 +217,17 @@ class OldRandomTranslation(BaseImageAugmentationLayer):
 
     def get_random_transformation(self, image=None, **kwargs):
         batch_size = 1
-        height_translation = random.uniform(
+        height_translation = self._random_generator.uniform(
             shape=[batch_size, 1],
             minval=self.height_lower,
             maxval=self.height_upper,
             dtype=tf.float32,
-            seed=self._seed_generator,
         )
-        width_translation = random.uniform(
+        width_translation = self._random_generator.uniform(
             shape=[batch_size, 1],
             minval=self.width_lower,
             maxval=self.width_upper,
             dtype=tf.float32,
-            seed=self._seed_generator,
         )
         return {
             "height_translation": height_translation,

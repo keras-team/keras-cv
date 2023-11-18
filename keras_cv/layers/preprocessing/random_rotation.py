@@ -17,7 +17,6 @@ import tensorflow as tf
 
 from keras_cv import bounding_box
 from keras_cv.api_export import keras_cv_export
-from keras_cv.backend import random
 from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     VectorizedBaseImageAugmentationLayer,
 )
@@ -93,7 +92,7 @@ class RandomRotation(VectorizedBaseImageAugmentationLayer):
         segmentation_classes=None,
         **kwargs,
     ):
-        super().__init__(seed=seed, force_generator=True, **kwargs)
+        super().__init__(seed=seed, **kwargs)
         self.factor = factor
         if isinstance(factor, (tuple, list)):
             self.lower = factor[0]
@@ -118,11 +117,8 @@ class RandomRotation(VectorizedBaseImageAugmentationLayer):
     def get_random_transformation_batch(self, batch_size, **kwargs):
         min_angle = self.lower * 2.0 * np.pi
         max_angle = self.upper * 2.0 * np.pi
-        angles = random.uniform(
-            shape=[batch_size],
-            minval=min_angle,
-            maxval=max_angle,
-            seed=self._seed_generator,
+        angles = self._random_generator.uniform(
+            shape=[batch_size], minval=min_angle, maxval=max_angle
         )
         return {"angles": angles}
 

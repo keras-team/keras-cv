@@ -20,7 +20,6 @@ import tensorflow as tf
 from tensorflow import keras
 
 from keras_cv import bounding_box
-from keras_cv.backend import random
 from keras_cv.layers import RandomFlip
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
@@ -28,7 +27,7 @@ from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
 from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     BOUNDING_BOXES,
 )
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
     IMAGES,
 )
 
@@ -72,7 +71,7 @@ class OldRandomFlip(BaseImageAugmentationLayer):
     def __init__(
         self, mode=HORIZONTAL, seed=None, bounding_box_format=None, **kwargs
     ):
-        super().__init__(seed=seed, force_generator=True, **kwargs)
+        super().__init__(seed=seed, **kwargs)
         self.mode = mode
         self.seed = seed
         if mode == HORIZONTAL:
@@ -102,13 +101,9 @@ class OldRandomFlip(BaseImageAugmentationLayer):
         flip_horizontal = False
         flip_vertical = False
         if self.horizontal:
-            flip_horizontal = (
-                random.uniform(shape=[], seed=self._seed_generator) > 0.5
-            )
+            flip_horizontal = self._random_generator.uniform(shape=[]) > 0.5
         if self.vertical:
-            flip_vertical = (
-                random.uniform(shape=[], seed=self._seed_generator) > 0.5
-            )
+            flip_vertical = self._random_generator.uniform(shape=[]) > 0.5
         return {
             "flip_horizontal": tf.cast(flip_horizontal, dtype=tf.bool),
             "flip_vertical": tf.cast(flip_vertical, dtype=tf.bool),
@@ -237,13 +232,13 @@ class RandomFlipTest(tf.test.TestCase):
         )
 
         with unittest.mock.patch.object(
-            random,
+            layer._random_generator,
             "uniform",
             return_value=tf.convert_to_tensor([[0.6]]),
         ):
             output = layer(image)
         with unittest.mock.patch.object(
-            random,
+            old_layer._random_generator,
             "uniform",
             return_value=tf.convert_to_tensor(0.6),
         ):

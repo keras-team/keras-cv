@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import numpy as np
 import tensorflow as tf
 
 from keras_cv.layers.preprocessing.channel_shuffle import ChannelShuffle
@@ -96,8 +95,7 @@ class ChannelShuffleTest(TestCase):
         xs = layer(xs, training=True)
         self.assertTrue(tf.math.reduce_any(xs == 1.0))
 
-    def DISABLED_test_channel_shuffle_on_batched_images_independently(self):
-        # TODO: Breaks with Keras 2.
+    def test_channel_shuffle_on_batched_images_independently(self):
         image = tf.random.uniform((100, 100, 3))
         batched_images = tf.stack((image, image), axis=0)
         layer = ChannelShuffle(groups=3)
@@ -113,7 +111,7 @@ class ChannelShuffleTest(TestCase):
         self.assertEqual(layer_1.name, layer.name)
 
     def test_output_dtypes(self):
-        inputs = np.array([[[1], [2]], [[3], [4]]], dtype="float64")
+        inputs = tf.constant([[[1], [2]], [[3], [4]]], dtype="float64")
         layer = ChannelShuffle(groups=1)
         self.assertAllEqual(layer(inputs).dtype, "float32")
         layer = ChannelShuffle(groups=1, dtype="uint8")

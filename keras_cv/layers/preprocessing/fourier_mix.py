@@ -15,7 +15,6 @@
 import tensorflow as tf
 
 from keras_cv.api_export import keras_cv_export
-from keras_cv.backend import random
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
@@ -57,12 +56,10 @@ class FourierMix(BaseImageAugmentationLayer):
         sample_alpha = tf.random.gamma(
             shape,
             alpha=alpha,
-            seed=random.make_seed(seed=self._seed_generator),
         )
         sample_beta = tf.random.gamma(
             shape,
             alpha=beta,
-            seed=random.make_seed(seed=self._seed_generator),
         )
         return sample_alpha / (sample_alpha + sample_beta)
 
@@ -105,7 +102,7 @@ class FourierMix(BaseImageAugmentationLayer):
         param_size = tf.concat(
             [tf.constant([channel]), tf.shape(freqs), tf.constant([2])], 0
         )
-        param = random.normal(param_size, seed=self._seed_generator)
+        param = self._random_generator.normal(param_size)
 
         scale = tf.expand_dims(scale, -1)[None, :]
 

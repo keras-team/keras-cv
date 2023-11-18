@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import numpy as np
 import tensorflow as tf
 from absl.testing import parameterized
 
@@ -30,7 +29,7 @@ class RandAugmentTest(TestCase):
         rand_augment = layers.RandAugment(
             value_range=(0, 255), rate=0.5, magnitude=magnitude
         )
-        xs = np.ones((2, 512, 512, 3))
+        xs = tf.ones((2, 512, 512, 3))
         ys = rand_augment(xs)
         self.assertEqual(ys.shape, (2, 512, 512, 3))
 
@@ -59,7 +58,7 @@ class RandAugmentTest(TestCase):
     )
     def test_runs_with_dtype_input(self, dtype):
         rand_augment = layers.RandAugment(value_range=(0, 255))
-        xs = np.ones((2, 512, 512, 3), dtype=dtype)
+        xs = tf.ones((2, 512, 512, 3), dtype=dtype)
         ys = rand_augment(xs)
         self.assertEqual(ys.shape, (2, 512, 512, 3))
 

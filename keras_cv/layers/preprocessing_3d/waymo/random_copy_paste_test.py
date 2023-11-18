@@ -20,7 +20,7 @@ OBJECT_POINT_CLOUDS = base_augmentation_layer_3d.OBJECT_POINT_CLOUDS
 OBJECT_BOUNDING_BOXES = base_augmentation_layer_3d.OBJECT_BOUNDING_BOXES
 
 
-@pytest.mark.skipif(keras_3(), reason="Not implemented for Keras 3")
+@pytest.mark.skipif(keras_3(), reason="Not implemented in Keras 3")
 class RandomCopyPasteTest(TestCase):
     @pytest.mark.skipif(
         "TEST_CUSTOM_OPS" not in os.environ

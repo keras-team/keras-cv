@@ -16,7 +16,6 @@ import tensorflow as tf
 
 from keras_cv import bounding_box
 from keras_cv.api_export import keras_cv_export
-from keras_cv.backend import random
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
@@ -60,12 +59,10 @@ class MixUp(BaseImageAugmentationLayer):
         sample_alpha = tf.random.gamma(
             shape,
             alpha=alpha,
-            seed=random.make_seed(seed=self._seed_generator),
         )
         sample_beta = tf.random.gamma(
             shape,
             alpha=beta,
-            seed=random.make_seed(seed=self._seed_generator),
         )
         return sample_alpha / (sample_alpha + sample_beta)
 

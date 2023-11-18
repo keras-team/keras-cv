@@ -61,7 +61,7 @@ class OldRandomBrightness(BaseImageAugmentationLayer):
     """
 
     def __init__(self, factor, value_range=(0, 255), seed=None, **kwargs):
-        super().__init__(seed=seed, force_generator=True, **kwargs)
+        super().__init__(seed=seed, **kwargs)
         if isinstance(factor, float) or isinstance(factor, int):
             factor = (-factor, factor)
         self.factor = preprocessing_utils.parse_factor(

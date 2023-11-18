@@ -18,7 +18,7 @@ BOUNDING_BOXES = base_augmentation_layer_3d.BOUNDING_BOXES
 POINTCLOUD_LABEL_INDEX = base_augmentation_layer_3d.POINTCLOUD_LABEL_INDEX
 
 
-@pytest.mark.skipif(keras_3(), reason="Not implemented for Keras 3")
+@pytest.mark.skipif(keras_3(), reason="Not implemented in Keras 3")
 class FrustumRandomPointFeatureNoiseTest(TestCase):
     def test_augment_point_clouds_and_bounding_boxes(self):
         add_layer = FrustumRandomPointFeatureNoise(

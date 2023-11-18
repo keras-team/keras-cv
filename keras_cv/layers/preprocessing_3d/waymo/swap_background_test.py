@@ -18,7 +18,7 @@ ADDITIONAL_POINT_CLOUDS = base_augmentation_layer_3d.ADDITIONAL_POINT_CLOUDS
 ADDITIONAL_BOUNDING_BOXES = base_augmentation_layer_3d.ADDITIONAL_BOUNDING_BOXES
 
 
-@pytest.mark.skipif(keras_3(), reason="Not implemented for Keras 3")
+@pytest.mark.skipif(keras_3(), reason="Not implemented in Keras 3")
 class SwapBackgroundTest(TestCase):
     def test_augment_point_clouds_and_bounding_boxes(self):
         add_layer = SwapBackground()
