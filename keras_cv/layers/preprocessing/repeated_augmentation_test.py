@@ -15,7 +15,7 @@ import pytest
 import tensorflow as tf
 
 import keras_cv.layers as cv_layers
-from keras_cv.backend import keras_3
+from keras_cv.backend.config import keras_3
 from keras_cv.tests.test_case import TestCase
 
 
