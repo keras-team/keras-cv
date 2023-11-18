@@ -18,7 +18,7 @@ from keras_cv import bounding_box
 from keras_cv.backend import ops
 from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import \
     VectorizedBaseImageAugmentationLayer  # noqa: E501
-
+from keras_cv.tests.test_case import TestCase
 
 
 class VectorizedRandomAddLayer(VectorizedBaseImageAugmentationLayer):
