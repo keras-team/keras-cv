@@ -24,9 +24,9 @@ from keras_cv.tests.test_case import TestCase
 
 class RandomFlipTest(TestCase):
     def test_horizontal_flip(self):
-        np.random.seed(1337)
+        tf.random.set_seed(1337)
         mock_random = tf.convert_to_tensor([[0.6], [0.6]])
-        inp = np.random.random((2, 5, 8, 3))
+        inp = tf.random.uniform((2, 5, 8, 3))
         expected_output = np.flip(inp, axis=2)
         layer = RandomFlip("horizontal")
         with unittest.mock.patch.object(
@@ -50,9 +50,9 @@ class RandomFlipTest(TestCase):
         _ = layer(inputs)
 
     def test_vertical_flip(self):
-        np.random.seed(1337)
+        tf.random.set_seed(1337)
         mock_random = tf.convert_to_tensor([[0.6], [0.6]])
-        inp = np.random.random((2, 5, 8, 3))
+        inp = tf.random.uniform((2, 5, 8, 3))
         expected_output = np.flip(inp, axis=1)
         layer = RandomFlip("vertical")
         with unittest.mock.patch.object(
@@ -64,9 +64,9 @@ class RandomFlipTest(TestCase):
             self.assertAllClose(expected_output, actual_output)
 
     def test_flip_both(self):
-        np.random.seed(1337)
+        tf.random.set_seed(1337)
         mock_random = tf.convert_to_tensor([[0.6], [0.6]])
-        inp = np.random.random((2, 5, 8, 3))
+        inp = tf.random.uniform((2, 5, 8, 3))
         expected_output = np.flip(inp, axis=2)
         expected_output = np.flip(expected_output, axis=1)
         layer = RandomFlip("horizontal_and_vertical")
@@ -79,7 +79,7 @@ class RandomFlipTest(TestCase):
         self.assertAllClose(expected_output, actual_output)
 
     def test_random_flip_default(self):
-        input_images = np.random.random((2, 5, 8, 3)).astype(np.float32)
+        input_images = tf.random.uniform((2, 5, 8, 3), dtype="float32")
         expected_output = np.flip(input_images, axis=2)
         mock_random = tf.convert_to_tensor([[0.6], [0.6]])
         layer = RandomFlip()
@@ -92,7 +92,7 @@ class RandomFlipTest(TestCase):
             self.assertAllClose(expected_output, actual_output)
 
     def test_random_flip_low_rate(self):
-        input_images = np.random.random((2, 5, 8, 3)).astype(np.float32)
+        input_images = tf.random.uniform((2, 5, 8, 3), dtype="float32")
         expected_output = input_images
         # mock_random > 0.5 but no flipping occurs due to low rate
         mock_random = tf.convert_to_tensor([[0.6], [0.6]])
@@ -106,7 +106,7 @@ class RandomFlipTest(TestCase):
         self.assertAllClose(expected_output, actual_output)
 
     def test_random_flip_high_rate(self):
-        input_images = np.random.random((2, 5, 8, 3)).astype(np.float32)
+        input_images = tf.random.uniform((2, 5, 8, 3), dtype="float32")
         expected_output = np.flip(input_images, axis=2)
         # mock_random is small (0.2) but flipping still occurs due to high rate
         mock_random = tf.convert_to_tensor([[0.2], [0.2]])
@@ -126,7 +126,7 @@ class RandomFlipTest(TestCase):
         self.assertEqual(layer_1.name, layer.name)
 
     def test_random_flip_unbatched_image(self):
-        input_image = np.random.random((4, 4, 1)).astype(np.float32)
+        input_image = tf.random.uniform((4, 4, 1), dtype="float32")
         expected_output = np.flip(input_image, axis=0)
         mock_random = tf.convert_to_tensor([[0.6]])
         layer = RandomFlip("vertical")
@@ -139,7 +139,7 @@ class RandomFlipTest(TestCase):
             self.assertAllClose(expected_output, actual_output)
 
     def test_output_dtypes(self):
-        inputs = np.array([[[1], [2]], [[3], [4]]], dtype="float64")
+        inputs = tf.constant([[[1], [2]], [[3], [4]]], dtype="float64")
         layer = RandomFlip()
         self.assertAllEqual(layer(inputs).dtype, "float32")
         layer = RandomFlip(dtype="uint8")
@@ -241,9 +241,9 @@ class RandomFlipTest(TestCase):
         )
 
     def test_augment_segmentation_mask(self):
-        np.random.seed(1337)
-        image = np.random.random((1, 20, 20, 3)).astype(np.float32)
-        mask = np.random.randint(2, size=(1, 20, 20, 1)).astype(np.float32)
+        tf.random.set_seed(1337)
+        image = tf.random.uniform((1, 20, 20, 3), dtype="float32")
+        mask = tf.random.uniform(shape=(1, 20, 20, 1), maxval=2, dtype="int32")
 
         input = {"images": image, "segmentation_masks": mask}
 

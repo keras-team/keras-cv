@@ -215,7 +215,7 @@ class JitteredResizeTest(TestCase):
         self.assertEqual(layer_1.name, layer.name)
 
     def test_output_dtypes(self):
-        inputs = np.array([[[1], [2]], [[3], [4]]], dtype="float64")
+        inputs = tf.constant([[[1], [2]], [[3], [4]]], dtype="float64")
         layer = layers.JitteredResize(
             target_size=self.target_size,
             scale_factor=(3 / 4, 4 / 3),

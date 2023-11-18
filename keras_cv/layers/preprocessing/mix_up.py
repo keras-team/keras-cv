@@ -59,16 +59,10 @@ class MixUp(BaseImageAugmentationLayer):
         sample_alpha = tf.random.gamma(
             shape,
             alpha=alpha,
-            seed=self._random_generator.uniform(
-                shape=[], minval=0, maxval=9999, dtype="int32"
-            ),
         )
         sample_beta = tf.random.gamma(
             shape,
             alpha=beta,
-            seed=self._random_generator.uniform(
-                shape=[], minval=0, maxval=9999, dtype="int32"
-            ),
         )
         return sample_alpha / (sample_alpha + sample_beta)
 

@@ -56,16 +56,10 @@ class FourierMix(BaseImageAugmentationLayer):
         sample_alpha = tf.random.gamma(
             shape,
             alpha=alpha,
-            seed=self._random_generator.uniform(
-                shape=[], minval=0, maxval=9999, dtype="int32"
-            ),
         )
         sample_beta = tf.random.gamma(
             shape,
             alpha=beta,
-            seed=self._random_generator.uniform(
-                shape=[], minval=0, maxval=9999, dtype="int32"
-            ),
         )
         return sample_alpha / (sample_alpha + sample_beta)
 
@@ -108,7 +102,7 @@ class FourierMix(BaseImageAugmentationLayer):
         param_size = tf.concat(
             [tf.constant([channel]), tf.shape(freqs), tf.constant([2])], 0
         )
-        param = self._random_generator.random_normal(param_size)
+        param = self._random_generator.normal(param_size)
 
         scale = tf.expand_dims(scale, -1)[None, :]
 
