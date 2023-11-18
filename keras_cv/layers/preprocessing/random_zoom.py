@@ -15,8 +15,9 @@
 
 import tensorflow as tf
 from keras_cv.api_export import keras_cv_export
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import \
-    VectorizedBaseImageAugmentationLayer  # noqa: E501
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
+    VectorizedBaseImageAugmentationLayer,
+)  # noqa: E501
 from keras_cv.utils import preprocessing as preprocessing_utils
 from tensorflow.keras import backend
 
@@ -98,7 +99,7 @@ class RandomZoom(VectorizedBaseImageAugmentationLayer):
         fill_value=0.0,
         **kwargs,
     ):
-        super().__init__(seed=seed, force_generator=True, **kwargs)
+        super().__init__(seed=seed, **kwargs)
         self.height_factor = height_factor
         if isinstance(height_factor, (tuple, list)):
             self.height_lower = height_factor[0]

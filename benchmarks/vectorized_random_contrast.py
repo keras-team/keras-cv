@@ -17,13 +17,12 @@ import time
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
-from tensorflow import keras
-
 from keras_cv.layers import RandomContrast
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
 from keras_cv.utils import preprocessing as preprocessing_utils
+from tensorflow import keras
 
 
 class OldRandomContrast(BaseImageAugmentationLayer):
@@ -60,7 +59,7 @@ class OldRandomContrast(BaseImageAugmentationLayer):
     """
 
     def __init__(self, factor, seed=None, **kwargs):
-        super().__init__(seed=seed, force_generator=True, **kwargs)
+        super().__init__(seed=seed, **kwargs)
         if isinstance(factor, (tuple, list)):
             min = 1 - factor[0]
             max = 1 + factor[1]

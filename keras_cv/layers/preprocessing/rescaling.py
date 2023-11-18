@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import tensorflow as tf
-
 from keras_cv.api_export import keras_cv_export
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
@@ -55,7 +54,6 @@ class Rescaling(BaseImageAugmentationLayer):
     """
 
     def __init__(self, scale, offset=0.0, **kwargs):
-        super().__init__(**kwargs, autocast=False, force_generator=True)
         self.scale = scale
         self.offset = offset
 

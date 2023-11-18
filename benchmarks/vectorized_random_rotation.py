@@ -96,7 +96,7 @@ class OldRandomRotation(BaseImageAugmentationLayer):
         segmentation_classes=None,
         **kwargs,
     ):
-        super().__init__(seed=seed, force_generator=True, **kwargs)
+        super().__init__(seed=seed, **kwargs)
         self.factor = factor
         if isinstance(factor, (tuple, list)):
             self.lower = factor[0]

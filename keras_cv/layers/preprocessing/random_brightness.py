@@ -13,12 +13,11 @@
 # limitations under the License.
 
 import tensorflow as tf
-
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
-from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (
     VectorizedBaseImageAugmentationLayer,
-)
+)  # noqa: E501
 from keras_cv.utils import preprocessing as preprocessing_utils
 
 
@@ -62,7 +61,7 @@ class RandomBrightness(VectorizedBaseImageAugmentationLayer):
     """
 
     def __init__(self, factor, value_range=(0, 255), seed=None, **kwargs):
-        super().__init__(seed=seed, force_generator=True, **kwargs)
+        super().__init__(seed=seed, **kwargs)
         if isinstance(factor, float) or isinstance(factor, int):
             factor = (-factor, factor)
         self.factor = preprocessing_utils.parse_factor(

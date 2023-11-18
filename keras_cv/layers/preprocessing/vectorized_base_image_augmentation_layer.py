@@ -108,7 +108,6 @@ class VectorizedBaseImageAugmentationLayer(base_class):
     """
 
     def __init__(self, seed=None, **kwargs):
-        force_generator = kwargs.pop("force_generator", False)
         if seed:
             self._random_generator = tf.random.Generator.from_seed(seed=seed)
         else:

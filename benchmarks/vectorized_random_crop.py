@@ -58,7 +58,9 @@ class OldRandomCrop(BaseImageAugmentationLayer):
         self, height, width, seed=None, bounding_box_format=None, **kwargs
     ):
         super().__init__(
-            **kwargs, autocast=False, seed=seed, force_generator=True
+            **kwargs,
+            autocast=False,
+            seed=seed,
         )
         self.height = height
         self.width = width
