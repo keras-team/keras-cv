@@ -11,13 +11,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import pytest
 import tensorflow as tf
 from absl.testing import parameterized
 
 from keras_cv import layers
+from keras_cv.backend.config import keras_3
 from keras_cv.tests.test_case import TestCase
 
 
+@pytest.mark.skipif(keras_3(), reason="imcompatible with Keras 3")
 class RandAugmentTest(TestCase):
     @parameterized.named_parameters(
         ("0", 0),
