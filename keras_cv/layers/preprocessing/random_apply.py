@@ -13,7 +13,6 @@
 # limitations under the License.
 
 from keras_cv.api_export import keras_cv_export
-from keras_cv.backend import random
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
@@ -114,8 +113,7 @@ class RandomApply(BaseImageAugmentationLayer):
 
     def _should_augment(self):
         return (
-            random.uniform(shape=(), seed=self._seed_generator)
-            > 1.0 - self._rate
+            self._random_generator.random_uniform(shape=()) > 1.0 - self._rate
         )
 
     def _batch_augment(self, inputs):

@@ -15,7 +15,6 @@ import numpy as np
 import tensorflow as tf
 
 from keras_cv import bounding_box
-from keras_cv.backend import random
 from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     VectorizedBaseImageAugmentationLayer,
 )
@@ -34,11 +33,8 @@ class VectorizedRandomAddLayer(VectorizedBaseImageAugmentationLayer):
     def get_random_transformation_batch(self, batch_size, **kwargs):
         if self.fixed_value:
             return tf.ones((batch_size,)) * self.fixed_value
-        return random.uniform(
-            (batch_size,),
-            minval=self.add_range[0],
-            maxval=self.add_range[1],
-            seed=self._seed_generator,
+        return self._random_generator.random_uniform(
+            (batch_size,), minval=self.add_range[0], maxval=self.add_range[1]
         )
 
     def augment_images(self, images, transformations, **kwargs):
@@ -104,7 +100,7 @@ class VectorizedAssertionLayer(VectorizedBaseImageAugmentationLayer):
         assert isinstance(bounding_boxes["classes"], TF_ALL_TENSOR_TYPES)
         assert isinstance(keypoints, TF_ALL_TENSOR_TYPES)
         assert isinstance(segmentation_masks, TF_ALL_TENSOR_TYPES)
-        return random.uniform((batch_size,), seed=self._seed_generator)
+        return self._random_generator.random_uniform((batch_size,))
 
     def augment_images(
         self,

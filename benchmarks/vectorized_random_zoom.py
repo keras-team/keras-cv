@@ -20,7 +20,6 @@ import tensorflow as tf
 from keras import backend
 from tensorflow import keras
 
-from keras_cv.backend import random
 from keras_cv.layers import RandomZoom
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
@@ -144,18 +143,16 @@ class OldRandomZoom(BaseImageAugmentationLayer):
         self.seed = seed
 
     def get_random_transformation(self, image=None, **kwargs):
-        height_zoom = random.uniform(
+        height_zoom = self._random_generator.random_uniform(
             shape=[1, 1],
             minval=1.0 + self.height_lower,
             maxval=1.0 + self.height_upper,
-            seed=self._seed_generator,
         )
         if self.width_factor is not None:
-            width_zoom = random.uniform(
+            width_zoom = self._random_generator.random_uniform(
                 shape=[1, 1],
                 minval=1.0 + self.width_lower,
                 maxval=1.0 + self.width_upper,
-                seed=self._seed_generator,
             )
         else:
             width_zoom = height_zoom
