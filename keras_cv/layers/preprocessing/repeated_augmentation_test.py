@@ -11,13 +11,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import pytest
 import tensorflow as tf
 
 import keras_cv.layers as cv_layers
+from keras_cv.backend import keras_3
 from keras_cv.tests.test_case import TestCase
 
 
 class RepeatedAugmentationTest(TestCase):
+    @pytest.mark.skipif(keras_3(), reason="Disabled for Keras 3")
     def test_output_shapes(self):
         repeated_augment = cv_layers.RepeatedAugmentation(
             augmenters=[
