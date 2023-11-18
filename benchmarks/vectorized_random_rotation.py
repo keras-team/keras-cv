@@ -20,7 +20,6 @@ import tensorflow as tf
 from tensorflow import keras
 
 from keras_cv import bounding_box
-from keras_cv.backend import random
 from keras_cv.layers import RandomRotation
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
@@ -123,11 +122,8 @@ class OldRandomRotation(BaseImageAugmentationLayer):
     def get_random_transformation(self, **kwargs):
         min_angle = self.lower * 2.0 * np.pi
         max_angle = self.upper * 2.0 * np.pi
-        angle = random.uniform(
-            shape=[1],
-            minval=min_angle,
-            maxval=max_angle,
-            seed=self._seed_generator,
+        angle = self._random_generator.random_uniform(
+            shape=[1], minval=min_angle, maxval=max_angle
         )
         return {"angle": angle}
 

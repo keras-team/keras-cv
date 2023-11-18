@@ -113,8 +113,7 @@ class RandomShearTest(TestCase):
         outputs = layer(inputs)
         self.assertEqual(outputs["images"].shape, [512, 512, 3])
 
-    def DISABLED_test_area(self):
-        # TODO: Breaks with Keras 2.
+    def test_area(self):
         xs = tf.ones((1, 512, 512, 3))
         ys = {
             "boxes": tf.constant(

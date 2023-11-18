@@ -16,7 +16,6 @@ import tensorflow as tf
 
 from keras_cv import bounding_box
 from keras_cv.api_export import keras_cv_export
-from keras_cv.backend import random
 from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     VectorizedBaseImageAugmentationLayer,
 )
@@ -97,7 +96,7 @@ class RandomTranslation(VectorizedBaseImageAugmentationLayer):
         bounding_box_format=None,
         **kwargs,
     ):
-        super().__init__(seed=seed, **kwargs)
+        super().__init__(seed=seed, force_generator=True, **kwargs)
         self.height_factor = height_factor
         if isinstance(height_factor, (tuple, list)):
             self.height_lower = height_factor[0]
@@ -145,19 +144,17 @@ class RandomTranslation(VectorizedBaseImageAugmentationLayer):
         self.bounding_box_format = bounding_box_format
 
     def get_random_transformation_batch(self, batch_size, **kwargs):
-        height_translations = random.uniform(
+        height_translations = self._random_generator.random_uniform(
             shape=[batch_size, 1],
             minval=self.height_lower,
             maxval=self.height_upper,
             dtype=tf.float32,
-            seed=self._seed_generator,
         )
-        width_translations = random.uniform(
+        width_translations = self._random_generator.random_uniform(
             shape=[batch_size, 1],
             minval=self.width_lower,
             maxval=self.width_upper,
             dtype=tf.float32,
-            seed=self._seed_generator,
         )
         return {
             "height_translations": height_translations,

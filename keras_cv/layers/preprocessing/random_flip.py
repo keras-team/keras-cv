@@ -16,7 +16,6 @@ import tensorflow as tf
 
 from keras_cv import bounding_box
 from keras_cv.api_export import keras_cv_export
-from keras_cv.backend import random
 from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     VectorizedBaseImageAugmentationLayer,
 )
@@ -70,7 +69,7 @@ class RandomFlip(VectorizedBaseImageAugmentationLayer):
         bounding_box_format=None,
         **kwargs,
     ):
-        super().__init__(seed=seed, **kwargs)
+        super().__init__(seed=seed, force_generator=True, **kwargs)
         self.mode = mode
         self.seed = seed
         if mode == HORIZONTAL:
@@ -99,15 +98,13 @@ class RandomFlip(VectorizedBaseImageAugmentationLayer):
         flip_verticals = tf.zeros(shape=(batch_size, 1))
 
         if self.horizontal:
-            flip_horizontals = random.uniform(
-                shape=(batch_size, 1),
-                seed=self._seed_generator,
+            flip_horizontals = self._random_generator.random_uniform(
+                shape=(batch_size, 1)
             )
 
         if self.vertical:
-            flip_verticals = random.uniform(
-                shape=(batch_size, 1),
-                seed=self._seed_generator,
+            flip_verticals = self._random_generator.random_uniform(
+                shape=(batch_size, 1)
             )
 
         return {

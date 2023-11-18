@@ -15,7 +15,6 @@
 import tensorflow as tf
 
 from keras_cv.api_export import keras_cv_export
-from keras_cv.backend import random
 from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     VectorizedBaseImageAugmentationLayer,
 )
@@ -56,8 +55,8 @@ class ChannelShuffle(VectorizedBaseImageAugmentationLayer):
         #     [0, 2, 3, 4, 1],
         #     [4, 1, 0, 2, 3]
         # ]
-        indices_distribution = random.uniform(
-            (batch_size, self.groups), seed=self._seed_generator
+        indices_distribution = self._random_generator.random_uniform(
+            (batch_size, self.groups)
         )
         indices = tf.argsort(indices_distribution, axis=-1)
         return indices

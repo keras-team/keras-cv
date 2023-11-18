@@ -17,7 +17,6 @@ import tensorflow as tf
 from tensorflow.keras import backend
 
 from keras_cv.api_export import keras_cv_export
-from keras_cv.backend import random
 from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     VectorizedBaseImageAugmentationLayer,
 )
@@ -141,18 +140,16 @@ class RandomZoom(VectorizedBaseImageAugmentationLayer):
         self.seed = seed
 
     def get_random_transformation_batch(self, batch_size, **kwargs):
-        height_zooms = random.uniform(
+        height_zooms = self._random_generator.random_uniform(
             shape=[batch_size, 1],
             minval=1.0 + self.height_lower,
             maxval=1.0 + self.height_upper,
-            seed=self._seed_generator,
         )
         if self.width_factor is not None:
-            width_zooms = random.uniform(
+            width_zooms = self._random_generator.random_uniform(
                 shape=[batch_size, 1],
                 minval=1.0 + self.width_lower,
                 maxval=1.0 + self.width_upper,
-                seed=self._seed_generator,
             )
         else:
             width_zooms = height_zooms

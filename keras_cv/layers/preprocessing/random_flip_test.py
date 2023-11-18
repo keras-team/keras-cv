@@ -17,7 +17,6 @@ import numpy as np
 import tensorflow as tf
 
 from keras_cv import bounding_box
-from keras_cv.backend import random
 from keras_cv.layers.preprocessing.random_flip import HORIZONTAL_AND_VERTICAL
 from keras_cv.layers.preprocessing.random_flip import RandomFlip
 from keras_cv.tests.test_case import TestCase
@@ -31,8 +30,8 @@ class RandomFlipTest(TestCase):
         expected_output = np.flip(inp, axis=2)
         layer = RandomFlip("horizontal")
         with unittest.mock.patch.object(
-            random,
-            "uniform",
+            layer._random_generator,
+            "random_uniform",
             return_value=mock_random,
         ):
             actual_output = layer(inp)
@@ -57,8 +56,8 @@ class RandomFlipTest(TestCase):
         expected_output = np.flip(inp, axis=1)
         layer = RandomFlip("vertical")
         with unittest.mock.patch.object(
-            random,
-            "uniform",
+            layer._random_generator,
+            "random_uniform",
             return_value=mock_random,
         ):
             actual_output = layer(inp)
@@ -72,8 +71,8 @@ class RandomFlipTest(TestCase):
         expected_output = np.flip(expected_output, axis=1)
         layer = RandomFlip("horizontal_and_vertical")
         with unittest.mock.patch.object(
-            random,
-            "uniform",
+            layer._random_generator,
+            "random_uniform",
             return_value=mock_random,
         ):
             actual_output = layer(inp)
@@ -85,8 +84,8 @@ class RandomFlipTest(TestCase):
         mock_random = tf.convert_to_tensor([[0.6], [0.6]])
         layer = RandomFlip()
         with unittest.mock.patch.object(
-            random,
-            "uniform",
+            layer._random_generator,
+            "random_uniform",
             return_value=mock_random,
         ):
             actual_output = layer(input_images)
@@ -99,8 +98,8 @@ class RandomFlipTest(TestCase):
         mock_random = tf.convert_to_tensor([[0.6], [0.6]])
         layer = RandomFlip(rate=0.1)
         with unittest.mock.patch.object(
-            random,
-            "uniform",
+            layer._random_generator,
+            "random_uniform",
             return_value=mock_random,
         ):
             actual_output = layer(input_images)
@@ -113,8 +112,8 @@ class RandomFlipTest(TestCase):
         mock_random = tf.convert_to_tensor([[0.2], [0.2]])
         layer = RandomFlip(rate=0.9)
         with unittest.mock.patch.object(
-            random,
-            "uniform",
+            layer._random_generator,
+            "random_uniform",
             return_value=mock_random,
         ):
             actual_output = layer(input_images)
@@ -132,8 +131,8 @@ class RandomFlipTest(TestCase):
         mock_random = tf.convert_to_tensor([[0.6]])
         layer = RandomFlip("vertical")
         with unittest.mock.patch.object(
-            random,
-            "uniform",
+            layer._random_generator,
+            "random_uniform",
             return_value=mock_random,
         ):
             actual_output = layer(input_image)
@@ -170,8 +169,8 @@ class RandomFlipTest(TestCase):
             "horizontal_and_vertical", bounding_box_format="xyxy"
         )
         with unittest.mock.patch.object(
-            random,
-            "uniform",
+            layer._random_generator,
+            "random_uniform",
             return_value=mock_random,
         ):
             output = layer(input)
@@ -216,8 +215,8 @@ class RandomFlipTest(TestCase):
             "horizontal_and_vertical", bounding_box_format="xyxy"
         )
         with unittest.mock.patch.object(
-            random,
-            "uniform",
+            layer._random_generator,
+            "random_uniform",
             return_value=mock_random,
         ):
             output = layer(input)
@@ -253,8 +252,8 @@ class RandomFlipTest(TestCase):
         layer = RandomFlip("horizontal_and_vertical")
 
         with unittest.mock.patch.object(
-            random,
-            "uniform",
+            layer._random_generator,
+            "random_uniform",
             return_value=mock_random,
         ):
             output = layer(input)
