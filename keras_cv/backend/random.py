@@ -11,6 +11,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+import random
+
+import keras
+
+if hasattr(keras, "src"):
+    keras_backend = keras.src.backend
+else:
+    keras_backend = keras.backend
+
 from keras_cv.backend import keras
 from keras_cv.backend.config import keras_3
 
@@ -20,119 +30,67 @@ else:
     from keras_core.random import *  # noqa: F403, F401
 
 
-class SeedGenerator:
-    def __init__(self, seed=None, **kwargs):
+class RandomGenerator:
+    """Random generator that selects appropriate random ops.
+
+    Used for Keras 2 and Keras 3 compatibilty.
+
+    Replace with `SeedGenerator` when dropping Keras 2 compatibility.
+    """
+
+    def __call__(cls, *args, **kwargs):
         if keras_3():
-            self._seed_generator = keras.random.SeedGenerator(
-                seed=seed, **kwargs
-            )
+            return cls.__new__(*args, **kwargs)
         else:
-            self._current_seed = [0, seed]
+            return keras_backend.RandomGenerator(*args, **kwargs)
 
-    def next(self, ordered=True):
-        if keras_3():
-            return self._seed_generator.next(ordered=ordered)
+    def __init__(self, seed=None, force_generator=None):
+        self._seed = self._create_seed(seed)
+
+    def _create_seed(self, user_specified_seed):
+        if user_specified_seed is not None:
+            return user_specified_seed
         else:
-            self._current_seed[0] += 1
-            return self._current_seed[:]
+            return random.randint(1, int(1e9))
 
+    def make_legacy_seed(self):
+        """Create a new seed for the legacy stateful ops to use.
 
-def normal(shape, mean=0.0, stddev=1.0, dtype=None, seed=None):
-    if isinstance(seed, SeedGenerator):
-        seed = seed.next()
-        init_seed = seed[0] + seed[1]
-    else:
-        init_seed = seed
+        Returns:
+          int as new seed, or None.
+        """
+        if self._seed is not None:
+            result = self._seed
+            self._seed += 1
+            return result
+        return None
 
-    kwargs = {}
-    if dtype:
-        kwargs["dtype"] = dtype
-    if keras_3():
-        return keras.random.normal(
-            shape,
-            mean=mean,
-            stddev=stddev,
-            seed=init_seed,
-            **kwargs,
-        )
-    else:
+    def random_normal(
+        self, shape, mean=0.0, stddev=1.0, dtype=None, nonce=None
+    ):
+        """Produce random number based on the normal distribution."""
         import tensorflow as tf
 
+        dtype = dtype or "float32"
         return tf.random.normal(
-            shape,
+            shape=shape,
             mean=mean,
             stddev=stddev,
-            seed=init_seed,
-            **kwargs,
+            dtype=dtype,
+            seed=self.make_legacy_seed(),
         )
 
-
-def uniform(shape, minval=0.0, maxval=1.0, dtype=None, seed=None):
-    if isinstance(seed, SeedGenerator):
-        seed = seed.next()
-        init_seed = seed[0] + seed[1]
-    else:
-        init_seed = seed
-    kwargs = {}
-    if dtype:
-        kwargs["dtype"] = dtype
-    if keras_3():
-        return keras.random.uniform(
-            shape,
-            minval=minval,
-            maxval=maxval,
-            seed=init_seed,
-            **kwargs,
-        )
-    else:
+    def random_uniform(
+        self, shape, minval=0.0, maxval=None, dtype=None, nonce=None
+    ):
+        """Produce random number based on the uniform distribution."""
         import tensorflow as tf
 
+        dtype = dtype or "float32"
         return tf.random.uniform(
-            shape,
+            shape=shape,
             minval=minval,
             maxval=maxval,
-            seed=init_seed,
-            **kwargs,
-        )
-
-
-def shuffle(x, axis=0, seed=None):
-    if isinstance(seed, SeedGenerator):
-        seed = seed.next()
-        init_seed = seed[0] + seed[1]
-    else:
-        init_seed = seed
-
-    if keras_3():
-        return keras.random.shuffle(x=x, axis=axis, seed=init_seed)
-    else:
-        import tensorflow as tf
-
-        return tf.random.shuffle(x=x, axis=axis, seed=init_seed)
-
-
-def categorical(logits, num_samples, dtype=None, seed=None):
-    if isinstance(seed, SeedGenerator):
-        seed = seed.next()
-        init_seed = seed[0] + seed[1]
-    else:
-        init_seed = seed
-    kwargs = {}
-    if dtype:
-        kwargs["dtype"] = dtype
-    if keras_3():
-        return keras.random.categorical(
-            logits=logits,
-            num_samples=num_samples,
-            seed=init_seed,
-            **kwargs,
-        )
-    else:
-        import tensorflow as tf
-
-        return tf.random.categorical(
-            logits=logits,
-            num_samples=num_samples,
-            seed=init_seed,
-            **kwargs,
+            dtype=dtype,
+            seed=self.make_legacy_seed(),
         )
