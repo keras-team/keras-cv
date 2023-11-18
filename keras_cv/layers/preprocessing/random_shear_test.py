@@ -11,9 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import pytest
 import tensorflow as tf
 
 from keras_cv import bounding_box
+from keras_cv.backend.config import keras_3
 from keras_cv.layers import preprocessing
 from keras_cv.tests.test_case import TestCase
 
@@ -113,6 +115,7 @@ class RandomShearTest(TestCase):
         outputs = layer(inputs)
         self.assertEqual(outputs["images"].shape, [512, 512, 3])
 
+    @pytest.mark.skipif(keras_3(), reason="Not implemented in Keras 3")
     def test_area(self):
         xs = tf.ones((1, 512, 512, 3))
         ys = {
