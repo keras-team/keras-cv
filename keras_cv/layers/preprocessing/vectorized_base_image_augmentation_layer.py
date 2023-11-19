@@ -113,7 +113,7 @@ class VectorizedBaseImageAugmentationLayer(base_class):
         if seed:
             self._random_generator = tf.random.Generator.from_seed(seed=seed)
         else:
-            self._random_generator = tf.randoam.get_global_generator()
+            self._random_generator = tf.random.get_global_generator()
         self._convert_input_args = False
         self._allow_non_tensor_positional_args = True
 
