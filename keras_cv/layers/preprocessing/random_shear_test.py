@@ -15,7 +15,6 @@ import pytest
 import tensorflow as tf
 
 from keras_cv import bounding_box
-from keras_cv.backend.config import keras_3
 from keras_cv.layers import preprocessing
 from keras_cv.tests.test_case import TestCase
 
