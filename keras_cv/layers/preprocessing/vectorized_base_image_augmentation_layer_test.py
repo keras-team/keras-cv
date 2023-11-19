@@ -448,14 +448,16 @@ class VectorizedBaseImageAugmentationLayerTest(TestCase):
         )
 
     def test_augment_all_data_for_assertion(self):
-        images = tf.random.uniform((2, 8, 8, 3), dtype="float32")
-        labels = ops.squeeze(ops.eye(10)[0, 1])
+        images = np.random.random(size=(2, 8, 8, 3)).astype("float32")
+        labels = np.squeeze(np.eye(10)[np.array([0, 1]).reshape(-1)])
         bounding_boxes = {
-            "boxes": tf.random.uniform((2, 3, 4), dtype="float32"),
-            "classes": tf.random.uniform((2, 3), dtype="float32"),
+            "boxes": np.random.random(size=(2, 3, 4)).astype("float32"),
+            "classes": np.random.random(size=(2, 3)).astype("float32"),
         }
-        keypoints = tf.random.uniform((2, 5, 2), dtype="float32")
-        segmentation_masks = tf.random.uniform((2, 8, 8, 1), dtype="float32")
+        keypoints = np.random.random(size=(2, 5, 2)).astype("float32")
+        segmentation_masks = np.random.random(size=(2, 8, 8, 1)).astype(
+            "float32"
+        )
         assertion_layer = VectorizedAssertionLayer()
 
         _ = assertion_layer(
