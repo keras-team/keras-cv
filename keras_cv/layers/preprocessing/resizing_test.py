@@ -187,9 +187,6 @@ class ResizingTest(TestCase):
         layer = cv_layers.Resizing(2, 2, dtype="uint8")
         self.assertAllEqual(layer(inputs).dtype, "uint8")
 
-    @pytest.mark.skipif(
-        keras_3(), reason="ragged tests not yet enabled for keras 3"
-    )
     @parameterized.named_parameters(
         ("batch_crop_to_aspect_ratio", True, False, True),
         ("batch_dont_crop_to_aspect_ratio", False, False, True),
@@ -197,6 +194,9 @@ class ResizingTest(TestCase):
         ("single_sample_dont_crop_to_aspect_ratio", False, False, False),
         ("batch_pad_to_aspect_ratio", False, True, True),
         ("single_sample_pad_to_aspect_ratio", False, True, False),
+    )
+    @pytest.mark.skipif(
+        keras_3(), reason="ragged tests not yet enabled for keras 3"
     )
     def test_static_shape_inference(
         self, crop_to_aspect_ratio, pad_to_aspect_ratio, batch
