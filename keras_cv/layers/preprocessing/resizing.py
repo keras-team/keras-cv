@@ -309,7 +309,6 @@ class Resizing(BaseImageAugmentationLayer):
         def resize_with_crop_to_aspect(x, interpolation_method):
             if isinstance(x, tf.RaggedTensor):
                 x = x.to_tensor()
-            x = ops.convert_to_numpy(x)
             return ops.smart_resize(
                 x,
                 size=size,
