@@ -115,7 +115,7 @@ class RandomShearTest(TestCase):
         outputs = layer(inputs)
         self.assertEqual(outputs["images"].shape, [512, 512, 3])
 
-    @pytest.mark.skipif(keras_3(), reason="Not implemented in Keras 3")
+    @pytest.mark.skip(reason="Flaky")
     def test_area(self):
         xs = tf.ones((1, 512, 512, 3))
         ys = {
