@@ -15,39 +15,37 @@
 import numpy as np
 import tensorflow as tf
 
-from keras_cv.backend import ops
 from keras_cv.layers import preprocessing
 from keras_cv.tests.test_case import TestCase
 
 
 class RandomTranslationTest(TestCase):
     def test_random_translation_up_numeric_reflect(self):
-        for dtype in ("int64", "float32"):
-            input_image = ops.cast(
-                ops.reshape(ops.arange(0, 25), (1, 5, 5, 1)), dtype=dtype
+        for dtype in (np.int64, np.float32):
+            input_image = np.reshape(np.arange(0, 25), (1, 5, 5, 1)).astype(
+                dtype
             )
             # Shifting by -.2 * 5 = 1 pixel.
             layer = preprocessing.RandomTranslation(
                 height_factor=(-0.2, -0.2), width_factor=0.0
             )
             output_image = layer(input_image)
-            expected_output = tf.constant(
+            expected_output = np.asarray(
                 [
                     [5, 6, 7, 8, 9],
                     [10, 11, 12, 13, 14],
                     [15, 16, 17, 18, 19],
                     [20, 21, 22, 23, 24],
                     [20, 21, 22, 23, 24],
-                ],
-                dtype=dtype,
-            )
-            expected_output = ops.reshape(expected_output, (1, 5, 5, 1))
+                ]
+            ).astype(dtype)
+            expected_output = np.reshape(expected_output, (1, 5, 5, 1))
             self.assertAllEqual(expected_output, output_image)
 
     def test_random_translation_up_numeric_constant(self):
-        for dtype in ("int64", "float32"):
-            input_image = ops.cast(
-                ops.reshape(ops.arange(0, 25), (1, 5, 5, 1)), dtype=dtype
+        for dtype in (np.int64, np.float32):
+            input_image = np.reshape(np.arange(0, 25), (1, 5, 5, 1)).astype(
+                dtype
             )
             # Shifting by -.2 * 5 = 1 pixel.
             layer = preprocessing.RandomTranslation(
@@ -56,46 +54,44 @@ class RandomTranslationTest(TestCase):
                 fill_mode="constant",
             )
             output_image = layer(input_image)
-            expected_output = tf.constant(
+            expected_output = np.asarray(
                 [
                     [5, 6, 7, 8, 9],
                     [10, 11, 12, 13, 14],
                     [15, 16, 17, 18, 19],
                     [20, 21, 22, 23, 24],
                     [0, 0, 0, 0, 0],
-                ],
-                dtype=dtype,
-            )
-            expected_output = ops.reshape(expected_output, (1, 5, 5, 1))
+                ]
+            ).astype(dtype)
+            expected_output = np.reshape(expected_output, (1, 5, 5, 1))
             self.assertAllEqual(expected_output, output_image)
 
     def test_random_translation_down_numeric_reflect(self):
-        for dtype in ("int64", "float32"):
-            input_image = ops.cast(
-                ops.reshape(ops.arange(0, 25), (1, 5, 5, 1)), dtype=dtype
+        for dtype in (np.int64, np.float32):
+            input_image = np.reshape(np.arange(0, 25), (1, 5, 5, 1)).astype(
+                dtype
             )
             # Shifting by .2 * 5 = 1 pixel.
             layer = preprocessing.RandomTranslation(
                 height_factor=(0.2, 0.2), width_factor=0.0
             )
             output_image = layer(input_image)
-            expected_output = tf.constant(
+            expected_output = np.asarray(
                 [
                     [0, 1, 2, 3, 4],
                     [0, 1, 2, 3, 4],
                     [5, 6, 7, 8, 9],
                     [10, 11, 12, 13, 14],
                     [15, 16, 17, 18, 19],
-                ],
-                dtype=dtype,
-            )
+                ]
+            ).astype(dtype)
             expected_output = np.reshape(expected_output, (1, 5, 5, 1))
             self.assertAllEqual(expected_output, output_image)
 
     def test_random_translation_asymmetric_size_numeric_reflect(self):
-        for dtype in ("int64", "float32"):
-            input_image = ops.cast(
-                ops.reshape(ops.arange(0, 16), (1, 8, 2, 1)), dtype=dtype
+        for dtype in (np.int64, np.float32):
+            input_image = np.reshape(np.arange(0, 16), (1, 8, 2, 1)).astype(
+                dtype
             )
             # Shifting by .5 * 8 = 1 pixel.
             layer = preprocessing.RandomTranslation(
@@ -103,7 +99,7 @@ class RandomTranslationTest(TestCase):
             )
             output_image = layer(input_image)
             # pyformat: disable
-            expected_output = tf.constant(
+            expected_output = np.asarray(
                 [
                     [6, 7],
                     [4, 5],
@@ -113,17 +109,16 @@ class RandomTranslationTest(TestCase):
                     [2, 3],
                     [4, 5],
                     [6, 7],
-                ],
-                dtype=dtype,
-            )
+                ]
+            ).astype(dtype)
             # pyformat: enable
-            expected_output = ops.reshape(expected_output, (1, 8, 2, 1))
+            expected_output = np.reshape(expected_output, (1, 8, 2, 1))
             self.assertAllEqual(expected_output, output_image)
 
     def test_random_translation_down_numeric_constant(self):
-        for dtype in ("int64", "float32"):
-            input_image = ops.cast(
-                ops.reshape(ops.arange(0, 25), (1, 5, 5, 1)), dtype=dtype
+        for dtype in (np.int64, np.float32):
+            input_image = np.reshape(np.arange(0, 25), (1, 5, 5, 1)).astype(
+                dtype
             )
             # Shifting by -.2 * 5 = 1 pixel.
             layer = preprocessing.RandomTranslation(
@@ -132,46 +127,44 @@ class RandomTranslationTest(TestCase):
                 fill_mode="constant",
             )
             output_image = layer(input_image)
-            expected_output = tf.constant(
+            expected_output = np.asarray(
                 [
                     [0, 0, 0, 0, 0],
                     [0, 1, 2, 3, 4],
                     [5, 6, 7, 8, 9],
                     [10, 11, 12, 13, 14],
                     [15, 16, 17, 18, 19],
-                ],
-                dtype=dtype,
-            )
-            expected_output = ops.reshape(expected_output, (1, 5, 5, 1))
+                ]
+            ).astype(dtype)
+            expected_output = np.reshape(expected_output, (1, 5, 5, 1))
             self.assertAllEqual(expected_output, output_image)
 
     def test_random_translation_left_numeric_reflect(self):
-        for dtype in ("int64", "float32"):
-            input_image = ops.cast(
-                ops.reshape(ops.arange(0, 25), (1, 5, 5, 1)), dtype=dtype
+        for dtype in (np.int64, np.float32):
+            input_image = np.reshape(np.arange(0, 25), (1, 5, 5, 1)).astype(
+                dtype
             )
             # Shifting by .2 * 5 = 1 pixel.
             layer = preprocessing.RandomTranslation(
                 height_factor=0.0, width_factor=(-0.2, -0.2)
             )
             output_image = layer(input_image)
-            expected_output = tf.constant(
+            expected_output = np.asarray(
                 [
                     [1, 2, 3, 4, 4],
                     [6, 7, 8, 9, 9],
                     [11, 12, 13, 14, 14],
                     [16, 17, 18, 19, 19],
                     [21, 22, 23, 24, 24],
-                ],
-                dtype=dtype,
-            )
+                ]
+            ).astype(dtype)
             expected_output = np.reshape(expected_output, (1, 5, 5, 1))
             self.assertAllEqual(expected_output, output_image)
 
     def test_random_translation_left_numeric_constant(self):
-        for dtype in ("int64", "float32"):
-            input_image = ops.cast(
-                ops.reshape(ops.arange(0, 25), (1, 5, 5, 1)), dtype=dtype
+        for dtype in (np.int64, np.float32):
+            input_image = np.reshape(np.arange(0, 25), (1, 5, 5, 1)).astype(
+                dtype
             )
             # Shifting by -.2 * 5 = 1 pixel.
             layer = preprocessing.RandomTranslation(
@@ -180,16 +173,15 @@ class RandomTranslationTest(TestCase):
                 fill_mode="constant",
             )
             output_image = layer(input_image)
-            expected_output = tf.constant(
+            expected_output = np.asarray(
                 [
                     [1, 2, 3, 4, 0],
                     [6, 7, 8, 9, 0],
                     [11, 12, 13, 14, 0],
                     [16, 17, 18, 19, 0],
                     [21, 22, 23, 24, 0],
-                ],
-                dtype=dtype,
-            )
+                ]
+            ).astype(dtype)
             expected_output = np.reshape(expected_output, (1, 5, 5, 1))
             self.assertAllEqual(expected_output, output_image)
 
@@ -211,30 +203,26 @@ class RandomTranslationTest(TestCase):
         self.assertEqual(layer_1.name, layer.name)
 
     def test_unbatched_image(self):
-        input_image = ops.cast(
-            ops.reshape(ops.arange(0, 25), (5, 5, 1)), dtype="int64"
-        )
+        input_image = np.reshape(np.arange(0, 25), (5, 5, 1)).astype(np.int64)
         # Shifting by -.2 * 5 = 1 pixel.
         layer = preprocessing.RandomTranslation(
             height_factor=(-0.2, -0.2), width_factor=0.0
         )
         output_image = layer(input_image)
-        expected_output = tf.constant(
+        expected_output = np.asarray(
             [
                 [5, 6, 7, 8, 9],
                 [10, 11, 12, 13, 14],
                 [15, 16, 17, 18, 19],
                 [20, 21, 22, 23, 24],
                 [20, 21, 22, 23, 24],
-            ],
-            dtype="int64",
-        )
-
+            ]
+        ).astype(np.int64)
         expected_output = np.reshape(expected_output, (5, 5, 1))
         self.assertAllEqual(expected_output, output_image)
 
     def test_output_dtypes(self):
-        inputs = tf.constant([[[1], [2]], [[3], [4]]], dtype="float64")
+        inputs = np.array([[[1], [2]], [[3], [4]]], dtype="float64")
         layer = preprocessing.RandomTranslation(0.5, 0.6)
         self.assertAllEqual(layer(inputs).dtype, "float32")
         layer = preprocessing.RandomTranslation(0.5, 0.6, dtype="uint8")

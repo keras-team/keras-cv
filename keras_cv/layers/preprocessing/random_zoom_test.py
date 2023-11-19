@@ -12,11 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
+import numpy as np
 import tensorflow as tf
 from absl.testing import parameterized
 
-from keras_cv.backend import ops
 from keras_cv.layers.preprocessing.random_zoom import RandomZoom
 from keras_cv.tests.test_case import TestCase
 
@@ -31,7 +30,7 @@ class RandomZoomTest(TestCase):
         ("random_zoom_out_tuple_factor", (0.4, 0.5), (0.2, 0.3)),
     )
     def test_output_shapes(self, height_factor, width_factor):
-        tf.random.set_seed(1337)
+        np.random.seed(1337)
         num_samples = 2
         orig_height = 5
         orig_width = 8
@@ -69,72 +68,63 @@ class RandomZoomTest(TestCase):
         )
 
     def test_random_zoom_in_numeric(self):
-        for dtype in ("int64", "float32"):
-            input_image = ops.cast(
-                ops.reshape(ops.arange(0, 25), (5, 5, 1)), dtype=dtype
-            )
+        for dtype in (np.int64, np.float32):
+            input_image = np.reshape(np.arange(0, 25), (5, 5, 1)).astype(dtype)
             layer = RandomZoom(
                 (-0.5, -0.5), (-0.5, -0.5), interpolation="nearest"
             )
-            output_image = layer(ops.expand_dims(input_image, axis=0))
-            expected_output = tf.constant(
+            output_image = layer(np.expand_dims(input_image, axis=0))
+            expected_output = np.asarray(
                 [
                     [6, 7, 7, 8, 8],
                     [11, 12, 12, 13, 13],
                     [11, 12, 12, 13, 13],
                     [16, 17, 17, 18, 18],
                     [16, 17, 17, 18, 18],
-                ],
-                dtype=dtype,
-            )
-            expected_output = ops.reshape(expected_output, (1, 5, 5, 1))
+                ]
+            ).astype(dtype)
+            expected_output = np.reshape(expected_output, (1, 5, 5, 1))
             self.assertAllEqual(expected_output, output_image)
 
     def test_random_zoom_out_numeric(self):
-        for dtype in ("int64", "float32"):
-            input_image = ops.cast(
-                ops.reshape(ops.arange(0, 25), (5, 5, 1)), dtype=dtype
-            )
+        for dtype in (np.int64, np.float32):
+            input_image = np.reshape(np.arange(0, 25), (5, 5, 1)).astype(dtype)
             layer = RandomZoom(
                 (0.5, 0.5),
                 (0.8, 0.8),
                 fill_mode="constant",
                 interpolation="nearest",
             )
-            output_image = layer(ops.expand_dims(input_image, axis=0))
-            expected_output = tf.constant(
+            output_image = layer(np.expand_dims(input_image, axis=0))
+            expected_output = np.asarray(
                 [
                     [0, 0, 0, 0, 0],
                     [0, 5, 7, 9, 0],
                     [0, 10, 12, 14, 0],
                     [0, 20, 22, 24, 0],
                     [0, 0, 0, 0, 0],
-                ],
-                dtype=dtype,
-            )
-            expected_output = ops.reshape(expected_output, (1, 5, 5, 1))
+                ]
+            ).astype(dtype)
+            expected_output = np.reshape(expected_output, (1, 5, 5, 1))
             self.assertAllEqual(expected_output, output_image)
 
     def test_random_zoom_out_numeric_preserve_aspect_ratio(self):
-        for dtype in ("int64", "float32"):
-            input_image = ops.cast(
-                ops.reshape(ops.arange(0, 25), (5, 5, 1)), dtype=dtype
-            )
+        for dtype in (np.int64, np.float32):
+            input_image = np.reshape(np.arange(0, 25), (5, 5, 1)).astype(dtype)
             layer = RandomZoom(
                 (0.5, 0.5), fill_mode="constant", interpolation="nearest"
             )
-            output_image = layer(ops.expand_dims(input_image, axis=0))
-            expected_output = tf.constant(
+            output_image = layer(np.expand_dims(input_image, axis=0))
+            expected_output = np.asarray(
                 [
                     [0, 0, 0, 0, 0],
                     [0, 6, 7, 9, 0],
                     [0, 11, 12, 14, 0],
                     [0, 21, 22, 24, 0],
                     [0, 0, 0, 0, 0],
-                ],
-                dtype=dtype,
-            )
-            expected_output = ops.reshape(expected_output, (1, 5, 5, 1))
+                ]
+            ).astype(dtype)
+            expected_output = np.reshape(expected_output, (1, 5, 5, 1))
             self.assertAllEqual(expected_output, output_image)
 
     def test_random_zoom_on_batched_images_independently(self):
@@ -155,24 +145,23 @@ class RandomZoomTest(TestCase):
         self.assertEqual(layer_1.name, layer.name)
 
     def test_unbatched_image(self):
-        input_image = ops.reshape(ops.arange(0, 25, dtype="int64"), (5, 5, 1))
+        input_image = np.reshape(np.arange(0, 25), (5, 5, 1)).astype(np.int64)
         layer = RandomZoom((-0.5, -0.5), (-0.5, -0.5), interpolation="nearest")
         output_image = layer(input_image)
-        expected_output = tf.constant(
+        expected_output = np.asarray(
             [
                 [6, 7, 7, 8, 8],
                 [11, 12, 12, 13, 13],
                 [11, 12, 12, 13, 13],
                 [16, 17, 17, 18, 18],
                 [16, 17, 17, 18, 18],
-            ],
-            dtype="int64",
-        )
-        expected_output = ops.reshape(expected_output, (5, 5, 1))
+            ]
+        ).astype(np.int64)
+        expected_output = np.reshape(expected_output, (5, 5, 1))
         self.assertAllEqual(expected_output, output_image)
 
     def test_output_dtypes(self):
-        inputs = tf.constant([[[1], [2]], [[3], [4]]], dtype="float64")
+        inputs = np.array([[[1], [2]], [[3], [4]]], dtype="float64")
         layer = RandomZoom(0.5, 0.5)
         self.assertAllEqual(layer(inputs).dtype, "float32")
         layer = RandomZoom(0.5, 0.5, dtype="uint8")
