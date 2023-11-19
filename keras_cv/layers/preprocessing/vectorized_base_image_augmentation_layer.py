@@ -109,11 +109,11 @@ class VectorizedBaseImageAugmentationLayer(base_class):
     """
 
     def __init__(self, seed=None, **kwargs):
+        super().__init__(**kwargs)
         if seed:
             self._random_generator = tf.random.Generator.from_seed(seed=seed)
         else:
-            self._random_generator = tf.random.get_global_generator()
-        super().__init__(**kwargs)
+            self._random_generator = tf.randoam.get_global_generator()
         self._convert_input_args = False
         self._allow_non_tensor_positional_args = True
 
