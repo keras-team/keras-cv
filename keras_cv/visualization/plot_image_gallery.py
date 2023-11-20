@@ -19,6 +19,7 @@ import tensorflow as tf
 
 from keras_cv import utils
 from keras_cv.api_export import keras_cv_export
+from keras_cv.backend import ops
 from keras_cv.utils import assert_matplotlib_installed
 
 try:
@@ -45,7 +46,7 @@ def _extract_image_batch(images, num_images, batch_size):
         return sample
 
     else:
-        if len(images.shape) != 4:
+        if len(ops.shape(images)) != 4:
             raise ValueError(
                 "`plot_images_gallery()` requires you to "
                 "batch your `np.array` samples together."
@@ -129,7 +130,7 @@ def plot_image_gallery(
         )  # batch_size from within passed `tf.data.Dataset`
     else:
         batch_size = (
-            images.shape[0] if len(images.shape) == 4 else 1
+            ops.shape(images)[0] if len(ops.shape(images)) == 4 else 1
         )  # batch_size from np.array or single image
 
     rows = rows or int(math.ceil(math.sqrt(batch_size)))
