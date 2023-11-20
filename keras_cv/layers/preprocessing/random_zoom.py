@@ -100,7 +100,7 @@ class RandomZoom(VectorizedBaseImageAugmentationLayer):
         fill_value=0.0,
         **kwargs,
     ):
-        super().__init__(seed=seed, force_generator=True, **kwargs)
+        super().__init__(seed=seed, **kwargs)
         self.height_factor = height_factor
         if isinstance(height_factor, (tuple, list)):
             self.height_lower = height_factor[0]
@@ -140,13 +140,13 @@ class RandomZoom(VectorizedBaseImageAugmentationLayer):
         self.seed = seed
 
     def get_random_transformation_batch(self, batch_size, **kwargs):
-        height_zooms = self._random_generator.random_uniform(
+        height_zooms = self._random_generator.uniform(
             shape=[batch_size, 1],
             minval=1.0 + self.height_lower,
             maxval=1.0 + self.height_upper,
         )
         if self.width_factor is not None:
-            width_zooms = self._random_generator.random_uniform(
+            width_zooms = self._random_generator.uniform(
                 shape=[batch_size, 1],
                 minval=1.0 + self.width_lower,
                 maxval=1.0 + self.width_upper,

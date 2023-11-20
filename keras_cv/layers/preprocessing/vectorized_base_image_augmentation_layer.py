@@ -109,12 +109,13 @@ class VectorizedBaseImageAugmentationLayer(base_class):
     """
 
     def __init__(self, seed=None, **kwargs):
-        force_generator = kwargs.pop("force_generator", False)
-        self._random_generator = keras_backend.RandomGenerator(
-            seed=seed, force_generator=force_generator
-        )
         super().__init__(**kwargs)
+        if seed:
+            self._random_generator = tf.random.Generator.from_seed(seed=seed)
+        else:
+            self._random_generator = tf.random.get_global_generator()
         self._convert_input_args = False
+        self._allow_non_tensor_positional_args = True
 
     @property
     def force_output_dense_images(self):

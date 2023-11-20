@@ -31,7 +31,7 @@ class RandomFlipTest(TestCase):
         layer = RandomFlip("horizontal")
         with unittest.mock.patch.object(
             layer._random_generator,
-            "random_uniform",
+            "uniform",
             return_value=mock_random,
         ):
             actual_output = layer(inp)
@@ -57,7 +57,7 @@ class RandomFlipTest(TestCase):
         layer = RandomFlip("vertical")
         with unittest.mock.patch.object(
             layer._random_generator,
-            "random_uniform",
+            "uniform",
             return_value=mock_random,
         ):
             actual_output = layer(inp)
@@ -72,7 +72,7 @@ class RandomFlipTest(TestCase):
         layer = RandomFlip("horizontal_and_vertical")
         with unittest.mock.patch.object(
             layer._random_generator,
-            "random_uniform",
+            "uniform",
             return_value=mock_random,
         ):
             actual_output = layer(inp)
@@ -85,7 +85,7 @@ class RandomFlipTest(TestCase):
         layer = RandomFlip()
         with unittest.mock.patch.object(
             layer._random_generator,
-            "random_uniform",
+            "uniform",
             return_value=mock_random,
         ):
             actual_output = layer(input_images)
@@ -99,7 +99,7 @@ class RandomFlipTest(TestCase):
         layer = RandomFlip(rate=0.1)
         with unittest.mock.patch.object(
             layer._random_generator,
-            "random_uniform",
+            "uniform",
             return_value=mock_random,
         ):
             actual_output = layer(input_images)
@@ -113,7 +113,7 @@ class RandomFlipTest(TestCase):
         layer = RandomFlip(rate=0.9)
         with unittest.mock.patch.object(
             layer._random_generator,
-            "random_uniform",
+            "uniform",
             return_value=mock_random,
         ):
             actual_output = layer(input_images)
@@ -132,7 +132,7 @@ class RandomFlipTest(TestCase):
         layer = RandomFlip("vertical")
         with unittest.mock.patch.object(
             layer._random_generator,
-            "random_uniform",
+            "uniform",
             return_value=mock_random,
         ):
             actual_output = layer(input_image)
@@ -170,7 +170,7 @@ class RandomFlipTest(TestCase):
         )
         with unittest.mock.patch.object(
             layer._random_generator,
-            "random_uniform",
+            "uniform",
             return_value=mock_random,
         ):
             output = layer(input)
@@ -216,7 +216,7 @@ class RandomFlipTest(TestCase):
         )
         with unittest.mock.patch.object(
             layer._random_generator,
-            "random_uniform",
+            "uniform",
             return_value=mock_random,
         ):
             output = layer(input)
@@ -253,7 +253,7 @@ class RandomFlipTest(TestCase):
 
         with unittest.mock.patch.object(
             layer._random_generator,
-            "random_uniform",
+            "uniform",
             return_value=mock_random,
         ):
             output = layer(input)

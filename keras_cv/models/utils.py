@@ -15,11 +15,11 @@
 """Utility functions for models"""
 
 from keras_cv.backend import keras
-from keras_cv.backend.config import multi_backend
+from keras_cv.backend.config import keras_3
 
 
 def get_tensor_input_name(tensor):
-    if multi_backend():
+    if keras_3():
         return tensor._keras_history.operation.name
     else:
         return tensor.node.layer.name

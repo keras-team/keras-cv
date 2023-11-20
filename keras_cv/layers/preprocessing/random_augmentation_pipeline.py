@@ -81,7 +81,7 @@ class RandomAugmentationPipeline(BaseImageAugmentationLayer):
         seed=None,
         **kwargs,
     ):
-        super().__init__(**kwargs, seed=seed, force_generator=True)
+        super().__init__(**kwargs, seed=seed)
         self.augmentations_per_image = augmentations_per_image
         self.rate = rate
         self.layers = list(layers)
@@ -98,7 +98,7 @@ class RandomAugmentationPipeline(BaseImageAugmentationLayer):
 
         result = inputs
         for _ in range(self.augmentations_per_image):
-            skip_augment = self._random_generator.random_uniform(
+            skip_augment = self._random_generator.uniform(
                 shape=(), minval=0.0, maxval=1.0, dtype=tf.float32
             )
             result = tf.cond(

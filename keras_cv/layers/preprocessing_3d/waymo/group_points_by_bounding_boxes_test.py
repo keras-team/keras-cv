@@ -8,6 +8,7 @@ import numpy as np
 import pytest
 import tensorflow as tf
 
+from keras_cv.backend.config import keras_3
 from keras_cv.layers.preprocessing_3d import base_augmentation_layer_3d
 from keras_cv.layers.preprocessing_3d.waymo.group_points_by_bounding_boxes import (  # noqa: E501
     GroupPointsByBoundingBoxes,
@@ -20,6 +21,7 @@ OBJECT_POINT_CLOUDS = base_augmentation_layer_3d.OBJECT_POINT_CLOUDS
 OBJECT_BOUNDING_BOXES = base_augmentation_layer_3d.OBJECT_BOUNDING_BOXES
 
 
+@pytest.mark.skipif(keras_3(), reason="Not implemented in Keras 3")
 class GroupPointsByBoundingBoxesTest(TestCase):
     def test_augment_point_clouds_and_bounding_boxes(self):
         add_layer = GroupPointsByBoundingBoxes(
