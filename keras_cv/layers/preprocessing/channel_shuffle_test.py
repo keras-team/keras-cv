@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import numpy as np
 import tensorflow as tf
 
 from keras_cv.layers.preprocessing.channel_shuffle import ChannelShuffle
@@ -111,7 +112,7 @@ class ChannelShuffleTest(TestCase):
         self.assertEqual(layer_1.name, layer.name)
 
     def test_output_dtypes(self):
-        inputs = tf.constant([[[1], [2]], [[3], [4]]], dtype="float64")
+        inputs = np.array([[[1], [2]], [[3], [4]]], dtype="float64")
         layer = ChannelShuffle(groups=1)
         self.assertAllEqual(layer(inputs).dtype, "float32")
         layer = ChannelShuffle(groups=1, dtype="uint8")

@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import numpy as np
 import tensorflow as tf
 
 from keras_cv import bounding_box
@@ -215,7 +215,7 @@ class JitteredResizeTest(TestCase):
         self.assertEqual(layer_1.name, layer.name)
 
     def test_output_dtypes(self):
-        inputs = tf.constant([[[1], [2]], [[3], [4]]], dtype="float64")
+        inputs = np.array([[[1], [2]], [[3], [4]]], dtype="float64")
         layer = layers.JitteredResize(
             target_size=self.target_size,
             scale_factor=(3 / 4, 4 / 3),

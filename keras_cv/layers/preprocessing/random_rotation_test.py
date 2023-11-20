@@ -15,14 +15,13 @@ import numpy as np
 import tensorflow as tf
 
 from keras_cv import bounding_box
-from keras_cv.backend import ops
 from keras_cv.layers.preprocessing.random_rotation import RandomRotation
 from keras_cv.tests.test_case import TestCase
 
 
 class RandomRotationTest(TestCase):
     def test_random_rotation_output_shapes(self):
-        input_images = tf.random.uniform((2, 5, 8, 3), dtype="float32")
+        input_images = np.random.random((2, 5, 8, 3)).astype(np.float32)
         expected_output = input_images
         layer = RandomRotation(0.5)
         actual_output = layer(input_images, training=True)
@@ -44,7 +43,7 @@ class RandomRotationTest(TestCase):
         self.assertEqual(layer_reconstructed.name, layer.name)
 
     def test_unbatched_image(self):
-        input_image = ops.reshape(ops.arange(0, 25), (5, 5, 1))
+        input_image = np.reshape(np.arange(0, 25), (5, 5, 1)).astype(np.float32)
         # 180 rotation.
         layer = RandomRotation(factor=(0.5, 0.5))
         output_image = layer(input_image)
@@ -55,17 +54,16 @@ class RandomRotationTest(TestCase):
                 [14, 13, 12, 11, 10],
                 [9, 8, 7, 6, 5],
                 [4, 3, 2, 1, 0],
-            ],
-            dtype="float32",
-        )
+            ]
+        ).astype(np.float32)
         expected_output = np.reshape(expected_output, (5, 5, 1))
         self.assertAllClose(expected_output, output_image)
 
     def test_augment_bounding_boxes(self):
-        input_image = tf.random.uniform((512, 512, 3), dtype="float32")
+        input_image = np.random.random((512, 512, 3)).astype(np.float32)
         bounding_boxes = {
-            "boxes": tf.constant([[200, 200, 400, 400], [100, 100, 300, 300]]),
-            "classes": tf.constant([1, 2]),
+            "boxes": np.array([[200, 200, 400, 400], [100, 100, 300, 300]]),
+            "classes": np.array([1, 2]),
         }
         input = {"images": input_image, "bounding_boxes": bounding_boxes}
         # 180 rotation.
@@ -75,15 +73,15 @@ class RandomRotationTest(TestCase):
             output["bounding_boxes"]
         )
         expected_bounding_boxes = {
-            "boxes": tf.constant(
+            "boxes": np.array(
                 [[112.0, 112.0, 312.0, 312.0], [212.0, 212.0, 412.0, 412.0]],
             ),
-            "classes": tf.constant([1, 2]),
+            "classes": np.array([1, 2]),
         }
         self.assertAllClose(expected_bounding_boxes, output["bounding_boxes"])
 
     def test_output_dtypes(self):
-        inputs = tf.constant([[[1], [2]], [[3], [4]]], dtype="float64")
+        inputs = np.array([[[1], [2]], [[3], [4]]], dtype="float64")
         layer = RandomRotation(0.5)
         self.assertAllEqual(layer(inputs).dtype, "float32")
         layer = RandomRotation(0.5, dtype="uint8")
@@ -151,12 +149,10 @@ class RandomRotationTest(TestCase):
     def test_augment_sparse_segmentation_mask(self):
         num_classes = 8
 
-        input_images = tf.random.uniform((2, 20, 20, 3), dtype="float32")
+        input_images = np.random.random((2, 20, 20, 3)).astype(np.float32)
         # Masks are all 0s or 8s, to verify that when we rotate we don't do bad
         # mask interpolation to either a 0 or a 7
-        masks = tf.random.uniform((2, 20, 20, 1), maxval=2, dtype="int32") * (
-            num_classes - 1
-        )
+        masks = np.random.randint(2, size=(2, 20, 20, 1)) * (num_classes - 1)
         inputs = {"images": input_images, "segmentation_masks": masks}
 
         # Attempting to rotate a sparse mask without specifying num_classes
@@ -183,8 +179,8 @@ class RandomRotationTest(TestCase):
     def test_augment_one_hot_segmentation_mask(self):
         num_classes = 8
 
-        input_images = tf.random.uniform((2, 20, 20, 3), dtype="float32")
-        masks = tf.constant(
+        input_images = np.random.random((2, 20, 20, 3)).astype(np.float32)
+        masks = np.array(
             tf.one_hot(
                 np.random.randint(num_classes, size=(2, 20, 20)), num_classes
             )

@@ -16,7 +16,6 @@ import pytest
 import tensorflow as tf
 
 from keras_cv import bounding_box
-from keras_cv.backend import ops
 from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     VectorizedBaseImageAugmentationLayer,
 )
@@ -35,7 +34,7 @@ class VectorizedRandomAddLayer(VectorizedBaseImageAugmentationLayer):
     def get_random_transformation_batch(self, batch_size, **kwargs):
         if self.fixed_value:
             return tf.ones((batch_size,)) * self.fixed_value
-        return self._random_generator.uniform(
+        return self._random_generator.random_uniform(
             (batch_size,), minval=self.add_range[0], maxval=self.add_range[1]
         )
 
@@ -102,7 +101,7 @@ class VectorizedAssertionLayer(VectorizedBaseImageAugmentationLayer):
         assert isinstance(bounding_boxes["classes"], TF_ALL_TENSOR_TYPES)
         assert isinstance(keypoints, TF_ALL_TENSOR_TYPES)
         assert isinstance(segmentation_masks, TF_ALL_TENSOR_TYPES)
-        return self._random_generator.uniform((batch_size,))
+        return self._random_generator.random_uniform((batch_size,))
 
     def augment_images(
         self,
@@ -195,14 +194,14 @@ class VectorizedAssertionLayer(VectorizedBaseImageAugmentationLayer):
 class VectorizedBaseImageAugmentationLayerTest(TestCase):
     def test_augment_single_image(self):
         add_layer = VectorizedRandomAddLayer(fixed_value=2.0)
-        image = tf.random.uniform((8, 8, 3), dtype="float32")
+        image = np.random.random(size=(8, 8, 3)).astype("float32")
         output = add_layer(image)
 
         self.assertAllClose(image + 2.0, output)
 
     def test_augment_dict_return_type(self):
         add_layer = VectorizedRandomAddLayer(fixed_value=2.0)
-        image = tf.random.uniform((8, 8, 3), dtype="float32")
+        image = np.random.random(size=(8, 8, 3)).astype("float32")
         output = add_layer({"images": image})
 
         self.assertIsInstance(output, dict)
@@ -218,7 +217,7 @@ class VectorizedBaseImageAugmentationLayerTest(TestCase):
 
     def test_augment_batch_images(self):
         add_layer = VectorizedRandomAddLayer()
-        images = tf.random.uniform((2, 8, 8, 3), dtype="float32")
+        images = np.random.random(size=(2, 8, 8, 3)).astype("float32")
         output = add_layer(images)
 
         diff = output - images
@@ -227,8 +226,8 @@ class VectorizedBaseImageAugmentationLayerTest(TestCase):
 
     def test_augment_image_and_label(self):
         add_layer = VectorizedRandomAddLayer(fixed_value=2.0)
-        image = tf.random.uniform((8, 8, 3), dtype="float32")
-        label = tf.random.uniform((1,), dtype="float32")
+        image = np.random.random(size=(8, 8, 3)).astype("float32")
+        label = np.random.random(size=(1,)).astype("float32")
 
         output = add_layer({"images": image, "targets": label})
         expected_output = {"images": image + 2.0, "targets": label + 2.0}
@@ -236,8 +235,8 @@ class VectorizedBaseImageAugmentationLayerTest(TestCase):
 
     def test_augment_image_and_target(self):
         add_layer = VectorizedRandomAddLayer(fixed_value=2.0)
-        image = tf.random.uniform((8, 8, 3), dtype="float32")
-        label = tf.random.uniform((1,), dtype="float32")
+        image = np.random.random(size=(8, 8, 3)).astype("float32")
+        label = np.random.random(size=(1,)).astype("float32")
 
         output = add_layer({"images": image, "targets": label})
         expected_output = {"images": image + 2.0, "targets": label + 2.0}
@@ -245,8 +244,8 @@ class VectorizedBaseImageAugmentationLayerTest(TestCase):
 
     def test_augment_batch_images_and_targets(self):
         add_layer = VectorizedRandomAddLayer()
-        images = tf.random.uniform((2, 8, 8, 3), dtype="float32")
-        targets = tf.random.uniform((2, 1), dtype="float32")
+        images = np.random.random(size=(2, 8, 8, 3)).astype("float32")
+        targets = np.random.random(size=(2, 1)).astype("float32")
         output = add_layer({"images": images, "targets": targets})
 
         image_diff = output["images"] - images
@@ -257,8 +256,8 @@ class VectorizedBaseImageAugmentationLayerTest(TestCase):
 
     def test_augment_leaves_extra_dict_entries_unmodified(self):
         add_layer = VectorizedRandomAddLayer(fixed_value=0.5)
-        images = tf.random.uniform((8, 8, 3), dtype="float32")
-        timestamps = tf.constant(123123123)
+        images = np.random.random(size=(8, 8, 3)).astype("float32")
+        timestamps = np.array(123123123)
         inputs = {"images": images, "timestamps": timestamps}
         output = add_layer(inputs)
         self.assertAllEqual(output["timestamps"], timestamps)
@@ -266,8 +265,8 @@ class VectorizedBaseImageAugmentationLayerTest(TestCase):
     def test_augment_ragged_images(self):
         images = tf.ragged.stack(
             [
-                tf.random.uniform((8, 8, 3), dtype="float32"),
-                tf.random.uniform((16, 8, 3), dtype="float32"),
+                np.random.random(size=(8, 8, 3)).astype("float32"),
+                np.random.random(size=(16, 8, 3)).astype("float32"),
             ]
         )
         add_layer = VectorizedRandomAddLayer(fixed_value=0.5)
@@ -276,13 +275,15 @@ class VectorizedBaseImageAugmentationLayerTest(TestCase):
 
     def test_augment_image_and_localization_data(self):
         add_layer = VectorizedRandomAddLayer(fixed_value=2.0)
-        images = tf.random.uniform((8, 8, 8, 3), dtype="float32")
+        images = np.random.random(size=(8, 8, 8, 3)).astype("float32")
         bounding_boxes = {
-            "boxes": tf.random.uniform((8, 3, 4), dtype="float32"),
-            "classes": tf.random.uniform((8, 3), dtype="float32"),
+            "boxes": np.random.random(size=(8, 3, 4)).astype("float32"),
+            "classes": np.random.random(size=(8, 3)).astype("float32"),
         }
-        keypoints = tf.random.uniform((8, 5, 2), dtype="float32")
-        segmentation_mask = tf.random.uniform((8, 8, 8, 1), dtype="float32")
+        keypoints = np.random.random(size=(8, 5, 2)).astype("float32")
+        segmentation_mask = np.random.random(size=(8, 8, 8, 1)).astype(
+            "float32"
+        )
 
         output = add_layer(
             {
@@ -324,13 +325,15 @@ class VectorizedBaseImageAugmentationLayerTest(TestCase):
 
     def test_augment_batch_image_and_localization_data(self):
         add_layer = VectorizedRandomAddLayer()
-        images = tf.random.uniform((2, 8, 8, 3), dtype="float32")
+        images = np.random.random(size=(2, 8, 8, 3)).astype("float32")
         bounding_boxes = {
-            "boxes": tf.random.uniform((2, 3, 4), dtype="float32"),
-            "classes": tf.random.uniform((2, 3), dtype="float32"),
+            "boxes": np.random.random(size=(2, 3, 4)).astype("float32"),
+            "classes": np.random.random(size=(2, 3)).astype("float32"),
         }
-        keypoints = tf.random.uniform((2, 5, 2), dtype="float32")
-        segmentation_masks = tf.random.uniform((2, 8, 8, 1), dtype="float32")
+        keypoints = np.random.random(size=(2, 5, 2)).astype("float32")
+        segmentation_masks = np.random.random(size=(2, 8, 8, 1)).astype(
+            "float32"
+        )
 
         output = add_layer(
             {
@@ -382,13 +385,15 @@ class VectorizedBaseImageAugmentationLayerTest(TestCase):
 
     def test_augment_all_data_in_tf_function(self):
         add_layer = VectorizedRandomAddLayer()
-        images = tf.random.uniform((2, 8, 8, 3), dtype="float32")
+        images = np.random.random(size=(2, 8, 8, 3)).astype("float32")
         bounding_boxes = {
-            "boxes": tf.random.uniform((2, 3, 4), dtype="float32"),
-            "classes": tf.random.uniform((2, 3), dtype="float32"),
+            "boxes": np.random.random(size=(2, 3, 4)).astype("float32"),
+            "classes": np.random.random(size=(2, 3)).astype("float32"),
         }
-        keypoints = tf.random.uniform((2, 5, 2), dtype="float32")
-        segmentation_masks = tf.random.uniform((2, 8, 8, 1), dtype="float32")
+        keypoints = np.random.random(size=(2, 5, 2)).astype("float32")
+        segmentation_masks = np.random.random(size=(2, 8, 8, 1)).astype(
+            "float32"
+        )
 
         @tf.function
         def in_tf_function(inputs):
@@ -418,13 +423,13 @@ class VectorizedBaseImageAugmentationLayerTest(TestCase):
 
     def test_augment_unbatched_all_data(self):
         add_layer = VectorizedRandomAddLayer(fixed_value=2.0)
-        images = tf.random.uniform((8, 8, 3), dtype="float32")
+        images = np.random.random(size=(8, 8, 3)).astype("float32")
         bounding_boxes = {
-            "boxes": tf.random.uniform((3, 4), dtype="float32"),
-            "classes": tf.random.uniform((3,), dtype="float32"),
+            "boxes": np.random.random(size=(3, 4)).astype("float32"),
+            "classes": np.random.random(size=(3)).astype("float32"),
         }
-        keypoints = tf.random.uniform((5, 2), dtype="float32")
-        segmentation_masks = tf.random.uniform((8, 8, 1), dtype="float32")
+        keypoints = np.random.random(size=(5, 2)).astype("float32")
+        segmentation_masks = np.random.random(size=(8, 8, 1)).astype("float32")
         input = {
             "images": images,
             "bounding_boxes": bounding_boxes,
@@ -481,7 +486,9 @@ class VectorizedBaseImageAugmentationLayerTest(TestCase):
                 tf.random.uniform(shape=(16, 8, 3)),
             ]
         )
-        labels = tf.constant(ops.squeeze(ops.eye(10)[0, 1]))
+        labels = tf.constant(
+            np.squeeze(np.eye(10)[np.array([0, 1]).reshape(-1)])
+        )
         bounding_boxes = {
             "boxes": tf.random.uniform(shape=(2, 3, 4)),
             "classes": tf.random.uniform(shape=(2, 3)),
@@ -514,8 +521,8 @@ class VectorizedBaseImageAugmentationLayerTest(TestCase):
     def test_converts_ragged_to_dense_images(self):
         images = tf.ragged.stack(
             [
-                tf.random.uniform((8, 8, 3), dtype="float32"),
-                tf.random.uniform((16, 8, 3), dtype="float32"),
+                np.random.random(size=(8, 8, 3)).astype("float32"),
+                np.random.random(size=(16, 8, 3)).astype("float32"),
             ]
         )
         add_layer = VectorizedRandomAddLayer(fixed_value=0.5)
@@ -526,14 +533,14 @@ class VectorizedBaseImageAugmentationLayerTest(TestCase):
     def test_converts_ragged_to_dense_segmentation_masks(self):
         images = tf.ragged.stack(
             [
-                tf.random.uniform((8, 8, 3), dtype="float32"),
-                tf.random.uniform((16, 8, 3), dtype="float32"),
+                np.random.random(size=(8, 8, 3)).astype("float32"),
+                np.random.random(size=(16, 8, 3)).astype("float32"),
             ]
         )
         segmentation_masks = tf.ragged.stack(
             [
-                tf.random.uniform((8, 8, 1), 0, 10, dtype="int32"),
-                tf.random.uniform((16, 8, 1), 0, 10, dtype="int32"),
+                np.random.randint(0, 10, size=(8, 8, 1)).astype("float32"),
+                np.random.randint(0, 10, size=(16, 8, 1)).astype("float32"),
             ]
         )
         add_layer = VectorizedRandomAddLayer(fixed_value=0.5)

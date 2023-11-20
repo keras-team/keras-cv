@@ -32,7 +32,7 @@ class RandomCropTest(TestCase):
         ("random_crop_full_width", 3, 8),
     )
     def test_output_shape(self, expected_height, expected_width):
-        tf.random.set_seed(1337)
+        np.random.seed(1337)
         num_samples = 2
         orig_height = 5
         orig_width = 8
@@ -53,9 +53,9 @@ class RandomCropTest(TestCase):
         self.assertAllEqual(expected_output.shape, actual_output.shape)
 
     def test_input_smaller_than_crop_box(self):
-        tf.random.set_seed(1337)
+        np.random.seed(1337)
         height, width = 10, 8
-        inp = tf.random.uniform((12, 3, 3, 3))
+        inp = np.random.random((12, 3, 3, 3))
         layer = RandomCrop(height, width)
         actual_output = layer(inp)
         # In this case, output should equal resizing with crop_to_aspect
@@ -66,7 +66,7 @@ class RandomCropTest(TestCase):
 
     @pytest.mark.skip(reason="need to update tests for keras 3")
     def test_training_with_mock(self):
-        tf.random.set_seed(1337)
+        np.random.seed(1337)
         batch_size = 12
         height, width = 3, 4
         height_offset = np.random.randint(low=0, high=3)
@@ -82,7 +82,7 @@ class RandomCropTest(TestCase):
             "get_random_transformation_batch",
             return_value=transformations,
         ):
-            inp = tf.random.uniform((12, 5, 8, 3))
+            inp = np.random.random((12, 5, 8, 3))
             actual_output = layer(inp, training=True)
             expected_output = inp[
                 :,
@@ -93,32 +93,32 @@ class RandomCropTest(TestCase):
             self.assertAllClose(expected_output, actual_output)
 
     def test_random_crop_full(self):
-        tf.random.set_seed(1337)
+        np.random.seed(1337)
         height, width = 8, 16
-        inp = tf.random.uniform((12, 8, 16, 3))
+        inp = np.random.random((12, 8, 16, 3))
         layer = RandomCrop(height, width)
         actual_output = layer(inp, training=False)
         self.assertAllClose(inp, actual_output)
 
     def test_unbatched_image(self):
-        tf.random.set_seed(1337)
-        inp = tf.random.uniform((16, 16, 3))
+        np.random.seed(1337)
+        inp = np.random.random((16, 16, 3))
         # manually compute transformations which shift 2 pixels
-        mock_offset = tf.ones(shape=(1, 1), dtype="float32") * 0.25
+        mock_offset = np.ones(shape=(1, 1), dtype="float32") * 0.25
         layer = RandomCrop(8, 8)
         with unittest.mock.patch.object(
             layer._random_generator,
-            "uniform",
+            "random_uniform",
             return_value=mock_offset,
         ):
             actual_output = layer(inp, training=True)
             self.assertAllClose(inp[2:10, 2:10, :], actual_output)
 
     def test_batched_input(self):
-        tf.random.set_seed(1337)
-        inp = tf.random.uniform((20, 16, 16, 3))
+        np.random.seed(1337)
+        inp = np.random.random((20, 16, 16, 3))
         # manually compute transformations which shift 2 pixels
-        mock_offset = tf.ones(shape=(20, 1), dtype="float32") * 2 / (16 - 8)
+        mock_offset = np.ones(shape=(20, 1), dtype="float32") * 2 / (16 - 8)
         layer = RandomCrop(8, 8)
         with unittest.mock.patch.object(
             layer._random_generator,
@@ -131,8 +131,8 @@ class RandomCropTest(TestCase):
     def test_compute_ragged_output_signature(self):
         inputs = tf.ragged.stack(
             [
-                tf.random.uniform((8, 8, 3), dtype="float32"),
-                tf.random.uniform((16, 8, 3), dtype="float32"),
+                np.random.random(size=(8, 8, 3)).astype("float32"),
+                np.random.random(size=(16, 8, 3)).astype("float32"),
             ]
         )
         layer = RandomCrop(2, 2)
@@ -143,19 +143,19 @@ class RandomCropTest(TestCase):
     def test_augment_bounding_boxes_crop(self):
         orig_height, orig_width = 512, 512
         height, width = 100, 200
-        input_image = tf.random.uniform(
-            (orig_height, orig_width, 3), dtype="float32"
+        input_image = np.random.random((orig_height, orig_width, 3)).astype(
+            np.float32
         )
         bboxes = {
-            "boxes": tf.constant([[200, 200, 400, 400]]),
-            "classes": tf.constant([1]),
+            "boxes": np.array([[200, 200, 400, 400]]),
+            "classes": np.array([1]),
         }
         input = {"images": input_image, "bounding_boxes": bboxes}
         # for top = 300 and left = 305
         height_offset = 300
         width_offset = 305
-        tops = tf.ones((1, 1)) * (height_offset / (orig_height - height))
-        lefts = tf.ones((1, 1)) * (width_offset / (orig_width - width))
+        tops = np.ones((1, 1)) * (height_offset / (orig_height - height))
+        lefts = np.ones((1, 1)) * (width_offset / (orig_width - width))
         transformations = {"tops": tops, "lefts": lefts}
         layer = RandomCrop(
             height=height, width=width, bounding_box_format="xyxy"
@@ -166,29 +166,29 @@ class RandomCropTest(TestCase):
             return_value=transformations,
         ):
             output = layer(input)
-            expected_output = tf.constant(
+            expected_output = np.asarray(
                 [[0.0, 0.0, 95.0, 100.0]],
             )
         self.assertAllClose(expected_output, output["bounding_boxes"]["boxes"])
 
     def test_augment_bounding_boxes_resize(self):
-        input_image = tf.random.uniform((256, 256, 3), dtype="float32")
+        input_image = np.random.random((256, 256, 3)).astype(np.float32)
         bboxes = {
-            "boxes": tf.constant([[100, 100, 200, 200]]),
-            "classes": tf.constant([1]),
+            "boxes": np.array([[100, 100, 200, 200]]),
+            "classes": np.array([1]),
         }
         input = {"images": input_image, "bounding_boxes": bboxes}
         layer = RandomCrop(height=512, width=512, bounding_box_format="xyxy")
         output = layer(input)
-        expected_output = tf.constant(
+        expected_output = np.asarray(
             [[200.0, 200.0, 400.0, 400.0]],
         )
         self.assertAllClose(expected_output, output["bounding_boxes"]["boxes"])
 
     def test_in_tf_function(self):
-        tf.random.set_seed(1337)
-        inp = tf.random.uniform((20, 16, 16, 3))
-        mock_offset = tf.ones(shape=(20, 1), dtype="float32") * 2 / (16 - 8)
+        np.random.seed(1337)
+        inp = np.random.random((20, 16, 16, 3))
+        mock_offset = np.ones(shape=(20, 1), dtype="float32") * 2 / (16 - 8)
         layer = RandomCrop(8, 8)
 
         @tf.function
@@ -250,7 +250,7 @@ class RandomCropTest(TestCase):
         self.assertEqual(layer_1.name, layer.name)
 
     def test_output_dtypes(self):
-        inputs = tf.constant([[[1], [2]], [[3], [4]]], dtype="float64")
+        inputs = np.array([[[1], [2]], [[3], [4]]], dtype="float64")
         layer = RandomCrop(2, 2)
         self.assertAllEqual(layer(inputs).dtype, "float32")
         layer = RandomCrop(2, 2, dtype="uint8")
