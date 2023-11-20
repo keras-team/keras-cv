@@ -11,6 +11,12 @@ build/
 *.egg-info
 __pycache__/
 *.so
+.bazelrc
+bazel-bin
+bazel-keras-cv
+bazel-out
+bazel-testlogs
+wheels
 
 #VS Code files and container
 .vscode/
