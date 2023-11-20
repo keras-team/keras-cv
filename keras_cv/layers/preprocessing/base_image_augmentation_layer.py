@@ -130,7 +130,7 @@ class BaseImageAugmentationLayer(base_class):
     """
 
     def __init__(self, seed=None, **kwargs):
-        if seed:
+        if seed is not None:
             self._random_generator = tf.random.Generator.from_seed(seed=seed)
         else:
             self._random_generator = tf.random.get_global_generator()

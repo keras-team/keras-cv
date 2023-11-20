@@ -397,7 +397,7 @@ class SerializationTest(TestCase):
                 cv_layers.SqueezeAndExcite2D,  # TODO: Fails in Keras 3
             ]
             if layer_cls in skip_layers:
-                return
+                self.skipTest("Not supported on Keras 3")
         layer = layer_cls(**init_args)
         config = layer.get_config()
         self.assertAllInitParametersAreInConfig(layer_cls, config)
