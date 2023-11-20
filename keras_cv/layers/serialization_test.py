@@ -14,10 +14,12 @@
 
 import inspect
 
+import pytest
 from absl.testing import parameterized
 from tensorflow import keras
 
 from keras_cv import layers as cv_layers
+from keras_cv.backend.config import keras_3
 from keras_cv.layers.vit_layers import PatchingAndEmbedding
 from keras_cv.tests.test_case import TestCase
 from keras_cv.utils import test_utils
@@ -154,11 +156,6 @@ class SerializationTest(TestCase):
             },
         ),
         (
-            "DropBlock2D",
-            cv_layers.DropBlock2D,
-            {"rate": 0.1, "block_size": (7, 7), "seed": 1234},
-        ),
-        (
             "StochasticDepth",
             cv_layers.StochasticDepth,
             {"rate": 0.1},
@@ -250,6 +247,89 @@ class SerializationTest(TestCase):
             },
         ),
         (
+            "RandomZoom",
+            cv_layers.RandomZoom,
+            {"height_factor": 0.2, "width_factor": 0.5},
+        ),
+        (
+            "RandomCrop",
+            cv_layers.RandomCrop,
+            {
+                "height": 100,
+                "width": 200,
+            },
+        ),
+        (
+            "MBConvBlock",
+            cv_layers.MBConvBlock,
+            {
+                "input_filters": 16,
+                "output_filters": 16,
+            },
+        ),
+        (
+            "FusedMBConvBlock",
+            cv_layers.FusedMBConvBlock,
+            {
+                "input_filters": 16,
+                "output_filters": 16,
+            },
+        ),
+        (
+            "Rescaling",
+            cv_layers.Rescaling,
+            {
+                "scale": 1,
+                "offset": 0.5,
+            },
+        ),
+        (
+            "MultiClassNonMaxSuppression",
+            cv_layers.MultiClassNonMaxSuppression,
+            {
+                "bounding_box_format": "yxyx",
+                "from_logits": True,
+            },
+        ),
+    )
+    def test_2d_layer_serialization(self, layer_cls, init_args):
+        layer = layer_cls(**init_args)
+        config = layer.get_config()
+        self.assertAllInitParametersAreInConfig(layer_cls, config)
+
+        model = keras.models.Sequential(layer)
+        model_config = model.get_config()
+
+        reconstructed_model = keras.Sequential().from_config(model_config)
+        reconstructed_layer = reconstructed_model.layers[0]
+
+        self.assertTrue(
+            test_utils.config_equals(
+                layer.get_config(), reconstructed_layer.get_config()
+            )
+        )
+
+    @parameterized.named_parameters(
+        (
+            "SwapBackground",
+            cv_layers.SwapBackground,
+            {},
+        ),
+        (
+            "RandomCopyPaste",
+            cv_layers.RandomCopyPaste,
+            {
+                "label_index": 1,
+                "min_paste_bounding_boxes": 1,
+                "max_paste_bounding_boxes": 10,
+            },
+        ),
+        (
+            "DropBlock2D",
+            cv_layers.DropBlock2D,
+            {"rate": 0.1, "block_size": (7, 7), "seed": 1234},
+        ),
+        (
             "FrustumRandomDroppingPoints",
             cv_layers.FrustumRandomDroppingPoints,
             {
@@ -313,71 +393,13 @@ class SerializationTest(TestCase):
             },
         ),
         (
-            "RandomCopyPaste",
-            cv_layers.RandomCopyPaste,
-            {
-                "label_index": 1,
-                "min_paste_bounding_boxes": 1,
-                "max_paste_bounding_boxes": 10,
-            },
-        ),
-        (
             "RandomDropBox",
             cv_layers.RandomDropBox,
             {"label_index": 1, "max_drop_bounding_boxes": 3},
         ),
-        (
-            "SwapBackground",
-            cv_layers.SwapBackground,
-            {},
-        ),
-        (
-            "RandomZoom",
-            cv_layers.RandomZoom,
-            {"height_factor": 0.2, "width_factor": 0.5},
-        ),
-        (
-            "RandomCrop",
-            cv_layers.RandomCrop,
-            {
-                "height": 100,
-                "width": 200,
-            },
-        ),
-        (
-            "MBConvBlock",
-            cv_layers.MBConvBlock,
-            {
-                "input_filters": 16,
-                "output_filters": 16,
-            },
-        ),
-        (
-            "FusedMBConvBlock",
-            cv_layers.FusedMBConvBlock,
-            {
-                "input_filters": 16,
-                "output_filters": 16,
-            },
-        ),
-        (
-            "Rescaling",
-            cv_layers.Rescaling,
-            {
-                "scale": 1,
-                "offset": 0.5,
-            },
-        ),
-        (
-            "MultiClassNonMaxSuppression",
-            cv_layers.MultiClassNonMaxSuppression,
-            {
-                "bounding_box_format": "yxyx",
-                "from_logits": True,
-            },
-        ),
     )
-    def test_layer_serialization(self, layer_cls, init_args):
+    @pytest.mark.skipif(keras_3(), reason="Not implemented in Keras 3")
+    def test_3d_layer_serialization(self, layer_cls, init_args):
         layer = layer_cls(**init_args)
         config = layer.get_config()
         self.assertAllInitParametersAreInConfig(layer_cls, config)

@@ -12,19 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import keras
-import tensorflow as tf
 
-if hasattr(keras, "src"):
-    keras_backend = keras.src.backend
-else:
-    keras_backend = keras.backend
+import tensorflow as tf
 
 from keras_cv import bounding_box
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import scope
-from keras_cv.backend.config import multi_backend
+from keras_cv.backend.config import keras_3
 from keras_cv.utils import preprocessing
 
 H_AXIS = -3
@@ -44,7 +39,7 @@ USE_TARGETS = "use_targets"
 
 base_class = (
     keras.src.layers.preprocessing.tf_data_layer.TFDataLayer
-    if multi_backend()
+    if keras_3()
     else keras.layers.Layer
 )
 
