@@ -297,7 +297,7 @@ class SerializationTest(TestCase):
         config = layer.get_config()
         self.assertAllInitParametersAreInConfig(layer_cls, config)
 
-        model = keras.models.Sequential(layer)
+        model = keras.models.Sequential([layer])
         model_config = model.get_config()
 
         reconstructed_model = keras.Sequential().from_config(model_config)
@@ -404,7 +404,7 @@ class SerializationTest(TestCase):
         config = layer.get_config()
         self.assertAllInitParametersAreInConfig(layer_cls, config)
 
-        model = keras.models.Sequential(layer)
+        model = keras.models.Sequential([layer])
         model_config = model.get_config()
 
         reconstructed_model = keras.Sequential().from_config(model_config)
