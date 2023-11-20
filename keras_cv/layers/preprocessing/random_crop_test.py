@@ -108,7 +108,7 @@ class RandomCropTest(TestCase):
         layer = RandomCrop(8, 8)
         with unittest.mock.patch.object(
             layer._random_generator,
-            "random_uniform",
+            "random",
             return_value=mock_offset,
         ):
             actual_output = layer(inp, training=True)
