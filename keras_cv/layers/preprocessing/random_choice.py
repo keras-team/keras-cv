@@ -68,7 +68,7 @@ class RandomChoice(BaseImageAugmentationLayer):
         seed=None,
         **kwargs,
     ):
-        super().__init__(**kwargs, seed=seed, force_generator=True)
+        super().__init__(**kwargs, seed=seed)
         self.layers = layers
         self.auto_vectorize = auto_vectorize
         self.batchwise = batchwise
@@ -87,7 +87,7 @@ class RandomChoice(BaseImageAugmentationLayer):
             return super()._batch_augment(inputs)
 
     def _augment(self, inputs, *args, **kwargs):
-        selected_op = self._random_generator.random_uniform(
+        selected_op = self._random_generator.uniform(
             (), minval=0, maxval=len(self.layers), dtype=tf.int32
         )
         # Warning:

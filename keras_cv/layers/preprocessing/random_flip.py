@@ -69,7 +69,7 @@ class RandomFlip(VectorizedBaseImageAugmentationLayer):
         bounding_box_format=None,
         **kwargs,
     ):
-        super().__init__(seed=seed, force_generator=True, **kwargs)
+        super().__init__(seed=seed, **kwargs)
         self.mode = mode
         self.seed = seed
         if mode == HORIZONTAL:
@@ -98,12 +98,12 @@ class RandomFlip(VectorizedBaseImageAugmentationLayer):
         flip_verticals = tf.zeros(shape=(batch_size, 1))
 
         if self.horizontal:
-            flip_horizontals = self._random_generator.random_uniform(
+            flip_horizontals = self._random_generator.uniform(
                 shape=(batch_size, 1)
             )
 
         if self.vertical:
-            flip_verticals = self._random_generator.random_uniform(
+            flip_verticals = self._random_generator.uniform(
                 shape=(batch_size, 1)
             )
 

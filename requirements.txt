@@ -1,14 +1,13 @@
-absl-py
-packaging
-pandas
-tensorflow
-tensorflow-datasets
-flake8
-regex
-isort
-black
-pytest
-pycocotools
-keras-core
-build
-namex
+# Tensorflow.
+tf-nightly-cpu==2.16.0.dev20231109  # Pin a working nightly until rc0.
+keras-nightly==3.0.0.dev2023111903  # TODO recent nightly fails keras_cv/models/object_detection/retinanet/retinanet_test.py
+
+# Torch.
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch>=2.1.0
+torchvision>=0.16.0
+
+# Jax.
+jax[cpu]
+
+-r requirements-common.txt

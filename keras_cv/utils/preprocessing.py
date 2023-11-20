@@ -184,16 +184,14 @@ def random_inversion(random_generator):
     Returns:
       either -1, or -1.
     """
-    negate = random_generator.random_uniform((), 0, 1, dtype=tf.float32) > 0.5
+    negate = random_generator.uniform((), 0, 1, dtype=tf.float32) > 0.5
     negate = tf.cond(negate, lambda: -1.0, lambda: 1.0)
     return negate
 
 
 def batch_random_inversion(random_generator, batch_size):
     """Same as `random_inversion` but for batched inputs."""
-    negate = random_generator.random_uniform(
-        (batch_size, 1), 0, 1, dtype=tf.float32
-    )
+    negate = random_generator.uniform((batch_size, 1), 0, 1, dtype=tf.float32)
     negate = tf.where(negate > 0.5, -1.0, 1.0)
     return negate
 

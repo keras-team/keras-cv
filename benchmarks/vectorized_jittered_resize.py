@@ -259,7 +259,7 @@ class JitteredResizeTest(tf.test.TestCase):
         # makes offsets fixed to (0.5, 0.5)
         with unittest.mock.patch.object(
             layer._random_generator,
-            "random_uniform",
+            "uniform",
             return_value=tf.convert_to_tensor([[0.5, 0.5]]),
         ):
             output = layer(image)

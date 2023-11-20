@@ -17,6 +17,7 @@ import tensorflow as tf
 from absl.testing import parameterized
 
 from keras_cv import layers as cv_layers
+from keras_cv.backend.config import keras_3
 from keras_cv.tests.test_case import TestCase
 
 
@@ -193,6 +194,9 @@ class ResizingTest(TestCase):
         ("single_sample_dont_crop_to_aspect_ratio", False, False, False),
         ("batch_pad_to_aspect_ratio", False, True, True),
         ("single_sample_pad_to_aspect_ratio", False, True, False),
+    )
+    @pytest.mark.skipif(
+        keras_3(), reason="ragged tests not yet enabled for keras 3"
     )
     def test_static_shape_inference(
         self, crop_to_aspect_ratio, pad_to_aspect_ratio, batch
