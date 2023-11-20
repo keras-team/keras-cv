@@ -394,7 +394,7 @@ class SerializationTest(TestCase):
                 cv_layers.RandomCopyPaste,
                 cv_layers.RandomDropBox,
                 cv_layers.SwapBackground,
-                cv_layers.SqueezeAndExcite2D,  # TODO: Fails on Serization in Keras 3
+                cv_layers.SqueezeAndExcite2D,  # TODO: Fails in Keras 3
             ]
             if layer_cls in skip_layers:
                 return
