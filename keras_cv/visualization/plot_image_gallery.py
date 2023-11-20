@@ -52,11 +52,9 @@ def _extract_image_batch(images, num_images, batch_size):
                 "batch your `np.array` samples together."
             )
         else:
-            if num_images <= batch_size:
-                num_samples = num_images
-            else:
-                num_samples = num_batches_required
-
+            num_samples = (
+                num_images if num_images <= batch_size else num_batches_required
+            )
             sample = images[:num_samples, ...]
     return sample
 
