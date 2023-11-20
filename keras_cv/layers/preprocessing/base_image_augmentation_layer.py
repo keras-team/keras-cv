@@ -24,7 +24,7 @@ from keras_cv import bounding_box
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import scope
-from keras_cv.backend.config import multi_backend
+from keras_cv.backend.config import keras_3
 from keras_cv.utils import preprocessing
 
 # In order to support both unbatched and batched inputs, the horizontal
@@ -44,7 +44,7 @@ USE_TARGETS = "use_targets"
 
 base_class = (
     keras.src.layers.preprocessing.tf_data_layer.TFDataLayer
-    if multi_backend()
+    if keras_3()
     else keras.layers.Layer
 )
 
@@ -130,11 +130,13 @@ class BaseImageAugmentationLayer(base_class):
     """
 
     def __init__(self, seed=None, **kwargs):
-        force_generator = kwargs.pop("force_generator", False)
-        self._random_generator = keras_backend.RandomGenerator(
-            seed=seed, force_generator=force_generator
-        )
+        if seed is not None:
+            self._random_generator = tf.random.Generator.from_seed(seed=seed)
+        else:
+            self._random_generator = tf.random.get_global_generator()
         super().__init__(**kwargs)
+
+        self._allow_non_tensor_positional_args = True
         self.built = True
         self._convert_input_args = False
 

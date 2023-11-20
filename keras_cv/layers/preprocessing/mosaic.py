@@ -96,7 +96,7 @@ class Mosaic(VectorizedBaseImageAugmentationLayer):
 
     def get_random_transformation_batch(self, batch_size, **kwargs):
         # pick 3 indices for every batch to create the mosaic output with.
-        permutation_order = self._random_generator.random_uniform(
+        permutation_order = self._random_generator.uniform(
             (batch_size, 3),
             minval=0,
             maxval=batch_size,

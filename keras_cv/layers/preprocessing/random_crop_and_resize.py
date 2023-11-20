@@ -109,14 +109,14 @@ class RandomCropAndResize(BaseImageAugmentationLayer):
             tf.sqrt(crop_area_factor * aspect_ratio), 0.0, 1.0
         )
 
-        height_offset = self._random_generator.random_uniform(
+        height_offset = self._random_generator.uniform(
             (),
             minval=tf.minimum(0.0, 1.0 - new_height),
             maxval=tf.maximum(0.0, 1.0 - new_height),
             dtype=tf.float32,
         )
 
-        width_offset = self._random_generator.random_uniform(
+        width_offset = self._random_generator.uniform(
             (),
             minval=tf.minimum(0.0, 1.0 - new_width),
             maxval=tf.maximum(0.0, 1.0 - new_width),

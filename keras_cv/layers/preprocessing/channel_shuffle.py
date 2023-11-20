@@ -55,7 +55,7 @@ class ChannelShuffle(VectorizedBaseImageAugmentationLayer):
         #     [0, 2, 3, 4, 1],
         #     [4, 1, 0, 2, 3]
         # ]
-        indices_distribution = self._random_generator.random_uniform(
+        indices_distribution = self._random_generator.uniform(
             (batch_size, self.groups)
         )
         indices = tf.argsort(indices_distribution, axis=-1)

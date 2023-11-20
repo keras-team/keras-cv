@@ -97,7 +97,7 @@ class OldRandomRotation(BaseImageAugmentationLayer):
         segmentation_classes=None,
         **kwargs,
     ):
-        super().__init__(seed=seed, force_generator=True, **kwargs)
+        super().__init__(seed=seed, **kwargs)
         self.factor = factor
         if isinstance(factor, (tuple, list)):
             self.lower = factor[0]
@@ -122,7 +122,7 @@ class OldRandomRotation(BaseImageAugmentationLayer):
     def get_random_transformation(self, **kwargs):
         min_angle = self.lower * 2.0 * np.pi
         max_angle = self.upper * 2.0 * np.pi
-        angle = self._random_generator.random_uniform(
+        angle = self._random_generator.uniform(
             shape=[1], minval=min_angle, maxval=max_angle
         )
         return {"angle": angle}

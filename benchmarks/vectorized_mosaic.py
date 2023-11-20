@@ -101,7 +101,6 @@ class OldMosaic(BaseImageAugmentationLayer):
             minval=0,
             maxval=batch_size,
             dtype=tf.int32,
-            seed=self._random_generator.make_legacy_seed(),
         )
         # concatenate the batches with permutation order to get all 4 images of
         # the mosaic

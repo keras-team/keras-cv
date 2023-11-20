@@ -122,6 +122,9 @@ class FeaturePyramidTest(TestCase):
         c3 = np.ones([2, 32, 32, 3])
         c4 = np.ones([2, 16, 16, 3])
         c5 = np.ones([2, 8, 8, 3])
+        inputs = {2: c2, 3: c3, 4: c4, 5: c5}
+        # Build required for Keas 3
+        _ = layer(inputs)
         list_input = [c2, c3, c4, c5]
         with self.assertRaisesRegexp(
             ValueError, "expects input features to be a dict"

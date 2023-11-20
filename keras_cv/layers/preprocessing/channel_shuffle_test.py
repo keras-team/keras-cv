@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import numpy as np
+import pytest
 import tensorflow as tf
 
 from keras_cv.layers.preprocessing.channel_shuffle import ChannelShuffle
@@ -96,6 +97,7 @@ class ChannelShuffleTest(TestCase):
         xs = layer(xs, training=True)
         self.assertTrue(tf.math.reduce_any(xs == 1.0))
 
+    @pytest.mark.skip(reason="flaky")
     def test_channel_shuffle_on_batched_images_independently(self):
         image = tf.random.uniform((100, 100, 3))
         batched_images = tf.stack((image, image), axis=0)

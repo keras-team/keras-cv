@@ -30,7 +30,7 @@ class RandomAddLayer(BaseImageAugmentationLayer):
     def get_random_transformation(self, **kwargs):
         if self.fixed_value:
             return self.fixed_value
-        return self._random_generator.random_uniform(
+        return self._random_generator.uniform(
             [], minval=self.value_range[0], maxval=self.value_range[1]
         )
 

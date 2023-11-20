@@ -60,7 +60,9 @@ class RandomCrop(VectorizedBaseImageAugmentationLayer):
         self, height, width, seed=None, bounding_box_format=None, **kwargs
     ):
         super().__init__(
-            **kwargs, autocast=False, seed=seed, force_generator=True
+            **kwargs,
+            autocast=False,
+            seed=seed,
         )
         self.height = height
         self.width = width
@@ -79,13 +81,13 @@ class RandomCrop(VectorizedBaseImageAugmentationLayer):
 
     def get_random_transformation_batch(self, batch_size, **kwargs):
         tops = tf.cast(
-            self._random_generator.random_uniform(
+            self._random_generator.uniform(
                 shape=(batch_size, 1), minval=0, maxval=1
             ),
             self.compute_dtype,
         )
         lefts = tf.cast(
-            self._random_generator.random_uniform(
+            self._random_generator.uniform(
                 shape=(batch_size, 1), minval=0, maxval=1
             ),
             self.compute_dtype,

@@ -57,10 +57,12 @@ class MixUp(BaseImageAugmentationLayer):
 
     def _sample_from_beta(self, alpha, beta, shape):
         sample_alpha = tf.random.gamma(
-            shape, alpha=alpha, seed=self._random_generator.make_legacy_seed()
+            shape,
+            alpha=alpha,
         )
         sample_beta = tf.random.gamma(
-            shape, alpha=beta, seed=self._random_generator.make_legacy_seed()
+            shape,
+            alpha=beta,
         )
         return sample_alpha / (sample_alpha + sample_beta)
 

@@ -63,8 +63,6 @@ setup(
             "black[jupyter]",
             "pytest",
             "pycocotools",
-            "tensorflow",
-            "keras-core",
         ],
         "examples": ["tensorflow_datasets", "matplotlib"],
     },

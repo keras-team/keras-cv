@@ -40,6 +40,7 @@ jobs:
           pip install -r requirements.txt --progress-bar off
       - name: Build wheel file
         run: |
+          export BUILD_WITH_CUSTOM_OPS=false
           python pip_build.py --nightly
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1

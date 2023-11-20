@@ -17,6 +17,10 @@ from keras_cv.backend.config import multi_backend
 if keras_3():
     from keras.ops import *  # noqa: F403, F401
     from keras.preprocessing.image import smart_resize  # noqa: F403, F401
+
+    from keras_cv.backend import keras
+
+    name_scope = keras.name_scope
 else:
     try:
         from keras.src.ops import *  # noqa: F403, F401

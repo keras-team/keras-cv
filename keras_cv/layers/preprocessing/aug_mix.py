@@ -106,7 +106,6 @@ class AugMix(BaseImageAugmentationLayer):
         gamma_sample = tf.random.gamma(
             shape=(),
             alpha=alpha,
-            seed=self._random_generator.make_legacy_seed(),
         )
         return gamma_sample / tf.reduce_sum(
             gamma_sample, axis=-1, keepdims=True
@@ -114,15 +113,17 @@ class AugMix(BaseImageAugmentationLayer):
 
     def _sample_from_beta(self, alpha, beta):
         sample_alpha = tf.random.gamma(
-            (), alpha=alpha, seed=self._random_generator.make_legacy_seed()
+            (),
+            alpha=alpha,
         )
         sample_beta = tf.random.gamma(
-            (), alpha=beta, seed=self._random_generator.make_legacy_seed()
+            (),
+            alpha=beta,
         )
         return sample_alpha / (sample_alpha + sample_beta)
 
     def _sample_depth(self):
-        return self._random_generator.random_uniform(
+        return self._random_generator.uniform(
             shape=(),
             minval=self.chain_depth[0],
             maxval=self.chain_depth[1] + 1,
@@ -130,7 +131,7 @@ class AugMix(BaseImageAugmentationLayer):
         )
 
     def _loop_on_depth(self, depth_level, image_aug):
-        op_index = self._random_generator.random_uniform(
+        op_index = self._random_generator.uniform(
             shape=(), minval=0, maxval=8, dtype=tf.int32
         )
         image_aug = self._apply_op(image_aug, op_index)
