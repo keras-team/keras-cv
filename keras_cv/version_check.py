@@ -15,13 +15,15 @@
 """KerasCV Version check."""
 
 try:
-      import tensorflow as tf
-except ModuleNotFoundError as e:
-      raise ModuleNotFoundError("KerasCV uses TensorFlow for its "
-                                "preprocessing layers. While this dependency "
-                                "will be dropped in the future, please install "
-                                "TensorFlow with `pip install tensorflow` to "
-                                "use KerasCV")
+    import tensorflow as tf
+except ModuleNotFoundError:
+    raise ModuleNotFoundError(
+        "KerasCV uses TensorFlow for its "
+        "preprocessing layers. While this dependency "
+        "will be dropped in the future, please install "
+        "TensorFlow with `pip install tensorflow` to "
+        "use KerasCV"
+    )
 from packaging.version import parse
 
 MIN_VERSION = "2.11.0"
