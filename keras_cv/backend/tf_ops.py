@@ -44,6 +44,3 @@ from tensorflow import range as arange  # noqa: F403, F401
 from tensorflow import reduce_all as all  # noqa: F403, F401
 from tensorflow import reduce_max as max  # noqa: F403, F401
 from tensorflow import split  # noqa: F403, F401
-from tensorflow.keras.preprocessing.image import (  # noqa: F403, F401
-    smart_resize,
-)

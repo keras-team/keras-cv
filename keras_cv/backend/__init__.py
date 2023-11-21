@@ -19,12 +19,12 @@ from keras_cv.backend import tf_ops  # noqa: E402
 
 
 def assert_tf_keras(src):
-    if config.multi_backend():
+    if config.keras_3():
         raise NotImplementedError(
-            f"KerasCV component {src} does not yet support Keras Core, and can "
+            f"KerasCV component {src} does not yet support Keras 3, and can "
             "only be used in `tf.keras`."
         )
 
 
 def supports_ragged():
-    return not config.multi_backend()
+    return not config.keras_3()
