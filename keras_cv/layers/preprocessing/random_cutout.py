@@ -15,15 +15,15 @@
 import tensorflow as tf
 
 from keras_cv.api_export import keras_cv_export
-from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
-    BaseImageAugmentationLayer,
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
+    VectorizedBaseImageAugmentationLayer,
 )
 from keras_cv.utils import fill_utils
 from keras_cv.utils import preprocessing
 
 
 @keras_cv_export("keras_cv.layers.RandomCutout")
-class RandomCutout(BaseImageAugmentationLayer):
+class RandomCutout(VectorizedBaseImageAugmentationLayer):
     """Randomly cut out rectangles from images and fill them.
 
     Args:
@@ -90,63 +90,72 @@ class RandomCutout(BaseImageAugmentationLayer):
                 f'or "constant". Got `fill_mode`={fill_mode}'
             )
 
-    def _parse_bounds(self, factor):
-        if isinstance(factor, (tuple, list)):
-            return factor[0], factor[1]
-        else:
-            return type(factor)(0), factor
+    def get_random_transformation_batch(self, batch_size, images, **kwargs):
+        centers_x, centers_y = self._compute_rectangle_position(images)
+        rectangles_height, rectangles_width = self._compute_rectangle_size(images)
+        return centers_x, centers_y, rectangles_height, rectangles_width
 
-    def get_random_transformation(self, image=None, **kwargs):
-        center_x, center_y = self._compute_rectangle_position(image)
-        rectangle_height, rectangle_width = self._compute_rectangle_size(image)
-        return center_x, center_y, rectangle_height, rectangle_width
-
-    def augment_image(self, image, transformation=None, **kwargs):
+    def augment_images(self, images, transformations=None, **kwargs):
         """Apply random cutout."""
-        inputs = tf.expand_dims(image, 0)
-        center_x, center_y, rectangle_height, rectangle_width = transformation
+        centers_x, centers_y, rectangles_height, rectangles_width = transformations
 
-        rectangle_fill = self._compute_rectangle_fill(inputs)
-        inputs = fill_utils.fill_rectangle(
-            inputs,
-            center_x,
-            center_y,
-            rectangle_width,
-            rectangle_height,
-            rectangle_fill,
+        rectangles_fill = self._compute_rectangle_fill(images)
+        images = fill_utils.fill_rectangle(
+            images,
+            centers_x,
+            centers_y,
+            rectangles_width,
+            rectangles_height,
+            rectangles_fill,
         )
-        return inputs[0]
+        return images
 
-    def augment_label(self, label, transformation=None, **kwargs):
-        return label
+    def augment_bounding_boxes(self, bounding_boxes, **kwargs):
+        return bounding_boxes
 
-    def augment_segmentation_mask(
-        self, segmentation_masks, transformation=None, **kwargs
+    def augment_labels(self, labels, transformations=None, **kwargs):
+        return labels
+
+    def augment_segmentation_masks(
+        self, segmentation_masks, transformations, **kwargs
     ):
         return segmentation_masks
 
+    def augment_keypoints(self, keypoints, transformations, **kwargs):
+        return keypoints
+
+    def augment_targets(self, targets, transformations, **kwargs):
+        return targets
+
+    def augment_ragged_image(self, image, transformation, **kwargs):
+        return self.augment_images(
+            image, transformations=transformation, **kwargs
+        )
+
     def _compute_rectangle_position(self, inputs):
         input_shape = tf.shape(inputs)
-        image_height, image_width = (
+        batch_size, image_height, image_width = (
             input_shape[0],
             input_shape[1],
+            input_shape[2],
         )
         center_x = self._random_generator.uniform(
-            [1], 0, image_width, dtype=tf.int32
+            [batch_size], 0, image_width, dtype=tf.int32
         )
         center_y = self._random_generator.uniform(
-            [1], 0, image_height, dtype=tf.int32
+            [batch_size], 0, image_height, dtype=tf.int32
         )
         return center_x, center_y
 
     def _compute_rectangle_size(self, inputs):
         input_shape = tf.shape(inputs)
-        image_height, image_width = (
+        batch_size, image_height, image_width = (
             input_shape[0],
             input_shape[1],
+            input_shape[2],
         )
-        height = self.height_factor()
-        width = self.width_factor()
+        height = self.height_factor(shape=(batch_size,))
+        width = self.width_factor(shape=(batch_size,))
 
         height = height * tf.cast(image_height, tf.float32)
         width = width * tf.cast(image_width, tf.float32)
@@ -157,7 +166,7 @@ class RandomCutout(BaseImageAugmentationLayer):
         height = tf.minimum(height, image_height)
         width = tf.minimum(width, image_width)
 
-        return tf.expand_dims(height, axis=0), tf.expand_dims(width, axis=0)
+        return height, width
 
     def _compute_rectangle_fill(self, inputs):
         input_shape = tf.shape(inputs)
@@ -167,16 +176,21 @@ class RandomCutout(BaseImageAugmentationLayer):
         else:
             # gaussian noise
             fill_value = tf.random.normal(input_shape, dtype=self.compute_dtype)
-
+            # rescale the random noise to the original image range
+            image_max = tf.reduce_max(inputs)
+            image_min = tf.reduce_min(inputs)
+            fill_max = tf.reduce_max(fill_value)
+            fill_min = tf.reduce_min(fill_value)
+            fill_value = (image_max - image_min) * (fill_value - fill_min) / (fill_max - fill_min) + image_min
         return fill_value
 
     def get_config(self):
-        config = {
+        config = super().get_config()
+        config.update({
             "height_factor": self.height_factor,
             "width_factor": self.width_factor,
             "fill_mode": self.fill_mode,
             "fill_value": self.fill_value,
             "seed": self.seed,
-        }
-        base_config = super().get_config()
-        return dict(list(base_config.items()) + list(config.items()))
+        })
+        return config
