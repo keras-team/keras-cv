@@ -46,7 +46,6 @@ class WaymoEvaluationCallback(Callback):
         assert_waymo_open_dataset_installed(
             "keras_cv.callbacks.WaymoEvaluationCallback()"
         )
-        self.model = None
         self.val_data = validation_data
         self.evaluator = WODDetectionEvaluator(
             config=config or self._get_default_config()
