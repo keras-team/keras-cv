@@ -46,7 +46,6 @@ class PyCOCOCallback(Callback):
                 operations and passing `cache=False`.
         """
         assert_pycocotools_installed("PyCOCOCallback")
-        self.model = None
         self.val_data = validation_data
         if cache:
             # We cache the dataset to preserve a consistent iteration order.
