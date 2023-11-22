@@ -88,7 +88,7 @@ class DeepLabV3PlusTest(TestCase):
         self.assertAllClose(output, expected_output)
 
     @pytest.mark.large  # Saving is slow, so mark these large.
-    def test_saved_model(self, save_format, filename):
+    def test_saved_model(self):
         target_size = [512, 512, 3]
 
         backbone = ResNet18V2Backbone(input_shape=target_size)
