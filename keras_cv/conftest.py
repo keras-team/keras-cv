@@ -45,7 +45,7 @@ def pytest_configure(config):
     )
     config.addinivalue_line(
         "markers",
-        "tf_keras_only: mark test as a tf.keras-only test",
+        "tf_keras_only: mark test as a Keras 2-only test",
     )
     config.addinivalue_line(
         "markers",
@@ -71,7 +71,7 @@ def pytest_collection_modifyitems(config, items):
     )
     skip_keras_2_only = pytest.mark.skipif(
         keras_3(),
-        reason="This test is only supported on tf.keras",
+        reason="This test is only supported on Keras 2",
     )
     skip_tf_only = pytest.mark.skipif(
         keras_3() and keras_core.backend.backend() != "tensorflow",

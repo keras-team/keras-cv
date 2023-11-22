@@ -43,7 +43,7 @@ PyTorch.
 To install the latest KerasCV release with Keras 2, simply run:
 
 ```
-pip install --upgrade keras-cv
+pip install --upgrade keras-cv tensorflow
 ```
 
 ### Keras 3 Installation
@@ -53,7 +53,7 @@ latest changes for KerasCV and Keras, you can use our nightly package.
 
 
 ```
-pip install --upgrade keras-cv-nightly
+pip install --upgrade keras-cv-nightly tf-nightly
 ```
 
 To install the stable versions of KerasCV and Keras 3, you should install Keras
@@ -96,7 +96,7 @@ using it on top of your backend of choice:
 
 ```python
 import keras_cv
-from keras_cv.backend import keras
+import keras
 
 filepath = keras.utils.get_file(origin="https://i.imgur.com/gCNcJJI.jpg")
 image = np.array(keras.utils.load_img(filepath))
@@ -115,7 +115,7 @@ predictions = model.predict(image_resized)
 import tensorflow as tf
 import keras_cv
 import tensorflow_datasets as tfds
-from keras_cv.backend import keras
+import keras
 
 # Create a preprocessing pipeline with augmentations
 BATCH_SIZE = 16
@@ -267,7 +267,7 @@ Here is the BibTeX entry:
 ```bibtex
 @misc{wood2022kerascv,
   title={KerasCV},
-  author={Wood, Luke and Tan, Zhenyu and Stenbit, Ian and Bischof, Jonathan and Zhu, Scott and Chollet, Fran\c{c}ois and others},
+  author={Wood, Luke and Tan, Zhenyu and Stenbit, Ian and Bischof, Jonathan and Zhu, Scott and Chollet, Fran\c{c}ois and Sreepathihalli, Divyashree},
   year={2022},
   howpublished={\url{https://github.com/keras-team/keras-cv}},
 }
