@@ -22,6 +22,7 @@ from absl.testing import parameterized
 
 from keras_cv.backend import keras
 from keras_cv.backend import ops
+from keras_cv.backend.config import keras_3
 from keras_cv.models.backbones.vit_det.vit_det_aliases import ViTDetBBackbone
 from keras_cv.models.segmentation.segment_anything.sam import (
     SegmentAnythingModel,
@@ -282,7 +283,10 @@ class SAMTest(TestCase):
 
         # Save the model
         save_path = os.path.join(self.get_temp_dir(), "model.keras")
-        model.save(save_path, save_format="keras_v3")
+        if keras_3():
+            model.save(save_path)
+        else:
+            model.save(save_path, save_format="keras_v3")
         restored_model = keras.models.load_model(save_path)
 
         # Check we got the real object back.
