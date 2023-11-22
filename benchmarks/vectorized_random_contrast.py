@@ -60,7 +60,7 @@ class OldRandomContrast(BaseImageAugmentationLayer):
     """
 
     def __init__(self, factor, seed=None, **kwargs):
-        super().__init__(seed=seed, force_generator=True, **kwargs)
+        super().__init__(seed=seed, **kwargs)
         if isinstance(factor, (tuple, list)):
             min = 1 - factor[0]
             max = 1 + factor[1]

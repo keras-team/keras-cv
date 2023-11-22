@@ -65,9 +65,7 @@ class RandomHue(VectorizedBaseImageAugmentationLayer):
         self.seed = seed
 
     def get_random_transformation_batch(self, batch_size, **kwargs):
-        invert = self._random_generator.random_uniform(
-            (batch_size,), 0, 1, tf.float32
-        )
+        invert = self._random_generator.uniform((batch_size,), 0, 1, tf.float32)
         invert = tf.where(
             invert > 0.5, -tf.ones_like(invert), tf.ones_like(invert)
         )

@@ -3,6 +3,7 @@ name: Tests
 on:
   push:
   pull_request:
+  workflow_call:
   release:
     types: [created]
 
@@ -10,13 +11,13 @@ permissions:
   contents: read
 
 jobs:
-  test:
-    name: Test the code with tf.keras
+  keras_2:
+    name: Test the code with Keras 2
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python 3.9
-      uses: actions/setup-python@v1
+      uses: actions/setup-python@v4
       with:
         python-version: 3.9
     - name: Get pip cache dir
@@ -33,7 +34,7 @@ jobs:
           ${{ runner.os }}-pip-
     - name: Install dependencies
       run: |
-        pip install tensorflow>=2.13.0
+        pip install tensorflow~=2.14
         pip install torch>=2.0.1+cpu
         pip install "jax[cpu]"
         pip install keras-core
@@ -43,17 +44,17 @@ jobs:
         TEST_CUSTOM_OPS: false
       run: |
         pytest keras_cv/ --ignore keras_cv/models/legacy/ --durations 0
-  multibackend:
-    name: Test the code with Keras Core
+  keras_3:
+    name: Test the code with Keras 3
     strategy:
       fail-fast: false
       matrix:
         backend: [tensorflow, jax, torch]
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python 3.9
-      uses: actions/setup-python@v1
+      uses: actions/setup-python@v4
       with:
         python-version: 3.9
     - name: Get pip cache dir
@@ -70,11 +71,7 @@ jobs:
           ${{ runner.os }}-pip-
     - name: Install dependencies
       run: |
-        pip install tensorflow>=2.13.0
-        pip install "jax[cpu]"
-        pip install torch>=2.0.1+cpu
-        pip install torchvision>=0.15.1
-        pip install keras-core
+        pip install -r requirements.txt
         pip install -e ".[tests]" --progress-bar off --upgrade
     - name: Test with pytest
       env:
@@ -98,9 +95,9 @@ jobs:
     name: Check the code format
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python 3.9
-      uses: actions/setup-python@v1
+      uses: actions/setup-python@v4
       with:
         python-version: 3.9
     - name: Get pip cache dir
@@ -117,7 +114,7 @@ jobs:
           ${{ runner.os }}-pip-
     - name: Install dependencies
       run: |
-        pip install tensorflow>=2.13.0
+        pip install tensorflow~=2.14
         pip install -e ".[tests]" --progress-bar off --upgrade
     - name: Lint
       run: bash shell/lint.sh

@@ -40,7 +40,6 @@ the master branch in [keras-team/keras-cv](https://github.com/keras-team/keras-c
 After creating the pull request, you will need to sign the Google CLA agreement.
 The agreement can be found at [https://cla.developers.google.com/clas](https://cla.developers.google.com/clas).
 
-
 ### Step 5. Code review
 
 CI tests will automatically be run directly on your pull request. Their
@@ -57,6 +56,7 @@ approved by the reviewer.
 Once the pull request is approved, a team member will take care of merging.
 
 ## Contributing models
+
 When contributing new models, please validate model performance by providing training results. You can do this using our existing [ImageNet training script](https://github.com/keras-team/keras-cv/blob/master/examples/training/classification/imagenet/basic_training.py) or by contributing a custom training script of your own (see "Contributing training scripts" below). Training results can be added to the training history log with [this script](https://github.com/keras-team/keras-cv/blob/master/shell/weights/update_training_history.py), or shared with the team via Google Drive (we'll need TensorBoard logs as well as weights). Either way, the KerasCV team will need to upload the weights to our GCS bucket for distribution.
 
 For an initial submission, trained weights do not need to exactly match paper-claimed results. As a baseline, let's shoot for 90% of the paper-claimed ImageNet top-1 accuracy. However, we should strive to improve these weights quickly to at least match paper-claimed results.
@@ -74,6 +74,7 @@ You can also open an issue to add weights for a specific model using a pre-exist
 To contribute a new script, start by opening an issue and tagging @ianstenbit to discuss the task, dataset, and/or model for which you'd like to add a script. Once they've taken a look, you can prepare a PR to introduce the new training script.
 
 See [this example script](https://github.com/keras-team/keras-cv/blob/master/examples/training/classification/imagenet/basic_training.py) for training ImageNet classification. Please follow the structure of this training script in contributing your own script. New scripts should either:
+
 - Train a task for which we don't have a training script already
 - Include a meaningfully different training approach for a given task
 - Introduce a custom training method for a specific model or dataset, based on empirical evidence of efficacy.
@@ -103,7 +104,7 @@ You can achieve this by running the following commands:
 gh repo fork keras-team/keras-cv --clone --remote
 cd keras-cv
 pip install ".[tests]"
-python setup.py develop
+pip install -e .
 ```
 
 The first line relies on having an installation of [the GitHub CLI](https://github.com/cli/cli).
@@ -126,7 +127,7 @@ KerasCV is tested using [PyTest](https://docs.pytest.org/en/6.2.x/).
 
 ### Run a test file
 
-To run a test file, run `pytest path/to/file` from the root directory of keras\_cv.
+To run a test file, run `pytest path/to/file` from the root directory of keras_cv.
 
 ### Run a single test case
 
@@ -142,12 +143,15 @@ pytest keras_cv/layers/preprocessing/cut_mix_test.py -k="label"
 ### Run all tests
 
 You can run the unit tests for KerasCV by running:
+
 ```
 pytest keras_cv/
 ```
 
 ### Tests that require custom ops
+
 For tests that require custom ops, you'll have to compile the custom ops and make them available to your local Python code:
+
 ```shell
 python build_deps/configure.py
 bazel build keras_cv/custom_ops:all
@@ -157,6 +161,7 @@ cp bazel-bin/keras_cv/custom_ops/*.so keras_cv/custom_ops/
 Tests which use custom ops are disabled by default, but can be run by setting the environment variable `TEST_CUSTOM_OPS=true`.
 
 ## Formatting the Code
+
 We use `flake8`, `isort`, `black` and `clang-format` for code formatting. You can run
 the following commands manually every time you want to format your code:
 
@@ -168,7 +173,7 @@ This can be done by running `pip install --upgrade black`, `pip install --upgrad
 `pip install --upgrade isort` and `pip install --upgrade clang-format`
 
 Note: The linting checks could be automated activating  
-      pre-commit hooks with `git config core.hooksPath .github/.githooks`
+ pre-commit hooks with `git config core.hooksPath .github/.githooks`
 
 ## Community Guidelines
 

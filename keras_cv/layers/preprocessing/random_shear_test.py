@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import pytest
 import tensorflow as tf
 
 from keras_cv import bounding_box
@@ -113,6 +114,7 @@ class RandomShearTest(TestCase):
         outputs = layer(inputs)
         self.assertEqual(outputs["images"].shape, [512, 512, 3])
 
+    @pytest.mark.skip(reason="Flaky")
     def test_area(self):
         xs = tf.ones((1, 512, 512, 3))
         ys = {

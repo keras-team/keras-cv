@@ -96,7 +96,7 @@ class RandomTranslation(VectorizedBaseImageAugmentationLayer):
         bounding_box_format=None,
         **kwargs,
     ):
-        super().__init__(seed=seed, force_generator=True, **kwargs)
+        super().__init__(seed=seed, **kwargs)
         self.height_factor = height_factor
         if isinstance(height_factor, (tuple, list)):
             self.height_lower = height_factor[0]
@@ -144,13 +144,13 @@ class RandomTranslation(VectorizedBaseImageAugmentationLayer):
         self.bounding_box_format = bounding_box_format
 
     def get_random_transformation_batch(self, batch_size, **kwargs):
-        height_translations = self._random_generator.random_uniform(
+        height_translations = self._random_generator.uniform(
             shape=[batch_size, 1],
             minval=self.height_lower,
             maxval=self.height_upper,
             dtype=tf.float32,
         )
-        width_translations = self._random_generator.random_uniform(
+        width_translations = self._random_generator.uniform(
             shape=[batch_size, 1],
             minval=self.width_lower,
             maxval=self.width_upper,

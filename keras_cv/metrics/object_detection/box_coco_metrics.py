@@ -139,6 +139,8 @@ class BoxCOCOMetrics(keras.metrics.Metric):
     """
 
     def __init__(self, bounding_box_format, evaluate_freq, name=None, **kwargs):
+        if "dtype" not in kwargs:
+            kwargs["dtype"] = "float32"
         super().__init__(name=name, **kwargs)
         self.ground_truths = []
         self.predictions = []

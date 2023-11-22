@@ -205,7 +205,12 @@ class NoiseScheduler:
             sqrt_one_minus_alpha_prod = ops.expand_dims(
                 sqrt_one_minus_alpha_prod, axis=-1
             )
-
+        sqrt_alpha_prod = ops.cast(
+            sqrt_alpha_prod, dtype=original_samples.dtype
+        )
+        sqrt_one_minus_alpha_prod = ops.cast(
+            sqrt_one_minus_alpha_prod, dtype=noise.dtype
+        )
         noisy_samples = (
             sqrt_alpha_prod * original_samples
             + sqrt_one_minus_alpha_prod * noise

@@ -1,17 +1,19 @@
-name: Release
+name: Nightly
 
 on:
-  release:
-    types: [published]
+  workflow_dispatch: # To Generate wheels on demand outside of schedule.
+  schedule:
+    - cron: '0 3 * * *' # run at 3 AM UTC / 8 PM PDT
 
 permissions:
   contents: read
 
 jobs:
-  run-test-for-release:
+  run-test-for-nightly:
     uses: ./.github/workflows/actions.yml
-  release:
-    name: Build and publish to PyPI
+  nightly:
+    name: Build Wheel file and upload
+    needs: [run-test-for-nightly]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -33,13 +35,16 @@ jobs:
             ${{ runner.os }}-pip-
       - name: Install dependencies
         run: |
-            pip install -r requirements.txt --progress-bar off
-      - name: Build a binary wheel and a source tarball
+          python -m pip install --upgrade pip setuptools
+          pip install twine
+          pip install -r requirements.txt --progress-bar off
+      - name: Build wheel file
         run: |
           export BUILD_WITH_CUSTOM_OPS=false
-          python pip_build.py
-      - name: Publish distribution to PyPI
-        if: startsWith(github.ref, 'refs/tags')
-        uses: pypa/gh-action-pypi-publish@master
+          python pip_build.py --nightly
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          password: ${{ secrets.PYPI_API_TOKEN }}
+          password: ${{ secrets.PYPI_NIGHTLY_API_TOKEN }}
+          packages-dir: dist/
+          verbose: true
