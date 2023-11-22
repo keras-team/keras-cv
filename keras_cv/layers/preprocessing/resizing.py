@@ -16,7 +16,7 @@ import tensorflow as tf
 
 from keras_cv import bounding_box
 from keras_cv.api_export import keras_cv_export
-from keras_cv.backend import ops
+from keras_cv.backend import tf_ops
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
@@ -309,7 +309,7 @@ class Resizing(BaseImageAugmentationLayer):
         def resize_with_crop_to_aspect(x, interpolation_method):
             if isinstance(x, tf.RaggedTensor):
                 x = x.to_tensor()
-            return ops.smart_resize(
+            return tf_ops.smart_resize(
                 x,
                 size=size,
                 interpolation=interpolation_method,
