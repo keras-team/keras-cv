@@ -87,7 +87,6 @@ class DeepLabV3PlusTest(TestCase):
         self.assertAllClose(output, expected_output)
 
     @parameterized.named_parameters(
-        ("tf_format", "tf", "model"),
         ("keras_format", "keras_v3", "model.keras"),
     )
     @pytest.mark.large  # Saving is slow, so mark these large.
