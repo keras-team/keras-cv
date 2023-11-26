@@ -27,9 +27,22 @@ else:
     _keras_dir = os.path.join(_keras_base_dir, ".keras")
 
 
-def detect_if_keras_3_installed():
+def detect_if_tensorflow_uses_keras_3():
     # We follow the version of keras that tensorflow is configured to use.
+    import os
+
     import keras
+
+    # Return False if env variable is set and `tf_keras` is installed.
+    use_legacy_keras = os.environ.get("TF_USE_LEGACY_KERAS", "")
+    if use_legacy_keras == "1" or use_legacy_keras.lower() == "true":
+        try:
+            import tf_keras  # noqa: F401
+
+            return False
+        except ImportError:
+            # `tf_keras` is not installed
+            pass
 
     # Note that only recent versions of keras have a `version()` function.
     if hasattr(keras, "version") and keras.version().startswith("3."):
@@ -39,7 +52,7 @@ def detect_if_keras_3_installed():
     return False
 
 
-_USE_KERAS_3 = detect_if_keras_3_installed()
+_USE_KERAS_3 = detect_if_tensorflow_uses_keras_3()
 if _USE_KERAS_3:
     _MULTI_BACKEND = True
 
