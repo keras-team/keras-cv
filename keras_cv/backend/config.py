@@ -29,8 +29,6 @@ else:
 
 def detect_if_tensorflow_uses_keras_3():
     # We follow the version of keras that tensorflow is configured to use.
-    import os
-
     import keras
 
     # Return False if env variable is set and `tf_keras` is installed.
