@@ -29,22 +29,19 @@ else:
 
 def detect_if_tensorflow_uses_keras_3():
     # We follow the version of keras that tensorflow is configured to use.
-    import keras
+    try:
+        from tensorflow import keras
 
-    # Return False if env variable is set and `tf_keras` is installed.
-    use_legacy_keras = os.environ.get("TF_USE_LEGACY_KERAS", "")
-    if use_legacy_keras == "1" or use_legacy_keras.lower() == "true":
-        try:
-            import tf_keras  # noqa: F401
-
-            return False
-        except ImportError:
-            # `tf_keras` is not installed
-            pass
-
-    # Note that only recent versions of keras have a `version()` function.
-    if hasattr(keras, "version") and keras.version().startswith("3."):
-        return True
+        # Note that only recent versions of keras have a `version()` function.
+        if hasattr(keras, "version") and keras.version().startswith("3."):
+            return True
+    except:
+        raise ValueError(
+            "Unable to import `keras` with `tensorflow`.  Please check your "
+            "Keras and Tensorflow version are compatible; Keras 3 requires "
+            "TensorFlow 2.15 or later. See keras.io/getting_started for more "
+            "information on installing Keras."
+        )
 
     # No `keras.version()` means we are on an old version of keras.
     return False
