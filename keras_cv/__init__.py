@@ -42,4 +42,3 @@ from keras_cv.core import FactorSampler
 from keras_cv.core import NormalFactorSampler
 from keras_cv.core import UniformFactorSampler
 from keras_cv.version import __version__
-

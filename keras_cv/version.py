@@ -17,7 +17,7 @@ from keras_cv.api_export import keras_cv_export
 # Unique source of truth for the version number.
 __version__ = "0.7.0"
 
+
 @keras_cv_export("keras_cv.version")
 def version():
-  return __version__
-
+    return __version__
