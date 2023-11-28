@@ -21,6 +21,21 @@ from setuptools import find_packages
 from setuptools import setup
 from setuptools.dist import Distribution
 
+
+def read(rel_path):
+    here = os.path.abspath(os.path.dirname(__file__))
+    with open(os.path.join(here, rel_path)) as fp:
+        return fp.read()
+
+
+def get_version(rel_path):
+    for line in read(rel_path).splitlines():
+        if line.startswith("__version__"):
+            delim = '"' if '"' in line else "'"
+            return line.split(delim)[1]
+    raise RuntimeError("Unable to find version string.")
+
+
 BUILD_WITH_CUSTOM_OPS = (
     "BUILD_WITH_CUSTOM_OPS" in os.environ
     and os.environ["BUILD_WITH_CUSTOM_OPS"] == "true"
@@ -28,6 +43,7 @@ BUILD_WITH_CUSTOM_OPS = (
 
 HERE = pathlib.Path(__file__).parent
 README = (HERE / "README.md").read_text()
+VERSION = get_version("keras_cv/version.py")
 
 
 class BinaryDistribution(Distribution):
@@ -45,6 +61,7 @@ setup(
     description="Industry-strength computer Vision extensions for Keras.",
     long_description=README,
     long_description_content_type="text/markdown",
+    version=VERSION,
     url="https://github.com/keras-team/keras-cv",
     author="Keras team",
     author_email="keras-cv@google.com",
