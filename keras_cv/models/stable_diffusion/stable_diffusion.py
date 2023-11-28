@@ -234,8 +234,9 @@ class StableDiffusionBase:
                 unconditional_latent
                 + unconditional_guidance_scale * (latent - unconditional_latent)
             )
-            a_t, a_prev = alphas[index], alphas_prev[index]
+            # Keras backend array need to cast explicitly
             latent = ops.cast(latent, latent_prev.dtype)
+            a_t, a_prev = alphas[index], alphas_prev[index]
             pred_x0 = (latent_prev - math.sqrt(1 - a_t) * latent) / math.sqrt(
                 a_t
             )
