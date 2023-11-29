@@ -29,17 +29,25 @@ KAGGLE_PREFIX = "kaggle://"
 def get_file(preset, path):
     """Download a preset file in necessary and return the local path."""
     if preset.startswith(KAGGLE_PREFIX):
-        kaggle_handle = preset.removeprefix(KAGGLE_PREFIX)
         if kagglehub is None:
             raise ImportError(
                 "`from_preset()` requires the `kagglehub` package. "
                 "Please install with `pip install kagglehub`."
             )
-        if len(kaggle_handle.split("/")) not in (4, 5):
+        segments = preset.removeprefix(KAGGLE_PREFIX).split("/")
+        # Insert the kaggle framework into the handle.
+        if len(segments) == 3:
+            org, model, variant = segments
+            kaggle_handle = f"{org}/{model}/keras/{variant}/1"
+        elif len(segments) == 4:
+            org, model, variant, version = segments
+            kaggle_handle = f"{org}/{model}/keras/{variant}/{version}"
+        else:
             raise ValueError(
-                "Unexpected kaggle preset handle. Kaggle model handles should have "
-                "the form kaggle://{org}/{model}/keras/{variant}[/{version}]. For "
-                "example, kaggle://keras-nlp/albert/keras/bert_base_en_uncased."
+                "Unexpected kaggle preset handle. Kaggle model handles should "
+                "have the form kaggle://{org}/{model}/{variant}[/{version}]. "
+                "For example, 'kaggle://keras/bert/bert_base_en'. "
+                f"Received: preset={preset}"
             )
         return kagglehub.model_download(kaggle_handle, path)
     return os.path.join(preset, path)

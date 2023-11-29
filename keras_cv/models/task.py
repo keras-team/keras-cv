@@ -160,7 +160,7 @@ class Task(keras.Model):
                 preset, load_weights, input_shape, **kwargs
             )
 
-        preset_cls = check_preset_class(preset, cls)
+        check_preset_class(preset, cls)
 
         # Backbone case.
         if preset in cls.backbone_presets:
