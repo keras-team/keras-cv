@@ -17,6 +17,7 @@ import os
 
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
+from keras_cv.models.backbones.backbone import Backbone
 from keras_cv.utils.preset_utils import check_preset_class
 from keras_cv.utils.preset_utils import load_from_preset
 from keras_cv.utils.python_utils import classproperty
@@ -167,7 +168,7 @@ class Task(keras.Model):
         preset_cls = check_preset_class(preset, (cls, cls.backbone_cls))
 
         # Backbone case.
-        if preset_cls == cls.backbone_cls:
+        if issubclass(preset_cls, Backbone):
             backbone = load_from_preset(
                 preset,
                 load_weights=load_weights,
