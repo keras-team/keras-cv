@@ -75,6 +75,10 @@ class Task(keras.Model):
         }
 
     @classproperty
+    def backbone_cls(cls):
+        return None
+
+    @classproperty
     def backbone_presets(cls):
         """Dictionary of preset names and configs for compatible backbones."""
         return {}
@@ -160,10 +164,10 @@ class Task(keras.Model):
                 preset, load_weights, input_shape, **kwargs
             )
 
-        check_preset_class(preset, cls)
+        preset_cls = check_preset_class(preset, (cls, cls.backbone_cls))
 
         # Backbone case.
-        if preset in cls.backbone_presets:
+        if preset_cls == cls.backbone_cls:
             backbone = load_from_preset(
                 preset,
                 load_weights=load_weights,

@@ -46,7 +46,7 @@ def get_file(preset, path):
             raise ValueError(
                 "Unexpected kaggle preset handle. Kaggle model handles should "
                 "have the form kaggle://{org}/{model}/{variant}[/{version}]. "
-                "For example, 'kaggle://keras/bert/bert_base_en'. "
+                "For example, 'kaggle://keras/retinanet/retinanet_base_en'. "
                 f"Received: preset={preset}"
             )
         return kagglehub.model_download(kaggle_handle, path)
