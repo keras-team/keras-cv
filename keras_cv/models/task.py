@@ -17,6 +17,9 @@ import os
 
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
+from keras_cv.models.backbones.backbone import Backbone
+from keras_cv.utils.preset_utils import check_preset_class
+from keras_cv.utils.preset_utils import load_from_preset
 from keras_cv.utils.python_utils import classproperty
 from keras_cv.utils.python_utils import format_docstring
 
@@ -73,9 +76,53 @@ class Task(keras.Model):
         }
 
     @classproperty
+    def backbone_cls(cls):
+        return None
+
+    @classproperty
     def backbone_presets(cls):
         """Dictionary of preset names and configs for compatible backbones."""
         return {}
+
+    @classmethod
+    def _legacy_from_preset(
+        cls,
+        preset,
+        load_weights=True,
+        input_shape=None,
+        **kwargs,
+    ):
+        metadata = cls.presets[preset]
+        # Check if preset is backbone-only model
+        if preset in cls.backbone_presets:
+            backbone_cls = keras.saving.get_registered_object(
+                metadata["class_name"]
+            )
+            backbone = backbone_cls.from_preset(preset, load_weights)
+            return cls(backbone, **kwargs)
+
+        # Otherwise must be one of class presets
+        config = metadata["config"]
+        if input_shape is not None:
+            config["backbone"]["config"]["input_shape"] = input_shape
+        model = cls.from_config({**config, **kwargs})
+
+        if preset not in cls.presets_with_weights or load_weights is False:
+            return model
+
+        local_weights_path = "model.h5"
+        if metadata["weights_url"].endswith(".weights.h5"):
+            local_weights_path = "model.weights.h5"
+
+        weights = keras.utils.get_file(
+            local_weights_path,
+            metadata["weights_url"],
+            cache_subdir=os.path.join("models", preset),
+            file_hash=metadata["weights_hash"],
+        )
+
+        model.load_weights(weights)
+        return model
 
     @classmethod
     def from_preset(
@@ -112,61 +159,28 @@ class Task(keras.Model):
         ```
         """
 
-        if not cls.presets:
-            raise NotImplementedError(
-                "No presets have been created for this class."
+        # TODO: delete me!
+        if preset in cls.presets:
+            return cls._legacy_from_preset(
+                preset, load_weights, input_shape, **kwargs
             )
 
-        if preset not in cls.presets:
-            raise ValueError(
-                "`preset` must be one of "
-                f"""{", ".join(cls.presets)}. Received: {preset}."""
+        preset_cls = check_preset_class(preset, (cls, cls.backbone_cls))
+
+        # Backbone case.
+        if issubclass(preset_cls, Backbone):
+            backbone = load_from_preset(
+                preset,
+                load_weights=load_weights,
             )
+            return cls(backbone=backbone, **kwargs)
 
-        if load_weights and preset not in cls.presets_with_weights:
-            raise ValueError(
-                f"""Pretrained weights not available for preset "{preset}". """
-                "Set `load_weights=False` to use this preset or choose one of "
-                "the following presets with weights:"
-                f""" "{'", "'.join(cls.presets_with_weights)}"."""
-            )
-
-        metadata = cls.presets[preset]
-        # Check if preset is backbone-only model
-        if preset in cls.backbone_presets:
-            backbone_cls = keras.saving.get_registered_object(
-                metadata["class_name"]
-            )
-            backbone_kwargs = {}
-            if input_shape is not None:
-                backbone_kwargs["input_shape"] = input_shape
-            backbone = backbone_cls.from_preset(
-                preset, load_weights, **backbone_kwargs
-            )
-            return cls(backbone, **kwargs)
-
-        # Otherwise must be one of class presets
-        config = metadata["config"]
-        if input_shape is not None:
-            config["backbone"]["config"]["input_shape"] = input_shape
-        model = cls.from_config({**config, **kwargs})
-
-        if preset not in cls.presets_with_weights or load_weights is False:
-            return model
-
-        local_weights_path = "model.h5"
-        if metadata["weights_url"].endswith(".weights.h5"):
-            local_weights_path = "model.weights.h5"
-
-        weights = keras.utils.get_file(
-            local_weights_path,
-            metadata["weights_url"],
-            cache_subdir=os.path.join("models", preset),
-            file_hash=metadata["weights_hash"],
+        # Task case.
+        return load_from_preset(
+            preset,
+            load_weights=load_weights,
+            config_overrides=kwargs,
         )
-
-        model.load_weights(weights)
-        return model
 
     @property
     def layers(self):
