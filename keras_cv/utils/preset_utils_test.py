@@ -14,24 +14,43 @@
 
 import json
 import os
+
 import numpy as np
 import pytest
 from absl.testing import parameterized
+
+from keras_cv.models import DeepLabV3Plus
 from keras_cv.models import ImageClassifier
+from keras_cv.models import RetinaNet
+from keras_cv.models import YOLOV8Detector
 from keras_cv.tests.test_case import TestCase
 from keras_cv.utils import preset_utils
 
 
 class PresetUtilsTest(TestCase):
     @parameterized.parameters(
-        (ImageClassifier, "resnet50_v2_imagenet_classifier"),
-        (ImageClassifier, "efficientnetv2_s_imagenet_classifier"),
-        (ImageClassifier, "mobilenet_v3_large_imagenet_classifier"),
+        (ImageClassifier, "resnet50_v2_imagenet_classifier", "classification"),
+        (
+            ImageClassifier,
+            "efficientnetv2_s_imagenet_classifier",
+            "classification",
+        ),
+        (
+            ImageClassifier,
+            "mobilenet_v3_large_imagenet_classifier",
+            "classification",
+        ),
+        (YOLOV8Detector, "yolo_v8_m_pascalvoc", "detection"),
+        (RetinaNet, "retinanet_resnet50_pascalvoc", "detection"),
+        (DeepLabV3Plus, "deeplab_v3_plus_resnet50_pascalvoc", "segmentation"),
     )
     @pytest.mark.large
-    def test_classifier_preset_saving(self, cls, preset_name):
+    def test_preset_saving(self, cls, preset_name, task_type):
         save_dir = self.get_temp_dir()
-        model = cls.from_preset(preset_name)
+        if task_type == "detection":
+            model = cls.from_preset(preset_name, bounding_box_format="xywh")
+        else:
+            model = cls.from_preset(preset_name)
         preset_utils.save_to_preset(model, save_dir)
 
         # Check existence of files

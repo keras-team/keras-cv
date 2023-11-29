@@ -51,6 +51,10 @@ def recursive_pop(config, key):
     for value in config.values():
         if isinstance(value, dict):
             recursive_pop(value, key)
+        if isinstance(value, list):
+            for v in value:
+                if isinstance(v, dict):
+                    recursive_pop(v, key)
 
 
 def save_to_preset(

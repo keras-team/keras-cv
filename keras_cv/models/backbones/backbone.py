@@ -132,7 +132,6 @@ class Backbone(keras.Model):
             config_overrides=kwargs,
         )
 
-
     def __init_subclass__(cls, **kwargs):
         # Use __init_subclass__ to set up a correct docstring for from_preset.
         super().__init_subclass__(**kwargs)
