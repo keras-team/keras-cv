@@ -47,7 +47,6 @@ backbone_models = [
     keras_cv.models.EfficientNetV2SBackbone,
     keras_cv.models.EfficientNetV2MBackbone,
     keras_cv.models.EfficientNetV2LBackbone,
-
 ]
 for backbone_cls in backbone_models:
     for preset in backbone_cls.presets:
@@ -83,7 +82,10 @@ for task_cls in task_models:
     for preset in task_preset_keys:
         preset_metadata = task_cls.presets[preset]
         kwargs = {}
-        if task_cls in [keras_cv.models.RetinaNet, keras_cv.models.YOLOV8Detector]:
+        if task_cls in [
+            keras_cv.models.RetinaNet,
+            keras_cv.models.YOLOV8Detector,
+        ]:
             kwargs.update({"bounding_box_format": "xywh"})
             task = task_cls.from_preset(preset, **kwargs)
         else:
