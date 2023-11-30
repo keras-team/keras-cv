@@ -32,16 +32,7 @@ classifier_presets = {
             "official_name": "ImageClassifier",
             "path": "image_classifier",
         },
-        "config": {
-            "backbone": resnet_v2_backbone_presets.backbone_presets[
-                "resnet50_v2"
-            ],
-            "num_classes": 1000,
-            "pooling": "avg",
-            "activation": "softmax",
-        },
-        "weights_url": "https://storage.googleapis.com/keras-cv/models/resnet50v2/imagenet-classifier-v0.h5",  # noqa: E501
-        "weights_hash": "77fa9f1cd1de0e202309e51d4e598e441d1111dacb6c41a182b6c63f76ff26cd",  # noqa: E501
+        "kaggle_handle": "gs://keras-cv-kaggle/resnet50_v2_imagenet_classifier",
     },
     "efficientnetv2_s_imagenet_classifier": {
         "metadata": {
@@ -58,16 +49,7 @@ classifier_presets = {
             "official_name": "ImageClassifier",
             "path": "image_classifier",
         },
-        "config": {
-            "backbone": efficientnet_v2_backbone_presets.backbone_presets[
-                "efficientnetv2_s"
-            ],
-            "num_classes": 1000,
-            "pooling": "avg",
-            "activation": "softmax",
-        },
-        "weights_url": "https://storage.googleapis.com/keras-cv/models/efficientnet_v2/efficientnetv2-s_imagenet_classifier.h5",  # noqa: E501
-        "weights_hash": "4da57ade035e11aff7e1c5cb04c4235e",
+        "kaggle_handle": "gs://keras-cv-kaggle/efficientnetv2_s_imagenet_classifier",
     },
     "efficientnetv2_b0_imagenet_classifier": {
         "metadata": {
@@ -87,16 +69,7 @@ classifier_presets = {
             "official_name": "ImageClassifier",
             "path": "image_classifier",
         },
-        "config": {
-            "backbone": efficientnet_v2_backbone_presets.backbone_presets[
-                "efficientnetv2_b0"
-            ],
-            "num_classes": 1000,
-            "pooling": "avg",
-            "activation": "softmax",
-        },
-        "weights_url": "https://storage.googleapis.com/keras-cv/models/efficientnet_v2/efficientnetv2-b0_imagenet_classifier.h5",  # noqa: E501
-        "weights_hash": "4b739de648c346b7e4156e11a223c338",
+        "kaggle_handle": "gs://keras-cv-kaggle/efficientnetv2_b0_imagenet_classifier",
     },
     "efficientnetv2_b1_imagenet_classifier": {
         "metadata": {
@@ -116,16 +89,7 @@ classifier_presets = {
             "official_name": "ImageClassifier",
             "path": "image_classifier",
         },
-        "config": {
-            "backbone": efficientnet_v2_backbone_presets.backbone_presets[
-                "efficientnetv2_b1"
-            ],
-            "num_classes": 1000,
-            "pooling": "avg",
-            "activation": "softmax",
-        },
-        "weights_url": "https://storage.googleapis.com/keras-cv/models/efficientnet_v2/efficientnetv2-b1_imagenet_classifier.h5",  # noqa: E501
-        "weights_hash": "78c1c879143dbd8f74e6ffc4d3180197",
+        "kaggle_handle": "gs://keras-cv-kaggle/efficientnetv2_b1_imagenet_classifier",
     },
     "efficientnetv2_b2_imagenet_classifier": {
         "metadata": {
@@ -145,16 +109,7 @@ classifier_presets = {
             "official_name": "ImageClassifier",
             "path": "image_classifier",
         },
-        "config": {
-            "backbone": efficientnet_v2_backbone_presets.backbone_presets[
-                "efficientnetv2_b2"
-            ],
-            "num_classes": 1000,
-            "pooling": "avg",
-            "activation": "softmax",
-        },
-        "weights_url": "https://storage.googleapis.com/keras-cv/models/efficientnet_v2/efficientnetv2-b2_imagenet_classifier.h5",  # noqa: E501
-        "weights_hash": "07eda1c48aee27e12a3fe2545e6c65ed",
+        "kaggle_handle": "gs://keras-cv-kaggle/efficientnetv2_b2_imagenet_classifier",
     },
     "mobilenet_v3_large_imagenet_classifier": {
         "metadata": {
@@ -171,15 +126,6 @@ classifier_presets = {
             "official_name": "ImageClassifier",
             "path": "image_classifier",
         },
-        "config": {
-            "backbone": mobilenet_v3_backbone_presets.backbone_presets[
-                "mobilenet_v3_large"
-            ],
-            "num_classes": 1000,
-            "pooling": "avg",
-            "activation": "softmax",
-        },
-        "weights_url": "https://storage.googleapis.com/keras-cv/models/mobilenetv3/mobilenetv3_large_imagenet_classifier.h5",  # noqa: E501
-        "weights_hash": "4130fbc249d3812719396439031d89042dce440dd256cda941a109bce6d4e305",  # noqa: E501
+        "kaggle_handle": "gs://keras-cv-kaggle/mobilenet_v3_large_imagenet_classifier",
     },
 }

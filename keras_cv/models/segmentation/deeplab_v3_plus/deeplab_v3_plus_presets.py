@@ -29,15 +29,6 @@ deeplab_v3_plus_presets = {
             "official_name": "DeepLabV3Plus",
             "path": "deeplab_v3_plus",
         },
-        "config": {
-            "backbone": resnet_v2_backbone_presets.backbone_presets[
-                "resnet50_v2_imagenet"
-            ],
-            # 21 used as an implicit background class marginally improves
-            # performance.
-            "num_classes": 21,
-        },
-        "weights_url": "https://storage.googleapis.com/keras-cv/models/deeplab_v3_plus/voc/deeplabv3plus_resenet50_pascal_voc.weights.h5",  # noqa: E501
-        "weights_hash": "9681410a57bea2bc5cb7d79a1802d872ac263faab749cfe5ffdae6d6c3082041",  # noqa: E501
+        "kaggle_handle": "gs://keras-cv-kaggle/deeplab_v3_plus_resnet50_pascalvoc",
     },
 }

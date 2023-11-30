@@ -24,6 +24,7 @@ except ImportError:
     kagglehub = None
 
 KAGGLE_PREFIX = "kaggle://"
+GS_PREFIX = "gs://"
 
 
 def get_file(preset, path):
@@ -50,7 +51,20 @@ def get_file(preset, path):
                 f"Received: preset={preset}"
             )
         return kagglehub.model_download(kaggle_handle, path)
-    return os.path.join(preset, path)
+    elif preset.startswith(GS_PREFIX):
+        url = os.path.join(preset, path)
+        url = url.replace(GS_PREFIX, "https://storage.googleapis.com/")
+        subdir = preset.replace(GS_PREFIX, "gs_")
+        subdir = subdir.replace("/", "_").replace("-", "_")
+        filename = os.path.basename(path)
+        subdir = os.path.join(subdir, os.path.dirname(path))
+        return keras.utils.get_file(
+            filename,
+            url,
+        )
+    else:
+        # Assume a local filepath.
+        return os.path.join(preset, path)
 
 
 def recursive_pop(config, key):
