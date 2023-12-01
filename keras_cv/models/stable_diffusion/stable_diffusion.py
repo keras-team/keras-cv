@@ -200,7 +200,7 @@ class StableDiffusionBase:
 
         if diffusion_noise is not None:
             diffusion_noise = ops.squeeze(diffusion_noise)
-            if diffusion_noise.shape.rank == 3:
+            if len(ops.shape(diffusion_noise)) == 3:
                 diffusion_noise = ops.repeat(
                     ops.expand_dims(diffusion_noise, axis=0), batch_size, axis=0
                 )
