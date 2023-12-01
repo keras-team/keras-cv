@@ -163,10 +163,13 @@ def check_preset_class(
             "handle is being used."
         )
     cls = keras.saving.get_registered_object(config["registered_name"])
-    if not isinstance(classes, (tuple, list)):
+    # Subclass checking
+    if not issubclass(classes, (tuple, list)):
         classes = (classes,)
-    cls_handles = [metadata['kaggle_handle'] for metadata in cls.presets.values()]
-    if cls not in classes and preset not in cls_handles:
+    # Alias subclass checking
+    if any(issubclass(alias, cls) for alias in classes):
+        return cls
+    if cls not in classes:
         raise ValueError(
             f"Unexpected class in preset `'{preset}'`. "
             "When calling `from_preset()` on a class object, the preset class "
