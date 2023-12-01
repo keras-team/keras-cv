@@ -61,6 +61,7 @@ def get_file(preset, path):
         return keras.utils.get_file(
             filename,
             url,
+            cache_subdir=os.path.join("models", subdir),
         )
     else:
         # Assume a local filepath.
