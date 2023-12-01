@@ -16,7 +16,7 @@ import numpy as np
 
 from keras_cv.backend import keras
 from keras_cv.backend import ops
-from keras_cv.backend.config import multi_backend
+from keras_cv.backend.config import keras_3
 from keras_cv.losses import FocalLoss
 from keras_cv.tests.test_case import TestCase
 
@@ -73,7 +73,7 @@ class FocalTest(TestCase):
         # TF backend somehow has different numerics.
         expected_loss = (
             31.11176
-            if multi_backend() and keras.backend.backend() != "tensorflow"
+            if keras_3() and keras.backend.backend() != "tensorflow"
             else 925.28081
         )
         self.assertAllClose(

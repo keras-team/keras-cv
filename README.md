@@ -7,10 +7,10 @@
 [![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/keras-team/keras-cv/issues)
 
 KerasCV is a library of modular computer vision components that work natively
-with TensorFlow, JAX, or PyTorch. Built on [Keras Core](https://keras.io/keras_core/announcement/),
-these models, layers, metrics, callbacks, etc., can be trained and serialized
-in any framework and re-used in another without costly migrations. See
-"Configuring your backend" below for more details on multi-framework KerasCV.
+with TensorFlow, JAX, or PyTorch. Built on Keras 3, these models, layers, 
+metrics, callbacks, etc., can be trained and serialized in any framework and 
+re-used in another without costly migrations. See "Configuring your backend" 
+below for more details on multi-framework KerasCV.
 
 <img style="width: 440px; max-width: 90%;" src="https://storage.googleapis.com/keras-cv/guides/keras-cv-augmentations.gif">
 
@@ -34,29 +34,44 @@ these common tasks.
 - [API Design Guidelines](.github/API_DESIGN.md)
 
 ## Installation
+KerasCV supports both Keras 2 and Keras 3. We recommend Keras 3 for all new 
+users, as it enables using KerasCV models and layers with JAX, TensorFlow and 
+PyTorch.
 
-To install the latest official release:
+### Keras 2 Installation
 
-```
-pip install keras-cv tensorflow --upgrade
-```
-
-To install the latest unreleased changes to the library, we recommend using
-pip to install directly from the master branch on github:
+To install the latest KerasCV release with Keras 2, simply run:
 
 ```
-pip install git+https://github.com/keras-team/keras-cv.git tensorflow --upgrade
+pip install --upgrade keras-cv tensorflow
 ```
+
+### Keras 3 Installation
+
+There are currently two ways to install Keras 3 with KerasCV. To install the
+latest changes for KerasCV and Keras, you can use our nightly package.
+
+
+```
+pip install --upgrade keras-cv-nightly tf-nightly
+```
+
+To install the stable versions of KerasCV and Keras 3, you should install Keras
+3 **after** installing KerasCV. This is a temporary step while TensorFlow is
+pinned to Keras 2, and will no longer be necessary after TensorFlow 2.16.
+
+```
+pip install --upgrade keras-cv tensorflow
+pip install keras>=3
+```
+> [!IMPORTANT]
+> Keras 3 will not function with TensorFlow 2.14 or earlier.
 
 ## Configuring your backend
 
-**Keras 3** is an upcoming release of the Keras library which supports
-TensorFlow, Jax or Torch as backends. This is supported today in KerasNLP,
-but will not be enabled by default until the official release of Keras 3. If you
-`pip install keras-cv` and run a script or notebook without changes, you will
-be using TensorFlow and **Keras 2**.
-
-If you would like to enable a preview of the Keras 3 behavior, you can do
+If you have Keras 3 installed in your environment (see installation above),
+you can use KerasCV with any of JAX, TensorFlow and PyTorch. To do so, set the
+`KERAS_BACKEND` environment variable. For example:
 so by setting the `KERAS_BACKEND` environment variable. For example:
 
 ```shell
@@ -75,21 +90,13 @@ import keras_cv
 > [!IMPORTANT]
 > Make sure to set the `KERAS_BACKEND` before import any Keras libraries, it
 > will be used to set up Keras when it is first imported.
-Until the Keras 3 release, KerasCV will use a preview of Keras 3 on PyPI named
-[keras-core](https://pypi.org/project/keras-core/).
-
-> [!IMPORTANT]
-> If you set `KERAS_BACKEND` variable, you should `import keras_core as keras`
-> instead of `import keras`. This is a temporary step until Keras 3 is out!
-To restore the default **Keras 2** behavior, `unset KERAS_BACKEND` before
-importing Keras and KerasCV.
 
 Once that configuration step is done, you can just import KerasCV and start
 using it on top of your backend of choice:
 
 ```python
 import keras_cv
-from keras_cv.backend import keras
+import keras
 
 filepath = keras.utils.get_file(origin="https://i.imgur.com/gCNcJJI.jpg")
 image = np.array(keras.utils.load_img(filepath))
@@ -108,7 +115,7 @@ predictions = model.predict(image_resized)
 import tensorflow as tf
 import keras_cv
 import tensorflow_datasets as tfds
-from keras_cv.backend import keras
+import keras
 
 # Create a preprocessing pipeline with augmentations
 BATCH_SIZE = 16
@@ -260,7 +267,7 @@ Here is the BibTeX entry:
 ```bibtex
 @misc{wood2022kerascv,
   title={KerasCV},
-  author={Wood, Luke and Tan, Zhenyu and Stenbit, Ian and Bischof, Jonathan and Zhu, Scott and Chollet, Fran\c{c}ois and others},
+  author={Wood, Luke and Tan, Zhenyu and Stenbit, Ian and Bischof, Jonathan and Zhu, Scott and Chollet, Fran\c{c}ois and Sreepathihalli, Divyashree and Sampath, Ramesh and others},
   year={2022},
   howpublished={\url{https://github.com/keras-team/keras-cv}},
 }

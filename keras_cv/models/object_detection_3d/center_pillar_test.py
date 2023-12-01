@@ -16,7 +16,7 @@ import pytest
 import tensorflow as tf
 
 from keras_cv.backend import keras
-from keras_cv.backend.config import multi_backend
+from keras_cv.backend.config import keras_3
 from keras_cv.layers.object_detection_3d.voxelization import DynamicVoxelization
 from keras_cv.models.object_detection_3d.center_pillar import (
     MultiClassDetectionHead,
@@ -34,7 +34,7 @@ from keras_cv.tests.test_case import TestCase
 
 
 @pytest.mark.skipif(
-    multi_backend() and keras.backend.backend() == "torch",
+    keras_3() and keras.backend.backend() == "torch",
     reason="CenterPillar does not yet support PyTorch.",
 )
 class CenterPillarTest(TestCase):

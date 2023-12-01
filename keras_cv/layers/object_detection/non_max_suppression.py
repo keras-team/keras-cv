@@ -20,7 +20,7 @@ from keras_cv import bounding_box
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
-from keras_cv.backend.config import multi_backend
+from keras_cv.backend.config import keras_3
 
 EPSILON = 1e-8
 
@@ -89,7 +89,7 @@ class NonMaxSuppression(keras.layers.Layer):
 
         confidence_prediction = ops.max(class_prediction, axis=-1)
 
-        if not multi_backend() or keras.backend.backend() == "tensorflow":
+        if not keras_3() or keras.backend.backend() == "tensorflow":
             idx, valid_det = tf.image.non_max_suppression_padded(
                 box_prediction,
                 confidence_prediction,
@@ -318,7 +318,7 @@ def non_max_suppression(
 
     # TODO(ianstenbit): Fix bug in tfnp.take_along_axis that causes this hack.
     # (This will be removed anyway when we use built-in NMS for TF.)
-    if multi_backend() and keras.backend.backend() != "tensorflow":
+    if keras_3() and keras.backend.backend() != "tensorflow":
         idx = ops.take_along_axis(
             ops.reshape(sorted_indices, [-1]), take_along_axis_idx
         )

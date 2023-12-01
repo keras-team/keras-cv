@@ -18,7 +18,7 @@ from keras_cv import bounding_box
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
-from keras_cv.backend.config import multi_backend
+from keras_cv.backend.config import keras_3
 
 
 @keras_cv_export("keras_cv.layers.MultiClassNonMaxSuppression")
@@ -73,7 +73,7 @@ class MultiClassNonMaxSuppression(keras.layers.Layer):
                 `bounding_box_format` specified in the constructor.
             class_prediction: Dense Tensor of shape [batch, boxes, num_classes].
         """
-        if multi_backend() and keras.backend.backend() != "tensorflow":
+        if keras_3() and keras.backend.backend() != "tensorflow":
             raise NotImplementedError(
                 "MultiClassNonMaxSuppression does not support non-TensorFlow "
                 "backends. Consider using NonMaxSuppression instead."

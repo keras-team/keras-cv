@@ -17,7 +17,7 @@ import pytest
 import tensorflow as tf
 from packaging import version
 
-from keras_cv.backend.config import multi_backend
+from keras_cv.backend.config import keras_3
 
 
 def pytest_addoption(parser):
@@ -45,7 +45,7 @@ def pytest_configure(config):
     )
     config.addinivalue_line(
         "markers",
-        "tf_keras_only: mark test as a tf.keras-only test",
+        "tf_keras_only: mark test as a Keras 2-only test",
     )
     config.addinivalue_line(
         "markers",
@@ -69,12 +69,12 @@ def pytest_collection_modifyitems(config, items):
     skip_extra_large = pytest.mark.skipif(
         not run_extra_large_tests, reason="need --run_extra_large option to run"
     )
-    skip_tf_keras_only = pytest.mark.skipif(
-        multi_backend(),
-        reason="This test is only supported on tf.keras",
+    skip_keras_2_only = pytest.mark.skipif(
+        keras_3(),
+        reason="This test is only supported on Keras 2",
     )
     skip_tf_only = pytest.mark.skipif(
-        multi_backend() and keras_core.backend.backend() != "tensorflow",
+        keras_3() and keras_core.backend.backend() != "tensorflow",
         reason="This test is only supported on TensorFlow",
     )
     for item in items:
@@ -87,6 +87,6 @@ def pytest_collection_modifyitems(config, items):
         if "extra_large" in item.keywords:
             item.add_marker(skip_extra_large)
         if "tf_keras_only" in item.keywords:
-            item.add_marker(skip_tf_keras_only)
+            item.add_marker(skip_keras_2_only)
         if "tf_only" in item.keywords:
             item.add_marker(skip_tf_only)

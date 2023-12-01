@@ -31,11 +31,6 @@ if config.keras_3():
     from keras import *  # noqa: F403, F401
 
     keras.backend.name_scope = keras.name_scope
-elif config.multi_backend():
-    import keras_core as keras  # noqa: F403, F401
-    from keras_core import *  # noqa: F403, F401
-
-    keras.backend.name_scope = keras.name_scope
 else:
     from tensorflow import keras  # noqa: F403, F401
     from tensorflow.keras import *  # noqa: F403, F401
