@@ -153,12 +153,20 @@ def check_preset_class(
 ):
     """Validate a preset is being loaded on the correct class."""
     config_path = get_file(preset, config_file)
-    with open(config_path) as config_file:
-        config = json.load(config_file)
+    try:
+        with open(config_path) as config_file:
+            config = json.load(config_file)
+    except:
+        raise ValueError(
+            f"The specified preset  `{preset}` is unknown. "
+            "Please check documentation to ensure the correct preset "
+            "handle is being used."
+        )
     cls = keras.saving.get_registered_object(config["registered_name"])
     if not isinstance(classes, (tuple, list)):
         classes = (classes,)
-    if cls not in classes:
+    cls_handles = [metadata['kaggle_handle'] for metadata in cls.presets.values()]
+    if cls not in classes and preset not in cls_handles:
         raise ValueError(
             f"Unexpected class in preset `'{preset}'`. "
             "When calling `from_preset()` on a class object, the preset class "

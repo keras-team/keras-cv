@@ -76,10 +76,6 @@ class Task(keras.Model):
         }
 
     @classproperty
-    def backbone_cls(cls):
-        return None
-
-    @classproperty
     def backbone_presets(cls):
         """Dictionary of preset names and configs for compatible backbones."""
         return {}
@@ -124,7 +120,7 @@ class Task(keras.Model):
         if preset in cls.presets:
             preset = cls.presets[preset]["kaggle_handle"]
 
-        preset_cls = check_preset_class(preset, (cls, cls.backbone_cls))
+        preset_cls = check_preset_class(preset, cls)
 
         # Backbone case.
         if issubclass(preset_cls, Backbone):

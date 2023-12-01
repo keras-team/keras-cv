@@ -662,10 +662,6 @@ class YOLOV8Detector(Task):
         )
 
     @classproperty
-    def backbone_cls(cls):
-        return YOLOV8Backbone
-
-    @classproperty
     def backbone_presets(cls):
         """Dictionary of preset names and configurations of compatible
         backbones."""
