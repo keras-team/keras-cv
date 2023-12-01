@@ -24,15 +24,6 @@ backbone_presets_no_weights = {
         "metadata": {
             "description": "DenseNet model with 169 layers.",
         },
-        "class_name": "keras_cv>DenseNetBackbone",
-        "config": {
-            "stackwise_num_repeats": [6, 12, 32, 32],
-            "include_rescaling": True,
-            "input_shape": (None, None, 3),
-            "input_tensor": None,
-            "compression_ratio": 0.5,
-            "growth_rate": 32,
-        },
         "kaggle_handle": "gs://keras-cv-kaggle/densenet169",
     },
     "densenet201": {

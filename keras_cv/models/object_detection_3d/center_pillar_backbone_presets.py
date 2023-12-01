@@ -21,14 +21,6 @@ backbone_presets = {
             "params": 1277680,
             "official_name": "WaymoOpenDataset",
         },
-        "class_name": (
-            "keras_cv.models.object_detection_3d>CenterPillarBackbone"
-        ),
-        "config": {
-            "stackwise_down_blocks": [6, 2, 1],
-            "stackwise_down_filters": [128, 256, 512],
-            "stackwise_up_filters": [512, 256, 256],
-            "input_shape": (None, None, 128),
-        },
+        "kaggle_handle": "gs://keras-cv-kaggle/center_pillar_waymo_open_dataset",
     },
 }
