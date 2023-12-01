@@ -206,10 +206,6 @@ class MultiHeadCenterPillar(Task):
         return copy.deepcopy(backbone_presets)
 
     @classproperty
-    def backbone_cls(cls):
-        return CenterPillarBackbone
-
-    @classproperty
     def backbone_presets(cls):
         """Dictionary of preset names and configurations of compatible
         backbones."""

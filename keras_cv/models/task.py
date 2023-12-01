@@ -120,6 +120,13 @@ class Task(keras.Model):
         if preset in cls.presets:
             preset = cls.presets[preset]["kaggle_handle"]
 
+        if preset in cls.presets_without_weights and load_weights is True:
+            raise ValueError(
+                f"The specified preset `{preset}` does not include weights. "
+                "Please remove the `load_weights` flag when calling "
+                "`from_preset()` on this preset."
+            )
+
         preset_cls = check_preset_class(preset, cls)
 
         # Backbone case.
