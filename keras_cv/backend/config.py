@@ -23,15 +23,29 @@ _USE_KERAS_3 = False
 if hasattr(keras, "version") and keras.version().startswith("3."):
     _USE_KERAS_3 = True
 
-if not _USE_KERAS_3:
-    backend = os.environ.get("KERAS_BACKEND")
-    if backend and backend != "tensorflow":
-        raise RuntimeError(
-            "When running Keras 2, the `KERAS_BACKEND` environment variable "
-            f"must either be unset or `'tensorflow'`. Received: `{backend}`. "
-            "To set another backend, please install Keras 3. See "
-            "https://github.com/keras-team/keras-cv#installation"
+def detect_if_tensorflow_uses_keras_3():
+    # We follow the version of keras that tensorflow is configured to use.
+    try:
+        from tensorflow import keras
+
+        # Note that only recent versions of keras have a `version()` function.
+        if hasattr(keras, "version") and keras.version().startswith("3."):
+            return True
+    except:
+        raise ValueError(
+            "Unable to import `keras` with `tensorflow`.  Please check your "
+            "Keras and Tensorflow version are compatible; Keras 3 requires "
+            "TensorFlow 2.15 or later. See keras.io/getting_started for more "
+            "information on installing Keras."
         )
+
+    # No `keras.version()` means we are on an old version of keras.
+    return False
+
+
+_USE_KERAS_3 = detect_if_tensorflow_uses_keras_3()
+if _USE_KERAS_3:
+    _MULTI_BACKEND = True
 
 
 def keras_3():
