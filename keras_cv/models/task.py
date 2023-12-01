@@ -85,46 +85,6 @@ class Task(keras.Model):
         return {}
 
     @classmethod
-    def _legacy_from_preset(
-        cls,
-        preset,
-        load_weights=True,
-        input_shape=None,
-        **kwargs,
-    ):
-        metadata = cls.presets[preset]
-        # Check if preset is backbone-only model
-        if preset in cls.backbone_presets:
-            backbone_cls = keras.saving.get_registered_object(
-                metadata["class_name"]
-            )
-            backbone = backbone_cls.from_preset(preset, load_weights)
-            return cls(backbone, **kwargs)
-
-        # Otherwise must be one of class presets
-        config = metadata["config"]
-        if input_shape is not None:
-            config["backbone"]["config"]["input_shape"] = input_shape
-        model = cls.from_config({**config, **kwargs})
-
-        if preset not in cls.presets_with_weights or load_weights is False:
-            return model
-
-        local_weights_path = "model.h5"
-        if metadata["weights_url"].endswith(".weights.h5"):
-            local_weights_path = "model.weights.h5"
-
-        weights = keras.utils.get_file(
-            local_weights_path,
-            metadata["weights_url"],
-            cache_subdir=os.path.join("models", preset),
-            file_hash=metadata["weights_hash"],
-        )
-
-        model.load_weights(weights)
-        return model
-
-    @classmethod
     def from_preset(
         cls,
         preset,
@@ -159,11 +119,8 @@ class Task(keras.Model):
         ```
         """
 
-        # TODO: delete me!
-        if preset in cls.presets:
-            return cls._legacy_from_preset(
-                preset, load_weights, input_shape, **kwargs
-            )
+        # We support short IDs for official presets, e.g. `"bert_base_en"`.
+        # Map these to a Kaggle Models handle.
 
         preset_cls = check_preset_class(preset, (cls, cls.backbone_cls))
 
