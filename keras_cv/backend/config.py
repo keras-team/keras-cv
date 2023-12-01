@@ -23,6 +23,7 @@ _USE_KERAS_3 = False
 if hasattr(keras, "version") and keras.version().startswith("3."):
     _USE_KERAS_3 = True
 
+
 def detect_if_tensorflow_uses_keras_3():
     # We follow the version of keras that tensorflow is configured to use.
     try:
