@@ -444,6 +444,9 @@ class VectorizedBaseImageAugmentationLayer(base_class):
             # single image input tensor
             metadata[IS_DICT] = False
             inputs = {IMAGES: inputs}
+        else:
+            # Copy the input dict before we mutate it.
+            inputs = dict(inputs)
 
         metadata[BATCHED] = inputs["images"].shape.rank == 4
         if inputs["images"].shape.rank == 3:
@@ -504,6 +507,8 @@ class VectorizedBaseImageAugmentationLayer(base_class):
                 inputs,
                 self.compute_dtype,
             )
+        # Copy the input dict before we mutate it.
+        inputs = dict(inputs)
         inputs[IMAGES] = preprocessing.ensure_tensor(
             inputs[IMAGES],
             self.compute_dtype,

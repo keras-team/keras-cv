@@ -12,17 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import numpy as np
-import pytest
 import tensorflow as tf
 from absl.testing import parameterized
 
 from keras_cv import layers
-from keras_cv.backend.config import keras_3
 from keras_cv.tests.test_case import TestCase
 
 
-@pytest.mark.skipif(keras_3(), reason="imcompatible with Keras 3")
 class RandAugmentTest(TestCase):
+    def test_zero_rate_pass_through(self):
+        rand_augment = layers.RandAugment(
+            value_range=(0, 255),
+            rate=0.0,
+        )
+        xs = np.ones((2, 512, 512, 3))
+        ys = rand_augment(xs)
+        self.assertAllClose(ys, xs)
+
     @parameterized.named_parameters(
         ("0", 0),
         ("20", 0.2),

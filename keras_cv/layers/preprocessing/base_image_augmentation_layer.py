@@ -571,6 +571,8 @@ class BaseImageAugmentationLayer(base_class):
                 inputs,
                 self.compute_dtype,
             )
+        # Copy the input dict before we mutate it.
+        inputs = dict(inputs)
         inputs[IMAGES] = preprocessing.ensure_tensor(
             inputs[IMAGES],
             self.compute_dtype,
