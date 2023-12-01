@@ -31,5 +31,5 @@ else:
         from keras_core.src.utils.image_utils import (  # noqa: F403, F401
             smart_resize,
         )
-if config.backend() == "tensorflow":
-    from keras_cv.backend.tf_ops import *  # noqa: F403, F401
+    if config.backend() == "tensorflow":
+        from keras_cv.backend.tf_ops import *  # noqa: F403, F401
