@@ -234,7 +234,9 @@ class SAMTest(TestCase):
             # We are changing the global dtype policy here but don't want any
             # other tests to use that policy, so compute under a lock until
             # we reset the global policy.
-            old_policy = keras.mixed_precision.dtype_policy()
+            old_policy = getattr(
+                keras.mixed_precision, "dtype_policy", lambda: "float32"
+            )()
             keras.mixed_precision.set_global_policy(dtype_policy)
             model = SegmentAnythingModel(
                 backbone=self.image_encoder,
