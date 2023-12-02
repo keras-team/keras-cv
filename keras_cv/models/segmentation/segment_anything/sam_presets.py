@@ -15,7 +15,6 @@
 
 from keras_cv.models.backbones.vit_det import vit_det_backbone_presets
 
-
 sam_presets = {
     "sam_base_sa1b": {
         "metadata": {
