@@ -281,7 +281,7 @@ class SAMTest(TestCase):
             self.assertAllClose(iou_pred, iou_pred_ex, atol=1e-4)
 
             # Reset the global policy
-            keras.mixed_precision.set_dtype_policy(old_policy)
+            keras.mixed_precision.set_global_policy(old_policy)
 
     @pytest.mark.extra_large
     def test_end_to_end_model_save(self):
