@@ -164,12 +164,12 @@ def check_preset_class(
         )
     cls = keras.saving.get_registered_object(config["registered_name"])
     # Subclass checking
-    if not issubclass(classes, (tuple, list)):
+    if not isinstance(classes, (tuple, list)):
         classes = (classes,)
     # Alias subclass checking
-    if any(issubclass(alias, cls) for alias in classes):
-        return cls
-    if cls not in classes:
+    if cls not in classes and not any(
+        issubclass(alias, cls) for alias in classes
+    ):
         raise ValueError(
             f"Unexpected class in preset `'{preset}'`. "
             "When calling `from_preset()` on a class object, the preset class "
