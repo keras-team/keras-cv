@@ -166,8 +166,9 @@ def check_preset_class(
     # Subclass checking
     if not isinstance(classes, (tuple, list)):
         classes = (classes,)
-    # Alias subclass checking
-    if cls not in classes and not any(
+
+    # Subclass checking and alias checking
+    if not any(issubclass(cls, obj) for obj in classes) and not any(
         issubclass(alias, cls) for alias in classes
     ):
         raise ValueError(
