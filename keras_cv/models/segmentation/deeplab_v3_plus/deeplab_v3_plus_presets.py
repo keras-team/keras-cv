@@ -13,7 +13,6 @@
 # limitations under the License.
 """DeepLabV3Plus presets."""
 
-from keras_cv.models.backbones.resnet_v2 import resnet_v2_backbone_presets
 
 deeplab_v3_plus_presets = {
     "deeplab_v3_plus_resnet50_pascalvoc": {
@@ -29,6 +28,6 @@ deeplab_v3_plus_presets = {
             "official_name": "DeepLabV3Plus",
             "path": "deeplab_v3_plus",
         },
-        "kaggle_handle": "gs://keras-cv-kaggle/deeplab_v3_plus_resnet50_pascalvoc",
+        "kaggle_handle": "gs://keras-cv-kaggle/deeplab_v3_plus_resnet50_pascalvoc",  # noqa: E501
     },
 }

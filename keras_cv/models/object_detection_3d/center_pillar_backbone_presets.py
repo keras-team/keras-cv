@@ -21,6 +21,6 @@ backbone_presets = {
             "params": 1277680,
             "official_name": "WaymoOpenDataset",
         },
-        "kaggle_handle": "gs://keras-cv-kaggle/center_pillar_waymo_open_dataset",
+        "kaggle_handle": "gs://keras-cv-kaggle/center_pillar_waymo_open_dataset",  # noqa: E501
     },
 }

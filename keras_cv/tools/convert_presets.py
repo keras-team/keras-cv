@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import os
-import shutil
 
 import keras_cv  # noqa: E402
 from keras_cv.src.utils.preset_utils import save_to_preset  # noqa: E402

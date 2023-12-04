@@ -18,9 +18,6 @@ from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 from keras_cv.layers.object_detection_3d.heatmap_decoder import HeatmapDecoder
-from keras_cv.models.object_detection_3d.center_pillar_backbone import (
-    CenterPillarBackbone,
-)
 from keras_cv.models.object_detection_3d.center_pillar_backbone_presets import (
     backbone_presets,
 )

@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """RetinaNet Task presets."""
-from keras_cv.models.backbones.resnet_v1 import resnet_v1_backbone_presets
 
 retinanet_presets = {
     "retinanet_resnet50_pascalvoc": {

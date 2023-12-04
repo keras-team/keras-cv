@@ -13,11 +13,6 @@
 # limitations under the License.
 """ImageClassifier Task presets."""
 
-from keras_cv.models.backbones.efficientnet_v2 import (
-    efficientnet_v2_backbone_presets,
-)
-from keras_cv.models.backbones.mobilenet_v3 import mobilenet_v3_backbone_presets
-from keras_cv.models.backbones.resnet_v2 import resnet_v2_backbone_presets
 
 classifier_presets = {
     "resnet50_v2_imagenet_classifier": {
@@ -49,7 +44,7 @@ classifier_presets = {
             "official_name": "ImageClassifier",
             "path": "image_classifier",
         },
-        "kaggle_handle": "gs://keras-cv-kaggle/efficientnetv2_s_imagenet_classifier",
+        "kaggle_handle": "gs://keras-cv-kaggle/efficientnetv2_s_imagenet_classifier",  # noqa: E501
     },
     "efficientnetv2_b0_imagenet_classifier": {
         "metadata": {
@@ -69,7 +64,7 @@ classifier_presets = {
             "official_name": "ImageClassifier",
             "path": "image_classifier",
         },
-        "kaggle_handle": "gs://keras-cv-kaggle/efficientnetv2_b0_imagenet_classifier",
+        "kaggle_handle": "gs://keras-cv-kaggle/efficientnetv2_b0_imagenet_classifier",  # noqa: E501
     },
     "efficientnetv2_b1_imagenet_classifier": {
         "metadata": {
@@ -89,7 +84,7 @@ classifier_presets = {
             "official_name": "ImageClassifier",
             "path": "image_classifier",
         },
-        "kaggle_handle": "gs://keras-cv-kaggle/efficientnetv2_b1_imagenet_classifier",
+        "kaggle_handle": "gs://keras-cv-kaggle/efficientnetv2_b1_imagenet_classifier",  # noqa: E501
     },
     "efficientnetv2_b2_imagenet_classifier": {
         "metadata": {
@@ -109,7 +104,7 @@ classifier_presets = {
             "official_name": "ImageClassifier",
             "path": "image_classifier",
         },
-        "kaggle_handle": "gs://keras-cv-kaggle/efficientnetv2_b2_imagenet_classifier",
+        "kaggle_handle": "gs://keras-cv-kaggle/efficientnetv2_b2_imagenet_classifier",  # noqa: E501
     },
     "mobilenet_v3_large_imagenet_classifier": {
         "metadata": {
@@ -126,6 +121,6 @@ classifier_presets = {
             "official_name": "ImageClassifier",
             "path": "image_classifier",
         },
-        "kaggle_handle": "gs://keras-cv-kaggle/mobilenet_v3_large_imagenet_classifier",
+        "kaggle_handle": "gs://keras-cv-kaggle/mobilenet_v3_large_imagenet_classifier",  # noqa: E501
     },
 }

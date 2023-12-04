@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """YOLOv8 Task presets."""
-from keras_cv.models.object_detection.yolo_v8 import yolo_v8_backbone_presets
 
 yolo_v8_detector_presets = {
     "yolo_v8_m_pascalvoc": {

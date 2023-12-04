@@ -13,8 +13,6 @@
 # limitations under the License.
 """Base class for Task models."""
 
-import os
-
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.models.backbones.backbone import Backbone
