@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import numpy as np
-
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
@@ -123,16 +121,16 @@ class AddRelativePositionalEmbedding(keras.layers.Layer):
             return rel_pos_resized
         else:
             rel_pos_resized = rel_pos
-        query_coordinates = np.arange(query_size, dtype="float32")[:, None] * (
-            max(key_size / query_size, 1.0)
-        )
-        key_coordinates = np.arange(key_size, dtype="float32")[None, :] * (
-            max(query_size / key_size, 1.0)
-        )
+        query_coordinates = ops.cast(
+            ops.arange(query_size), dtype=self.compute_dtype
+        )[:, None] * (max(key_size / query_size, 1.0))
+        key_coordinates = ops.cast(
+            ops.arange(key_size), dtype=self.compute_dtype
+        )[None, :] * (max(query_size / key_size, 1.0))
         relative_coordinates = (query_coordinates - key_coordinates) + (
             key_size - 1
         ) * max(query_size / key_size, 1.0)
-        relative_coordinates = relative_coordinates.astype("int32")
+        relative_coordinates = ops.cast(relative_coordinates, dtype="int32")
         return ops.take(rel_pos_resized, relative_coordinates, 0)
 
     def call(self, attention_map, queries, query_size, key_size):

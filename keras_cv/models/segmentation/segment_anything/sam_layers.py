@@ -99,7 +99,7 @@ class MultiHeadAttentionWithDownsampling(keras.layers.Layer):
         # Attention
         C_PH = ops.shape(query)[-1]
         out = query @ ops.transpose(key, (0, 1, 3, 2))
-        out = out / ops.sqrt(ops.cast(C_PH, dtype=self.dtype))
+        out = out / ops.sqrt(ops.cast(C_PH, dtype=self.compute_dtype))
         out = ops.softmax(out, axis=-1)
 
         # Get output
@@ -278,7 +278,7 @@ class RandomFrequencyPositionalEmbeddings(keras.layers.Layer):
         self.positional_encoding_gaussian_matrix = self.add_weight(
             name="positional_encoding_gaussian_matrix",
             shape=(2, self.num_positional_features),
-            dtype=self.dtype,
+            dtype=self.variable_dtype,
             trainable=False,
             initializer=keras.initializers.get("normal"),
         )
@@ -288,7 +288,9 @@ class RandomFrequencyPositionalEmbeddings(keras.layers.Layer):
 
     def __positional_encodings(self, coords):
         coords = coords * 2 - 1
-        coords = coords @ self.positional_encoding_gaussian_matrix
+        coords = coords @ ops.cast(
+            self.positional_encoding_gaussian_matrix, dtype=self.compute_dtype
+        )
         coords = coords * (2 * math.pi)
         return ops.concatenate([ops.sin(coords), ops.cos(coords)], axis=-1)
 
@@ -305,11 +307,11 @@ class RandomFrequencyPositionalEmbeddings(keras.layers.Layer):
             tensor: Positional encoding of the image.
         """
         H, W = size
-        grid = ops.ones(shape=(H, W), dtype=self.dtype)
+        grid = ops.ones(shape=(H, W), dtype=self.compute_dtype)
         y_embed = ops.cumsum(grid, axis=0) - 0.5
         x_embed = ops.cumsum(grid, axis=1) - 0.5
-        y_embed = y_embed / ops.cast(H, self.dtype)
-        x_embed = x_embed / ops.cast(W, self.dtype)
+        y_embed = y_embed / ops.cast(H, self.compute_dtype)
+        x_embed = x_embed / ops.cast(W, self.compute_dtype)
         return self.__positional_encodings(
             ops.stack([x_embed, y_embed], axis=-1)
         )
