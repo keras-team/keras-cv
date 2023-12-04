@@ -21,6 +21,7 @@ from absl.testing import parameterized
 
 from keras_cv.backend import keras
 from keras_cv.backend import ops
+from keras_cv.backend.config import keras_3
 from keras_cv.models import DeepLabV3Plus
 from keras_cv.models import ResNet18V2Backbone
 from keras_cv.models.backbones.test_backbone_presets import (
@@ -86,12 +87,8 @@ class DeepLabV3PlusTest(TestCase):
         expected_output = np.zeros((1, 512, 512, 1))
         self.assertAllClose(output, expected_output)
 
-    @parameterized.named_parameters(
-        ("tf_format", "tf", "model"),
-        ("keras_format", "keras_v3", "model.keras"),
-    )
     @pytest.mark.large  # Saving is slow, so mark these large.
-    def test_saved_model(self, save_format, filename):
+    def test_saved_model(self):
         target_size = [512, 512, 3]
 
         backbone = ResNet18V2Backbone(input_shape=target_size)
@@ -100,8 +97,11 @@ class DeepLabV3PlusTest(TestCase):
         input_batch = np.ones(shape=[2] + target_size)
         model_output = model(input_batch)
 
-        save_path = os.path.join(self.get_temp_dir(), filename)
-        model.save(save_path, save_format=save_format)
+        save_path = os.path.join(self.get_temp_dir(), "model.keras")
+        if keras_3():
+            model.save(save_path)
+        else:
+            model.save(save_path, save_format="keras_v3")
         restored_model = keras.models.load_model(save_path)
 
         # Check we got the real object back.

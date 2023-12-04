@@ -20,6 +20,7 @@ import tensorflow as tf
 
 from keras_cv.backend import keras
 from keras_cv.backend import ops
+from keras_cv.backend.config import keras_3
 from keras_cv.models import MiTBackbone
 from keras_cv.models import SegFormer
 from keras_cv.tests.test_case import TestCase
@@ -81,7 +82,10 @@ class SegFormerTest(TestCase):
         model_output = model(input_batch)
 
         save_path = os.path.join(self.get_temp_dir(), "model.keras")
-        model.save(save_path, save_format="keras_v3")
+        if keras_3():
+            model.save(save_path)
+        else:
+            model.save(save_path, save_format="keras_v3")
         restored_model = keras.models.load_model(save_path)
 
         # Check we got the real object back.
