@@ -121,6 +121,10 @@ class Task(keras.Model):
                 "`from_preset()` on this preset."
             )
 
+        # If the preset is with weights, default to loading weights
+        if preset in cls.presets_with_weights and load_weights is not False:
+            load_weights = True
+
         # We support short IDs for official presets, e.g. `"bert_base_en"`.
         # Map these to a Kaggle Models handle.
         if preset in cls.presets:
