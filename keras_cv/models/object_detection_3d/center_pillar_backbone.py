@@ -52,6 +52,10 @@ class CenterPillarBackbone(Backbone):
         input_shape=(None, None, 128),
         **kwargs
     ):
+        self.stackwise_down_blocks = stackwise_down_blocks
+        self.stackwise_down_filters = stackwise_down_filters
+        self.stackwise_up_filters = stackwise_up_filters
+
         input = keras.layers.Input(shape=input_shape)
         x = input
 
@@ -87,6 +91,17 @@ class CenterPillarBackbone(Backbone):
             outputs=output,
             **kwargs,
         )
+
+    def get_config(self):
+        config = super().get_config()
+        config.update(
+            {
+                "stackwise_down_blocks": self.stackwise_down_blocks,
+                "stackwise_down_filters": self.stackwise_down_filters,
+                "stackwise_up_filters": self.stackwise_up_filters,
+            }
+        )
+        return config
 
     @classproperty
     def presets(cls):
