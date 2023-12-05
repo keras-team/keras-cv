@@ -51,9 +51,11 @@ def convert_backbone_presets():
     for backbone_cls in backbone_models:
         for preset in backbone_cls.presets:
             backbone = backbone_cls.from_preset(preset)
+            save_weights = preset in backbone_cls.presets_with_weights
             save_to_preset(
                 backbone,
                 preset,
+                save_weights=save_weights,
                 config_filename="config.json",
             )
             # Delete first to clean up any exising version.
@@ -83,6 +85,7 @@ def convert_task_presets():
             task_cls.backbone_presets
         )
         for preset in task_preset_keys:
+            save_weights = preset in task_cls.presets_with_weights
             kwargs = {}
             if task_cls in [
                 keras_cv.models.RetinaNet,
@@ -95,6 +98,7 @@ def convert_task_presets():
             save_to_preset(
                 task,
                 preset,
+                save_weights=save_weights,
                 config_filename="config.json",
             )
             # Delete first to clean up any exising version.
