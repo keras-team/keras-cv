@@ -21,8 +21,8 @@ Reference:
 
 import tensorflow as tf
 from tensorflow import keras
-from tensorflow.keras import layers
 
+from keras_cv.backend.keras import layers
 from keras_cv.models.legacy import utils
 
 

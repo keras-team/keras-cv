@@ -16,10 +16,10 @@ import numpy as np
 import pytest
 import tensorflow as tf
 from tensorflow import keras
-from tensorflow.keras import layers
-from tensorflow.keras import metrics
-from tensorflow.keras import optimizers
 
+from keras_cv.backend.keras import layers
+from keras_cv.backend.keras import metrics
+from keras_cv.backend.keras import optimizers
 from keras_cv.layers import preprocessing
 from keras_cv.losses import SimCLRLoss
 from keras_cv.models import DenseNet121Backbone

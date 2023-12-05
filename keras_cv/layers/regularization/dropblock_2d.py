@@ -19,7 +19,7 @@ from keras_cv.backend import config
 if config.keras_3():
     base_layer = tf.keras.layers.Layer
 else:
-    from tensorflow.keras.__internal__.layers import BaseRandomLayer
+    from keras_cv.backend.keras.__internal__.layers import BaseRandomLayer
 
     base_layer = BaseRandomLayer
 

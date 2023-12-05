@@ -19,9 +19,9 @@ References:
 
 import tensorflow as tf
 from tensorflow import keras
-from tensorflow.keras import backend
-from tensorflow.keras import layers
 
+from keras_cv.backend.keras import backend
+from keras_cv.backend.keras import layers
 from keras_cv.layers import SqueezeAndExcite2D
 from keras_cv.models.legacy import utils
 from keras_cv.models.legacy.weights import parse_weights

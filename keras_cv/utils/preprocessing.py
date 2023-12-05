@@ -14,10 +14,10 @@
 
 import tensorflow as tf
 from tensorflow import keras
-from tensorflow.keras import backend
 
 from keras_cv import core
 from keras_cv.backend import ops
+from keras_cv.backend.keras import backend
 
 _TF_INTERPOLATION_METHODS = {
     "bilinear": tf.image.ResizeMethod.BILINEAR,

@@ -33,7 +33,8 @@ if config.keras_3():
     keras.backend.name_scope = keras.name_scope
 else:
     from tensorflow import keras  # noqa: F403, F401
-    from tensorflow.keras import *  # noqa: F403, F401
+
+    from keras_cv.backend.keras import *  # noqa: F403, F401
 
     if not hasattr(keras, "saving"):
         keras.saving = types.SimpleNamespace()

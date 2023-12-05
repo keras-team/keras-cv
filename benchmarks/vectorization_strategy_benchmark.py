@@ -18,10 +18,10 @@ import time
 
 import matplotlib.pyplot as plt
 import tensorflow as tf
-import tensorflow.keras.layers as layers
 from tensorflow import keras
-from tensorflow.keras import backend
 
+import keras_cv.backend.keras.layers as layers
+from keras_cv.backend.keras import backend
 from keras_cv.utils import bounding_box
 from keras_cv.utils import fill_utils
 

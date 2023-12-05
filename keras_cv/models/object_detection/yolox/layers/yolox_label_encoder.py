@@ -14,9 +14,9 @@
 
 
 import tensorflow as tf
-from tensorflow.keras import layers
 
 from keras_cv import bounding_box
+from keras_cv.backend.keras import layers
 
 
 class YoloXLabelEncoder(layers.Layer):

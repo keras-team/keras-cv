@@ -13,9 +13,9 @@
 # limitations under the License.
 
 from tensorflow import keras
-from tensorflow.keras import layers
 
 from keras_cv.api_export import keras_cv_export
+from keras_cv.backend.keras import layers
 
 
 @keras_cv_export("keras_cv.layers.TransformerEncoder")

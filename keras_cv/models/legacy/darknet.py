@@ -20,8 +20,8 @@ Reference:
 
 import tensorflow as tf
 from tensorflow import keras
-from tensorflow.keras import layers
 
+from keras_cv.backend.keras import layers
 from keras_cv.models.backbones.csp_darknet.csp_darknet_utils import (
     DarknetConvBlock,
 )

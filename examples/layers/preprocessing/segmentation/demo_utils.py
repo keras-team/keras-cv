@@ -16,7 +16,8 @@
 import matplotlib.pyplot as plt
 import tensorflow as tf
 import tensorflow_datasets as tfds
-from tensorflow.keras import backend
+
+from keras_cv.backend.keras import backend
 
 image_size = 512
 BATCH_SIZE = 32

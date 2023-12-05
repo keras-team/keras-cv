@@ -18,7 +18,8 @@ import os
 import pytest
 import tensorflow as tf
 from tensorflow import keras
-from tensorflow.keras import backend
+
+from keras_cv.backend.keras import backend
 
 
 class ModelsTest:
