@@ -34,7 +34,7 @@ local unittest = base.BaseTest {
     )
   ],
   command: [
-    'pytest --run_large --durations 0',
+    'pytest --run_extra_large --durations 0',
     'keras_cv/bounding_box',
     'keras_cv/callbacks',
     'keras_cv/losses',

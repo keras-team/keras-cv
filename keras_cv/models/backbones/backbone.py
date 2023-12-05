@@ -13,8 +13,6 @@
 # limitations under the License.
 """Base class for Backbone models."""
 
-import os
-
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.utils.preset_utils import check_preset_class
@@ -68,30 +66,6 @@ class Backbone(keras.Model):
         }
 
     @classmethod
-    def _legacy_from_preset(
-        cls,
-        preset,
-        load_weights=None,
-        **kwargs,
-    ):
-        metadata = cls.presets[preset]
-        config = metadata["config"]
-        model = cls.from_config({**config, **kwargs})
-
-        if preset not in cls.presets_with_weights or load_weights is False:
-            return model
-
-        weights = keras.utils.get_file(
-            "model.h5",
-            metadata["weights_url"],
-            cache_subdir=os.path.join("models", preset),
-            file_hash=metadata["weights_hash"],
-        )
-
-        model.load_weights(weights)
-        return model
-
-    @classmethod
     def from_preset(
         cls,
         preset,
@@ -121,9 +95,10 @@ class Backbone(keras.Model):
             load_weights=False,
         ```
         """
-        # TODO: delete me!
+        # We support short IDs for official presets, e.g. `"bert_base_en"`.
+        # Map these to a Kaggle Models handle.
         if preset in cls.presets:
-            return cls._legacy_from_preset(preset, **kwargs)
+            preset = cls.presets[preset]["kaggle_handle"]
 
         check_preset_class(preset, cls)
         return load_from_preset(
