@@ -47,6 +47,13 @@ def convert_backbone_presets():
         keras_cv.models.EfficientNetV2SBackbone,
         keras_cv.models.EfficientNetV2MBackbone,
         keras_cv.models.EfficientNetV2LBackbone,
+        keras_cv.models.CSPDarkNetBackbone,
+        keras_cv.models.DenseNetBackbone,
+        keras_cv.src.models.EfficientNetV1Backbone,
+        keras_cv.src.models.EfficientNetLiteBackbone,
+        keras_cv.models.MiTBackbone,
+        keras_cv.models.ViTDetBackbone,
+        keras_cv.models.CenterPillarBackbone,
     ]
     for backbone_cls in backbone_models:
         for preset in backbone_cls.presets:
