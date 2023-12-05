@@ -24,6 +24,7 @@ except ImportError:
     kagglehub = None
 
 KAGGLE_PREFIX = "kaggle://"
+GS_PREFIX = "gs://"
 
 
 def get_file(preset, path):
@@ -50,7 +51,21 @@ def get_file(preset, path):
                 f"Received: preset={preset}"
             )
         return kagglehub.model_download(kaggle_handle, path)
-    return os.path.join(preset, path)
+    elif preset.startswith(GS_PREFIX):
+        url = os.path.join(preset, path)
+        url = url.replace(GS_PREFIX, "https://storage.googleapis.com/")
+        subdir = preset.replace(GS_PREFIX, "gs_")
+        subdir = subdir.replace("/", "_").replace("-", "_")
+        filename = os.path.basename(path)
+        subdir = os.path.join(subdir, os.path.dirname(path))
+        return keras.utils.get_file(
+            filename,
+            url,
+            cache_subdir=os.path.join("models", subdir),
+        )
+    else:
+        # Assume a local filepath.
+        return os.path.join(preset, path)
 
 
 def recursive_pop(config, key):
@@ -110,7 +125,7 @@ def save_to_preset(
 
 def load_from_preset(
     preset,
-    load_weights=True,
+    load_weights=None,
     config_file="config.json",
     config_overrides={},
 ):
@@ -122,9 +137,15 @@ def load_from_preset(
     config["config"] = {**config["config"], **config_overrides}
     layer = keras.saving.deserialize_keras_object(config)
 
-    # Optionally load weights.
-    load_weights = load_weights and config["weights"]
-    if load_weights:
+    # Check load_weights flag does not violate preset config.
+    if load_weights is True and config["weights"] is None:
+        raise ValueError(
+            f"The specified preset `{preset}` does not include weights. "
+            "Please remove the `load_weights` flag when calling "
+            "`from_preset()` on this preset."
+        )
+    # Default to loading weights if available.
+    if load_weights is not False and config["weights"] is not None:
         weights_path = get_file(preset, config["weights"])
         layer.load_weights(weights_path)
 
@@ -138,12 +159,23 @@ def check_preset_class(
 ):
     """Validate a preset is being loaded on the correct class."""
     config_path = get_file(preset, config_file)
-    with open(config_path) as config_file:
-        config = json.load(config_file)
+    try:
+        with open(config_path) as config_file:
+            config = json.load(config_file)
+    except:
+        raise ValueError(
+            f"The specified preset  `{preset}` is unknown. "
+            "Please check documentation to ensure the correct preset "
+            "handle is being used."
+        )
     cls = keras.saving.get_registered_object(config["registered_name"])
     if not isinstance(classes, (tuple, list)):
         classes = (classes,)
-    if cls not in classes:
+
+    # Subclass checking and alias checking
+    if not any(issubclass(cls, obj) for obj in classes) and not any(
+        issubclass(alias, cls) for alias in classes
+    ):
         raise ValueError(
             f"Unexpected class in preset `'{preset}'`. "
             "When calling `from_preset()` on a class object, the preset class "

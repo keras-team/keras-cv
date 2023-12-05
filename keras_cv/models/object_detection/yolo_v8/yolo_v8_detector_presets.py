@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """YOLOv8 Task presets."""
-from keras_cv.models.object_detection.yolo_v8 import yolo_v8_backbone_presets
 
 yolo_v8_detector_presets = {
     "yolo_v8_m_pascalvoc": {
@@ -26,14 +25,6 @@ yolo_v8_detector_presets = {
             "official_name": "YOLOV8Detector",
             "path": "yolo_v8_detector",
         },
-        "config": {
-            "backbone": yolo_v8_backbone_presets.backbone_presets[
-                "yolo_v8_m_backbone"
-            ],
-            "num_classes": 20,
-            "fpn_depth": 2,
-        },
-        "weights_url": "https://storage.googleapis.com/keras-cv/models/yolov8/pascal_voc/yolov8_m_v1.h5",  # noqa: E501
-        "weights_hash": "2891fbd66f71e0b9da0cb02ef3afbccb819e1b8f18204157f643f4ec058a71a8",  # noqa: E501
+        "kaggle_handle": "gs://keras-cv-kaggle/yolo_v8_m_pascalvoc",
     },
 }
