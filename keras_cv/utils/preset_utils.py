@@ -125,7 +125,7 @@ def save_to_preset(
 
 def load_from_preset(
     preset,
-    load_weights=True,
+    load_weights=None,
     config_file="config.json",
     config_overrides={},
 ):
@@ -138,8 +138,13 @@ def load_from_preset(
     layer = keras.saving.deserialize_keras_object(config)
 
     # Optionally load weights.
-    load_weights = load_weights and config["weights"]
-    if load_weights:
+    if load_weights is True and "weights" not in config:
+        raise ValueError(
+            f"The specified preset `{preset}` does not include weights. "
+            "Please remove the `load_weights` flag when calling "
+            "`from_preset()` on this preset."
+        )
+    if load_weights is not False and "weights" in config:
         weights_path = get_file(preset, config["weights"])
         layer.load_weights(weights_path)
 

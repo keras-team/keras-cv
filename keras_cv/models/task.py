@@ -112,17 +112,6 @@ class Task(keras.Model):
             load_weights=False,
         ```
         """
-        if preset in cls.presets_without_weights and load_weights is True:
-            raise ValueError(
-                f"The specified preset `{preset}` does not include weights. "
-                "Please remove the `load_weights` flag when calling "
-                "`from_preset()` on this preset."
-            )
-
-        # If the preset is with weights, default to loading weights
-        if preset in cls.presets_with_weights and load_weights is not False:
-            load_weights = True
-
         # We support short IDs for official presets, e.g. `"bert_base_en"`.
         # Map these to a Kaggle Models handle.
         if preset in cls.presets:
