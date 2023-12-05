@@ -13,9 +13,6 @@
 # limitations under the License.
 """SegFormer model preset configurations."""
 
-from keras_cv.models.backbones.mix_transformer.mix_transformer_backbone_presets import (  # noqa: E501
-    backbone_presets,
-)
 
 presets_no_weights = {
     "segformer_b0": {
@@ -25,10 +22,7 @@ presets_no_weights = {
             "official_name": "SegFormerB0",
             "path": "segformer_b0",
         },
-        "class_name": "keras_cv>SegFormer",
-        "config": {
-            "backbone": backbone_presets["mit_b0"],
-        },
+        "kaggle_handle": "gs://keras-cv-kaggle/segformer_b0",
     },
     "segformer_b1": {
         "metadata": {
@@ -37,8 +31,7 @@ presets_no_weights = {
             "official_name": "SegFormerB1",
             "path": "segformer_b1",
         },
-        "class_name": "keras_cv>SegFormer",
-        "config": {"backbone": backbone_presets["mit_b1"]},
+        "kaggle_handle": "gs://keras-cv-kaggle/segformer_b1",
     },
     "segformer_b2": {
         "metadata": {
@@ -47,8 +40,7 @@ presets_no_weights = {
             "official_name": "SegFormerB2",
             "path": "segformer_b2",
         },
-        "class_name": "keras_cv>SegFormer",
-        "config": {"backbone": backbone_presets["mit_b2"]},
+        "kaggle_handle": "gs://keras-cv-kaggle/segformer_b2",
     },
     "segformer_b3": {
         "metadata": {
@@ -57,8 +49,7 @@ presets_no_weights = {
             "official_name": "SegFormerB3",
             "path": "segformer_b3",
         },
-        "class_name": "keras_cv>SegFormer",
-        "config": {"backbone": backbone_presets["mit_b3"]},
+        "kaggle_handle": "gs://keras-cv-kaggle/segformer_b3",
     },
     "segformer_b4": {
         "metadata": {
@@ -67,8 +58,7 @@ presets_no_weights = {
             "official_name": "SegFormerB4",
             "path": "segformer_b4",
         },
-        "class_name": "keras_cv>SegFormer",
-        "config": {"backbone": backbone_presets["mit_b4"]},
+        "kaggle_handle": "gs://keras-cv-kaggle/segformer_b4",
     },
     "segformer_b5": {
         "metadata": {
@@ -77,8 +67,7 @@ presets_no_weights = {
             "official_name": "SegFormerB5",
             "path": "segformer_b5",
         },
-        "class_name": "keras_cv>SegFormer",
-        "config": {"backbone": backbone_presets["mit_b5"]},
+        "kaggle_handle": "gs://keras-cv-kaggle/segformer_b5",
     },
 }
 
@@ -92,10 +81,7 @@ presets_with_weights = {
             "official_name": "SegFormerB0",
             "path": "segformer_b0",
         },
-        "class_name": "keras_cv>SegFormer",
-        "config": {
-            "backbone": backbone_presets["mit_b0_imagenet"],
-        },
+        "kaggle_handle": "gs://keras-cv-kaggle/segformer_b0_imagenet",
     },
 }
 

@@ -24,17 +24,7 @@ backbone_presets_no_weights = {
             "official_name": "ResNetV2",
             "path": "resnet_v2",
         },
-        "class_name": "keras_cv>ResNetV2Backbone",
-        "config": {
-            "stackwise_filters": [64, 128, 256, 512],
-            "stackwise_blocks": [2, 2, 2, 2],
-            "stackwise_strides": [1, 2, 2, 2],
-            "include_rescaling": True,
-            "stackwise_dilations": None,
-            "input_shape": (None, None, 3),
-            "input_tensor": None,
-            "block_type": "basic_block",
-        },
+        "kaggle_handle": "gs://keras-cv-kaggle/resnet18_v2",
     },
     "resnet34_v2": {
         "metadata": {
@@ -46,17 +36,7 @@ backbone_presets_no_weights = {
             "official_name": "ResNetV2",
             "path": "resnet_v2",
         },
-        "class_name": "keras_cv>ResNetV2Backbone",
-        "config": {
-            "stackwise_filters": [64, 128, 256, 512],
-            "stackwise_blocks": [3, 4, 6, 3],
-            "stackwise_strides": [1, 2, 2, 2],
-            "include_rescaling": True,
-            "stackwise_dilations": None,
-            "input_shape": (None, None, 3),
-            "input_tensor": None,
-            "block_type": "basic_block",
-        },
+        "kaggle_handle": "gs://keras-cv-kaggle/resnet34_v2",
     },
     "resnet50_v2": {
         "metadata": {
@@ -68,17 +48,7 @@ backbone_presets_no_weights = {
             "official_name": "ResNetV2",
             "path": "resnet_v2",
         },
-        "class_name": "keras_cv>ResNetV2Backbone",
-        "config": {
-            "stackwise_filters": [64, 128, 256, 512],
-            "stackwise_blocks": [3, 4, 6, 3],
-            "stackwise_strides": [1, 2, 2, 2],
-            "include_rescaling": True,
-            "stackwise_dilations": None,
-            "input_shape": (None, None, 3),
-            "input_tensor": None,
-            "block_type": "block",
-        },
+        "kaggle_handle": "gs://keras-cv-kaggle/resnet50_v2",
     },
     "resnet101_v2": {
         "metadata": {
@@ -90,17 +60,7 @@ backbone_presets_no_weights = {
             "official_name": "ResNetV2",
             "path": "resnet_v2",
         },
-        "class_name": "keras_cv>ResNetV2Backbone",
-        "config": {
-            "stackwise_filters": [64, 128, 256, 512],
-            "stackwise_blocks": [3, 4, 23, 3],
-            "stackwise_strides": [1, 2, 2, 2],
-            "include_rescaling": True,
-            "stackwise_dilations": None,
-            "input_shape": (None, None, 3),
-            "input_tensor": None,
-            "block_type": "block",
-        },
+        "kaggle_handle": "gs://keras-cv-kaggle/resnet101_v2",
     },
     "resnet152_v2": {
         "metadata": {
@@ -112,17 +72,7 @@ backbone_presets_no_weights = {
             "official_name": "ResNetV2",
             "path": "resnet_v2",
         },
-        "class_name": "keras_cv>ResNetV2Backbone",
-        "config": {
-            "stackwise_filters": [64, 128, 256, 512],
-            "stackwise_blocks": [3, 8, 36, 3],
-            "stackwise_strides": [1, 2, 2, 2],
-            "include_rescaling": True,
-            "stackwise_dilations": None,
-            "input_shape": (None, None, 3),
-            "input_tensor": None,
-            "block_type": "block",
-        },
+        "kaggle_handle": "gs://keras-cv-kaggle/resnet152_v2",
     },
 }
 
@@ -138,10 +88,7 @@ backbone_presets_with_weights = {
             "official_name": "ResNetV2",
             "path": "resnet_v2",
         },
-        "class_name": "keras_cv>ResNetV2Backbone",
-        "config": backbone_presets_no_weights["resnet50_v2"]["config"],
-        "weights_url": "https://storage.googleapis.com/keras-cv/models/resnet50v2/imagenet/classification-v2-notop.h5",  # noqa: E501
-        "weights_hash": "e711c83d6db7034871f6d345a476c8184eab99dbf3ffcec0c1d8445684890ad9",  # noqa: E501
+        "kaggle_handle": "gs://keras-cv-kaggle/resnet50_v2_imagenet",
     },
 }
 
