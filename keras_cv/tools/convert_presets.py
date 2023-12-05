@@ -85,6 +85,8 @@ def convert_task_presets():
         keras_cv.models.YOLOV8Detector,
         keras_cv.models.ImageClassifier,
         keras_cv.models.DeepLabV3Plus,
+        keras_cv.models.SegFormer,
+        keras_cv.models.SegmentAnythingModel,
     ]
     for task_cls in task_models:
         # Remove backbone-specific keys
