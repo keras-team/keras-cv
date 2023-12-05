@@ -169,7 +169,6 @@ def check_preset_class(
             "handle is being used."
         )
     cls = keras.saving.get_registered_object(config["registered_name"])
-    # Subclass checking
     if not isinstance(classes, (tuple, list)):
         classes = (classes,)
 
