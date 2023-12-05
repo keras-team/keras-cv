@@ -23,14 +23,7 @@ backbone_presets_no_weights = {
             "official_name": "MiT",
             "path": "mit",
         },
-        "class_name": "keras_cv>MiTBackbone",
-        "config": {
-            "embedding_dims": [32, 64, 160, 256],
-            "depths": [2, 2, 2, 2],
-            "include_rescaling": True,
-            "input_shape": (224, 224, 3),
-            "input_tensor": None,
-        },
+        "kaggle_handle": "gs://keras-cv-kaggle/mit_b0",
     },
     "mit_b1": {
         "metadata": {
@@ -41,14 +34,7 @@ backbone_presets_no_weights = {
             "official_name": "MiT",
             "path": "mit",
         },
-        "class_name": "keras_cv>MiTBackbone",
-        "config": {
-            "embedding_dims": [64, 128, 320, 512],
-            "depths": [2, 2, 2, 2],
-            "include_rescaling": True,
-            "input_shape": (224, 224, 3),
-            "input_tensor": None,
-        },
+        "kaggle_handle": "gs://keras-cv-kaggle/mit_b1",
     },
     "mit_b2": {
         "metadata": {
@@ -59,14 +45,7 @@ backbone_presets_no_weights = {
             "official_name": "MiT",
             "path": "mit",
         },
-        "class_name": "keras_cv>MiTBackbone",
-        "config": {
-            "embedding_dims": [64, 128, 320, 512],
-            "depths": [3, 4, 6, 3],
-            "include_rescaling": True,
-            "input_shape": (224, 224, 3),
-            "input_tensor": None,
-        },
+        "kaggle_handle": "gs://keras-cv-kaggle/mit_b2",
     },
     "mit_b3": {
         "metadata": {
@@ -77,14 +56,7 @@ backbone_presets_no_weights = {
             "official_name": "MiT",
             "path": "mit",
         },
-        "class_name": "keras_cv>MiTBackbone",
-        "config": {
-            "embedding_dims": [64, 128, 320, 512],
-            "depths": [3, 4, 18, 3],
-            "include_rescaling": True,
-            "input_shape": (224, 224, 3),
-            "input_tensor": None,
-        },
+        "kaggle_handle": "gs://keras-cv-kaggle/mit_b3",
     },
     "mit_b4": {
         "metadata": {
@@ -95,14 +67,7 @@ backbone_presets_no_weights = {
             "official_name": "MiT",
             "path": "mit",
         },
-        "class_name": "keras_cv>MiTBackbone",
-        "config": {
-            "embedding_dims": [64, 128, 320, 512],
-            "depths": [3, 8, 27, 3],
-            "include_rescaling": True,
-            "input_shape": (224, 224, 3),
-            "input_tensor": None,
-        },
+        "kaggle_handle": "gs://keras-cv-kaggle/mit_b4",
     },
     "mit_b5": {
         "metadata": {
@@ -113,14 +78,7 @@ backbone_presets_no_weights = {
             "official_name": "MiT",
             "path": "mit",
         },
-        "class_name": "keras_cv>MiTBackbone",
-        "config": {
-            "embedding_dims": [64, 128, 320, 512],
-            "depths": [3, 6, 40, 3],
-            "include_rescaling": True,
-            "input_shape": (224, 224, 3),
-            "input_tensor": None,
-        },
+        "kaggle_handle": "gs://keras-cv-kaggle/mit_b5",
     },
 }
 
@@ -134,16 +92,7 @@ backbone_presets_with_weights = {
             "official_name": "MiT",
             "path": "mit",
         },
-        "class_name": "keras_cv>MiTBackbone",
-        "config": {
-            "embedding_dims": [32, 64, 160, 256],
-            "depths": [2, 2, 2, 2],
-            "include_rescaling": True,
-            "input_shape": (224, 224, 3),
-            "input_tensor": None,
-        },
-        "weights_url": "https://storage.googleapis.com/keras-cv/models/mitb0/imagenet/classification-v0.h5",  # noqa: E501
-        "weights_hash": "8e0c416cd330b6fa0bcfb3a5ccc43edcbcabf6a463aee3c2a9b6a1398c207d10",  # noqa: E501
+        "kaggle_handle": "gs://keras-cv-kaggle/mit_b0_imagenet",
     },
 }
 

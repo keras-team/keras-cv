@@ -18,9 +18,6 @@ from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 from keras_cv.layers.object_detection_3d.heatmap_decoder import HeatmapDecoder
-from keras_cv.models.object_detection_3d.center_pillar_backbone import (
-    CenterPillarBackbone,
-)
 from keras_cv.models.object_detection_3d.center_pillar_backbone_presets import (
     backbone_presets,
 )
@@ -204,10 +201,6 @@ class MultiHeadCenterPillar(Task):
     def presets(cls):
         """Dictionary of preset names and configurations."""
         return copy.deepcopy(backbone_presets)
-
-    @classproperty
-    def backbone_cls(cls):
-        return CenterPillarBackbone
 
     @classproperty
     def backbone_presets(cls):
