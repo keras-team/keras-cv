@@ -16,14 +16,14 @@ import tensorflow as tf
 
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
-from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
-    BaseImageAugmentationLayer,
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
+    VectorizedBaseImageAugmentationLayer,
 )
 from keras_cv.utils import preprocessing
 
 
 @keras_cv_export("keras_cv.layers.RandomColorDegeneration")
-class RandomColorDegeneration(BaseImageAugmentationLayer):
+class RandomColorDegeneration(VectorizedBaseImageAugmentationLayer):
     """Randomly performs the color degeneration operation on given images.
 
     The sharpness operation first converts an image to gray scale, then back to
@@ -57,24 +57,35 @@ class RandomColorDegeneration(BaseImageAugmentationLayer):
         )
         self.seed = seed
 
-    def get_random_transformation(self, **kwargs):
-        return self.factor(dtype=self.compute_dtype)
+    def get_random_transformation_batch(self, batch_size, **kwargs):
+        return self.factor(shape=(batch_size, 1, 1, 1), dtype=self.compute_dtype)
 
-    def augment_image(self, image, transformation=None, **kwargs):
-        degenerate = tf.image.grayscale_to_rgb(tf.image.rgb_to_grayscale(image))
-        result = preprocessing.blend(image, degenerate, transformation)
+    def augment_images(self, images, transformations=None, **kwargs):
+        degenerates = tf.image.grayscale_to_rgb(tf.image.rgb_to_grayscale(images))
+        result = preprocessing.blend(images, degenerates, transformations)
         return result
 
     def augment_bounding_boxes(self, bounding_boxes, **kwargs):
         return bounding_boxes
 
-    def augment_label(self, label, transformation=None, **kwargs):
-        return label
+    def augment_labels(self, labels, transformations=None, **kwargs):
+        return labels
 
-    def augment_segmentation_mask(
-        self, segmentation_mask, transformation, **kwargs
+    def augment_segmentation_masks(
+        self, segmentation_masks, transformations, **kwargs
     ):
-        return segmentation_mask
+        return segmentation_masks
+
+    def augment_keypoints(self, keypoints, transformations, **kwargs):
+        return keypoints
+
+    def augment_targets(self, targets, transformations, **kwargs):
+        return targets
+
+    def augment_ragged_image(self, image, transformation, **kwargs):
+        return self.augment_images(
+            image, transformations=transformation, **kwargs
+        )
 
     def get_config(self):
         config = super().get_config()
