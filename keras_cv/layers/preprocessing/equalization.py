@@ -53,9 +53,9 @@ class Equalization(VectorizedBaseImageAugmentationLayer):
         self.bins = bins
         self.value_range = value_range
 
-    def equalize_channel(self, image, channel_index):
+    def equalize_channel(self, images, channel_index):
         """equalize_channel performs histogram equalization on a single channel.
-
+    
         Args:
             image: int Tensor with pixels in range [0, 255], RGB format,
                 with channels last
@@ -64,26 +64,26 @@ class Equalization(VectorizedBaseImageAugmentationLayer):
         images = images[..., channel_index]
         # Compute the histogram of the image channel.
         partial_hist = partial(tf.histogram_fixed_width, value_range=[0, 255], nbins=self.bins)
-        histogram = tf.vectorized_map(
+        histogram = tf.vectorized_map( # TODO: bottleneck
             partial_hist, images, fallback_to_while_loop=True, warn=True
         )
-
+    
         # For the purposes of computing the step, filter out the non-zeros.
         # Zeroes are replaced by a big number while calculating min to keep
         # shape constant across input sizes for compatibility with
         # vectorized_map
-
+    
         big_number = 1410065408
         histogram_without_zeroes = tf.where(
             tf.equal(histogram, 0),
             big_number,
             histogram,
         )
-
+    
         step = (
             tf.reduce_sum(histogram, axis=-1) - tf.reduce_min(histogram_without_zeroes, axis=-1)
         ) // (self.bins - 1)
-
+    
         def build_mapping(histogram, step):
             # Compute the cumulative sum, shifting by step // 2
             # and then normalization by step.
@@ -103,14 +103,14 @@ class Equalization(VectorizedBaseImageAugmentationLayer):
 
         # If step is zero, return the original image. Otherwise, build
         # lookup table from the full histogram and step and then index from it.
-        # Actually the lookup table is built for all the images, no matter which is the corresponding value of step
+        # Actually, the lookup table is built for all the images, no matter which is the corresponding value of step
         # This is an extra computation, but allows to do everything vectorized and avoiding division by 0
         result = tf.where(
             tf.reshape(tf.equal(step, 0), (-1,1,1)),
             images,
             tf.gather(build_mapping(histogram, step), images, batch_dims=1, axis=1)
         )
-
+    
         return result
 
     def augment_images(self, images, transformations=None, **kwargs):
