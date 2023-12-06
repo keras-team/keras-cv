@@ -15,14 +15,15 @@
 import tensorflow as tf
 
 from keras_cv.api_export import keras_cv_export
-from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
-    BaseImageAugmentationLayer,
+from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
+    VectorizedBaseImageAugmentationLayer,
 )
 from keras_cv.utils import preprocessing
+from functools import partial
 
 
 @keras_cv_export("keras_cv.layers.Equalization")
-class Equalization(BaseImageAugmentationLayer):
+class Equalization(VectorizedBaseImageAugmentationLayer):
     """Equalization performs histogram equalization on a channel-wise basis.
 
     Args:
@@ -60,9 +61,12 @@ class Equalization(BaseImageAugmentationLayer):
                 with channels last
             channel_index: channel to equalize
         """
-        image = image[..., channel_index]
+        images = images[..., channel_index]
         # Compute the histogram of the image channel.
-        histogram = tf.histogram_fixed_width(image, [0, 255], nbins=self.bins)
+        partial_hist = partial(tf.histogram_fixed_width, value_range=[0, 255], nbins=self.bins)
+        histogram = tf.vectorized_map(
+            partial_hist, images, fallback_to_while_loop=True, warn=True
+        )
 
         # For the purposes of computing the step, filter out the non-zeros.
         # Zeroes are replaced by a big number while calculating min to keep
@@ -77,56 +81,76 @@ class Equalization(BaseImageAugmentationLayer):
         )
 
         step = (
-            tf.reduce_sum(histogram) - tf.reduce_min(histogram_without_zeroes)
+            tf.reduce_sum(histogram, axis=-1) - tf.reduce_min(histogram_without_zeroes, axis=-1)
         ) // (self.bins - 1)
 
         def build_mapping(histogram, step):
             # Compute the cumulative sum, shifting by step // 2
             # and then normalization by step.
-            lookup_table = (tf.cumsum(histogram) + (step // 2)) // step
+            _step = tf.where(
+                tf.equal(step, 0),
+                1, # replace where step is 0 with 1 to avoid division by 0. This doesn't change anything because in the tf.where we return the original image where step == 0
+                step,
+            )
+            _step = tf.expand_dims(_step, -1)
+            bacth_size = tf.shape(histogram)[0]
+            lookup_table = (tf.cumsum(histogram, axis=-1) + (_step // 2)) // _step
             # Shift lookup_table, prepending with 0.
-            lookup_table = tf.concat([[0], lookup_table[:-1]], 0)
+            lookup_table = tf.concat([tf.tile([[0]], [bacth_size, 1]), lookup_table[..., :-1]], 1)
             # Clip the counts to be in range. This is done
             # in the C code for image.point.
             return tf.clip_by_value(lookup_table, 0, 255)
 
         # If step is zero, return the original image. Otherwise, build
         # lookup table from the full histogram and step and then index from it.
-        result = tf.cond(
-            tf.equal(step, 0),
-            lambda: image,
-            lambda: tf.gather(build_mapping(histogram, step), image),
+        # Actually the lookup table is built for all the images, no matter which is the corresponding value of step
+        # This is an extra computation, but allows to do everything vectorized and avoiding division by 0
+        result = tf.where(
+            tf.reshape(tf.equal(step, 0), (-1,1,1)),
+            images,
+            tf.gather(build_mapping(histogram, step), images, batch_dims=1, axis=1)
         )
 
         return result
 
-    def augment_image(self, image, **kwargs):
-        image = preprocessing.transform_value_range(
-            image, self.value_range, (0, 255), dtype=self.compute_dtype
+    def augment_images(self, images, transformations=None, **kwargs):
+        images = preprocessing.transform_value_range(
+            images, self.value_range, (0, 255), dtype=self.compute_dtype
         )
-        image = tf.cast(image, tf.int32)
-        image = tf.map_fn(
-            lambda channel: self.equalize_channel(image, channel),
-            tf.range(tf.shape(image)[-1]),
+        images = tf.cast(images, tf.int32)
+        images = tf.map_fn(
+            lambda channel: self.equalize_channel(images, channel),
+            tf.range(tf.shape(images)[-1]),
         )
 
-        image = tf.transpose(image, [1, 2, 0])
-        image = tf.cast(image, self.compute_dtype)
-        image = preprocessing.transform_value_range(
-            image, (0, 255), self.value_range, dtype=self.compute_dtype
+        images = tf.transpose(images, [1, 2, 3, 0])
+        images = tf.cast(images, self.compute_dtype)
+        images = preprocessing.transform_value_range(
+            images, (0, 255), self.value_range, dtype=self.compute_dtype
         )
-        return image
+        return images
 
     def augment_bounding_boxes(self, bounding_boxes, **kwargs):
         return bounding_boxes
 
-    def augment_label(self, label, transformation=None, **kwargs):
-        return label
+    def augment_labels(self, labels, transformations=None, **kwargs):
+        return labels
 
-    def augment_segmentation_mask(
-        self, segmentation_mask, transformation, **kwargs
+    def augment_segmentation_masks(
+        self, segmentation_masks, transformations, **kwargs
     ):
-        return segmentation_mask
+        return segmentation_masks
+
+    def augment_keypoints(self, keypoints, transformations, **kwargs):
+        return keypoints
+
+    def augment_targets(self, targets, transformations, **kwargs):
+        return targets
+
+    def augment_ragged_image(self, image, transformation, **kwargs):
+        return self.augment_images(
+            image, transformations=transformation, **kwargs
+        )
 
     def get_config(self):
         config = super().get_config()
