@@ -370,7 +370,8 @@ def convert_format(
             `"float32"`.
     """
     if isinstance(boxes, dict):
-        boxes["boxes"] = convert_format(
+        duplicate_boxes = boxes.copy()
+        duplicate_boxes["boxes"] = convert_format(
             boxes["boxes"],
             source=source,
             target=target,
@@ -378,7 +379,7 @@ def convert_format(
             image_shape=image_shape,
             dtype=dtype,
         )
-        return boxes
+        return duplicate_boxes
 
     if boxes.shape[-1] is not None and boxes.shape[-1] != 4:
         raise ValueError(
