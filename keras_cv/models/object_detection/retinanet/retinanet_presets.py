@@ -26,6 +26,6 @@ retinanet_presets = {
             "official_name": "RetinaNet",
             "path": "retinanet",
         },
-        "kaggle_handle": "gs://keras-cv-kaggle/retinanet_resnet50_pascalvoc",
+        "kaggle_handle": "kaggle://keras/retinanet/retinanet_resnet50_pascalvoc/1",
     },
 }

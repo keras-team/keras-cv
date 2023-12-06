@@ -24,7 +24,7 @@ backbone_presets_no_weights = {
             "official_name": "EfficientNetV2",
             "path": "efficientnetv2",
         },
-        "kaggle_handle": "gs://keras-cv-kaggle/efficientnetv2_s",
+        "kaggle_handle": "kaggle://keras/efficientnetv2/efficientnetv2_s/1",
     },
     "efficientnetv2_m": {
         "metadata": {
@@ -35,7 +35,7 @@ backbone_presets_no_weights = {
             "official_name": "EfficientNetV2",
             "path": "efficientnetv2",
         },
-        "kaggle_handle": "gs://keras-cv-kaggle/efficientnetv2_m",
+        "kaggle_handle": "kaggle://keras/efficientnetv2/efficientnetv2_m/1",
     },
     "efficientnetv2_l": {
         "metadata": {
@@ -47,7 +47,7 @@ backbone_presets_no_weights = {
             "official_name": "EfficientNetV2",
             "path": "efficientnetv2",
         },
-        "kaggle_handle": "gs://keras-cv-kaggle/efficientnetv2_l",
+        "kaggle_handle": "kaggle://keras/efficientnetv2/efficientnetv2_l/1",
     },
     "efficientnetv2_b0": {
         "metadata": {
@@ -60,7 +60,7 @@ backbone_presets_no_weights = {
             "official_name": "EfficientNetV2",
             "path": "efficientnetv2",
         },
-        "kaggle_handle": "gs://keras-cv-kaggle/efficientnetv2_b0",
+        "kaggle_handle": "kaggle://keras/efficientnetv2/efficientnetv2_b0/1",
     },
     "efficientnetv2_b1": {
         "metadata": {
@@ -73,7 +73,7 @@ backbone_presets_no_weights = {
             "official_name": "EfficientNetV2",
             "path": "efficientnetv2",
         },
-        "kaggle_handle": "gs://keras-cv-kaggle/efficientnetv2_b1",
+        "kaggle_handle": "kaggle://keras/efficientnetv2/efficientnetv2_b1/1",
     },
     "efficientnetv2_b2": {
         "metadata": {
@@ -86,7 +86,7 @@ backbone_presets_no_weights = {
             "official_name": "EfficientNetV2",
             "path": "efficientnetv2",
         },
-        "kaggle_handle": "gs://keras-cv-kaggle/efficientnetv2_b2",
+        "kaggle_handle": "kaggle://keras/efficientnetv2/efficientnetv2_b2/1",
     },
     "efficientnetv2_b3": {
         "metadata": {
@@ -99,7 +99,7 @@ backbone_presets_no_weights = {
             "official_name": "EfficientNetV2",
             "path": "efficientnetv2",
         },
-        "kaggle_handle": "gs://keras-cv-kaggle/efficientnetv2_b3",
+        "kaggle_handle": "kaggle://keras/efficientnetv2/efficientnetv2_b3/1",
     },
 }
 
@@ -117,7 +117,7 @@ backbone_presets_with_weights = {
             "official_name": "EfficientNetV2",
             "path": "efficientnetv2",
         },
-        "kaggle_handle": "gs://keras-cv-kaggle/efficientnetv2_s_imagenet",
+        "kaggle_handle": "kaggle://keras/efficientnetv2/efficientnetv2_s_imagenet/1",
     },
     "efficientnetv2_b0_imagenet": {
         "metadata": {
@@ -134,7 +134,7 @@ backbone_presets_with_weights = {
             "official_name": "EfficientNetV2",
             "path": "efficientnetv2",
         },
-        "kaggle_handle": "gs://keras-cv-kaggle/efficientnetv2_b0_imagenet",
+        "kaggle_handle": "kaggle://keras/efficientnetv2/efficientnetv2_b0_imagenet/1",
     },
     "efficientnetv2_b1_imagenet": {
         "metadata": {
@@ -151,7 +151,7 @@ backbone_presets_with_weights = {
             "official_name": "EfficientNetV2",
             "path": "efficientnetv2",
         },
-        "kaggle_handle": "gs://keras-cv-kaggle/efficientnetv2_b1_imagenet",
+        "kaggle_handle": "kaggle://keras/efficientnetv2/efficientnetv2_b1_imagenet/1",
     },
     "efficientnetv2_b2_imagenet": {
         "metadata": {
@@ -168,7 +168,7 @@ backbone_presets_with_weights = {
             "official_name": "EfficientNetV2",
             "path": "efficientnetv2",
         },
-        "kaggle_handle": "gs://keras-cv-kaggle/efficientnetv2_b2_imagenet",
+        "kaggle_handle": "kaggle://keras/efficientnetv2/efficientnetv2_b2_imagenet/1",
     },
 }
 

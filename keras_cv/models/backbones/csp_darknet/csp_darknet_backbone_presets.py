@@ -26,7 +26,7 @@ backbone_presets_no_weights = {
             "official_name": "CSPDarkNet",
             "path": "csp_darknet",
         },
-        "kaggle_handle": "gs://keras-cv-kaggle/csp_darknet_tiny",
+        "kaggle_handle": "kaggle://keras/cspdarknet/csp_darknet_tiny/1",
     },
     "csp_darknet_s": {
         "metadata": {
@@ -39,7 +39,7 @@ backbone_presets_no_weights = {
             "official_name": "CSPDarkNet",
             "path": "csp_darknet",
         },
-        "kaggle_handle": "gs://keras-cv-kaggle/csp_darknet_s",
+        "kaggle_handle": "kaggle://keras/cspdarknet/csp_darknet_s/1",
     },
     "csp_darknet_m": {
         "metadata": {
@@ -52,7 +52,7 @@ backbone_presets_no_weights = {
             "official_name": "CSPDarkNet",
             "path": "csp_darknet",
         },
-        "kaggle_handle": "gs://keras-cv-kaggle/csp_darknet_m",
+        "kaggle_handle": "kaggle://keras/cspdarknet/csp_darknet_m/1",
     },
     "csp_darknet_l": {
         "metadata": {
@@ -65,7 +65,7 @@ backbone_presets_no_weights = {
             "official_name": "CSPDarkNet",
             "path": "csp_darknet",
         },
-        "kaggle_handle": "gs://keras-cv-kaggle/csp_darknet_l",
+        "kaggle_handle": "kaggle://keras/cspdarknet/csp_darknet_l/1",
     },
     "csp_darknet_xl": {
         "metadata": {
@@ -78,7 +78,7 @@ backbone_presets_no_weights = {
             "official_name": "CSPDarkNet",
             "path": "csp_darknet",
         },
-        "kaggle_handle": "gs://keras-cv-kaggle/csp_darknet_xl",
+        "kaggle_handle": "kaggle://keras/cspdarknet/csp_darknet_xl/1",
     },
 }
 
@@ -95,7 +95,7 @@ backbone_presets_with_weights = {
             "official_name": "CSPDarkNet",
             "path": "csp_darknet",
         },
-        "kaggle_handle": "gs://keras-cv-kaggle/csp_darknet_tiny_imagenet",
+        "kaggle_handle": "kaggle://keras/cspdarknet/csp_darknet_tiny_imagenet/1",
     },
     "csp_darknet_l_imagenet": {
         "metadata": {
@@ -109,7 +109,7 @@ backbone_presets_with_weights = {
             "official_name": "CSPDarkNet",
             "path": "csp_darknet",
         },
-        "kaggle_handle": "gs://keras-cv-kaggle/csp_darknet_l_imagenet",
+        "kaggle_handle": "kaggle://keras/cspdarknet/csp_darknet_l_imagenet/1",
     },
 }
 
