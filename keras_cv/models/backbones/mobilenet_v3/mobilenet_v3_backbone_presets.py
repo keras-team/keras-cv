@@ -55,7 +55,7 @@ backbone_presets_with_weights = {
             "official_name": "MobileNetV3",
             "path": "mobilenetv3",
         },
-        "kaggle_handle": "kaggle://keras/mobilenetv3/mobilenet_v3_large_imagenet/1",
+        "kaggle_handle": "kaggle://keras/mobilenetv3/mobilenet_v3_large_imagenet/1",  # noqa: E501
     },
     "mobilenet_v3_small_imagenet": {
         "metadata": {
@@ -69,7 +69,7 @@ backbone_presets_with_weights = {
             "official_name": "MobileNetV3",
             "path": "mobilenetv3",
         },
-        "kaggle_handle": "kaggle://keras/mobilenetv3/mobilenet_v3_small_imagenet/1",
+        "kaggle_handle": "kaggle://keras/mobilenetv3/mobilenet_v3_small_imagenet/1",  # noqa: E501
     },
 }
 

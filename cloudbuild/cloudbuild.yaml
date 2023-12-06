@@ -50,6 +50,7 @@ steps:
     '--ext-str', 'backend=$_BACKEND',
     '-o', 'output.yaml',
   ]
+  secretEnv: ['KAGGLE_USERNAME', 'KAGGLE_KEY']
 - name: 'gcr.io/cloud-builders/gcloud'
   id: create-job
   waitFor:
@@ -75,3 +76,9 @@ options:
   volumes:
   - name: go-modules
     path: /go
+availableSecrets:
+  secretManager:
+  - versionName: projects/$PROJECT_ID/secrets/KAGGLE_USERNAME/versions/latest
+    env: 'KAGGLE_USERNAME'
+  - versionName: projects/$PROJECT_ID/secrets/KAGGLE_KEY/versions/latest
+    env: 'KAGGLE_KEY'

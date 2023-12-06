@@ -27,7 +27,7 @@ classifier_presets = {
             "official_name": "ImageClassifier",
             "path": "image_classifier",
         },
-        "kaggle_handle": "kaggle://keras/resnetv2/resnet50_v2_imagenet_classifier/1",
+        "kaggle_handle": "kaggle://keras/resnetv2/resnet50_v2_imagenet_classifier/1",  # noqa: E501
     },
     "efficientnetv2_s_imagenet_classifier": {
         "metadata": {

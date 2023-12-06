@@ -95,7 +95,7 @@ backbone_presets_with_weights = {
             "official_name": "CSPDarkNet",
             "path": "csp_darknet",
         },
-        "kaggle_handle": "kaggle://keras/cspdarknet/csp_darknet_tiny_imagenet/1",
+        "kaggle_handle": "kaggle://keras/cspdarknet/csp_darknet_tiny_imagenet/1",  # noqa: E501
     },
     "csp_darknet_l_imagenet": {
         "metadata": {
