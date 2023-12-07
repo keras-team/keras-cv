@@ -29,6 +29,10 @@ GS_PREFIX = "gs://"
 
 def get_file(preset, path):
     """Download a preset file in necessary and return the local path."""
+    if not isinstance(preset, str):
+        raise ValueError(
+            f"A preset identifier must be a string. Received: preset={preset}"
+        )
     if preset.startswith(KAGGLE_PREFIX):
         if kagglehub is None:
             raise ImportError(
@@ -63,9 +67,19 @@ def get_file(preset, path):
             url,
             cache_subdir=os.path.join("models", subdir),
         )
-    else:
+    elif os.path.exists(preset):
         # Assume a local filepath.
         return os.path.join(preset, path)
+    else:
+        raise ValueError(
+            "Unknown preset identifier. A preset must be a one of:\n"
+            "1) a built in preset identifier like `'mobilenet_v3_small'`\n"
+            "2) a Kaggle Models handle like `'kaggle://keras/mobilenetv3/mobilenet_v3_small'`\n"  # noqa: E501
+            "3) a path to a local preset directory like `'./mobilenet_v3_small`\n"  # noqa: E501
+            "Use `print(cls.presets.keys())` to view all built-in presets for "
+            "API symbol `cls`.\n"
+            f"Received: preset='{preset}'"
+        )
 
 
 def recursive_pop(config, key):
