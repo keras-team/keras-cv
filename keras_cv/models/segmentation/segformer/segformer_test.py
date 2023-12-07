@@ -48,7 +48,7 @@ class SegFormerTest(TestCase):
 
     def test_segformer_preset_error(self):
         with self.assertRaises(TypeError):
-            model = SegFormer.from_preset("segformer_b0")
+            _ = SegFormer.from_preset("segformer_b0")
 
     @pytest.mark.large
     def test_segformer_call(self):
