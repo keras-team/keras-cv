@@ -79,3 +79,9 @@ class PresetUtilsTest(TestCase):
         expected_output = model(input_batch)
         restored_output = restored_model(input_batch)
         self.assertAllClose(expected_output, restored_output)
+
+    def test_preset_errors(self):
+        with self.assertRaisesRegex(ValueError, "must be a string"):
+            ImageClassifier.from_preset(ImageClassifier)
+        with self.assertRaisesRegex(ValueError, "Unknown preset identifier"):
+            ImageClassifier.from_preset("taggle://rednet/rednet/rednet")
