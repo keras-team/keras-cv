@@ -73,9 +73,9 @@ def get_file(preset, path):
     else:
         raise ValueError(
             "Unknown preset identifier. A preset must be a one of:\n"
-            "1) a built in preset identifier like `'mobilenet_v3_small'`\n"  # noqa: E501
+            "1) a built in preset identifier like `'mobilenet_v3_small'`\n"
             "2) a Kaggle Models handle like `'kaggle://keras/mobilenetv3/mobilenet_v3_small'`\n"  # noqa: E501
-            "3) a path to a local preset directory like `'./mobilenet_v3_small`\n"
+            "3) a path to a local preset directory like `'./mobilenet_v3_small`\n"  # noqa: E501
             "Use `print(cls.presets.keys())` to view all built-in presets for "
             "API symbol `cls`.\n"
             f"Received: preset='{preset}'"
