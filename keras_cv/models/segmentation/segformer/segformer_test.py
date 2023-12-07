@@ -46,13 +46,27 @@ class SegFormerTest(TestCase):
             metrics=["accuracy"],
         )
 
+    def test_segformer_preset_error(self):
+        with self.assertRaises(TypeError):
+            model = SegFormer.from_preset("segformer_b0")
+
     @pytest.mark.large
     def test_segformer_call(self):
         backbone = MiTBackbone.from_preset("mit_b0", input_shape=[512, 512, 3])
-        model = SegFormer(backbone=backbone, num_classes=1)
+        mit_model = SegFormer(backbone=backbone, num_classes=1)
+
         images = np.random.uniform(size=(2, 512, 512, 3))
-        _ = model(images)
-        _ = model.predict(images)
+        mit_output = mit_model(images)
+        mit_pred = mit_model.predict(images)
+
+        seg_model = SegFormer.from_preset(
+            "segformer_b0", num_classes=1, input_shape=[512, 512, 3]
+        )
+        seg_output = seg_model(images)
+        seg_pred = seg_model.predict(images)
+
+        self.assertAllClose(mit_output, seg_output)
+        self.assertAllClose(mit_pred, seg_pred)
 
     @pytest.mark.large
     def test_weights_change(self):
