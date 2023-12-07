@@ -16,6 +16,7 @@ import copy
 
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
+from keras_cv.models import MiTBackbone
 from keras_cv.models.segmentation.segformer.segformer_presets import (  # noqa: E501
     presets,
 )
@@ -164,6 +165,29 @@ class SegFormer(Task):
             }
         )
         return config
+
+    @classmethod
+    def from_preset(
+        cls,
+        preset,
+        num_classes,
+        load_weights=None,
+        **kwargs,
+    ):
+        aliases = {
+            "segformer_b0": "mit_b0",
+            "segformer_b1": "mit_b1",
+            "segformer_b2": "mit_b2",
+            "segformer_b3": "mit_b3",
+            "segformer_b4": "mit_b4",
+            "segformer_b5": "mit_b5",
+        }
+        if preset in aliases:
+            preset = aliases[preset]
+        backbone = MiTBackbone.from_preset(
+            preset, load_weights=load_weights, **kwargs
+        )
+        return cls(backbone=backbone, num_classes=num_classes)
 
     @classproperty
     def presets(cls):
