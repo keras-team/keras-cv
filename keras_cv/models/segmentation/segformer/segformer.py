@@ -172,6 +172,7 @@ class SegFormer(Task):
         preset,
         num_classes,
         load_weights=None,
+        input_shape=None,
         **kwargs,
     ):
         aliases = {
@@ -184,10 +185,13 @@ class SegFormer(Task):
         }
         if preset in aliases:
             preset = aliases[preset]
-        backbone = MiTBackbone.from_preset(
-            preset, load_weights=load_weights, **kwargs
+        return super().from_preset(
+            preset,
+            load_weights=load_weights,
+            num_classes=num_classes,
+            input_shape=input_shape,
+            **kwargs,
         )
-        return cls(backbone=backbone, num_classes=num_classes)
 
     @classproperty
     def presets(cls):
@@ -199,3 +203,7 @@ class SegFormer(Task):
         """Dictionary of preset names and configurations that include
         weights."""
         return copy.deepcopy(presets_with_weights)
+
+    @classproperty
+    def backbone_presets(cls):
+        return copy.deepcopy(MiTBackbone.presets)

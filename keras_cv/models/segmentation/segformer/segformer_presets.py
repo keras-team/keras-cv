@@ -100,6 +100,7 @@ presets_with_weights = {
 }
 
 presets = {
+    **backbone_presets,  # Add MiTBackbone presets
     **presets_no_weights,
     **presets_with_weights,
 }
