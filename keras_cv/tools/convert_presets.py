@@ -95,7 +95,7 @@ def convert_task_presets():
         keras_cv.models.YOLOV8Detector,
         keras_cv.models.ImageClassifier,
         keras_cv.models.DeepLabV3Plus,
-        keras_cv.models.SegFormer,
+        # keras_cv.models.SegFormer,
         keras_cv.models.SegmentAnythingModel,
     ]
     for task_cls in task_models:
@@ -113,7 +113,7 @@ def convert_task_presets():
                 kwargs.update({"bounding_box_format": "xywh"})
                 task = task_cls.from_preset(preset, **kwargs)
             else:
-                task = task_cls.from_preset(preset)
+                task = task_cls.from_preset(preset, **kwargs)
             save_to_preset(
                 task,
                 preset,
