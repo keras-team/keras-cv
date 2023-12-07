@@ -13,10 +13,18 @@
 # limitations under the License.
 
 import os
+import re
 
 import keras_cv  # noqa: E402
 
 BUCKET = "keras-cv-kaggle"
+
+
+def to_snake_case(name):
+    name = re.sub(r"\W+", "", name)
+    name = re.sub("(.)([A-Z][a-z]+)", r"\1_\2", name)
+    name = re.sub("([a-z])([A-Z])", r"\1_\2", name).lower()
+    return name
 
 
 def convert_backbone_presets():
@@ -57,7 +65,9 @@ def convert_backbone_presets():
     ]
     for backbone_cls in backbone_models:
         for preset in backbone_cls.presets:
-            backbone = backbone_cls.from_preset(preset)
+            backbone = backbone_cls.from_preset(
+                preset, name=to_snake_case(backbone_cls.__name__)
+            )
             save_weights = preset in backbone_cls.presets_with_weights
             save_to_preset(
                 backbone,
@@ -95,7 +105,7 @@ def convert_task_presets():
         )
         for preset in task_preset_keys:
             save_weights = preset in task_cls.presets_with_weights
-            kwargs = {}
+            kwargs = {"name": to_snake_case(task_cls.__name__)}
             if task_cls in [
                 keras_cv.models.RetinaNet,
                 keras_cv.models.YOLOV8Detector,
