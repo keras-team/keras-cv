@@ -103,7 +103,7 @@ class RandomAugmentationPipeline(BaseImageAugmentationLayer):
             )
             result = tf.cond(
                 skip_augment > self.rate,
-                lambda: inputs,
+                lambda: result,
                 lambda: self._random_choice(result),
             )
         return result
