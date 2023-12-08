@@ -62,7 +62,7 @@ pinned to Keras 2, and will no longer be necessary after TensorFlow 2.16.
 
 ```
 pip install --upgrade keras-cv tensorflow
-pip install keras==3.0.0
+pip install -U keras
 ```
 > [!IMPORTANT]
 > Keras 3 will not function with TensorFlow 2.14 or earlier.
