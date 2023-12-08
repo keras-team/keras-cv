@@ -24,7 +24,7 @@ from keras_cv import bounding_box
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import scope
-from keras_cv.backend.config import multi_backend
+from keras_cv.backend.config import keras_3
 from keras_cv.utils import preprocessing
 
 H_AXIS = -3
@@ -44,7 +44,7 @@ USE_TARGETS = "use_targets"
 
 base_class = (
     keras.src.layers.preprocessing.tf_data_layer.TFDataLayer
-    if multi_backend()
+    if keras_3()
     else keras.layers.Layer
 )
 
@@ -444,6 +444,9 @@ class VectorizedBaseImageAugmentationLayer(base_class):
             # single image input tensor
             metadata[IS_DICT] = False
             inputs = {IMAGES: inputs}
+        else:
+            # Copy the input dict before we mutate it.
+            inputs = dict(inputs)
 
         metadata[BATCHED] = inputs["images"].shape.rank == 4
         if inputs["images"].shape.rank == 3:
@@ -504,6 +507,8 @@ class VectorizedBaseImageAugmentationLayer(base_class):
                 inputs,
                 self.compute_dtype,
             )
+        # Copy the input dict before we mutate it.
+        inputs = dict(inputs)
         inputs[IMAGES] = preprocessing.ensure_tensor(
             inputs[IMAGES],
             self.compute_dtype,
