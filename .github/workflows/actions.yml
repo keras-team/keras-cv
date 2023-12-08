@@ -41,6 +41,8 @@ jobs:
         pip install -e ".[tests]" --progress-bar off --upgrade
     - name: Test with pytest
       env:
+        KAGGLE_USERNAME:  ${{ secrets.KAGGLE_USERNAME}}
+        KAGGLE_KEY: ${{ secrets.KAGGLE_KEY}}
         TEST_CUSTOM_OPS: false
       run: |
         pytest keras_cv/ --ignore keras_cv/models/legacy/ --durations 0
