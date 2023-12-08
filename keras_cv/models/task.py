@@ -137,7 +137,12 @@ class Task(keras.Model):
             backbone_cls = keras.saving.get_registered_object(
                 metadata["class_name"]
             )
-            backbone = backbone_cls.from_preset(preset, load_weights)
+            backbone_kwargs = {}
+            if input_shape is not None:
+                backbone_kwargs["input_shape"] = input_shape
+            backbone = backbone_cls.from_preset(
+                preset, load_weights, **backbone_kwargs
+            )
             return cls(backbone, **kwargs)
 
         # Otherwise must be one of class presets
