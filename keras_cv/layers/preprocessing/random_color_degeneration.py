@@ -58,10 +58,14 @@ class RandomColorDegeneration(VectorizedBaseImageAugmentationLayer):
         self.seed = seed
 
     def get_random_transformation_batch(self, batch_size, **kwargs):
-        return self.factor(shape=(batch_size, 1, 1, 1), dtype=self.compute_dtype)
+        return self.factor(
+            shape=(batch_size, 1, 1, 1), dtype=self.compute_dtype
+        )
 
     def augment_images(self, images, transformations=None, **kwargs):
-        degenerates = tf.image.grayscale_to_rgb(tf.image.rgb_to_grayscale(images))
+        degenerates = tf.image.grayscale_to_rgb(
+            tf.image.rgb_to_grayscale(images)
+        )
         result = preprocessing.blend(images, degenerates, transformations)
         return result
 
