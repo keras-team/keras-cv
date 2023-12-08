@@ -21,6 +21,9 @@ from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer impo
 from keras_cv.utils import fill_utils
 from keras_cv.utils import preprocessing
 
+H_AXIS = -3
+W_AXIS = -2
+
 
 @keras_cv_export("keras_cv.layers.RandomCutout")
 class RandomCutout(VectorizedBaseImageAugmentationLayer):
@@ -92,12 +95,26 @@ class RandomCutout(VectorizedBaseImageAugmentationLayer):
 
     def get_random_transformation_batch(self, batch_size, images, **kwargs):
         centers_x, centers_y = self._compute_rectangle_position(images)
-        rectangles_height, rectangles_width = self._compute_rectangle_size(images)
-        return centers_x, centers_y, rectangles_height, rectangles_width
+        rectangles_height, rectangles_width = self._compute_rectangle_size(
+            images
+        )
+        return {
+            "centers_x": centers_x,
+            "centers_y": centers_y,
+            "rectangles_height": rectangles_height,
+            "rectangles_width": rectangles_width,
+        }
 
     def augment_images(self, images, transformations=None, **kwargs):
         """Apply random cutout."""
-        centers_x, centers_y, rectangles_height, rectangles_width = transformations
+        centers_x, centers_y = (
+            transformations["centers_x"],
+            transformations["centers_y"],
+        )
+        rectangles_height, rectangles_width = (
+            transformations["rectangles_height"],
+            transformations["rectangles_width"],
+        )
 
         rectangles_fill = self._compute_rectangle_fill(images)
         images = fill_utils.fill_rectangle(
@@ -128,43 +145,80 @@ class RandomCutout(VectorizedBaseImageAugmentationLayer):
         return targets
 
     def augment_ragged_image(self, image, transformation, **kwargs):
-        return self.augment_images(
-            image, transformations=transformation, **kwargs
+        image = tf.expand_dims(image, axis=0)
+        centers_x, centers_y = (
+            transformation["centers_x"],
+            transformation["centers_y"],
         )
+        rectangles_height, rectangles_width = (
+            transformation["rectangles_height"],
+            transformation["rectangles_width"],
+        )
+        transformation = {
+            "centers_x": tf.expand_dims(centers_x, axis=0),
+            "centers_y": tf.expand_dims(centers_y, axis=0),
+            "rectangles_height": tf.expand_dims(rectangles_height, axis=0),
+            "rectangles_width": tf.expand_dims(rectangles_width, axis=0),
+        }
+        image = self.augment_images(
+            images=image, transformations=transformation, **kwargs
+        )
+        return tf.squeeze(image, axis=0)
+
+    def _get_image_shape(self, images):
+        if isinstance(images, tf.RaggedTensor):
+            heights = tf.reshape(images.row_lengths(), (-1))
+            widths = tf.reshape(
+                tf.reduce_max(images.row_lengths(axis=2), 1), (-1)
+            )
+        else:
+            batch_size = tf.shape(images)[0]
+            heights = tf.repeat(tf.shape(images)[H_AXIS], repeats=[batch_size])
+            heights = tf.reshape(heights, shape=(-1))
+            widths = tf.repeat(tf.shape(images)[W_AXIS], repeats=[batch_size])
+            widths = tf.reshape(widths, shape=(-1))
+        return tf.cast(heights, dtype=tf.int32), tf.cast(widths, dtype=tf.int32)
 
     def _compute_rectangle_position(self, inputs):
-        input_shape = tf.shape(inputs)
-        batch_size, image_height, image_width = (
-            input_shape[0],
-            input_shape[1],
-            input_shape[2],
+        batch_size = tf.shape(inputs)[0]
+        heights, widths = self._get_image_shape(inputs)
+
+        # generate center values in float32 and then cast (i.e. round) to int32
+        # because tf.random.uniform do not support minval and maxval broadcasting for integer types.
+        # Needed because maxval is a 1-D tensor to support ragged inputs.
+
+        heights, widths = tf.cast(heights, dtype=tf.float32), tf.cast(
+            widths, dtype=tf.float32
         )
+
         center_x = self._random_generator.uniform(
-            [batch_size], 0, image_width, dtype=tf.int32
+            (batch_size,), 0, widths, dtype=tf.float32
         )
         center_y = self._random_generator.uniform(
-            [batch_size], 0, image_height, dtype=tf.int32
+            (batch_size,), 0, heights, dtype=tf.float32
         )
+
+        center_x, center_y = tf.cast(center_x, tf.int32), tf.cast(
+            center_y, tf.int32
+        )
+
         return center_x, center_y
 
     def _compute_rectangle_size(self, inputs):
-        input_shape = tf.shape(inputs)
-        batch_size, image_height, image_width = (
-            input_shape[0],
-            input_shape[1],
-            input_shape[2],
-        )
+        batch_size = tf.shape(inputs)[0]
+        images_heights, images_widths = self._get_image_shape(inputs)
+
         height = self.height_factor(shape=(batch_size,))
         width = self.width_factor(shape=(batch_size,))
 
-        height = height * tf.cast(image_height, tf.float32)
-        width = width * tf.cast(image_width, tf.float32)
+        height = height * tf.cast(images_heights, tf.float32)
+        width = width * tf.cast(images_widths, tf.float32)
 
         height = tf.cast(tf.math.ceil(height), tf.int32)
         width = tf.cast(tf.math.ceil(width), tf.int32)
 
-        height = tf.minimum(height, image_height)
-        width = tf.minimum(width, image_width)
+        height = tf.minimum(height, images_heights)
+        width = tf.minimum(width, images_heights)
 
         return height, width
 
@@ -181,16 +235,20 @@ class RandomCutout(VectorizedBaseImageAugmentationLayer):
             image_min = tf.reduce_min(inputs)
             fill_max = tf.reduce_max(fill_value)
             fill_min = tf.reduce_min(fill_value)
-            fill_value = (image_max - image_min) * (fill_value - fill_min) / (fill_max - fill_min) + image_min
+            fill_value = (image_max - image_min) * (fill_value - fill_min) / (
+                fill_max - fill_min
+            ) + image_min
         return fill_value
 
     def get_config(self):
         config = super().get_config()
-        config.update({
-            "height_factor": self.height_factor,
-            "width_factor": self.width_factor,
-            "fill_mode": self.fill_mode,
-            "fill_value": self.fill_value,
-            "seed": self.seed,
-        })
+        config.update(
+            {
+                "height_factor": self.height_factor,
+                "width_factor": self.width_factor,
+                "fill_mode": self.fill_mode,
+                "fill_value": self.fill_value,
+                "seed": self.seed,
+            }
+        )
         return config
