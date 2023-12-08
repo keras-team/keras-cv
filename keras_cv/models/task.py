@@ -127,13 +127,12 @@ class Task(keras.Model):
             )
             return cls(backbone=backbone, **kwargs)
 
-        if input_shape is not None:
-            kwargs.update({"input_shape": input_shape})
 
         # Task case.
         return load_from_preset(
             preset,
             load_weights=load_weights,
+            input_shape=input_shape,
             config_overrides=kwargs,
         )
 
