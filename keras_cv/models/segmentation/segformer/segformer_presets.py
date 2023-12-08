@@ -17,7 +17,6 @@ from keras_cv.models.backbones.mix_transformer.mix_transformer_backbone_presets 
     backbone_presets,
 )
 
-
 presets_no_weights = {
     "segformer_b0": {
         "metadata": {
