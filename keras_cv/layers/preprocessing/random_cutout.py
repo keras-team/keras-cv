@@ -167,29 +167,28 @@ class RandomCutout(VectorizedBaseImageAugmentationLayer):
 
     def _get_image_shape(self, images):
         if isinstance(images, tf.RaggedTensor):
-            heights = tf.reshape(images.row_lengths(), (-1))
+            heights = tf.reshape(images.row_lengths(), (-1,))
             widths = tf.reshape(
-                tf.reduce_max(images.row_lengths(axis=2), 1), (-1)
+                tf.reduce_max(images.row_lengths(axis=2), 1), (-1,)
             )
         else:
             batch_size = tf.shape(images)[0]
             heights = tf.repeat(tf.shape(images)[H_AXIS], repeats=[batch_size])
-            heights = tf.reshape(heights, shape=(-1))
+            heights = tf.reshape(heights, shape=(-1,))
             widths = tf.repeat(tf.shape(images)[W_AXIS], repeats=[batch_size])
-            widths = tf.reshape(widths, shape=(-1))
+            widths = tf.reshape(widths, shape=(-1,))
         return tf.cast(heights, dtype=tf.int32), tf.cast(widths, dtype=tf.int32)
 
     def _compute_rectangle_position(self, inputs):
         batch_size = tf.shape(inputs)[0]
         heights, widths = self._get_image_shape(inputs)
 
-        # generate center values in float32 and then cast (i.e. round) to int32
-        # because tf.random.uniform do not support minval and maxval broadcasting for integer types.
+        # generate values in float32 and then cast (i.e. round) to int32 because
+        # random.uniform do not support maxval broadcasting for integer types.
         # Needed because maxval is a 1-D tensor to support ragged inputs.
 
-        heights, widths = tf.cast(heights, dtype=tf.float32), tf.cast(
-            widths, dtype=tf.float32
-        )
+        heights = tf.cast(heights, dtype=tf.float32)
+        widths = tf.cast(widths, dtype=tf.float32)
 
         center_x = self._random_generator.uniform(
             (batch_size,), 0, widths, dtype=tf.float32
@@ -198,9 +197,8 @@ class RandomCutout(VectorizedBaseImageAugmentationLayer):
             (batch_size,), 0, heights, dtype=tf.float32
         )
 
-        center_x, center_y = tf.cast(center_x, tf.int32), tf.cast(
-            center_y, tf.int32
-        )
+        center_x = tf.cast(center_x, tf.int32)
+        center_y = tf.cast(center_y, tf.int32)
 
         return center_x, center_y
 
