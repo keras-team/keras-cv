@@ -77,6 +77,8 @@ jobs:
       env:
         TEST_CUSTOM_OPS: false # TODO(ianstenbit): test custom ops, or figure out what our story is here
         KERAS_BACKEND: ${{ matrix.backend }}
+        KAGGLE_USERNAME:  ${{ secrets.KAGGLE_USERNAME}}
+        KAGGLE_KEY: ${{ secrets.KAGGLE_KEY}}
         JAX_ENABLE_X64: true
       run: |
         pytest keras_cv/bounding_box \
