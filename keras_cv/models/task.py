@@ -127,7 +127,6 @@ class Task(keras.Model):
             )
             return cls(backbone=backbone, **kwargs)
 
-
         # Task case.
         return load_from_preset(
             preset,
