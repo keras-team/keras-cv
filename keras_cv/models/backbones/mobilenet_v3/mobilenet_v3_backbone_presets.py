@@ -25,7 +25,7 @@ backbone_presets_no_weights = {
             "official_name": "MobileNetV3",
             "path": "mobilenetv3",
         },
-        "kaggle_handle": "gs://keras-cv-kaggle/mobilenet_v3_small",
+        "kaggle_handle": "kaggle://keras/mobilenetv3/mobilenet_v3_small/1",
     },
     "mobilenet_v3_large": {
         "metadata": {
@@ -38,7 +38,7 @@ backbone_presets_no_weights = {
             "official_name": "MobileNetV3",
             "path": "mobilenetv3",
         },
-        "kaggle_handle": "gs://keras-cv-kaggle/mobilenet_v3_large",
+        "kaggle_handle": "kaggle://keras/mobilenetv3/mobilenet_v3_large/1",
     },
 }
 
@@ -55,7 +55,7 @@ backbone_presets_with_weights = {
             "official_name": "MobileNetV3",
             "path": "mobilenetv3",
         },
-        "kaggle_handle": "gs://keras-cv-kaggle/mobilenet_v3_large_imagenet",
+        "kaggle_handle": "kaggle://keras/mobilenetv3/mobilenet_v3_large_imagenet/1",  # noqa: E501
     },
     "mobilenet_v3_small_imagenet": {
         "metadata": {
@@ -69,7 +69,7 @@ backbone_presets_with_weights = {
             "official_name": "MobileNetV3",
             "path": "mobilenetv3",
         },
-        "kaggle_handle": "gs://keras-cv-kaggle/mobilenet_v3_small_imagenet",
+        "kaggle_handle": "kaggle://keras/mobilenetv3/mobilenet_v3_small_imagenet/1",  # noqa: E501
     },
 }
 

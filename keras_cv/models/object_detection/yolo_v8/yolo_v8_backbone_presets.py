@@ -22,7 +22,7 @@ backbone_presets_no_weights = {
             "official_name": "YOLOV8",
             "path": "yolo_v8",
         },
-        "kaggle_handle": "gs://keras-cv-kaggle/yolo_v8_xs_backbone",
+        "kaggle_handle": "kaggle://keras/yolov8/yolo_v8_xs_backbone/1",
     },
     "yolo_v8_s_backbone": {
         "metadata": {
@@ -31,7 +31,7 @@ backbone_presets_no_weights = {
             "official_name": "YOLOV8",
             "path": "yolo_v8",
         },
-        "kaggle_handle": "gs://keras-cv-kaggle/yolo_v8_s_backbone",
+        "kaggle_handle": "kaggle://keras/yolov8/yolo_v8_s_backbone/1",
     },
     "yolo_v8_m_backbone": {
         "metadata": {
@@ -40,7 +40,7 @@ backbone_presets_no_weights = {
             "official_name": "YOLOV8",
             "path": "yolo_v8",
         },
-        "kaggle_handle": "gs://keras-cv-kaggle/yolo_v8_m_backbone",
+        "kaggle_handle": "kaggle://keras/yolov8/yolo_v8_m_backbone/1",
     },
     "yolo_v8_l_backbone": {
         "metadata": {
@@ -49,7 +49,7 @@ backbone_presets_no_weights = {
             "official_name": "YOLOV8",
             "path": "yolo_v8",
         },
-        "kaggle_handle": "gs://keras-cv-kaggle/yolo_v8_l_backbone",
+        "kaggle_handle": "kaggle://keras/yolov8/yolo_v8_l_backbone/1",
     },
     "yolo_v8_xl_backbone": {
         "metadata": {
@@ -58,7 +58,7 @@ backbone_presets_no_weights = {
             "official_name": "YOLOV8",
             "path": "yolo_v8",
         },
-        "kaggle_handle": "gs://keras-cv-kaggle/yolo_v8_xl_backbone",
+        "kaggle_handle": "kaggle://keras/yolov8/yolo_v8_xl_backbone/1",
     },
 }
 
@@ -72,7 +72,7 @@ backbone_presets_with_weights = {
             "official_name": "YOLOV8",
             "path": "yolo_v8",
         },
-        "kaggle_handle": "gs://keras-cv-kaggle/yolo_v8_xs_backbone_coco",
+        "kaggle_handle": "kaggle://keras/yolov8/yolo_v8_xs_backbone_coco/1",
     },
     "yolo_v8_s_backbone_coco": {
         "metadata": {
@@ -81,7 +81,7 @@ backbone_presets_with_weights = {
             "official_name": "YOLOV8",
             "path": "yolo_v8",
         },
-        "kaggle_handle": "gs://keras-cv-kaggle/yolo_v8_s_backbone_coco",
+        "kaggle_handle": "kaggle://keras/yolov8/yolo_v8_s_backbone_coco/1",
     },
     "yolo_v8_m_backbone_coco": {
         "metadata": {
@@ -90,7 +90,7 @@ backbone_presets_with_weights = {
             "official_name": "YOLOV8",
             "path": "yolo_v8",
         },
-        "kaggle_handle": "gs://keras-cv-kaggle/yolo_v8_m_backbone_coco",
+        "kaggle_handle": "kaggle://keras/yolov8/yolo_v8_m_backbone_coco/1",
     },
     "yolo_v8_l_backbone_coco": {
         "metadata": {
@@ -99,7 +99,7 @@ backbone_presets_with_weights = {
             "official_name": "YOLOV8",
             "path": "yolo_v8",
         },
-        "kaggle_handle": "gs://keras-cv-kaggle/yolo_v8_l_backbone_coco",
+        "kaggle_handle": "kaggle://keras/yolov8/yolo_v8_l_backbone_coco/1",
     },
     "yolo_v8_xl_backbone_coco": {
         "metadata": {
@@ -110,7 +110,7 @@ backbone_presets_with_weights = {
             "official_name": "YOLOV8",
             "path": "yolo_v8",
         },
-        "kaggle_handle": "gs://keras-cv-kaggle/yolo_v8_xl_backbone_coco",
+        "kaggle_handle": "kaggle://keras/yolov8/yolo_v8_xl_backbone_coco/1",
     },
 }
 
