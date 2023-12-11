@@ -25,7 +25,7 @@ presets_no_weights = {
             "official_name": "SegFormerB0",
             "path": "segformer_b0",
         },
-        "kaggle_handle": "gs://keras-cv-kaggle/segformer_b0",
+        "kaggle_handle": "kaggle://keras/segformer/segformer_b0/1",
     },
     "segformer_b1": {
         "metadata": {
@@ -34,7 +34,7 @@ presets_no_weights = {
             "official_name": "SegFormerB1",
             "path": "segformer_b1",
         },
-        "kaggle_handle": "gs://keras-cv-kaggle/segformer_b1",
+        "kaggle_handle": "kaggle://keras/segformer/segformer_b1/1",
     },
     "segformer_b2": {
         "metadata": {
@@ -43,7 +43,7 @@ presets_no_weights = {
             "official_name": "SegFormerB2",
             "path": "segformer_b2",
         },
-        "kaggle_handle": "gs://keras-cv-kaggle/segformer_b2",
+        "kaggle_handle": "kaggle://keras/segformer/segformer_b2/1",
     },
     "segformer_b3": {
         "metadata": {
@@ -52,7 +52,7 @@ presets_no_weights = {
             "official_name": "SegFormerB3",
             "path": "segformer_b3",
         },
-        "kaggle_handle": "gs://keras-cv-kaggle/segformer_b3",
+        "kaggle_handle": "kaggle://keras/segformer/segformer_b3/1",
     },
     "segformer_b4": {
         "metadata": {
@@ -61,7 +61,7 @@ presets_no_weights = {
             "official_name": "SegFormerB4",
             "path": "segformer_b4",
         },
-        "kaggle_handle": "gs://keras-cv-kaggle/segformer_b4",
+        "kaggle_handle": "kaggle://keras/segformer/segformer_b4/1",
     },
     "segformer_b5": {
         "metadata": {
@@ -70,7 +70,7 @@ presets_no_weights = {
             "official_name": "SegFormerB5",
             "path": "segformer_b5",
         },
-        "kaggle_handle": "gs://keras-cv-kaggle/segformer_b5",
+        "kaggle_handle": "kaggle://keras/segformer/segformer_b5/1",
     },
 }
 
@@ -84,7 +84,7 @@ presets_with_weights = {
             "official_name": "SegFormerB0",
             "path": "segformer_b0",
         },
-        "kaggle_handle": "gs://keras-cv-kaggle/segformer_b0_imagenet",
+        "kaggle_handle": "kaggle://keras/segformer/segformer_b0_imagenet/1",
     },
 }
 
