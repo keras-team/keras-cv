@@ -35,7 +35,6 @@ else:
                 self._current_seed[0] += 1
                 return self._current_seed[:]
 
-
     def normal(shape, mean=0.0, stddev=1.0, dtype=None, seed=None):
         if isinstance(seed, SeedGenerator):
             seed = seed.next()
