@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import datetime
+import inspect
 import json
 import os
 
@@ -164,7 +165,10 @@ def load_from_preset(
     # Default to loading weights if available.
     if load_weights is not False and config["weights"] is not None:
         weights_path = get_file(preset, config["weights"])
-        layer.load_weights(weights_path)
+        if hasattr(layer, "_layer_checkpoint_dependencies"):
+            legacy_load_weights(layer, weights_path)
+        else:
+            layer.load_weights(weights_path)
 
     return layer
 
@@ -200,3 +204,18 @@ def check_preset_class(
             f"Received: `{cls}`."
         )
     return cls
+
+
+def legacy_load_weights(layer, weights_path):
+    # Hacky fix for TensorFlow 2.13 and 2.14 when loading a `.weights.h5` file.
+    # We find the `Functional` class, and temporarily remove the
+    # `_layer_checkpoint_dependencies` property, which on older version of
+    # TensorFlow complete broke the variable paths for functional models.
+    functional_cls = None
+    for cls in inspect.getmro(layer.__class__):
+        if cls.__name__ == "Functional":
+            functional_cls = cls
+    property = functional_cls._layer_checkpoint_dependencies
+    functional_cls._layer_checkpoint_dependencies = None
+    layer.load_weights(weights_path)
+    functional_cls._layer_checkpoint_dependencies = property
