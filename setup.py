@@ -55,6 +55,7 @@ setup(
         "regex",
         "tensorflow-datasets",
         "keras-core",
+        "kagglehub",
     ],
     extras_require={
         "tests": [

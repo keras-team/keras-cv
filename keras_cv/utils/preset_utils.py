@@ -140,6 +140,7 @@ def save_to_preset(
 def load_from_preset(
     preset,
     load_weights=None,
+    input_shape=None,
     config_file="config.json",
     config_overrides={},
 ):
@@ -150,6 +151,8 @@ def load_from_preset(
         config = json.load(config_file)
     config["config"] = {**config["config"], **config_overrides}
     layer = keras.saving.deserialize_keras_object(config)
+    if input_shape is not None:
+        layer.build(input_shape)
 
     # Check load_weights flag does not violate preset config.
     if load_weights is True and config["weights"] is None:
