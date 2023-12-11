@@ -18,19 +18,19 @@ backbone_presets_no_weights = {
         "metadata": {
             "description": "DenseNet model with 121 layers.",
         },
-        "kaggle_handle": "gs://keras-cv-kaggle/densenet121",
+        "kaggle_handle": "kaggle://keras/densenet/densenet121/1",
     },
     "densenet169": {
         "metadata": {
             "description": "DenseNet model with 169 layers.",
         },
-        "kaggle_handle": "gs://keras-cv-kaggle/densenet169",
+        "kaggle_handle": "kaggle://keras/densenet/densenet169/1",
     },
     "densenet201": {
         "metadata": {
             "description": "DenseNet model with 201 layers.",
         },
-        "kaggle_handle": "gs://keras-cv-kaggle/densenet201",
+        "kaggle_handle": "kaggle://keras/densenet/densenet201/1",
     },
 }
 
@@ -42,7 +42,7 @@ backbone_presets_with_weights = {
                 "classification task."
             ),
         },
-        "kaggle_handle": "gs://keras-cv-kaggle/densenet121_imagenet",
+        "kaggle_handle": "kaggle://keras/densenet/densenet121_imagenet/1",
     },
     "densenet169_imagenet": {
         "metadata": {
@@ -51,7 +51,7 @@ backbone_presets_with_weights = {
                 "classification task."
             ),
         },
-        "kaggle_handle": "gs://keras-cv-kaggle/densenet169_imagenet",
+        "kaggle_handle": "kaggle://keras/densenet/densenet169_imagenet/1",
     },
     "densenet201_imagenet": {
         "metadata": {
@@ -60,7 +60,7 @@ backbone_presets_with_weights = {
                 "classification task."
             ),
         },
-        "kaggle_handle": "gs://keras-cv-kaggle/densenet201_imagenet",
+        "kaggle_handle": "kaggle://keras/densenet/densenet201_imagenet/1",
     },
 }
 

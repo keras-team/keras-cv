@@ -28,6 +28,6 @@ deeplab_v3_plus_presets = {
             "official_name": "DeepLabV3Plus",
             "path": "deeplab_v3_plus",
         },
-        "kaggle_handle": "gs://keras-cv-kaggle/deeplab_v3_plus_resnet50_pascalvoc",  # noqa: E501
+        "kaggle_handle": "kaggle://keras/deeplabv3plus/deeplab_v3_plus_resnet50_pascalvoc/1",  # noqa: E501
     },
 }
