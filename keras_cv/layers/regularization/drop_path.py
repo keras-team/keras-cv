@@ -50,7 +50,7 @@ class DropPath(keras.layers.Layer):
     def __init__(self, rate=0.5, seed=None, **kwargs):
         super().__init__(**kwargs)
         self.rate = rate
-        self.seed = random.SeedGenerator(seed=seed)
+        self.seed = seed
 
     def call(self, x, training=None):
         if self.rate == 0.0 or not training:
