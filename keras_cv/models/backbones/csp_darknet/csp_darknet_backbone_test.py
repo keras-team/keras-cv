@@ -113,6 +113,9 @@ class CSPDarkNetBackboneTest(TestCase):
         )
 
     def test_feature_pyramid_inputs(self):
+        import os
+
+        print("HERE", os.environ["KAGGLE_USERNAME"])
         model = CSPDarkNetLBackbone()
         backbone_model = get_feature_extractor(
             model,

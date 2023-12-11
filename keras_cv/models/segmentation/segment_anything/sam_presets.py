@@ -22,7 +22,7 @@ sam_presets = {
             "official_name": "SAM",
             "path": "segment_anything",
         },
-        "kaggle_handle": "gs://keras-cv-kaggle/sam_base_sa1b",
+        "kaggle_handle": "kaggle://keras/sam/sam_base_sa1b/1",
     },
     "sam_large_sa1b": {
         "metadata": {
@@ -31,7 +31,7 @@ sam_presets = {
             "official_name": "SAM",
             "path": "segment_anything",
         },
-        "kaggle_handle": "gs://keras-cv-kaggle/sam_large_sa1b",
+        "kaggle_handle": "kaggle://keras/sam/sam_large_sa1b/1",
     },
     "sam_huge_sa1b": {
         "metadata": {
@@ -40,6 +40,6 @@ sam_presets = {
             "official_name": "SAM",
             "path": "segment_anything",
         },
-        "kaggle_handle": "gs://keras-cv-kaggle/sam_huge_sa1b",
+        "kaggle_handle": "kaggle://keras/sam/sam_huge_sa1b/1",
     },
 }
