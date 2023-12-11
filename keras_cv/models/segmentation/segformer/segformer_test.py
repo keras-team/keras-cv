@@ -59,9 +59,7 @@ class SegFormerTest(TestCase):
         mit_output = mit_model(images)
         mit_pred = mit_model.predict(images)
 
-        seg_model = SegFormer.from_preset(
-            "segformer_b0", num_classes=1
-        )
+        seg_model = SegFormer.from_preset("segformer_b0", num_classes=1)
         seg_output = seg_model(images)
         seg_pred = seg_model.predict(images)
 
@@ -123,9 +121,7 @@ class SegFormerTest(TestCase):
     def test_preset_saved_model(self):
         target_size = [224, 224, 3]
 
-        model = SegFormer.from_preset(
-            "segformer_b0", num_classes=1
-        )
+        model = SegFormer.from_preset("segformer_b0", num_classes=1)
 
         input_batch = np.ones(shape=[2] + target_size)
         model_output = model(input_batch)
