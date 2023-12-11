@@ -2,6 +2,7 @@
 absl-py
 regex
 pandas
+kagglehub
 keras-core>=0.1.6
 tensorflow-datasets
 pycocotools
