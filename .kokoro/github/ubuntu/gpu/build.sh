@@ -63,8 +63,7 @@ then
       keras_cv/models/object_detection/yolo_v8 \
       keras_cv/models/object_detection_3d \
       keras_cv/models/segmentation \
-      keras_cv/models/stable_diffusion \
-      --cov=keras-cv
+      keras_cv/models/stable_diffusion
 else
    pytest --check_gpu --run_large --durations 0 \
       keras_cv/bounding_box \
@@ -78,6 +77,5 @@ else
       keras_cv/models/object_detection/yolo_v8 \
       keras_cv/models/object_detection_3d \
       keras_cv/models/segmentation \
-      keras_cv/models/stable_diffusion \
-      --cov=keras-cv
+      keras_cv/models/stable_diffusion
 fi
