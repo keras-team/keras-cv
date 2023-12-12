@@ -72,5 +72,5 @@ class FocalLossModelGardenComparisonTest(TestCase):
             y_pred = tf.random.uniform((200, 10), dtype=tf.float32)
             self.assertAllClose(
                 ops.convert_to_numpy(focal_loss(y_true, tf.sigmoid(y_pred))),
-                model_garden_focal_loss(y_true, y_pred).numpy(),
+                ops.convert_to_numpy(model_garden_focal_loss(y_true, y_pred)),
             )
