@@ -22,6 +22,8 @@ else:
 
 class SeedGenerator:
     def __init__(self, seed=None, **kwargs):
+        self._kwargs = kwargs
+        self._seed = seed
         if keras_3():
             self._seed_generator = keras.random.SeedGenerator(
                 seed=seed, **kwargs
@@ -36,8 +38,19 @@ class SeedGenerator:
             self._current_seed[0] += 1
             return self._current_seed[:]
 
+    def get_config(self):
+        config = self._kwargs
+        config["seed"] = self._seed
+        return config
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)
+
 
 def normal(shape, mean=0.0, stddev=1.0, dtype=None, seed=None):
+    if keras_3() and not isinstance(seed, SeedGenerator):
+        seed = SeedGenerator(seed)
     if isinstance(seed, SeedGenerator):
         seed = seed.next()
         init_seed = seed[0] + seed[1]
@@ -68,6 +81,8 @@ def normal(shape, mean=0.0, stddev=1.0, dtype=None, seed=None):
 
 
 def uniform(shape, minval=0.0, maxval=1.0, dtype=None, seed=None):
+    if keras_3() and not isinstance(seed, SeedGenerator):
+        seed = SeedGenerator(seed)
     if isinstance(seed, SeedGenerator):
         seed = seed.next()
         init_seed = seed[0] + seed[1]
@@ -97,6 +112,8 @@ def uniform(shape, minval=0.0, maxval=1.0, dtype=None, seed=None):
 
 
 def shuffle(x, axis=0, seed=None):
+    if keras_3() and not isinstance(seed, SeedGenerator):
+        seed = SeedGenerator(seed)
     if isinstance(seed, SeedGenerator):
         seed = seed.next()
         init_seed = seed[0] + seed[1]
@@ -112,6 +129,8 @@ def shuffle(x, axis=0, seed=None):
 
 
 def categorical(logits, num_samples, dtype=None, seed=None):
+    if keras_3() and not isinstance(seed, SeedGenerator):
+        seed = SeedGenerator(seed)
     if isinstance(seed, SeedGenerator):
         seed = seed.next()
         init_seed = seed[0] + seed[1]
