@@ -21,19 +21,15 @@ else:
 
     class SeedGenerator:
         def __init__(self, seed=None, **kwargs):
-            if keras_3():
-                self._seed_generator = keras.random.SeedGenerator(
-                    seed=seed, **kwargs
-                )
-            else:
-                self._current_seed = [0, seed]
+            self._current_seed = [0, seed]
 
         def next(self, ordered=True):
-            if keras_3():
-                return self._seed_generator.next(ordered=ordered)
-            else:
-                self._current_seed[0] += 1
-                return self._current_seed[:]
+            self._current_seed[0] += 1
+            return self._current_seed[:]
+
+        def get_config(self):
+            config = {"_current_seed": self._current_seed}
+            return dict(list(config.items()))
 
     def normal(shape, mean=0.0, stddev=1.0, dtype=None, seed=None):
         if isinstance(seed, SeedGenerator):
@@ -45,24 +41,15 @@ else:
         kwargs = {}
         if dtype:
             kwargs["dtype"] = dtype
-        if keras_3():
-            return keras.random.normal(
-                shape,
-                mean=mean,
-                stddev=stddev,
-                seed=init_seed,
-                **kwargs,
-            )
-        else:
-            import tensorflow as tf
+        import tensorflow as tf
 
-            return tf.random.normal(
-                shape,
-                mean=mean,
-                stddev=stddev,
-                seed=init_seed,
-                **kwargs,
-            )
+        return tf.random.normal(
+            shape,
+            mean=mean,
+            stddev=stddev,
+            seed=init_seed,
+            **kwargs,
+        )
 
     def uniform(shape, minval=0.0, maxval=1.0, dtype=None, seed=None):
         if isinstance(seed, SeedGenerator):
@@ -73,24 +60,15 @@ else:
         kwargs = {}
         if dtype:
             kwargs["dtype"] = dtype
-        if keras_3():
-            return keras.random.uniform(
-                shape,
-                minval=minval,
-                maxval=maxval,
-                seed=init_seed,
-                **kwargs,
-            )
-        else:
-            import tensorflow as tf
+        import tensorflow as tf
 
-            return tf.random.uniform(
-                shape,
-                minval=minval,
-                maxval=maxval,
-                seed=init_seed,
-                **kwargs,
-            )
+        return tf.random.uniform(
+            shape,
+            minval=minval,
+            maxval=maxval,
+            seed=init_seed,
+            **kwargs,
+        )
 
     def shuffle(x, axis=0, seed=None):
         if isinstance(seed, SeedGenerator):
@@ -98,13 +76,9 @@ else:
             init_seed = seed[0] + seed[1]
         else:
             init_seed = seed
+        import tensorflow as tf
 
-        if keras_3():
-            return keras.random.shuffle(x=x, axis=axis, seed=init_seed)
-        else:
-            import tensorflow as tf
-
-            return tf.random.shuffle(x=x, axis=axis, seed=init_seed)
+        return tf.random.shuffle(x=x, axis=axis, seed=init_seed)
 
     def categorical(logits, num_samples, dtype=None, seed=None):
         if isinstance(seed, SeedGenerator):
@@ -115,19 +89,12 @@ else:
         kwargs = {}
         if dtype:
             kwargs["dtype"] = dtype
-        if keras_3():
-            return keras.random.categorical(
-                logits=logits,
-                num_samples=num_samples,
-                seed=init_seed,
-                **kwargs,
-            )
-        else:
-            import tensorflow as tf
 
-            return tf.random.categorical(
-                logits=logits,
-                num_samples=num_samples,
-                seed=init_seed,
-                **kwargs,
-            )
+        import tensorflow as tf
+
+        return tf.random.categorical(
+            logits=logits,
+            num_samples=num_samples,
+            seed=init_seed,
+            **kwargs,
+        )
