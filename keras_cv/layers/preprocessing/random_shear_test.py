@@ -50,17 +50,13 @@ class RandomShearTest(TestCase):
         self.assertTrue(np.any(ops.convert_to_numpy(xs[1]) == fill_value))
         self.assertTrue(np.any(ops.convert_to_numpy(xs[1]) == 1.0))
         self.assertTrue(
-            np.any(
-                ops.convert_to_tensor(ys_segmentation_masks[0]) == fill_value
-            )
+            np.any(ops.convert_to_numpy(ys_segmentation_masks[0]) == fill_value)
         )
         self.assertTrue(
             np.any(ops.convert_to_numpy(ys_segmentation_masks[0]) == 2.0)
         )
         self.assertTrue(
-            np.any(
-                ops.convert_to_tensor(ys_segmentation_masks[1]) == fill_value
-            )
+            np.any(ops.convert_to_numpy(ys_segmentation_masks[1]) == fill_value)
         )
         self.assertTrue(
             np.any(ops.convert_to_numpy(ys_segmentation_masks[1]) == 1.0)

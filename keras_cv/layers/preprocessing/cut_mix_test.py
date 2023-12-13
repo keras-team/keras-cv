@@ -184,22 +184,22 @@ class CutMixTest(TestCase):
         # At least some pixels should be replaced in the segmentation_masks
         self.assertTrue(
             np.any(
-                ops.convert_to_tensor(ys_segmentation_masks[0][:, :, 2]) == 1.0
+                ops.convert_to_numpy(ys_segmentation_masks[0][:, :, 2]) == 1.0
             )
         )
         self.assertTrue(
             np.any(
-                ops.convert_to_tensor(ys_segmentation_masks[0][:, :, 2]) == 0.0
+                ops.convert_to_numpy(ys_segmentation_masks[0][:, :, 2]) == 0.0
             )
         )
         self.assertTrue(
             np.any(
-                ops.convert_to_tensor(ys_segmentation_masks[1][:, :, 1]) == 1.0
+                ops.convert_to_numpy(ys_segmentation_masks[1][:, :, 1]) == 1.0
             )
         )
         self.assertTrue(
             np.any(
-                ops.convert_to_tensor(ys_segmentation_masks[1][:, :, 1]) == 0.0
+                ops.convert_to_numpy(ys_segmentation_masks[1][:, :, 1]) == 0.0
             )
         )
 
