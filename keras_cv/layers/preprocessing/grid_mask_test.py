@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
+import pytest
 import tensorflow as tf
 
 import keras_cv
@@ -27,7 +27,7 @@ class GridMaskTest(TestCase):
         layer = GridMask(ratio_factor=0.1, rotation_factor=(-0.2, 0.3))
         xs = layer(xs, training=True)
 
-        self.assertEqual(xs.shape, [2, 512, 512, 3])
+        self.assertEqual(xs.shape, (2, 512, 512, 3))
 
     def test_gridmask_call_results_one_channel(self):
         xs = tf.cast(
@@ -77,6 +77,7 @@ class GridMaskTest(TestCase):
         self.assertTrue(tf.math.reduce_any(xs[1] == float(fill_value)))
         self.assertTrue(tf.math.reduce_any(xs[1] == 1.0))
 
+    @pytest.mark.tf_only
     def test_in_tf_function(self):
         xs = tf.cast(
             tf.stack(

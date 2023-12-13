@@ -27,7 +27,7 @@ class EqualizationTest(TestCase):
         layer = Equalization(value_range=(0, 255))
         xs = layer(xs)
 
-        self.assertEqual(xs.shape, [2, 512, 512, 3])
+        self.assertEqual(xs.shape, (2, 512, 512, 3))
         self.assertAllEqual(xs, 255 * tf.ones((2, 512, 512, 3)))
 
     @pytest.mark.tf_keras_only

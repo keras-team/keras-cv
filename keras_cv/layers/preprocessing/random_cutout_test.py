@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import numpy as np
+import pytest
 import tensorflow as tf
 
 from keras_cv.layers import preprocessing
@@ -53,8 +54,8 @@ class RandomCutoutTest(TestCase):
         xs = layer(xs)
         ys_segmentation_masks = layer(ys_segmentation_masks)
 
-        self.assertEqual(xs.shape, [2, 512, 512, 3])
-        self.assertEqual(ys_segmentation_masks.shape, [2, 512, 512, 3])
+        self.assertEqual(xs.shape, (2, 512, 512, 3))
+        self.assertEqual(ys_segmentation_masks.shape, (2, 512, 512, 3))
 
     def test_return_shapes_single_element(self):
         xs = np.ones((512, 512, 3))
@@ -66,8 +67,8 @@ class RandomCutoutTest(TestCase):
         xs = layer(xs)
         ys_segmentation_masks = layer(ys_segmentation_masks)
 
-        self.assertEqual(xs.shape, [512, 512, 3])
-        self.assertEqual(ys_segmentation_masks.shape, [512, 512, 3])
+        self.assertEqual(xs.shape, (512, 512, 3))
+        self.assertEqual(ys_segmentation_masks.shape, (512, 512, 3))
 
     def test_random_cutout_single_float(self):
         self._run_test(0.5, 0.5)
@@ -132,6 +133,7 @@ class RandomCutoutTest(TestCase):
         self.assertTrue(tf.math.reduce_any(xs[1] == fill_value))
         self.assertTrue(tf.math.reduce_any(xs[1] == 1.0))
 
+    @pytest.mark.tf_only
     def test_in_tf_function(self):
         xs = tf.cast(
             tf.stack(

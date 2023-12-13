@@ -15,6 +15,7 @@ import numpy as np
 import tensorflow as tf
 
 from keras_cv import bounding_box
+from keras_cv.backend import ops
 from keras_cv.layers.preprocessing.random_rotation import RandomRotation
 from keras_cv.tests.test_case import TestCase
 
@@ -83,9 +84,11 @@ class RandomRotationTest(TestCase):
     def test_output_dtypes(self):
         inputs = np.array([[[1], [2]], [[3], [4]]], dtype="float64")
         layer = RandomRotation(0.5)
-        self.assertAllEqual(layer(inputs).dtype, "float32")
+        self.assertAllEqual(
+            ops.convert_to_numpy(layer(inputs)).dtype, "float32"
+        )
         layer = RandomRotation(0.5, dtype="uint8")
-        self.assertAllEqual(layer(inputs).dtype, "uint8")
+        self.assertAllEqual(ops.convert_to_numpy(layer(inputs)).dtype, "uint8")
 
     def test_ragged_bounding_boxes(self):
         input_image = tf.random.uniform((2, 512, 512, 3))

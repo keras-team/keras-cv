@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import pytest
 import tensorflow as tf
 
 from keras_cv.layers import preprocessing
@@ -31,9 +32,10 @@ class GrayscaleTest(TestCase):
         )
         xs2 = layer(xs, training=True)
 
-        self.assertEqual(xs1.shape, [2, 52, 24, 1])
-        self.assertEqual(xs2.shape, [2, 52, 24, 3])
+        self.assertEqual(xs1.shape, (2, 52, 24, 1))
+        self.assertEqual(xs2.shape, (2, 52, 24, 3))
 
+    @pytest.mark.tf_only
     def test_in_tf_function(self):
         xs = tf.cast(
             tf.stack([2 * tf.ones((10, 10, 3)), tf.ones((10, 10, 3))], axis=0),
@@ -62,8 +64,8 @@ class GrayscaleTest(TestCase):
 
         xs2 = augment(xs)
 
-        self.assertEqual(xs1.shape, [2, 10, 10, 1])
-        self.assertEqual(xs2.shape, [2, 10, 10, 3])
+        self.assertEqual(xs1.shape, (2, 10, 10, 1))
+        self.assertEqual(xs2.shape, (2, 10, 10, 3))
 
     def test_non_square_image(self):
         xs = tf.cast(
@@ -81,8 +83,8 @@ class GrayscaleTest(TestCase):
         )
         xs2 = layer(xs, training=True)
 
-        self.assertEqual(xs1.shape, [2, 52, 24, 1])
-        self.assertEqual(xs2.shape, [2, 52, 24, 3])
+        self.assertEqual(xs1.shape, (2, 52, 24, 1))
+        self.assertEqual(xs2.shape, (2, 52, 24, 3))
 
     def test_in_single_image(self):
         xs = tf.cast(
@@ -100,5 +102,5 @@ class GrayscaleTest(TestCase):
         )
         xs2 = layer(xs, training=True)
 
-        self.assertEqual(xs1.shape, [52, 24, 1])
-        self.assertEqual(xs2.shape, [52, 24, 3])
+        self.assertEqual(xs1.shape, (52, 24, 1))
+        self.assertEqual(xs2.shape, (52, 24, 3))

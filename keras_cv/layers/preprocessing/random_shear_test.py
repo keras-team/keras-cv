@@ -96,11 +96,11 @@ class RandomShearTest(TestCase):
             outputs["segmentation_masks"],
         )
         ys_bounding_boxes = bounding_box.to_dense(ys_bounding_boxes)
-        self.assertEqual(xs.shape, [2, 512, 512, 3])
-        self.assertEqual(ys_labels.shape, [2, 10])
-        self.assertEqual(ys_bounding_boxes["boxes"].shape, [2, 3, 4])
-        self.assertEqual(ys_bounding_boxes["classes"].shape, [2, 3])
-        self.assertEqual(ys_segmentation_masks.shape, [2, 512, 512, 3])
+        self.assertEqual(xs.shape, (2, 512, 512, 3))
+        self.assertEqual(ys_labels.shape, (2, 10))
+        self.assertEqual(ys_bounding_boxes["boxes"].shape, (2, 3, 4))
+        self.assertEqual(ys_bounding_boxes["classes"].shape, (2, 3))
+        self.assertEqual(ys_segmentation_masks.shape, (2, 512, 512, 3))
 
     def test_single_image_input(self):
         """test for single image input"""
@@ -112,7 +112,7 @@ class RandomShearTest(TestCase):
             fill_mode="constant",
         )
         outputs = layer(inputs)
-        self.assertEqual(outputs["images"].shape, [512, 512, 3])
+        self.assertEqual(outputs["images"].shape, (512, 512, 3))
 
     @pytest.mark.skip(reason="Flaky")
     def test_area(self):
@@ -155,6 +155,7 @@ class RandomShearTest(TestCase):
         )
         self.assertTrue(tf.math.reduce_all(new_area > old_area))
 
+    @pytest.mark.tf_only
     def test_in_tf_function(self):
         """test for class works with tf function"""
         xs = tf.cast(

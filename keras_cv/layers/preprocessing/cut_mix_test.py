@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import pytest
 import tensorflow as tf
 
 from keras_cv.layers.preprocessing.cut_mix import CutMix
@@ -51,9 +52,9 @@ class CutMixTest(TestCase):
             outputs["segmentation_masks"],
         )
 
-        self.assertEqual(xs.shape, [2, 512, 512, 3])
-        self.assertEqual(ys_labels.shape, [2, 10])
-        self.assertEqual(ys_segmentation_masks.shape, [2, 512, 512, 3])
+        self.assertEqual(xs.shape, (2, 512, 512, 3))
+        self.assertEqual(ys_labels.shape, (2, 10))
+        self.assertEqual(ys_segmentation_masks.shape, (2, 512, 512, 3))
 
     def test_cut_mix_call_results_with_labels(self):
         xs = tf.cast(
@@ -184,6 +185,7 @@ class CutMixTest(TestCase):
             tf.math.reduce_any(ys_segmentation_masks[1][:, :, 1] == 0.0)
         )
 
+    @pytest.mark.tf_only
     def test_in_tf_function(self):
         xs = tf.cast(
             tf.stack(

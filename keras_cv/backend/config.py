@@ -21,7 +21,8 @@ def detect_if_tensorflow_uses_keras_3():
         # Note that only recent versions of keras have a `version()` function.
         if hasattr(keras, "version") and keras.version().startswith("3."):
             return True
-    except:
+    except Exception as e:
+        raise e
         raise ValueError(
             "Unable to import `keras` with `tensorflow`.  Please check your "
             "Keras and Tensorflow version are compatible; Keras 3 requires "

@@ -28,12 +28,12 @@ class RandomGaussianBlurTest(TestCase):
         # RGB
         xs = np.ones((2, 512, 512, 3))
         xs = layer(xs)
-        self.assertEqual(xs.shape, [2, 512, 512, 3])
+        self.assertEqual(xs.shape, (2, 512, 512, 3))
 
         # greyscale
         xs = np.ones((2, 512, 512, 1))
         xs = layer(xs)
-        self.assertEqual(xs.shape, [2, 512, 512, 1])
+        self.assertEqual(xs.shape, (2, 512, 512, 1))
 
     def test_in_single_image(self):
         layer = preprocessing.RandomGaussianBlur(
@@ -47,7 +47,7 @@ class RandomGaussianBlurTest(TestCase):
         )
 
         xs = layer(xs)
-        self.assertEqual(xs.shape, [512, 512, 3])
+        self.assertEqual(xs.shape, (512, 512, 3))
 
         # greyscale
         xs = tf.cast(
@@ -56,7 +56,7 @@ class RandomGaussianBlurTest(TestCase):
         )
 
         xs = layer(xs)
-        self.assertEqual(xs.shape, [512, 512, 1])
+        self.assertEqual(xs.shape, (512, 512, 1))
 
     def test_non_square_images(self):
         layer = preprocessing.RandomGaussianBlur(
@@ -66,12 +66,12 @@ class RandomGaussianBlurTest(TestCase):
         # RGB
         xs = np.ones((2, 256, 512, 3))
         xs = layer(xs)
-        self.assertEqual(xs.shape, [2, 256, 512, 3])
+        self.assertEqual(xs.shape, (2, 256, 512, 3))
 
         # greyscale
         xs = np.ones((2, 256, 512, 1))
         xs = layer(xs)
-        self.assertEqual(xs.shape, [2, 256, 512, 1])
+        self.assertEqual(xs.shape, (2, 256, 512, 1))
 
     def test_single_input_args(self):
         layer = preprocessing.RandomGaussianBlur(kernel_size=7, factor=2)
@@ -79,12 +79,12 @@ class RandomGaussianBlurTest(TestCase):
         # RGB
         xs = np.ones((2, 512, 512, 3))
         xs = layer(xs)
-        self.assertEqual(xs.shape, [2, 512, 512, 3])
+        self.assertEqual(xs.shape, (2, 512, 512, 3))
 
         # greyscale
         xs = np.ones((2, 512, 512, 1))
         xs = layer(xs)
-        self.assertEqual(xs.shape, [2, 512, 512, 1])
+        self.assertEqual(xs.shape, (2, 512, 512, 1))
 
     def test_numerical(self):
         layer = preprocessing.RandomGaussianBlur(

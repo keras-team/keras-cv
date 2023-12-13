@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import numpy as np
+import pytest
 import tensorflow as tf
 
 from keras_cv.layers import preprocessing
@@ -27,7 +28,7 @@ class RandomChannelShiftTest(TestCase):
         )
 
         xs = layer(xs, training=True)
-        self.assertEqual(xs.shape, [2, 512, 512, 3])
+        self.assertEqual(xs.shape, (2, 512, 512, 3))
 
     def test_non_square_image(self):
         xs = tf.cast(
@@ -45,6 +46,7 @@ class RandomChannelShiftTest(TestCase):
         self.assertFalse(tf.math.reduce_any(xs[0] == 2.0))
         self.assertFalse(tf.math.reduce_any(xs[1] == 1.0))
 
+    @pytest.mark.tf_only
     def test_in_tf_function(self):
         xs = tf.cast(
             tf.stack(
