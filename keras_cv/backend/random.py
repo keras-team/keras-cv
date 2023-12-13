@@ -20,6 +20,7 @@ else:
 
     class SeedGenerator:
         def __init__(self, seed=None, **kwargs):
+            self.seed = seed
             self._current_seed = [0, seed]
 
         def next(self, ordered=True):
@@ -27,7 +28,7 @@ else:
             return self._current_seed[:]
 
         def get_config(self):
-            return {"seed": self._initial_seed}
+            return {"seed": self.seed}
 
         @classmethod
         def from_config(cls, config):
