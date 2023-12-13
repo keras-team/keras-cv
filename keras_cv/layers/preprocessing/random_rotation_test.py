@@ -177,7 +177,9 @@ class RandomRotationTest(TestCase):
             factor=(0.125, 0.125), segmentation_classes=num_classes
         )
         outputs = layer(inputs)
-        self.assertAllInSet(outputs["segmentation_masks"], [0, 7])
+        self.assertAllInSet(
+            ops.convert_to_numpy(outputs["segmentation_masks"]), [0, 7]
+        )
 
     def test_augment_one_hot_segmentation_mask(self):
         num_classes = 8

@@ -14,6 +14,7 @@
 import numpy as np
 import tensorflow as tf
 
+from keras_cv.backend import ops
 from keras_cv.layers import preprocessing
 from keras_cv.tests.test_case import TestCase
 
@@ -39,7 +40,7 @@ class RandomColorDegenerationTest(TestCase):
         xs = tf.concat([r, g, b], axis=-1)
 
         layer = preprocessing.RandomColorDegeneration(factor=(1, 1))
-        ys = layer(xs)
+        ys = ops.convert_to_numpy(layer(xs))
 
         # Color degeneration uses standard luma conversion for RGB->Grayscale.
         # The formula for luma is result= 0.2989*r + 0.5870*g + 0.1140*b
@@ -54,7 +55,7 @@ class RandomColorDegenerationTest(TestCase):
         xs = tf.concat([r, g, b], axis=-1)
 
         layer = preprocessing.RandomColorDegeneration(factor=(0.7, 0.7))
-        ys = layer(xs)
+        ys = ops.convert_to_numpy(layer(xs))
 
         # Color degeneration uses standard luma conversion for RGB->Grayscale.
         # The formula for luma is result= 0.2989*r + 0.5870*g + 0.1140*b

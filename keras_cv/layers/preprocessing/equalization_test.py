@@ -14,7 +14,6 @@
 
 import numpy as np
 import pytest
-import tensorflow as tf
 from absl.testing import parameterized
 
 from keras_cv.backend import keras
@@ -25,12 +24,12 @@ from keras_cv.tests.test_case import TestCase
 
 class EqualizationTest(TestCase):
     def test_return_shapes(self):
-        xs = 255 * tf.ones((2, 512, 512, 3), dtype=tf.int32)
+        xs = 255 * np.ones((2, 512, 512, 3), dtype=np.int32)
         layer = Equalization(value_range=(0, 255))
         xs = layer(xs)
 
         self.assertEqual(xs.shape, (2, 512, 512, 3))
-        self.assertAllEqual(xs, 255 * tf.ones((2, 512, 512, 3)))
+        self.assertAllEqual(xs, 255 * np.ones((2, 512, 512, 3)))
 
     @pytest.mark.tf_keras_only
     def test_return_shapes_inside_model(self):
@@ -42,7 +41,9 @@ class EqualizationTest(TestCase):
         self.assertEqual(model.output_shape, (None, 512, 512, 5))
 
     def test_equalizes_to_all_bins(self):
-        xs = tf.random.uniform((2, 512, 512, 3), 0, 255, dtype=tf.float32)
+        xs = np.random.uniform(size=(2, 512, 512, 3), low=0, high=255).astype(
+            np.float32
+        )
         layer = Equalization(value_range=(0, 255))
         xs = layer(xs)
 
@@ -50,20 +51,24 @@ class EqualizationTest(TestCase):
             self.assertTrue(np.any(ops.convert_to_numpy(xs) == i))
 
     @parameterized.named_parameters(
-        ("float32", tf.float32), ("int32", tf.int32), ("int64", tf.int64)
+        ("float32", np.float32), ("int32", np.int32), ("int64", np.int64)
     )
     def test_input_dtypes(self, dtype):
-        xs = tf.random.uniform((2, 512, 512, 3), 0, 255, dtype=dtype)
+        xs = np.random.uniform(size=(2, 512, 512, 3), low=0, high=255).astype(
+            dtype
+        )
         layer = Equalization(value_range=(0, 255))
-        xs = layer(xs)
+        xs = ops.convert_to_numpy(layer(xs))
 
         for i in range(0, 256):
-            self.assertTrue(np.any(ops.convert_to_numpy(xs) == i))
+            self.assertTrue(np.any(xs == i))
         self.assertAllInRange(xs, 0, 255)
 
     @parameterized.named_parameters(("0_255", 0, 255), ("0_1", 0, 1))
     def test_output_range(self, lower, upper):
-        xs = tf.random.uniform((2, 512, 512, 3), lower, upper, dtype=tf.float32)
+        xs = np.random.uniform(
+            size=(2, 512, 512, 3), low=lower, high=upper
+        ).astype(np.float32)
         layer = Equalization(value_range=(lower, upper))
-        xs = layer(xs)
+        xs = ops.convert_to_numpy(layer(xs))
         self.assertAllInRange(xs, lower, upper)
