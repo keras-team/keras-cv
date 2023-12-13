@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from keras_cv.backend import keras
 from keras_cv.backend.config import keras_3
 
 if keras_3():
@@ -28,8 +27,11 @@ else:
             return self._current_seed[:]
 
         def get_config(self):
-            config = {"_current_seed": self._current_seed}
-            return dict(list(config.items()))
+            return {"seed": self._initial_seed}
+
+        @classmethod
+        def from_config(cls, config):
+            return cls(**config)
 
     def normal(shape, mean=0.0, stddev=1.0, dtype=None, seed=None):
         if isinstance(seed, SeedGenerator):
