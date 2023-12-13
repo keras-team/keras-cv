@@ -73,10 +73,10 @@ class CutMixTest(TestCase):
         xs, ys = outputs["images"], outputs["labels"]
 
         # At least some pixels should be replaced in the CutMix operation
-        self.assertTrue(np.any(ops.convert_to_tensor(xs[0]) == 1.0))
-        self.assertTrue(np.any(ops.convert_to_tensor(xs[0]) == 2.0))
-        self.assertTrue(np.any(ops.convert_to_tensor(xs[1]) == 1.0))
-        self.assertTrue(np.any(ops.convert_to_tensor(xs[1]) == 2.0))
+        self.assertTrue(np.any(ops.convert_to_numpy(xs[0]) == 1.0))
+        self.assertTrue(np.any(ops.convert_to_numpy(xs[0]) == 2.0))
+        self.assertTrue(np.any(ops.convert_to_numpy(xs[1]) == 1.0))
+        self.assertTrue(np.any(ops.convert_to_numpy(xs[1]) == 2.0))
         # No labels should still be close to their original values
         self.assertNotAllClose(ys, 1.0)
         self.assertNotAllClose(ys, 0.0)
@@ -96,10 +96,10 @@ class CutMixTest(TestCase):
         xs, ys = outputs["images"], outputs["labels"]
 
         # At least some pixels should be replaced in the CutMix operation
-        self.assertTrue(np.any(ops.convert_to_tensor(xs[0]) == 1.0))
-        self.assertTrue(np.any(ops.convert_to_tensor(xs[0]) == 2.0))
-        self.assertTrue(np.any(ops.convert_to_tensor(xs[1]) == 1.0))
-        self.assertTrue(np.any(ops.convert_to_tensor(xs[1]) == 2.0))
+        self.assertTrue(np.any(ops.convert_to_numpy(xs[0]) == 1.0))
+        self.assertTrue(np.any(ops.convert_to_numpy(xs[0]) == 2.0))
+        self.assertTrue(np.any(ops.convert_to_numpy(xs[1]) == 1.0))
+        self.assertTrue(np.any(ops.convert_to_numpy(xs[1]) == 2.0))
         # No labels should still be close to their original values
         self.assertNotAllClose(ys, 1.0)
         self.assertNotAllClose(ys, 0.0)
@@ -131,22 +131,22 @@ class CutMixTest(TestCase):
         )
 
         # At least some pixels should be replaced in the images
-        self.assertTrue(np.any(ops.convert_to_tensor(xs[0]) == 1.0))
-        self.assertTrue(np.any(ops.convert_to_tensor(xs[0]) == 2.0))
-        self.assertTrue(np.any(ops.convert_to_tensor(xs[1]) == 1.0))
-        self.assertTrue(np.any(ops.convert_to_tensor(xs[1]) == 2.0))
+        self.assertTrue(np.any(ops.convert_to_numpy(xs[0]) == 1.0))
+        self.assertTrue(np.any(ops.convert_to_numpy(xs[0]) == 2.0))
+        self.assertTrue(np.any(ops.convert_to_numpy(xs[1]) == 1.0))
+        self.assertTrue(np.any(ops.convert_to_numpy(xs[1]) == 2.0))
         # At least some pixels should be replaced in the segmentation_masks
         self.assertTrue(
-            np.any(ops.convert_to_tensor(ys_segmentation_masks[0]) == 1.0)
+            np.any(ops.convert_to_numpy(ys_segmentation_masks[0]) == 1.0)
         )
         self.assertTrue(
-            np.any(ops.convert_to_tensor(ys_segmentation_masks[0]) == 2.0)
+            np.any(ops.convert_to_numpy(ys_segmentation_masks[0]) == 2.0)
         )
         self.assertTrue(
-            np.any(ops.convert_to_tensor(ys_segmentation_masks[1]) == 1.0)
+            np.any(ops.convert_to_numpy(ys_segmentation_masks[1]) == 1.0)
         )
         self.assertTrue(
-            np.any(ops.convert_to_tensor(ys_segmentation_masks[1]) == 2.0)
+            np.any(ops.convert_to_numpy(ys_segmentation_masks[1]) == 2.0)
         )
 
     def test_cut_mix_call_results_with_one_hot_encoded_segmentation_masks(self):
@@ -177,10 +177,10 @@ class CutMixTest(TestCase):
         )
 
         # At least some pixels should be replaced in the images
-        self.assertTrue(np.any(ops.convert_to_tensor(xs[0]) == 1.0))
-        self.assertTrue(np.any(ops.convert_to_tensor(xs[0]) == 2.0))
-        self.assertTrue(np.any(ops.convert_to_tensor(xs[1]) == 1.0))
-        self.assertTrue(np.any(ops.convert_to_tensor(xs[1]) == 2.0))
+        self.assertTrue(np.any(ops.convert_to_numpy(xs[0]) == 1.0))
+        self.assertTrue(np.any(ops.convert_to_numpy(xs[0]) == 2.0))
+        self.assertTrue(np.any(ops.convert_to_numpy(xs[1]) == 1.0))
+        self.assertTrue(np.any(ops.convert_to_numpy(xs[1]) == 2.0))
         # At least some pixels should be replaced in the segmentation_masks
         self.assertTrue(
             np.any(
@@ -223,10 +223,10 @@ class CutMixTest(TestCase):
         xs, ys = outputs["images"], outputs["labels"]
 
         # At least some pixels should be replaced in the CutMix operation
-        self.assertTrue(np.any(ops.convert_to_tensor(xs[0]) == 1.0))
-        self.assertTrue(np.any(ops.convert_to_tensor(xs[0]) == 2.0))
-        self.assertTrue(np.any(ops.convert_to_tensor(xs[1]) == 1.0))
-        self.assertTrue(np.any(ops.convert_to_tensor(xs[1]) == 2.0))
+        self.assertTrue(np.any(ops.convert_to_numpy(xs[0]) == 1.0))
+        self.assertTrue(np.any(ops.convert_to_numpy(xs[0]) == 2.0))
+        self.assertTrue(np.any(ops.convert_to_numpy(xs[1]) == 1.0))
+        self.assertTrue(np.any(ops.convert_to_numpy(xs[1]) == 2.0))
         # No labels should still be close to their original values
         self.assertNotAllClose(ys, 1.0)
         self.assertNotAllClose(ys, 0.0)

@@ -47,7 +47,7 @@ class EqualizationTest(TestCase):
         xs = layer(xs)
 
         for i in range(0, 256):
-            self.assertTrue(np.any(ops.convert_to_tensor(xs) == i))
+            self.assertTrue(np.any(ops.convert_to_numpy(xs) == i))
 
     @parameterized.named_parameters(
         ("float32", tf.float32), ("int32", tf.int32), ("int64", tf.int64)
@@ -58,7 +58,7 @@ class EqualizationTest(TestCase):
         xs = layer(xs)
 
         for i in range(0, 256):
-            self.assertTrue(np.any(ops.convert_to_tensor(xs) == i))
+            self.assertTrue(np.any(ops.convert_to_numpy(xs) == i))
         self.assertAllInRange(xs, 0, 255)
 
     @parameterized.named_parameters(("0_255", 0, 255), ("0_1", 0, 1))

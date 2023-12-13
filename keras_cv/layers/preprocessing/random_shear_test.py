@@ -45,17 +45,17 @@ class RandomShearTest(TestCase):
         ys_segmentation_masks = layer(ys_segmentation_masks)
 
         # Some pixels should be replaced with fill value
-        self.assertTrue(np.any(ops.convert_to_tensor(xs[0]) == fill_value))
-        self.assertTrue(np.any(ops.convert_to_tensor(xs[0]) == 2.0))
-        self.assertTrue(np.any(ops.convert_to_tensor(xs[1]) == fill_value))
-        self.assertTrue(np.any(ops.convert_to_tensor(xs[1]) == 1.0))
+        self.assertTrue(np.any(ops.convert_to_numpy(xs[0]) == fill_value))
+        self.assertTrue(np.any(ops.convert_to_numpy(xs[0]) == 2.0))
+        self.assertTrue(np.any(ops.convert_to_numpy(xs[1]) == fill_value))
+        self.assertTrue(np.any(ops.convert_to_numpy(xs[1]) == 1.0))
         self.assertTrue(
             np.any(
                 ops.convert_to_tensor(ys_segmentation_masks[0]) == fill_value
             )
         )
         self.assertTrue(
-            np.any(ops.convert_to_tensor(ys_segmentation_masks[0]) == 2.0)
+            np.any(ops.convert_to_numpy(ys_segmentation_masks[0]) == 2.0)
         )
         self.assertTrue(
             np.any(
@@ -63,7 +63,7 @@ class RandomShearTest(TestCase):
             )
         )
         self.assertTrue(
-            np.any(ops.convert_to_tensor(ys_segmentation_masks[1]) == 1.0)
+            np.any(ops.convert_to_numpy(ys_segmentation_masks[1]) == 1.0)
         )
 
     def test_return_shapes(self):
