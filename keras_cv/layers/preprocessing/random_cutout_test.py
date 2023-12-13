@@ -15,6 +15,7 @@ import numpy as np
 import pytest
 import tensorflow as tf
 
+from keras_cv.backend import ops
 from keras_cv.layers import preprocessing
 from keras_cv.tests.test_case import TestCase
 
@@ -39,10 +40,10 @@ class RandomCutoutTest(TestCase):
         xs = layer(xs)
 
         # Some pixels should be replaced with fill value
-        self.assertTrue(tf.math.reduce_any(xs[0] == fill_value))
-        self.assertTrue(tf.math.reduce_any(xs[0] == 2.0))
-        self.assertTrue(tf.math.reduce_any(xs[1] == fill_value))
-        self.assertTrue(tf.math.reduce_any(xs[1] == 1.0))
+        self.assertTrue(np.any(ops.convert_to_tensor(xs[0]) == fill_value))
+        self.assertTrue(np.any(ops.convert_to_tensor(xs[0]) == 2.0))
+        self.assertTrue(np.any(ops.convert_to_tensor(xs[1]) == fill_value))
+        self.assertTrue(np.any(ops.convert_to_tensor(xs[1]) == 1.0))
 
     def test_return_shapes(self):
         xs = np.ones((2, 512, 512, 3))
@@ -104,10 +105,10 @@ class RandomCutoutTest(TestCase):
         xs = layer(xs)
 
         # Some pixels should be replaced with fill value
-        self.assertTrue(tf.math.reduce_any(xs[0] == patch_value))
-        self.assertTrue(tf.math.reduce_any(xs[0] == 2.0))
-        self.assertTrue(tf.math.reduce_any(xs[1] == patch_value))
-        self.assertTrue(tf.math.reduce_any(xs[1] == 1.0))
+        self.assertTrue(np.any(ops.convert_to_tensor(xs[0]) == patch_value))
+        self.assertTrue(np.any(ops.convert_to_tensor(xs[0]) == 2.0))
+        self.assertTrue(np.any(ops.convert_to_tensor(xs[1]) == patch_value))
+        self.assertTrue(np.any(ops.convert_to_tensor(xs[1]) == 1.0))
 
     def test_random_cutout_call_tiny_image(self):
         img_shape = (4, 4, 3)
@@ -128,10 +129,10 @@ class RandomCutoutTest(TestCase):
         xs = layer(xs)
 
         # Some pixels should be replaced with fill value
-        self.assertTrue(tf.math.reduce_any(xs[0] == fill_value))
-        self.assertTrue(tf.math.reduce_any(xs[0] == 2.0))
-        self.assertTrue(tf.math.reduce_any(xs[1] == fill_value))
-        self.assertTrue(tf.math.reduce_any(xs[1] == 1.0))
+        self.assertTrue(np.any(ops.convert_to_tensor(xs[0]) == fill_value))
+        self.assertTrue(np.any(ops.convert_to_tensor(xs[0]) == 2.0))
+        self.assertTrue(np.any(ops.convert_to_tensor(xs[1]) == fill_value))
+        self.assertTrue(np.any(ops.convert_to_tensor(xs[1]) == 1.0))
 
     @pytest.mark.tf_only
     def test_in_tf_function(self):
@@ -158,7 +159,7 @@ class RandomCutoutTest(TestCase):
         xs = augment(xs)
 
         # Some pixels should be replaced with fill value
-        self.assertTrue(tf.math.reduce_any(xs[0] == patch_value))
-        self.assertTrue(tf.math.reduce_any(xs[0] == 2.0))
-        self.assertTrue(tf.math.reduce_any(xs[1] == patch_value))
-        self.assertTrue(tf.math.reduce_any(xs[1] == 1.0))
+        self.assertTrue(np.any(ops.convert_to_tensor(xs[0]) == patch_value))
+        self.assertTrue(np.any(ops.convert_to_tensor(xs[0]) == 2.0))
+        self.assertTrue(np.any(ops.convert_to_tensor(xs[1]) == patch_value))
+        self.assertTrue(np.any(ops.convert_to_tensor(xs[1]) == 1.0))

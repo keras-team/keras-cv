@@ -12,11 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numpy as np
 import pytest
 import tensorflow as tf
 from absl.testing import parameterized
 
 from keras_cv.backend import keras
+from keras_cv.backend import ops
 from keras_cv.layers.preprocessing.equalization import Equalization
 from keras_cv.tests.test_case import TestCase
 
@@ -45,7 +47,7 @@ class EqualizationTest(TestCase):
         xs = layer(xs)
 
         for i in range(0, 256):
-            self.assertTrue(tf.math.reduce_any(xs == i))
+            self.assertTrue(np.any(ops.convert_to_tensor(xs) == i))
 
     @parameterized.named_parameters(
         ("float32", tf.float32), ("int32", tf.int32), ("int64", tf.int64)
@@ -56,7 +58,7 @@ class EqualizationTest(TestCase):
         xs = layer(xs)
 
         for i in range(0, 256):
-            self.assertTrue(tf.math.reduce_any(xs == i))
+            self.assertTrue(np.any(ops.convert_to_tensor(xs) == i))
         self.assertAllInRange(xs, 0, 255)
 
     @parameterized.named_parameters(("0_255", 0, 255), ("0_1", 0, 1))

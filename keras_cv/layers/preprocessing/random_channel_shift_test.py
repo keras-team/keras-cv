@@ -16,6 +16,7 @@ import numpy as np
 import pytest
 import tensorflow as tf
 
+from keras_cv.backend import ops
 from keras_cv.layers import preprocessing
 from keras_cv.tests.test_case import TestCase
 
@@ -43,8 +44,8 @@ class RandomChannelShiftTest(TestCase):
         )
 
         xs = layer(xs, training=True)
-        self.assertFalse(tf.math.reduce_any(xs[0] == 2.0))
-        self.assertFalse(tf.math.reduce_any(xs[1] == 1.0))
+        self.assertFalse(np.any(ops.convert_to_tensor(xs[0]) == 2.0))
+        self.assertFalse(np.any(ops.convert_to_tensor(xs[1]) == 1.0))
 
     @pytest.mark.tf_only
     def test_in_tf_function(self):
@@ -63,8 +64,8 @@ class RandomChannelShiftTest(TestCase):
             return layer(x, training=True)
 
         xs = augment(xs)
-        self.assertFalse(tf.math.reduce_any(xs[0] == 2.0))
-        self.assertFalse(tf.math.reduce_any(xs[1] == 1.0))
+        self.assertFalse(np.any(ops.convert_to_tensor(xs[0]) == 2.0))
+        self.assertFalse(np.any(ops.convert_to_tensor(xs[1]) == 1.0))
 
     def test_5_channels(self):
         xs = tf.cast(
@@ -75,7 +76,7 @@ class RandomChannelShiftTest(TestCase):
             factor=0.4, channels=5, value_range=(0, 255)
         )
         xs = layer(xs, training=True)
-        self.assertFalse(tf.math.reduce_any(xs == 1.0))
+        self.assertFalse(np.any(ops.convert_to_tensor(xs) == 1.0))
 
     def test_1_channel(self):
         xs = tf.cast(
@@ -86,7 +87,7 @@ class RandomChannelShiftTest(TestCase):
             factor=0.4, channels=1, value_range=(0, 255)
         )
         xs = layer(xs, training=True)
-        self.assertFalse(tf.math.reduce_any(xs == 1.0))
+        self.assertFalse(np.any(ops.convert_to_tensor(xs) == 1.0))
 
     def test_in_single_image(self):
         xs = tf.cast(
@@ -97,7 +98,7 @@ class RandomChannelShiftTest(TestCase):
             factor=0.4, value_range=(0, 255)
         )
         xs = layer(xs, training=True)
-        self.assertFalse(tf.math.reduce_any(xs == 1.0))
+        self.assertFalse(np.any(ops.convert_to_tensor(xs) == 1.0))
 
     def test_config(self):
         layer = preprocessing.RandomChannelShift(

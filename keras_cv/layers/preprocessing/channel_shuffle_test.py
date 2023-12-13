@@ -39,8 +39,8 @@ class ChannelShuffleTest(TestCase):
 
         layer = ChannelShuffle(groups=1)
         xs = layer(xs, training=True)
-        self.assertTrue(tf.math.reduce_any(xs[0] == 3.0))
-        self.assertTrue(tf.math.reduce_any(xs[1] == 2.0))
+        self.assertTrue(np.any(ops.convert_to_numpy(xs[0]) == 3.0))
+        self.assertTrue(np.any(ops.convert_to_numpy(xs[1]) == 2.0))
 
     def test_channel_shuffle_call_results_multi_channel(self):
         xs = tf.cast(
@@ -53,8 +53,8 @@ class ChannelShuffleTest(TestCase):
 
         layer = ChannelShuffle(groups=5)
         xs = layer(xs, training=True)
-        self.assertTrue(tf.math.reduce_any(xs[0] == 3.0))
-        self.assertTrue(tf.math.reduce_any(xs[1] == 2.0))
+        self.assertTrue(np.any(ops.convert_to_numpy(xs[0]) == 3.0))
+        self.assertTrue(np.any(ops.convert_to_numpy(xs[1]) == 2.0))
 
     def test_non_square_image(self):
         xs = tf.cast(
@@ -67,8 +67,8 @@ class ChannelShuffleTest(TestCase):
 
         layer = ChannelShuffle(groups=1)
         xs = layer(xs, training=True)
-        self.assertTrue(tf.math.reduce_any(xs[0] == 2.0))
-        self.assertTrue(tf.math.reduce_any(xs[1] == 1.0))
+        self.assertTrue(np.any(ops.convert_to_numpy(xs[0]) == 2.0))
+        self.assertTrue(np.any(ops.convert_to_numpy(xs[1]) == 1.0))
 
     @pytest.mark.tf_only
     def test_in_tf_function(self):
@@ -86,8 +86,8 @@ class ChannelShuffleTest(TestCase):
             return layer(x, training=True)
 
         xs = augment(xs)
-        self.assertTrue(tf.math.reduce_any(xs[0] == 2.0))
-        self.assertTrue(tf.math.reduce_any(xs[1] == 1.0))
+        self.assertTrue(np.any(ops.convert_to_numpy(xs[0]) == 2.0))
+        self.assertTrue(np.any(ops.convert_to_numpy(xs[1]) == 1.0))
 
     def test_in_single_image(self):
         xs = tf.cast(
@@ -97,7 +97,7 @@ class ChannelShuffleTest(TestCase):
 
         layer = ChannelShuffle(groups=1)
         xs = layer(xs, training=True)
-        self.assertTrue(tf.math.reduce_any(xs == 1.0))
+        self.assertTrue(np.any(ops.convert_to_numpy(xs) == 1.0))
 
     @pytest.mark.skip(reason="flaky")
     def test_channel_shuffle_on_batched_images_independently(self):

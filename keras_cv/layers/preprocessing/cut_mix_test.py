@@ -11,9 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import numpy as np
 import pytest
 import tensorflow as tf
 
+from keras_cv.backend import ops
 from keras_cv.layers.preprocessing.cut_mix import CutMix
 from keras_cv.tests.test_case import TestCase
 
@@ -71,10 +73,10 @@ class CutMixTest(TestCase):
         xs, ys = outputs["images"], outputs["labels"]
 
         # At least some pixels should be replaced in the CutMix operation
-        self.assertTrue(tf.math.reduce_any(xs[0] == 1.0))
-        self.assertTrue(tf.math.reduce_any(xs[0] == 2.0))
-        self.assertTrue(tf.math.reduce_any(xs[1] == 1.0))
-        self.assertTrue(tf.math.reduce_any(xs[1] == 2.0))
+        self.assertTrue(np.any(ops.convert_to_tensor(xs[0]) == 1.0))
+        self.assertTrue(np.any(ops.convert_to_tensor(xs[0]) == 2.0))
+        self.assertTrue(np.any(ops.convert_to_tensor(xs[1]) == 1.0))
+        self.assertTrue(np.any(ops.convert_to_tensor(xs[1]) == 2.0))
         # No labels should still be close to their original values
         self.assertNotAllClose(ys, 1.0)
         self.assertNotAllClose(ys, 0.0)
@@ -94,10 +96,10 @@ class CutMixTest(TestCase):
         xs, ys = outputs["images"], outputs["labels"]
 
         # At least some pixels should be replaced in the CutMix operation
-        self.assertTrue(tf.math.reduce_any(xs[0] == 1.0))
-        self.assertTrue(tf.math.reduce_any(xs[0] == 2.0))
-        self.assertTrue(tf.math.reduce_any(xs[1] == 1.0))
-        self.assertTrue(tf.math.reduce_any(xs[1] == 2.0))
+        self.assertTrue(np.any(ops.convert_to_tensor(xs[0]) == 1.0))
+        self.assertTrue(np.any(ops.convert_to_tensor(xs[0]) == 2.0))
+        self.assertTrue(np.any(ops.convert_to_tensor(xs[1]) == 1.0))
+        self.assertTrue(np.any(ops.convert_to_tensor(xs[1]) == 2.0))
         # No labels should still be close to their original values
         self.assertNotAllClose(ys, 1.0)
         self.assertNotAllClose(ys, 0.0)
@@ -129,15 +131,23 @@ class CutMixTest(TestCase):
         )
 
         # At least some pixels should be replaced in the images
-        self.assertTrue(tf.math.reduce_any(xs[0] == 1.0))
-        self.assertTrue(tf.math.reduce_any(xs[0] == 2.0))
-        self.assertTrue(tf.math.reduce_any(xs[1] == 1.0))
-        self.assertTrue(tf.math.reduce_any(xs[1] == 2.0))
+        self.assertTrue(np.any(ops.convert_to_tensor(xs[0]) == 1.0))
+        self.assertTrue(np.any(ops.convert_to_tensor(xs[0]) == 2.0))
+        self.assertTrue(np.any(ops.convert_to_tensor(xs[1]) == 1.0))
+        self.assertTrue(np.any(ops.convert_to_tensor(xs[1]) == 2.0))
         # At least some pixels should be replaced in the segmentation_masks
-        self.assertTrue(tf.math.reduce_any(ys_segmentation_masks[0] == 1.0))
-        self.assertTrue(tf.math.reduce_any(ys_segmentation_masks[0] == 2.0))
-        self.assertTrue(tf.math.reduce_any(ys_segmentation_masks[1] == 1.0))
-        self.assertTrue(tf.math.reduce_any(ys_segmentation_masks[1] == 2.0))
+        self.assertTrue(
+            np.any(ops.convert_to_tensor(ys_segmentation_masks[0]) == 1.0)
+        )
+        self.assertTrue(
+            np.any(ops.convert_to_tensor(ys_segmentation_masks[0]) == 2.0)
+        )
+        self.assertTrue(
+            np.any(ops.convert_to_tensor(ys_segmentation_masks[1]) == 1.0)
+        )
+        self.assertTrue(
+            np.any(ops.convert_to_tensor(ys_segmentation_masks[1]) == 2.0)
+        )
 
     def test_cut_mix_call_results_with_one_hot_encoded_segmentation_masks(self):
         xs = tf.cast(
@@ -167,22 +177,30 @@ class CutMixTest(TestCase):
         )
 
         # At least some pixels should be replaced in the images
-        self.assertTrue(tf.math.reduce_any(xs[0] == 1.0))
-        self.assertTrue(tf.math.reduce_any(xs[0] == 2.0))
-        self.assertTrue(tf.math.reduce_any(xs[1] == 1.0))
-        self.assertTrue(tf.math.reduce_any(xs[1] == 2.0))
+        self.assertTrue(np.any(ops.convert_to_tensor(xs[0]) == 1.0))
+        self.assertTrue(np.any(ops.convert_to_tensor(xs[0]) == 2.0))
+        self.assertTrue(np.any(ops.convert_to_tensor(xs[1]) == 1.0))
+        self.assertTrue(np.any(ops.convert_to_tensor(xs[1]) == 2.0))
         # At least some pixels should be replaced in the segmentation_masks
         self.assertTrue(
-            tf.math.reduce_any(ys_segmentation_masks[0][:, :, 2] == 1.0)
+            np.any(
+                ops.convert_to_tensor(ys_segmentation_masks[0][:, :, 2]) == 1.0
+            )
         )
         self.assertTrue(
-            tf.math.reduce_any(ys_segmentation_masks[0][:, :, 2] == 0.0)
+            np.any(
+                ops.convert_to_tensor(ys_segmentation_masks[0][:, :, 2]) == 0.0
+            )
         )
         self.assertTrue(
-            tf.math.reduce_any(ys_segmentation_masks[1][:, :, 1] == 1.0)
+            np.any(
+                ops.convert_to_tensor(ys_segmentation_masks[1][:, :, 1]) == 1.0
+            )
         )
         self.assertTrue(
-            tf.math.reduce_any(ys_segmentation_masks[1][:, :, 1] == 0.0)
+            np.any(
+                ops.convert_to_tensor(ys_segmentation_masks[1][:, :, 1]) == 0.0
+            )
         )
 
     @pytest.mark.tf_only
@@ -205,10 +223,10 @@ class CutMixTest(TestCase):
         xs, ys = outputs["images"], outputs["labels"]
 
         # At least some pixels should be replaced in the CutMix operation
-        self.assertTrue(tf.math.reduce_any(xs[0] == 1.0))
-        self.assertTrue(tf.math.reduce_any(xs[0] == 2.0))
-        self.assertTrue(tf.math.reduce_any(xs[1] == 1.0))
-        self.assertTrue(tf.math.reduce_any(xs[1] == 2.0))
+        self.assertTrue(np.any(ops.convert_to_tensor(xs[0]) == 1.0))
+        self.assertTrue(np.any(ops.convert_to_tensor(xs[0]) == 2.0))
+        self.assertTrue(np.any(ops.convert_to_tensor(xs[1]) == 1.0))
+        self.assertTrue(np.any(ops.convert_to_tensor(xs[1]) == 2.0))
         # No labels should still be close to their original values
         self.assertNotAllClose(ys, 1.0)
         self.assertNotAllClose(ys, 0.0)

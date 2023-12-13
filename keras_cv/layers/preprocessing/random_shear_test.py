@@ -11,10 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import numpy as np
 import pytest
 import tensorflow as tf
 
 from keras_cv import bounding_box
+from keras_cv.backend import ops
 from keras_cv.layers import preprocessing
 from keras_cv.tests.test_case import TestCase
 
@@ -43,18 +45,26 @@ class RandomShearTest(TestCase):
         ys_segmentation_masks = layer(ys_segmentation_masks)
 
         # Some pixels should be replaced with fill value
-        self.assertTrue(tf.math.reduce_any(xs[0] == fill_value))
-        self.assertTrue(tf.math.reduce_any(xs[0] == 2.0))
-        self.assertTrue(tf.math.reduce_any(xs[1] == fill_value))
-        self.assertTrue(tf.math.reduce_any(xs[1] == 1.0))
+        self.assertTrue(np.any(ops.convert_to_tensor(xs[0]) == fill_value))
+        self.assertTrue(np.any(ops.convert_to_tensor(xs[0]) == 2.0))
+        self.assertTrue(np.any(ops.convert_to_tensor(xs[1]) == fill_value))
+        self.assertTrue(np.any(ops.convert_to_tensor(xs[1]) == 1.0))
         self.assertTrue(
-            tf.math.reduce_any(ys_segmentation_masks[0] == fill_value)
+            np.any(
+                ops.convert_to_tensor(ys_segmentation_masks[0]) == fill_value
+            )
         )
-        self.assertTrue(tf.math.reduce_any(ys_segmentation_masks[0] == 2.0))
         self.assertTrue(
-            tf.math.reduce_any(ys_segmentation_masks[1] == fill_value)
+            np.any(ops.convert_to_tensor(ys_segmentation_masks[0]) == 2.0)
         )
-        self.assertTrue(tf.math.reduce_any(ys_segmentation_masks[1] == 1.0))
+        self.assertTrue(
+            np.any(
+                ops.convert_to_tensor(ys_segmentation_masks[1]) == fill_value
+            )
+        )
+        self.assertTrue(
+            np.any(ops.convert_to_tensor(ys_segmentation_masks[1]) == 1.0)
+        )
 
     def test_return_shapes(self):
         """test return dict keys and value pairs"""
