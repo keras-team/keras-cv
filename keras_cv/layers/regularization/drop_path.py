@@ -67,6 +67,6 @@ class DropPath(keras.layers.Layer):
             return x
 
     def get_config(self):
-        config = {"rate": self.rate, "seed": self.seed}
-        base_config = super().get_config()
-        return dict(list(base_config.items()) + list(config.items()))
+        config = super().get_config()
+        config.update({"rate": self.rate, "seed": self.seed})
+        return config
