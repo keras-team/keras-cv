@@ -51,10 +51,7 @@ class DropPath(keras.layers.Layer):
         super().__init__(**kwargs)
         self.rate = rate
         self._seed_val = seed
-        if not isinstance(seed, random.SeedGenerator):
-            self.seed = random.SeedGenerator(seed=seed)
-        else:
-            self.seed = seed
+        self.seed = random.SeedGenerator(seed=seed)
 
     def call(self, x, training=None):
         if self.rate == 0.0 or not training:
