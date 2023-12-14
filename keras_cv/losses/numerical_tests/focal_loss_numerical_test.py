@@ -17,6 +17,7 @@ import tensorflow as tf
 from absl.testing import parameterized
 from tensorflow import keras
 
+from keras_cv.backend import ops
 from keras_cv.losses import FocalLoss
 from keras_cv.tests.test_case import TestCase
 
@@ -70,6 +71,6 @@ class FocalLossModelGardenComparisonTest(TestCase):
             y_true = tf.cast(y_true, tf.float32)
             y_pred = tf.random.uniform((200, 10), dtype=tf.float32)
             self.assertAllClose(
-                focal_loss(y_true, tf.sigmoid(y_pred)),
+                ops.convert_to_numpy(focal_loss(y_true, tf.sigmoid(y_pred))),
                 model_garden_focal_loss(y_true, y_pred),
             )
