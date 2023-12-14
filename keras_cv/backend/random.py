@@ -51,7 +51,7 @@ class SeedGenerator:
 
 
 def _draw_seed(seed):
-    if keras_3() and isinstance(seed, keras.random.SeedGenerator):
+    if keras_3():
         # Keras 3 seed can be directly passed to random functions
         return seed
     if isinstance(seed, SeedGenerator):
