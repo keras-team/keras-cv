@@ -24,7 +24,7 @@ class SeedGenerator:
     def __new__(cls, seed=None, **kwargs):
         if keras_3():
             return keras.random.SeedGenerator(seed=seed, **kwargs)
-        return super().__new__(cls, seed)
+        return super().__new__(cls)
 
     def __init__(self, seed=None):
         self._seed = seed
