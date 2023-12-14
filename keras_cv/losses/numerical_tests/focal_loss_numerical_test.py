@@ -32,8 +32,8 @@ class ModelGardenFocalLoss(keras.losses.Loss):
 
     def call(self, y_true, y_pred):
         with tf.name_scope("focal_loss"):
-            y_true = tf.cast(y_true, dtype=tf.float32)
-            y_pred = tf.cast(y_pred, dtype=tf.float32)
+            y_true = tf.cast(ops.convert_to_numpy(y_true), dtype=tf.float32)
+            y_pred = tf.cast(ops.convert_to_numpy(y_pred), dtype=tf.float32)
             positive_label_mask = tf.equal(y_true, 1.0)
             cross_entropy = tf.nn.sigmoid_cross_entropy_with_logits(
                 labels=y_true, logits=y_pred
@@ -71,6 +71,6 @@ class FocalLossModelGardenComparisonTest(TestCase):
             y_true = tf.cast(y_true, tf.float32)
             y_pred = tf.random.uniform((200, 10), dtype=tf.float32)
             self.assertAllClose(
-                ops.convert_to_numpy(focal_loss(y_true, tf.sigmoid(y_pred))),
-                ops.convert_to_numpy(model_garden_focal_loss(y_true, y_pred)),
+                focal_loss(y_true, tf.sigmoid(y_pred)),
+                model_garden_focal_loss(y_true, y_pred),
             )
