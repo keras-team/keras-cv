@@ -22,6 +22,7 @@ else:
 
 class SeedGenerator:
     def __init__(self, seed=None, **kwargs):
+        self._seed = seed
         if keras_3():
             self._seed_generator = keras.random.SeedGenerator(
                 seed=seed, **kwargs
@@ -35,6 +36,13 @@ class SeedGenerator:
         else:
             self._current_seed[0] += 1
             return self._current_seed[:]
+
+    def get_config(self):
+        return {"seed": self._seed}
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)
 
 
 def normal(shape, mean=0.0, stddev=1.0, dtype=None, seed=None):
