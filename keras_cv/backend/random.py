@@ -27,7 +27,7 @@ class SeedGenerator:
         return super().__new__(cls)
 
     def __init__(self, seed=None):
-        self._seed = seed
+        self._initial_seed = seed
         self._current_seed = [0, seed]
 
     def next(self, ordered=True):
@@ -35,7 +35,7 @@ class SeedGenerator:
         return self._current_seed[:]
 
     def get_config(self):
-        return {"seed": self._seed}
+        return {"seed": self._initial_seed}
 
     @classmethod
     def from_config(cls, config):
@@ -48,7 +48,9 @@ def _get_init_seed(seed):
         return seed
     if isinstance(seed, SeedGenerator):
         seed = seed.next()
-        init_seed = seed[0] + seed[1]
+        init_seed = seed[0]
+        if seed[1] is not None:
+            init_seed += seed[1]
     else:
         init_seed = seed
     return init_seed
