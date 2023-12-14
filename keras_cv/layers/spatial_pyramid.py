@@ -164,9 +164,11 @@ class SpatialPyramidPooling(keras.layers.Layer):
             temp = ops.cast(channel(inputs, training=training), inputs.dtype)
             result.append(temp)
 
+        image_shape = ops.shape(inputs)
+        height, width = image_shape[1], image_shape[2]
         result[-1] = keras.layers.Resizing(
-            ops.cast(inputs.shape[1], dtype="int32"),
-            ops.cast(inputs.shape[2], dtype="int32"),
+            height,
+            width,
             interpolation="bilinear",
         )(result[-1])
 
