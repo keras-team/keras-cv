@@ -45,13 +45,19 @@ class SeedGenerator:
         return cls(**config)
 
 
-def normal(shape, mean=0.0, stddev=1.0, dtype=None, seed=None):
+def _get_init_seed(seed):
     if isinstance(seed, SeedGenerator):
         seed = seed.next()
         init_seed = seed[0] + seed[1]
+        if keras_3() and keras.ops.is_tensor(init_seed):
+            init_seed = int(keras.ops.convert_to_numpy(init_seed))
     else:
         init_seed = seed
+    return init_seed
 
+
+def normal(shape, mean=0.0, stddev=1.0, dtype=None, seed=None):
+    init_seed = _get_init_seed(seed)
     kwargs = {}
     if dtype:
         kwargs["dtype"] = dtype
@@ -76,11 +82,7 @@ def normal(shape, mean=0.0, stddev=1.0, dtype=None, seed=None):
 
 
 def uniform(shape, minval=0.0, maxval=1.0, dtype=None, seed=None):
-    if isinstance(seed, SeedGenerator):
-        seed = seed.next()
-        init_seed = seed[0] + seed[1]
-    else:
-        init_seed = seed
+    init_seed = _get_init_seed(seed)
     kwargs = {}
     if dtype:
         kwargs["dtype"] = dtype
@@ -105,12 +107,7 @@ def uniform(shape, minval=0.0, maxval=1.0, dtype=None, seed=None):
 
 
 def shuffle(x, axis=0, seed=None):
-    if isinstance(seed, SeedGenerator):
-        seed = seed.next()
-        init_seed = seed[0] + seed[1]
-    else:
-        init_seed = seed
-
+    init_seed = _get_init_seed(seed)
     if keras_3():
         return keras.random.shuffle(x=x, axis=axis, seed=init_seed)
     else:
@@ -120,11 +117,7 @@ def shuffle(x, axis=0, seed=None):
 
 
 def categorical(logits, num_samples, dtype=None, seed=None):
-    if isinstance(seed, SeedGenerator):
-        seed = seed.next()
-        init_seed = seed[0] + seed[1]
-    else:
-        init_seed = seed
+    init_seed = _get_init_seed(seed)
     kwargs = {}
     if dtype:
         kwargs["dtype"] = dtype
