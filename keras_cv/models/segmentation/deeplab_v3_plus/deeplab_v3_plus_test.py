@@ -32,7 +32,7 @@ from keras_cv.tests.test_case import TestCase
 
 class DeepLabV3PlusTest(TestCase):
     def test_deeplab_v3_plus_construction(self):
-        backbone = ResNet18V2Backbone(input_shape=[512, 512, 3])
+        backbone = ResNet18V2Backbone(input_shape=[256, 256, 3])
         model = DeepLabV3Plus(backbone=backbone, num_classes=2)
         model.compile(
             optimizer="adam",
@@ -42,15 +42,15 @@ class DeepLabV3PlusTest(TestCase):
 
     @pytest.mark.large
     def test_deeplab_v3_plus_call(self):
-        backbone = ResNet18V2Backbone(input_shape=[512, 512, 3])
+        backbone = ResNet18V2Backbone(input_shape=[256, 256, 3])
         model = DeepLabV3Plus(backbone=backbone, num_classes=2)
-        images = np.random.uniform(size=(2, 512, 512, 3))
+        images = np.random.uniform(size=(2, 256, 256, 3))
         _ = model(images)
         _ = model.predict(images)
 
     @pytest.mark.large
     def test_weights_change(self):
-        target_size = [512, 512, 3]
+        target_size = [256, 256, 3]
 
         images = np.ones([1] + target_size)
         labels = np.random.uniform(size=[1] + target_size)
@@ -80,16 +80,16 @@ class DeepLabV3PlusTest(TestCase):
         model = DeepLabV3Plus.from_preset(
             "deeplab_v3_plus_resnet50_pascalvoc",
             num_classes=21,
-            input_shape=[512, 512, 3],
+            input_shape=[256, 256, 3],
         )
-        image = np.ones((1, 512, 512, 3))
+        image = np.ones((1, 256, 256, 3))
         output = ops.expand_dims(ops.argmax(model(image), axis=-1), axis=-1)
-        expected_output = np.zeros((1, 512, 512, 1))
+        expected_output = np.zeros((1, 256, 256, 1))
         self.assertAllClose(output, expected_output)
 
     @pytest.mark.large  # Saving is slow, so mark these large.
     def test_saved_model(self):
-        target_size = [512, 512, 3]
+        target_size = [256, 256, 3]
 
         backbone = ResNet18V2Backbone(input_shape=target_size)
         model = DeepLabV3Plus(backbone=backbone, num_classes=2)
