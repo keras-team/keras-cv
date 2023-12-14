@@ -21,21 +21,18 @@ else:
 
 
 class SeedGenerator:
-    def __init__(self, seed=None, **kwargs):
-        self._seed = seed
+    def __new__(cls, seed=None, **kwargs):
         if keras_3():
-            self._seed_generator = keras.random.SeedGenerator(
-                seed=seed, **kwargs
-            )
-        else:
-            self._current_seed = [0, seed]
+            return keras.random.SeedGenerator(seed=seed, **kwargs)
+        return super().__new__(cls, seed)
+
+    def __init__(self, seed=None):
+        self._seed = seed
+        self._current_seed = [0, seed]
 
     def next(self, ordered=True):
-        if keras_3():
-            return self._seed_generator.next(ordered=ordered)
-        else:
-            self._current_seed[0] += 1
-            return self._current_seed[:]
+        self._current_seed[0] += 1
+        return self._current_seed[:]
 
     def get_config(self):
         return {"seed": self._seed}
@@ -46,11 +43,12 @@ class SeedGenerator:
 
 
 def _get_init_seed(seed):
+    if keras_3() and isinstance(seed, keras.random.SeedGenerator):
+        # Keras 3 seed can be directly passed to random functions
+        return seed
     if isinstance(seed, SeedGenerator):
         seed = seed.next()
         init_seed = seed[0] + seed[1]
-        if keras_3() and keras.ops.is_tensor(init_seed):
-            init_seed = int(keras.ops.convert_to_numpy(init_seed))
     else:
         init_seed = seed
     return init_seed
