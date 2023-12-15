@@ -77,6 +77,8 @@ class DeepLabV3PlusTest(TestCase):
 
     @pytest.mark.large
     def test_with_model_preset_forward_pass(self):
+        if not keras_3():
+            self.skipTest("TODO: #2246 Not supported for Keras 2")
         model = DeepLabV3Plus.from_preset(
             "deeplab_v3_plus_resnet50_pascalvoc",
             num_classes=21,

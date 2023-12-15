@@ -16,6 +16,7 @@ import copy
 
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
+from keras_cv.backend.config import keras_3
 from keras_cv.layers.spatial_pyramid import SpatialPyramidPooling
 from keras_cv.models.backbones.backbone_presets import backbone_presets
 from keras_cv.models.backbones.backbone_presets import (
@@ -237,7 +238,13 @@ class DeepLabV3Plus(Task):
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
-        return copy.deepcopy({**backbone_presets, **deeplab_v3_plus_presets})
+        if keras_3():
+            return copy.deepcopy(
+                {**backbone_presets, **deeplab_v3_plus_presets}
+            )
+        else:
+            # TODO: #2246 Deeplab V3 presets don't work in Keras 2
+            return copy.deepcopy({**backbone_presets})
 
     @classproperty
     def presets_with_weights(cls):
