@@ -15,12 +15,8 @@
 import tensorflow as tf
 
 from keras_cv.api_export import keras_cv_export
-from keras_cv.backend import config
-
-if config.keras_3():
-    base_layer = tf.keras.layers.Layer
-else:
-    base_layer = tf.keras.__internal__.layers.BaseRandomLayer
+from keras_cv.backend import keras
+from keras_cv.backend import random
 
 POINT_CLOUDS = "point_clouds"
 BOUNDING_BOXES = "bounding_boxes"
@@ -34,7 +30,7 @@ POINTCLOUD_FEATURE_INDEX = 4
 
 
 @keras_cv_export("keras_cv.layers.BaseAugmentationLayer3D")
-class BaseAugmentationLayer3D(base_layer):
+class BaseAugmentationLayer3D(keras.layers.Layer):
     """Abstract base layer for data augmentation for 3D perception.
 
     This layer contains base functionalities for preprocessing layers which
@@ -96,24 +92,13 @@ class BaseAugmentationLayer3D(base_layer):
         pointcloud = tf.concat([pointcloud_xyz, pointcloud[..., 3:]], axis=-1)
         return pointcloud, boxes
     ```
-
-    Note that since the randomness is also a common functionality, this layer
-    also includes a keras.backend.RandomGenerator, which can be used to
-    produce the random numbers. The random number generator is stored in the
-    `self._random_generator` attribute.
     """
 
     def __init__(self, seed=None, **kwargs):
-        # To-do: remove this once th elayer is ported to keras 3
-        # https://github.com/keras-team/keras-cv/issues/2136
-        if config.keras_3():
-            raise ValueError(
-                "This layer is not yet compatible with Keras 3."
-                "Please switch to Keras 2 to use this layer."
-            )
-        else:
-            super().__init__(seed=seed, **kwargs)
-            self.auto_vectorize = False
+        super().__init__(**kwargs)
+        self.auto_vectorize = False
+        self.seed = seed
+        self._random_generator = random.SeedGenerator(seed=self.seed)
 
     @property
     def auto_vectorize(self):
