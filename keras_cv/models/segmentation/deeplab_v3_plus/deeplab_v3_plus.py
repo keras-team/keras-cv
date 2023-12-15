@@ -243,7 +243,7 @@ class DeepLabV3Plus(Task):
                 {**backbone_presets, **deeplab_v3_plus_presets}
             )
         else:
-            # TODO: Deeplab V3 presets don't work in Keras 2
+            # TODO: #2246 Deeplab V3 presets don't work in Keras 2
             return copy.deepcopy({**backbone_presets})
 
     @classproperty
