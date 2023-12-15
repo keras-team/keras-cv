@@ -16,7 +16,6 @@ import pytest
 import tensorflow as tf
 from absl.testing import parameterized
 
-from keras_cv.backend.config import keras_3
 from keras_cv.layers import preprocessing_3d
 from keras_cv.layers.preprocessing_3d import base_augmentation_layer_3d
 from keras_cv.tests.test_case import TestCase
@@ -78,6 +77,7 @@ TEST_CONFIGURATIONS = [
     ),
 ]
 
+
 def convert_to_model_format(inputs):
     point_clouds = {
         "point_xyz": inputs["point_clouds"][..., :3],
@@ -95,18 +95,15 @@ def convert_to_model_format(inputs):
         "3d_boxes": boxes,
     }
 
+
 @pytest.mark.skip(
     reason="values are not matching because of changes to random.py"
 )
 class InputFormatTest(TestCase):
     @parameterized.named_parameters(*TEST_CONFIGURATIONS)
     def test_equivalent_results_with_model_format(self, layer):
-        point_clouds = np.random.random(size=(3, 2, 50, 10)).astype(
-            "float32"
-        )
-        bounding_boxes = np.random.random(size=(3, 2, 10, 9)).astype(
-            "float32"
-        )
+        point_clouds = np.random.random(size=(3, 2, 50, 10)).astype("float32")
+        bounding_boxes = np.random.random(size=(3, 2, 10, 9)).astype("float32")
         inputs = {
             POINT_CLOUDS: point_clouds,
             BOUNDING_BOXES: bounding_boxes,
