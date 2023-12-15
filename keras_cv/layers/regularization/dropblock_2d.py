@@ -229,10 +229,12 @@ class DropBlock2D(keras.layers.Layer):
         )
 
     def get_config(self):
-        config = {
-            "rate": self._rate,
-            "block_size": (self._dropblock_height, self._dropblock_width),
-            "seed": self.seed,
-        }
-        base_config = super().get_config()
-        return dict(list(base_config.items()) + list(config.items()))
+        config = super().get_config()
+        config.update(
+            {
+                "rate": self._rate,
+                "block_size": (self._dropblock_height, self._dropblock_width),
+                "seed": self.seed,
+            }
+        )
+        return config
