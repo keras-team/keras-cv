@@ -231,7 +231,11 @@ def legacy_load_weights(layer, weights_path):
         if "_backbone" in f.keys():
             # Transfer layers key (more lightweight than backbone)
             data = f["_backbone"]
-            f["layers"][layer.backbone.name] = data
+            backbone_name = layer.backbone.name
+            if not backbone_name.endswith("backbone"):
+                backbone_name = backbone_name.split("_")[:-1]
+                backbone_name = "_".join(backbone_name)
+            f["layers"][backbone_name] = data
             del f["_backbone"]
         f.close()
 
