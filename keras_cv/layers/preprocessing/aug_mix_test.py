@@ -27,16 +27,16 @@ class AugMixTest(TestCase):
         xs = layer(xs)
         ys_segmentation_masks = tf.ones((2, 512, 512, 3))
         ys_segmentation_masks = layer(ys_segmentation_masks)
-        self.assertEqual(xs.shape, [2, 512, 512, 3])
-        self.assertEqual(ys_segmentation_masks.shape, [2, 512, 512, 3])
+        self.assertEqual(xs.shape, (2, 512, 512, 3))
+        self.assertEqual(ys_segmentation_masks.shape, (2, 512, 512, 3))
 
         # greyscale
         xs = tf.ones((2, 512, 512, 1))
         xs = layer(xs)
         ys_segmentation_masks = tf.ones((2, 512, 512, 1))
         ys_segmentation_masks = layer(ys_segmentation_masks)
-        self.assertEqual(xs.shape, [2, 512, 512, 1])
-        self.assertEqual(ys_segmentation_masks.shape, [2, 512, 512, 1])
+        self.assertEqual(xs.shape, (2, 512, 512, 1))
+        self.assertEqual(ys_segmentation_masks.shape, (2, 512, 512, 1))
 
     def test_in_single_image_and_mask(self):
         layer = preprocessing.AugMix([0, 255])
@@ -54,8 +54,8 @@ class AugMixTest(TestCase):
         )
 
         ys_segmentation_masks = layer(ys_segmentation_masks)
-        self.assertEqual(xs.shape, [512, 512, 3])
-        self.assertEqual(ys_segmentation_masks.shape, [512, 512, 3])
+        self.assertEqual(xs.shape, (512, 512, 3))
+        self.assertEqual(ys_segmentation_masks.shape, (512, 512, 3))
 
         # greyscale
         xs = tf.cast(
@@ -69,8 +69,8 @@ class AugMixTest(TestCase):
             dtype=tf.float32,
         )
         ys_segmentation_masks = layer(ys_segmentation_masks)
-        self.assertEqual(xs.shape, [512, 512, 1])
-        self.assertEqual(ys_segmentation_masks.shape, [512, 512, 1])
+        self.assertEqual(xs.shape, (512, 512, 1))
+        self.assertEqual(ys_segmentation_masks.shape, (512, 512, 1))
 
     def test_non_square_images_and_masks(self):
         layer = preprocessing.AugMix([0, 255])
@@ -80,16 +80,16 @@ class AugMixTest(TestCase):
         xs = layer(xs)
         ys_segmentation_masks = tf.ones((2, 256, 512, 3))
         ys_segmentation_masks = layer(ys_segmentation_masks)
-        self.assertEqual(xs.shape, [2, 256, 512, 3])
-        self.assertEqual(ys_segmentation_masks.shape, [2, 256, 512, 3])
+        self.assertEqual(xs.shape, (2, 256, 512, 3))
+        self.assertEqual(ys_segmentation_masks.shape, (2, 256, 512, 3))
 
         # greyscale
         xs = tf.ones((2, 256, 512, 1))
         xs = layer(xs)
         ys_segmentation_masks = tf.ones((2, 256, 512, 1))
         ys_segmentation_masks = layer(ys_segmentation_masks)
-        self.assertEqual(xs.shape, [2, 256, 512, 1])
-        self.assertEqual(ys_segmentation_masks.shape, [2, 256, 512, 1])
+        self.assertEqual(xs.shape, (2, 256, 512, 1))
+        self.assertEqual(ys_segmentation_masks.shape, (2, 256, 512, 1))
 
     def test_single_input_args(self):
         layer = preprocessing.AugMix([0, 255])
@@ -99,16 +99,16 @@ class AugMixTest(TestCase):
         xs = layer(xs)
         ys_segmentation_masks = tf.ones((2, 512, 512, 3))
         ys_segmentation_masks = layer(ys_segmentation_masks)
-        self.assertEqual(xs.shape, [2, 512, 512, 3])
-        self.assertEqual(ys_segmentation_masks.shape, [2, 512, 512, 3])
+        self.assertEqual(xs.shape, (2, 512, 512, 3))
+        self.assertEqual(ys_segmentation_masks.shape, (2, 512, 512, 3))
 
         # greyscale
         xs = tf.ones((2, 512, 512, 1))
         xs = layer(xs)
         ys_segmentation_masks = tf.ones((2, 512, 512, 1))
         ys_segmentation_masks = layer(ys_segmentation_masks)
-        self.assertEqual(xs.shape, [2, 512, 512, 1])
-        self.assertEqual(ys_segmentation_masks.shape, [2, 512, 512, 1])
+        self.assertEqual(xs.shape, (2, 512, 512, 1))
+        self.assertEqual(ys_segmentation_masks.shape, (2, 512, 512, 1))
 
     def test_many_augmentations(self):
         layer = preprocessing.AugMix([0, 255], chain_depth=[25, 26])
@@ -118,13 +118,13 @@ class AugMixTest(TestCase):
         xs = layer(xs)
         ys_segmentation_masks = tf.ones((2, 512, 512, 3))
         ys_segmentation_masks = layer(ys_segmentation_masks)
-        self.assertEqual(xs.shape, [2, 512, 512, 3])
-        self.assertEqual(ys_segmentation_masks.shape, [2, 512, 512, 3])
+        self.assertEqual(xs.shape, (2, 512, 512, 3))
+        self.assertEqual(ys_segmentation_masks.shape, (2, 512, 512, 3))
 
         # greyscale
         xs = tf.ones((2, 512, 512, 1))
         xs = layer(xs)
         ys_segmentation_masks = tf.ones((2, 512, 512, 1))
         ys_segmentation_masks = layer(ys_segmentation_masks)
-        self.assertEqual(xs.shape, [2, 512, 512, 1])
-        self.assertEqual(ys_segmentation_masks.shape, [2, 512, 512, 1])
+        self.assertEqual(xs.shape, (2, 512, 512, 1))
+        self.assertEqual(ys_segmentation_masks.shape, (2, 512, 512, 1))

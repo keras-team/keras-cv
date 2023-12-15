@@ -12,53 +12,53 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numpy as np
 
-import tensorflow as tf
-
+from keras_cv.backend import ops
 from keras_cv.layers import preprocessing
 from keras_cv.tests.test_case import TestCase
 
 
 class AutoContrastTest(TestCase):
     def test_constant_channels_dont_get_nanned(self):
-        img = tf.constant([1, 1], dtype=tf.float32)
-        img = tf.expand_dims(img, axis=-1)
-        img = tf.expand_dims(img, axis=-1)
-        img = tf.expand_dims(img, axis=0)
+        img = np.array([1, 1], dtype=np.float32)
+        img = np.expand_dims(img, axis=-1)
+        img = np.expand_dims(img, axis=-1)
+        img = np.expand_dims(img, axis=0)
 
         layer = preprocessing.AutoContrast(value_range=(0, 255))
         ys = layer(img)
 
-        self.assertTrue(tf.math.reduce_any(ys[0] == 1.0))
-        self.assertTrue(tf.math.reduce_any(ys[0] == 1.0))
+        self.assertTrue(np.any(ops.convert_to_numpy(ys[0]) == 1.0))
+        self.assertTrue(np.any(ops.convert_to_numpy(ys[0]) == 1.0))
 
     def test_auto_contrast_expands_value_range(self):
-        img = tf.constant([0, 128], dtype=tf.float32)
-        img = tf.expand_dims(img, axis=-1)
-        img = tf.expand_dims(img, axis=-1)
-        img = tf.expand_dims(img, axis=0)
+        img = np.array([0, 128], dtype=np.float32)
+        img = np.expand_dims(img, axis=-1)
+        img = np.expand_dims(img, axis=-1)
+        img = np.expand_dims(img, axis=0)
 
         layer = preprocessing.AutoContrast(value_range=(0, 255))
         ys = layer(img)
 
-        self.assertTrue(tf.math.reduce_any(ys[0] == 0.0))
-        self.assertTrue(tf.math.reduce_any(ys[0] == 255.0))
+        self.assertTrue(np.any(ops.convert_to_numpy(ys[0]) == 0.0))
+        self.assertTrue(np.any(ops.convert_to_numpy(ys[0]) == 255.0))
 
     def test_auto_contrast_different_values_per_channel(self):
-        img = tf.constant(
+        img = np.array(
             [[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]],
-            dtype=tf.float32,
+            dtype=np.float32,
         )
-        img = tf.expand_dims(img, axis=0)
+        img = np.expand_dims(img, axis=0)
 
         layer = preprocessing.AutoContrast(value_range=(0, 255))
         ys = layer(img)
 
-        self.assertTrue(tf.math.reduce_any(ys[0, ..., 0] == 0.0))
-        self.assertTrue(tf.math.reduce_any(ys[0, ..., 1] == 0.0))
+        self.assertTrue(np.any(ops.convert_to_numpy(ys[0, ..., 0]) == 0.0))
+        self.assertTrue(np.any(ops.convert_to_numpy(ys[0, ..., 1]) == 0.0))
 
-        self.assertTrue(tf.math.reduce_any(ys[0, ..., 0] == 255.0))
-        self.assertTrue(tf.math.reduce_any(ys[0, ..., 1] == 255.0))
+        self.assertTrue(np.any(ops.convert_to_numpy(ys[0, ..., 0]) == 255.0))
+        self.assertTrue(np.any(ops.convert_to_numpy(ys[0, ..., 1]) == 255.0))
 
         self.assertAllClose(
             ys,
@@ -71,25 +71,25 @@ class AutoContrastTest(TestCase):
         )
 
     def test_auto_contrast_expands_value_range_uint8(self):
-        img = tf.constant([0, 128], dtype=tf.uint8)
-        img = tf.expand_dims(img, axis=-1)
-        img = tf.expand_dims(img, axis=-1)
-        img = tf.expand_dims(img, axis=0)
+        img = np.array([0, 128], dtype=np.uint8)
+        img = np.expand_dims(img, axis=-1)
+        img = np.expand_dims(img, axis=-1)
+        img = np.expand_dims(img, axis=0)
 
         layer = preprocessing.AutoContrast(value_range=(0, 255))
         ys = layer(img)
 
-        self.assertTrue(tf.math.reduce_any(ys[0] == 0.0))
-        self.assertTrue(tf.math.reduce_any(ys[0] == 255.0))
+        self.assertTrue(np.any(ops.convert_to_numpy(ys[0]) == 0.0))
+        self.assertTrue(np.any(ops.convert_to_numpy(ys[0]) == 255.0))
 
     def test_auto_contrast_properly_converts_value_range(self):
-        img = tf.constant([0, 0.5], dtype=tf.float32)
-        img = tf.expand_dims(img, axis=-1)
-        img = tf.expand_dims(img, axis=-1)
-        img = tf.expand_dims(img, axis=0)
+        img = np.array([0, 0.5], dtype=np.float32)
+        img = np.expand_dims(img, axis=-1)
+        img = np.expand_dims(img, axis=-1)
+        img = np.expand_dims(img, axis=0)
 
         layer = preprocessing.AutoContrast(value_range=(0, 1))
         ys = layer(img)
 
-        self.assertTrue(tf.math.reduce_any(ys[0] == 0.0))
-        self.assertTrue(tf.math.reduce_any(ys[0] == 1.0))
+        self.assertTrue(np.any(ops.convert_to_numpy(ys[0]) == 0.0))
+        self.assertTrue(np.any(ops.convert_to_numpy(ys[0]) == 1.0))
