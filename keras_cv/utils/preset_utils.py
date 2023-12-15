@@ -235,6 +235,9 @@ def legacy_load_weights(layer, weights_path):
             if not backbone_name.endswith("backbone"):
                 backbone_name = backbone_name.split("_")[:-1]
                 backbone_name = "_".join(backbone_name)
+            if "functional" in f["layers"]:
+                del f["layers"]["functional"]
+                backbone_name = "functional"
             f["layers"][backbone_name] = data
             del f["_backbone"]
         f.close()
