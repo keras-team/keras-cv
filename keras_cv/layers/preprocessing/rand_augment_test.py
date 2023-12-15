@@ -16,6 +16,7 @@ import tensorflow as tf
 from absl.testing import parameterized
 
 from keras_cv import layers
+from keras_cv.backend import ops
 from keras_cv.tests.test_case import TestCase
 
 
@@ -56,10 +57,8 @@ class RandAugmentTest(TestCase):
             value_range=(low, high),
         )
         xs = tf.random.uniform((2, 512, 512, 3), low, high, dtype=tf.float32)
-        ys = rand_augment(xs)
-        self.assertTrue(
-            tf.math.reduce_all(tf.logical_and(ys >= low, ys <= high))
-        )
+        ys = ops.convert_to_numpy(rand_augment(xs))
+        self.assertTrue(np.all(np.logical_and(ys >= low, ys <= high)))
 
     @parameterized.named_parameters(
         ("float32", "float32"),
@@ -85,9 +84,9 @@ class RandAugmentTest(TestCase):
             layers=my_layers, augmentations_per_image=3
         )
         xs = tf.random.uniform((2, 512, 512, 3), lower, upper, dtype=tf.float32)
-        ys = rand_augment(xs)
-        self.assertLessEqual(tf.math.reduce_max(ys), upper)
-        self.assertGreaterEqual(tf.math.reduce_min(ys), lower)
+        ys = ops.convert_to_numpy(rand_augment(xs))
+        self.assertLessEqual(np.max(ys), upper)
+        self.assertGreaterEqual(np.min(ys), lower)
 
     def test_runs_unbatched(self):
         rand_augment = layers.RandAugment(

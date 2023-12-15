@@ -11,11 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import pytest
 import tensorflow as tf
 from absl.testing import parameterized
 
 from keras_cv import layers
+from keras_cv.backend import ops
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
@@ -49,7 +50,7 @@ class RandomApplyTest(TestCase):
         dummy_inputs = self.rng.uniform(shape=(batch_size, 224, 224, 3))
         layer = RandomApply(rate=0.5, layer=ZeroOut(), seed=1234)
 
-        outputs = layer(dummy_inputs)
+        outputs = ops.convert_to_numpy(layer(dummy_inputs))
         num_zero_inputs = self._num_zero_batches(dummy_inputs)
         num_zero_outputs = self._num_zero_batches(outputs)
 
@@ -107,6 +108,7 @@ class RandomApplyTest(TestCase):
 
         self.assertAllEqual(outputs["labels"], tf.zeros_like(dummy_labels))
 
+    @pytest.mark.tf_only
     def test_works_with_xla(self):
         dummy_inputs = self.rng.uniform(shape=(32, 224, 224, 3))
         # auto_vectorize=True will crash XLA

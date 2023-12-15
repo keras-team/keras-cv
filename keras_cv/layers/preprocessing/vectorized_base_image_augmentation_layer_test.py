@@ -16,6 +16,8 @@ import pytest
 import tensorflow as tf
 
 from keras_cv import bounding_box
+from keras_cv.backend import keras
+from keras_cv.backend import ops
 from keras_cv.layers.preprocessing.vectorized_base_image_augmentation_layer import (  # noqa: E501
     VectorizedBaseImageAugmentationLayer,
 )
@@ -208,11 +210,11 @@ class VectorizedBaseImageAugmentationLayerTest(TestCase):
 
     def test_augment_casts_dtypes(self):
         add_layer = VectorizedRandomAddLayer(fixed_value=2.0)
-        images = tf.ones((2, 8, 8, 3), dtype="uint8")
+        images = np.ones((2, 8, 8, 3), dtype="uint8")
         output = add_layer(images)
 
         self.assertAllClose(
-            tf.ones((2, 8, 8, 3), dtype="float32") * 3.0, output
+            np.ones((2, 8, 8, 3), dtype="float32") * 3.0, output
         )
 
     def test_augment_batch_images(self):
@@ -220,7 +222,7 @@ class VectorizedBaseImageAugmentationLayerTest(TestCase):
         images = np.random.random(size=(2, 8, 8, 3)).astype("float32")
         output = add_layer(images)
 
-        diff = output - images
+        diff = ops.convert_to_numpy(output) - images
         # Make sure the first image and second image get different augmentation
         self.assertNotAllClose(diff[0], diff[1])
 
@@ -248,8 +250,8 @@ class VectorizedBaseImageAugmentationLayerTest(TestCase):
         targets = np.random.random(size=(2, 1)).astype("float32")
         output = add_layer({"images": images, "targets": targets})
 
-        image_diff = output["images"] - images
-        label_diff = output["targets"] - targets
+        image_diff = ops.convert_to_numpy(output["images"]) - images
+        label_diff = ops.convert_to_numpy(output["targets"]) - targets
         # Make sure the first image and second image get different augmentation
         self.assertNotAllClose(image_diff[0], image_diff[1])
         self.assertNotAllClose(label_diff[0], label_diff[1])
@@ -357,6 +359,13 @@ class VectorizedBaseImageAugmentationLayerTest(TestCase):
             segmentation_mask_diff[0], segmentation_mask_diff[1]
         )
 
+        # the test finishes here for the non-tensorflow backends.
+        if (
+            getattr(keras.config, "backend", lambda: "tensorflow")()
+            != "tensorflow"
+        ):
+            return
+
         @tf.function
         def in_tf_function(inputs):
             return add_layer(inputs)
@@ -383,6 +392,7 @@ class VectorizedBaseImageAugmentationLayerTest(TestCase):
             segmentation_mask_diff[0], segmentation_mask_diff[1]
         )
 
+    @pytest.mark.tf_only
     def test_augment_all_data_in_tf_function(self):
         add_layer = VectorizedRandomAddLayer()
         images = np.random.random(size=(2, 8, 8, 3)).astype("float32")
@@ -443,11 +453,11 @@ class VectorizedBaseImageAugmentationLayerTest(TestCase):
         self.assertAllClose(output["keypoints"], keypoints + 2.0)
         self.assertAllClose(
             output["bounding_boxes"]["boxes"],
-            tf.squeeze(bounding_boxes["boxes"]) + 2.0,
+            np.squeeze(bounding_boxes["boxes"]) + 2.0,
         )
         self.assertAllClose(
             output["bounding_boxes"]["classes"],
-            tf.squeeze(bounding_boxes["classes"]) + 2.0,
+            np.squeeze(bounding_boxes["classes"]) + 2.0,
         )
         self.assertAllClose(
             output["segmentation_masks"], segmentation_masks + 2.0
@@ -478,7 +488,6 @@ class VectorizedBaseImageAugmentationLayerTest(TestCase):
 
         # assertion is at VectorizedAssertionLayer's methods
 
-    @pytest.mark.skip(reason="disable temporarily")
     def test_augment_all_data_with_ragged_images_for_assertion(self):
         images = tf.ragged.stack(
             [
@@ -497,15 +506,6 @@ class VectorizedBaseImageAugmentationLayerTest(TestCase):
         segmentation_masks = tf.random.uniform(shape=(2, 8, 8, 1))
         assertion_layer = VectorizedAssertionLayer()
 
-        print(
-            {
-                "images": type(images),
-                "labels": type(labels),
-                "bounding_boxes": type(bounding_boxes),
-                "keypoints": type(keypoints),
-                "segmentation_masks": type(segmentation_masks),
-            }
-        )
         _ = assertion_layer(
             {
                 "images": images,
