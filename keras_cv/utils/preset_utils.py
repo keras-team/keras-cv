@@ -216,6 +216,6 @@ def legacy_load_weights(layer, weights_path):
         if cls.__name__ == "Functional":
             functional_cls = cls
     property = functional_cls._layer_checkpoint_dependencies
-    functional_cls._layer_checkpoint_dependencies = []
+    functional_cls._layer_checkpoint_dependencies = {}
     layer.load_weights(weights_path)
     functional_cls._layer_checkpoint_dependencies = property
