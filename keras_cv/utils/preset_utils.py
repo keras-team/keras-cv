@@ -17,6 +17,9 @@ import inspect
 import json
 import os
 
+import h5py
+
+from keras_cv.backend import config as backend_config
 from keras_cv.backend import keras
 
 try:
@@ -217,5 +220,20 @@ def legacy_load_weights(layer, weights_path):
             functional_cls = cls
     property = functional_cls._layer_checkpoint_dependencies
     functional_cls._layer_checkpoint_dependencies = {}
+
+    from keras_cv.models.task import Task
+
+    if not backend_config.keras_3() and isinstance(layer, Task):
+        # Hacky fix for Keras 2 backwards compatibility. Keras 2 traverses
+        # loading weights in the reverse order, causing a naming mismatch when
+        # loading Kaggle weights saved from Keras 3.
+        f = h5py.File(weights_path, "r+")
+        if "_backbone" in f.keys():
+            # Transfer layers key (more lightweight than backbone)
+            data = f["_backbone"]
+            f["layers"][layer.backbone.name] = data
+            del f["_backbone"]
+        f.close()
+
     layer.load_weights(weights_path)
     functional_cls._layer_checkpoint_dependencies = property
