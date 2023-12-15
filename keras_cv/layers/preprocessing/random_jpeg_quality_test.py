@@ -26,12 +26,12 @@ class RandomJpegQualityTest(TestCase):
         # RGB
         xs = np.ones((2, 512, 512, 3))
         xs = layer(xs)
-        self.assertEqual(xs.shape, [2, 512, 512, 3])
+        self.assertEqual(xs.shape, (2, 512, 512, 3))
 
         # greyscale
         xs = np.ones((2, 512, 512, 1))
         xs = layer(xs)
-        self.assertEqual(xs.shape, [2, 512, 512, 1])
+        self.assertEqual(xs.shape, (2, 512, 512, 1))
 
     def test_in_single_image(self):
         layer = preprocessing.RandomJpegQuality(factor=[0, 100])
@@ -43,7 +43,7 @@ class RandomJpegQualityTest(TestCase):
         )
 
         xs = layer(xs)
-        self.assertEqual(xs.shape, [512, 512, 3])
+        self.assertEqual(xs.shape, (512, 512, 3))
 
         # greyscale
         xs = tf.cast(
@@ -52,7 +52,7 @@ class RandomJpegQualityTest(TestCase):
         )
 
         xs = layer(xs)
-        self.assertEqual(xs.shape, [512, 512, 1])
+        self.assertEqual(xs.shape, (512, 512, 1))
 
     def test_non_square_images(self):
         layer = preprocessing.RandomJpegQuality(factor=[0, 100])
@@ -60,9 +60,9 @@ class RandomJpegQualityTest(TestCase):
         # RGB
         xs = np.ones((2, 256, 512, 3))
         xs = layer(xs)
-        self.assertEqual(xs.shape, [2, 256, 512, 3])
+        self.assertEqual(xs.shape, (2, 256, 512, 3))
 
         # greyscale
         xs = np.ones((2, 256, 512, 1))
         xs = layer(xs)
-        self.assertEqual(xs.shape, [2, 256, 512, 1])
+        self.assertEqual(xs.shape, (2, 256, 512, 1))

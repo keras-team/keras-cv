@@ -15,6 +15,7 @@
 import numpy as np
 import tensorflow as tf
 
+from keras_cv.backend import ops
 from keras_cv.layers import preprocessing
 from keras_cv.tests.test_case import TestCase
 
@@ -224,6 +225,8 @@ class RandomTranslationTest(TestCase):
     def test_output_dtypes(self):
         inputs = np.array([[[1], [2]], [[3], [4]]], dtype="float64")
         layer = preprocessing.RandomTranslation(0.5, 0.6)
-        self.assertAllEqual(layer(inputs).dtype, "float32")
+        self.assertAllEqual(
+            ops.convert_to_numpy(layer(inputs)).dtype, "float32"
+        )
         layer = preprocessing.RandomTranslation(0.5, 0.6, dtype="uint8")
-        self.assertAllEqual(layer(inputs).dtype, "uint8")
+        self.assertAllEqual(ops.convert_to_numpy(layer(inputs)).dtype, "uint8")

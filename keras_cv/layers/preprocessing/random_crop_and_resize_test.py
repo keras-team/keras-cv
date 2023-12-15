@@ -16,6 +16,7 @@ import tensorflow as tf
 from absl.testing import parameterized
 
 from keras_cv import bounding_box
+from keras_cv.backend import ops
 from keras_cv.layers import preprocessing
 from keras_cv.tests.test_case import TestCase
 
@@ -147,7 +148,9 @@ class RandomCropAndResizeTest(TestCase):
             seed=self.seed,
         )
         output = layer(inputs, training=True)
-        self.assertAllInSet(output["segmentation_masks"], [0, 7])
+        self.assertAllInSet(
+            ops.convert_to_numpy(output["segmentation_masks"]), [0, 7]
+        )
 
     def test_augment_one_hot_segmentation_mask(self):
         num_classes = 8

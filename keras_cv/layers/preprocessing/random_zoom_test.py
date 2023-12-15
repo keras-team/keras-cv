@@ -16,6 +16,7 @@ import numpy as np
 import tensorflow as tf
 from absl.testing import parameterized
 
+from keras_cv.backend import ops
 from keras_cv.layers.preprocessing.random_zoom import RandomZoom
 from keras_cv.tests.test_case import TestCase
 
@@ -163,6 +164,8 @@ class RandomZoomTest(TestCase):
     def test_output_dtypes(self):
         inputs = np.array([[[1], [2]], [[3], [4]]], dtype="float64")
         layer = RandomZoom(0.5, 0.5)
-        self.assertAllEqual(layer(inputs).dtype, "float32")
+        self.assertAllEqual(
+            ops.convert_to_numpy(layer(inputs)).dtype, "float32"
+        )
         layer = RandomZoom(0.5, 0.5, dtype="uint8")
-        self.assertAllEqual(layer(inputs).dtype, "uint8")
+        self.assertAllEqual(ops.convert_to_numpy(layer(inputs)).dtype, "uint8")
