@@ -12,10 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import numpy as np
-import pytest
 import tensorflow as tf
 
-from keras_cv.backend.config import keras_3
+from keras_cv.backend import random
 from keras_cv.layers.preprocessing_3d import base_augmentation_layer_3d
 from keras_cv.tests.test_case import TestCase
 
@@ -29,14 +28,23 @@ class RandomAddLayer(base_augmentation_layer_3d.BaseAugmentationLayer3D):
         self._translate_noise = translate_noise
 
     def get_random_transformation(self, **kwargs):
-        random_x = self._random_generator.random_normal(
-            (), mean=0.0, stddev=self._translate_noise[0]
+        random_x = random.normal(
+            (),
+            mean=0.0,
+            stddev=self._translate_noise[0],
+            seed=self._random_generator,
         )
-        random_y = self._random_generator.random_normal(
-            (), mean=0.0, stddev=self._translate_noise[1]
+        random_y = random.normal(
+            (),
+            mean=0.0,
+            stddev=self._translate_noise[1],
+            seed=self._random_generator,
         )
-        random_z = self._random_generator.random_normal(
-            (), mean=0.0, stddev=self._translate_noise[2]
+        random_z = random.normal(
+            (),
+            mean=0.0,
+            stddev=self._translate_noise[2],
+            seed=self._random_generator,
         )
 
         return {
@@ -64,7 +72,6 @@ class VectorizeDisabledLayer(
         super().__init__(**kwargs)
 
 
-@pytest.mark.skipif(keras_3(), reason="Not implemented in Keras 3")
 class BaseImageAugmentationLayerTest(TestCase):
     def test_auto_vectorize_disabled(self):
         vectorize_disabled_layer = VectorizeDisabledLayer()
