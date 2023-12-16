@@ -227,6 +227,12 @@ def legacy_load_weights(layer, weights_path):
         # Hacky fix for Keras 2 backwards compatibility. Keras 2 traverses
         # loading weights in the reverse order, causing a naming mismatch when
         # loading Kaggle weights saved from Keras 3.
+        new_weights_path = os.path.join(
+            os.path.dirname(weights_path),
+            "legacy_" + os.path.basename(weights_path),
+        )
+        os.rename(weights_path, new_weights_path)
+        weights_path = new_weights_path
         f = h5py.File(weights_path, "r+")
         if "_backbone" in f.keys():
             # Transfer layers key (more lightweight than backbone)
