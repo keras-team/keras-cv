@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import numpy as np
+import pytest
 import tensorflow as tf
 
+from keras_cv.backend import ops
 from keras_cv.layers import preprocessing
 from keras_cv.tests.test_case import TestCase
 
@@ -38,10 +40,10 @@ class RandomCutoutTest(TestCase):
         xs = layer(xs)
 
         # Some pixels should be replaced with fill value
-        self.assertTrue(tf.math.reduce_any(xs[0] == fill_value))
-        self.assertTrue(tf.math.reduce_any(xs[0] == 2.0))
-        self.assertTrue(tf.math.reduce_any(xs[1] == fill_value))
-        self.assertTrue(tf.math.reduce_any(xs[1] == 1.0))
+        self.assertTrue(np.any(ops.convert_to_numpy(xs[0]) == fill_value))
+        self.assertTrue(np.any(ops.convert_to_numpy(xs[0]) == 2.0))
+        self.assertTrue(np.any(ops.convert_to_numpy(xs[1]) == fill_value))
+        self.assertTrue(np.any(ops.convert_to_numpy(xs[1]) == 1.0))
 
     def test_return_shapes(self):
         xs = np.ones((2, 512, 512, 3))
@@ -53,8 +55,8 @@ class RandomCutoutTest(TestCase):
         xs = layer(xs)
         ys_segmentation_masks = layer(ys_segmentation_masks)
 
-        self.assertEqual(xs.shape, [2, 512, 512, 3])
-        self.assertEqual(ys_segmentation_masks.shape, [2, 512, 512, 3])
+        self.assertEqual(xs.shape, (2, 512, 512, 3))
+        self.assertEqual(ys_segmentation_masks.shape, (2, 512, 512, 3))
 
     def test_return_shapes_single_element(self):
         xs = np.ones((512, 512, 3))
@@ -66,8 +68,8 @@ class RandomCutoutTest(TestCase):
         xs = layer(xs)
         ys_segmentation_masks = layer(ys_segmentation_masks)
 
-        self.assertEqual(xs.shape, [512, 512, 3])
-        self.assertEqual(ys_segmentation_masks.shape, [512, 512, 3])
+        self.assertEqual(xs.shape, (512, 512, 3))
+        self.assertEqual(ys_segmentation_masks.shape, (512, 512, 3))
 
     def test_random_cutout_single_float(self):
         self._run_test(0.5, 0.5)
@@ -103,10 +105,10 @@ class RandomCutoutTest(TestCase):
         xs = layer(xs)
 
         # Some pixels should be replaced with fill value
-        self.assertTrue(tf.math.reduce_any(xs[0] == patch_value))
-        self.assertTrue(tf.math.reduce_any(xs[0] == 2.0))
-        self.assertTrue(tf.math.reduce_any(xs[1] == patch_value))
-        self.assertTrue(tf.math.reduce_any(xs[1] == 1.0))
+        self.assertTrue(np.any(ops.convert_to_numpy(xs[0]) == patch_value))
+        self.assertTrue(np.any(ops.convert_to_numpy(xs[0]) == 2.0))
+        self.assertTrue(np.any(ops.convert_to_numpy(xs[1]) == patch_value))
+        self.assertTrue(np.any(ops.convert_to_numpy(xs[1]) == 1.0))
 
     def test_random_cutout_call_tiny_image(self):
         img_shape = (4, 4, 3)
@@ -127,11 +129,12 @@ class RandomCutoutTest(TestCase):
         xs = layer(xs)
 
         # Some pixels should be replaced with fill value
-        self.assertTrue(tf.math.reduce_any(xs[0] == fill_value))
-        self.assertTrue(tf.math.reduce_any(xs[0] == 2.0))
-        self.assertTrue(tf.math.reduce_any(xs[1] == fill_value))
-        self.assertTrue(tf.math.reduce_any(xs[1] == 1.0))
+        self.assertTrue(np.any(ops.convert_to_numpy(xs[0]) == fill_value))
+        self.assertTrue(np.any(ops.convert_to_numpy(xs[0]) == 2.0))
+        self.assertTrue(np.any(ops.convert_to_numpy(xs[1]) == fill_value))
+        self.assertTrue(np.any(ops.convert_to_numpy(xs[1]) == 1.0))
 
+    @pytest.mark.tf_only
     def test_in_tf_function(self):
         xs = tf.cast(
             tf.stack(
@@ -156,7 +159,7 @@ class RandomCutoutTest(TestCase):
         xs = augment(xs)
 
         # Some pixels should be replaced with fill value
-        self.assertTrue(tf.math.reduce_any(xs[0] == patch_value))
-        self.assertTrue(tf.math.reduce_any(xs[0] == 2.0))
-        self.assertTrue(tf.math.reduce_any(xs[1] == patch_value))
-        self.assertTrue(tf.math.reduce_any(xs[1] == 1.0))
+        self.assertTrue(np.any(ops.convert_to_numpy(xs[0]) == patch_value))
+        self.assertTrue(np.any(ops.convert_to_numpy(xs[0]) == 2.0))
+        self.assertTrue(np.any(ops.convert_to_numpy(xs[1]) == patch_value))
+        self.assertTrue(np.any(ops.convert_to_numpy(xs[1]) == 1.0))

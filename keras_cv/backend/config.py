@@ -13,16 +13,6 @@
 # limitations under the License.
 
 
-from tensorflow import keras
-
-# We follow the version of keras that tensorflow is configured to use.
-_USE_KERAS_3 = False
-
-# Note that only recent versions of keras have a `version()` function.
-if hasattr(keras, "version") and keras.version().startswith("3."):
-    _USE_KERAS_3 = True
-
-
 def detect_if_tensorflow_uses_keras_3():
     # We follow the version of keras that tensorflow is configured to use.
     try:
@@ -44,8 +34,6 @@ def detect_if_tensorflow_uses_keras_3():
 
 
 _USE_KERAS_3 = detect_if_tensorflow_uses_keras_3()
-if _USE_KERAS_3:
-    _MULTI_BACKEND = True
 
 
 def keras_3():
@@ -57,5 +45,7 @@ def backend():
     """Check the backend framework."""
     if not keras_3():
         return "tensorflow"
+
+    import keras
 
     return keras.config.backend()

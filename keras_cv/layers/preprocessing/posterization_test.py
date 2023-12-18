@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import numpy as np
+import pytest
 import tensorflow as tf
 
 from keras_cv.layers.preprocessing.posterization import Posterization
@@ -74,6 +75,7 @@ class PosterizationTest(TestCase):
 
         self.assertAllEqual(output, expected_output)
 
+    @pytest.mark.tf_only
     def test_works_with_xla(self):
         dummy_input = self.rng.uniform(shape=(2, 224, 224, 3))
         layer = Posterization(bits=4, value_range=[0, 1])
