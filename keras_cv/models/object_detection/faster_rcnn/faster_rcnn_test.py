@@ -38,7 +38,7 @@ class FasterRCNNTest(TestCase):
         faster_rcnn = FasterRCNN(
             num_classes=80,
             bounding_box_format="xyxy",
-            backbone=keras_cv.models.ResNet18V2Backbone(),
+            backbone=keras_cv.models.ResNet18V2Backbone(input_shape=(512, 512, 3)),
         )
         faster_rcnn.compile(
             optimizer=keras.optimizers.Adam(),
@@ -219,7 +219,7 @@ class FasterRCNNTest(TestCase):
         model = FasterRCNN(
             num_classes=80,
             bounding_box_format="xyxy",
-            backbone=keras_cv.models.ResNet18V2Backbone(input_shape=(512, 512, 3)),
+            backbone=keras_cv.models.ResNet18V2Backbone(input_shape=batch_shape[1:]),
         )
         images = ops.random.normal(batch_shape)
         outputs = model(images, training=False)
@@ -236,7 +236,7 @@ class FasterRCNNTest(TestCase):
         model = FasterRCNN(
             num_classes=80,
             bounding_box_format="xyxy",
-            backbone=keras_cv.models.ResNet18V2Backbone(input_shape=(512, 512, 3)),
+            backbone=keras_cv.models.ResNet18V2Backbone(input_shape=batch_shape[1:]),
         )
         images = ops.random.normal(batch_shape)
         outputs = model(images, training=True)

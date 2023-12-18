@@ -212,7 +212,7 @@ class FasterRCNN(Task):
             feature_map, ops.concatenate([ops.shape(rois)[:2], [-1]], axis=0)
         )
         # [BS, H*W*K, 4], [BS, H*W*K, num_classes + 1]
-        rcnn_box_pred, rcnn_cls_pred = self.rcnn_head(
+        rcnn_box_pred, rcnn_cls_pred = rcnn_head(
             feature_map,
         )
 
