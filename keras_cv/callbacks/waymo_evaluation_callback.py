@@ -14,7 +14,7 @@
 import tensorflow as tf
 
 from keras_cv.api_export import keras_cv_export
-from keras_cv.backend.keras.callbacks import Callback
+from keras_cv.backend import keras
 from keras_cv.bounding_box_3d import CENTER_XYZ_DXDYDZ_PHI
 from keras_cv.utils import assert_waymo_open_dataset_installed
 
@@ -30,7 +30,7 @@ except ImportError:
 
 
 @keras_cv_export("keras_cv.callbacks.WaymoEvaluationCallback")
-class WaymoEvaluationCallback(Callback):
+class WaymoEvaluationCallback(keras.callbacks.Callback):
     def __init__(self, validation_data, config=None, **kwargs):
         """Creates a callback to evaluate Waymo Open Dataset (WOD) metrics on a
         validation dataset.
