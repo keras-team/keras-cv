@@ -53,7 +53,7 @@ class FasterRCNNTest(TestCase):
         faster_rcnn = keras_cv.models.FasterRCNN(
             num_classes=80,
             bounding_box_format="xywh",
-            backbone=keras_cv.models.ResNet18V2Backbone(),
+            backbone=keras_cv.models.ResNet18V2Backbone(input_shape=(512, 512, 3)),
         )
         images = np.random.uniform(size=(2, 512, 512, 3))
         _ = faster_rcnn(images)
@@ -63,7 +63,7 @@ class FasterRCNNTest(TestCase):
         faster_rcnn = keras_cv.models.FasterRCNN(
             num_classes=80,
             bounding_box_format="xywh",
-            backbone=keras_cv.models.ResNet18V2Backbone(),
+            backbone=keras_cv.models.ResNet18V2Backbone(input_shape=(512, 512, 3)),
         )
 
         with self.assertRaisesRegex(
@@ -91,7 +91,7 @@ class FasterRCNNTest(TestCase):
         faster_rcnn = keras_cv.models.FasterRCNN(
             num_classes=80,
             bounding_box_format=bounding_box_format,
-            backbone=keras_cv.models.ResNet18V2Backbone(),
+            backbone=keras_cv.models.ResNet18V2Backbone(input_shape=(512, 512, 3)),
         )
         faster_rcnn.backbone.trainable = False
         faster_rcnn.compile(
@@ -112,7 +112,7 @@ class FasterRCNNTest(TestCase):
         faster_rcnn = keras_cv.models.FasterRCNN(
             num_classes=80,
             bounding_box_format="xyxy",
-            backbone=keras_cv.models.ResNet18V2Backbone(),
+            backbone=keras_cv.models.ResNet18V2Backbone(input_shape=(512, 512, 3)),
         )
         faster_rcnn.compile(
             optimizer=keras.optimizers.Adam(),
@@ -142,7 +142,7 @@ class FasterRCNNTest(TestCase):
         faster_rcnn = keras_cv.models.FasterRCNN(
             num_classes=80,
             bounding_box_format="xyxy",
-            backbone=keras_cv.models.ResNet18V2Backbone(),
+            backbone=keras_cv.models.ResNet18V2Backbone(input_shape=(512, 512, 3)),
         )
         faster_rcnn.compile(
             optimizer=keras.optimizers.Adam(),
@@ -187,7 +187,7 @@ class FasterRCNNTest(TestCase):
         model = keras_cv.models.FasterRCNN(
             num_classes=80,
             bounding_box_format="xyxy",
-            backbone=keras_cv.models.ResNet18V2Backbone(),
+            backbone=keras_cv.models.ResNet18V2Backbone(input_shape=(512, 512, 3)),
         )
         input_batch = ops.ones(shape=(1, 512, 512, 3))
         model_output = model(input_batch)
@@ -219,7 +219,7 @@ class FasterRCNNTest(TestCase):
         model = FasterRCNN(
             num_classes=80,
             bounding_box_format="xyxy",
-            backbone=keras_cv.models.ResNet18V2Backbone(),
+            backbone=keras_cv.models.ResNet18V2Backbone(input_shape=(512, 512, 3)),
         )
         images = ops.random.normal(batch_shape)
         outputs = model(images, training=False)
@@ -236,7 +236,7 @@ class FasterRCNNTest(TestCase):
         model = FasterRCNN(
             num_classes=80,
             bounding_box_format="xyxy",
-            backbone=keras_cv.models.ResNet18V2Backbone(),
+            backbone=keras_cv.models.ResNet18V2Backbone(input_shape=(512, 512, 3)),
         )
         images = ops.random.normal(batch_shape)
         outputs = model(images, training=True)
@@ -247,7 +247,7 @@ class FasterRCNNTest(TestCase):
         model = FasterRCNN(
             num_classes=80,
             bounding_box_format="yxyx",
-            backbone=keras_cv.models.ResNet18V2Backbone(),
+            backbone=keras_cv.models.ResNet18V2Backbone(input_shape=(512, 512, 3)),
         )
         with self.assertRaisesRegex(ValueError, "only accepts"):
             model.compile(rpn_box_loss="binary_crossentropy")
@@ -263,7 +263,7 @@ class FasterRCNNTest(TestCase):
         faster_rcnn = FasterRCNN(
             num_classes=20,
             bounding_box_format="xywh",
-            backbone=keras_cv.models.ResNet18V2Backbone(),
+            backbone=keras_cv.models.ResNet18V2Backbone(input_shape=(512, 512, 3)),
         )
 
         images, boxes = _create_bounding_box_dataset("xywh")
