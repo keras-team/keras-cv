@@ -15,10 +15,10 @@
 from typing import Mapping
 
 import tensorflow as tf
-from tensorflow import keras
 
 from keras_cv import bounding_box
 from keras_cv.backend import assert_tf_keras
+from keras_cv.backend import keras
 from keras_cv.bounding_box import iou
 from keras_cv.layers.object_detection import box_matcher
 from keras_cv.layers.object_detection import sampling

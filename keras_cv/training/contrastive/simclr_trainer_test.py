@@ -14,8 +14,8 @@
 
 import pytest
 import tensorflow as tf
-from tensorflow import keras
 
+from keras_cv.backend import keras
 from keras_cv.backend.keras import layers
 from keras_cv.backend.keras import optimizers
 from keras_cv.losses import SimCLRLoss

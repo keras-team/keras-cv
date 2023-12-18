@@ -14,10 +14,10 @@
 
 
 import tensorflow as tf
-from tensorflow import keras
 
 import keras_cv.layers as cv_layers
 from keras_cv import bounding_box
+from keras_cv.backend import keras
 
 
 class YoloXPredictionDecoder(keras.layers.Layer):

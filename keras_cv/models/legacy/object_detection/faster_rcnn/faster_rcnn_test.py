@@ -15,8 +15,8 @@
 import pytest
 import tensorflow as tf
 from absl.testing import parameterized
-from tensorflow import keras
 
+from keras_cv.backend import keras
 from keras_cv.backend.keras import optimizers
 from keras_cv.models import ResNet18V2Backbone
 from keras_cv.models.legacy.object_detection.faster_rcnn.faster_rcnn import (

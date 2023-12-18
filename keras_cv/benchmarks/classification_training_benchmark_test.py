@@ -17,9 +17,9 @@ import time
 
 import tensorflow.compat.v2 as tf
 import tensorflow_datasets as tfds
-from tensorflow import keras
 
 from keras_cv import models
+from keras_cv.backend import keras
 from keras_cv.models.classification import image_classifier
 
 # isort: off

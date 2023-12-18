@@ -14,8 +14,7 @@
 # ==============================================================================
 """Utility functions for models"""
 
-from tensorflow import keras
-
+from keras_cv.backend import keras
 from keras_cv.backend.keras import layers
 
 
