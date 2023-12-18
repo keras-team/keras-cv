@@ -3,7 +3,7 @@
 # Licensed under the terms in https://github.com/keras-team/keras-cv/blob/master/keras_cv/layers/preprocessing_3d/waymo/LICENSE  # noqa: E501
 
 import numpy as np
-from tensorflow import keras
+from keras_cv.backend import keras
 
 from keras_cv.layers.preprocessing_3d import base_augmentation_layer_3d
 from keras_cv.layers.preprocessing_3d.waymo.frustum_random_point_feature_noise import (  # noqa: E501
