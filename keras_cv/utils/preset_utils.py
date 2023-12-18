@@ -249,7 +249,7 @@ def legacy_load_weights(layer, weights_path):
             f["layers"][backbone_name] = data
             del f["_backbone"]
         if layer.__class__.__name__ == "SegmentAnythingModel":
-            _sam_fix(layer, f)
+            _sam_fix(layer, backbone_name, f)
         if layer.__class__.__name__ == "RetinaNet":
             layer = _retinanet_load_weights(
                 layer, backbone_name, f, weights_path
@@ -262,13 +262,13 @@ def legacy_load_weights(layer, weights_path):
     functional_cls._layer_checkpoint_dependencies = property
 
 
-def _sam_fix(layer, h5_file):
+def _sam_fix(layer, backbone_name, h5_file):
     data = h5_file["layers"]["sam_prompt_encoder"]
     h5_file["prompt_encoder"] = data
     data = h5_file["layers"]["sam_mask_decoder"]
     h5_file["mask_decoder"] = data
-    for key in h5_file["layers"]["functional"]["layers"].keys():
-        data = h5_file["layers"]["functional"]["layers"][key]
+    for key in h5_file["layers"][backbone_name]["layers"].keys():
+        data = h5_file["layers"][backbone_name]["layers"][key]
         h5_file["layers"][key] = data
 
 
