@@ -17,6 +17,7 @@ import numpy as np
 import tensorflow as tf
 
 from keras_cv import bounding_box
+from keras_cv.backend import ops
 from keras_cv.layers.preprocessing.random_flip import HORIZONTAL_AND_VERTICAL
 from keras_cv.layers.preprocessing.random_flip import RandomFlip
 from keras_cv.tests.test_case import TestCase
@@ -141,9 +142,11 @@ class RandomFlipTest(TestCase):
     def test_output_dtypes(self):
         inputs = np.array([[[1], [2]], [[3], [4]]], dtype="float64")
         layer = RandomFlip()
-        self.assertAllEqual(layer(inputs).dtype, "float32")
+        self.assertAllEqual(
+            ops.convert_to_numpy(layer(inputs)).dtype, "float32"
+        )
         layer = RandomFlip(dtype="uint8")
-        self.assertAllEqual(layer(inputs).dtype, "uint8")
+        self.assertAllEqual(ops.convert_to_numpy(layer(inputs)).dtype, "uint8")
 
     def test_augment_bounding_box_batched_input(self):
         image = tf.zeros([20, 20, 3])

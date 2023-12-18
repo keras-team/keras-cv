@@ -11,10 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import tensorflow as tf
+import numpy as np
 from absl.testing import parameterized
 
 from keras_cv import core
+from keras_cv.backend import ops
 from keras_cv.layers import preprocessing
 from keras_cv.tests.test_case import TestCase
 
@@ -22,7 +23,7 @@ from keras_cv.tests.test_case import TestCase
 class RandomHueTest(TestCase):
     def test_preserves_output_shape(self):
         image_shape = (4, 8, 8, 3)
-        image = tf.random.uniform(shape=image_shape) * 255.0
+        image = np.random.uniform(size=image_shape) * 255.0
 
         layer = preprocessing.RandomHue(factor=(0.3, 0.8), value_range=(0, 255))
         output = layer(image)
@@ -32,7 +33,7 @@ class RandomHueTest(TestCase):
 
     def test_adjust_no_op(self):
         image_shape = (4, 8, 8, 3)
-        image = tf.random.uniform(shape=image_shape) * 255.0
+        image = np.random.uniform(size=image_shape) * 255.0
 
         layer = preprocessing.RandomHue(factor=(0.0, 0.0), value_range=(0, 255))
         output = layer(image)
@@ -40,24 +41,24 @@ class RandomHueTest(TestCase):
 
     def test_adjust_full_opposite_hue(self):
         image_shape = (4, 8, 8, 3)
-        image = tf.random.uniform(shape=image_shape) * 255.0
+        image = np.random.uniform(size=image_shape) * 255.0
 
         layer = preprocessing.RandomHue(factor=(1.0, 1.0), value_range=(0, 255))
-        output = layer(image)
+        output = ops.convert_to_numpy(layer(image))
 
-        channel_max = tf.math.reduce_max(output, axis=-1)
-        channel_min = tf.math.reduce_min(output, axis=-1)
+        channel_max = np.max(output, axis=-1)
+        channel_min = np.min(output, axis=-1)
         # Make sure the max and min channel are the same between input and
         # output. In the meantime, and channel will swap between each other.
         self.assertAllClose(
             channel_max,
-            tf.math.reduce_max(image, axis=-1),
+            np.max(image, axis=-1),
             atol=1e-5,
             rtol=1e-5,
         )
         self.assertAllClose(
             channel_min,
-            tf.math.reduce_min(image, axis=-1),
+            np.min(image, axis=-1),
             atol=1e-5,
             rtol=1e-5,
         )
@@ -68,7 +69,7 @@ class RandomHueTest(TestCase):
     def test_adjusts_all_values_for_factor(self, factor):
         image_shape = (4, 8, 8, 3)
         # Value range (0, 100)
-        image = tf.random.uniform(shape=image_shape) * 100.0
+        image = np.random.uniform(size=image_shape) * 100.0
 
         layer = preprocessing.RandomHue(
             factor=(factor, factor), value_range=(0, 255)
@@ -79,7 +80,7 @@ class RandomHueTest(TestCase):
     def test_adjustment_for_non_rgb_value_range(self):
         image_shape = (4, 8, 8, 3)
         # Value range (0, 100)
-        image = tf.random.uniform(shape=image_shape) * 100.0
+        image = np.random.uniform(size=image_shape) * 100.0
 
         layer = preprocessing.RandomHue(factor=(0.0, 0.0), value_range=(0, 255))
         output = layer(image)
@@ -91,9 +92,7 @@ class RandomHueTest(TestCase):
 
     def test_with_uint8(self):
         image_shape = (4, 8, 8, 3)
-        image = tf.cast(
-            tf.random.uniform(shape=image_shape) * 255.0, dtype=tf.uint8
-        )
+        image = (np.random.uniform(size=image_shape) * 255.0).astype(np.uint8)
 
         layer = preprocessing.RandomHue(factor=(0.0, 0.0), value_range=(0, 255))
         output = layer(image)

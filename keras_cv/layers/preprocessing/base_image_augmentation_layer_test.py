@@ -12,9 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import numpy as np
+import pytest
 import tensorflow as tf
 
 from keras_cv import bounding_box
+from keras_cv.backend import ops
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
 )
@@ -78,17 +80,17 @@ class BaseImageAugmentationLayerTest(TestCase):
 
     def test_augment_casts_dtypes(self):
         add_layer = RandomAddLayer(fixed_value=2.0)
-        images = tf.ones((2, 8, 8, 3), dtype="uint8")
+        images = np.ones((2, 8, 8, 3), dtype="uint8")
         output = add_layer(images)
 
         self.assertAllClose(
-            tf.ones((2, 8, 8, 3), dtype="float32") * 3.0, output
+            np.ones((2, 8, 8, 3), dtype="float32") * 3.0, output
         )
 
     def test_augment_batch_images(self):
         add_layer = RandomAddLayer()
         images = np.random.random(size=(2, 8, 8, 3)).astype("float32")
-        output = add_layer(images)
+        output = ops.convert_to_numpy(add_layer(images))
 
         diff = output - images
         # Make sure the first image and second image get different augmentation
@@ -118,8 +120,8 @@ class BaseImageAugmentationLayerTest(TestCase):
         targets = np.random.random(size=(2, 1)).astype("float32")
         output = add_layer({"images": images, "targets": targets})
 
-        image_diff = output["images"] - images
-        label_diff = output["targets"] - targets
+        image_diff = ops.convert_to_numpy(output["images"]) - images
+        label_diff = ops.convert_to_numpy(output["targets"]) - targets
         # Make sure the first image and second image get different augmentation
         self.assertNotAllClose(image_diff[0], image_diff[1])
         self.assertNotAllClose(label_diff[0], label_diff[1])
@@ -225,6 +227,7 @@ class BaseImageAugmentationLayerTest(TestCase):
             segmentation_mask_diff[0], segmentation_mask_diff[1]
         )
 
+    @pytest.mark.tf_only
     def test_augment_all_data_in_tf_function(self):
         add_layer = RandomAddLayer()
         images = np.random.random(size=(2, 8, 8, 3)).astype("float32")
