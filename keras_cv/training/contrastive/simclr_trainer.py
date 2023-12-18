@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from tensorflow import keras
+from keras_Cv.backend import keras
 
 from keras_cv.backend.keras import layers
 from keras_cv.layers import preprocessing

@@ -12,9 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from tensorflow import keras
-
 from keras_cv.api_export import keras_cv_export
+from keras_cv.backend import keras
 
 
 @keras_cv_export("keras_cv.layers.StochasticDepth")

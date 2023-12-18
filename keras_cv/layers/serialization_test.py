@@ -15,9 +15,9 @@
 import inspect
 
 from absl.testing import parameterized
-from tensorflow import keras
 
 from keras_cv import layers as cv_layers
+from keras_cv.backend import keras
 from keras_cv.backend.config import keras_3
 from keras_cv.layers.vit_layers import PatchingAndEmbedding
 from keras_cv.tests.test_case import TestCase
