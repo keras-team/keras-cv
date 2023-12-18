@@ -208,9 +208,7 @@ class FasterRCNN(Task):
         # Calling the RCNN block
         feature_map = roi_pooler(feature_map, rois)
         # [BS, H*W*K, pool_shape*C]
-        feature_map = ops.reshape(
-            feature_map, ops.concatenate([ops.shape(rois)[:2], [-1]], axis=0)
-        )
+        feature_map = keras.layers.Reshape(target_shape=(ops.shape(rois)[1], -1))(feature_map)
         # [BS, H*W*K, 4], [BS, H*W*K, num_classes + 1]
         rcnn_box_pred, rcnn_cls_pred = rcnn_head(
             feature_map,
