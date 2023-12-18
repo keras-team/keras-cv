@@ -241,17 +241,19 @@ def legacy_load_weights(layer, weights_path):
             if not backbone_name.endswith("backbone"):
                 backbone_name = backbone_name.split("_")[:-1]
                 backbone_name = "_".join(backbone_name)
-            if functional_cls is not None:
-                if any(isinstance(x, functional_cls) for x in layer.layers):
-                    backbone_name = "functional"
-                if "functional" in f["layers"]:
-                    del f["layers"]["functional"]
+            # Copy to functional key due to traversal of `layers` attribute
+            if "functional" in f["layers"]:
+                del f["layers"]["functional"]
+                backbone_name = "functional"
+            # Reset as the actual backbone name under `layers` attribute
             f["layers"][backbone_name] = data
             del f["_backbone"]
         if layer.__class__.__name__ == "SegmentAnythingModel":
-            _sam_fix(layer, f, weights_path)
+            _sam_fix(layer, f)
         if layer.__class__.__name__ == "RetinaNet":
-            layer = _retinanet_load_weights(layer, f, weights_path)
+            layer = _retinanet_load_weights(
+                layer, backbone_name, f, weights_path
+            )
             functional_cls._layer_checkpoint_dependencies = property
             return  # File closed inside helper
         f.close()
@@ -270,12 +272,15 @@ def _sam_fix(layer, h5_file):
         h5_file["layers"][key] = data
 
 
-def _retinanet_load_weights(layer, h5_file, weights_path):
+def _retinanet_load_weights(layer, backbone_name, h5_file, weights_path):
     for key in h5_file.keys():
         if key not in ["layers", "vars"]:
             data = h5_file[key]
             h5_file["layers"][key] = data
             del h5_file[key]
+    # Copy to functional key due to traversal of `layers` attribute
+    data = h5_file["layers"][backbone_name]
+    h5_file["layers"]["functional"] = data
     # Hacky fix for traversal order to ensure `layers` attribute
     # is traversed after prediction heads in Keras 2
     layer.z_box_head = layer.box_head
