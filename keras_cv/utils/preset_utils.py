@@ -241,12 +241,52 @@ def legacy_load_weights(layer, weights_path):
             if not backbone_name.endswith("backbone"):
                 backbone_name = backbone_name.split("_")[:-1]
                 backbone_name = "_".join(backbone_name)
-            if "functional" in f["layers"]:
-                del f["layers"]["functional"]
-                backbone_name = "functional"
+            if functional_cls is not None:
+                if any(isinstance(x, functional_cls) for x in layer.layers):
+                    backbone_name = "functional"
+                if "functional" in f["layers"]:
+                    del f["layers"]["functional"]
             f["layers"][backbone_name] = data
             del f["_backbone"]
+        if layer.__class__.__name__ == "SegmentAnythingModel":
+            _sam_fix(layer, f, weights_path)
+        if layer.__class__.__name__ == "RetinaNet":
+            layer = _retinanet_load_weights(layer, f, weights_path)
+            functional_cls._layer_checkpoint_dependencies = property
+            return  # File closed inside helper
         f.close()
 
     layer.load_weights(weights_path)
     functional_cls._layer_checkpoint_dependencies = property
+
+
+def _sam_fix(layer, h5_file):
+    data = h5_file["layers"]["sam_prompt_encoder"]
+    h5_file["prompt_encoder"] = data
+    data = h5_file["layers"]["sam_mask_decoder"]
+    h5_file["mask_decoder"] = data
+    for key in h5_file["layers"]["functional"]["layers"].keys():
+        data = h5_file["layers"]["functional"]["layers"][key]
+        h5_file["layers"][key] = data
+
+
+def _retinanet_load_weights(layer, h5_file, weights_path):
+    for key in h5_file.keys():
+        if key not in ["layers", "vars"]:
+            data = h5_file[key]
+            h5_file["layers"][key] = data
+            del h5_file[key]
+    # Hacky fix for traversal order to ensure `layers` attribute
+    # is traversed after prediction heads in Keras 2
+    layer.z_box_head = layer.box_head
+    layer.z_classification_head = layer.classification_head
+    data = h5_file["layers"]["box_head"]
+    h5_file["z_box_head"] = data
+    data = h5_file["layers"]["classification_head"]
+    h5_file["z_classification_head"] = data
+
+    layer.load_weights(weights_path)
+
+    delattr(layer, "z_box_head")
+    delattr(layer, "z_classification_head")
+    return layer
