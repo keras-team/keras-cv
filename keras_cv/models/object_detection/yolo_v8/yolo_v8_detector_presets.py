@@ -25,6 +25,6 @@ yolo_v8_detector_presets = {
             "official_name": "YOLOV8Detector",
             "path": "yolo_v8_detector",
         },
-        "kaggle_handle": "kaggle://keras/yolov8/yolo_v8_m_pascalvoc/1",
+        "kaggle_handle": "gs://keras-cv-kaggle/yolo_v8_m_pascalvoc",
     },
 }

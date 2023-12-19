@@ -220,44 +220,6 @@ def legacy_load_weights(layer, weights_path):
             functional_cls = cls
     property = functional_cls._layer_checkpoint_dependencies
     functional_cls._layer_checkpoint_dependencies = {}
-
-    from keras_cv.models.task import Task
-
-    if not backend_config.keras_3() and isinstance(layer, Task):
-        # Hacky fix for Keras 2 backwards compatibility. Keras 2 traverses
-        # loading weights in the reverse order, causing a naming mismatch when
-        # loading Kaggle weights saved from Keras 3.
-        new_weights_path = os.path.join(
-            os.path.dirname(weights_path),
-            "legacy_" + os.path.basename(weights_path),
-        )
-        os.rename(weights_path, new_weights_path)
-        weights_path = new_weights_path
-        f = h5py.File(weights_path, "r+")
-        if "_backbone" in f.keys():
-            # Transfer layers key (more lightweight than backbone)
-            data = f["_backbone"]
-            backbone_name = layer.backbone.name
-            if not backbone_name.endswith("backbone"):
-                backbone_name = backbone_name.split("_")[:-1]
-                backbone_name = "_".join(backbone_name)
-            # Copy to functional key due to traversal of `layers` attribute
-            if "functional" in f["layers"]:
-                del f["layers"]["functional"]
-                backbone_name = "functional"
-            # Reset as the actual backbone name under `layers` attribute
-            f["layers"][backbone_name] = data
-            del f["_backbone"]
-        if layer.__class__.__name__ == "SegmentAnythingModel":
-            _sam_fix(layer, backbone_name, f)
-        if layer.__class__.__name__ == "RetinaNet":
-            layer = _retinanet_load_weights(
-                layer, backbone_name, f, weights_path
-            )
-            functional_cls._layer_checkpoint_dependencies = property
-            return  # File closed inside helper
-        f.close()
-
     layer.load_weights(weights_path)
     functional_cls._layer_checkpoint_dependencies = property
 
