@@ -17,6 +17,7 @@ import tensorflow as tf
 from absl.testing import parameterized
 
 from keras_cv import layers as cv_layers
+from keras_cv.backend import ops
 from keras_cv.backend.config import keras_3
 from keras_cv.tests.test_case import TestCase
 
@@ -183,9 +184,11 @@ class ResizingTest(TestCase):
     def test_output_dtypes(self):
         inputs = np.array([[[1], [2]], [[3], [4]]], dtype="float64")
         layer = cv_layers.Resizing(2, 2)
-        self.assertAllEqual(layer(inputs).dtype, "float32")
+        self.assertAllEqual(
+            ops.convert_to_numpy(layer(inputs)).dtype, "float32"
+        )
         layer = cv_layers.Resizing(2, 2, dtype="uint8")
-        self.assertAllEqual(layer(inputs).dtype, "uint8")
+        self.assertAllEqual(ops.convert_to_numpy(layer(inputs)).dtype, "uint8")
 
     @parameterized.named_parameters(
         ("batch_crop_to_aspect_ratio", True, False, True),

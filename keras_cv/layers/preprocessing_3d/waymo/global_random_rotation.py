@@ -5,6 +5,7 @@
 import tensorflow as tf
 
 from keras_cv.api_export import keras_cv_export
+from keras_cv.backend import random
 from keras_cv.bounding_box_3d import CENTER_XYZ_DXDYDZ_PHI
 from keras_cv.layers.preprocessing_3d import base_augmentation_layer_3d
 from keras_cv.point_cloud import coordinate_transform
@@ -84,23 +85,26 @@ class GlobalRandomRotation(base_augmentation_layer_3d.BaseAugmentationLayer3D):
         }
 
     def get_random_transformation(self, **kwargs):
-        random_rotation_x = self._random_generator.random_uniform(
+        random_rotation_x = random.uniform(
             (),
             minval=-self._max_rotation_angle_x,
             maxval=self._max_rotation_angle_x,
             dtype=self.compute_dtype,
+            seed=self._random_generator,
         )
-        random_rotation_y = self._random_generator.random_uniform(
+        random_rotation_y = random.uniform(
             (),
             minval=-self._max_rotation_angle_y,
             maxval=self._max_rotation_angle_y,
             dtype=self.compute_dtype,
+            seed=self._random_generator,
         )
-        random_rotation_z = self._random_generator.random_uniform(
+        random_rotation_z = random.uniform(
             (),
             minval=-self._max_rotation_angle_z,
             maxval=self._max_rotation_angle_z,
             dtype=self.compute_dtype,
+            seed=self._random_generator,
         )
         return {
             "pose": tf.stack(

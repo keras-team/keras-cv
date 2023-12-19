@@ -16,7 +16,6 @@ import datetime
 import inspect
 import json
 import os
-
 import h5py
 
 from keras_cv.backend import config as backend_config
@@ -223,7 +222,7 @@ def legacy_load_weights(layer, weights_path):
     layer.load_weights(weights_path)
     functional_cls._layer_checkpoint_dependencies = property
 
-
+ 
 def _sam_fix(layer, backbone_name, h5_file):
     data = h5_file["layers"]["sam_prompt_encoder"]
     h5_file["prompt_encoder"] = data

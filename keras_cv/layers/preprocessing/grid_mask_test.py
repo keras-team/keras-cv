@@ -12,10 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
+import numpy as np
+import pytest
 import tensorflow as tf
 
 import keras_cv
+from keras_cv.backend import ops
 from keras_cv.layers.preprocessing.grid_mask import GridMask
 from keras_cv.tests.test_case import TestCase
 
@@ -27,7 +29,7 @@ class GridMaskTest(TestCase):
         layer = GridMask(ratio_factor=0.1, rotation_factor=(-0.2, 0.3))
         xs = layer(xs, training=True)
 
-        self.assertEqual(xs.shape, [2, 512, 512, 3])
+        self.assertEqual(xs.shape, (2, 512, 512, 3))
 
     def test_gridmask_call_results_one_channel(self):
         xs = tf.cast(
@@ -48,10 +50,14 @@ class GridMaskTest(TestCase):
         xs = layer(xs, training=True)
 
         # Some pixels should be replaced with fill_value
-        self.assertTrue(tf.math.reduce_any(xs[0] == float(fill_value)))
-        self.assertTrue(tf.math.reduce_any(xs[0] == 3.0))
-        self.assertTrue(tf.math.reduce_any(xs[1] == float(fill_value)))
-        self.assertTrue(tf.math.reduce_any(xs[1] == 2.0))
+        self.assertTrue(
+            np.any(ops.convert_to_numpy(xs[0]) == float(fill_value))
+        )
+        self.assertTrue(np.any(ops.convert_to_numpy(xs[0]) == 3.0))
+        self.assertTrue(
+            np.any(ops.convert_to_numpy(xs[1]) == float(fill_value))
+        )
+        self.assertTrue(np.any(ops.convert_to_numpy(xs[1]) == 2.0))
 
     def test_non_square_image(self):
         xs = tf.cast(
@@ -72,11 +78,16 @@ class GridMaskTest(TestCase):
         xs = layer(xs, training=True)
 
         # Some pixels should be replaced with fill_value
-        self.assertTrue(tf.math.reduce_any(xs[0] == float(fill_value)))
-        self.assertTrue(tf.math.reduce_any(xs[0] == 2.0))
-        self.assertTrue(tf.math.reduce_any(xs[1] == float(fill_value)))
-        self.assertTrue(tf.math.reduce_any(xs[1] == 1.0))
+        self.assertTrue(
+            np.any(ops.convert_to_numpy(xs[0]) == float(fill_value))
+        )
+        self.assertTrue(np.any(ops.convert_to_numpy(xs[0]) == 2.0))
+        self.assertTrue(
+            np.any(ops.convert_to_numpy(xs[1]) == float(fill_value))
+        )
+        self.assertTrue(np.any(ops.convert_to_numpy(xs[1]) == 1.0))
 
+    @pytest.mark.tf_only
     def test_in_tf_function(self):
         xs = tf.cast(
             tf.stack(
@@ -100,10 +111,14 @@ class GridMaskTest(TestCase):
         xs = augment(xs)
 
         # Some pixels should be replaced with fill_value
-        self.assertTrue(tf.math.reduce_any(xs[0] == float(fill_value)))
-        self.assertTrue(tf.math.reduce_any(xs[0] == 2.0))
-        self.assertTrue(tf.math.reduce_any(xs[1] == float(fill_value)))
-        self.assertTrue(tf.math.reduce_any(xs[1] == 1.0))
+        self.assertTrue(
+            np.any(ops.convert_to_numpy(xs[0]) == float(fill_value))
+        )
+        self.assertTrue(np.any(ops.convert_to_numpy(xs[0]) == 2.0))
+        self.assertTrue(
+            np.any(ops.convert_to_numpy(xs[1]) == float(fill_value))
+        )
+        self.assertTrue(np.any(ops.convert_to_numpy(xs[1]) == 1.0))
 
     def test_in_single_image(self):
         xs = tf.cast(
@@ -115,5 +130,5 @@ class GridMaskTest(TestCase):
             ratio_factor=(0.5, 0.5), fill_mode="constant", fill_value=0.0
         )
         xs = layer(xs, training=True)
-        self.assertTrue(tf.math.reduce_any(xs == 0.0))
-        self.assertTrue(tf.math.reduce_any(xs == 1.0))
+        self.assertTrue(np.any(ops.convert_to_numpy(xs) == 0.0))
+        self.assertTrue(np.any(ops.convert_to_numpy(xs) == 1.0))
