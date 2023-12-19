@@ -387,17 +387,22 @@ class FasterRCNN(Task):
             cls_weights,
         ) = self.roi_sampler(rois, boxes, classes)
 
-        # Mask weights for class -1
-        positive_mask = ops.cast(ops.greater(classes, -1.0), dtype="float32")
-        box_weights *= positive_mask
-        cls_weights *= positive_mask
+        positive_mask = ops.cast(
+            ops.greater(cls_targets, -1.0), dtype="float32"
+        )
+        normalizer = ops.sum(positive_mask)
 
         box_weights /= self.roi_sampler.num_sampled_rois * local_batch * 0.25
         cls_weights /= self.roi_sampler.num_sampled_rois * local_batch
+
+        box_weights /= normalizer
+        cls_weights /= normalizer
+
         box_pred, cls_pred = self._call_rcnn(
             rois,
             feature_map,
         )
+
         y_true = {
             "rpn_box": rpn_box_targets,
             "rpn_classification": rpn_cls_targets,
@@ -410,14 +415,26 @@ class FasterRCNN(Task):
             "box": box_pred,
             "classification": cls_pred,
         }
-        weights = {
+        sample_weights = {
             "rpn_box": rpn_box_weights,
             "rpn_classification": rpn_cls_weights,
             "box": box_weights,
             "classification": cls_weights,
         }
+        zero_weights = {
+            "rpn_box": ops.zeros_like(rpn_box_weights),
+            "rpn_classification": ops.zeros_like(rpn_cls_weights),
+            "box": ops.zeros_like(box_weights),
+            "classification": ops.zeros_like(cls_weights),
+        }
+
+        sample_weights = ops.cond(
+            normalizer == 0.0,
+            lambda: zero_weights,
+            lambda: sample_weights,
+        )
         return super().compute_loss(
-            x=images, y=y_true, y_pred=y_pred, sample_weight=weights
+            x=images, y=y_true, y_pred=y_pred, sample_weight=sample_weights
         )
 
     def train_step(self, *args):
@@ -450,7 +467,10 @@ class FasterRCNN(Task):
 
     def decode_predictions(self, predictions, images):
         # no-op if default decoder is used.
-        box_pred, scores_pred = predictions["boxes"], predictions["classes"]
+        box_pred, scores_pred = (
+            predictions["box"],
+            predictions["classification"],
+        )
         box_pred = bounding_box.convert_format(
             box_pred,
             source=self.bounding_box_format,

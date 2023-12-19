@@ -22,10 +22,9 @@ from absl.testing import parameterized
 import keras_cv
 from keras_cv.backend import keras
 from keras_cv.backend import ops
-
-# from keras_cv.models.backbones.test_backbone_presets import (
-#     test_backbone_presets,
-# )
+from keras_cv.models.backbones.test_backbone_presets import (
+    test_backbone_presets,
+)
 from keras_cv.models.object_detection.__test_utils__ import (
     _create_bounding_box_dataset,
 )
@@ -50,7 +49,6 @@ class FasterRCNNTest(TestCase):
             rpn_classification_loss="BinaryCrossentropy",
         )
 
-    @pytest.mark.large  # Fit is slow, so mark these large.
     def test_faster_rcnn_call(self):
         faster_rcnn = keras_cv.models.FasterRCNN(
             num_classes=80,
@@ -303,3 +301,47 @@ class FasterRCNNTest(TestCase):
 
         faster_rcnn.fit(dataset, epochs=1)
         faster_rcnn.evaluate(dataset)
+
+    # @pytest.mark.large  # Fit is slow, so mark these large.
+    def test_fit_with_no_valid_gt_bbox(self):
+        bounding_box_format = "xywh"
+        faster_rcnn = FasterRCNN(
+            num_classes=20,
+            bounding_box_format=bounding_box_format,
+            backbone=keras_cv.models.ResNet18V2Backbone(
+                input_shape=(512, 512, 3)
+            ),
+        )
+
+        faster_rcnn.compile(
+            optimizer=keras.optimizers.Adam(),
+            box_loss="Huber",
+            classification_loss="SparseCategoricalCrossentropy",
+            rpn_box_loss="Huber",
+            rpn_classification_loss="BinaryCrossentropy",
+        )
+        xs, ys = _create_bounding_box_dataset(bounding_box_format)
+        # Make all bounding_boxes invalid and filter out them
+        ys["classes"] = -np.ones_like(ys["classes"])
+
+        faster_rcnn.fit(x=xs, y=ys, epochs=1)
+
+
+@pytest.mark.large
+class FasterRCNNSmokeTest(TestCase):
+    @parameterized.named_parameters(
+        *[(preset, preset) for preset in test_backbone_presets]
+    )
+    @pytest.mark.extra_large
+    def test_backbone_preset(self, preset):
+        model = keras_cv.models.FasterRCNN.from_preset(
+            preset,
+            num_classes=20,
+            bounding_box_format="xywh",
+        )
+        xs, _ = _create_bounding_box_dataset(bounding_box_format="xywh")
+        output = model(xs)
+
+        # 64 represents number of parameters in a box
+        # 5376 is the number of anchors for a 512x512 image
+        self.assertEqual(output["boxes"].shape, (xs.shape[0], 5376, 64))
