@@ -386,6 +386,12 @@ class FasterRCNN(Task):
             cls_targets,
             cls_weights,
         ) = self.roi_sampler(rois, boxes, classes)
+
+        # Mask weights for class -1
+        positive_mask = ops.cast(ops.greater(classes, -1.0), dtype="float32")
+        box_weights *= positive_mask
+        cls_weights *= positive_mask
+
         box_weights /= self.roi_sampler.num_sampled_rois * local_batch * 0.25
         cls_weights /= self.roi_sampler.num_sampled_rois * local_batch
         box_pred, cls_pred = self._call_rcnn(
