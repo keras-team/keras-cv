@@ -85,10 +85,10 @@ def copy_source_to_build_directory(root_path):
 
 
 def run_namex_conversion():
-    # Restructure the codebase so that source files live in `keras/src`
+    # Restructure the codebase so that source files live in `keras_cv/src`
     namex.convert_codebase(package, code_directory="src")
 
-    # Generate API __init__.py files in `keras/`
+    # Generate API __init__.py files in `keras_cv/`
     namex.generate_api_files(package, code_directory="src", verbose=True)
 
 
@@ -124,6 +124,7 @@ def build(root_path, is_nightly=False):
     try:
         copy_source_to_build_directory(root_path)
         run_namex_conversion()
+        # Make sure to export the __version__ string
         from keras_cv.src import __version__  # noqa: E402
 
         export_version_string(__version__, is_nightly)
