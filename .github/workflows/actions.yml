@@ -15,9 +15,9 @@ jobs:
     name: Test the code with Keras 2
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Set up Python 3.9
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: 3.9
     - name: Get pip cache dir
@@ -26,7 +26,7 @@ jobs:
         python -m pip install --upgrade pip setuptools
         echo "::set-output name=dir::$(pip cache dir)"
     - name: pip cache
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: ${{ steps.pip-cache.outputs.dir }}
         key: ${{ runner.os }}-pip-${{ hashFiles('setup.py') }}
@@ -52,9 +52,9 @@ jobs:
         backend: [tensorflow, jax, torch]
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Set up Python 3.9
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: 3.9
     - name: Get pip cache dir
@@ -63,7 +63,7 @@ jobs:
         python -m pip install --upgrade pip setuptools
         echo "::set-output name=dir::$(pip cache dir)"
     - name: pip cache
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: ${{ steps.pip-cache.outputs.dir }}
         key: ${{ runner.os }}-pip-${{ hashFiles('setup.py') }}
@@ -95,9 +95,9 @@ jobs:
     name: Check the code format
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Set up Python 3.9
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: 3.9
     - name: Get pip cache dir
@@ -106,7 +106,7 @@ jobs:
         python -m pip install --upgrade pip setuptools
         echo "::set-output name=dir::$(pip cache dir)"
     - name: pip cache
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: ${{ steps.pip-cache.outputs.dir }}
         key: ${{ runner.os }}-pip-${{ hashFiles('setup.py') }}
@@ -119,7 +119,7 @@ jobs:
     - name: Lint
       run: bash shell/lint.sh
     - name: Clang
-      uses: DoozyX/clang-format-lint-action@v0.14
+      uses: DoozyX/clang-format-lint-action@v0.17
       with:
         source: '.'
         extensions: 'h,c,cpp,hpp,cc'
