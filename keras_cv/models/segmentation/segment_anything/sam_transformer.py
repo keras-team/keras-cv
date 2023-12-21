@@ -112,13 +112,21 @@ class TwoWayTransformer(keras.layers.Layer):
         self.built = True
 
     def call(self, image_embedding, image_pe, point_embedding):
-        shape = ops.shape(image_embedding)
-        B, H, W, C = shape[0], shape[1], shape[2], shape[3]
-        image_embedding = ops.reshape(image_embedding, (B, H * W, C))
+        channels_last = keras.backend.image_data_format() == "channels_last"
 
-        shape = ops.shape(image_pe)
-        B, H, W, C = shape[0], shape[1], shape[2], shape[3]
-        image_pe = ops.reshape(image_pe, (B, H * W, C))
+        def _merge_h_w(tensor):
+            shape = ops.shape(tensor)
+            if channels_last:
+                B, H, W, C = shape[0], shape[1], shape[2], shape[3]
+                return ops.reshape(tensor, (B, H * W, C))
+            else:
+                B, C, H, W = shape[0], shape[1], shape[2], shape[3]
+                return ops.transpose(
+                    ops.reshape(tensor, (B, C, H * W)), (0, 2, 1)
+                )
+
+        image_embedding = _merge_h_w(image_embedding)
+        image_pe = _merge_h_w(image_pe)
         queries = point_embedding
         keys = image_embedding
 

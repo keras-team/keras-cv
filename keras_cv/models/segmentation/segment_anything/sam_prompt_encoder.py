@@ -106,15 +106,17 @@ class SAMPromptEncoder(keras.layers.Layer):
             1, embed_dim, name="not_a_point_embed"
         )
 
+        channels_last = keras.backend.image_data_format() == "channels_last"
+        norm_axis = -1 if channels_last else 1
         self.mask_downscaler = keras.models.Sequential(
             [
                 keras.layers.Conv2D(
                     mask_in_chans // 4, kernel_size=2, strides=2
                 ),
-                keras.layers.LayerNormalization(epsilon=1e-6),
+                keras.layers.LayerNormalization(epsilon=1e-6, axis=norm_axis),
                 keras.layers.Activation(activation),
                 keras.layers.Conv2D(mask_in_chans, kernel_size=2, strides=2),
-                keras.layers.LayerNormalization(epsilon=1e-6),
+                keras.layers.LayerNormalization(epsilon=1e-6, axis=norm_axis),
                 keras.layers.Activation(activation),
                 keras.layers.Conv2D(embed_dim, kernel_size=1),
             ],
@@ -125,6 +127,7 @@ class SAMPromptEncoder(keras.layers.Layer):
         )
 
     def build(self, input_shape=None):
+        channels_last = keras.backend.image_data_format() == "channels_last"
         self.positional_embedding_layer.build()
         for layer in [
             self.foreground_point_embed,
@@ -142,24 +145,37 @@ class SAMPromptEncoder(keras.layers.Layer):
                 4 * self.image_embedding_size[1],
                 1,
             ]
+            if channels_last
+            else [
+                None,
+                1,
+                4 * self.image_embedding_size[0],
+                4 * self.image_embedding_size[1],
+            ]
         )
         self.built = True
 
     def compute_output_shape(self, input_shape):
+        channels_last = keras.backend.image_data_format() == "channels_last"
+        output_shape = (
+            [
+                None,
+                self.image_embedding_size[0],
+                self.image_embedding_size[1],
+                self.embed_dim,
+            ]
+            if channels_last
+            else [
+                None,
+                self.embed_dim,
+                self.image_embedding_size[0],
+                self.image_embedding_size[1],
+            ]
+        )
         return {
             "sparse_embeddings": [None, None, self.embed_dim],
-            "dense_embeddings": [
-                None,
-                self.image_embedding_size[0],
-                self.image_embedding_size[1],
-                self.embed_dim,
-            ],
-            "dense_positional_embeddings": [
-                None,
-                self.image_embedding_size[0],
-                self.image_embedding_size[1],
-                self.embed_dim,
-            ],
+            "dense_embeddings": output_shape,
+            "dense_positional_embeddings": output_shape,
         }
 
     def __embed_points(self, points, labels):
@@ -208,6 +224,7 @@ class SAMPromptEncoder(keras.layers.Layer):
         return mask_embedding
 
     def call(self, inputs):
+        channels_last = keras.backend.image_data_format() == "channels_last"
         # Get the batch shape based on any arbitrary input, because batch
         # shapes must all match.
         B = ops.shape(next(iter(inputs.values())))[0]
@@ -215,7 +232,12 @@ class SAMPromptEncoder(keras.layers.Layer):
         points = inputs.get("points", ops.zeros((B, 0, 2)))
         labels = inputs.get("labels", ops.zeros((B, 0)))
         box = inputs.get("boxes", ops.zeros((B, 0, 2, 2)))
-        mask = inputs.get("masks", ops.zeros((B, 0, 256, 256, 1)))
+        mask = inputs.get(
+            "masks",
+            ops.zeros(
+                (B, 0, 256, 256, 1) if channels_last else (B, 0, 1, 256, 256)
+            ),
+        )
 
         # Compute point embeddings
         point_embeddings = self.__embed_points(points, labels)
@@ -233,13 +255,22 @@ class SAMPromptEncoder(keras.layers.Layer):
             ops.broadcast_to(
                 ops.reshape(
                     self.no_mask_embed(ops.arange(1, dtype="int32")),
-                    (1, 1, 1, self.embed_dim),
+                    (1, 1, 1, self.embed_dim)
+                    if channels_last
+                    else (1, self.embed_dim, 1, 1),
                 ),
                 shape=(
                     B,
                     self.image_embedding_size[0],
                     self.image_embedding_size[1],
                     self.embed_dim,
+                )
+                if channels_last
+                else (
+                    B,
+                    self.embed_dim,
+                    self.image_embedding_size[0],
+                    self.image_embedding_size[1],
                 ),
             )
         )
@@ -255,18 +286,30 @@ class SAMPromptEncoder(keras.layers.Layer):
                 return ops.broadcast_to(
                     ops.reshape(
                         self.no_mask_embed(ops.arange(1, dtype="int32")),
-                        (1, 1, 1, self.embed_dim),
+                        (1, 1, 1, self.embed_dim)
+                        if channels_last
+                        else (1, self.embed_dim, 1, 1),
                     ),
                     shape=(
                         B,
                         self.image_embedding_size[0],
                         self.image_embedding_size[1],
                         self.embed_dim,
+                    )
+                    if channels_last
+                    else (
+                        B,
+                        self.embed_dim,
+                        self.image_embedding_size[0],
+                        self.image_embedding_size[1],
                     ),
                 )
             shape = ops.shape(mask)
-            BM, N, H, W, C = shape[0], shape[1], shape[2], shape[3], shape[4]
-            return self.__embed_mask(ops.reshape(mask, (BM * N, H, W, C)))
+            return self.__embed_mask(
+                ops.reshape(
+                    mask, tuple([shape[0] * shape[1]] + list(shape[2:]))
+                )
+            )
 
         dense_embeddings = ops.cond(
             ops.equal(ops.size(mask), 0),

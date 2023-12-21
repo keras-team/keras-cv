@@ -92,12 +92,14 @@ class SAMMaskDecoder(keras.layers.Layer):
             self.num_mask_tokens, transformer_dim
         )
 
+        channels_last = keras.backend.image_data_format() == "channels_last"
+        norm_axis = -1 if channels_last else 1
         self.output_upscaling = keras.models.Sequential(
             [
                 keras.layers.Conv2DTranspose(
                     transformer_dim // 4, kernel_size=2, strides=2
                 ),
-                keras.layers.LayerNormalization(epsilon=1e-6),
+                keras.layers.LayerNormalization(epsilon=1e-6, axis=norm_axis),
                 keras.layers.Activation(activation),
                 keras.layers.Conv2DTranspose(
                     transformer_dim // 8, kernel_size=2, strides=2
@@ -119,7 +121,15 @@ class SAMMaskDecoder(keras.layers.Layer):
         self.transformer.build()
         self.iou_token.build([None])
         self.mask_tokens.build([None])
-        self.output_upscaling.build([None, None, None, self.transformer_dim])
+        channels_last = keras.backend.image_data_format() == "channels_last"
+        if channels_last:
+            self.output_upscaling.build(
+                [None, None, None, self.transformer_dim]
+            )
+        else:
+            self.output_upscaling.build(
+                [None, self.transformer_dim, None, None]
+            )
         for mlp in self.output_hypernetworks_mlps:
             mlp.build([None, self.transformer_dim])
         self.iou_prediction_head.build([None, self.transformer_dim])
@@ -186,7 +196,6 @@ class SAMMaskDecoder(keras.layers.Layer):
             ),
         )
         shape = ops.shape(source)
-        B, H, W, C = shape[0], shape[1], shape[2], shape[3]
 
         hidden_state, source = self.transformer(
             source, positional_source, tokens
@@ -194,7 +203,10 @@ class SAMMaskDecoder(keras.layers.Layer):
         iou_token_out = hidden_state[:, 0, :]
         mask_tokens_out = hidden_state[:, 1 : (1 + self.num_mask_tokens), :]
 
-        source = ops.reshape(source, (B, H, W, C))
+        channels_last = keras.backend.image_data_format() == "channels_last"
+        if not channels_last:
+            source = ops.transpose(source, (0, 2, 1))
+        source = ops.reshape(source, shape)
         upscaled_embeddings = self.output_upscaling(source)
         hyper_in_list = []
         for i in range(self.num_mask_tokens):
@@ -202,10 +214,14 @@ class SAMMaskDecoder(keras.layers.Layer):
                 self.output_hypernetworks_mlps[i](mask_tokens_out[:, i, :])
             )
         hyper_in = ops.stack(hyper_in_list, axis=1)
+        if channels_last:
+            upscaled_embeddings = (
+                ops.transpose(upscaled_embeddings, axes=(0, 3, 1, 2)),
+            )
         shape = ops.shape(upscaled_embeddings)
-        B, H, W, C = shape[0], shape[1], shape[2], shape[3]
+        B, C, H, W = shape[0], shape[1], shape[2], shape[3]
         upscaled_embeddings = ops.reshape(
-            ops.transpose(upscaled_embeddings, axes=(0, 3, 1, 2)),
+            upscaled_embeddings,
             (B, C, H * W),
         )
         masks = ops.reshape(

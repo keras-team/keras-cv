@@ -312,9 +312,11 @@ class RandomFrequencyPositionalEmbeddings(keras.layers.Layer):
         x_embed = ops.cumsum(grid, axis=1) - 0.5
         y_embed = y_embed / ops.cast(H, self.compute_dtype)
         x_embed = x_embed / ops.cast(W, self.compute_dtype)
-        return self.__positional_encodings(
+        output = self.__positional_encodings(
             ops.stack([x_embed, y_embed], axis=-1)
         )
+        channels_last = keras.backend.image_data_format() == "channels_last"
+        return output if channels_last else ops.transpose(output, (2, 0, 1))
 
     def encode_coordinates(self, coords_input, image_size):
         """Positionally encode points that are not normalized to `[0, 1]`.

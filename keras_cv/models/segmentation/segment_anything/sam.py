@@ -164,6 +164,7 @@ class SegmentAnythingModel(Task):
     """  # noqa: E501
 
     def __init__(self, *, backbone, prompt_encoder, mask_decoder, **kwargs):
+        channels_last = keras.backend.image_data_format() == "channels_last"
         # Get the image encoder input -- Images
         backbone_input = backbone.input
 
@@ -172,7 +173,12 @@ class SegmentAnythingModel(Task):
             "points": keras.Input(shape=[None, 2], name="points"),
             "labels": keras.Input(shape=[None], name="labels"),
             "boxes": keras.Input(shape=[None, 2, 2], name="boxes"),
-            "masks": keras.Input(shape=[None, None, None, 1], name="masks"),
+            "masks": keras.Input(
+                shape=[None, None, None, 1]
+                if channels_last
+                else [None, 1, None, None],
+                name="masks",
+            ),
         }
 
         # All Inputs -- Images + Prompts

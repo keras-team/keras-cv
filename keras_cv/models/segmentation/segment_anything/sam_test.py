@@ -62,6 +62,7 @@ class SAMTest(TestCase):
         )
 
     def get_prompts(self, B, prompts="all"):
+        channels_last = keras.backend.image_data_format() == "channels_last"
         rng = np.random.default_rng(0)
 
         prompts_dict = {}
@@ -83,7 +84,16 @@ class SAMTest(TestCase):
             )
         if "all" in prompts or "masks" in prompts:
             prompts_dict["masks"] = ops.convert_to_tensor(
-                1.0 * (rng.random((B, 1, 256, 256, 1)) > 0.5), dtype="float32"
+                1.0
+                * (
+                    rng.random(
+                        (B, 1, 256, 256, 1)
+                        if channels_last
+                        else (B, 1, 1, 256, 256)
+                    )
+                    > 0.5
+                ),
+                dtype="float32",
             )
 
         return prompts_dict
@@ -109,9 +119,17 @@ class SAMTest(TestCase):
             dense_positional_embeddings
         )
 
+        channels_last = keras.backend.image_data_format() == "channels_last"
         self.assertEqual(sparse_embeddings.shape, (7, 12, 256))
-        self.assertEqual(dense_embeddings.shape, (7, 64, 64, 256))
-        self.assertEqual(dense_positional_embeddings.shape, (1, 64, 64, 256))
+        self.assertEqual(
+            dense_embeddings.shape,
+            (7, 64, 64, 256) if channels_last else (7, 256, 64, 64),
+        )
+        self.assertEqual(
+            dense_positional_embeddings.shape,
+            (1, 64, 64, 256) if channels_last else (1, 256, 64, 64),
+        )
+        print(trainable_parameters, num_parameters)
         self.assertEqual(trainable_parameters, 6_220)
         self.assertEqual(num_parameters, 6_476)
 
@@ -125,6 +143,7 @@ class SAMTest(TestCase):
         ]
     )
     def test_prompt_encoder_partial_prompts(self, prompts):
+        channels_last = keras.backend.image_data_format() == "channels_last"
         prompts_dict = self.get_prompts(7, prompts)
         outputs = self.prompt_encoder(prompts_dict)
         sparse_embeddings, dense_embeddings = (
@@ -141,11 +160,14 @@ class SAMTest(TestCase):
             sparse_embeddings.shape,
             (7, sparse_embeddings_dim, 256),
         )
-        self.assertAllEqual(dense_embeddings.shape, (7, 64, 64, 256))
+        self.assertAllEqual(
+            dense_embeddings.shape,
+            (7, 64, 64, 256) if channels_last else (7, 256, 64, 64),
+        )
         if "masks" not in prompts:
             no_mask_embed = ops.broadcast_to(
                 self.prompt_encoder.no_mask_embed(ops.arange(1)),
-                (7, 64, 64, 256),
+                (7, 64, 64, 256) if channels_last else (7, 256, 64, 64),
             )
             self.assertAllClose(dense_embeddings, no_mask_embed)
 
@@ -179,7 +201,11 @@ class SAMTest(TestCase):
     def test_two_way_transformer(self):
         prompt_encoder_outputs = self.prompt_encoder(self.get_prompts(1))
         sparse_embeddings = prompt_encoder_outputs["sparse_embeddings"]
-        image_embeddings = np.random.randn(1, 64, 64, 256)
+        channels_last = keras.backend.image_data_format() == "channels_last"
+        if channels_last:
+            image_embeddings = np.random.randn(1, 64, 64, 256)
+        else:
+            image_embeddings = np.random.randn(1, 256, 64, 64)
         two_way_transformer = TwoWayTransformer(
             depth=2, embed_dim=256, num_heads=8, mlp_dim=2048
         )
@@ -201,7 +227,11 @@ class SAMTest(TestCase):
             prompt_encoder_outputs["dense_embeddings"],
             prompt_encoder_outputs["dense_positional_embeddings"],
         )
-        image_embeddings = np.random.randn(1, 64, 64, 256)
+        channels_last = keras.backend.image_data_format() == "channels_last"
+        if channels_last:
+            image_embeddings = np.random.randn(1, 64, 64, 256)
+        else:
+            image_embeddings = np.random.randn(1, 256, 64, 64)
         outputs = self.mask_decoder(
             dict(
                 image_embeddings=image_embeddings,
