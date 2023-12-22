@@ -555,6 +555,7 @@ class ViTDetPatchingAndEmbedding(keras.layers.Layer):
 class AddPositionalEmbedding(keras.layers.Layer):
     def __init__(self, img_size, patch_size, embed_dim, **kwargs):
         super().__init__(**kwargs)
+        channels_last = keras.backend.image_data_format() == "channels_last"
         self.img_size = img_size
         self.patch_size = patch_size
         self.embed_dim = embed_dim
@@ -565,6 +566,13 @@ class AddPositionalEmbedding(keras.layers.Layer):
                 img_size // patch_size,
                 img_size // patch_size,
                 embed_dim,
+            )
+            if channels_last
+            else (
+                1,
+                embed_dim,
+                img_size // patch_size,
+                img_size // patch_size,
             ),
             initializer="zeros",
             trainable=True,

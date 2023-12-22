@@ -103,20 +103,25 @@ class ViTDetBackbone(Backbone):
             input_shape, input_tensor, name="images"
         )
 
+        channels_last = keras.backend.image_data_format() == "channels_last"
+        if channels_last:
+            height, width = img_input.shape[-3], img_input.shape[-2]
+        else:
+            height, width = img_input.shape[-2], img_input.shape[-1]
         # Check that the input image is well specified.
-        if img_input.shape[-3] is None or img_input.shape[-2] is None:
+        if height is None or width is None:
             raise ValueError(
                 "Height and width of the image must be specified"
                 " in `input_shape`."
             )
-        if img_input.shape[-3] != img_input.shape[-2]:
+        if height != width:
             raise ValueError(
                 "Input image must be square i.e. the height must"
                 " be equal to the width in the `input_shape`"
                 " tuple/tensor."
             )
 
-        img_size = img_input.shape[-3]
+        img_size = height
 
         x = img_input
 
@@ -125,9 +130,12 @@ class ViTDetBackbone(Backbone):
             x = keras.layers.Rescaling(1.0 / 255.0)(x)
 
         # VITDet scales inputs based on the standard ImageNet mean/stddev.
-        x = (x - ops.array([0.485, 0.456, 0.406], dtype=x.dtype)) / (
-            ops.array([0.229, 0.224, 0.225], dtype=x.dtype)
-        )
+        mean = ops.array([0.485, 0.456, 0.406], dtype=x.dtype)
+        std_dev = ops.array([0.229, 0.224, 0.225], dtype=x.dtype)
+        if not channels_last:
+            mean = ops.reshape(mean, (1, 3, 1, 1))
+            std_dev = ops.reshape(std_dev, (1, 3, 1, 1))
+        x = (x - mean) / std_dev
 
         x = ViTDetPatchingAndEmbedding(
             kernel_size=(patch_size, patch_size),
@@ -136,6 +144,9 @@ class ViTDetBackbone(Backbone):
         )(x)
         if use_abs_pos:
             x = AddPositionalEmbedding(img_size, patch_size, embed_dim)(x)
+
+        if not channels_last:
+            x = ops.transpose(x, (0, 2, 3, 1))
 
         for i in range(depth):
             x = WindowedTransformerEncoder(
@@ -149,6 +160,10 @@ class ViTDetBackbone(Backbone):
                 else 0,
                 input_size=(img_size // patch_size, img_size // patch_size),
             )(x)
+
+        if not channels_last:
+            x = ops.transpose(x, (0, 3, 1, 2))
+
         x = keras.models.Sequential(
             [
                 keras.layers.Conv2D(

@@ -13,6 +13,9 @@
 # limitations under the License.
 """VitDet model preset configurations."""
 
+import keras
+
+channels_last = keras.backend.image_data_format() == "channels_last"
 backbone_presets_no_weights = {
     "vitdet_base": {
         "metadata": {
@@ -28,7 +31,9 @@ backbone_presets_no_weights = {
         },
         "class_name": "keras_cv.models>ViTDetBackbone",
         "config": {
-            "input_shape": (1024, 1024, 3),
+            "input_shape": (1024, 1024, 3)
+            if channels_last
+            else (3, 1024, 1024),
             "input_tensor": None,
             "include_rescaling": True,
             "patch_size": 16,

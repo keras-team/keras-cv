@@ -24,15 +24,21 @@ from keras_cv.tests.test_case import TestCase
 
 
 class TestViTDetBackbone(TestCase):
-    @pytest.mark.large
+    # @pytest.mark.large
     def test_call(self):
         model = ViTDetBBackbone()
-        x = np.ones((1, 1024, 1024, 3))
+        channels_last = keras.backend.image_data_format() == "channels_last"
+        if channels_last:
+            x = np.ones((1, 1024, 1024, 3))
+        else:
+            x = np.ones((1, 3, 1024, 1024))
         x_out = ops.convert_to_numpy(model(x))
         num_parameters = sum(
             np.prod(tuple(x.shape)) for x in model.trainable_variables
         )
-        self.assertEqual(x_out.shape, (1, 64, 64, 256))
+        self.assertEqual(
+            x_out.shape, (1, 64, 64, 256) if channels_last else (1, 256, 64, 64)
+        )
         self.assertEqual(num_parameters, 89_670_912)
 
     @pytest.mark.extra_large
