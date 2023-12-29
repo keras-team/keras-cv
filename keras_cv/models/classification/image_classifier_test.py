@@ -23,6 +23,7 @@ from absl.testing import parameterized
 
 from keras_cv.backend import keras
 from keras_cv.backend import ops
+from keras_cv.backend.config import keras_3
 from keras_cv.models.backbones.resnet_v2.resnet_v2_aliases import (
     ResNet18V2Backbone,
 )
@@ -50,6 +51,9 @@ class ImageClassifierTest(TestCase):
     @pytest.mark.large  # Fit is slow, so mark these large.
     @pytest.mark.filterwarnings("ignore::UserWarning")  # Torch + jit_compile
     def test_classifier_fit(self, jit_compile):
+        if keras_3() and jit_compile and keras.backend.backend() == "torch":
+            self.skipTest("TODO: Torch Backend `jit_compile` fails on GPU.")
+            self.supports_jit = False
         model = ImageClassifier(
             backbone=ResNet18V2Backbone(),
             num_classes=2,

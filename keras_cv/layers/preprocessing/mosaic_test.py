@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import pytest
 import tensorflow as tf
 
 from keras_cv.layers.preprocessing.mosaic import Mosaic
@@ -59,6 +60,7 @@ class MosaicTest(TestCase):
         self.assertEqual(ys_bounding_boxes["classes"].shape, [2, None])
         self.assertEqual(ys_segmentation_masks.shape, input_shape)
 
+    @pytest.mark.tf_only
     def test_in_tf_function(self):
         xs = tf.cast(
             tf.stack(

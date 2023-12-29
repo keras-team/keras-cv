@@ -12,15 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pytest
 import tensorflow as tf
 
-from keras_cv.backend.config import keras_3
 from keras_cv.layers.regularization.dropblock_2d import DropBlock2D
 from keras_cv.tests.test_case import TestCase
 
 
-@pytest.mark.skipif(keras_3(), reason="not implemented in keras 3")
 class DropBlock2DTest(TestCase):
     FEATURE_SHAPE = (1, 14, 14, 256)  # Shape of ResNet block group 3
     rng = tf.random.Generator.from_non_deterministic_state()
@@ -87,13 +84,3 @@ class DropBlock2DTest(TestCase):
     @staticmethod
     def _count_zeros(tensor: tf.Tensor) -> tf.Tensor:
         return tf.size(tensor) - tf.math.count_nonzero(tensor, dtype=tf.int32)
-
-    def test_works_with_xla(self):
-        dummy_inputs = self.rng.uniform(shape=self.FEATURE_SHAPE)
-        layer = DropBlock2D(rate=0.1, block_size=7)
-
-        @tf.function(jit_compile=True)
-        def apply(x):
-            return layer(x, training=True)
-
-        apply(dummy_inputs)

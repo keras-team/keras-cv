@@ -22,7 +22,8 @@ deeplab_v3_plus_presets = {
                 "Trained on PascalVOC 2012 Semantic segmentation task, which "
                 "consists of 20 classes and one background class. This model "
                 "achieves a final categorical accuracy of 89.34% and mIoU of "
-                "0.6391 on evaluation dataset."
+                "0.6391 on evaluation dataset. "
+                "This preset is only comptabile with Keras 3."
             ),
             "params": 39191488,
             "official_name": "DeepLabV3Plus",

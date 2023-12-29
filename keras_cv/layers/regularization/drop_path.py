@@ -50,7 +50,8 @@ class DropPath(keras.layers.Layer):
     def __init__(self, rate=0.5, seed=None, **kwargs):
         super().__init__(**kwargs)
         self.rate = rate
-        self.seed = seed
+        self._seed_val = seed
+        self.seed = random.SeedGenerator(seed=seed)
 
     def call(self, x, training=None):
         if self.rate == 0.0 or not training:
@@ -67,6 +68,6 @@ class DropPath(keras.layers.Layer):
             return x
 
     def get_config(self):
-        config = {"rate": self.rate, "seed": self.seed}
-        base_config = super().get_config()
-        return dict(list(base_config.items()) + list(config.items()))
+        config = super().get_config()
+        config.update({"rate": self.rate, "seed": self._seed_val})
+        return config

@@ -11,10 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import numpy as np
 import pytest
 import tensorflow as tf
 
 from keras_cv import bounding_box
+from keras_cv.backend import ops
 from keras_cv.layers import preprocessing
 from keras_cv.tests.test_case import TestCase
 
@@ -43,18 +45,22 @@ class RandomShearTest(TestCase):
         ys_segmentation_masks = layer(ys_segmentation_masks)
 
         # Some pixels should be replaced with fill value
-        self.assertTrue(tf.math.reduce_any(xs[0] == fill_value))
-        self.assertTrue(tf.math.reduce_any(xs[0] == 2.0))
-        self.assertTrue(tf.math.reduce_any(xs[1] == fill_value))
-        self.assertTrue(tf.math.reduce_any(xs[1] == 1.0))
+        self.assertTrue(np.any(ops.convert_to_numpy(xs[0]) == fill_value))
+        self.assertTrue(np.any(ops.convert_to_numpy(xs[0]) == 2.0))
+        self.assertTrue(np.any(ops.convert_to_numpy(xs[1]) == fill_value))
+        self.assertTrue(np.any(ops.convert_to_numpy(xs[1]) == 1.0))
         self.assertTrue(
-            tf.math.reduce_any(ys_segmentation_masks[0] == fill_value)
+            np.any(ops.convert_to_numpy(ys_segmentation_masks[0]) == fill_value)
         )
-        self.assertTrue(tf.math.reduce_any(ys_segmentation_masks[0] == 2.0))
         self.assertTrue(
-            tf.math.reduce_any(ys_segmentation_masks[1] == fill_value)
+            np.any(ops.convert_to_numpy(ys_segmentation_masks[0]) == 2.0)
         )
-        self.assertTrue(tf.math.reduce_any(ys_segmentation_masks[1] == 1.0))
+        self.assertTrue(
+            np.any(ops.convert_to_numpy(ys_segmentation_masks[1]) == fill_value)
+        )
+        self.assertTrue(
+            np.any(ops.convert_to_numpy(ys_segmentation_masks[1]) == 1.0)
+        )
 
     def test_return_shapes(self):
         """test return dict keys and value pairs"""
@@ -96,11 +102,11 @@ class RandomShearTest(TestCase):
             outputs["segmentation_masks"],
         )
         ys_bounding_boxes = bounding_box.to_dense(ys_bounding_boxes)
-        self.assertEqual(xs.shape, [2, 512, 512, 3])
-        self.assertEqual(ys_labels.shape, [2, 10])
-        self.assertEqual(ys_bounding_boxes["boxes"].shape, [2, 3, 4])
-        self.assertEqual(ys_bounding_boxes["classes"].shape, [2, 3])
-        self.assertEqual(ys_segmentation_masks.shape, [2, 512, 512, 3])
+        self.assertEqual(xs.shape, (2, 512, 512, 3))
+        self.assertEqual(ys_labels.shape, (2, 10))
+        self.assertEqual(ys_bounding_boxes["boxes"].shape, (2, 3, 4))
+        self.assertEqual(ys_bounding_boxes["classes"].shape, (2, 3))
+        self.assertEqual(ys_segmentation_masks.shape, (2, 512, 512, 3))
 
     def test_single_image_input(self):
         """test for single image input"""
@@ -112,7 +118,7 @@ class RandomShearTest(TestCase):
             fill_mode="constant",
         )
         outputs = layer(inputs)
-        self.assertEqual(outputs["images"].shape, [512, 512, 3])
+        self.assertEqual(outputs["images"].shape, (512, 512, 3))
 
     @pytest.mark.skip(reason="Flaky")
     def test_area(self):
@@ -155,6 +161,7 @@ class RandomShearTest(TestCase):
         )
         self.assertTrue(tf.math.reduce_all(new_area > old_area))
 
+    @pytest.mark.tf_only
     def test_in_tf_function(self):
         """test for class works with tf function"""
         xs = tf.cast(
