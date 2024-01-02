@@ -43,7 +43,10 @@ BUILD_WITH_CUSTOM_OPS = (
 
 HERE = pathlib.Path(__file__).parent
 README = (HERE / "README.md").read_text()
-VERSION = get_version("keras_cv/version.py")
+if os.path.exists("keras_cv/version_utils.py"):
+    VERSION = get_version("keras_cv/version_utils.py")
+else:
+    VERSION = get_version("keras_cv/src/version_utils.py")
 
 
 class BinaryDistribution(Distribution):

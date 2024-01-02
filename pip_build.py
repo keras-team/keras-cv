@@ -64,11 +64,22 @@ def export_version_string(version, is_nightly=False):
             )
             f.write(setup_contents)
 
+    # Overwrite the version string with our package version.
+    with open(os.path.join(package, "src", "version_utils.py")) as f:
+        version_contents = f.readlines()
+    with open(os.path.join(package, "src", "version_utils.py"), "w") as f:
+        for line in version_contents:
+            if line.startswith("__version__"):
+                f.write(f'__version__ = "{version}"\n')
+            else:
+                f.write(line)
+
     # Make sure to export the __version__ string
     with open(os.path.join(package, "__init__.py")) as f:
         init_contents = f.read()
     with open(os.path.join(package, "__init__.py"), "w") as f:
-        f.write(init_contents + "\n\n" + f'__version__ = "{version}"\n')
+        f.write(init_contents)
+        f.write("from keras_cv.src.version_utils import __version__\n")
 
 
 def build(root_path, is_nightly=False):
