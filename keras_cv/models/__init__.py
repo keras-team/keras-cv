@@ -190,7 +190,7 @@ from keras_cv.models.object_detection.yolo_v8.yolo_v8_backbone import (
 from keras_cv.models.object_detection.yolo_v8.yolo_v8_detector import (
     YOLOV8Detector,
 )
-from keras_cv.models.segmentation import BASNET
+from keras_cv.models.segmentation import BASNet
 from keras_cv.models.segmentation import DeepLabV3Plus
 from keras_cv.models.segmentation import SAMMaskDecoder
 from keras_cv.models.segmentation import SAMPromptEncoder

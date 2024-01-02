@@ -1,18 +1,29 @@
+# Copyright 2023 The KerasCV Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import os
 
 import numpy as np
 import pytest
 import tensorflow as tf
-from absl.testing import parameterized
 
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 from keras_cv.backend.config import keras_3
-from keras_cv.models import BASNET
+from keras_cv.models import BASNet
 from keras_cv.models import ResNet34Backbone
-from keras_cv.models.backbones.test_backbone_presets import (
-    test_backbone_presets,
-)
+
 from keras_cv.tests.test_case import TestCase
 
 
@@ -20,7 +31,11 @@ class BASNetTest(TestCase):
 
     def test_basnet_construction(self):
         backbone = ResNet34Backbone()
-        model = BASNET(input_shape=[288, 288, 3], backbone=backbone, num_classes=1)
+        model = BASNet(
+            input_shape=[288, 288, 3],
+            backbone=backbone,
+            num_classes=1
+        )
         model.compile(
             optimizer="adam",
             loss=keras.losses.BinaryCrossentropy(),
@@ -30,7 +45,11 @@ class BASNetTest(TestCase):
     @pytest.mark.large
     def test_basnet_call(self):
         backbone = ResNet34Backbone()
-        model = BASNET(input_shape=[288, 288, 3], backbone=backbone, num_classes=1)
+        model = BASNet(
+            input_shape=[288, 288, 3],
+            backbone=backbone,
+            num_classes=1
+        )
         images = np.random.uniform(size=(2, 288, 288, 3))
         _ = model(images)
         _ = model.predict(images)
@@ -47,10 +66,14 @@ class BASNetTest(TestCase):
         ds = ds.batch(2)
 
         backbone = ResNet34Backbone()
-        model = BASNET(input_shape=input_size, backbone=backbone, num_classes=1)
+        model = BASNet(
+            input_shape=[288, 288, 3],
+            backbone=backbone,
+            num_classes=1
+        )
 
         model.compile(
-            optimizer=tf.keras.optimizers.Adam(learning_rate=1e-3),  # "adam",
+            optimizer="adam",
             loss=keras.losses.BinaryCrossentropy(),
             metrics=["accuracy"],
 
@@ -64,12 +87,16 @@ class BASNetTest(TestCase):
             self.assertNotAllEqual(w1, w2)
             self.assertFalse(ops.any(ops.isnan(w2)))
 
-    @pytest.mark.large  # Saving is slow, so mark these large.
+    @pytest.mark.large
     def test_saved_model(self):
         target_size = [288, 288, 3]
 
         backbone = ResNet34Backbone()
-        model = BASNET(input_shape=target_size, backbone=backbone, num_classes=1)
+        model = BASNet(
+            input_shape=[288, 288, 3],
+            backbone=backbone,
+            num_classes=1
+        )
 
         input_batch = np.ones(shape=[2] + target_size)
         model_output = model(input_batch)
@@ -82,7 +109,7 @@ class BASNetTest(TestCase):
         restored_model = keras.models.load_model(save_path)
 
         # Check we got the real object back.
-        self.assertIsInstance(restored_model, BASNET)
+        self.assertIsInstance(restored_model, BASNet)
 
         # Check that output matches.
         restored_output = restored_model(input_batch)
