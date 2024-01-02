@@ -13,13 +13,9 @@
 # limitations under the License.
 
 import datetime
-import inspect
 import json
 import os
 
-import h5py
-
-from keras_cv.backend import config as backend_config
 from keras_cv.backend import keras
 
 try:
