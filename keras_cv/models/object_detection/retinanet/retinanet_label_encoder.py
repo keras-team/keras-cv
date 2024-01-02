@@ -68,7 +68,7 @@ class RetinaNetLabelEncoder(keras.layers.Layer):
         self.box_variance = ops.array(box_variance, "float32")
         self.background_class = background_class
         self.ignore_class = ignore_class
-        self.matched_boxes_metric = keras.metrics.BinaryAccuracy(
+        self.matched_boxes_metric = MatchedBoxesMetric(
             name="percent_boxes_matched_with_anchor"
         )
         self.positive_threshold = positive_threshold
@@ -244,3 +244,9 @@ class RetinaNetLabelEncoder(keras.layers.Layer):
             )
 
         return super().from_config(config)
+
+
+class MatchedBoxesMetric(keras.metrics.BinaryAccuracy):
+    # Prevent `load_weights` from accessing metric
+    def load_own_variables(self, store):
+        return
