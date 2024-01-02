@@ -17,13 +17,11 @@ from typing import Optional
 from typing import Tuple
 from typing import Union
 
-import tensorflow as tf
-from tensorflow import keras
-
 from keras_cv import bounding_box
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import assert_tf_keras
 from keras_cv.backend import ops
+from keras_cv.backend import keras
 
 
 @keras_cv_export("keras_cv.layers.ROIGenerator")
@@ -113,10 +111,10 @@ class ROIGenerator(keras.layers.Layer):
 
     def call(
         self,
-        multi_level_boxes: Union[tf.Tensor, Mapping[int, tf.Tensor]],
-        multi_level_scores: Union[tf.Tensor, Mapping[int, tf.Tensor]],
+        multi_level_boxes,
+        multi_level_scores,
         training: Optional[bool] = None,
-    ) -> Tuple[tf.Tensor, tf.Tensor]:
+    ):
         """
         Args:
           multi_level_boxes: float Tensor. A dictionary or single Tensor of
@@ -148,14 +146,14 @@ class ROIGenerator(keras.layers.Layer):
             scores_shape = scores.get_shape().as_list()
             # scores can also be [batch_size, num_boxes, 1]
             if len(scores_shape) == 3:
-                scores = tf.squeeze(scores, axis=-1)
+                scores = ops.squeeze(scores, axis=-1)
             num_boxes = ops.shape(boxes)[1]
             level_pre_nms_topk = min(num_boxes, pre_nms_topk)
             level_post_nms_topk = min(num_boxes, post_nms_topk)
-            scores, sorted_indices = tf.nn.top_k(
+            scores, sorted_indices = ops.top_k(
                 scores, k=level_pre_nms_topk, sorted=True
             )
-            boxes = tf.gather(boxes, sorted_indices, batch_dims=1)
+            boxes = ops.take(boxes, sorted_indices, batch_dims=1)
             # convert from input format to yxyx for the TF NMS operation
             boxes = bounding_box.convert_format(
                 boxes,
@@ -163,6 +161,7 @@ class ROIGenerator(keras.layers.Layer):
                 target="yxyx",
             )
             # TODO(tanzhenyu): consider supporting soft / batched nms for accl
+            import tensorflow as tf
             selected_indices, num_valid = tf.image.non_max_suppression_padded(
                 boxes,
                 scores,
@@ -179,16 +178,16 @@ class ROIGenerator(keras.layers.Layer):
                 source="yxyx",
                 target=self.bounding_box_format,
             )
-            level_rois = tf.gather(boxes, selected_indices, batch_dims=1)
-            level_roi_scores = tf.gather(scores, selected_indices, batch_dims=1)
-            level_rois = level_rois * tf.cast(
-                tf.reshape(tf.range(level_post_nms_topk), [1, -1, 1])
-                < tf.reshape(num_valid, [-1, 1, 1]),
+            level_rois = ops.take(boxes, selected_indices, batch_dims=1)
+            level_roi_scores = ops.take(scores, selected_indices, batch_dims=1)
+            level_rois = level_rois * ops.cast(
+                ops.reshape(ops.arange(level_post_nms_topk), [1, -1, 1])
+                < ops.reshape(num_valid, [-1, 1, 1]),
                 level_rois.dtype,
             )
-            level_roi_scores = level_roi_scores * tf.cast(
-                tf.reshape(tf.range(level_post_nms_topk), [1, -1])
-                < tf.reshape(num_valid, [-1, 1]),
+            level_roi_scores = level_roi_scores * ops.cast(
+                ops.reshape(ops.range(level_post_nms_topk), [1, -1])
+                < ops.reshape(num_valid, [-1, 1]),
                 level_roi_scores.dtype,
             )
             return level_rois, level_roi_scores
@@ -205,14 +204,14 @@ class ROIGenerator(keras.layers.Layer):
             rois.append(level_rois)
             roi_scores.append(level_roi_scores)
 
-        rois = tf.concat(rois, axis=1)
-        roi_scores = tf.concat(roi_scores, axis=1)
+        rois = ops.concatenate(rois, axis=1)
+        roi_scores = ops.concatenate(roi_scores, axis=1)
         _, num_valid_rois = roi_scores.get_shape().as_list()
         overall_top_k = min(num_valid_rois, post_nms_topk)
-        roi_scores, sorted_indices = tf.nn.top_k(
+        roi_scores, sorted_indices = ops.top_k(
             roi_scores, k=overall_top_k, sorted=True
         )
-        rois = tf.gather(rois, sorted_indices, batch_dims=1)
+        rois = ops.take(rois, sorted_indices, batch_dims=1)
 
         return rois, roi_scores
 
