@@ -29,6 +29,22 @@ class Task(keras.Model):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._backbone = None
+        self._functional_layer_ids = set(
+            id(layer) for layer in self._flatten_layers()
+        )
+
+    def __dir__(self):
+        # Temporary fixes for weight saving. This mimics the following PR for
+        # older version of Keras: https://github.com/keras-team/keras/pull/18982
+        def filter_fn(attr):
+            if attr == "_layer_checkpoint_dependencies":
+                return False
+            try:
+                return id(getattr(self, attr)) not in self._functional_layer_ids
+            except:
+                return True
+
+        return filter(filter_fn, super().__dir__())
 
     @property
     def backbone(self):
