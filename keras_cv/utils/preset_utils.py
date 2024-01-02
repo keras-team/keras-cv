@@ -222,4 +222,3 @@ def legacy_load_weights(layer, weights_path):
     functional_cls._layer_checkpoint_dependencies = {}
     layer.load_weights(weights_path)
     functional_cls._layer_checkpoint_dependencies = property
-
