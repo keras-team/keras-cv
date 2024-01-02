@@ -14,6 +14,7 @@
 
 import keras
 import tensorflow as tf
+import tree
 
 if hasattr(keras, "src"):
     keras_backend = keras.src.backend
@@ -23,8 +24,8 @@ else:
 from keras_cv import bounding_box
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
+from keras_cv.backend import ops
 from keras_cv.backend import scope
-from keras_cv.backend.config import keras_3
 from keras_cv.utils import preprocessing
 
 # In order to support both unbatched and batched inputs, the horizontal
@@ -42,15 +43,8 @@ IS_DICT = "is_dict"
 USE_TARGETS = "use_targets"
 
 
-base_class = (
-    keras.src.layers.preprocessing.tf_data_layer.TFDataLayer
-    if keras_3()
-    else keras.layers.Layer
-)
-
-
 @keras_cv_export("keras_cv.layers.BaseImageAugmentationLayer")
-class BaseImageAugmentationLayer(base_class):
+class BaseImageAugmentationLayer(keras.layers.Layer):
     """Abstract base layer for image augmentation.
 
     This layer contains base functionalities for preprocessing layers which
@@ -415,6 +409,19 @@ class BaseImageAugmentationLayer(base_class):
         return None
 
     def call(self, inputs):
+        # try to convert a given backend native tensor to TensorFlow tensor
+        # before passing it over to TFDataScope
+        contains_ragged = lambda y: any(
+            tree.map_structure(
+                lambda x: isinstance(x, (tf.RaggedTensor, tf.SparseTensor)),
+                tree.flatten(y),
+            )
+        )
+        inputs_contain_ragged = contains_ragged(inputs)
+        if not inputs_contain_ragged:
+            inputs = tree.map_structure(
+                lambda x: tf.convert_to_tensor(x), inputs
+            )
         with scope.TFDataScope():
             inputs = self._ensure_inputs_are_compute_dtype(inputs)
             inputs, metadata = self._format_inputs(inputs)
@@ -431,7 +438,20 @@ class BaseImageAugmentationLayer(base_class):
                     "rank 3 (HWC) or 4D (NHWC) tensors. Got shape: "
                     f"{images.shape}"
                 )
-            return outputs
+        # convert the outputs to backend native tensors if none of them
+        # contain RaggedTensors. Note that if the user passed in Raggeds
+        # but the outputs are dense, we still don't want to convert to
+        # backend native tensors. This is to avoid breaking TF data
+        # pipelines that can't easily be ported to become backend
+        # agnostic.
+        if not inputs_contain_ragged and not contains_ragged(outputs):
+            outputs = tree.map_structure(
+                # some layers return None, handle that case when
+                # converting to tensors
+                lambda x: ops.convert_to_tensor(x) if x is not None else x,
+                outputs,
+            )
+        return outputs
 
     def _augment(self, inputs):
         raw_image = inputs.get(IMAGES, None)
@@ -571,6 +591,8 @@ class BaseImageAugmentationLayer(base_class):
                 inputs,
                 self.compute_dtype,
             )
+        # Copy the input dict before we mutate it.
+        inputs = dict(inputs)
         inputs[IMAGES] = preprocessing.ensure_tensor(
             inputs[IMAGES],
             self.compute_dtype,

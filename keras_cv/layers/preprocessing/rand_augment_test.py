@@ -12,17 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import numpy as np
-import pytest
 import tensorflow as tf
 from absl.testing import parameterized
 
 from keras_cv import layers
-from keras_cv.backend.config import keras_3
+from keras_cv.backend import ops
 from keras_cv.tests.test_case import TestCase
 
 
-@pytest.mark.skipif(keras_3(), reason="imcompatible with Keras 3")
 class RandAugmentTest(TestCase):
+    def test_zero_rate_pass_through(self):
+        rand_augment = layers.RandAugment(
+            value_range=(0, 255),
+            rate=0.0,
+        )
+        xs = np.ones((2, 512, 512, 3))
+        ys = rand_augment(xs)
+        self.assertAllClose(ys, xs)
+
     @parameterized.named_parameters(
         ("0", 0),
         ("20", 0.2),
@@ -50,10 +57,8 @@ class RandAugmentTest(TestCase):
             value_range=(low, high),
         )
         xs = tf.random.uniform((2, 512, 512, 3), low, high, dtype=tf.float32)
-        ys = rand_augment(xs)
-        self.assertTrue(
-            tf.math.reduce_all(tf.logical_and(ys >= low, ys <= high))
-        )
+        ys = ops.convert_to_numpy(rand_augment(xs))
+        self.assertTrue(np.all(np.logical_and(ys >= low, ys <= high)))
 
     @parameterized.named_parameters(
         ("float32", "float32"),
@@ -79,9 +84,9 @@ class RandAugmentTest(TestCase):
             layers=my_layers, augmentations_per_image=3
         )
         xs = tf.random.uniform((2, 512, 512, 3), lower, upper, dtype=tf.float32)
-        ys = rand_augment(xs)
-        self.assertLessEqual(tf.math.reduce_max(ys), upper)
-        self.assertGreaterEqual(tf.math.reduce_min(ys), lower)
+        ys = ops.convert_to_numpy(rand_augment(xs))
+        self.assertLessEqual(np.max(ys), upper)
+        self.assertGreaterEqual(np.min(ys), lower)
 
     def test_runs_unbatched(self):
         rand_augment = layers.RandAugment(

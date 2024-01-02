@@ -19,7 +19,7 @@ from typing import Mapping
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
-from keras_cv.backend.config import multi_backend
+from keras_cv.backend.config import keras_3
 
 
 @keras_cv_export("keras_cv.layers.SpatialPyramidPooling")
@@ -68,7 +68,7 @@ class SpatialPyramidPooling(keras.layers.Layer):
         self.dropout = dropout
         # TODO(ianstenbit): Remove this once TF 2.14 is released which adds
         # XLA support for resizing with bilinear interpolation.
-        if multi_backend() and keras.backend.backend() == "tensorflow":
+        if keras_3() and keras.backend.backend() == "tensorflow":
             self.supports_jit = False
 
     def build(self, input_shape):
@@ -164,8 +164,12 @@ class SpatialPyramidPooling(keras.layers.Layer):
             temp = ops.cast(channel(inputs, training=training), inputs.dtype)
             result.append(temp)
 
+        image_shape = ops.shape(inputs)
+        height, width = image_shape[1], image_shape[2]
         result[-1] = keras.layers.Resizing(
-            inputs.shape[1], inputs.shape[2], interpolation="bilinear"
+            height,
+            width,
+            interpolation="bilinear",
         )(result[-1])
 
         result = ops.concatenate(result, axis=-1)

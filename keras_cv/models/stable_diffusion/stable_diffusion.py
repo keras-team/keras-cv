@@ -200,7 +200,7 @@ class StableDiffusionBase:
 
         if diffusion_noise is not None:
             diffusion_noise = ops.squeeze(diffusion_noise)
-            if diffusion_noise.shape.rank == 3:
+            if len(ops.shape(diffusion_noise)) == 3:
                 diffusion_noise = ops.repeat(
                     ops.expand_dims(diffusion_noise, axis=0), batch_size, axis=0
                 )
@@ -235,7 +235,9 @@ class StableDiffusionBase:
                 + unconditional_guidance_scale * (latent - unconditional_latent)
             )
             a_t, a_prev = alphas[index], alphas_prev[index]
-            latent = ops.cast(latent, latent_prev.dtype)
+            # Keras backend array need to cast explicitly
+            target_dtype = latent_prev.dtype
+            latent = ops.cast(latent, target_dtype)
             pred_x0 = (latent_prev - math.sqrt(1 - a_t) * latent) / math.sqrt(
                 a_t
             )

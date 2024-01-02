@@ -18,7 +18,7 @@ from keras_cv import backend
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 from keras_cv.backend import tf_ops
-from keras_cv.backend.config import multi_backend
+from keras_cv.backend.config import keras_3
 
 _ORIGINAL_OPS = copy.copy(backend.ops.__dict__)
 _ORIGINAL_SUPPORTS_RAGGED = backend.supports_ragged
@@ -30,7 +30,7 @@ _IN_TF_DATA_SCOPE = 0
 def tf_data(function):
     @functools.wraps(function)
     def wrapper(*args, **kwargs):
-        if multi_backend() and keras.src.utils.backend_utils.in_tf_graph():
+        if keras_3() and keras.src.utils.backend_utils.in_tf_graph():
             with TFDataScope():
                 return function(*args, **kwargs)
         else:

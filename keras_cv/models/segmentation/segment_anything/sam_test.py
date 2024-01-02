@@ -220,48 +220,68 @@ class SAMTest(TestCase):
         self.assertEqual(num_parameters, 4_058_340)
 
     @pytest.mark.large
-    def test_end_to_end_model_predict(self):
-        model = SegmentAnythingModel(
-            backbone=self.image_encoder,
-            prompt_encoder=self.prompt_encoder,
-            mask_decoder=self.mask_decoder,
-        )
+    @parameterized.named_parameters(
+        [
+            ("float32", "float32"),
+            ("mixed_float16", "mixed_float16"),
+            ("bfloat16", "bfloat16"),
+        ]
+    )
+    def test_end_to_end_model_predict(self, dtype_policy):
+        import threading
 
-        # We use box-only prompting for this test.
-        mask_prompts = self.get_prompts(1, "boxes")
-        inputs = {
-            "images": np.ones((1, 1024, 1024, 3)),
-        }
-        inputs.update(mask_prompts)
+        with threading.Lock():
+            # We are changing the global dtype policy here but don't want any
+            # other tests to use that policy, so compute under a lock until
+            # we reset the global policy.
+            old_policy = getattr(
+                keras.mixed_precision, "dtype_policy", lambda: "float32"
+            )()
+            keras.mixed_precision.set_global_policy(dtype_policy)
+            model = SegmentAnythingModel(
+                backbone=self.image_encoder,
+                prompt_encoder=self.prompt_encoder,
+                mask_decoder=self.mask_decoder,
+            )
 
-        # Check the number of parameters
-        num_parameters = np.sum([np.prod(x.shape) for x in model.weights])
-        self.assertEqual(num_parameters, 89_670_912 + 6_476 + 4_058_340)
+            # We use box-only prompting for this test.
+            mask_prompts = self.get_prompts(1, "boxes")
+            inputs = {
+                "images": np.ones((1, 1024, 1024, 3)),
+            }
+            inputs.update(mask_prompts)
 
-        # Forward pass through the model
-        outputs = model.predict(inputs)
-        masks, iou_pred = outputs["masks"], outputs["iou_pred"]
+            # Check the number of parameters
+            num_parameters = np.sum([np.prod(x.shape) for x in model.weights])
+            self.assertEqual(num_parameters, 89_670_912 + 6_476 + 4_058_340)
 
-        # Check the output is equal to the one we expect if we
-        # run each component separately. This is to confirm that
-        # the graph is getting compiled correctly i.e. the jitted
-        # execution is equivalent to the eager execution.
-        features = self.image_encoder(inputs["images"])
-        outputs_ex = self.prompt_encoder(
-            {k: v for k, v in inputs.items() if k != "images"}
-        )
-        outputs_ex = self.mask_decoder(
-            {
-                "image_embeddings": features,
-                "image_pe": outputs_ex["dense_positional_embeddings"],
-                "sparse_prompt_embeddings": outputs_ex["sparse_embeddings"],
-                "dense_prompt_embeddings": outputs_ex["dense_embeddings"],
-            },
-        )
-        masks_ex, iou_pred_ex = outputs_ex["masks"], outputs_ex["iou_pred"]
+            # Forward pass through the model
+            outputs = model.predict(inputs)
+            masks, iou_pred = outputs["masks"], outputs["iou_pred"]
 
-        self.assertAllClose(masks, masks_ex, atol=1e-4)
-        self.assertAllClose(iou_pred, iou_pred_ex, atol=1e-4)
+            # Check the output is equal to the one we expect if we
+            # run each component separately. This is to confirm that
+            # the graph is getting compiled correctly i.e. the jitted
+            # execution is equivalent to the eager execution.
+            features = self.image_encoder(inputs["images"])
+            outputs_ex = self.prompt_encoder(
+                {k: v for k, v in inputs.items() if k != "images"}
+            )
+            outputs_ex = self.mask_decoder(
+                {
+                    "image_embeddings": features,
+                    "image_pe": outputs_ex["dense_positional_embeddings"],
+                    "sparse_prompt_embeddings": outputs_ex["sparse_embeddings"],
+                    "dense_prompt_embeddings": outputs_ex["dense_embeddings"],
+                },
+            )
+            masks_ex, iou_pred_ex = outputs_ex["masks"], outputs_ex["iou_pred"]
+
+            self.assertAllClose(masks, masks_ex, atol=1e-4)
+            self.assertAllClose(iou_pred, iou_pred_ex, atol=1e-4)
+
+            # Reset the global policy
+            keras.mixed_precision.set_global_policy(old_policy)
 
     @pytest.mark.extra_large
     def test_end_to_end_model_save(self):
