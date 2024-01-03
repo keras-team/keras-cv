@@ -13,3 +13,4 @@ black
 pytest
 build
 namex
+keras_nightly==3.0.3.dev2023122603
