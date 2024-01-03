@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import numpy as np
+import pytest
 import tensorflow as tf
 
 from keras_cv.layers import preprocessing
@@ -37,9 +38,9 @@ class RandomColorJitterTest(TestCase):
         non_square_batch_output = layer(non_square_batch_input, training=True)
         unbatch_output = layer(unbatch_input, training=True)
 
-        self.assertEqual(batch_output.shape, [2, 512, 512, 3])
-        self.assertEqual(non_square_batch_output.shape, [2, 1024, 512, 3])
-        self.assertEqual(unbatch_output.shape, [512, 512, 3])
+        self.assertEqual(batch_output.shape, (2, 512, 512, 3))
+        self.assertEqual(non_square_batch_output.shape, (2, 1024, 512, 3))
+        self.assertEqual(unbatch_output.shape, (512, 512, 3))
 
     # Test 2: Check if the factor ranges are set properly.
     def test_factor_range(self):
@@ -57,6 +58,7 @@ class RandomColorJitterTest(TestCase):
         self.assertEqual(layer.hue_factor, (0.5, 0.9))
 
     # Test 3: Test if it is OK to run on graph mode.
+    @pytest.mark.tf_only
     def test_in_tf_function(self):
         inputs = np.ones((2, 512, 512, 3))
 

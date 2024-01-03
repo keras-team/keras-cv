@@ -36,13 +36,37 @@ class SegFormerTest(TestCase):
             metrics=["accuracy"],
         )
 
+    def test_segformer_preset_construction(self):
+        model = SegFormer.from_preset(
+            "segformer_b0", num_classes=1, input_shape=[512, 512, 3]
+        )
+        model.compile(
+            optimizer="adam",
+            loss=keras.losses.BinaryCrossentropy(),
+            metrics=["accuracy"],
+        )
+
+    def test_segformer_preset_error(self):
+        with self.assertRaises(TypeError):
+            _ = SegFormer.from_preset("segformer_b0")
+
     @pytest.mark.large
     def test_segformer_call(self):
         backbone = MiTBackbone.from_preset("mit_b0", input_shape=[512, 512, 3])
-        model = SegFormer(backbone=backbone, num_classes=1)
+        mit_model = SegFormer(backbone=backbone, num_classes=1)
+
         images = np.random.uniform(size=(2, 512, 512, 3))
-        _ = model(images)
-        _ = model.predict(images)
+        mit_output = mit_model(images)
+        mit_pred = mit_model.predict(images)
+
+        seg_model = SegFormer.from_preset(
+            "segformer_b0", num_classes=1, input_shape=[512, 512, 3]
+        )
+        seg_output = seg_model(images)
+        seg_pred = seg_model.predict(images)
+
+        self.assertAllClose(mit_output, seg_output)
+        self.assertAllClose(mit_pred, seg_pred)
 
     @pytest.mark.large
     def test_weights_change(self):
@@ -77,6 +101,31 @@ class SegFormerTest(TestCase):
 
         backbone = MiTBackbone.from_preset("mit_b0", input_shape=[512, 512, 3])
         model = SegFormer(backbone=backbone, num_classes=1)
+
+        input_batch = np.ones(shape=[2] + target_size)
+        model_output = model(input_batch)
+
+        save_path = os.path.join(self.get_temp_dir(), "model.keras")
+        if keras_3():
+            model.save(save_path)
+        else:
+            model.save(save_path, save_format="keras_v3")
+        restored_model = keras.models.load_model(save_path)
+
+        # Check we got the real object back.
+        self.assertIsInstance(restored_model, SegFormer)
+
+        # Check that output matches.
+        restored_output = restored_model(input_batch)
+        self.assertAllClose(model_output, restored_output)
+
+    @pytest.mark.large  # Saving is slow, so mark these large.
+    def test_preset_saved_model(self):
+        target_size = [512, 512, 3]
+
+        model = SegFormer.from_preset(
+            "segformer_b0", num_classes=1, input_shape=[512, 512, 3]
+        )
 
         input_batch = np.ones(shape=[2] + target_size)
         model_output = model(input_batch)

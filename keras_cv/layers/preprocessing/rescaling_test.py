@@ -14,6 +14,7 @@
 import numpy as np
 import tensorflow as tf
 
+from keras_cv.backend import ops
 from keras_cv.layers.preprocessing.rescaling import Rescaling
 from keras_cv.tests.test_case import TestCase
 
@@ -23,14 +24,17 @@ class RescalingTest(TestCase):
         layer = Rescaling(scale=1.0 / 127.5, offset=-1.0)
         inputs = tf.random.uniform((2, 4, 5, 3))
         outputs = layer(inputs)
-        self.assertAllClose(outputs.numpy(), inputs.numpy() * (1.0 / 127.5) - 1)
+        self.assertAllClose(outputs, inputs * (1.0 / 127.5) - 1)
 
     def test_rescaling_correctness_int(self):
         layer = Rescaling(scale=1.0 / 127.5, offset=-1)
         inputs = tf.random.uniform((2, 4, 5, 3), 0, 100, dtype="int32")
         outputs = layer(inputs)
+        outputs = ops.convert_to_numpy(outputs)
         self.assertEqual(outputs.dtype.name, "float32")
-        self.assertAllClose(outputs.numpy(), inputs.numpy() * (1.0 / 127.5) - 1)
+        self.assertAllClose(
+            outputs, ops.convert_to_numpy(inputs) * (1.0 / 127.5) - 1
+        )
 
     def test_config_with_custom_name(self):
         layer = Rescaling(0.5, name="rescaling")
@@ -42,11 +46,15 @@ class RescalingTest(TestCase):
         layer = Rescaling(scale=1.0 / 127.5, offset=-1)
         inputs = tf.random.uniform((4, 5, 3))
         outputs = layer(inputs)
-        self.assertAllClose(outputs.numpy(), inputs.numpy() * (1.0 / 127.5) - 1)
+        self.assertAllClose(outputs, inputs * (1.0 / 127.5) - 1)
 
     def test_output_dtypes(self):
         inputs = np.array([[[1], [2]], [[3], [4]]], dtype="float64")
         layer = Rescaling(0.5)
-        self.assertAllEqual(layer(inputs).dtype, "float32")
+        self.assertAllEqual(
+            ops.convert_to_numpy(layer(inputs)).dtype.name, "float32"
+        )
         layer = Rescaling(0.5, dtype="uint8")
-        self.assertAllEqual(layer(inputs).dtype, "uint8")
+        self.assertAllEqual(
+            ops.convert_to_numpy(layer(inputs)).dtype.name, "uint8"
+        )

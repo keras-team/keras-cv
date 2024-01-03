@@ -5,6 +5,7 @@
 import tensorflow as tf
 
 from keras_cv.api_export import keras_cv_export
+from keras_cv.backend import random
 from keras_cv.bounding_box_3d import CENTER_XYZ_DXDYDZ_PHI
 from keras_cv.layers.preprocessing_3d import base_augmentation_layer_3d
 
@@ -133,23 +134,26 @@ class GlobalRandomScaling(base_augmentation_layer_3d.BaseAugmentationLayer3D):
         }
 
     def get_random_transformation(self, **kwargs):
-        random_scaling_x = self._random_generator.random_uniform(
+        random_scaling_x = random.uniform(
             (),
             minval=self._min_x_factor,
             maxval=self._max_x_factor,
             dtype=self.compute_dtype,
+            seed=self._random_generator,
         )
-        random_scaling_y = self._random_generator.random_uniform(
+        random_scaling_y = random.uniform(
             (),
             minval=self._min_y_factor,
             maxval=self._max_y_factor,
             dtype=self.compute_dtype,
+            seed=self._random_generator,
         )
-        random_scaling_z = self._random_generator.random_uniform(
+        random_scaling_z = random.uniform(
             (),
             minval=self._min_z_factor,
             maxval=self._max_z_factor,
             dtype=self.compute_dtype,
+            seed=self._random_generator,
         )
         if not self._preserve_aspect_ratio:
             return {

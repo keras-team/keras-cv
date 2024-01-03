@@ -17,6 +17,7 @@ import tensorflow as tf
 from keras_cv import bounding_box
 from keras_cv import core
 from keras_cv import layers
+from keras_cv.backend import ops
 from keras_cv.tests.test_case import TestCase
 
 
@@ -220,13 +221,15 @@ class JitteredResizeTest(TestCase):
             target_size=self.target_size,
             scale_factor=(3 / 4, 4 / 3),
         )
-        self.assertAllEqual(layer(inputs).dtype, "float32")
+        self.assertAllEqual(
+            ops.convert_to_numpy(layer(inputs)).dtype, "float32"
+        )
         layer = layers.JitteredResize(
             target_size=self.target_size,
             scale_factor=(3 / 4, 4 / 3),
             dtype="uint8",
         )
-        self.assertAllEqual(layer(inputs).dtype, "uint8")
+        self.assertAllEqual(ops.convert_to_numpy(layer(inputs)).dtype, "uint8")
 
     def test_config(self):
         layer = layers.JitteredResize(

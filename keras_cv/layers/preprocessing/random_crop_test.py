@@ -20,6 +20,7 @@ import tensorflow as tf
 from absl.testing import parameterized
 
 from keras_cv import layers as cv_layers
+from keras_cv.backend import ops
 from keras_cv.layers.preprocessing.random_crop import RandomCrop
 from keras_cv.tests.test_case import TestCase
 
@@ -185,6 +186,7 @@ class RandomCropTest(TestCase):
         )
         self.assertAllClose(expected_output, output["bounding_boxes"]["boxes"])
 
+    @pytest.mark.tf_only
     def test_in_tf_function(self):
         np.random.seed(1337)
         inp = np.random.random((20, 16, 16, 3))
@@ -252,9 +254,11 @@ class RandomCropTest(TestCase):
     def test_output_dtypes(self):
         inputs = np.array([[[1], [2]], [[3], [4]]], dtype="float64")
         layer = RandomCrop(2, 2)
-        self.assertAllEqual(layer(inputs).dtype, "float32")
+        self.assertAllEqual(
+            ops.convert_to_numpy(layer(inputs)).dtype, "float32"
+        )
         layer = RandomCrop(2, 2, dtype="uint8")
-        self.assertAllEqual(layer(inputs).dtype, "uint8")
+        self.assertAllEqual(ops.convert_to_numpy(layer(inputs)).dtype, "uint8")
 
     def test_config(self):
         layer = RandomCrop(height=2, width=3, bounding_box_format="xyxy")

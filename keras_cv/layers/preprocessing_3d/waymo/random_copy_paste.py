@@ -5,6 +5,7 @@
 import tensorflow as tf
 
 from keras_cv.api_export import keras_cv_export
+from keras_cv.backend import random
 from keras_cv.bounding_box_3d import CENTER_XYZ_DXDYDZ_PHI
 from keras_cv.layers.preprocessing_3d import base_augmentation_layer_3d
 from keras_cv.ops import iou_3d
@@ -98,10 +99,11 @@ class RandomCopyPaste(base_augmentation_layer_3d.BaseAugmentationLayer3D):
         **kwargs
     ):
         del point_clouds
-        num_paste_bounding_boxes = self._random_generator.random_uniform(
+        num_paste_bounding_boxes = random.uniform(
             (),
             minval=self._min_paste_bounding_boxes,
             maxval=self._max_paste_bounding_boxes,
+            seed=self._random_generator,
         )
         num_paste_bounding_boxes = tf.cast(
             num_paste_bounding_boxes, dtype=tf.int32

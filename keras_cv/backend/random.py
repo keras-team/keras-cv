@@ -11,6 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import random as python_random
+
 from keras_cv.backend import keras
 from keras_cv.backend.config import keras_3
 
@@ -20,30 +22,49 @@ else:
     from keras_core.random import *  # noqa: F403, F401
 
 
+def _make_default_seed():
+    return python_random.randint(1, int(1e9))
+
+
 class SeedGenerator:
-    def __init__(self, seed=None, **kwargs):
+    def __new__(cls, seed=None, **kwargs):
         if keras_3():
-            self._seed_generator = keras.random.SeedGenerator(
-                seed=seed, **kwargs
-            )
-        else:
-            self._current_seed = [0, seed]
+            return keras.random.SeedGenerator(seed=seed, **kwargs)
+        return super().__new__(cls)
+
+    def __init__(self, seed=None):
+        if seed is None:
+            seed = _make_default_seed()
+        self._initial_seed = seed
+        self._current_seed = [0, seed]
 
     def next(self, ordered=True):
-        if keras_3():
-            return self._seed_generator.next(ordered=ordered)
-        else:
-            self._current_seed[0] += 1
-            return self._current_seed[:]
+        self._current_seed[0] += 1
+        return self._current_seed[:]
+
+    def get_config(self):
+        return {"seed": self._initial_seed}
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)
+
+
+def _draw_seed(seed):
+    if keras_3():
+        # Keras 3 seed can be directly passed to random functions
+        return seed
+    if isinstance(seed, SeedGenerator):
+        init_seed = seed.next()
+    else:
+        if seed is None:
+            seed = _make_default_seed()
+        init_seed = [0, seed]
+    return init_seed
 
 
 def normal(shape, mean=0.0, stddev=1.0, dtype=None, seed=None):
-    if isinstance(seed, SeedGenerator):
-        seed = seed.next()
-        init_seed = seed[0] + seed[1]
-    else:
-        init_seed = seed
-
+    seed = _draw_seed(seed)
     kwargs = {}
     if dtype:
         kwargs["dtype"] = dtype
@@ -52,27 +73,23 @@ def normal(shape, mean=0.0, stddev=1.0, dtype=None, seed=None):
             shape,
             mean=mean,
             stddev=stddev,
-            seed=init_seed,
+            seed=seed,
             **kwargs,
         )
     else:
         import tensorflow as tf
 
-        return tf.random.normal(
+        return tf.random.stateless_normal(
             shape,
             mean=mean,
             stddev=stddev,
-            seed=init_seed,
+            seed=seed,
             **kwargs,
         )
 
 
 def uniform(shape, minval=0.0, maxval=1.0, dtype=None, seed=None):
-    if isinstance(seed, SeedGenerator):
-        seed = seed.next()
-        init_seed = seed[0] + seed[1]
-    else:
-        init_seed = seed
+    init_seed = _draw_seed(seed)
     kwargs = {}
     if dtype:
         kwargs["dtype"] = dtype
@@ -87,7 +104,7 @@ def uniform(shape, minval=0.0, maxval=1.0, dtype=None, seed=None):
     else:
         import tensorflow as tf
 
-        return tf.random.uniform(
+        return tf.random.stateless_uniform(
             shape,
             minval=minval,
             maxval=maxval,
@@ -97,26 +114,17 @@ def uniform(shape, minval=0.0, maxval=1.0, dtype=None, seed=None):
 
 
 def shuffle(x, axis=0, seed=None):
-    if isinstance(seed, SeedGenerator):
-        seed = seed.next()
-        init_seed = seed[0] + seed[1]
-    else:
-        init_seed = seed
-
+    init_seed = _draw_seed(seed)
     if keras_3():
         return keras.random.shuffle(x=x, axis=axis, seed=init_seed)
     else:
         import tensorflow as tf
 
-        return tf.random.shuffle(x=x, axis=axis, seed=init_seed)
+        return tf.random.stateless_shuffle(x=x, axis=axis, seed=init_seed)
 
 
 def categorical(logits, num_samples, dtype=None, seed=None):
-    if isinstance(seed, SeedGenerator):
-        seed = seed.next()
-        init_seed = seed[0] + seed[1]
-    else:
-        init_seed = seed
+    init_seed = _draw_seed(seed)
     kwargs = {}
     if dtype:
         kwargs["dtype"] = dtype
@@ -130,7 +138,7 @@ def categorical(logits, num_samples, dtype=None, seed=None):
     else:
         import tensorflow as tf
 
-        return tf.random.categorical(
+        return tf.random.stateless_categorical(
             logits=logits,
             num_samples=num_samples,
             seed=init_seed,

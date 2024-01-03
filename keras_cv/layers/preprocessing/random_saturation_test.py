@@ -17,6 +17,7 @@ import tensorflow as tf
 
 from keras_cv import core
 from keras_cv.backend import keras
+from keras_cv.backend import ops
 from keras_cv.layers import preprocessing
 from keras_cv.layers.preprocessing.base_image_augmentation_layer import (
     BaseImageAugmentationLayer,
@@ -133,9 +134,9 @@ class RandomSaturationTest(TestCase):
         image = tf.random.uniform(shape=image_shape) * 255.0
 
         layer = preprocessing.RandomSaturation(factor=(0.0, 0.0))
-        output = layer(image)
+        output = ops.convert_to_numpy(layer(image))
 
-        channel_mean = tf.math.reduce_mean(output, axis=-1)
+        channel_mean = np.mean(output, axis=-1)
         channel_values = tf.unstack(output, axis=-1)
         # Make sure all the pixel has the same value among the channel dim,
         # which is a fully gray RGB.
@@ -149,9 +150,9 @@ class RandomSaturationTest(TestCase):
         image = tf.random.uniform(shape=image_shape) * 255.0
 
         layer = preprocessing.RandomSaturation(factor=(1.0, 1.0))
-        output = layer(image)
+        output = ops.convert_to_numpy(layer(image))
 
-        channel_mean = tf.math.reduce_min(output, axis=-1)
+        channel_mean = np.min(output, axis=-1)
         # Make sure at least one of the channel is 0.0 (fully saturated image)
         self.assertAllClose(channel_mean, np.zeros((4, 8, 8)))
 
