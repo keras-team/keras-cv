@@ -40,8 +40,6 @@ class Backbone(keras.Model):
         # Temporary fixes for weight saving. This mimics the following PR for
         # older version of Keras: https://github.com/keras-team/keras/pull/18982
         def filter_fn(attr):
-            if attr == "_layer_checkpoint_dependencies":
-                return False
             try:
                 return id(getattr(self, attr)) not in self._functional_layer_ids
             except:
