@@ -22,11 +22,9 @@ from keras_cv.models.backbones.backbone_presets import (
     backbone_presets_with_weights,
 )
 from keras_cv.models.backbones.resnet_v1.resnet_v1_backbone import (
-    apply_basic_block as resnet_basic_block
+    apply_basic_block as resnet_basic_block,
 )
-from keras_cv.models.segmentation.basnet.basnet_presets import (
-    basnet_presets,
-)
+from keras_cv.models.segmentation.basnet.basnet_presets import basnet_presets
 from keras_cv.models.task import Task
 from keras_cv.utils.python_utils import classproperty
 
@@ -71,12 +69,12 @@ class BASNet(Task):
 
     Examples:
     ```python
-    
+
     import keras_cv
-    
+
     images = np.ones(shape=(1, 288, 288, 3))
     labels = np.zeros(shape=(1, 288, 288, 1))
-    
+
     # Note: Do not specify 'input_shape', 'input_tensor', or
     # 'include_rescaling' within the backbone.
     backbone = keras_cv.models.ResNet34Backbone()
@@ -86,11 +84,11 @@ class BASNet(Task):
         input_shape=[288, 288, 3],
         include_rescaling=False
     )
-    
+
     # Evaluate model
     output = model(images)
     pred_labels = output[0]
-    
+
     # Train model
     model.compile(
         optimizer="adam",
@@ -99,22 +97,22 @@ class BASNet(Task):
     )
     model.fit(images, labels, epochs=3)
         ```
-        """  # noqa: E501
+    """  # noqa: E501
 
     def __init__(
-            self,
-            backbone,
-            num_classes,
-            input_shape=(None, None, 3),
-            input_tensor=None,
-            include_rescaling=False,
-            projection_filters=64,
-            prediction_head=None,
-            refinement_head=None,
-            **kwargs,
+        self,
+        backbone,
+        num_classes,
+        input_shape=(None, None, 3),
+        input_tensor=None,
+        include_rescaling=False,
+        projection_filters=64,
+        prediction_head=None,
+        refinement_head=None,
+        **kwargs,
     ):
         if not isinstance(backbone, keras.layers.Layer) or not isinstance(
-                backbone, keras.Model
+            backbone, keras.Model
         ):
             raise ValueError(
                 "Argument `backbone` must be a `keras.layers.Layer` instance"
@@ -137,43 +135,39 @@ class BASNet(Task):
 
         if prediction_head is None:
             input_size = keras.backend.int_shape(x)
-            prediction_head = keras.Sequential([
-                keras.layers.Conv2D(
-                    num_classes,
-                    kernel_size=(3, 3),
-                    padding="same"
-                ),
-                keras.layers.Resizing(input_size[1], input_size[2])
-            ])
+            prediction_head = keras.Sequential(
+                [
+                    keras.layers.Conv2D(
+                        num_classes, kernel_size=(3, 3), padding="same"
+                    ),
+                    keras.layers.Resizing(input_size[1], input_size[2]),
+                ]
+            )
         if refinement_head is None:
-            refinement_head = keras.Sequential([
-                keras.layers.Conv2D(
-                    num_classes,
-                    kernel_size=(3, 3),
-                    padding="same"
-                ),
-            ])
+            refinement_head = keras.Sequential(
+                [
+                    keras.layers.Conv2D(
+                        num_classes, kernel_size=(3, 3), padding="same"
+                    ),
+                ]
+            )
 
         # Prediction model.
         predict_model = basnet_predict(
-            x,
-            backbone,
-            projection_filters,
-            prediction_head
+            x, backbone, projection_filters, prediction_head
         )
 
         # Refinement model.
         refine_model = basnet_rrm(
-            predict_model,
-            projection_filters,
-            refinement_head
+            predict_model, projection_filters, refinement_head
         )
 
         outputs = [refine_model.output]  # Combine outputs.
         outputs.extend(predict_model.output)
 
         outputs = [
-            keras.layers.Activation("sigmoid", dtype="float32")(_) for _ in outputs  # noqa: E501
+            keras.layers.Activation("sigmoid", dtype="float32")(_)
+            for _ in outputs
         ]  # Activations.
 
         super().__init__(inputs=inputs, outputs=outputs, **kwargs)
@@ -188,9 +182,7 @@ class BASNet(Task):
 
     def get_config(self):
         return {
-            "backbone": keras.saving.serialize_keras_object(
-                self.backbone
-            ),
+            "backbone": keras.saving.serialize_keras_object(self.backbone),
             "num_classes": self.num_classes,
             "input_shape": self.input_shape[1:],
             "input_tensor": keras.saving.serialize_keras_object(
@@ -213,26 +205,28 @@ class BASNet(Task):
             if isinstance(config["backbone"]["config"]["input_shape"], list):
                 input_shape = list(input_shape)
             if config["backbone"]["config"]["input_shape"] != input_shape:
-                config["input_shape"] = config["backbone"]["config"]["input_shape"]  # noqa: E501
+                config["input_shape"] = config["backbone"]["config"][
+                    "input_shape"
+                ]
                 config["backbone"]["config"]["input_shape"] = input_shape
             config["backbone"] = keras.layers.deserialize(config["backbone"])
 
         if "input_tensor" in config and isinstance(
-                config["input_tensor"], dict
+            config["input_tensor"], dict
         ):
             config["input_tensor"] = keras.layers.deserialize(
                 config["input_tensor"]
             )
 
         if "prediction_head" in config and isinstance(
-                config["prediction_head"], dict
+            config["prediction_head"], dict
         ):
             config["prediction_head"] = keras.layers.deserialize(
                 config["prediction_head"]
             )
 
         if "refinement_head" in config and isinstance(
-                config["refinement_head"], dict
+            config["refinement_head"], dict
         ):
             config["refinement_head"] = keras.layers.deserialize(
                 config["refinement_head"]
@@ -263,23 +257,20 @@ class BASNet(Task):
 
 def convolution_block(x_input, filters, dilation=1):
     """
-        Apply convolution + batch normalization + ReLU activation.
+    Apply convolution + batch normalization + ReLU activation.
 
-        Args:
-            x_input: Input keras tensor.
-            filters: int, number of output filters in the convolution.
-            dilation: int, dilation rate for the convolution operation.
-                Defaults to 1.
+    Args:
+        x_input: Input keras tensor.
+        filters: int, number of output filters in the convolution.
+        dilation: int, dilation rate for the convolution operation.
+            Defaults to 1.
 
-        Returns:
-            A tensor with convolution, batch normalization, and ReLU
-            activation applied.
-        """
+    Returns:
+        A tensor with convolution, batch normalization, and ReLU
+        activation applied.
+    """
     x = keras.layers.Conv2D(
-        filters,
-        (3, 3),
-        padding="same",
-        dilation_rate=dilation
+        filters, (3, 3), padding="same", dilation_rate=dilation
     )(x_input)
     x = keras.layers.BatchNormalization()(x)
     return keras.layers.Activation("relu")(x)
@@ -299,9 +290,7 @@ def get_resnet_block(_resnet, block_num):
 
     extractor_levels = ["P2", "P3", "P4", "P5"]
     return keras.models.Model(
-        inputs=_resnet.get_layer(
-            f"v2_stack_{block_num}_block1_1_conv"
-        ).input,
+        inputs=_resnet.get_layer(f"v2_stack_{block_num}_block1_1_conv").input,
         outputs=_resnet.get_layer(
             _resnet.pyramid_level_inputs[extractor_levels[block_num]]
         ).output,
@@ -335,8 +324,6 @@ def basnet_predict(x_input, backbone, filters, segmentation_head):
 
     # -------------Encoder--------------
     x = keras.layers.Conv2D(filters, kernel_size=(3, 3), padding="same")(x)
-    x = keras.layers.BatchNormalization()(x)
-    x = keras.layers.Activation("relu")(x)
 
     encoder_blocks = []
     for i in range(num_stages):
@@ -351,7 +338,7 @@ def basnet_predict(x_input, backbone, filters, segmentation_head):
                     x,
                     filters=shape[3],
                     conv_shortcut=False,
-                    name=f"v1_basic_block_{i + 1}_{j + 1}"
+                    name=f"v1_basic_block_{i + 1}_{j + 1}",
                 )
             encoder_blocks.append(x)
 
@@ -407,11 +394,9 @@ def basnet_rrm(base_model, filters, segmentation_head):
     x_input = base_model.output[0]
 
     # -------------Encoder--------------
-    x = keras.layers.Conv2D(
-        filters,
-        kernel_size=(3, 3),
-        padding="same"
-    )(x_input)
+    x = keras.layers.Conv2D(filters, kernel_size=(3, 3), padding="same")(
+        x_input
+    )
 
     encoder_blocks = []
     for _ in range(num_stages):

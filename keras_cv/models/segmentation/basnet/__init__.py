@@ -1,3 +1,1 @@
-from keras_cv.models.segmentation.basnet.basnet import (
-    BASNet,
-)
+from keras_cv.models.segmentation.basnet.basnet import BASNet

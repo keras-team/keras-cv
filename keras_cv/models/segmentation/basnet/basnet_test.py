@@ -23,18 +23,14 @@ from keras_cv.backend import ops
 from keras_cv.backend.config import keras_3
 from keras_cv.models import BASNet
 from keras_cv.models import ResNet34Backbone
-
 from keras_cv.tests.test_case import TestCase
 
 
 class BASNetTest(TestCase):
-
     def test_basnet_construction(self):
         backbone = ResNet34Backbone()
         model = BASNet(
-            input_shape=[288, 288, 3],
-            backbone=backbone,
-            num_classes=1
+            input_shape=[288, 288, 3], backbone=backbone, num_classes=1
         )
         model.compile(
             optimizer="adam",
@@ -46,9 +42,7 @@ class BASNetTest(TestCase):
     def test_basnet_call(self):
         backbone = ResNet34Backbone()
         model = BASNet(
-            input_shape=[288, 288, 3],
-            backbone=backbone,
-            num_classes=1
+            input_shape=[288, 288, 3], backbone=backbone, num_classes=1
         )
         images = np.random.uniform(size=(2, 288, 288, 3))
         _ = model(images)
@@ -67,16 +61,13 @@ class BASNetTest(TestCase):
 
         backbone = ResNet34Backbone()
         model = BASNet(
-            input_shape=[288, 288, 3],
-            backbone=backbone,
-            num_classes=1
+            input_shape=[288, 288, 3], backbone=backbone, num_classes=1
         )
 
         model.compile(
             optimizer="adam",
             loss=keras.losses.BinaryCrossentropy(),
             metrics=["accuracy"],
-
         )
 
         original_weights = model.refinement_head.get_weights()
@@ -93,9 +84,7 @@ class BASNetTest(TestCase):
 
         backbone = ResNet34Backbone()
         model = BASNet(
-            input_shape=[288, 288, 3],
-            backbone=backbone,
-            num_classes=1
+            input_shape=[288, 288, 3], backbone=backbone, num_classes=1
         )
 
         input_batch = np.ones(shape=[2] + target_size)
