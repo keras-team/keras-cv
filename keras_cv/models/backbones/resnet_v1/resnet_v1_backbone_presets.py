@@ -25,7 +25,7 @@ backbone_presets_no_weights = {
             "official_name": "ResNetV1",
             "path": "resnet_v1",
         },
-        "kaggle_handle": "kaggle://keras/resnetv1/resnet18/1",
+        "kaggle_handle": "kaggle://keras/resnetv1/resnet18/2",
     },
     "resnet34": {
         "metadata": {
@@ -38,7 +38,7 @@ backbone_presets_no_weights = {
             "official_name": "ResNetV1",
             "path": "resnet_v1",
         },
-        "kaggle_handle": "kaggle://keras/resnetv1/resnet34/1",
+        "kaggle_handle": "kaggle://keras/resnetv1/resnet34/2",
     },
     "resnet50": {
         "metadata": {
@@ -51,7 +51,7 @@ backbone_presets_no_weights = {
             "official_name": "ResNetV1",
             "path": "resnet_v1",
         },
-        "kaggle_handle": "kaggle://keras/resnetv1/resnet50/1",
+        "kaggle_handle": "kaggle://keras/resnetv1/resnet50/2",
     },
     "resnet101": {
         "metadata": {
@@ -64,7 +64,7 @@ backbone_presets_no_weights = {
             "official_name": "ResNetV1",
             "path": "resnet_v1",
         },
-        "kaggle_handle": "kaggle://keras/resnetv1/resnet101/1",
+        "kaggle_handle": "kaggle://keras/resnetv1/resnet101/2",
     },
     "resnet152": {
         "metadata": {
@@ -77,7 +77,7 @@ backbone_presets_no_weights = {
             "official_name": "ResNetV1",
             "path": "resnet_v1",
         },
-        "kaggle_handle": "kaggle://keras/resnetv1/resnet152/1",
+        "kaggle_handle": "kaggle://keras/resnetv1/resnet152/2",
     },
 }
 
@@ -94,7 +94,7 @@ backbone_presets_with_weights = {
             "official_name": "ResNetV1",
             "path": "resnet_v1",
         },
-        "kaggle_handle": "kaggle://keras/resnetv1/resnet50_imagenet/1",
+        "kaggle_handle": "kaggle://keras/resnetv1/resnet50_imagenet/2",
     },
 }
 
