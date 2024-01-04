@@ -44,7 +44,7 @@ def get_file(preset, path):
         # Insert the kaggle framework into the handle.
         if len(segments) == 3:
             org, model, variant = segments
-            kaggle_handle = f"{org}/{model}/keras/{variant}/1"
+            kaggle_handle = f"{org}/{model}/keras/{variant}/2"
         elif len(segments) == 4:
             org, model, variant, version = segments
             kaggle_handle = f"{org}/{model}/keras/{variant}/{version}"
@@ -165,6 +165,11 @@ def load_from_preset(
     # Default to loading weights if available.
     if load_weights is not False and config["weights"] is not None:
         weights_path = get_file(preset, config["weights"])
+        import h5py
+
+        f = h5py.File(weights_path)
+        f.visititems(lambda name, _: print(name))
+
         if hasattr(layer, "_layer_checkpoint_dependencies"):
             legacy_load_weights(layer, weights_path)
         else:
