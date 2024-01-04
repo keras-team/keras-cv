@@ -44,7 +44,7 @@ def get_file(preset, path):
         # Insert the kaggle framework into the handle.
         if len(segments) == 3:
             org, model, variant = segments
-            kaggle_handle = f"{org}/{model}/keras/{variant}/1"
+            kaggle_handle = f"{org}/{model}/keras/{variant}/2"
         elif len(segments) == 4:
             org, model, variant, version = segments
             kaggle_handle = f"{org}/{model}/keras/{variant}/{version}"

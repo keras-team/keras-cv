@@ -23,7 +23,7 @@ backbone_presets_no_weights = {
             "official_name": "MiT",
             "path": "mit",
         },
-        "kaggle_handle": "kaggle://keras/mit/mit_b0/1",
+        "kaggle_handle": "kaggle://keras/mit/mit_b0/2",
     },
     "mit_b1": {
         "metadata": {
@@ -34,7 +34,7 @@ backbone_presets_no_weights = {
             "official_name": "MiT",
             "path": "mit",
         },
-        "kaggle_handle": "kaggle://keras/mit/mit_b1/1",
+        "kaggle_handle": "kaggle://keras/mit/mit_b1/2",
     },
     "mit_b2": {
         "metadata": {
@@ -45,7 +45,7 @@ backbone_presets_no_weights = {
             "official_name": "MiT",
             "path": "mit",
         },
-        "kaggle_handle": "kaggle://keras/mit/mit_b2/1",
+        "kaggle_handle": "kaggle://keras/mit/mit_b2/2",
     },
     "mit_b3": {
         "metadata": {
@@ -56,7 +56,7 @@ backbone_presets_no_weights = {
             "official_name": "MiT",
             "path": "mit",
         },
-        "kaggle_handle": "kaggle://keras/mit/mit_b3/1",
+        "kaggle_handle": "kaggle://keras/mit/mit_b3/2",
     },
     "mit_b4": {
         "metadata": {
@@ -67,7 +67,7 @@ backbone_presets_no_weights = {
             "official_name": "MiT",
             "path": "mit",
         },
-        "kaggle_handle": "kaggle://keras/mit/mit_b4/1",
+        "kaggle_handle": "kaggle://keras/mit/mit_b4/2",
     },
     "mit_b5": {
         "metadata": {
@@ -78,7 +78,7 @@ backbone_presets_no_weights = {
             "official_name": "MiT",
             "path": "mit",
         },
-        "kaggle_handle": "kaggle://keras/mit/mit_b5/1",
+        "kaggle_handle": "kaggle://keras/mit/mit_b5/2",
     },
 }
 
@@ -92,7 +92,7 @@ backbone_presets_with_weights = {
             "official_name": "MiT",
             "path": "mit",
         },
-        "kaggle_handle": "kaggle://keras/mit/mit_b0_imagenet/1",
+        "kaggle_handle": "kaggle://keras/mit/mit_b0_imagenet/2",
     },
 }
 
