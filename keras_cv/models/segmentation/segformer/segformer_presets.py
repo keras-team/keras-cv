@@ -84,7 +84,7 @@ presets_with_weights = {
             "official_name": "SegFormerB0",
             "path": "segformer_b0",
         },
-        "kaggle_handle": "kaggle://keras/segformer/keras/segformer_b0_imagenet/2",
+        "kaggle_handle": "kaggle://keras/segformer/keras/segformer_b0_imagenet/2",  # noqa: E501
     },
 }
 

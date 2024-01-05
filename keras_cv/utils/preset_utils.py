@@ -40,15 +40,16 @@ def get_file(preset, path):
                 "`from_preset()` requires the `kagglehub` package. "
                 "Please install with `pip install kagglehub`."
             )
-        segments = preset.removeprefix(KAGGLE_PREFIX).split("/")
         # Insert the kaggle framework into the handle.
         kaggle_handle = preset.removeprefix(KAGGLE_PREFIX)
         num_segments = len(kaggle_handle.split("/"))
         if num_segments not in (4, 5):
             raise ValueError(
-                "Unexpected kaggle preset handle. Kaggle model handles should "
-                "have the form kaggle://{org}/{model}/keras/{variant}[/{version}]. "
-                "For example, 'kaggle://keras/retinanet/keras/retinanet_base_en'. "
+                "Unexpected kaggle preset handle. Kaggle model handles "
+                "should have the form "
+                "kaggle://{org}/{model}/keras/{variant}[/{version}]. "
+                "For example, "
+                "'kaggle://keras/retinanet/keras/retinanet_base_en'. "
                 f"Received: preset={preset}"
             )
         return kagglehub.model_download(kaggle_handle, path)
