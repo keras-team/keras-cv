@@ -42,16 +42,12 @@ def get_file(preset, path):
             )
         segments = preset.removeprefix(KAGGLE_PREFIX).split("/")
         # Insert the kaggle framework into the handle.
-        if len(segments) == 3:
-            org, model, variant = segments
-            kaggle_handle = f"{org}/{model}/keras/{variant}/2"
-        elif len(segments) == 4:
-            org, model, variant, version = segments
-            kaggle_handle = f"{org}/{model}/keras/{variant}/{version}"
-        else:
+        kaggle_handle = preset.removeprefix(KAGGLE_PREFIX)
+        num_segments = len(kaggle_handle.split("/"))
+        if num_segments not in (4, 5):
             raise ValueError(
                 "Unexpected kaggle preset handle. Kaggle model handles should "
-                "have the form kaggle://{org}/{model}/{variant}[/{version}]. "
+                "have the form kaggle://{org}/{model}/keras/{variant}[/{version}]. "
                 "For example, 'kaggle://keras/retinanet/keras/retinanet_base_en'. "
                 f"Received: preset={preset}"
             )
