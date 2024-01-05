@@ -52,7 +52,7 @@ def get_file(preset, path):
             raise ValueError(
                 "Unexpected kaggle preset handle. Kaggle model handles should "
                 "have the form kaggle://{org}/{model}/{variant}[/{version}]. "
-                "For example, 'kaggle://keras/retinanet/retinanet_base_en'. "
+                "For example, 'kaggle://keras/retinanet/keras/retinanet_base_en'. "
                 f"Received: preset={preset}"
             )
         return kagglehub.model_download(kaggle_handle, path)
@@ -75,7 +75,7 @@ def get_file(preset, path):
         raise ValueError(
             "Unknown preset identifier. A preset must be a one of:\n"
             "1) a built in preset identifier like `'mobilenet_v3_small'`\n"
-            "2) a Kaggle Models handle like `'kaggle://keras/mobilenetv3/mobilenet_v3_small'`\n"  # noqa: E501
+            "2) a Kaggle Models handle like `'kaggle://keras/mobilenetv3/keras/mobilenet_v3_small'`\n"  # noqa: E501
             "3) a path to a local preset directory like `'./mobilenet_v3_small`\n"  # noqa: E501
             "Use `print(cls.presets.keys())` to view all built-in presets for "
             "API symbol `cls`.\n"

@@ -26,7 +26,7 @@ backbone_presets_no_weights = {
             "official_name": "VitDet",
             "path": "vit_det",
         },
-        "kaggle_handle": "kaggle://keras/vitdet/vitdet_base/2",
+        "kaggle_handle": "kaggle://keras/vitdet/keras/vitdet_base/2",
     },
     "vitdet_large": {
         "metadata": {
@@ -40,7 +40,7 @@ backbone_presets_no_weights = {
             "official_name": "VitDet",
             "path": "vit_det",
         },
-        "kaggle_handle": "kaggle://keras/vitdet/vitdet_large/2",
+        "kaggle_handle": "kaggle://keras/vitdet/keras/vitdet_large/2",
     },
     "vitdet_huge": {
         "metadata": {
@@ -54,7 +54,7 @@ backbone_presets_no_weights = {
             "official_name": "VitDet",
             "path": "vit_det",
         },
-        "kaggle_handle": "kaggle://keras/vitdet/vitdet_huge/2",
+        "kaggle_handle": "kaggle://keras/vitdet/keras/vitdet_huge/2",
     },
 }
 
@@ -69,7 +69,7 @@ backbone_presets_with_weights = {
             "official_name": "VitDet",
             "path": "vit_det",
         },
-        "kaggle_handle": "kaggle://keras/vitdet/vitdet_base_sa1b/2",
+        "kaggle_handle": "kaggle://keras/vitdet/keras/vitdet_base_sa1b/2",
     },
     "vitdet_large_sa1b": {
         "metadata": {
@@ -80,7 +80,7 @@ backbone_presets_with_weights = {
             "official_name": "VitDet",
             "path": "vit_det",
         },
-        "kaggle_handle": "kaggle://keras/vitdet/vitdet_large_sa1b/2",
+        "kaggle_handle": "kaggle://keras/vitdet/keras/vitdet_large_sa1b/2",
     },
     "vitdet_huge_sa1b": {
         "metadata": {
@@ -91,7 +91,7 @@ backbone_presets_with_weights = {
             "official_name": "VitDet",
             "path": "vit_det",
         },
-        "kaggle_handle": "kaggle://keras/vitdet/vitdet_huge_sa1b/2",
+        "kaggle_handle": "kaggle://keras/vitdet/keras/vitdet_huge_sa1b/2",
     },
 }
 
