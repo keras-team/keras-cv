@@ -653,7 +653,7 @@ class YOLOV8Detector(Task):
         label_encoder = config.get("label_encoder")
         if label_encoder is not None:
             config["label_encoder"] = keras.saving.deserialize_keras_object(
-                config["label_encoder"]
+                label_encoder
             )
         return cls(**config)
 
