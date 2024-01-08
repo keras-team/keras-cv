@@ -1,10 +1,10 @@
 # Tensorflow cpu-only version.
-tf-nightly-cpu==2.16.0.dev20231221  # Pin a working nightly until rc0.
+tf-nightly-cpu==2.16.0.dev20240104  # Pin a working nightly until rc0.
 
 # Torch with cuda support.
 --extra-index-url https://download.pytorch.org/whl/cu121
-torch==2.1.2
-torchvision==0.16.2
+torch==2.1.2+cu121
+torchvision==0.16.2+cu121
 
 # Jax cpu-only version.
 jax[cpu]
