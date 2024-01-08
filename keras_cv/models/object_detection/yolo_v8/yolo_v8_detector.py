@@ -645,6 +645,18 @@ class YOLOV8Detector(Task):
             "prediction_decoder": self._prediction_decoder,
         }
 
+    @classmethod
+    def from_config(cls, config):
+        config["backbone"] = keras.saving.deserialize_keras_object(
+            config["backbone"]
+        )
+        label_encoder = config.get("label_encoder")
+        if label_encoder is not None:
+            config["label_encoder"] = keras.saving.deserialize_keras_object(
+                config["label_encoder"]
+            )
+        return cls(**config)
+
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
