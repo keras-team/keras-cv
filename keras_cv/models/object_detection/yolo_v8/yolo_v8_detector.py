@@ -641,9 +641,30 @@ class YOLOV8Detector(Task):
             "bounding_box_format": self.bounding_box_format,
             "fpn_depth": self.fpn_depth,
             "backbone": keras.saving.serialize_keras_object(self.backbone),
-            "label_encoder": self.label_encoder,
-            "prediction_decoder": self._prediction_decoder,
+            "label_encoder": keras.saving.serialize_keras_object(
+                self.label_encoder
+            ),
+            "prediction_decoder": keras.saving.serialize_keras_object(
+                self._prediction_decoder
+            ),
         }
+
+    @classmethod
+    def from_config(cls, config):
+        config["backbone"] = keras.saving.deserialize_keras_object(
+            config["backbone"]
+        )
+        label_encoder = config.get("label_encoder")
+        if label_encoder is not None:
+            config["label_encoder"] = keras.saving.deserialize_keras_object(
+                label_encoder
+            )
+        prediction_decoder = config.get("prediction_decoder")
+        if prediction_decoder is not None:
+            config[
+                "prediction_decoder"
+            ] = keras.saving.deserialize_keras_object(prediction_decoder)
+        return cls(**config)
 
     @classproperty
     def presets(cls):
