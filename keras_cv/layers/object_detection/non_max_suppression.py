@@ -181,6 +181,10 @@ class NonMaxSuppression(keras.layers.Layer):
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
 
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)
+
 
 def non_max_suppression(
     boxes,
