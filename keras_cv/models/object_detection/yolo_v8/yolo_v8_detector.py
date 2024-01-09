@@ -655,12 +655,14 @@ class YOLOV8Detector(Task):
             config["backbone"]
         )
         label_encoder = config.get("label_encoder")
-        if label_encoder is not None:
+        if label_encoder is not None and isinstance(label_encoder, dict):
             config["label_encoder"] = keras.saving.deserialize_keras_object(
                 label_encoder
             )
         prediction_decoder = config.get("prediction_decoder")
-        if prediction_decoder is not None:
+        if prediction_decoder is not None and isinstance(
+            prediction_decoder, dict
+        ):
             config[
                 "prediction_decoder"
             ] = keras.saving.deserialize_keras_object(prediction_decoder)
