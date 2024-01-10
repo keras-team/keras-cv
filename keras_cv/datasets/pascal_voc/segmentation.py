@@ -58,7 +58,7 @@ VOC_URL = "https://host.robots.ox.ac.uk/pascal/VOC/voc2012/VOCtrainval_11-May-20
     booktitle = "International Conference on Computer Vision (ICCV)",
     year = "2011"}}
 """  # noqa: E501
-SBD_URL = "https://www.eecs.berkeley.edu/Research/Projects/CS/vision/grouping/semantic_contours/benchmark.tgz"  # noqa: E501
+SBD_URL = "https://www2.eecs.berkeley.edu/Research/Projects/CS/vision/grouping/semantic_contours/benchmark.tgz"  # noqa: E501
 
 
 # Note that this list doesn't contain the background class. In the

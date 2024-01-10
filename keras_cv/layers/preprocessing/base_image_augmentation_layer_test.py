@@ -265,3 +265,11 @@ class BaseImageAugmentationLayerTest(TestCase):
         self.assertNotAllClose(
             segmentation_mask_diff[0], segmentation_mask_diff[1]
         )
+
+    def test_augment_tf_data_pipeline(self):
+        image = np.random.random(size=(1, 8, 8, 3)).astype("float32")
+        tf_dataset = tf.data.Dataset.from_tensor_slices(image).map(
+            RandomAddLayer(fixed_value=2.0)
+        )
+        output = iter(tf_dataset).get_next()
+        self.assertAllClose(image[0] + 2.0, output)
