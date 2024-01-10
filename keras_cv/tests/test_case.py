@@ -13,6 +13,7 @@
 # limitations under the License.
 import json
 import os
+import re
 
 import tensorflow as tf
 import tree
@@ -21,6 +22,7 @@ from absl.testing import parameterized
 from keras_cv.backend import config
 from keras_cv.backend import keras
 from keras_cv.backend import ops
+from keras_cv.utils.tensor_utils import is_float_dtype
 from keras_cv.utils.tensor_utils import standardize_dtype
 
 
@@ -39,6 +41,12 @@ def convert_to_comparible_type(x):
     if isinstance(x, (tf.Tensor, tf.RaggedTensor)):
         return x
     if hasattr(x, "__array__"):
+        return ops.convert_to_numpy(x)
+    return x
+
+
+def convert_to_numpy(x):
+    if ops.is_tensor(x) and not isinstance(x, tf.RaggedTensor):
         return ops.convert_to_numpy(x)
     return x
 
@@ -80,6 +88,128 @@ class TestCase(tf.test.TestCase, parameterized.TestCase):
     def assertDTypeEqual(self, x, expected_dtype, msg=None):
         input_dtype = standardize_dtype(x.dtype)
         super().assertEqual(input_dtype, expected_dtype, msg=msg)
+
+    def run_layer_test(
+        self,
+        cls,
+        init_kwargs,
+        input_data,
+        expected_output_shape,
+        expected_output_data=None,
+        expected_num_trainable_weights=0,
+        expected_num_non_trainable_weights=0,
+        expected_num_non_trainable_variables=0,
+        run_training_check=True,
+        run_mixed_precision_check=True,
+    ):
+        """Run basic tests for a modeling layer."""
+        # Serialization test.
+        layer = cls(**init_kwargs)
+        self.run_serialization_test(layer)
+
+        def run_build_asserts(layer):
+            self.assertTrue(layer.built)
+            self.assertLen(
+                layer.trainable_weights,
+                expected_num_trainable_weights,
+                msg="Unexpected number of trainable_weights",
+            )
+            self.assertLen(
+                layer.non_trainable_weights,
+                expected_num_non_trainable_weights,
+                msg="Unexpected number of non_trainable_weights",
+            )
+            self.assertLen(
+                layer.non_trainable_variables,
+                expected_num_non_trainable_variables,
+                msg="Unexpected number of non_trainable_variables",
+            )
+
+        def run_output_asserts(layer, output, eager=False):
+            output_shape = tree.map_structure(
+                lambda x: None if x is None else x.shape, output
+            )
+            self.assertEqual(
+                expected_output_shape,
+                output_shape,
+                msg="Unexpected output shape",
+            )
+            output_dtype = tree.flatten(output)[0].dtype
+            self.assertEqual(
+                standardize_dtype(layer.dtype),
+                standardize_dtype(output_dtype),
+                msg="Unexpected output dtype",
+            )
+            if eager and expected_output_data is not None:
+                self.assertAllClose(expected_output_data, output)
+
+        def run_training_step(layer, input_data, output_data):
+            class TestModel(keras.Model):
+                def __init__(self, layer):
+                    super().__init__()
+                    self.layer = layer
+
+                def call(self, x):
+                    if isinstance(x, dict):
+                        return self.layer(**x)
+                    else:
+                        return self.layer(x)
+
+            model = TestModel(layer)
+            model.compile(optimizer="sgd", loss="mse", jit_compile=True)
+            model.fit(input_data, output_data, verbose=0)
+
+        if config.multi_backend():
+            # Build test.
+            layer = cls(**init_kwargs)
+            if isinstance(input_data, dict):
+                shapes = {k + "_shape": v.shape for k, v in input_data.items()}
+                layer.build(**shapes)
+            else:
+                layer.build(input_data.shape)
+            run_build_asserts(layer)
+
+            # Symbolic call test.
+            keras_tensor_inputs = tree.map_structure(
+                lambda x: keras.KerasTensor(x.shape, x.dtype), input_data
+            )
+            layer = cls(**init_kwargs)
+            if isinstance(keras_tensor_inputs, dict):
+                keras_tensor_outputs = layer(**keras_tensor_inputs)
+            else:
+                keras_tensor_outputs = layer(keras_tensor_inputs)
+            run_build_asserts(layer)
+            run_output_asserts(layer, keras_tensor_outputs)
+
+        # Eager call test and compiled training test.
+        layer = cls(**init_kwargs)
+        if isinstance(input_data, dict):
+            output_data = layer(**input_data)
+        else:
+            output_data = layer(input_data)
+        run_output_asserts(layer, output_data, eager=True)
+
+        if run_training_check:
+            run_training_step(layer, input_data, output_data)
+
+        # Never test mixed precision on torch CPU. Torch lacks support.
+        if run_mixed_precision_check and config.backend() == "torch":
+            import torch
+
+            run_mixed_precision_check = torch.cuda.is_available()
+
+        if run_mixed_precision_check:
+            layer = cls(**{**init_kwargs, "dtype": "mixed_float16"})
+            if isinstance(input_data, dict):
+                output_data = layer(**input_data)
+            else:
+                output_data = layer(input_data)
+            for tensor in tree.flatten(output_data):
+                if is_float_dtype(tensor.dtype):
+                    self.assertDTypeEqual(tensor, "float16")
+            for weight in layer.weights:
+                if is_float_dtype(weight.dtype):
+                    self.assertDTypeEqual(weight, "float32")
 
     def run_preprocessing_layer_test(
         self,
@@ -232,8 +362,43 @@ class TestCase(tf.test.TestCase, parameterized.TestCase):
             output_shape = tree.map_structure(lambda x: x.shape, output)
             self.assertAllClose(output_shape, expected_output_shape)
 
+    def run_backbone_test(
+        self,
+        cls,
+        init_kwargs,
+        input_data,
+        expected_output_shape,
+        variable_length_data=None,
+    ):
+        """Run basic tests for a backbone, including compilation."""
+        backbone = cls(**init_kwargs)
+        # Check serialization (without a full save).
+        self.run_serialization_test(backbone)
+        # Call model eagerly.
+        output = backbone(input_data)
+        if isinstance(expected_output_shape, dict):
+            for key in expected_output_shape:
+                self.assertEqual(output[key].shape, expected_output_shape[key])
+        else:
+            self.assertEqual(output.shape, expected_output_shape)
+        # Check compiled predict function.
+        backbone.predict(input_data)
+        # Convert to numpy first, torch GPU tensor -> tf.data will error.
+        numpy_data = tree.map_structure(ops.convert_to_numpy, input_data)
+        # Create a dataset.
+        input_dataset = tf.data.Dataset.from_tensor_slices(numpy_data).batch(2)
+        backbone.predict(input_dataset)
 
-def convert_to_numpy(x):
-    if ops.is_tensor(x) and not isinstance(x, tf.RaggedTensor):
-        return ops.convert_to_numpy(x)
-    return x
+        # Check name maps to classname.
+        name = re.sub("(.)([A-Z][a-z]+)", r"\1_\2", cls.__name__)
+        name = re.sub("([a-z])([A-Z])", r"\1_\2", name).lower()
+        self.assertRegexpMatches(backbone.name, name)
+
+        # Test valid call with rescaling
+        backbone = cls(**{**init_kwargs, "include_rescaling": True})
+        backbone(self.input_data)
+
+        # Test variable input channels
+        for num_channels in [1, 4]:
+            backbone = cls(**{**init_kwargs, "input_shape": num_channels})
+            backbone(self.input_data)
