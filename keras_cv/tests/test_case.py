@@ -168,6 +168,70 @@ class TestCase(tf.test.TestCase, parameterized.TestCase):
         restored_output = restored_model(input_data)
         self.assertAllClose(model_output, restored_output)
 
+    def run_task_test(
+        self,
+        cls,
+        init_kwargs,
+        train_data,
+        expected_output_shape=None,
+        batch_size=2,
+    ):
+        """Run basic tests for a backbone, including compilation."""
+        task = cls(**init_kwargs)
+        # Check serialization (without a full save).
+        self.run_serialization_test(task)
+        ds = tf.data.Dataset.from_tensor_slices(train_data).batch(batch_size)
+        x, y, sw = keras.utils.unpack_x_y_sample_weight(train_data)
+
+        # Test predict.
+        output = task.predict(x)
+        if expected_output_shape is not None:
+            output_shape = tree.map_structure(lambda x: x.shape, output)
+            self.assertAllClose(output_shape, expected_output_shape)
+        # With a dataset.
+        output_ds = task.predict(ds)
+        self.assertAllClose(output, output_ds)
+        # Test fit.
+        task.fit(x, y, sample_weight=sw)
+        # With a dataset.
+        task.fit(ds)
+
+    def run_preset_test(
+        self,
+        cls,
+        preset,
+        input_data,
+        init_kwargs={},
+        expected_output=None,
+        expected_output_shape=None,
+    ):
+        """Run instantiation and a forward pass for a preset."""
+        self.assertRegex(cls.from_preset.__doc__, preset)
+
+        with self.assertRaises(ValueError):
+            cls.from_preset("clowntown", **init_kwargs)
+
+        instance = cls.from_preset(preset, **init_kwargs)
+
+        if isinstance(input_data, tuple):
+            # Mimic tf.data unpacking behavior for preprocessing layers.
+            output = instance(*input_data)
+        else:
+            output = instance(input_data)
+
+        if isinstance(instance, keras.Model):
+            instance = cls.from_preset(
+                preset, load_weights=False, **init_kwargs
+            )
+            instance(input_data)
+
+        if expected_output is not None:
+            self.assertAllClose(output, expected_output)
+
+        if expected_output_shape is not None:
+            output_shape = tree.map_structure(lambda x: x.shape, output)
+            self.assertAllClose(output_shape, expected_output_shape)
+
 
 def convert_to_numpy(x):
     if ops.is_tensor(x) and not isinstance(x, tf.RaggedTensor):
