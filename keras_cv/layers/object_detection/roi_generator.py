@@ -20,8 +20,9 @@ from typing import Union
 from keras_cv import bounding_box
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import assert_tf_keras
-from keras_cv.backend import ops
 from keras_cv.backend import keras
+from keras_cv.backend import ops
+from keras_cv.layers import NonMaxSuppression
 
 
 @keras_cv_export("keras_cv.layers.ROIGenerator")
@@ -161,17 +162,13 @@ class ROIGenerator(keras.layers.Layer):
                 target="yxyx",
             )
             # TODO(tanzhenyu): consider supporting soft / batched nms for accl
-            import tensorflow as tf
-            selected_indices, num_valid = tf.image.non_max_suppression_padded(
-                boxes,
-                scores,
-                max_output_size=level_post_nms_topk,
+            selected_indices, num_valid = NonMaxSuppression(
+                bounding_box_format=self.bounding_box_format,
+                from_logits=True,
                 iou_threshold=nms_iou_threshold,
-                score_threshold=nms_score_threshold,
-                pad_to_max_output_size=True,
-                sorted_input=True,
-                canonicalized_coordinates=True,
-            )
+                confidence_threshold=nms_score_threshold,
+                max_detections=level_post_nms_topk,
+            )(box_prediction=boxes, class_prediction=scores)
             # convert back to input format
             boxes = bounding_box.convert_format(
                 boxes,
