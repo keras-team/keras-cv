@@ -12,10 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Mapping
 from typing import Optional
-from typing import Tuple
-from typing import Union
 
 from keras_cv import bounding_box
 from keras_cv.api_export import keras_cv_export
@@ -97,7 +94,6 @@ class ROIGenerator(keras.layers.Layer):
         post_nms_topk_test: int = 1000,
         **kwargs,
     ):
-        assert_tf_keras("keras_cv.layers.ROIGenerator")
         super().__init__(**kwargs)
         self.bounding_box_format = bounding_box_format
         self.pre_nms_topk_train = pre_nms_topk_train
@@ -154,7 +150,7 @@ class ROIGenerator(keras.layers.Layer):
             scores, sorted_indices = ops.top_k(
                 scores, k=level_pre_nms_topk, sorted=True
             )
-            boxes = ops.take(boxes, sorted_indices, batch_dims=1)
+            boxes = ops.take(boxes, sorted_indices)
             # convert from input format to yxyx for the TF NMS operation
             boxes = bounding_box.convert_format(
                 boxes,
@@ -175,8 +171,8 @@ class ROIGenerator(keras.layers.Layer):
                 source="yxyx",
                 target=self.bounding_box_format,
             )
-            level_rois = ops.take(boxes, selected_indices, batch_dims=1)
-            level_roi_scores = ops.take(scores, selected_indices, batch_dims=1)
+            level_rois = ops.take(boxes, selected_indices)
+            level_roi_scores = ops.take(scores, selected_indices)
             level_rois = level_rois * ops.cast(
                 ops.reshape(ops.arange(level_post_nms_topk), [1, -1, 1])
                 < ops.reshape(num_valid, [-1, 1, 1]),
@@ -208,7 +204,7 @@ class ROIGenerator(keras.layers.Layer):
         roi_scores, sorted_indices = ops.top_k(
             roi_scores, k=overall_top_k, sorted=True
         )
-        rois = ops.take(rois, sorted_indices, batch_dims=1)
+        rois = ops.take(rois, sorted_indices)
 
         return rois, roi_scores
 

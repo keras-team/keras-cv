@@ -46,7 +46,7 @@ class RPNHead(keras.layers.Layer):
     def build(self, input_shape):
         if isinstance(input_shape, (dict, list, tuple)):
             input_shape = tree.flatten(input_shape)
-            input_shape = input_shape[0]
+            input_shape = input_shape[0:4]
         filters = input_shape[-1]
         self.conv = keras.layers.Conv2D(
             filters=filters,
