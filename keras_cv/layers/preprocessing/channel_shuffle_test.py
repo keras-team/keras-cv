@@ -70,7 +70,20 @@ class ChannelShuffleTest(TestCase):
         self.assertTrue(np.any(ops.convert_to_numpy(xs[0]) == 2.0))
         self.assertTrue(np.any(ops.convert_to_numpy(xs[1]) == 1.0))
 
-    @pytest.mark.tf_only
+    def test_layer_basics(self):
+        input_data = tf.cast(
+            tf.ones((1, 512, 512, 1)),
+            dtype=tf.float32,
+        )
+        init_kwargs = {
+            "groups": 1,
+        }
+        self.run_preprocessing_layer_test(
+            cls=ChannelShuffle,
+            init_kwargs=init_kwargs,
+            input_data=input_data,
+        )
+
     def test_in_tf_function(self):
         xs = tf.cast(
             tf.stack(
