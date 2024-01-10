@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""random_resized_crop_demo.py.py shows how to use the RandomResizedCrop
+"""random_crop_and_resize.py shows how to use the RandomCropAndResize
 preprocessing layer. Operates on an image of elephant. In this script the image
 is loaded, then are passed through the preprocessing layers.
 Finally, they are shown using matplotlib.
