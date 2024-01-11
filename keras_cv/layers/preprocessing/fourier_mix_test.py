@@ -21,6 +21,8 @@ num_classes = 10
 
 
 class FourierMixTest(TestCase):
+    # Cannot do basic layer test since the layer cannot be tested on single
+    # image
     def test_return_shapes(self):
         xs = tf.ones((2, 512, 512, 3))
         # randomly sample labels

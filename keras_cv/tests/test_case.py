@@ -217,6 +217,7 @@ class TestCase(tf.test.TestCase, parameterized.TestCase):
         init_kwargs,
         input_data,
         expected_output=None,
+        expected_output_shape=None,
         batch_size=2,
     ):
         """Run basic tests for a preprocessing layer."""
@@ -243,6 +244,9 @@ class TestCase(tf.test.TestCase, parameterized.TestCase):
 
         if expected_output is not None:
             self.assertAllClose(output, expected_output)
+
+        if expected_output_shape is not None:
+            self.assertAllClose(output.shape, expected_output_shape)
 
     def run_serialization_test(self, instance):
         """Check idempotency of serialize/deserialize.

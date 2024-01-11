@@ -34,15 +34,8 @@ class EqualizationTest(TestCase):
             init_kwargs=init_kwargs,
             input_data=input_data,
             expected_output=expected_output,
+            expected_output_shape=(2, 512, 512, 3),
         )
-
-    def test_return_shapes(self):
-        xs = 255 * np.ones((2, 512, 512, 3), dtype=np.int32)
-        layer = Equalization(value_range=(0, 255))
-        xs = layer(xs)
-
-        self.assertEqual(xs.shape, (2, 512, 512, 3))
-        self.assertAllEqual(xs, 255 * np.ones((2, 512, 512, 3)))
 
     @pytest.mark.tf_keras_only
     def test_return_shapes_inside_model(self):

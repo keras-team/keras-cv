@@ -72,16 +72,17 @@ class ChannelShuffleTest(TestCase):
 
     def test_layer_basics(self):
         input_data = tf.cast(
-            tf.ones((1, 512, 512, 1)),
+            tf.ones((2, 512, 512, 3)),
             dtype=tf.float32,
         )
         init_kwargs = {
-            "groups": 1,
+            "groups": 3,
         }
         self.run_preprocessing_layer_test(
             cls=ChannelShuffle,
             init_kwargs=init_kwargs,
             input_data=input_data,
+            expected_output_shape=(2, 512, 512, 3),
         )
 
     def test_in_tf_function(self):
