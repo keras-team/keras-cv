@@ -12,21 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict
-from typing import Mapping
 from typing import Optional
-from typing import Tuple
-
-import tensorflow as tf
-from tensorflow import keras
 
 from keras_cv import bounding_box
-from keras_cv.backend import assert_tf_keras
+from keras_cv.backend import keras
+from keras_cv.backend import ops
 
 
-def _feature_bilinear_interpolation(
-    features: tf.Tensor, kernel_y: tf.Tensor, kernel_x: tf.Tensor
-) -> tf.Tensor:
+def _feature_bilinear_interpolation(features, kernel_y, kernel_x):
     """
     Feature bilinear interpolation.
 
@@ -49,7 +42,7 @@ def _feature_bilinear_interpolation(
       A 5-D tensor representing feature crop of shape
       [batch_size, num_boxes, output_size, output_size, num_filters].
     """
-    features_shape = tf.shape(features)
+    features_shape = ops.shape(features)
     batch_size, num_boxes, output_size, num_filters = (
         features_shape[0],
         features_shape[1],
@@ -58,33 +51,39 @@ def _feature_bilinear_interpolation(
     )
 
     output_size = output_size // 2
-    kernel_y = tf.reshape(kernel_y, [batch_size, num_boxes, output_size * 2, 1])
-    kernel_x = tf.reshape(kernel_x, [batch_size, num_boxes, 1, output_size * 2])
+    kernel_y = ops.reshape(
+        kernel_y, [batch_size, num_boxes, output_size * 2, 1]
+    )
+    kernel_x = ops.reshape(
+        kernel_x, [batch_size, num_boxes, 1, output_size * 2]
+    )
     # Use implicit broadcast to generate the interpolation kernel. The
     # multiplier `4` is for avg pooling.
     interpolation_kernel = kernel_y * kernel_x * 4
 
     # Interpolate the gathered features with computed interpolation kernels.
-    features *= tf.cast(
-        tf.expand_dims(interpolation_kernel, axis=-1), dtype=features.dtype
+    features *= ops.cast(
+        ops.expand_dims(interpolation_kernel, axis=-1), dtype=features.dtype
     )
-    features = tf.reshape(
+    features = ops.reshape(
         features,
         [batch_size * num_boxes, output_size * 2, output_size * 2, num_filters],
     )
-    features = tf.nn.avg_pool(features, [1, 2, 2, 1], [1, 2, 2, 1], "VALID")
-    features = tf.reshape(
+    features = ops.nn.average_pool(
+        features, [1, 2, 2, 1], [1, 2, 2, 1], "VALID"
+    )
+    features = ops.reshape(
         features, [batch_size, num_boxes, output_size, output_size, num_filters]
     )
     return features
 
 
 def _compute_grid_positions(
-    boxes: tf.Tensor,
-    boundaries: tf.Tensor,
-    output_size: int,
-    sample_offset: float,
-) -> Tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
+    boxes,
+    boundaries,
+    output_size,
+    sample_offset,
+):
     """
     Computes the grid position w.r.t. the corresponding feature map.
 
@@ -108,10 +107,10 @@ def _compute_grid_positions(
       box_grid_y0y1: Tensor of size [batch_size, boxes, output_size, 2]
       box_grid_x0x1: Tensor of size [batch_size, boxes, output_size, 2]
     """
-    boxes_shape = tf.shape(boxes)
+    boxes_shape = ops.shape(boxes)
     batch_size, num_boxes = boxes_shape[0], boxes_shape[1]
     if batch_size is None:
-        batch_size = tf.shape(boxes)[0]
+        batch_size = ops.shape(boxes)[0]
     box_grid_x = []
     box_grid_y = []
     for i in range(output_size):
@@ -121,29 +120,33 @@ def _compute_grid_positions(
         box_grid_y.append(
             boxes[:, :, 0] + (i + sample_offset) * boxes[:, :, 2] / output_size
         )
-    box_grid_x = tf.stack(box_grid_x, axis=2)
-    box_grid_y = tf.stack(box_grid_y, axis=2)
+    box_grid_x = ops.stack(box_grid_x, axis=2)
+    box_grid_y = ops.stack(box_grid_y, axis=2)
 
-    box_grid_y0 = tf.floor(box_grid_y)
-    box_grid_x0 = tf.floor(box_grid_x)
-    box_grid_x0 = tf.maximum(tf.cast(0.0, dtype=box_grid_x0.dtype), box_grid_x0)
-    box_grid_y0 = tf.maximum(tf.cast(0.0, dtype=box_grid_y0.dtype), box_grid_y0)
-
-    box_grid_x0 = tf.minimum(
-        box_grid_x0, tf.expand_dims(boundaries[:, :, 1], -1)
+    box_grid_y0 = ops.floor(box_grid_y)
+    box_grid_x0 = ops.floor(box_grid_x)
+    box_grid_x0 = ops.maximum(
+        ops.cast(0.0, dtype=box_grid_x0.dtype), box_grid_x0
     )
-    box_grid_x1 = tf.minimum(
-        box_grid_x0 + 1, tf.expand_dims(boundaries[:, :, 1], -1)
-    )
-    box_grid_y0 = tf.minimum(
-        box_grid_y0, tf.expand_dims(boundaries[:, :, 0], -1)
-    )
-    box_grid_y1 = tf.minimum(
-        box_grid_y0 + 1, tf.expand_dims(boundaries[:, :, 0], -1)
+    box_grid_y0 = ops.maximum(
+        ops.cast(0.0, dtype=box_grid_y0.dtype), box_grid_y0
     )
 
-    box_gridx0x1 = tf.stack([box_grid_x0, box_grid_x1], axis=-1)
-    box_gridy0y1 = tf.stack([box_grid_y0, box_grid_y1], axis=-1)
+    box_grid_x0 = ops.minimum(
+        box_grid_x0, ops.expand_dims(boundaries[:, :, 1], -1)
+    )
+    box_grid_x1 = ops.minimum(
+        box_grid_x0 + 1, ops.expand_dims(boundaries[:, :, 1], -1)
+    )
+    box_grid_y0 = ops.minimum(
+        box_grid_y0, ops.expand_dims(boundaries[:, :, 0], -1)
+    )
+    box_grid_y1 = ops.minimum(
+        box_grid_y0 + 1, ops.expand_dims(boundaries[:, :, 0], -1)
+    )
+
+    box_gridx0x1 = ops.stack([box_grid_x0, box_grid_x1], axis=-1)
+    box_gridy0y1 = ops.stack([box_grid_y0, box_grid_y1], axis=-1)
 
     # The RoIAlign feature f can be computed by bilinear interpolation of four
     # neighboring feature points f0, f1, f2, and f3.
@@ -155,21 +158,21 @@ def _compute_grid_positions(
     lx = box_grid_x - box_grid_x0
     hy = 1.0 - ly
     hx = 1.0 - lx
-    kernel_y = tf.reshape(
-        tf.stack([hy, ly], axis=3), [batch_size, num_boxes, output_size, 2, 1]
+    kernel_y = ops.reshape(
+        ops.stack([hy, ly], axis=3), [batch_size, num_boxes, output_size, 2, 1]
     )
-    kernel_x = tf.reshape(
-        tf.stack([hx, lx], axis=3), [batch_size, num_boxes, output_size, 2, 1]
+    kernel_x = ops.reshape(
+        ops.stack([hx, lx], axis=3), [batch_size, num_boxes, output_size, 2, 1]
     )
     return kernel_y, kernel_x, box_gridy0y1, box_gridx0x1
 
 
 def multilevel_crop_and_resize(
-    features: Dict[str, tf.Tensor],
-    boxes: tf.Tensor,
+    features,
+    boxes,
     output_size: int = 7,
     sample_offset: float = 0.5,
-) -> tf.Tensor:
+):
     """
     Crop and resize on multilevel feature pyramid.
 
@@ -202,7 +205,7 @@ def multilevel_crop_and_resize(
         levels = [int(level_str[1:]) for level_str in levels_str]
         min_level = min(levels)
         max_level = max(levels)
-        features_shape = tf.shape(features[f"P{min_level}"])
+        features_shape = ops.shape(features[f"P{min_level}"])
         batch_size, max_feature_height, max_feature_width, num_filters = (
             features_shape[0],
             features_shape[1],
@@ -210,7 +213,7 @@ def multilevel_crop_and_resize(
             features_shape[3],
         )
 
-        num_boxes = tf.shape(boxes)[1]
+        num_boxes = ops.shape(boxes)[1]
 
         # Stack feature pyramid into a features_all of shape
         # [batch_size, levels, height, width, num_filters].
@@ -224,9 +227,13 @@ def multilevel_crop_and_resize(
             # Concat tensor of [batch_size, height_l * width_l, num_filters] for
             # each level.
             features_all.append(
-                tf.reshape(features[f"P{level}"], [batch_size, -1, num_filters])
+                ops.reshape(
+                    features[f"P{level}"], [batch_size, -1, num_filters]
+                )
             )
-        features_r2 = tf.reshape(tf.concat(features_all, 1), [-1, num_filters])
+        features_r2 = ops.reshape(
+            ops.concatenate(features_all, 1), [-1, num_filters]
+        )
 
         # Calculate height_l * width_l for each level.
         level_dim_sizes = [
@@ -244,53 +251,53 @@ def multilevel_crop_and_resize(
         # Assigns boxes to the right level.
         box_width = boxes[:, :, 3] - boxes[:, :, 1]
         box_height = boxes[:, :, 2] - boxes[:, :, 0]
-        areas_sqrt = tf.sqrt(
-            tf.cast(box_height, tf.float32) * tf.cast(box_width, tf.float32)
+        areas_sqrt = ops.sqrt(
+            ops.cast(box_height, "float32") * ops.cast(box_width, "float32")
         )
 
         # following the FPN paper to divide by 224.
-        levels = tf.cast(
-            tf.math.floordiv(
-                tf.math.log(tf.math.divide_no_nan(areas_sqrt, 224.0)),
-                tf.math.log(2.0),
+        levels = ops.cast(
+            ops.floor_divide(
+                ops.log(tf.math.divide_no_nan(areas_sqrt, 224.0)),
+                ops.log(2.0),
             )
             + 4.0,
-            dtype=tf.int32,
+            dtype="int32",
         )
         # Maps levels between [min_level, max_level].
-        levels = tf.minimum(max_level, tf.maximum(levels, min_level))
+        levels = ops.minimum(max_level, ops.maximum(levels, min_level))
 
         # Projects box location and sizes to corresponding feature levels.
-        scale_to_level = tf.cast(
-            tf.pow(tf.constant(2.0), tf.cast(levels, tf.float32)),
+        scale_to_level = ops.cast(
+            ops.pow(tf.constant(2.0), ops.cast(levels, "float32")),
             dtype=boxes.dtype,
         )
-        boxes /= tf.expand_dims(scale_to_level, axis=2)
+        boxes /= ops.expand_dims(scale_to_level, axis=2)
         box_width /= scale_to_level
         box_height /= scale_to_level
-        boxes = tf.concat(
+        boxes = ops.concatenate(
             [
                 boxes[:, :, 0:2],
-                tf.expand_dims(box_height, -1),
-                tf.expand_dims(box_width, -1),
+                ops.expand_dims(box_height, -1),
+                ops.expand_dims(box_width, -1),
             ],
             axis=-1,
         )
 
         # Maps levels to [0, max_level-min_level].
         levels -= min_level
-        level_strides = tf.pow([[2.0]], tf.cast(levels, tf.float32))
-        boundary = tf.cast(
-            tf.concat(
+        level_strides = ops.pow([[2.0]], ops.cast(levels, "float32"))
+        boundary = ops.cast(
+            ops.concatenate(
                 [
-                    tf.expand_dims(
-                        [[tf.cast(max_feature_height, tf.float32)]]
+                    ops.expand_dims(
+                        [[ops.cast(max_feature_height, "float32")]]
                         / level_strides
                         - 1,
                         axis=-1,
                     ),
-                    tf.expand_dims(
-                        [[tf.cast(max_feature_width, tf.float32)]]
+                    ops.expand_dims(
+                        [[ops.cast(max_feature_width, "float32")]]
                         / level_strides
                         - 1,
                         axis=-1,
@@ -309,42 +316,42 @@ def multilevel_crop_and_resize(
             box_gridx0x1,
         ) = _compute_grid_positions(boxes, boundary, output_size, sample_offset)
 
-        x_indices = tf.cast(
-            tf.reshape(box_gridx0x1, [batch_size, num_boxes, output_size * 2]),
-            dtype=tf.int32,
+        x_indices = ops.cast(
+            ops.reshape(box_gridx0x1, [batch_size, num_boxes, output_size * 2]),
+            dtype="int32",
         )
-        y_indices = tf.cast(
-            tf.reshape(box_gridy0y1, [batch_size, num_boxes, output_size * 2]),
-            dtype=tf.int32,
+        y_indices = ops.cast(
+            ops.reshape(box_gridy0y1, [batch_size, num_boxes, output_size * 2]),
+            dtype="int32",
         )
 
-        batch_size_offset = tf.tile(
-            tf.reshape(
-                tf.range(batch_size) * batch_dim_size, [batch_size, 1, 1, 1]
+        batch_size_offset = ops.tile(
+            ops.reshape(
+                ops.arange(batch_size) * batch_dim_size, [batch_size, 1, 1, 1]
             ),
             [1, num_boxes, output_size * 2, output_size * 2],
         )
         # Get level offset for each box. Each box belongs to one level.
-        levels_offset = tf.tile(
-            tf.reshape(
-                tf.gather(level_dim_offsets, levels),
+        levels_offset = ops.tile(
+            ops.reshape(
+                ops.take(level_dim_offsets, levels),
                 [batch_size, num_boxes, 1, 1],
             ),
             [1, 1, output_size * 2, output_size * 2],
         )
-        y_indices_offset = tf.tile(
-            tf.reshape(
+        y_indices_offset = ops.tile(
+            ops.reshape(
                 y_indices
-                * tf.expand_dims(tf.gather(height_dim_sizes, levels), -1),
+                * ops.expand_dims(ops.take(height_dim_sizes, levels), -1),
                 [batch_size, num_boxes, output_size * 2, 1],
             ),
             [1, 1, 1, output_size * 2],
         )
-        x_indices_offset = tf.tile(
-            tf.reshape(x_indices, [batch_size, num_boxes, 1, output_size * 2]),
+        x_indices_offset = ops.tile(
+            ops.reshape(x_indices, [batch_size, num_boxes, 1, output_size * 2]),
             [1, 1, output_size * 2, 1],
         )
-        indices = tf.reshape(
+        indices = ops.reshape(
             batch_size_offset
             + levels_offset
             + y_indices_offset
@@ -354,8 +361,8 @@ def multilevel_crop_and_resize(
 
         # TODO(tanzhenyu): replace tf.gather with tf.gather_nd and try to get
         #  similar performance.
-        features_per_box = tf.reshape(
-            tf.gather(features_r2, indices),
+        features_per_box = ops.reshape(
+            ops.take(features_r2, indices),
             [
                 batch_size,
                 num_boxes,
@@ -395,7 +402,7 @@ class _ROIAligner(keras.layers.Layer):
           sample_offset: A `float` in [0, 1] of the subpixel sample offset.
           **kwargs: Additional keyword arguments passed to Layer.
         """
-        assert_tf_keras("keras_cv.layers._ROIAligner")
+        # assert_tf_keras("keras_cv.layers._ROIAligner")
         self._config_dict = {
             "bounding_box_format": bounding_box_format,
             "crop_size": target_size,
@@ -405,8 +412,8 @@ class _ROIAligner(keras.layers.Layer):
 
     def call(
         self,
-        features: Mapping[str, tf.Tensor],
-        boxes: tf.Tensor,
+        features,
+        boxes,
         training: Optional[bool] = None,
     ):
         """
