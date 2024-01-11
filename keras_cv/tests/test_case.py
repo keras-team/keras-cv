@@ -241,7 +241,7 @@ class TestCase(tf.test.TestCase, parameterized.TestCase):
         output_ds = ds.batch(1_000).map(layer)
         self.assertAllClose(output, output_ds.get_single_element())
 
-        if expected_output:
+        if expected_output is not None:
             self.assertAllClose(output, expected_output)
 
     def run_serialization_test(self, instance):

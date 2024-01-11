@@ -23,6 +23,19 @@ from keras_cv.tests.test_case import TestCase
 
 
 class EqualizationTest(TestCase):
+    def test_layer_basics(self):
+        input_data = 255 * np.ones((2, 512, 512, 3), dtype=np.int32)
+        init_kwargs = {
+            "value_range": (0, 255),
+        }
+        expected_output = 255 * np.ones((2, 512, 512, 3))
+        self.run_preprocessing_layer_test(
+            cls=Equalization,
+            init_kwargs=init_kwargs,
+            input_data=input_data,
+            expected_output=expected_output,
+        )
+
     def test_return_shapes(self):
         xs = 255 * np.ones((2, 512, 512, 3), dtype=np.int32)
         layer = Equalization(value_range=(0, 255))
