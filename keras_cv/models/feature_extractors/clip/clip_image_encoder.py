@@ -12,20 +12,26 @@ class CLIPPatchingAndEmbedding(keras.layers.Layer):
             strides=patch_size,
             use_bias=False,
         )
+        self.width = width
+        self.input_resolution = input_resolution
+        self.patch_size = patch_size
 
+    def build(self, input_shape):
+        self.conv1.build(input_shape)
         self.class_embedding = self.add_weight(
-            shape=((width,)), name="patch_embed.class_embedding", trainable=True
+            shape=((self.width,)), name="patch_embed.class_embedding"
         )
 
         self.positional_embedding = self.add_weight(
-            shape=(((input_resolution // patch_size) ** 2 + 1, width)),
+            shape=(
+                (
+                    (self.input_resolution // self.patch_size) ** 2 + 1,
+                    self.width,
+                )
+            ),
             trainable=True,
             name="patch_embed.positional_embedding",
         )
-    def build(self, input_shape):
-        self.conv1.build(input_shape)
-        self.class_embedding.build(input_shape)
-        self.positional_embedding.build(input_shape)
 
     def call(self, x):
         x = self.conv1(x)  # shape = [*, grid, grid, width]
