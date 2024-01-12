@@ -76,18 +76,13 @@ class CLIPProcessor:
                     tokens[-1] = eot_token
                 else:
                     raise RuntimeError(
-                        f"Input {texts[i]} is too long for context length {context_length}"
+                        f"Input {texts[i]} is too long for context "
+                        "length {context_length}"
                     )
             result[i, : len(tokens)] = tokens
 
         result = ops.stack(result)
         return result
-
-    def process_pair(self, images, texts, device=None):
-        if device:
-            raise ValueError(
-                "device argument is only supported for the PyTorch backend"
-            )
 
         images = self.process_images(images)
         texts = self.process_texts(texts)

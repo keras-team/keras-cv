@@ -45,7 +45,6 @@ class CLIP(keras.Model):
             layers=vision_layers,
             heads=vision_heads,
             output_dim=embed_dim,
-            backend="tensorflow",
         )
 
         self.transformer = ResidualTransformerEncoder(
@@ -53,7 +52,6 @@ class CLIP(keras.Model):
             layers=transformer_layers,
             heads=transformer_heads,
             attn_mask=self.build_attention_mask(),
-            backend="tensorflow",
         )
 
         self.vocab_size = vocab_size

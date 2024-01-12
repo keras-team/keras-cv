@@ -67,10 +67,7 @@ class ResidualTransformerEncoder(keras.layers.Layer):
         self.width = width
         self.layers = layers
         self.resblocks = keras.Sequential(
-            [
-                ResidualAttention(width, heads, attn_mask, backend="tensorflow")
-                for _ in range(layers)
-            ]
+            [ResidualAttention(width, heads, attn_mask) for _ in range(layers)]
         )
 
     def call(self, x):
@@ -129,7 +126,6 @@ class CLIPImageEncoder(keras.Model):
             width=width,
             patch_size=patch_size,
             input_resolution=input_resolution,
-            backend="tensorflow",
         )(x)
         x = keras.layers.LayerNormalization(epsilon=1e-6)(x)
 
