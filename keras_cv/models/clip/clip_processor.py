@@ -1,17 +1,11 @@
-from typing import List
-from typing import Union
-
 import numpy as np
-from deepvision.models.feature_extractors.clip.clip_tokenizer import (
-    CLIPTokenizer,
-)
-from pkg_resources import packaging
 
 from keras_cv.backend import keras
 from keras_cv.backend import ops
+from keras_cv.models.clip.clip_tokenizer import CLIPTokenizer
 
 
-class __CLIPProcessor:
+class CLIPProcessor:
     def __init__(self, input_resolution):
         self.input_resolution = input_resolution
         self.image_transform = self.transform_image
