@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""This demo example shows how to use the RandomCropAndResize preprocessing 
+"""This demo example shows how to use the RandomCropAndResize preprocessing
 layer. Operates on an image of elephant. In this script the image
 is loaded, then are passed through the preprocessing layers.
 Finally, they are shown using matplotlib.
