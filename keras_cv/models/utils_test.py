@@ -24,7 +24,7 @@ class ModelUtilTestCase(TestCase):
         input_shape = (224, 244, 3)
 
         inputs = utils.parse_model_inputs(input_shape, None)
-        self.assertEqual(inputs.shape.as_list(), list((None,) + input_shape))
+        self.assertEqual(list(inputs.shape), list((None,) + input_shape))
 
         input_tensor = layers.Input(shape=input_shape)
         self.assertIs(
