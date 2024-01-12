@@ -26,13 +26,13 @@ class CLIPPatchingAndEmbedding(keras.layers.Layer):
     def call(self, x):
         x = self.conv1(x)  # shape = [*, grid, grid, width]
         x = ops.transpose(
-            x, perm=[0, 3, 1, 2]
+            x, axes=[0, 3, 1, 2]
         )  # shape = [*, width, grid, grid]
         shape = ops.shape(x)
         x = ops.reshape(
             x, [shape[0], shape[1], shape[2] * shape[3]]
         )  # shape = [*, width, grid ** 2]
-        x = ops.transpose(x, perm=(0, 2, 1))  # shape = [*, grid ** 2, width]
+        x = ops.transpose(x, axes=(0, 2, 1))  # shape = [*, grid ** 2, width]
 
         class_embedding = self.class_embedding
 
@@ -44,7 +44,7 @@ class CLIPPatchingAndEmbedding(keras.layers.Layer):
         class_embedding_expanded = ops.tile(
             class_embedding_expanded, (shape[0], 1, 1)
         )
-        x = ops.concat(
+        x = ops.concatenate(
             [class_embedding_expanded, x], axis=1
         )  # shape = [*, grid ** 2 + 1, width]
         positional_embedding = self.positional_embedding
@@ -89,6 +89,9 @@ class ResidualAttention(keras.layers.Layer):
         )
         self.ln_2 = keras.layers.LayerNormalization(epsilon=1e-5)
         self.attn_mask = attn_mask
+        self.q_proj = keras.layers.Dense(units=d_model, name="q_proj")
+        self.k_proj = keras.layers.Dense(units=d_model, name="k_proj")
+        self.v_proj = keras.layers.Dense(units=d_model, name="v_proj")
 
     def attention(self, x):
         self.attn_mask = (
@@ -97,7 +100,12 @@ class ResidualAttention(keras.layers.Layer):
             else None
         )
 
-        return self.attn(x, attention_mask=self.attn_mask)
+        key = self.k_proj(inputs=x)
+        value = self.v_proj(inputs=x)
+        query = self.q_proj(inputs=x)
+        return self.attn(
+            key=key, value=value, query=query, attention_mask=self.attn_mask
+        )
 
     def call(self, x):
         x = x + self.attention(self.ln_1(x))
@@ -129,9 +137,9 @@ class CLIPImageEncoder(keras.Model):
         )(x)
         x = keras.layers.LayerNormalization(epsilon=1e-6)(x)
 
-        x = ops.transpose(x, perm=(1, 0, 2))
+        x = ops.transpose(x, axes=(1, 0, 2))
         x = ResidualTransformerEncoder(width, layers, heads)(x)
-        x = ops.transpose(x, perm=(1, 0, 2))
+        x = ops.transpose(x, axes=(1, 0, 2))
 
         x = keras.layers.LayerNormalization(epsilon=1e-6)(x[:, 0, :])
 

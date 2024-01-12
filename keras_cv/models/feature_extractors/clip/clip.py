@@ -97,7 +97,7 @@ class CLIP(keras.Model):
         batch_size = x.shape[0]
         indices_stack = ops.stack(
             [
-                ops.arange(batch_size, dtype="int32"),
+                ops.arange(0, batch_size, dtype="int32"),
                 ops.cast(ops.argmax(text, axis=1), "int32"),
             ],
             axis=-1,
