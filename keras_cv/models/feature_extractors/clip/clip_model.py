@@ -94,15 +94,10 @@ class CLIP(keras.Model):
         x = self.transformer(x)
         x = self.ln_final(x)
 
-        batch_size = x.shape[0]
-        indices_stack = ops.stack(
-            [
-                ops.arange(0, batch_size, dtype="int32"),
-                ops.cast(ops.argmax(text, axis=1), "int32"),
-            ],
-            axis=-1,
+        indices = ops.expand_dims(
+            ops.cast(ops.argmax(text, axis=1), "int32"), axis=-1
         )
-        selected_features = ops.take(x, indices_stack)
+        selected_features = ops.take_along_axis(x, indices[:, :, None], axis=1)
         x = ops.matmul(selected_features, self.text_projection)
 
         return x
