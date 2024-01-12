@@ -41,5 +41,5 @@ from keras_cv.core import ConstantFactorSampler
 from keras_cv.core import FactorSampler
 from keras_cv.core import NormalFactorSampler
 from keras_cv.core import UniformFactorSampler
-
-__version__ = "0.8.1"
+from keras_cv.version_utils import __version__
+from keras_cv.version_utils import version
