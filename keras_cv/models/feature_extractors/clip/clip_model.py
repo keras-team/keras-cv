@@ -115,7 +115,8 @@ class CLIP(keras.Model):
 
         logit_scale = ops.exp(self.logit_scale)
         logits_per_image = logit_scale * ops.matmul(
-            image_features, text_features, transpose_b=True
+            image_features,
+            ops.transpose(text_features),
         )
         logits_per_text = ops.transpose(logits_per_image)
 
