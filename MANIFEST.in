@@ -1,1 +1,2 @@
 recursive-include keras_cv/custom_ops *.so
+include keras_cv/models/feature_extractors/clip/CLIP_clip_bpe_simple_vocab_16e6.txt.gz
