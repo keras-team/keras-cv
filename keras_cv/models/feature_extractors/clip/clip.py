@@ -1,7 +1,12 @@
+from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
-from keras_cv.models.clip.clip_image_encoder import CLIPImageEncoder
-from keras_cv.models.clip.clip_image_encoder import ResidualTransformerEncoder
+from keras_cv.models.feature_extractors.clip.clip_image_encoder import (
+    CLIPImageEncoder,
+)
+from keras_cv.models.feature_extractors.clip.clip_image_encoder import (
+    ResidualTransformerEncoder,
+)
 
 MODEL_CONFIGS = {
     "CLIP_B16": {
@@ -19,6 +24,9 @@ MODEL_CONFIGS = {
 }
 
 
+@keras_cv_export(
+    ["keras_cv.models.CLIP", "keras_cv.models.feature_extractors.CLIP"]
+)
 class CLIP(keras.Model):
     def __init__(
         self,

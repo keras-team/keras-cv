@@ -2,9 +2,10 @@ import numpy as np
 
 from keras_cv.backend import keras
 from keras_cv.backend import ops
-from keras_cv.models.clip.clip_tokenizer import CLIPTokenizer
+from keras_cv.models.feature_extractors.clip.clip_tokenizer import CLIPTokenizer
+from keras_cv.api_export import keras_cv_export
 
-
+@keras_cv_export("keras_cv.models.feature_extractors.CLIPProcessor")
 class CLIPProcessor:
     def __init__(self, input_resolution):
         self.input_resolution = input_resolution
