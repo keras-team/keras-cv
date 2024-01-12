@@ -99,7 +99,7 @@ class CLIP(keras.Model):
         )
         selected_features = ops.take_along_axis(x, indices[:, :, None], axis=1)
         x = ops.matmul(selected_features, self.text_projection)
-        x = ops.squeeze(x)
+        x = ops.squeeze(x, axis=1)
         return x
 
     def call(self, image, text):
