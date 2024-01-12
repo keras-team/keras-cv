@@ -24,7 +24,7 @@ class CLIPProcessor:
             ops.image.resize(
                 image,
                 (input_resolution, input_resolution),
-                method="bicubic",
+                interpolation="bicubic",
             )
             / 255.0
         )

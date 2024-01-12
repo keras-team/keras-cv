@@ -22,6 +22,10 @@ class CLIPPatchingAndEmbedding(keras.layers.Layer):
             trainable=True,
             name="patch_embed.positional_embedding",
         )
+    def build(self, input_shape):
+        self.conv1.build(input_shape)
+        self.class_embedding.build(input_shape)
+        self.positional_embedding.build(input_shape)
 
     def call(self, x):
         x = self.conv1(x)  # shape = [*, grid, grid, width]
