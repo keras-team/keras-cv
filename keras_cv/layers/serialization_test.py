@@ -377,6 +377,14 @@ class SerializationTest(TestCase):
                 "from_logits": True,
             },
         ),
+        (
+            "NonMaxSuppression",
+            cv_layers.NonMaxSuppression,
+            {
+                "bounding_box_format": "yxyx",
+                "from_logits": True,
+            },
+        ),
     )
     def test_layer_serialization(self, layer_cls, init_args):
         # TODO: Some layers are not yet compatible with Keras 3.

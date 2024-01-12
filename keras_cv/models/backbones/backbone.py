@@ -13,10 +13,10 @@
 # limitations under the License.
 """Base class for Backbone models."""
 
-import os
-
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
+from keras_cv.utils.preset_utils import check_preset_class
+from keras_cv.utils.preset_utils import load_from_preset
 from keras_cv.utils.python_utils import classproperty
 from keras_cv.utils.python_utils import format_docstring
 
@@ -32,6 +32,20 @@ class Backbone(keras.Model):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._pyramid_level_inputs = {}
+        self._functional_layer_ids = set(
+            id(layer) for layer in self._flatten_layers()
+        )
+
+    def __dir__(self):
+        # Temporary fixes for weight saving. This mimics the following PR for
+        # older version of Keras: https://github.com/keras-team/keras/pull/18982
+        def filter_fn(attr):
+            try:
+                return id(getattr(self, attr)) not in self._functional_layer_ids
+            except:
+                return True
+
+        return filter(filter_fn, super().__dir__())
 
     def get_config(self):
         # Don't chain to super here. The default `get_config()` for functional
@@ -95,42 +109,17 @@ class Backbone(keras.Model):
             load_weights=False,
         ```
         """
+        # We support short IDs for official presets, e.g. `"bert_base_en"`.
+        # Map these to a Kaggle Models handle.
+        if preset in cls.presets:
+            preset = cls.presets[preset]["kaggle_handle"]
 
-        if not cls.presets:
-            raise NotImplementedError(
-                "No presets have been created for this class."
-            )
-
-        if preset not in cls.presets:
-            raise ValueError(
-                "`preset` must be one of "
-                f"""{", ".join(cls.presets)}. Received: {preset}."""
-            )
-
-        if load_weights and preset not in cls.presets_with_weights:
-            raise ValueError(
-                f"""Pretrained weights not available for preset "{preset}". """
-                "Set `load_weights=False` to use this preset or choose one of "
-                "the following presets with weights:"
-                f""" "{'", "'.join(cls.presets_with_weights)}"."""
-            )
-
-        metadata = cls.presets[preset]
-        config = metadata["config"]
-        model = cls.from_config({**config, **kwargs})
-
-        if preset not in cls.presets_with_weights or load_weights is False:
-            return model
-
-        weights = keras.utils.get_file(
-            "model.h5",
-            metadata["weights_url"],
-            cache_subdir=os.path.join("models", preset),
-            file_hash=metadata["weights_hash"],
+        check_preset_class(preset, cls)
+        return load_from_preset(
+            preset,
+            load_weights=load_weights,
+            config_overrides=kwargs,
         )
-
-        model.load_weights(weights)
-        return model
 
     def __init_subclass__(cls, **kwargs):
         # Use __init_subclass__ to set up a correct docstring for from_preset.
