@@ -73,6 +73,7 @@ setup(
         "packaging",
         "absl-py",
         "regex",
+        "ftfy",
         "tensorflow-datasets",
         "keras-core",
         "kagglehub",
