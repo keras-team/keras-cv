@@ -17,6 +17,7 @@ import os
 import numpy as np
 import pytest
 import tensorflow as tf
+from absl.testing import parameterized
 
 from keras_cv.backend import keras
 from keras_cv.backend import ops
@@ -49,6 +50,7 @@ class BASNetTest(TestCase):
         _ = model.predict(images)
 
     @pytest.mark.large
+    @pytest.mark.filterwarnings("ignore::UserWarning")
     def test_weights_change(self):
         input_size = [288, 288, 3]
         target_size = [288, 288, 1]
@@ -63,11 +65,14 @@ class BASNetTest(TestCase):
         model = BASNet(
             input_shape=[288, 288, 3], backbone=backbone, num_classes=1
         )
+        model_metrics = ["accuracy"]
+        if keras_3():
+            model_metrics = ["accuracy" for _ in range(8)]
 
         model.compile(
             optimizer="adam",
             loss=keras.losses.BinaryCrossentropy(),
-            metrics=["accuracy"],
+            metrics=model_metrics,
         )
 
         original_weights = model.refinement_head.get_weights()
@@ -77,6 +82,17 @@ class BASNetTest(TestCase):
         for w1, w2 in zip(original_weights, updated_weights):
             self.assertNotAllEqual(w1, w2)
             self.assertFalse(ops.any(ops.isnan(w2)))
+
+    @pytest.mark.large
+    def test_with_model_preset_forward_pass(self):
+        model = BASNet.from_preset(
+            "basnet_resnet34",
+        )
+        image = np.ones((1, 288, 288, 3))
+        output = ops.expand_dims(ops.argmax(model(image), axis=-1), axis=-1)
+        output = output[0]
+        expected_output = np.zeros((1, 288, 288, 1))
+        self.assertAllClose(output, expected_output)
 
     @pytest.mark.large
     def test_saved_model(self):
@@ -103,3 +119,19 @@ class BASNetTest(TestCase):
         # Check that output matches.
         restored_output = restored_model(input_batch)
         self.assertAllClose(model_output, restored_output)
+
+
+@pytest.mark.large
+class BASNetSmokeTest(TestCase):
+    @parameterized.named_parameters(
+        *[(preset, preset) for preset in ["resnet18", "resnet34"]]
+    )
+    def test_backbone_preset(self, preset):
+        model = BASNet.from_preset(
+            preset,
+            num_classes=1,
+        )
+        xs = np.random.uniform(size=(1, 128, 128, 3))
+        output = model(xs)[0]
+
+        self.assertEqual(output.shape, (1, 128, 128, 1))

@@ -15,13 +15,26 @@
 
 from keras_cv.models.backbones.resnet_v1 import resnet_v1_backbone_presets
 
-basnet_presets = {
+presets_no_weights = {
+    "basnet_resnet18": {
+        "metadata": {
+            "description": "BASNet with a ResNet18 v1 backbone.",
+            "params": 98780872,
+            "official_name": "BASNet",
+            "path": "basnet_resnet18",
+        },
+        "config": {
+            "backbone": resnet_v1_backbone_presets.backbone_presets["resnet18"],
+            "num_classes": 1,
+            "input_shape": (288, 288, 3),
+        },
+    },
     "basnet_resnet34": {
         "metadata": {
-            "description": ("BASNet with a ResNet34 v1 backbone. "),
-            "params": 108868802,
+            "description": "BASNet with a ResNet34 v1 backbone.",
+            "params": 108896456,
             "official_name": "BASNet",
-            "path": "basnet",
+            "path": "basnet_resnet34",
         },
         "config": {
             "backbone": resnet_v1_backbone_presets.backbone_presets["resnet34"],
@@ -30,3 +43,9 @@ basnet_presets = {
         },
     },
 }
+
+presets_with_weights = {
+    # TODO: Add BASNet preset with weights
+}
+
+basnet_presets = {**presets_no_weights, **presets_with_weights}

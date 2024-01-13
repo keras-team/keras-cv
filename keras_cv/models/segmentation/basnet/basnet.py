@@ -18,13 +18,16 @@ from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.models import utils
 from keras_cv.models.backbones.backbone_presets import backbone_presets
-from keras_cv.models.backbones.backbone_presets import (
-    backbone_presets_with_weights,
-)
 from keras_cv.models.backbones.resnet_v1.resnet_v1_backbone import (
     apply_basic_block as resnet_basic_block,
 )
 from keras_cv.models.segmentation.basnet.basnet_presets import basnet_presets
+from keras_cv.models.segmentation.basnet.basnet_presets import (
+    presets_no_weights,
+)
+from keras_cv.models.segmentation.basnet.basnet_presets import (
+    presets_with_weights,
+)
 from keras_cv.models.task import Task
 from keras_cv.utils.python_utils import classproperty
 
@@ -60,9 +63,9 @@ class BASNet(Task):
             layer.
         projection_filters: int, number of filters in the convolution layer
             projecting low-level features from the `backbone`.
-        prediction_head: (Optional) a `keras.layers.Layer` defining the
-            prediction module head for the model. If not provided, a default
-            head is created with a Conv2D layer followed by resizing.
+        prediction_heads: (Optional) List of `keras.layers.Layer` defining
+            the prediction module head for the model. If not provided, a
+            default head is created with a Conv2D layer followed by resizing.
         refinement_head: (Optional) a `keras.layers.Layer` defining the
             refinement module head for the model. If not provided, a default
             head is created with a Conv2D layer.
@@ -107,7 +110,7 @@ class BASNet(Task):
         input_tensor=None,
         include_rescaling=False,
         projection_filters=64,
-        prediction_head=None,
+        prediction_heads=None,
         refinement_head=None,
         **kwargs,
     ):
@@ -133,16 +136,22 @@ class BASNet(Task):
         if include_rescaling:
             x = keras.layers.Rescaling(1 / 255.0)(x)
 
-        if prediction_head is None:
-            input_size = keras.backend.int_shape(x)
-            prediction_head = keras.Sequential(
-                [
+        if prediction_heads is None:
+            prediction_heads = []
+            for size in (1, 2, 4, 8, 16, 32, 32):
+                head_layers = [
                     keras.layers.Conv2D(
                         num_classes, kernel_size=(3, 3), padding="same"
-                    ),
-                    keras.layers.Resizing(input_size[1], input_size[2]),
+                    )
                 ]
-            )
+                if size != 1:
+                    head_layers.append(
+                        keras.layers.UpSampling2D(
+                            size=size, interpolation="bilinear"
+                        )
+                    )
+                prediction_heads.append(keras.Sequential(head_layers))
+
         if refinement_head is None:
             refinement_head = keras.Sequential(
                 [
@@ -154,7 +163,7 @@ class BASNet(Task):
 
         # Prediction model.
         predict_model = basnet_predict(
-            x, backbone, projection_filters, prediction_head
+            x, backbone, projection_filters, prediction_heads
         )
 
         # Refinement model.
@@ -162,8 +171,8 @@ class BASNet(Task):
             predict_model, projection_filters, refinement_head
         )
 
-        outputs = [refine_model.output]  # Combine outputs.
-        outputs.extend(predict_model.output)
+        outputs = refine_model.outputs  # Combine outputs.
+        outputs.extend(predict_model.outputs)
 
         outputs = [
             keras.layers.Activation("sigmoid", dtype="float32")(_)
@@ -177,7 +186,7 @@ class BASNet(Task):
         self.input_tensor = input_tensor
         self.include_rescaling = include_rescaling
         self.projection_filters = projection_filters
-        self.prediction_head = prediction_head
+        self.prediction_heads = prediction_heads
         self.refinement_head = refinement_head
 
     def get_config(self):
@@ -190,9 +199,10 @@ class BASNet(Task):
             ),
             "include_rescaling": self.include_rescaling,
             "projection_filters": self.projection_filters,
-            "prediction_head": keras.saving.serialize_keras_object(
-                self.prediction_head
-            ),
+            "prediction_heads": [
+                keras.saving.serialize_keras_object(prediction_head)
+                for prediction_head in self.prediction_heads
+            ],
             "refinement_head": keras.saving.serialize_keras_object(
                 self.refinement_head
             ),
@@ -218,12 +228,14 @@ class BASNet(Task):
                 config["input_tensor"]
             )
 
-        if "prediction_head" in config and isinstance(
-            config["prediction_head"], dict
+        if "prediction_heads" in config and isinstance(
+            config["prediction_heads"], list
         ):
-            config["prediction_head"] = keras.layers.deserialize(
-                config["prediction_head"]
-            )
+            for i in range(len(config["prediction_heads"])):
+                if isinstance(config["prediction_heads"][i], dict):
+                    config["prediction_heads"][i] = keras.layers.deserialize(
+                        config["prediction_heads"][i]
+                    )
 
         if "refinement_head" in config and isinstance(
             config["refinement_head"], dict
@@ -236,23 +248,44 @@ class BASNet(Task):
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
-        return copy.deepcopy({**backbone_presets, **basnet_presets})
+        filtered_backbone_presets = copy.deepcopy(
+            {
+                k: v
+                for k, v in backbone_presets.items()
+                if k in ("resnet18", "resnet34")
+            }
+        )
+
+        return copy.deepcopy({**filtered_backbone_presets, **basnet_presets})
 
     @classproperty
     def presets_with_weights(cls):
         """
         Dictionary of preset names and configurations that include weights.
         """
-        return copy.deepcopy(
-            {**backbone_presets_with_weights, **basnet_presets}
-        )
+        return copy.deepcopy(presets_with_weights)
+
+    @classproperty
+    def presets_without_weights(cls):
+        """
+        Dictionary of preset names and configurations that has no weights.
+        """
+        return copy.deepcopy(presets_no_weights)
 
     @classproperty
     def backbone_presets(cls):
         """
         Dictionary of preset names and configurations of compatible backbones.
         """
-        return copy.deepcopy(backbone_presets)
+        filtered_backbone_presets = copy.deepcopy(
+            {
+                k: v
+                for k, v in backbone_presets.items()
+                if k in ("resnet18", "resnet34")
+            }
+        )
+        filtered_presets = copy.deepcopy(filtered_backbone_presets)
+        return filtered_presets
 
 
 def convolution_block(x_input, filters, dilation=1):
@@ -294,11 +327,11 @@ def get_resnet_block(_resnet, block_num):
         outputs=_resnet.get_layer(
             _resnet.pyramid_level_inputs[extractor_levels[block_num]]
         ).output,
-        name=f"resnet34_block{block_num + 1}",
+        name=f"resnet_block{block_num + 1}",
     )
 
 
-def basnet_predict(x_input, backbone, filters, segmentation_head):
+def basnet_predict(x_input, backbone, filters, segmentation_heads):
     """
     BASNet Prediction Module.
 
@@ -310,8 +343,8 @@ def basnet_predict(x_input, backbone, filters, segmentation_head):
         backbone: `keras.Model`. The backbone network used as a feature
             extractor for BASNet prediction encoder.
         filters: int, the number of filters.
-        segmentation_head: a `keras.layers.Layer`, A Keras layer serving as
-            the segmentation head for prediction module.
+        segmentation_heads: List of `keras.layers.Layer`, A list of Keras
+            layers serving as the segmentation head for prediction module.
 
 
     Returns:
@@ -332,11 +365,10 @@ def basnet_predict(x_input, backbone, filters, segmentation_head):
             encoder_blocks.append(x)
         else:  # Last 2 stages consist of three basic resnet blocks.
             x = keras.layers.MaxPool2D(pool_size=(2, 2), strides=(2, 2))(x)
-            shape = keras.backend.int_shape(x)
             for j in range(3):
                 x = resnet_basic_block(
                     x,
-                    filters=shape[3],
+                    filters=x.shape[3],
                     conv_shortcut=False,
                     name=f"v1_basic_block_{i + 1}_{j + 1}",
                 )
@@ -352,8 +384,7 @@ def basnet_predict(x_input, backbone, filters, segmentation_head):
     decoder_blocks = []
     for i in reversed(range(num_stages)):
         if i != (num_stages - 1):  # Except first, scale other decoder stages.
-            shape = keras.backend.int_shape(x)
-            x = keras.layers.Resizing(shape[1] * 2, shape[2] * 2)(x)
+            x = keras.layers.UpSampling2D(size=2, interpolation="bilinear")(x)
 
         x = keras.layers.concatenate([encoder_blocks[i], x], axis=-1)
         x = convolution_block(x, filters=filters * 8)
@@ -367,7 +398,9 @@ def basnet_predict(x_input, backbone, filters, segmentation_head):
     # -------------Side Outputs--------------
     decoder_blocks = [
         segmentation_head(decoder_block)  # Prediction segmentation head.
-        for decoder_block in decoder_blocks
+        for segmentation_head, decoder_block in zip(
+            segmentation_heads, decoder_blocks
+        )
     ]
 
     return keras.models.Model(inputs=[x_input], outputs=decoder_blocks)
@@ -409,8 +442,7 @@ def basnet_rrm(base_model, filters, segmentation_head):
 
     # -------------Decoder--------------
     for i in reversed(range(num_stages)):
-        shape = keras.backend.int_shape(x)
-        x = keras.layers.Resizing(shape[1] * 2, shape[2] * 2)(x)
+        x = keras.layers.UpSampling2D(size=2, interpolation="bilinear")(x)
         x = keras.layers.concatenate([encoder_blocks[i], x], axis=-1)
         x = convolution_block(x, filters=filters)
 
@@ -419,4 +451,4 @@ def basnet_rrm(base_model, filters, segmentation_head):
     # ------------- refined = coarse + residual
     x = keras.layers.Add()([x_input, x])  # Add prediction + refinement output
 
-    return keras.models.Model(inputs=[base_model.input], outputs=[x])
+    return keras.models.Model(inputs=base_model.input, outputs=[x])
