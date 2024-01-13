@@ -11,16 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""YOLOv8 Backbone presets."""
+
+from keras_cv.api_export import keras_cv_export
+
+# Unique source of truth for the version number.
+__version__ = "0.8.2"
 
 
-backbone_presets = {
-    "center_pillar_waymo_open_dataset": {
-        "metadata": {
-            "description": "An example CenterPillar backbone for WOD.",
-            "params": 1277680,
-            "official_name": "CenterPillar",
-        },
-        "kaggle_handle": "gs://keras-cv-kaggle/center_pillar_waymo_open_dataset",  # noqa: E501
-    },
-}
+@keras_cv_export("keras_cv.version")
+def version():
+    return __version__
