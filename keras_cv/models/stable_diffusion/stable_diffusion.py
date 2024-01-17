@@ -209,7 +209,10 @@ class StableDiffusionBase:
             latent = self._get_initial_diffusion_noise(batch_size, seed)
 
         # Iterative reverse diffusion stage
-        timesteps = np.arange(1, 1000, 1000 // num_steps)
+        num_timesteps = 1000
+        ratio = (num_timesteps - 1) / (num_steps - 1)
+        timesteps = (np.arange(0, num_steps) * ratio).round().astype(np.int64)
+
         alphas, alphas_prev = self._get_initial_alphas(timesteps)
         progbar = keras.utils.Progbar(len(timesteps))
         iteration = 0
