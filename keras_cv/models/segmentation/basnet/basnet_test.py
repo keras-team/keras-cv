@@ -85,6 +85,7 @@ class BASNetTest(TestCase):
 
     @pytest.mark.large
     def test_with_model_preset_forward_pass(self):
+        self.skipTest("Skipping preset test until BASNet weights are added.")
         model = BASNet.from_preset(
             "basnet_resnet34",
         )
