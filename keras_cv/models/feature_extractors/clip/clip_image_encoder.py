@@ -1,6 +1,6 @@
 from keras_cv.backend import keras
 from keras_cv.backend import ops
-
+from keras_nlp.layers import TransformerEncoder
 
 class CLIPPatchingAndEmbedding(keras.layers.Layer):
     def __init__(self, width, patch_size, input_resolution):
@@ -94,13 +94,11 @@ class ResidualAttention(keras.layers.Layer):
     ):
         super().__init__()
 
-        self.attn = keras.layers.MultiHeadAttention(
-            n_head,
+        self.attn = TransformerEncoder(
             d_model,
+            n_head,
             name="multi_head_attention",
         )
-        self.n_head=n_head
-        self.d_model=d_model
         self.ln_1 = keras.layers.LayerNormalization(epsilon=1e-5, name="ln_1")
         self.mlp = keras.Sequential(
             [
@@ -111,9 +109,6 @@ class ResidualAttention(keras.layers.Layer):
         )
         self.ln_2 = keras.layers.LayerNormalization(epsilon=1e-5, name="ln_2")
         self.attn_mask = attn_mask
-        self.q_proj = keras.layers.Dense(units=d_model, name="q_proj")
-        self.k_proj = keras.layers.Dense(units=d_model, name="k_proj")
-        self.v_proj = keras.layers.Dense(units=d_model, name="v_proj")
 
     def attention(self, x):
         self.attn_mask = (
@@ -122,11 +117,8 @@ class ResidualAttention(keras.layers.Layer):
             else None
         )
 
-        key = self.k_proj(inputs=x)
-        value = self.v_proj(inputs=x)
-        query = self.q_proj(inputs=x)
         return self.attn(
-            key=key, value=value, query=query, attention_mask=self.attn_mask
+            x, attention_mask=self.attn_mask
         )
 
     def call(self, x):
