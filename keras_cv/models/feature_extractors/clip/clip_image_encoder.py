@@ -11,6 +11,7 @@ class CLIPPatchingAndEmbedding(keras.layers.Layer):
             kernel_size=patch_size,
             strides=patch_size,
             use_bias=False,
+            name="patch_embed.embedding",
         )
         self.width = width
         self.input_resolution = input_resolution
@@ -72,12 +73,17 @@ class QuickGELU(keras.layers.Layer):
 
 
 class ResidualTransformerEncoder(keras.layers.Layer):
-    def __init__(self, width, layers, heads, attn_mask=None):
+    def __init__(self, width, layers, heads, output_dim=None, attn_mask=None):
         super().__init__()
         self.width = width
         self.layers = layers
         self.resblocks = keras.Sequential(
-            [ResidualAttention(width, heads, attn_mask) for _ in range(layers)]
+            [
+                ResidualAttention(
+                    width, heads, attn_mask, output_dim=output_dim
+                )
+                for _ in range(layers)
+            ]
         )
 
     def call(self, x):
@@ -85,11 +91,22 @@ class ResidualTransformerEncoder(keras.layers.Layer):
 
 
 class ResidualAttention(keras.layers.Layer):
-    def __init__(self, d_model, n_head, attn_mask=None):
+    def __init__(
+        self,
+        d_model,
+        n_head,
+        attn_mask=None,
+        output_dim=None,
+    ):
         super().__init__()
 
-        self.attn = keras.layers.MultiHeadAttention(n_head, d_model)
-        self.ln_1 = keras.layers.LayerNormalization(epsilon=1e-5)
+        self.attn = keras.layers.MultiHeadAttention(
+            n_head,
+            d_model,
+            output_dim=output_dim,
+            name="multi_head_attention",
+        )
+        self.ln_1 = keras.layers.LayerNormalization(epsilon=1e-5, name="ln_1")
         self.mlp = keras.Sequential(
             [
                 keras.layers.Dense(d_model * 4, name="c_fc"),
@@ -97,7 +114,7 @@ class ResidualAttention(keras.layers.Layer):
                 keras.layers.Dense(d_model, name="c_proj"),
             ]
         )
-        self.ln_2 = keras.layers.LayerNormalization(epsilon=1e-5)
+        self.ln_2 = keras.layers.LayerNormalization(epsilon=1e-5, name="ln_2")
         self.attn_mask = attn_mask
         self.q_proj = keras.layers.Dense(units=d_model, name="q_proj")
         self.k_proj = keras.layers.Dense(units=d_model, name="k_proj")
@@ -145,15 +162,23 @@ class CLIPImageEncoder(keras.Model):
             patch_size=patch_size,
             input_resolution=input_resolution,
         )(x)
-        x = keras.layers.LayerNormalization(epsilon=1e-6)(x)
+        x = keras.layers.LayerNormalization(epsilon=1e-6, name="ln_1")(x)
 
         x = ops.transpose(x, axes=(1, 0, 2))
-        x = ResidualTransformerEncoder(width, layers, heads)(x)
+        x = ResidualTransformerEncoder(
+            width,
+            layers,
+            heads,
+            output_dim=output_dim,
+            name="residual_transformer_encoder",
+        )(x)
         x = ops.transpose(x, axes=(1, 0, 2))
 
-        x = keras.layers.LayerNormalization(epsilon=1e-6)(x[:, 0, :])
+        x = keras.layers.LayerNormalization(epsilon=1e-6)(
+            x[:, 0, :], name="ln_2"
+        )
 
-        proj = keras.layers.Dense(output_dim)
+        proj = keras.layers.Dense(output_dim, name="vision_projector")
         x = proj(x)
 
         output = x
