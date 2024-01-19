@@ -73,17 +73,12 @@ class QuickGELU(keras.layers.Layer):
 
 
 class ResidualTransformerEncoder(keras.layers.Layer):
-    def __init__(self, width, layers, heads, output_dim=None, attn_mask=None):
-        super().__init__()
+    def __init__(self, width, layers, heads, attn_mask=None, **kwargs):
+        super().__init__(**kwargs)
         self.width = width
         self.layers = layers
         self.resblocks = keras.Sequential(
-            [
-                ResidualAttention(
-                    width, heads, attn_mask, output_dim=output_dim
-                )
-                for _ in range(layers)
-            ]
+            [ResidualAttention(width, heads, attn_mask) for _ in range(layers)]
         )
 
     def call(self, x):
@@ -96,16 +91,16 @@ class ResidualAttention(keras.layers.Layer):
         d_model,
         n_head,
         attn_mask=None,
-        output_dim=None,
     ):
         super().__init__()
 
         self.attn = keras.layers.MultiHeadAttention(
             n_head,
             d_model,
-            output_dim=output_dim,
             name="multi_head_attention",
         )
+        self.n_head=n_head
+        self.d_model=d_model
         self.ln_1 = keras.layers.LayerNormalization(epsilon=1e-5, name="ln_1")
         self.mlp = keras.Sequential(
             [
@@ -169,13 +164,12 @@ class CLIPImageEncoder(keras.Model):
             width,
             layers,
             heads,
-            output_dim=output_dim,
             name="residual_transformer_encoder",
         )(x)
         x = ops.transpose(x, axes=(1, 0, 2))
 
-        x = keras.layers.LayerNormalization(epsilon=1e-6)(
-            x[:, 0, :], name="ln_2"
+        x = keras.layers.LayerNormalization(epsilon=1e-6, name="ln_2")(
+            x[:, 0, :]
         )
 
         proj = keras.layers.Dense(output_dim, name="vision_projector")
