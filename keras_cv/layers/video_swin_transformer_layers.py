@@ -708,7 +708,11 @@ class BasicLayer(keras.Model):
         drop_path (float | tuple[float], optional): Stochastic depth rate. Default: 0.0
         norm_layer (keras.layers, optional): Normalization layer. Default: LayerNormalization
         downsample (keras.layers | None, optional): Downsample layer at the end of the layer. Default: None
-    """
+    
+    References:
+        - [Video Swin Transformer](https://arxiv.org/abs/2106.13230)
+        - [Video Swin Transformer GitHub](https://github.com/SwinTransformer/Video-Swin-Transformer)
+    """ # noqa: E501
 
     def __init__(
         self,
