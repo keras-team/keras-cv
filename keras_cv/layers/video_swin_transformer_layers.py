@@ -158,21 +158,21 @@ class MLP(layers.Layer):
         hidden_dim=None,
         output_dim=None,
         drop_rate=0.0,
-        act_layer=layers.Activation("gelu"),
+        activation="gelu",
         **kwargs
     ):
         super().__init__(**kwargs)
         self.output_dim = output_dim
         self.hidden_dim = hidden_dim
         self.drop_rate = drop_rate
-        self.act = act_layer
+        self.activation = activation
         self.fc1 = layers.Dense(self.hidden_dim)
         self.fc2 = layers.Dense(self.output_dim)
         self.dropout = layers.Dropout(self.drop_rate)
 
     def call(self, x, training=None):
         x = self.fc1(x)
-        x = self.act(x)
+        x = layers.Activation(self.activation)(x)
         x = self.dropout(x, training=training)
         x = self.fc2(x)
         x = self.dropout(x, training=training)
@@ -182,9 +182,10 @@ class MLP(layers.Layer):
         config = super().get_config()
         config.update(
             {
-                "out_features": self.out_features, 
-                "hidden_features": self.hidden_features,
+                "output_dim": self.output_dim, 
+                "hidden_dim": self.hidden_dim,
                 "drop_rate": self.drop_rate,
+                "activation": self.activation
             }
         )
         return config
