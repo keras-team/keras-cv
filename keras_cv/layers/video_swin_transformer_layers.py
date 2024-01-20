@@ -204,7 +204,7 @@ class MLP(layers.Layer):
         return config
     
 
-class PatchEmbed3D(keras.Model):
+class PatchEmbedding3D(keras.Model):
     """Video to Patch Embedding.
 
     Args:
@@ -219,16 +219,6 @@ class PatchEmbed3D(keras.Model):
         self.embed_dim = embed_dim
         self.norm_layer = norm_layer
 
-    def build(self, input_shape):
-        self.pads = [
-            [0, 0],
-            self._compute_padding(input_shape[1], self.patch_size[0]),
-            self._compute_padding(input_shape[2], self.patch_size[1]),
-            self._compute_padding(input_shape[3], self.patch_size[2]),
-            [0, 0],
-        ]
-
-        # layers
         self.proj = layers.Conv3D(
             self.embed_dim,
             kernel_size=self.patch_size,
@@ -239,6 +229,15 @@ class PatchEmbed3D(keras.Model):
             self.norm = self.norm_layer(axis=-1, epsilon=1e-5, name="embed_norm")
         else:
             self.norm = None
+
+    def build(self, input_shape):
+        self.pads = [
+            [0, 0],
+            self._compute_padding(input_shape[1], self.patch_size[0]),
+            self._compute_padding(input_shape[2], self.patch_size[1]),
+            self._compute_padding(input_shape[3], self.patch_size[2]),
+            [0, 0],
+        ]
 
     def _compute_padding(self, dim, patch_size):
         pad_amount = patch_size - (dim % patch_size)
@@ -260,6 +259,16 @@ class PatchEmbed3D(keras.Model):
             x = self.norm(x)
 
         return x
+    
+    def get_config(self):
+        config = super().get_config()
+        config.update(
+            {
+                "patch_size": self.patch_size, 
+                "embed_dim": self.embed_dim,
+            }
+        )
+        return config
     
 
 class PatchMerging(layers.Layer):
