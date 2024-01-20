@@ -12,14 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from functools import partial
+
+import numpy as np
+from keras import layers
+
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 from keras_cv.layers import DropPath
 
-import numpy as np
-from functools import partial
-from keras import layers
 
 def window_partition(x, window_size):
     """
@@ -156,7 +158,7 @@ class MLP(layers.Layer):
     Args:
         hidden_dim (int): The number of units in the hidden layers.
         output_dim (int): The number of units in the output layer.
-        drop_rate  (float): Float between 0 and 1. Fraction of the 
+        drop_rate  (float): Float between 0 and 1. Fraction of the
             input units to drop.
         activation (str): Activation to use in the hidden layers.
             Default is `"gelu"`.
@@ -164,15 +166,10 @@ class MLP(layers.Layer):
     References:
         - [Video Swin Transformer](https://arxiv.org/abs/2106.13230)
         - [Video Swin Transformer GitHub](https://github.com/SwinTransformer/Video-Swin-Transformer)
-    """ # noqa: E501
+    """  # noqa: E501
 
     def __init__(
-        self,
-        hidden_dim,
-        output_dim,
-        drop_rate,
-        activation="gelu",
-        **kwargs
+        self, hidden_dim, output_dim, drop_rate, activation="gelu", **kwargs
     ):
         super().__init__(**kwargs)
         self.output_dim = output_dim
@@ -190,19 +187,19 @@ class MLP(layers.Layer):
         x = self.fc2(x)
         x = self.dropout(x, training=training)
         return x
-    
+
     def get_config(self):
         config = super().get_config()
         config.update(
             {
-                "output_dim": self.output_dim, 
+                "output_dim": self.output_dim,
                 "hidden_dim": self.hidden_dim,
                 "drop_rate": self.drop_rate,
-                "activation": self.activation
+                "activation": self.activation,
             }
         )
         return config
-    
+
 
 class PatchEmbedding3D(keras.Model):
     """Video to Patch Embedding layer.
@@ -215,9 +212,11 @@ class PatchEmbedding3D(keras.Model):
     References:
         - [Video Swin Transformer](https://arxiv.org/abs/2106.13230)
         - [Video Swin Transformer GitHub](https://github.com/SwinTransformer/Video-Swin-Transformer)
-    """ # noqa: E501
+    """  # noqa: E501
 
-    def __init__(self, patch_size=(2, 4, 4), embed_dim=96, norm_layer=None, **kwargs):
+    def __init__(
+        self, patch_size=(2, 4, 4), embed_dim=96, norm_layer=None, **kwargs
+    ):
         super().__init__(**kwargs)
         self.patch_size = patch_size
         self.embed_dim = embed_dim
@@ -230,7 +229,9 @@ class PatchEmbedding3D(keras.Model):
             name="embed_proj",
         )
         if self.norm_layer is not None:
-            self.norm = self.norm_layer(axis=-1, epsilon=1e-5, name="embed_norm")
+            self.norm = self.norm_layer(
+                axis=-1, epsilon=1e-5, name="embed_norm"
+            )
         else:
             self.norm = None
 
@@ -252,7 +253,9 @@ class PatchEmbedding3D(keras.Model):
             (dim - self.patch_size[i]) // self.patch_size[i] + 1
             for i, dim in enumerate(input_shape[1:-1])
         ]
-        output_shape = (input_shape[0],) + tuple(spatial_dims) + (self.embed_dim,)
+        output_shape = (
+            (input_shape[0],) + tuple(spatial_dims) + (self.embed_dim,)
+        )
         return output_shape
 
     def call(self, x):
@@ -263,17 +266,17 @@ class PatchEmbedding3D(keras.Model):
             x = self.norm(x)
 
         return x
-    
+
     def get_config(self):
         config = super().get_config()
         config.update(
             {
-                "patch_size": self.patch_size, 
+                "patch_size": self.patch_size,
                 "embed_dim": self.embed_dim,
             }
         )
         return config
-    
+
 
 class PatchMerging(layers.Layer):
     """Patch Merging Layer.
@@ -285,7 +288,7 @@ class PatchMerging(layers.Layer):
     References:
         - [Video Swin Transformer](https://arxiv.org/abs/2106.13230)
         - [Video Swin Transformer GitHub](https://github.com/SwinTransformer/Video-Swin-Transformer)
-    """ # noqa: E501
+    """  # noqa: E501
 
     def __init__(self, dim, norm_layer=layers.LayerNormalization, **kwargs):
         super().__init__(**kwargs)
@@ -317,7 +320,7 @@ class PatchMerging(layers.Layer):
         x = self.norm(x)
         x = self.reduction(x)
         return x
-    
+
     def get_config(self):
         config = super().get_config()
         config.update(
@@ -326,11 +329,9 @@ class PatchMerging(layers.Layer):
             }
         )
         return config
-    
 
-@keras_cv_export(
-    "keras_cv.layers.WindowAttention3D", package="keras_cv.layers"
-)
+
+@keras_cv_export("keras_cv.layers.WindowAttention3D", package="keras_cv.layers")
 class WindowAttention3D(keras.Model):
     """Window based multi-head self attention (W-MSA) module with relative position bias.
     It supports both of shifted and non-shifted window.
@@ -347,7 +348,7 @@ class WindowAttention3D(keras.Model):
     References:
         - [Video Swin Transformer](https://arxiv.org/abs/2106.13230)
         - [Video Swin Transformer GitHub](https://github.com/SwinTransformer/Video-Swin-Transformer)
-    """ # noqa: E501
+    """  # noqa: E501
 
     def __init__(
         self,
@@ -355,9 +356,9 @@ class WindowAttention3D(keras.Model):
         window_size,
         num_heads,
         qkv_bias,
-        qk_scale = None,
-        attn_drop_rate = 0.0,
-        proj_drop_rate = 0.0,
+        qk_scale=None,
+        attn_drop_rate=0.0,
+        proj_drop_rate=0.0,
         **kwargs
     ):
         super().__init__(**kwargs)
@@ -392,20 +393,26 @@ class WindowAttention3D(keras.Model):
         self.proj = layers.Dense(self.dim)
         self.proj_drop = layers.Dropout(self.proj_drop_rate)
 
-    def get_relative_position_index(self, window_depth, window_height, window_width):
+    def get_relative_position_index(
+        self, window_depth, window_height, window_width
+    ):
         y_y, z_z, x_x = ops.meshgrid(
             range(window_width), range(window_depth), range(window_height)
         )
         coords = ops.stack([z_z, y_y, x_x], axis=0)
         coords_flatten = ops.reshape(coords, [3, -1])
-        relative_coords = coords_flatten[:, :, None] - coords_flatten[:, None, :]
+        relative_coords = (
+            coords_flatten[:, :, None] - coords_flatten[:, None, :]
+        )
         relative_coords = ops.transpose(relative_coords, [1, 2, 0])
         z_z = (
             (relative_coords[:, :, 0] + window_depth - 1)
             * (2 * window_height - 1)
             * (2 * window_width - 1)
         )
-        x_x = (relative_coords[:, :, 1] + window_height - 1) * (2 * window_width - 1)
+        x_x = (relative_coords[:, :, 1] + window_height - 1) * (
+            2 * window_width - 1
+        )
         y_y = relative_coords[:, :, 2] + window_width - 1
         relative_coords = ops.stack([z_z, x_x, y_y], axis=-1)
         return ops.sum(relative_coords, axis=-1)
@@ -420,7 +427,8 @@ class WindowAttention3D(keras.Model):
 
         qkv = self.qkv(x)
         qkv = ops.reshape(
-            qkv, [batch_size, depth, 3, self.num_heads, channel // self.num_heads]
+            qkv,
+            [batch_size, depth, 3, self.num_heads, channel // self.num_heads],
         )
         qkv = ops.transpose(qkv, [2, 0, 3, 1, 4])
         q, k, v = ops.split(qkv, 3, axis=0)
@@ -434,8 +442,12 @@ class WindowAttention3D(keras.Model):
             self.relative_position_bias_table,
             self.relative_position_index[:depth, :depth],
         )
-        relative_position_bias = ops.reshape(relative_position_bias, [depth, depth, -1])
-        relative_position_bias = ops.transpose(relative_position_bias, [2, 0, 1])
+        relative_position_bias = ops.reshape(
+            relative_position_bias, [depth, depth, -1]
+        )
+        relative_position_bias = ops.transpose(
+            relative_position_bias, [2, 0, 1]
+        )
         attention_maps = attention_maps + relative_position_bias[None, ...]
 
         if mask is not None:
@@ -443,7 +455,13 @@ class WindowAttention3D(keras.Model):
             mask = ops.cast(mask, dtype=attention_maps.dtype)
             attention_maps = ops.reshape(
                 attention_maps,
-                [batch_size // mask_size, mask_size, self.num_heads, depth, depth],
+                [
+                    batch_size // mask_size,
+                    mask_size,
+                    self.num_heads,
+                    depth,
+                    depth,
+                ],
             )
             attention_maps = attention_maps + mask[:, None, :, :]
             attention_maps = ops.reshape(
@@ -477,7 +495,7 @@ class WindowAttention3D(keras.Model):
             }
         )
         return config
-    
+
 
 @keras_cv_export(
     "keras_cv.layers.SwinTransformerBlock3D", package="keras_cv.layers"
@@ -502,22 +520,22 @@ class SwinTransformerBlock3D(keras.Model):
     References:
         - [Video Swin Transformer](https://arxiv.org/abs/2106.13230)
         - [Video Swin Transformer GitHub](https://github.com/SwinTransformer/Video-Swin-Transformer)
-    """ # noqa: E501
+    """  # noqa: E501
 
     def __init__(
         self,
         dim,
         num_heads,
-        window_size = (2, 7, 7),
-        shift_size = (0, 0, 0),
-        mlp_ratio = 4.0,
-        qkv_bias = True,
-        qk_scale = None,
-        drop_rate = 0.0,
-        attn_drop = 0.0,
-        drop_path = 0.0,
-        activation = "gelu",
-        norm_layer = layers.LayerNormalization,
+        window_size=(2, 7, 7),
+        shift_size=(0, 0, 0),
+        mlp_ratio=4.0,
+        qkv_bias=True,
+        qk_scale=None,
+        drop_rate=0.0,
+        attn_drop=0.0,
+        drop_path=0.0,
+        activation="gelu",
+        norm_layer=layers.LayerNormalization,
         **kwargs
     ):
         super().__init__(**kwargs)
@@ -566,7 +584,9 @@ class SwinTransformerBlock3D(keras.Model):
             proj_drop=self.drop_rate,
         )
         self.drop_path = (
-            DropPath(self.drop_path) if self.drop_path > 0.0 else layers.Identity()
+            DropPath(self.drop_path)
+            if self.drop_path > 0.0
+            else layers.Identity()
         )
         self.norm2 = self.norm_layer(axis=-1, epsilon=1e-05)
         self.mlp = MLP(
@@ -578,7 +598,7 @@ class SwinTransformerBlock3D(keras.Model):
 
     def _forward(self, x, mask_matrix, return_attention_maps, training):
         input_shape = ops.shape(x)
-        batch_size, depth, height, width, channel = (
+        batch_size, depth, height, width, _ = (
             input_shape[0],
             input_shape[1],
             input_shape[2],
@@ -593,7 +613,13 @@ class SwinTransformerBlock3D(keras.Model):
         pad_d1 = ops.mod(-depth + window_size[0], window_size[0])
         pad_b = ops.mod(-height + window_size[1], window_size[1])
         pad_r = ops.mod(-width + window_size[2], window_size[2])
-        paddings = [[0, 0], [pad_d0, pad_d1], [pad_t, pad_b], [pad_l, pad_r], [0, 0]]
+        paddings = [
+            [0, 0],
+            [pad_d0, pad_d1],
+            [pad_t, pad_b],
+            [pad_l, pad_r],
+            [0, 0],
+        ]
         x = ops.pad(x, paddings)
 
         input_shape = ops.shape(x)
@@ -627,11 +653,18 @@ class SwinTransformerBlock3D(keras.Model):
                 training=training,
             )
         else:
-            attention_windows = self.attn(x_windows, mask=attn_mask, training=training)
+            attention_windows = self.attn(
+                x_windows, mask=attn_mask, training=training
+            )
 
         # reverse the swin windows
         shifted_x = window_reverse(
-            attention_windows, window_size, batch_size, depth_p, height_p, width_p
+            attention_windows,
+            window_size,
+            batch_size,
+            depth_p,
+            height_p,
+            width_p,
         )
 
         # Reverse Cyclic Shift
@@ -649,14 +682,18 @@ class SwinTransformerBlock3D(keras.Model):
             ops.greater(pad_d1, 0),
             ops.logical_or(ops.greater(pad_r, 0), ops.greater(pad_b, 0)),
         )
-        x = ops.cond(do_pad, lambda: x[:, :depth, :height, :width, :], lambda: x)
+        x = ops.cond(
+            do_pad, lambda: x[:, :depth, :height, :width, :], lambda: x
+        )
 
         if return_attention_maps:
             return x, attention_maps
 
         return x
 
-    def call(self, x, mask_matrix=None, return_attention_maps=False, training=None):
+    def call(
+        self, x, mask_matrix=None, return_attention_maps=False, training=None
+    ):
         shortcut = x
         x = self._forward(x, mask_matrix, return_attention_maps, training)
 
@@ -670,7 +707,7 @@ class SwinTransformerBlock3D(keras.Model):
             return x, attention_maps
 
         return x
-    
+
     def get_config(self):
         config = super().get_config()
         config.update(
@@ -683,10 +720,10 @@ class SwinTransformerBlock3D(keras.Model):
                 "qkv_bias": self.qkv_bias,
                 "qk_scale": self.qk_scale,
                 "attn_drop": self.attn_drop,
-                "drop_rate": self.drop_rate, 
+                "drop_rate": self.drop_rate,
                 "drop_path": self.drop_path,
                 "mlp_hidden_dim": self.mlp_hidden_dim,
-                "activation": self.activation
+                "activation": self.activation,
             }
         )
         return config
@@ -708,28 +745,26 @@ class BasicLayer(keras.Model):
         drop_path (float | tuple[float], optional): Stochastic depth rate. Default: 0.0
         norm_layer (keras.layers, optional): Normalization layer. Default: LayerNormalization
         downsample (keras.layers | None, optional): Downsample layer at the end of the layer. Default: None
-    
+
     References:
         - [Video Swin Transformer](https://arxiv.org/abs/2106.13230)
         - [Video Swin Transformer GitHub](https://github.com/SwinTransformer/Video-Swin-Transformer)
-    """ # noqa: E501
+    """  # noqa: E501
 
     def __init__(
         self,
         dim,
         depth,
         num_heads,
-        window_size = (1, 7, 7),
-        mlp_ratio = 4.0,
-        qkv_bias = False,
-        qk_scale = None,
-        drop_rate = 0.0,
-        attn_drop = 0.0,
-        drop_path = 0.0,
-        norm_layer = partial(
-            layers.LayerNormalization, epsilon=1e-05
-        ),
-        downsample = None,
+        window_size=(1, 7, 7),
+        mlp_ratio=4.0,
+        qkv_bias=False,
+        qk_scale=None,
+        drop_rate=0.0,
+        attn_drop=0.0,
+        drop_path=0.0,
+        norm_layer=partial(layers.LayerNormalization, epsilon=1e-05),
+        downsample=None,
         **kwargs
     ):
         super().__init__(**kwargs)
@@ -796,11 +831,13 @@ class BasicLayer(keras.Model):
         ]
 
         if self.downsample is not None:
-            self.downsample = self.downsample(dim=self.dim, norm_layer=self.norm_layer)
+            self.downsample = self.downsample(
+                dim=self.dim, norm_layer=self.norm_layer
+            )
 
     def call(self, x, training=None, return_attention_maps=False):
         input_shape = ops.shape(x)
-        batch_size, depth, height, width, channel = (
+        batch_size, depth, height, width, _ = (
             input_shape[0],
             input_shape[1],
             input_shape[2],
