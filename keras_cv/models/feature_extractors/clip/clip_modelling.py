@@ -220,6 +220,7 @@ class CLIPAttention(keras.layers.Layer):
         value_layer = self._transpose_for_scores(mixed_value_layer, batch_size)
 
         # Scaled dot product between key and query = raw attention scores.
+       
         attention_scores = ops.matmul(
             query_layer, ops.transpose(key_layer, axes=[0, 1, 3, 2])
         )
