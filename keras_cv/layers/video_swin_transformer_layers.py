@@ -304,6 +304,9 @@ class PatchMerging(layers.Layer):
         return config
     
 
+@keras_cv_export(
+    "keras_cv.layers.WindowAttention3D", package="keras_cv.layers"
+)
 class WindowAttention3D(keras.Model):
     """Window based multi-head self attention (W-MSA) module with relative position bias.
     It supports both of shifted and non-shifted window.
@@ -448,6 +451,9 @@ class WindowAttention3D(keras.Model):
         return config
     
 
+@keras_cv_export(
+    "keras_cv.layers.SwinTransformerBlock3D", package="keras_cv.layers"
+)
 class SwinTransformerBlock3D(keras.Model):
     """Swin Transformer Block.
 
