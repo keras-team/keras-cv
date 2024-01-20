@@ -205,13 +205,17 @@ class MLP(layers.Layer):
     
 
 class PatchEmbedding3D(keras.Model):
-    """Video to Patch Embedding.
+    """Video to Patch Embedding layer.
 
     Args:
         patch_size (int): Patch token size. Default: (2,4,4).
         embed_dim (int): Number of linear projection output channels. Default: 96.
         norm_layer (keras.layers, optional): Normalization layer. Default: None
-    """
+
+    References:
+        - [Video Swin Transformer](https://arxiv.org/abs/2106.13230)
+        - [Video Swin Transformer GitHub](https://github.com/SwinTransformer/Video-Swin-Transformer)
+    """ # noqa: E501
 
     def __init__(self, patch_size=(2, 4, 4), embed_dim=96, norm_layer=None, **kwargs):
         super().__init__(**kwargs)
