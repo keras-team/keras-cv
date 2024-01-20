@@ -1,3 +1,16 @@
+# Copyright 2023 The KerasCV Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
@@ -53,6 +66,7 @@ class CLIP(keras.Model):
             layers=vision_layers,
             heads=vision_heads,
             output_dim=embed_dim,
+            name="clip_encoder",
         )
 
         self.transformer = ResidualTransformerEncoder(
@@ -60,17 +74,20 @@ class CLIP(keras.Model):
             layers=transformer_layers,
             heads=transformer_heads,
             attn_mask=self.build_attention_mask(),
+            name="residual_transformer_encoder",
         )
 
         self.vocab_size = vocab_size
         self.token_embedding = keras.layers.Embedding(
-            vocab_size, transformer_width
+            vocab_size,
+            transformer_width,
+            name="token_embedding",
         )
         self.positional_embedding = self.add_weight(
             shape=[self.context_length, transformer_width],
             name="positional_embedding",
         )
-        self.ln_final = keras.layers.LayerNormalization()
+        self.ln_final = keras.layers.LayerNormalization(name="ln_final")
 
         self.text_projection = self.add_weight(
             shape=(transformer_width, embed_dim), name="text_projection"
