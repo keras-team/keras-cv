@@ -494,11 +494,15 @@ class SwinTransformerBlock3D(keras.Model):
         qkv_bias (bool, optional): If True, add a learnable bias to query, key, value. Default: True
         qk_scale (float | None, optional): Override default qk scale of head_dim ** -0.5 if set.
         drop (float, optional): Dropout rate. Default: 0.0
-        attn_drop (float, optional): Attention dropout rate. Default: 0.0
+        attn_drop (float, optionalc): Attention dropout rate. Default: 0.0
         drop_path (float, optional): Stochastic depth rate. Default: 0.0
         act_layer (keras.layers.Activation, optional): Activation layer. Default: gelu
         norm_layer (keras.layers, optional): Normalization layer.  Default: LayerNormalization
-    """
+
+    References:
+        - [Video Swin Transformer](https://arxiv.org/abs/2106.13230)
+        - [Video Swin Transformer GitHub](https://github.com/SwinTransformer/Video-Swin-Transformer)
+    """ # noqa: E501
 
     def __init__(
         self,
