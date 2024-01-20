@@ -334,6 +334,7 @@ class PatchMerging(layers.Layer):
 class WindowAttention3D(keras.Model):
     """Window based multi-head self attention (W-MSA) module with relative position bias.
     It supports both of shifted and non-shifted window.
+
     Args:
         dim (int): Number of input channels.
         window_size (tuple[int]): The temporal length, height and width of the window.
@@ -342,7 +343,11 @@ class WindowAttention3D(keras.Model):
         qk_scale (float | None, optional): Override default qk scale of head_dim ** -0.5 if set
         attn_drop (float, optional): Dropout ratio of attention weight. Default: 0.0
         proj_drop (float, optional): Dropout ratio of output. Default: 0.0
-    """
+
+    References:
+        - [Video Swin Transformer](https://arxiv.org/abs/2106.13230)
+        - [Video Swin Transformer GitHub](https://github.com/SwinTransformer/Video-Swin-Transformer)
+    """ # noqa: E501
 
     def __init__(
         self,
@@ -351,8 +356,8 @@ class WindowAttention3D(keras.Model):
         num_heads,
         qkv_bias,
         qk_scale = None,
-        attn_drop = 0.0,
-        proj_drop = 0.0,
+        attn_drop_rate = 0.0,
+        proj_drop_rate = 0.0,
         **kwargs
     ):
         super().__init__(**kwargs)
@@ -363,8 +368,29 @@ class WindowAttention3D(keras.Model):
         head_dim = dim // num_heads
         self.scale = qk_scale or head_dim**-0.5
         self.qkv_bias = qkv_bias
-        self.attn_drop = attn_drop
-        self.proj_drop = proj_drop
+        self.attn_drop_rate = attn_drop_rate
+        self.proj_drop_rate = proj_drop_rate
+
+        self.relative_position_bias_table = self.add_weight(
+            shape=(
+                (2 * self.window_size[0] - 1)
+                * (2 * self.window_size[1] - 1)
+                * (2 * self.window_size[2] - 1),
+                self.num_heads,
+            ),
+            initializer="zeros",
+            trainable=True,
+            name="relative_position_bias_table",
+        )
+        self.relative_position_index = self.get_relative_position_index(
+            self.window_size[0], self.window_size[1], self.window_size[2]
+        )
+
+        # layers
+        self.qkv = layers.Dense(self.dim * 3, use_bias=self.qkv_bias)
+        self.attn_drop = layers.Dropout(self.attn_drop_rate)
+        self.proj = layers.Dense(self.dim)
+        self.proj_drop = layers.Dropout(self.proj_drop_rate)
 
     def get_relative_position_index(self, window_depth, window_height, window_width):
         y_y, z_z, x_x = ops.meshgrid(
@@ -383,28 +409,6 @@ class WindowAttention3D(keras.Model):
         y_y = relative_coords[:, :, 2] + window_width - 1
         relative_coords = ops.stack([z_z, x_x, y_y], axis=-1)
         return ops.sum(relative_coords, axis=-1)
-
-    def build(self, input_shape):
-        self.relative_position_bias_table = self.add_weight(
-            shape=(
-                (2 * self.window_size[0] - 1)
-                * (2 * self.window_size[1] - 1)
-                * (2 * self.window_size[2] - 1),
-                self.num_heads,
-            ),
-            initializer="zeros",
-            trainable=True,
-            name="relative_position_bias_table",
-        )
-        self.relative_position_index = self.get_relative_position_index(
-            self.window_size[0], self.window_size[1], self.window_size[2]
-        )
-
-        # layers
-        self.qkv = layers.Dense(self.dim * 3, use_bias=self.qkv_bias)
-        self.attn_drop = layers.Dropout(self.attn_drop)
-        self.proj = layers.Dense(self.dim)
-        self.proj_drop = layers.Dropout(self.proj_drop)
 
     def call(self, x, mask=None, return_attention_maps=False, training=None):
         input_shape = ops.shape(x)
@@ -468,8 +472,8 @@ class WindowAttention3D(keras.Model):
                 "num_heads": self.num_heads,
                 "scale": self.scale,
                 "qkv_bias": self.qkv_bias,
-                "attn_drop": self.attn_drop,
-                "proj_drop": self.proj_drop,
+                "attn_drop_rate": self.attn_drop_rate,
+                "proj_drop_rate": self.proj_drop_rate,
             }
         )
         return config
