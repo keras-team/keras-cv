@@ -155,20 +155,19 @@ class MLP(layers.Layer):
 
     def __init__(
         self,
-        in_features,
-        hidden_features=None,
-        out_features=None,
+        hidden_dim=None,
+        output_dim=None,
         drop_rate=0.0,
         act_layer=layers.Activation("gelu"),
         **kwargs
     ):
         super().__init__(**kwargs)
-        self.out_features = out_features or in_features
-        self.hidden_features = hidden_features or in_features
+        self.output_dim = output_dim
+        self.hidden_dim = hidden_dim
         self.drop_rate = drop_rate
         self.act = act_layer
-        self.fc1 = layers.Dense(self.hidden_features)
-        self.fc2 = layers.Dense(self.out_features)
+        self.fc1 = layers.Dense(self.hidden_dim)
+        self.fc2 = layers.Dense(self.output_dim)
         self.dropout = layers.Dropout(self.drop_rate)
 
     def call(self, x, training=None):
@@ -538,8 +537,8 @@ class SwinTransformerBlock3D(keras.Model):
         )
         self.norm2 = self.norm_layer(axis=-1, epsilon=1e-05)
         self.mlp = MLP(
-            in_features=self.dim,
-            hidden_features=self.mlp_hidden_dim,
+            output_dim=self.dim,
+            hidden_dim=self.mlp_hidden_dim,
             act_layer=self.act_layer,
             drop_rate=self.drop_rate,
         )
