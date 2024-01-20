@@ -98,7 +98,3 @@ class CLIPProcessor:
 
         result = ops.stack(result)
         return result
-
-        images = self.process_images(images)
-        texts = self.process_texts(texts)
-        return (images, texts)
