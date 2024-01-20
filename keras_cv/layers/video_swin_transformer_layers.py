@@ -276,12 +276,16 @@ class PatchEmbedding3D(keras.Model):
     
 
 class PatchMerging(layers.Layer):
-    """Patch Merging Layer
+    """Patch Merging Layer.
 
     Args:
         dim (int): Number of input channels.
         norm_layer (keras.layers, optional): Normalization layer.  Default: LayerNormalization
-    """
+
+    References:
+        - [Video Swin Transformer](https://arxiv.org/abs/2106.13230)
+        - [Video Swin Transformer GitHub](https://github.com/SwinTransformer/Video-Swin-Transformer)
+    """ # noqa: E501
 
     def __init__(self, dim, norm_layer=layers.LayerNormalization, **kwargs):
         super().__init__(**kwargs)
@@ -290,11 +294,6 @@ class PatchMerging(layers.Layer):
         self.norm = norm_layer(axis=-1, epsilon=1e-5)
 
     def call(self, x):
-        """call function.
-
-        Args:
-            x: Input feature, tensor size (batch, depth, height, width, channel).
-        """
         input_shape = ops.shape(x)
         height, width = (
             input_shape[2],
@@ -310,7 +309,6 @@ class PatchMerging(layers.Layer):
             [0, 0],
         ]
         x = ops.pad(x, paddings)
-
         x0 = x[:, :, 0::2, 0::2, :]  # B D H/2 W/2 C
         x1 = x[:, :, 1::2, 0::2, :]  # B D H/2 W/2 C
         x2 = x[:, :, 0::2, 1::2, :]  # B D H/2 W/2 C
