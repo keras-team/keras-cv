@@ -484,7 +484,7 @@ class SwinTransformerBlock3D(keras.Model):
         drop_rate = 0.0,
         attn_drop = 0.0,
         drop_path = 0.0,
-        act_layer = layers.Activation("gelu"),
+        activation = "gelu",
         norm_layer = layers.LayerNormalization,
         **kwargs
     ):
@@ -500,7 +500,7 @@ class SwinTransformerBlock3D(keras.Model):
         self.drop_rate = drop_rate
         self.drop_path = drop_path
         self.mlp_hidden_dim = int(dim * mlp_ratio)
-        self.act_layer = act_layer
+        self.activation = activation
         self.norm_layer = norm_layer
 
         assert (
@@ -540,7 +540,7 @@ class SwinTransformerBlock3D(keras.Model):
         self.mlp = MLP(
             output_dim=self.dim,
             hidden_dim=self.mlp_hidden_dim,
-            act_layer=self.act_layer,
+            activation=self.activation,
             drop_rate=self.drop_rate,
         )
 
@@ -653,7 +653,8 @@ class SwinTransformerBlock3D(keras.Model):
                 "attn_drop": self.attn_drop,
                 "drop_rate": self.drop_rate, 
                 "drop_path": self.drop_path,
-                "mlp_hidden_dim": self.mlp_hidden_dim
+                "mlp_hidden_dim": self.mlp_hidden_dim,
+                "activation": self.activation
             }
         )
         return config
