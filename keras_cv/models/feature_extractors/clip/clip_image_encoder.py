@@ -54,14 +54,16 @@ class CLIPImageEncoder(keras.Model):
             name="residual_transformer_encoder",
         )(x)
         x = ops.transpose(x, axes=(1, 0, 2))
-
+        print(x.shape)
         x = keras.layers.LayerNormalization(epsilon=1e-6, name="ln_2")(
             x[:, 0, :]
         )
-
-        proj = keras.layers.Dense(output_dim, name="vision_projector")
+        print(x.shape)
+        proj = keras.layers.Dense(
+            output_dim, name="vision_projector", use_bias=False
+        )
         x = proj(x)
-
+        print("final", x.shape)
         output = x
 
         super().__init__(
