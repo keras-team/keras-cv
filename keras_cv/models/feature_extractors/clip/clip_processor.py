@@ -16,7 +16,9 @@ import numpy as np
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
-from keras_cv.models.feature_extractors.clip.clip_tokenizer import CLIPTokenizer
+from keras_cv.models.feature_extractors.clip.clip_tokenizer import (
+    SimpleTokenizer as CLIPTokenizer,
+)
 
 
 @keras_cv_export("keras_cv.models.feature_extractors.CLIPProcessor")

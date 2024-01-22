@@ -1,4 +1,4 @@
-# Copyright 2023 The KerasCV Authors
+# Copyright 2022 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,103 +11,147 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""This code is taken nearly verbatim from
+https://github.com/divamgupta/stable-diffusion-tensorflow."""
 
 import gzip
 import html
-import os
 from functools import lru_cache
 
-import ftfy
 import regex as re
+
+from keras_cv.api_export import keras_cv_export
+from keras_cv.backend import keras
 
 
 @lru_cache()
-def default_bpe():
-    return os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        "CLIP_clip_bpe_simple_vocab_16e6.txt.gz",
+def bytes_to_unicode():
+    """Return a list of utf-8 bytes and a corresponding list of unicode strings.
+
+    The reversible bpe codes work on unicode strings.
+    This means you need a large # of unicode characters in your vocab if you
+    want to avoid UNKs. When you're at something like a 10B token dataset you
+    end up needing around 5K for decent coverage. This is a significant
+    percentage of your normal, say, 32K bpe vocab. To avoid that, we want
+    lookup tables between utf-8 bytes and unicode strings.
+    And avoids mapping to whitespace/control characters the bpe code barfs on.
+    """
+    bs = (
+        list(range(ord("!"), ord("~") + 1))
+        + list(range(ord("¡"), ord("¬") + 1))
+        + list(range(ord("®"), ord("ÿ") + 1))
     )
+    cs = bs[:]
+    n = 0
+    for b in range(2**8):
+        if b not in bs:
+            bs.append(b)
+            cs.append(2**8 + n)
+            n += 1
+    cs = [chr(n) for n in cs]
+    return dict(zip(bs, cs))
 
 
-class CLIPTokenizer(object):
-    def __init__(self, bpe_path: str = default_bpe()):
-        self.byte_encoder = self.__bytes_to_unicode()
+def get_pairs(word):
+    """Return set of symbol pairs in a word.
+
+    A word is represented as tuple of symbols(symbols being variable-length
+    strings).
+    """
+    pairs = set()
+    prev_char = word[0]
+    for char in word[1:]:
+        pairs.add((prev_char, char))
+        prev_char = char
+    return pairs
+
+
+def basic_clean(text):
+    text = html.unescape(html.unescape(text))
+    return text.strip()
+
+
+def whitespace_clean(text):
+    text = re.sub(r"\s+", " ", text)
+    text = text.strip()
+    return text
+
+
+@keras_cv_export("keras_cv.models.stable_diffusion.SimpleTokenizer")
+class SimpleTokenizer:
+    def __init__(self, bpe_path=None):
+        bpe_path = bpe_path or keras.utils.get_file(
+            "bpe_simple_vocab_16e6.txt.gz",
+            "https://github.com/openai/CLIP/blob/main/clip/bpe_simple_vocab_16e6.txt.gz?raw=true",  # noqa: E501
+            file_hash="924691ac288e54409236115652ad4aa250f48203de50a9e4722a6ecd48d6804a",  # noqa: E501
+        )
+        self.byte_encoder = bytes_to_unicode()
         self.byte_decoder = {v: k for k, v in self.byte_encoder.items()}
         merges = gzip.open(bpe_path).read().decode("utf-8").split("\n")
         merges = merges[1 : 49152 - 256 - 2 + 1]
         merges = [tuple(merge.split()) for merge in merges]
-        vocab = list(self.__bytes_to_unicode().values())
+        vocab = list(bytes_to_unicode().values())
         vocab = vocab + [v + "</w>" for v in vocab]
         for merge in merges:
             vocab.append("".join(merge))
         vocab.extend(["<|startoftext|>", "<|endoftext|>"])
-        self.encoder = dict(zip(vocab, range(len(vocab))))
-        self.decoder = {v: k for k, v in self.encoder.items()}
+        self.vocab = vocab
+        self.encoder = self._create_encoder(self.vocab)
+        self.decoder = self._create_decoder(self.encoder)
         self.bpe_ranks = dict(zip(merges, range(len(merges))))
+
+        self.special_tokens = {
+            "<|startoftext|>": "<|startoftext|>",
+            "<|endoftext|>": "<|endoftext|>",
+        }
         self.cache = {
             "<|startoftext|>": "<|startoftext|>",
             "<|endoftext|>": "<|endoftext|>",
         }
-        self.pat = re.compile(
-            r"""<\|startoftext\|>|<\|endoftext\|>|'s|'t|'re|'ve|'m|'ll|'d|[\p{L}]+|[\p{N}]|[^\s\p{L}\p{N}]+""",  # noqa: E501
+        self.pat = self._create_pat()
+
+    def _create_encoder(self, vocab):
+        return dict(zip(vocab, range(len(vocab))))
+
+    def _create_decoder(self, encoder):
+        return {v: k for k, v in encoder.items()}
+
+    def _create_pat(self):
+        return re.compile(
+            "|".join([re.escape(key) for key in self.special_tokens.keys()])
+            + r"""|'s|'t|'re|'ve|'m|'ll|'d|[\p{L}]+|[\p{N}]|[^\s\p{L}\p{N}]+""",
             re.IGNORECASE,
         )
 
-    @lru_cache()
-    def __bytes_to_unicode(self):
-        """
-        Returns list of utf-8 byte and a corresponding list of unicode strings.
-        The reversible bpe codes work on unicode strings.
-        This means you need a large # of unicode characters in your vocab if
-        you want to avoid UNKs. When you're at something like a 10B token
-        dataset you end up needing around 5K for decent coverage.
-        This is a signficant percentage of your normal, say, 32K bpe vocab.
-        To avoid that, we want lookup tables between utf-8 bytes and unicode
-        strings. And avoids mapping to whitespace/control characters the bpe
-        code barfs on.
-        """
-        bs = (
-            list(range(ord("!"), ord("~") + 1))
-            + list(range(ord("¡"), ord("¬") + 1))
-            + list(range(ord("®"), ord("ÿ") + 1))
-        )
-        cs = bs[:]
-        n = 0
-        for b in range(2**8):
-            if b not in bs:
-                bs.append(b)
-                cs.append(2**8 + n)
-                n += 1
-        cs = [chr(n) for n in cs]
-        return dict(zip(bs, cs))
+    @property
+    def end_of_text(self):
+        return self.encoder["<|endoftext|>"]
 
-    def __get_pairs(self, word):
-        """Return set of symbol pairs in a word.
-        Word is represented as tuple of symbols (symbols being variable-length
-        strings).
-        """
-        pairs = set()
-        prev_char = word[0]
-        for char in word[1:]:
-            pairs.add((prev_char, char))
-            prev_char = char
-        return pairs
+    @property
+    def start_of_text(self):
+        return self.encoder["<|startoftext|>"]
 
-    def __basic_clean(self, text):
-        text = ftfy.fix_text(text)
-        text = html.unescape(html.unescape(text))
-        return text.strip()
+    def add_tokens(self, tokens):
+        if isinstance(tokens, str):
+            tokens = [tokens]
+        tokens_added = 0
+        for token in tokens:
+            if token in self.vocab:
+                continue
+            tokens_added += 1
+            self.vocab.append(token)
+            self.special_tokens[token] = token
+            self.cache[token] = token
+        self.encoder = self._create_encoder(self.vocab)
+        self.decoder = self._create_decoder(self.encoder)
+        self.pat = self._create_pat()
+        return tokens_added
 
-    def __whitespace_clean(self, text):
-        text = re.sub(r"\s+", " ", text)
-        text = text.strip()
-        return text
-
-    def __bpe(self, token):
+    def bpe(self, token):
         if token in self.cache:
             return self.cache[token]
         word = tuple(token[:-1]) + (token[-1] + "</w>",)
-        pairs = self.__get_pairs(word)
+        pairs = get_pairs(word)
 
         if not pairs:
             return token + "</w>"
@@ -145,21 +189,21 @@ class CLIPTokenizer(object):
             if len(word) == 1:
                 break
             else:
-                pairs = self.__get_pairs(word)
+                pairs = get_pairs(word)
         word = " ".join(word)
         self.cache[token] = word
         return word
 
     def encode(self, text):
         bpe_tokens = []
-        text = self.__whitespace_clean(self.__basic_clean(text)).lower()
+        text = whitespace_clean(basic_clean(text)).lower()
         for token in re.findall(self.pat, text):
             token = "".join(self.byte_encoder[b] for b in token.encode("utf-8"))
             bpe_tokens.extend(
                 self.encoder[bpe_token]
-                for bpe_token in self.__bpe(token).split(" ")
+                for bpe_token in self.bpe(token).split(" ")
             )
-        return bpe_tokens
+        return [self.start_of_text] + bpe_tokens + [self.end_of_text]
 
     def decode(self, tokens):
         text = "".join([self.decoder[token] for token in tokens])
