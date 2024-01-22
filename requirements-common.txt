@@ -14,4 +14,3 @@ black
 pytest
 build
 namex
-ftfy
