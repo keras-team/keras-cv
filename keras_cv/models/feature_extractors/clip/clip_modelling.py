@@ -159,8 +159,8 @@ class ResidualTransformerEncoder(keras.layers.Layer):
 
 class CLIPAttention(keras.layers.Layer):
     """
-    - Documentation page: https://huggingface.co/docs/transformers/model_doc/clip
-    - Implementation: https://github.com/huggingface/transformers/blob/main/src/transformers/models/clip/modeling_clip.py
+    - Documentation page: https://huggingface.co/docs/transformers/model_doc/clip # noqa: E501
+    - Implementation: https://github.com/huggingface/transformers/blob/main/src/transformers/models/clip/modeling_clip.py # noqa: E501
     """
 
     def __init__(self, project_dim, num_heads, dropout=0.0, **kwargs):
@@ -171,7 +171,8 @@ class CLIPAttention(keras.layers.Layer):
         self.head_dim = self.project_dim // self.num_heads
         if self.head_dim * self.num_heads != self.project_dim:
             raise ValueError(
-                f"project_dim must be divisible by num_heads (got `project_dim`: {self.project_dim} and `num_heads`:"
+                f"project_dim must be divisible by num_heads (got `project_dim`"
+                ": {self.project_dim} and `num_heads`:"
                 f" {self.num_heads})."
             )
 
@@ -194,13 +195,15 @@ class CLIPAttention(keras.layers.Layer):
 
     def _transpose_for_scores(self, tensor, batch_size):
         """
-        Copied from https://github.com/huggingface/transformers/blob/8e164c5400b7b413c7b8fb32e35132001effc970/src/transformers/models/bert/modeling_tf_bert.py#L252
+        Copied from https://github.com/huggingface/transformers/blob/8e164c5400b7b413c7b8fb32e35132001effc970/src/transformers/models/bert/modeling_tf_bert.py#L252 # noqa: E501
         """
-        # [batch_size, seq_len, all_head_dim] -> [batch_size, seq_len, num_heads, head_dim]
+        # [batch_size, seq_len, all_head_dim] ->
+        # [batch_size, seq_len, num_heads, head_dim]
         tensor = ops.reshape(
             tensor, (batch_size, -1, self.num_heads, self.head_dim)
         )
-        # [batch_size, seq_len, num_heads, head_dim] -> [batch_size, num_heads, seq_len, head_dim]
+        # [batch_size, seq_len, num_heads, head_dim] ->
+        # [batch_size, num_heads, seq_len, head_dim]
         return ops.transpose(tensor, axes=[0, 2, 1, 3])
 
     def call(
@@ -220,7 +223,6 @@ class CLIPAttention(keras.layers.Layer):
         value_layer = self._transpose_for_scores(mixed_value_layer, batch_size)
 
         # Scaled dot product between key and query = raw attention scores.
-       
         attention_scores = ops.matmul(
             query_layer, ops.transpose(key_layer, axes=[0, 1, 3, 2])
         )
@@ -231,11 +233,13 @@ class CLIPAttention(keras.layers.Layer):
 
         # Apply the causal_attention_mask first
         if causal_attention_mask is not None:
-            # Apply the causal attention mask (precomputed for all layers in the call() function)
+            # Apply the causal attention mask (precomputed for all layers in
+            # the call() function)
             attention_scores = ops.add(attention_scores, causal_attention_mask)
 
         if attention_mask is not None:
-            # Apply the attention mask (precomputed for all layers in the call() function)
+            # Apply the attention mask (precomputed for all layers in the
+            # call() function)
             attention_scores = ops.add(attention_scores, attention_mask)
 
         # Normalize the attention scores to probabilities.
