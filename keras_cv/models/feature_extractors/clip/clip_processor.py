@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import numpy as np
+from keras_nlp.tokenizers import BytePairTokenizer
 
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
@@ -26,7 +27,10 @@ class CLIPProcessor:
     def __init__(self, input_resolution):
         self.input_resolution = input_resolution
         self.image_transform = self.transform_image
-        self.tokenizer = CLIPTokenizer()
+        self.tokenizer = BytePairTokenizer(
+            vocabulary="keras_cv/models/feature_extractors/clip/vocab.json",
+            merges="keras_cv/models/feature_extractors/clip/merges.txt",
+        )
 
     def transform_image(self, image_path):
         input_resolution = self.input_resolution
@@ -77,7 +81,12 @@ class CLIPProcessor:
         if isinstance(texts, str):
             texts = [texts]
 
-        all_tokens = [self.tokenizer.encode(text) for text in texts]
+        sot_token = self.tokenizer.token_to_id("<|startoftext|>")
+        eot_token = self.tokenizer.token_to_id("<|endoftext|>")
+        all_tokens = [
+            [sot_token] + self.tokenizer.tokenize(text) + [eot_token]
+            for text in texts
+        ]
 
         result = np.zeros(shape=[len(all_tokens), context_length])
 
@@ -85,6 +94,7 @@ class CLIPProcessor:
             if len(tokens) > context_length:
                 if truncate:
                     tokens = tokens[:context_length]
+                    tokens[-1] = eot_token
                 else:
                     raise RuntimeError(
                         f"Input {texts[i]} is too long for context "
