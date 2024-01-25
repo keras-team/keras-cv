@@ -107,7 +107,6 @@ class ResidualAttention(keras.layers.Layer):
         return self.attn(x, attention_mask=self.attn_mask)
 
     def build(self, input_shape):
-        self.input_shape = input_shape
         super().build(input_shape)
         self.attn = CLIPAttention(
             self.proj_dim,
