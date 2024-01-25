@@ -32,9 +32,7 @@ from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 from keras_cv.backend import random
-from keras_cv.models.feature_extractors.clip.clip_tokenizer import (
-    SimpleTokenizer,
-)
+from keras_cv.models.stable_diffusion.clip_tokenizer import SimpleTokenizer
 from keras_cv.models.stable_diffusion.constants import _ALPHAS_CUMPROD
 from keras_cv.models.stable_diffusion.constants import _UNCONDITIONAL_TOKENS
 from keras_cv.models.stable_diffusion.decoder import Decoder
