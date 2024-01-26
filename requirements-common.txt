@@ -14,4 +14,4 @@ black
 pytest
 build
 namex
-ftfy
+keras-nlp

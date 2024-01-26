@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import numpy as np
+from keras_nlp.layers import StartEndPacker
 
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
@@ -21,10 +22,39 @@ from keras_cv.models.feature_extractors.clip.clip_tokenizer import CLIPTokenizer
 
 @keras_cv_export("keras_cv.models.feature_extractors.CLIPProcessor")
 class CLIPProcessor:
+    """
+    CLIPProcessor is a utility class that provides functionality for processing
+    images and texts in the context of the CLIP (Contrastive Language-Image
+    Pretraining) model.
+
+    Args:
+        input_resolution (int): The resolution of input images.
+
+    Methods:
+        process_images(image_path: List[str]) -> np.ndarray:
+            Transforms an image located at the specified path.
+
+        process_texts(texts: Union[str, List[str]], context_length: int = 77)
+            -> np.ndarray: Processes a single text or a list of texts, returning
+            packed token sequences.
+
+    """
+
     def __init__(self, input_resolution):
         self.input_resolution = input_resolution
         self.image_transform = self.transform_image
-        self.tokenizer = CLIPTokenizer()
+        self.tokenizer = CLIPTokenizer(
+            vocabulary="keras_cv/models/feature_extractors/clip/vocab.json",
+            merges="keras_cv/models/feature_extractors/clip/merges.txt",
+            unsplittable_tokens=["</w>"],
+        )
+        self.packer = StartEndPacker(
+            start_value=self.tokenizer.token_to_id("<|startoftext|>"),
+            end_value=self.tokenizer.token_to_id("<|endoftext|>"),
+            pad_value=None,
+            sequence_length=77,
+            return_padding_mask=True,
+        )
 
     def transform_image(self, image_path):
         input_resolution = self.input_resolution
@@ -61,40 +91,25 @@ class CLIPProcessor:
         if isinstance(images, str):
             images = [images]
 
-        processed_images = []
-        for image in images:
+        def process_image(image):
             if isinstance(image, str):
-                image = self.image_transform(image)
-                processed_images.append(image)
+                return self.image_transform(image)
+
+        processed_images = list(map(process_image, images))
         processed_images = ops.stack(processed_images)
         return processed_images
 
-    def process_texts(
-        self, texts, context_length: int = 77, truncate: bool = False
-    ):
+    def process_texts(self, texts, context_length: int = 77):
         if isinstance(texts, str):
             texts = [texts]
 
-        sot_token = self.tokenizer.encoder["<|startoftext|>"]
-        eot_token = self.tokenizer.encoder["<|endoftext|>"]
-        all_tokens = [
-            [sot_token] + self.tokenizer.encode(text) + [eot_token]
-            for text in texts
-        ]
+        def pack_tokens(text):
+            tok, _ = self.packer(
+                self.tokenizer(text),
+                sequence_length=context_length,
+                add_start_value=True,
+                add_end_value=True,
+            )
+            return tok
 
-        result = np.zeros(shape=[len(all_tokens), context_length])
-
-        for i, tokens in enumerate(all_tokens):
-            if len(tokens) > context_length:
-                if truncate:
-                    tokens = tokens[:context_length]
-                    tokens[-1] = eot_token
-                else:
-                    raise RuntimeError(
-                        f"Input {texts[i]} is too long for context "
-                        "length {context_length}"
-                    )
-            result[i, : len(tokens)] = tokens
-
-        result = ops.stack(result)
-        return result
+        return pack_tokens(texts)

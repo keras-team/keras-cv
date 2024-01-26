@@ -73,9 +73,9 @@ setup(
         "packaging",
         "absl-py",
         "regex",
-        "ftfy",
         "tensorflow-datasets",
         "keras-core",
+        "keras-nlp",
         "kagglehub",
     ],
     extras_require={
