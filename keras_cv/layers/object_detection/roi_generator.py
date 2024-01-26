@@ -12,17 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Mapping
 from typing import Optional
-from typing import Tuple
-from typing import Union
 
-import tensorflow as tf
-from tensorflow import keras
-
-from keras_cv import bounding_box
 from keras_cv.api_export import keras_cv_export
-from keras_cv.backend import assert_tf_keras
+from keras_cv.backend import keras
+from keras_cv.backend import ops
+from keras_cv.layers import NonMaxSuppression
 
 
 @keras_cv_export("keras_cv.layers.ROIGenerator")
@@ -97,7 +92,6 @@ class ROIGenerator(keras.layers.Layer):
         post_nms_topk_test: int = 1000,
         **kwargs,
     ):
-        assert_tf_keras("keras_cv.layers.ROIGenerator")
         super().__init__(**kwargs)
         self.bounding_box_format = bounding_box_format
         self.pre_nms_topk_train = pre_nms_topk_train
@@ -112,10 +106,10 @@ class ROIGenerator(keras.layers.Layer):
 
     def call(
         self,
-        multi_level_boxes: Union[tf.Tensor, Mapping[int, tf.Tensor]],
-        multi_level_scores: Union[tf.Tensor, Mapping[int, tf.Tensor]],
+        multi_level_boxes,
+        multi_level_scores,
         training: Optional[bool] = None,
-    ) -> Tuple[tf.Tensor, tf.Tensor]:
+    ):
         """
         Args:
           multi_level_boxes: float Tensor. A dictionary or single Tensor of
@@ -131,7 +125,6 @@ class ROIGenerator(keras.layers.Layer):
           rois: float Tensor of [batch_size, post_nms_topk, 4]
           roi_scores: float Tensor of [batch_size, post_nms_topk]
         """
-
         if training:
             pre_nms_topk = self.pre_nms_topk_train
             post_nms_topk = self.post_nms_topk_train
@@ -144,53 +137,34 @@ class ROIGenerator(keras.layers.Layer):
             nms_iou_threshold = self.nms_iou_threshold_test
 
         def per_level_gen(boxes, scores):
-            scores_shape = scores.get_shape().as_list()
-            # scores can also be [batch_size, num_boxes, 1]
+            boxes = ops.convert_to_tensor(boxes, dtype="float32")
+            scores = ops.convert_to_tensor(scores, dtype="float32")
+            scores_shape = ops.shape(scores)
+            # Check if scores is a 3-dimensional tensor ([batch_size, num_boxes, 1])
+            # If so, remove the last dimension to make it 2D
             if len(scores_shape) == 3:
-                scores = tf.squeeze(scores, axis=-1)
-            _, num_boxes = scores.get_shape().as_list()
+                scores = ops.squeeze(scores, axis=-1)
+            _, num_boxes = scores_shape
             level_pre_nms_topk = min(num_boxes, pre_nms_topk)
             level_post_nms_topk = min(num_boxes, post_nms_topk)
-            scores, sorted_indices = tf.nn.top_k(
+            scores, sorted_indices = ops.top_k(
                 scores, k=level_pre_nms_topk, sorted=True
             )
-            boxes = tf.gather(boxes, sorted_indices, batch_dims=1)
-            # convert from input format to yxyx for the TF NMS operation
-            boxes = bounding_box.convert_format(
-                boxes,
-                source=self.bounding_box_format,
-                target="yxyx",
+            boxes = ops.take_along_axis(
+                boxes, sorted_indices[..., None], axis=1
             )
             # TODO(tanzhenyu): consider supporting soft / batched nms for accl
-            selected_indices, num_valid = tf.image.non_max_suppression_padded(
-                boxes,
-                scores,
-                max_output_size=level_post_nms_topk,
+            boxes = NonMaxSuppression(
+                bounding_box_format=self.bounding_box_format,
+                from_logits=False,
                 iou_threshold=nms_iou_threshold,
-                score_threshold=nms_score_threshold,
-                pad_to_max_output_size=True,
-                sorted_input=True,
-                canonicalized_coordinates=True,
+                confidence_threshold=nms_score_threshold,
+                max_detections=level_post_nms_topk,
+            )(
+                box_prediction=boxes,
+                class_prediction=scores[..., None],
             )
-            # convert back to input format
-            boxes = bounding_box.convert_format(
-                boxes,
-                source="yxyx",
-                target=self.bounding_box_format,
-            )
-            level_rois = tf.gather(boxes, selected_indices, batch_dims=1)
-            level_roi_scores = tf.gather(scores, selected_indices, batch_dims=1)
-            level_rois = level_rois * tf.cast(
-                tf.reshape(tf.range(level_post_nms_topk), [1, -1, 1])
-                < tf.reshape(num_valid, [-1, 1, 1]),
-                level_rois.dtype,
-            )
-            level_roi_scores = level_roi_scores * tf.cast(
-                tf.reshape(tf.range(level_post_nms_topk), [1, -1])
-                < tf.reshape(num_valid, [-1, 1]),
-                level_roi_scores.dtype,
-            )
-            return level_rois, level_roi_scores
+            return boxes["boxes"], boxes["confidence"]
 
         if not isinstance(multi_level_boxes, dict):
             return per_level_gen(multi_level_boxes, multi_level_scores)
@@ -204,14 +178,14 @@ class ROIGenerator(keras.layers.Layer):
             rois.append(level_rois)
             roi_scores.append(level_roi_scores)
 
-        rois = tf.concat(rois, axis=1)
-        roi_scores = tf.concat(roi_scores, axis=1)
-        _, num_valid_rois = roi_scores.get_shape().as_list()
+        rois = ops.concatenate(rois, axis=1)
+        roi_scores = ops.concatenate(roi_scores, axis=1)
+        _, num_valid_rois = ops.shape(roi_scores)
         overall_top_k = min(num_valid_rois, post_nms_topk)
-        roi_scores, sorted_indices = tf.nn.top_k(
+        roi_scores, sorted_indices = ops.top_k(
             roi_scores, k=overall_top_k, sorted=True
         )
-        rois = tf.gather(rois, sorted_indices, batch_dims=1)
+        rois = ops.take_along_axis(rois, sorted_indices[..., None], axis=1)
 
         return rois, roi_scores
 
