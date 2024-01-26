@@ -87,33 +87,13 @@ class CLIPProcessor:
         if isinstance(texts, str):
             texts = [texts]
 
-        sot_token = self.tokenizer.token_to_id("<|startoftext|>")
-        eot_token = self.tokenizer.token_to_id("<|endoftext|>")
-        sot_token = ops.expand_dims(sot_token, axis=-1)
-        eot_token = ops.expand_dims(eot_token, axis=-1)
-
         def pack_tokens(text):
             tok, _ = self.packer(
                 self.tokenizer(text),
                 sequence_length=context_length,
-                add_start_value=sot_token,
-                add_end_value=eot_token,
+                add_start_value=True,
+                add_end_value=True,
             )
-            return ops.concatenate([sot_token, tok, eot_token])
+            return tok
 
-        all_tokens = list(map(pack_tokens, texts))
-
-        result = np.zeros(shape=[len(all_tokens), context_length])
-
-        def process_tokens(i_tokens):
-            i, tokens = i_tokens
-            if len(tokens) > context_length:
-                tokens = tokens[:context_length]
-
-            result[i, : len(tokens)] = tokens
-
-        # Using map with function and passing a list of tuples
-        list(map(process_tokens, enumerate(all_tokens)))
-
-        result = ops.stack(result)
-        return result
+        return pack_tokens(texts)
