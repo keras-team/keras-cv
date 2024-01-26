@@ -22,6 +22,24 @@ from keras_cv.models.feature_extractors.clip.clip_tokenizer import CLIPTokenizer
 
 @keras_cv_export("keras_cv.models.feature_extractors.CLIPProcessor")
 class CLIPProcessor:
+    """
+    CLIPProcessor is a utility class that provides functionality for processing
+    images and texts in the context of the CLIP (Contrastive Language-Image
+    Pretraining) model.
+
+    Args:
+        input_resolution (int): The resolution of input images.
+
+    Methods:
+        process_images(image_path: List[str]) -> np.ndarray:
+            Transforms an image located at the specified path.
+
+        process_texts(texts: Union[str, List[str]], context_length: int = 77)
+            -> np.ndarray: Processes a single text or a list of texts, returning
+            packed token sequences.
+
+    """
+
     def __init__(self, input_resolution):
         self.input_resolution = input_resolution
         self.image_transform = self.transform_image
@@ -81,9 +99,7 @@ class CLIPProcessor:
         processed_images = ops.stack(processed_images)
         return processed_images
 
-    def process_texts(
-        self, texts, context_length: int = 77, truncate: bool = False
-    ):
+    def process_texts(self, texts, context_length: int = 77):
         if isinstance(texts, str):
             texts = [texts]
 

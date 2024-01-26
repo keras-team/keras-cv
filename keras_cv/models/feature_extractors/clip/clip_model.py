@@ -41,6 +41,32 @@ MODEL_CONFIGS = {
     ["keras_cv.models.CLIP", "keras_cv.models.feature_extractors.CLIP"]
 )
 class CLIP(keras.Model):
+    """
+        CLIP implements the Contrastive Language-Image Pretraining (CLIP)
+        architecture, which enables joint learning of visual and textual
+        representations for various downstream tasks.
+
+    Args:
+        embed_dim (int): The dimensionality of the joint embedding space for
+            images and texts.
+        image_resolution (int): The resolution of the input images (both height
+            and width).
+        vision_layers (int): The number of layers in the vision (image) encoder.
+            vision_width (int): The width of the hidden layers in the vision
+            encoder.
+        vision_patch_size (int): The size of each square patch in the input
+            images.
+        context_length (int): The maximum length of the contextualized text
+            sequences.
+        vocab_size (int): The size of the vocabulary for tokenization.
+        transformer_width (int): The width of the hidden layers in the
+            transformer-based text encoder.
+        transformer_heads (int): The number of attention heads in the
+            transformer-based text encoder.
+        transformer_layers (int): The number of layers in the transformer-based
+            text encoder.
+    """
+
     def __init__(
         self,
         embed_dim,
