@@ -12,26 +12,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import numpy as np
 import pytest
 
 from keras_cv.backend import ops
 from keras_cv.layers.video_swin_transformer_layers import PatchEmbedding3D
 from keras_cv.layers.video_swin_transformer_layers import WindowAttention3D
-from keras_cv.layers.video_swin_transformer_layers import SwinTransformerBlock3D
 from keras_cv.tests.test_case import TestCase
 
-class TestPatchEmbedding3D(TestCase):
 
+class TestPatchEmbedding3D(TestCase):
     def test_patch_embedding_compute_output_shape(self):
-        patch_embedding_model = PatchEmbedding3D(patch_size=(2, 4, 4), embed_dim=96, norm_layer=None)
+        patch_embedding_model = PatchEmbedding3D(
+            patch_size=(2, 4, 4), embed_dim=96, norm_layer=None
+        )
         input_shape = (None, 16, 32, 32, 3)
         output_shape = patch_embedding_model.compute_output_shape(input_shape)
         expected_output_shape = (None, 8, 8, 8, 96)
         self.assertEqual(output_shape, expected_output_shape)
-    
+
     def test_patch_embedding_get_config(self):
-        patch_embedding_model = PatchEmbedding3D(patch_size=(4, 4, 4), embed_dim=96)
+        patch_embedding_model = PatchEmbedding3D(
+            patch_size=(4, 4, 4), embed_dim=96
+        )
         config = patch_embedding_model.get_config()
         assert isinstance(config, dict)
         assert config["patch_size"] == (4, 4, 4)
@@ -39,7 +41,6 @@ class TestPatchEmbedding3D(TestCase):
 
 
 class TestWindowAttention3D(TestCase):
-    
     @pytest.fixture
     def window_attention_model(self):
         return WindowAttention3D(
@@ -50,7 +51,7 @@ class TestWindowAttention3D(TestCase):
             attn_drop_rate=0.1,
             proj_drop_rate=0.1,
         )
-    
+
     def test_window_attention_output_shape(self, window_attention_model):
         input_shape = (4, 10, 256)
         input_array = ops.ones(input_shape)
@@ -64,8 +65,7 @@ class TestWindowAttention3D(TestCase):
         assert isinstance(config, dict)
         assert config["window_size"] == (2, 4, 4)
         assert config["num_heads"] == 8
-        assert config["qkv_bias"] == True
-        assert config["qk_scale"] == None
+        assert config["qkv_bias"] is True
+        assert config["qk_scale"] is None
         assert config["attn_drop_rate"] == 0.1
         assert config["proj_drop_rate"] == 0.1
-        

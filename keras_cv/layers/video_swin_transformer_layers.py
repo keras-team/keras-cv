@@ -31,7 +31,7 @@ def window_partition(x, window_size):
 
     Returns:
         windows: (batch_size*num_windows, window_size*window_size, channel)
-    """ # noqa: E501
+    """  # noqa: E501
 
     input_shape = ops.shape(x)
     batch_size, depth, height, width, channel = (
@@ -74,7 +74,7 @@ def window_reverse(windows, window_size, batch_size, depth, height, width):
 
     Returns:
         x: (batch_size, depth, height, width, channel)
-    """ # noqa: E501
+    """  # noqa: E501
     x = ops.reshape(
         windows,
         [
@@ -106,7 +106,7 @@ def get_window_size(x_size, window_size, shift_size=None):
 
     Returns:
         x: window_size, shift_size
-    """ # noqa: E501
+    """  # noqa: E501
 
     use_window_size = list(window_size)
 
@@ -413,7 +413,7 @@ class WindowAttention3D(keras.Model):
         y_y = relative_coords[:, :, 2] + window_width - 1
         relative_coords = ops.stack([z_z, x_x, y_y], axis=-1)
         return ops.sum(relative_coords, axis=-1)
-    
+
     def build(self, input_shape):
         input_dim = input_shape[-1]
         head_dim = input_dim // self.num_heads
@@ -560,7 +560,6 @@ class SwinTransformerBlock3D(keras.Model):
         ), "shift_size must in 0-window_size"
 
     def build(self, input_shape):
-
         input_dim = input_shape[-1]
         self.mlp_hidden_dim = int(input_dim * self.mlp_ratio)
         self.window_size, self.shift_size = get_window_size(
@@ -596,10 +595,7 @@ class SwinTransformerBlock3D(keras.Model):
             drop_rate=self.drop_rate,
         )
 
-
-    def call(
-        self, x, mask_matrix=None, training=None
-    ):
+    def call(self, x, mask_matrix=None, training=None):
         shortcut = x
         input_shape = ops.shape(x)
         batch_size, depth, height, width, _ = (
@@ -822,9 +818,7 @@ class BasicLayer(keras.Model):
         )
 
         for block in self.blocks:
-            x = block(
-                x, self.attn_mask, training=training
-            )
+            x = block(x, self.attn_mask, training=training)
 
         x = ops.reshape(x, [batch_size, depth, height, width, -1])
 
