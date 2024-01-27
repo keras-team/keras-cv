@@ -43,7 +43,6 @@ class TestWindowAttention3D(TestCase):
     @pytest.fixture
     def window_attention_model(self):
         return WindowAttention3D(
-            dim=256,
             window_size=(2, 4, 4),
             num_heads=8,
             qkv_bias=True,
@@ -51,16 +50,22 @@ class TestWindowAttention3D(TestCase):
             attn_drop_rate=0.1,
             proj_drop_rate=0.1,
         )
-
     
+    def test_window_attention_output_shape(self, window_attention_model):
+        input_shape = (4, 10, 256)
+        input_array = ops.ones(input_shape)
+        output_shape = window_attention_model(input_array).shape
+        expected_output_shape = input_shape
+        self.assertEqual(output_shape, expected_output_shape)
+
     def test_window_attention_get_config(self, window_attention_model):
         config = window_attention_model.get_config()
         # Add assertions based on your specific requirements
         assert isinstance(config, dict)
-        assert config["dim"] == 256
         assert config["window_size"] == (2, 4, 4)
         assert config["num_heads"] == 8
         assert config["qkv_bias"] == True
+        assert config["qk_scale"] == None
         assert config["attn_drop_rate"] == 0.1
         assert config["proj_drop_rate"] == 0.1
 
