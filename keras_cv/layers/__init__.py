@@ -135,11 +135,11 @@ from keras_cv.layers.segformer_multihead_attention import (
 )
 from keras_cv.layers.spatial_pyramid import SpatialPyramidPooling
 from keras_cv.layers.transformer_encoder import TransformerEncoder
+from keras_cv.layers.video_swin_transformer_layers import SwinTransformerBlock3D
+from keras_cv.layers.video_swin_transformer_layers import WindowAttention3D
 from keras_cv.layers.vit_det_layers import AddRelativePositionalEmbedding
 from keras_cv.layers.vit_det_layers import MultiHeadAttentionWithRelativePE
 from keras_cv.layers.vit_det_layers import ViTDetPatchingAndEmbedding
 from keras_cv.layers.vit_det_layers import WindowedTransformerEncoder
 from keras_cv.layers.vit_det_layers import WindowPartitioning
 from keras_cv.layers.vit_layers import PatchingAndEmbedding
-from keras_cv.layers.video_swin_transformer_layers import WindowAttention3D
-from keras_cv.layers.video_swin_transformer_layers import SwinTransformerBlock3D
