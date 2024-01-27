@@ -68,25 +68,4 @@ class TestWindowAttention3D(TestCase):
         assert config["qk_scale"] == None
         assert config["attn_drop_rate"] == 0.1
         assert config["proj_drop_rate"] == 0.1
-
-
-class TestSwinTransformerBlock3D(TestCase):
-
-    @pytest.fixture
-    def swin_block_model(self):
-        return SwinTransformerBlock3D(
-            dim=256,
-            num_heads=8,
-            window_size=(2, 7, 7),
-            shift_size=(0, 0, 0),
-            mlp_ratio=4.0,
-            qkv_bias=True,
-            qk_scale=None,
-            drop_rate=0.0,
-            attn_drop=0.0,
-            drop_path=0.0,
-            activation="gelu",
-            norm_layer=None,
-        )
-    
-    
+        
