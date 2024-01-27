@@ -38,3 +38,29 @@ class TestPatchEmbedding3D(TestCase):
         assert config["embed_dim"] == 96
 
 
+class TestWindowAttention3D(TestCase):
+    
+    @pytest.fixture
+    def window_attention_model(self):
+        return WindowAttention3D(
+            dim=256,
+            window_size=(2, 4, 4),
+            num_heads=8,
+            qkv_bias=True,
+            qk_scale=None,
+            attn_drop_rate=0.1,
+            proj_drop_rate=0.1,
+        )
+
+    
+    def test_window_attention_get_config(self, window_attention_model):
+        config = window_attention_model.get_config()
+        # Add assertions based on your specific requirements
+        assert isinstance(config, dict)
+        assert config["dim"] == 256
+        assert config["window_size"] == (2, 4, 4)
+        assert config["num_heads"] == 8
+        assert config["qkv_bias"] == True
+        assert config["attn_drop_rate"] == 0.1
+        assert config["proj_drop_rate"] == 0.1
+

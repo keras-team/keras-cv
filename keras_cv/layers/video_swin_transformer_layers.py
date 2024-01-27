@@ -340,7 +340,6 @@ class WindowAttention3D(keras.Model):
     It supports both of shifted and non-shifted window.
 
     Args:
-        dim (int): Number of input channels.
         window_size (tuple[int]): The temporal length, height and width of the window.
         num_heads (int): Number of attention heads.
         qkv_bias (bool, optional):  If True, add a learnable bias to query, key, value. Default: True
@@ -355,7 +354,6 @@ class WindowAttention3D(keras.Model):
 
     def __init__(
         self,
-        dim,
         window_size,
         num_heads,
         qkv_bias,
@@ -366,12 +364,10 @@ class WindowAttention3D(keras.Model):
     ):
         super().__init__(**kwargs)
         # variables
-        self.dim = dim
         self.window_size = window_size
         self.num_heads = num_heads
-        head_dim = dim // num_heads
-        self.scale = qk_scale or head_dim**-0.5
         self.qkv_bias = qkv_bias
+        self.qk_scale = qk_scale
         self.attn_drop_rate = attn_drop_rate
         self.proj_drop_rate = proj_drop_rate
 
@@ -390,10 +386,8 @@ class WindowAttention3D(keras.Model):
             self.window_size[0], self.window_size[1], self.window_size[2]
         )
 
-        # layers
-        self.qkv = layers.Dense(self.dim * 3, use_bias=self.qkv_bias)
+        # dropout layers
         self.attn_drop = layers.Dropout(self.attn_drop_rate)
-        self.proj = layers.Dense(self.dim)
         self.proj_drop = layers.Dropout(self.proj_drop_rate)
 
     def get_relative_position_index(
@@ -419,6 +413,13 @@ class WindowAttention3D(keras.Model):
         y_y = relative_coords[:, :, 2] + window_width - 1
         relative_coords = ops.stack([z_z, x_x, y_y], axis=-1)
         return ops.sum(relative_coords, axis=-1)
+    
+    def build(self, input_shape):
+        input_dim = input_shape[-1]
+        head_dim = input_dim // self.num_heads
+        self.qkv = layers.Dense(input_dim * 3, use_bias=self.qkv_bias)
+        self.proj = layers.Dense(input_dim)
+        self.scale = self.qk_scale or head_dim**-0.5
 
     def call(self, x, mask=None, training=None):
         input_shape = ops.shape(x)
@@ -485,10 +486,9 @@ class WindowAttention3D(keras.Model):
         config = super().get_config()
         config.update(
             {
-                "dim": self.dim,
                 "window_size": self.window_size,
                 "num_heads": self.num_heads,
-                "scale": self.scale,
+                "qk_scale": self.qk_scale,
                 "qkv_bias": self.qkv_bias,
                 "attn_drop_rate": self.attn_drop_rate,
                 "proj_drop_rate": self.proj_drop_rate,
