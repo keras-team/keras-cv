@@ -30,8 +30,8 @@ def window_partition(x, window_size):
         window_size (tuple[int]): window size
 
     Returns:
-        windows: (B*num_windows, window_size*window_size, C)
-    """
+        windows: (batch_size*num_windows, window_size*window_size, channel)
+    """ # noqa: E501
 
     input_shape = ops.shape(x)
     batch_size, depth, height, width, channel = (
@@ -67,14 +67,14 @@ def window_partition(x, window_size):
 def window_reverse(windows, window_size, batch_size, depth, height, width):
     """
     Args:
-        windows: (B*num_windows, window_size, window_size, C)
+        windows: (batch_size*num_windows, window_size, window_size, channel)
         window_size (tuple[int]): Window size
         height (int): Height of image
         width (int): Width of image
 
     Returns:
         x: (batch_size, depth, height, width, channel)
-    """
+    """ # noqa: E501
     x = ops.reshape(
         windows,
         [
@@ -103,7 +103,10 @@ def get_window_size(x_size, window_size, shift_size=None):
         x_size: input size.
         window_size: local window size.
         shift_size: window shifting size.
-    """
+
+    Returns:
+        x: window_size, shift_size
+    """ # noqa: E501
 
     use_window_size = list(window_size)
 
@@ -156,7 +159,7 @@ class MLP(layers.Layer):
     """A Multilayer perceptron(MLP) layer.
 
     Args:
-        hidden_dim (int): The number of units in the hidden layers.
+        hidden_dim (int): The number of units in the hidden layer.
         output_dim (int): The number of units in the output layer.
         drop_rate  (float): Float between 0 and 1. Fraction of the
             input units to drop.
@@ -596,7 +599,11 @@ class SwinTransformerBlock3D(keras.Model):
             drop_rate=self.drop_rate,
         )
 
-    def _forward(self, x, mask_matrix, return_attention_maps, training):
+
+    def call(
+        self, x, mask_matrix=None, return_attention_maps=False, training=None
+    ):
+        shortcut = x
         input_shape = ops.shape(x)
         batch_size, depth, height, width, _ = (
             input_shape[0],
@@ -687,17 +694,6 @@ class SwinTransformerBlock3D(keras.Model):
         )
 
         if return_attention_maps:
-            return x, attention_maps
-
-        return x
-
-    def call(
-        self, x, mask_matrix=None, return_attention_maps=False, training=None
-    ):
-        shortcut = x
-        x = self._forward(x, mask_matrix, return_attention_maps, training)
-
-        if return_attention_maps:
             x, attention_maps = x
 
         x = shortcut + self.drop_path(x)
@@ -782,7 +778,7 @@ class BasicLayer(keras.Model):
         self.norm_layer = norm_layer
         self.downsample = downsample
 
-    def compute_dim_padded(self, input_dim, window_dim_size):
+    def _compute_dim_padded(self, input_dim, window_dim_size):
         input_dim = ops.cast(input_dim, dtype="float32")
         window_dim_size = ops.cast(window_dim_size, dtype="float32")
         return ops.cast(
@@ -793,9 +789,9 @@ class BasicLayer(keras.Model):
         window_size, _ = get_window_size(
             input_shape[1:-1], self.window_size, self.shift_size
         )
-        depth_p = self.compute_dim_padded(input_shape[1], window_size[0])
-        height_p = self.compute_dim_padded(input_shape[2], window_size[1])
-        width_p = self.compute_dim_padded(input_shape[3], window_size[2])
+        depth_p = self._compute_dim_padded(input_shape[1], window_size[0])
+        height_p = self._compute_dim_padded(input_shape[2], window_size[1])
+        width_p = self._compute_dim_padded(input_shape[3], window_size[2])
         output_shape = (input_shape[0], depth_p, height_p, width_p, self.dim)
         return output_shape
 
@@ -803,9 +799,9 @@ class BasicLayer(keras.Model):
         window_size, shift_size = get_window_size(
             input_shape[1:-1], self.window_size, self.shift_size
         )
-        depth_p = self.compute_dim_padded(input_shape[1], window_size[0])
-        height_p = self.compute_dim_padded(input_shape[2], window_size[1])
-        width_p = self.compute_dim_padded(input_shape[3], window_size[2])
+        depth_p = self._compute_dim_padded(input_shape[1], window_size[0])
+        height_p = self._compute_dim_padded(input_shape[2], window_size[1])
+        width_p = self._compute_dim_padded(input_shape[3], window_size[2])
         self.attn_mask = compute_mask(
             depth_p, height_p, width_p, window_size, shift_size
         )
@@ -878,7 +874,7 @@ class BasicLayer(keras.Model):
                 "depth": self.depth,
                 "qkv_bias": self.qkv_bias,
                 "qk_scale": self.qk_scale,
-                "drop": self.drop,
+                "drop": self.drop_rate,
                 "attn_drop": self.attn_drop,
                 "drop_path": self.drop_path,
             }
