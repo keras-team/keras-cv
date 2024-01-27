@@ -504,7 +504,6 @@ class SwinTransformerBlock3D(keras.Model):
     """Swin Transformer Block.
 
     Args:
-        dim (int): Number of input channels.
         num_heads (int): Number of attention heads.
         window_size (tuple[int]): Window size.
         shift_size (tuple[int]): Shift size for SW-MSA.
@@ -524,7 +523,6 @@ class SwinTransformerBlock3D(keras.Model):
 
     def __init__(
         self,
-        dim,
         num_heads,
         window_size=(2, 7, 7),
         shift_size=(0, 0, 0),
@@ -539,7 +537,6 @@ class SwinTransformerBlock3D(keras.Model):
         **kwargs
     ):
         super().__init__(**kwargs)
-        self.dim = dim
         self.num_heads = num_heads
         self.window_size = window_size
         self.shift_size = shift_size
@@ -549,7 +546,6 @@ class SwinTransformerBlock3D(keras.Model):
         self.attn_drop = attn_drop
         self.drop_rate = drop_rate
         self.drop_path = drop_path
-        self.mlp_hidden_dim = int(dim * mlp_ratio)
         self.activation = activation
         self.norm_layer = norm_layer
 
@@ -564,9 +560,13 @@ class SwinTransformerBlock3D(keras.Model):
         ), "shift_size must in 0-window_size"
 
     def build(self, input_shape):
+
+        input_dim = input_shape[-1]
+        self.mlp_hidden_dim = int(input_dim * self.mlp_ratio)
         self.window_size, self.shift_size = get_window_size(
             input_shape[1:-1], self.window_size, self.shift_size
         )
+
         if any(i > 0 for i in self.shift_size):
             self.roll = True
         else:
@@ -575,7 +575,7 @@ class SwinTransformerBlock3D(keras.Model):
         # layers
         self.norm1 = self.norm_layer(axis=-1, epsilon=1e-05)
         self.attn = WindowAttention3D(
-            self.dim,
+            input_dim,
             window_size=self.window_size,
             num_heads=self.num_heads,
             qkv_bias=self.qkv_bias,
@@ -590,7 +590,7 @@ class SwinTransformerBlock3D(keras.Model):
         )
         self.norm2 = self.norm_layer(axis=-1, epsilon=1e-05)
         self.mlp = MLP(
-            output_dim=self.dim,
+            output_dim=input_dim,
             hidden_dim=self.mlp_hidden_dim,
             activation=self.activation,
             drop_rate=self.drop_rate,
@@ -689,7 +689,6 @@ class SwinTransformerBlock3D(keras.Model):
         config = super().get_config()
         config.update(
             {
-                "dim": self.dim,
                 "window_size": self.num_heads,
                 "num_heads": self.window_size,
                 "shift_size": self.shift_size,
