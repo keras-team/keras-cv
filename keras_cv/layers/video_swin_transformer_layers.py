@@ -420,7 +420,7 @@ class WindowAttention3D(keras.Model):
         relative_coords = ops.stack([z_z, x_x, y_y], axis=-1)
         return ops.sum(relative_coords, axis=-1)
 
-    def call(self, x, mask=None, return_attention_maps=False, training=None):
+    def call(self, x, mask=None, training=None):
         input_shape = ops.shape(x)
         batch_size, depth, channel = (
             input_shape[0],
@@ -479,9 +479,6 @@ class WindowAttention3D(keras.Model):
         x = ops.reshape(x, [batch_size, depth, channel])
         x = self.proj(x)
         x = self.proj_drop(x, training=training)
-
-        if return_attention_maps:
-            return x, attention_maps
         return x
 
     def get_config(self):
@@ -601,7 +598,7 @@ class SwinTransformerBlock3D(keras.Model):
 
 
     def call(
-        self, x, mask_matrix=None, return_attention_maps=False, training=None
+        self, x, mask_matrix=None, training=None
     ):
         shortcut = x
         input_shape = ops.shape(x)
@@ -652,17 +649,9 @@ class SwinTransformerBlock3D(keras.Model):
         x_windows = window_partition(shifted_x, window_size)
 
         # get attentions params
-        if return_attention_maps:
-            attention_windows, attention_maps = self.attn(
-                x_windows,
-                mask=attn_mask,
-                return_attention_maps=return_attention_maps,
-                training=training,
-            )
-        else:
-            attention_windows = self.attn(
-                x_windows, mask=attn_mask, training=training
-            )
+        attention_windows = self.attn(
+            x_windows, mask=attn_mask, training=training
+        )
 
         # reverse the swin windows
         shifted_x = window_reverse(
@@ -692,16 +681,8 @@ class SwinTransformerBlock3D(keras.Model):
         x = ops.cond(
             do_pad, lambda: x[:, :depth, :height, :width, :], lambda: x
         )
-
-        if return_attention_maps:
-            x, attention_maps = x
-
         x = shortcut + self.drop_path(x)
         x = self.drop_path(self.mlp(self.norm2(x)), training=training)
-
-        if return_attention_maps:
-            return x, attention_maps
-
         return x
 
     def get_config(self):
@@ -831,7 +812,7 @@ class BasicLayer(keras.Model):
                 dim=self.dim, norm_layer=self.norm_layer
             )
 
-    def call(self, x, training=None, return_attention_maps=False):
+    def call(self, x, training=None):
         input_shape = ops.shape(x)
         batch_size, depth, height, width, _ = (
             input_shape[0],
@@ -842,23 +823,14 @@ class BasicLayer(keras.Model):
         )
 
         for block in self.blocks:
-            if return_attention_maps:
-                x, attention_maps = block(
-                    x,
-                    self.attn_mask,
-                    return_attention_maps=return_attention_maps,
-                    training=training,
-                )
-            else:
-                x = block(x, self.attn_mask, training=training)
+            x = block(
+                x, self.attn_mask, training=training
+            )
 
         x = ops.reshape(x, [batch_size, depth, height, width, -1])
 
         if self.downsample is not None:
             x = self.downsample(x)
-
-        if return_attention_maps:
-            return x, attention_maps
 
         return x
 
