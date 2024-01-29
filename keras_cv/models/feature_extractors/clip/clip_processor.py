@@ -29,18 +29,18 @@ class CLIPProcessor:
 
     Args:
         input_resolution (int): The resolution of input images.
-        vocabulary (str): string or dict, maps token to integer ids. If it is a 
+        vocabulary (str): string or dict, maps token to integer ids. If it is a
             string, it should be the file path to a json file.
-        merges: string or list, contains the merge rule. If it is a string, it 
-            should be the file path to merge rules. The merge rule file should 
+        merges: string or list, contains the merge rule. If it is a string, it
+            should be the file path to merge rules. The merge rule file should
             have one merge rule per line.
 
     Methods:
-        process_images(image_path: List[str]): Transforms an image located at 
+        process_images(image_path: List[str]): Transforms an image located at
             the specified path.
 
-        process_texts(texts: Union[str, List[str]], context_length: int = 77): 
-            Processes a single text or a list of texts, returning packed token 
+        process_texts(texts: Union[str, List[str]], context_length: int = 77):
+            Processes a single text or a list of texts, returning packed token
             sequences.
 
     """

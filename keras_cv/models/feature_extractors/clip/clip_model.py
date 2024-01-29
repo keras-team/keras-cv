@@ -149,11 +149,11 @@ class CLIP(keras.Model):
         image_features = self.encode_images(image)
         text_features = self.encode_text(text)
 
-        image_features = image_features / keras.utils.normalize(
-            image_features, axis=1
+        image_features = image_features / keras.ops.norm(
+            image_features, axis=1, keepdims=True
         )
-        text_features = text_features / keras.utils.normalize(
-            text_features, axis=1
+        text_features = text_features / keras.ops.norm(
+            text_features, axis=1, keepdims=True
         )
 
         logit_scale = ops.exp(self.logit_scale)
