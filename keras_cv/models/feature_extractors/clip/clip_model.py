@@ -121,6 +121,8 @@ class CLIP(keras.Model):
         self.logit_scale = keras.Variable(
             ops.ones([]) * ops.log(1 / 0.07), name="logit_scale"
         )
+        self.image_embeddings = None
+        self.text_embeddings = None
 
     def build_attention_mask(self):
         mask = ops.ones((self.context_length, self.context_length))
@@ -146,21 +148,25 @@ class CLIP(keras.Model):
         return x
 
     def call(self, image, text):
-        image_features = self.encode_images(image)
-        text_features = self.encode_text(text)
+        self.image_embeddings = self.encode_images(image)
+        self.text_embeddings = self.encode_text(text)
         normalize_image_features = keras.ops.sqrt(
-            keras.ops.sum(keras.ops.power(image_features, 2), keepdims=True)
+            keras.ops.sum(
+                keras.ops.power(self.image_embeddings, 2), keepdims=True
+            )
         )
         normalize_text_features = keras.ops.sqrt(
-            keras.ops.sum(keras.ops.power(text_features, 2), keepdims=True)
+            keras.ops.sum(
+                keras.ops.power(self.text_embeddings, 2), keepdims=True
+            )
         )
-        image_features = image_features / normalize_image_features
-        text_features = text_features / normalize_text_features
+        self.image_embeddings = self.image_embeddings / normalize_image_features
+        self.text_embeddings = self.text_embeddings / normalize_text_features
 
         logit_scale = ops.exp(self.logit_scale)
         logits_per_image = logit_scale * ops.matmul(
-            image_features,
-            ops.transpose(text_features),
+            self.image_embeddings,
+            ops.transpose(self.text_embeddings),
         )
         logits_per_text = ops.transpose(logits_per_image)
 
