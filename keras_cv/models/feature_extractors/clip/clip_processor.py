@@ -29,23 +29,28 @@ class CLIPProcessor:
 
     Args:
         input_resolution (int): The resolution of input images.
+        vocabulary (str): string or dict, maps token to integer ids. If it is a 
+            string, it should be the file path to a json file.
+        merges: string or list, contains the merge rule. If it is a string, it 
+            should be the file path to merge rules. The merge rule file should 
+            have one merge rule per line.
 
     Methods:
-        process_images(image_path: List[str]) -> np.ndarray:
-            Transforms an image located at the specified path.
+        process_images(image_path: List[str]): Transforms an image located at 
+            the specified path.
 
-        process_texts(texts: Union[str, List[str]], context_length: int = 77)
-            -> np.ndarray: Processes a single text or a list of texts, returning
-            packed token sequences.
+        process_texts(texts: Union[str, List[str]], context_length: int = 77): 
+            Processes a single text or a list of texts, returning packed token 
+            sequences.
 
     """
 
-    def __init__(self, input_resolution):
+    def __init__(self, input_resolution, vocabulary, merges):
         self.input_resolution = input_resolution
         self.image_transform = self.transform_image
         self.tokenizer = CLIPTokenizer(
-            vocabulary="keras_cv/models/feature_extractors/clip/vocab.json",
-            merges="keras_cv/models/feature_extractors/clip/merges.txt",
+            vocabulary=vocabulary,
+            merges=merges,
             unsplittable_tokens=["</w>"],
         )
         self.packer = StartEndPacker(
