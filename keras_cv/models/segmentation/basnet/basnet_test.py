@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import gc
 import os
 
 import numpy as np
@@ -23,13 +24,13 @@ from keras_cv.backend import keras
 from keras_cv.backend import ops
 from keras_cv.backend.config import keras_3
 from keras_cv.models import BASNet
-from keras_cv.models import ResNet34Backbone
+from keras_cv.models import ResNet18Backbone
 from keras_cv.tests.test_case import TestCase
 
 
 class BASNetTest(TestCase):
     def test_basnet_construction(self):
-        backbone = ResNet34Backbone()
+        backbone = ResNet18Backbone()
         model = BASNet(
             input_shape=[288, 288, 3], backbone=backbone, num_classes=1
         )
@@ -41,7 +42,7 @@ class BASNetTest(TestCase):
 
     @pytest.mark.large
     def test_basnet_call(self):
-        backbone = ResNet34Backbone()
+        backbone = ResNet18Backbone()
         model = BASNet(
             input_shape=[288, 288, 3], backbone=backbone, num_classes=1
         )
@@ -61,7 +62,7 @@ class BASNetTest(TestCase):
         ds = ds.repeat(2)
         ds = ds.batch(2)
 
-        backbone = ResNet34Backbone()
+        backbone = ResNet18Backbone()
         model = BASNet(
             input_shape=[288, 288, 3], backbone=backbone, num_classes=1
         )
@@ -99,7 +100,7 @@ class BASNetTest(TestCase):
     def test_saved_model(self):
         target_size = [288, 288, 3]
 
-        backbone = ResNet34Backbone()
+        backbone = ResNet18Backbone()
         model = BASNet(
             input_shape=[288, 288, 3], backbone=backbone, num_classes=1
         )
@@ -112,6 +113,9 @@ class BASNetTest(TestCase):
             model.save(save_path)
         else:
             model.save(save_path, save_format="keras_v3")
+        # Free up model memory
+        del model
+        gc.collect()
         restored_model = keras.models.load_model(save_path)
 
         # Check we got the real object back.
