@@ -51,6 +51,7 @@ class CLIPProcessor:
         self.tokenizer = CLIPTokenizer(
             vocabulary=vocabulary,
             merges=merges,
+
             unsplittable_tokens=["</w>"],
         )
         self.packer = StartEndPacker(
