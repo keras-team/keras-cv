@@ -51,7 +51,7 @@ pip install --no-deps -e "." --progress-bar off
 # Run Extra Large Tests for Continuous builds
 if [ "${RUN_XLARGE:-0}" == "1" ]
 then
-   pytest --check_gpu --run_large --run_extra_large --durations 0 \
+   pytest --cache-clear --check_gpu --run_large --run_extra_large --durations 0 \
       keras_cv/bounding_box \
       keras_cv/callbacks \
       keras_cv/losses \
@@ -65,7 +65,7 @@ then
       keras_cv/models/segmentation \
       keras_cv/models/stable_diffusion
 else
-   pytest --check_gpu --run_large --durations 0 \
+   pytest --cache-clear --check_gpu --run_large --durations 0 \
       keras_cv/bounding_box \
       keras_cv/callbacks \
       keras_cv/losses \
