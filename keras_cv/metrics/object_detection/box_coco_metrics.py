@@ -212,9 +212,9 @@ class BoxCOCOMetrics(keras.metrics.Metric):
             )
             result = {}
             for i, key in enumerate(METRIC_NAMES):
-                result[
-                    self.name_prefix() + METRIC_MAPPING[key]
-                ] = py_func_result[i]
+                result[self.name_prefix() + METRIC_MAPPING[key]] = (
+                    py_func_result[i]
+                )
             return result
 
         obj.result = types.MethodType(result_fn, obj)
