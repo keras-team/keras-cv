@@ -118,10 +118,10 @@ class SqueezeAndExcite2D(keras.layers.Layer):
     @classmethod
     def from_config(cls, config):
         if isinstance(config["squeeze_activation"], dict):
-            config[
-                "squeeze_activation"
-            ] = keras.saving.deserialize_keras_object(
-                config["squeeze_activation"]
+            config["squeeze_activation"] = (
+                keras.saving.deserialize_keras_object(
+                    config["squeeze_activation"]
+                )
             )
         if isinstance(config["excite_activation"], dict):
             config["excite_activation"] = keras.saving.deserialize_keras_object(
