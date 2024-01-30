@@ -32,7 +32,7 @@ class BASNetTest(TestCase):
     def test_basnet_construction(self):
         backbone = ResNet18Backbone()
         model = BASNet(
-            input_shape=[288, 288, 3], backbone=backbone, num_classes=1
+            input_shape=[64, 64, 3], backbone=backbone, num_classes=1
         )
         model.compile(
             optimizer="adam",
@@ -44,17 +44,17 @@ class BASNetTest(TestCase):
     def test_basnet_call(self):
         backbone = ResNet18Backbone()
         model = BASNet(
-            input_shape=[288, 288, 3], backbone=backbone, num_classes=1
+            input_shape=[64, 64, 3], backbone=backbone, num_classes=1
         )
-        images = np.random.uniform(size=(2, 288, 288, 3))
+        images = np.random.uniform(size=(2, 64, 64, 3))
         _ = model(images)
         _ = model.predict(images)
 
     @pytest.mark.large
     @pytest.mark.filterwarnings("ignore::UserWarning")
     def test_weights_change(self):
-        input_size = [288, 288, 3]
-        target_size = [288, 288, 1]
+        input_size = [64, 64, 3]
+        target_size = [64, 64, 1]
 
         images = np.ones([1] + input_size)
         labels = np.random.uniform(size=[1] + target_size)
@@ -64,7 +64,7 @@ class BASNetTest(TestCase):
 
         backbone = ResNet18Backbone()
         model = BASNet(
-            input_shape=[288, 288, 3], backbone=backbone, num_classes=1
+            input_shape=[64, 64, 3], backbone=backbone, num_classes=1
         )
         model_metrics = ["accuracy"]
         if keras_3():
@@ -77,7 +77,7 @@ class BASNetTest(TestCase):
         )
 
         original_weights = model.refinement_head.get_weights()
-        model.fit(ds, epochs=1)
+        model.fit(ds, epochs=1, batch_size=1)
         updated_weights = model.refinement_head.get_weights()
 
         for w1, w2 in zip(original_weights, updated_weights):
@@ -98,11 +98,11 @@ class BASNetTest(TestCase):
 
     @pytest.mark.large
     def test_saved_model(self):
-        target_size = [288, 288, 3]
+        target_size = [64, 64, 3]
 
         backbone = ResNet18Backbone()
         model = BASNet(
-            input_shape=[288, 288, 3], backbone=backbone, num_classes=1
+            input_shape=[64, 64, 3], backbone=backbone, num_classes=1
         )
 
         input_batch = np.ones(shape=[2] + target_size)
