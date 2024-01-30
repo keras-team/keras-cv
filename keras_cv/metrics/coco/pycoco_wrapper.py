@@ -14,7 +14,6 @@
 import copy
 
 import numpy as np
-import tree
 
 try:
     from pycocotools.coco import COCO
@@ -23,7 +22,6 @@ except ImportError:
     COCO = object
     COCOeval = None
 
-from keras_cv.backend import ops
 from keras_cv.utils.conditional_imports import assert_pycocotools_installed
 
 METRIC_NAMES = [
@@ -127,6 +125,7 @@ def _convert_predictions_to_coco_annotations(predictions):
     num_batches = len(predictions["source_id"])
     for i in range(num_batches):
         batch_size = predictions["source_id"][i].shape[0]
+        predictions["detection_boxes"][i] = predictions["detection_boxes"][i].copy()
         for j in range(batch_size):
             max_num_detections = predictions["num_detections"][i][j]
             predictions["detection_boxes"][i][j] = _yxyx_to_xywh(
@@ -198,14 +197,16 @@ def _concat_numpy(groundtruths, predictions):
     """Converts tensors to numpy arrays."""
     numpy_groundtruths = {}
     for key, val in groundtruths.items():
-        numpy_groundtruths[key] = tree.map_structure(
-            lambda x: ops.convert_to_tensor(x), val
-        )
+        if isinstance(val, tuple):
+            val = np.concatenate(val)
+        numpy_groundtruths[key] = val
+
     numpy_predictions = {}
     for key, val in predictions.items():
-        numpy_predictions[key] = tree.map_structure(
-            lambda x: ops.convert_to_tensor(x), val
-        )
+        if isinstance(val, tuple):
+            val = np.concatenate(val)
+        numpy_predictions[key] = val
+
     return numpy_groundtruths, numpy_predictions
 
 
