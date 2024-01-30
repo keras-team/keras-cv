@@ -14,6 +14,7 @@
 import copy
 
 import numpy as np
+import tree
 
 try:
     from pycocotools.coco import COCO
@@ -22,6 +23,7 @@ except ImportError:
     COCO = object
     COCOeval = None
 
+from keras_cv.backend import ops
 from keras_cv.utils.conditional_imports import assert_pycocotools_installed
 
 METRIC_NAMES = [
@@ -196,16 +198,14 @@ def _concat_numpy(groundtruths, predictions):
     """Converts tensors to numpy arrays."""
     numpy_groundtruths = {}
     for key, val in groundtruths.items():
-        if isinstance(val, tuple):
-            val = np.concatenate(val)
-        numpy_groundtruths[key] = val
-
+        numpy_groundtruths[key] = tree.map_structure(
+            lambda x: ops.convert_to_tensor(x), val
+        )
     numpy_predictions = {}
     for key, val in predictions.items():
-        if isinstance(val, tuple):
-            val = np.concatenate(val)
-        numpy_predictions[key] = val
-
+        numpy_predictions[key] = tree.map_structure(
+            lambda x: ops.convert_to_tensor(x), val
+        )
     return numpy_groundtruths, numpy_predictions
 
 
