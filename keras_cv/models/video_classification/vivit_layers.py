@@ -14,7 +14,6 @@
 
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
-from keras_cv.backend import layers
 from keras_cv.backend import ops
 
 
@@ -22,16 +21,16 @@ from keras_cv.backend import ops
     "keras_cv.layers.TubeletEmebedding",
     package="keras_cv.layers",
 )
-class TubeletEmbedding(layers.Layer):
+class TubeletEmbedding(keras.layers.Layer):
     def __init__(self, embed_dim, patch_size, **kwargs):
         super().__init__(**kwargs)
-        self.projection = layers.Conv3D(
+        self.projection = keras.layers.Conv3D(
             filters=embed_dim,
             kernel_size=patch_size,
             strides=patch_size,
             padding="VALID",
         )
-        self.flatten = layers.Reshape(target_shape=(-1, embed_dim))
+        self.flatten = keras.layers.Reshape(target_shape=(-1, embed_dim))
 
     def call(self, videos):
         projected_patches = self.projection(videos)
@@ -50,14 +49,14 @@ class TubeletEmbedding(layers.Layer):
     "keras_cv.layers.PositionalEncoder",
     package="keras_cv.layers",
 )
-class PositionalEncoder(layers.Layer):
+class PositionalEncoder(keras.layers.Layer):
     def __init__(self, embed_dim, **kwargs):
         super().__init__(**kwargs)
         self.embed_dim = embed_dim
 
     def build(self, input_shape):
         _, num_tokens, _ = input_shape
-        self.position_embedding = layers.Embedding(
+        self.position_embedding = keras.layers.Embedding(
             input_dim=num_tokens, output_dim=self.embed_dim
         )
         self.positions = ops.arange(start=0, stop=num_tokens, step=1)
