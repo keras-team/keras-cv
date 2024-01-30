@@ -144,9 +144,9 @@ class ViTDetBackbone(Backbone):
                 num_heads=num_heads,
                 use_bias=use_bias,
                 use_rel_pos=use_rel_pos,
-                window_size=window_size
-                if i not in global_attention_indices
-                else 0,
+                window_size=(
+                    window_size if i not in global_attention_indices else 0
+                ),
                 input_size=(img_size // patch_size, img_size // patch_size),
             )(x)
         x = keras.models.Sequential(
