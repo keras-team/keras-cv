@@ -17,6 +17,7 @@ import tree
 
 from keras_cv import bounding_box
 from keras_cv.api_export import keras_cv_export
+from keras_cv.backend import config
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 from keras_cv.backend import scope
@@ -412,6 +413,8 @@ class VectorizedBaseImageAugmentationLayer(keras.layers.Layer):
     def call(self, inputs):
         # try to convert a given backend native tensor to TensorFlow tensor
         # before passing it over to TFDataScope
+        is_tf_backend = config.backend() == "tensorflow"
+        is_in_tf_graph = not tf.executing_eagerly()
         contains_ragged = lambda y: any(
             tree.map_structure(
                 lambda x: isinstance(x, (tf.RaggedTensor, tf.SparseTensor)),
@@ -419,7 +422,7 @@ class VectorizedBaseImageAugmentationLayer(keras.layers.Layer):
             )
         )
         inputs_contain_ragged = contains_ragged(inputs)
-        if not inputs_contain_ragged:
+        if not is_tf_backend and not inputs_contain_ragged:
             inputs = tree.map_structure(
                 lambda x: tf.convert_to_tensor(x), inputs
             )
@@ -443,13 +446,14 @@ class VectorizedBaseImageAugmentationLayer(keras.layers.Layer):
         # backend native tensors. This is to avoid breaking TF data
         # pipelines that can't easily be ported to become backend
         # agnostic.
-        if not inputs_contain_ragged and not contains_ragged(outputs):
-            outputs = tree.map_structure(
-                # some layers return None, handle that case when
-                # converting to tensors
-                lambda x: ops.convert_to_tensor(x) if x is not None else x,
-                outputs,
-            )
+        if not is_tf_backend and not is_in_tf_graph:
+            if not inputs_contain_ragged and not contains_ragged(outputs):
+                outputs = tree.map_structure(
+                    # some layers return None, handle that case when
+                    # converting to tensors
+                    lambda x: ops.convert_to_tensor(x) if x is not None else x,
+                    outputs,
+                )
         return outputs
 
     def _format_inputs(self, inputs):
