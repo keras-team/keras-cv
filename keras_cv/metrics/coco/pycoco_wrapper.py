@@ -125,7 +125,9 @@ def _convert_predictions_to_coco_annotations(predictions):
     num_batches = len(predictions["source_id"])
     for i in range(num_batches):
         batch_size = predictions["source_id"][i].shape[0]
-        predictions["detection_boxes"][i] = predictions["detection_boxes"][i].copy()
+        predictions["detection_boxes"][i] = predictions["detection_boxes"][
+            i
+        ].copy()
         for j in range(batch_size):
             max_num_detections = predictions["num_detections"][i][j]
             predictions["detection_boxes"][i][j] = _yxyx_to_xywh(
