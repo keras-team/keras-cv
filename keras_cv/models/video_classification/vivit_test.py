@@ -12,10 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+
 import numpy as np
 import pytest
+import tensorflow as tf
 
 from keras_cv.backend import keras
+from keras_cv.backend import ops
+from keras_cv.backend.config import keras_3
 from keras_cv.models.video_classification.vivit import ViViT
 from keras_cv.models.video_classification.vivit_layers import PositionalEncoder
 from keras_cv.models.video_classification.vivit_layers import TubeletEmbedding
@@ -24,25 +29,25 @@ from keras_cv.tests.test_case import TestCase
 
 class ViViT_Test(TestCase):
     def test_vivit_construction(self):
-        INPUT_SHAPE = (28, 28, 28, 1)
-        NUM_CLASSES = 11
-        PATCH_SIZE = (8, 8, 8)
-        LAYER_NORM_EPS = 1e-6
-        PROJECTION_DIM = 128
-        NUM_HEADS = 8
-        NUM_LAYERS = 8
+        input_shape = (28, 28, 28, 1)
+        num_classes = 11
+        patch_size = (8, 8, 8)
+        layer_norm_eps = 1e-6
+        projection_dim = 128
+        num_heads = 8
+        num_layers = 8
 
         model = ViViT(
             tubelet_embedder=TubeletEmbedding(
-                embed_dim=PROJECTION_DIM, patch_size=PATCH_SIZE
+                embed_dim=projection_dim, patch_size=patch_size
             ),
-            positional_encoder=PositionalEncoder(embed_dim=PROJECTION_DIM),
-            input_shape=INPUT_SHAPE,
-            transformer_layers=NUM_LAYERS,
-            num_heads=NUM_HEADS,
-            embed_dim=PROJECTION_DIM,
-            layer_norm_eps=LAYER_NORM_EPS,
-            num_classes=NUM_CLASSES,
+            positional_encoder=PositionalEncoder(embed_dim=projection_dim),
+            inp_shape=input_shape,
+            transformer_layers=num_layers,
+            num_heads=num_heads,
+            embed_dim=projection_dim,
+            layer_norm_eps=layer_norm_eps,
+            num_classes=num_classes,
         )
         model.compile(
             optimizer="adam",
@@ -56,25 +61,115 @@ class ViViT_Test(TestCase):
         )
 
     def test_vivit_call(self):
-        INPUT_SHAPE = (28, 28, 28, 1)
-        NUM_CLASSES = 11
-        PATCH_SIZE = (8, 8, 8)
-        LAYER_NORM_EPS = 1e-6
-        PROJECTION_DIM = 128
-        NUM_HEADS = 8
-        NUM_LAYERS = 8
+        input_shape = (28, 28, 28, 1)
+        num_classes = 11
+        patch_size = (8, 8, 8)
+        layer_norm_eps = 1e-6
+        projection_dim = 128
+        num_heads = 8
+        num_layers = 8
 
         model = ViViT(
             tubelet_embedder=TubeletEmbedding(
-                embed_dim=PROJECTION_DIM, patch_size=PATCH_SIZE
+                embed_dim=projection_dim, patch_size=patch_size
             ),
-            positional_encoder=PositionalEncoder(embed_dim=PROJECTION_DIM),
-            input_shape=INPUT_SHAPE,
-            transformer_layers=NUM_LAYERS,
-            num_heads=NUM_HEADS,
-            embed_dim=PROJECTION_DIM,
-            layer_norm_eps=LAYER_NORM_EPS,
-            num_classes=NUM_CLASSES,
+            positional_encoder=PositionalEncoder(embed_dim=projection_dim),
+            inp_shape=input_shape,
+            transformer_layers=num_layers,
+            num_heads=num_heads,
+            embed_dim=projection_dim,
+            layer_norm_eps=layer_norm_eps,
+            num_classes=num_classes,
         )
         frames = np.random.uniform(size=(5, 28, 28, 28, 1))
         _ = model(frames)
+
+    def test_weights_change(self):
+        input_shape = (28, 28, 28, 1)
+        num_classes = 11
+        patch_size = (8, 8, 8)
+        layer_norm_eps = 1e-6
+        projection_dim = 128
+        num_heads = 8
+        num_layers = 8
+
+        frames = np.random.uniform(size=(5, 28, 28, 28, 1))
+        labels = np.ones(shape=(5))
+        ds = tf.data.Dataset.from_tensor_slices((frames, labels))
+        ds = ds.repeat(2)
+        ds = ds.batch(2)
+
+        model = ViViT(
+            tubelet_embedder=TubeletEmbedding(
+                embed_dim=projection_dim, patch_size=patch_size
+            ),
+            positional_encoder=PositionalEncoder(embed_dim=projection_dim),
+            inp_shape=input_shape,
+            transformer_layers=num_layers,
+            num_heads=num_heads,
+            embed_dim=projection_dim,
+            layer_norm_eps=layer_norm_eps,
+            num_classes=num_classes,
+        )
+
+        model.compile(
+            optimizer="adam",
+            loss="sparse_categorical_crossentropy",
+            metrics=[
+                keras.metrics.SparseCategoricalAccuracy(name="accuracy"),
+                keras.metrics.SparseTopKCategoricalAccuracy(
+                    5, name="top-5-accuracy"
+                ),
+            ],
+        )
+
+        layer_name = "multi_head_attention_23"
+        representation_layer = model.get_layer(layer_name)
+
+        original_weights = representation_layer.get_weights()
+        model.fit(ds, epochs=1)
+        updated_weights = representation_layer.get_weights()
+
+        for w1, w2 in zip(original_weights, updated_weights):
+            self.assertNotAllEqual(w1, w2)
+            self.assertFalse(ops.any(ops.isnan(w2)))
+
+    @pytest.mark.large  # Saving is slow, so mark these large.
+    def test_saved_model(self):
+        input_shape = (28, 28, 28, 1)
+        num_classes = 11
+        patch_size = (8, 8, 8)
+        layer_norm_eps = 1e-6
+        projection_dim = 128
+        num_heads = 8
+        num_layers = 8
+
+        model = ViViT(
+            tubelet_embedder=TubeletEmbedding(
+                embed_dim=projection_dim, patch_size=patch_size
+            ),
+            positional_encoder=PositionalEncoder(embed_dim=projection_dim),
+            inp_shape=input_shape,
+            transformer_layers=num_layers,
+            num_heads=num_heads,
+            embed_dim=projection_dim,
+            layer_norm_eps=layer_norm_eps,
+            num_classes=num_classes,
+        )
+
+        input_batch = np.random.uniform(size=(5, 28, 28, 28, 1))
+        model_output = model(input_batch)
+
+        save_path = os.path.join(self.get_temp_dir(), "model.keras")
+        if keras_3():
+            model.save(save_path)
+        else:
+            model.save(save_path, save_format="keras_v3")
+        restored_model = keras.models.load_model(save_path)
+
+        # Check we got the real object back.
+        self.assertIsInstance(restored_model, ViViT)
+
+        # Check that output matches.
+        restored_output = restored_model(input_batch)
+        self.assertAllClose(model_output, restored_output)
