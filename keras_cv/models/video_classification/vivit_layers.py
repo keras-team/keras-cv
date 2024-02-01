@@ -22,15 +22,37 @@ from keras_cv.backend import ops
     package="keras_cv.layers",
 )
 class TubeletEmbedding(keras.layers.Layer):
-    def __init__(self, embed_dim, patch_size, **kwargs):
+    """
+    A Keras layer for spatio-temporal tube embedding applied to input sequences
+    retrieved from video frames.
+
+    References:
+      - [ViViT: A Video Vision Transformer](https://arxiv.org/abs/2103.15691)
+      (ICCV 2021)
+
+    Args:
+    embed_dim: int, number of dimensions in the embedding space.
+        Defaults to 128.
+    patch_size: tuple or int, size of the spatio-temporal patch.
+        If int, the same size is used for all dimensions.
+        If tuple, specifies the size for each dimension.
+        Defaults to 8.
+
+    """
+
+    def __init__(self, embed_dim=128, patch_size=8, **kwargs):
         super().__init__(**kwargs)
+        self.embed_dim = embed_dim
+        self.patch_size = patch_size
+
+    def build(self, input_shape):
         self.projection = keras.layers.Conv3D(
-            filters=embed_dim,
-            kernel_size=patch_size,
-            strides=patch_size,
+            filters=self.embed_dim,
+            kernel_size=self.patch_size,
+            strides=self.patch_size,
             padding="VALID",
         )
-        self.flatten = keras.layers.Reshape(target_shape=(-1, embed_dim))
+        self.flatten = keras.layers.Reshape(target_shape=(-1, self.embed_dim))
 
     def call(self, videos):
         projected_patches = self.projection(videos)
@@ -50,7 +72,20 @@ class TubeletEmbedding(keras.layers.Layer):
     package="keras_cv.layers",
 )
 class PositionalEncoder(keras.layers.Layer):
-    def __init__(self, embed_dim, **kwargs):
+    """
+    A Keras layer for adding positional information to the encoded video tokens.
+
+    References:
+      - [ViViT: A Video Vision Transformer](https://arxiv.org/abs/2103.15691)
+      (ICCV 2021)
+
+    Args:
+    embed_dim: int, number of dimensions in the embedding space.
+        Defaults to 128.
+
+    """
+
+    def __init__(self, embed_dim=128, **kwargs):
         super().__init__(**kwargs)
         self.embed_dim = embed_dim
 
