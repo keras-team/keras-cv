@@ -128,7 +128,7 @@ class CLIP(keras.Model):
             layers=vision_layers,
             heads=vision_heads,
             output_dim=embed_dim,
-            name="clip_encoder",
+            name="image_encoder",
         )
         self.text_encoder = CLIPTextEncoder(
             transformer_width=transformer_width,
