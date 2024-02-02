@@ -34,7 +34,7 @@ class CLIPTextEncoder(keras.Model):
             layers=transformer_layers,
             heads=transformer_heads,
             attn_mask=self.build_attention_mask(),
-            name="residual_transformer_encoder",
+            name="clip_encoder",
         )
         self.ln_final = keras.layers.LayerNormalization(name="ln_final")
 
