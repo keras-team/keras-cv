@@ -1,6 +1,6 @@
 from keras_cv.backend import keras
 from keras_cv.backend import ops
-from keras_cv.models.feature_extractors.clip.clip_encoder import CLIPEncoder
+from keras_cv.models.feature_extractor.clip.clip_encoder import CLIPEncoder
 
 
 class CLIPTextEncoder(keras.Model):

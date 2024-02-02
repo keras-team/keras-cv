@@ -43,8 +43,9 @@ class ResidualAttention(keras.layers.Layer):
         n_head,
         num_hidden_layers,
         attn_mask=None,
+        **kwargs,
     ):
-        super().__init__()
+        super().__init__(**kwargs)
         self.proj_dim = proj_dim
         self.n_head = n_head
         self.attn_mask = attn_mask

@@ -12,11 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from keras_cv.models.clip.clip_image_model import (
+from keras_cv.models.feature_extractor.clip.clip_image_model import (
     CLIPImageEncoder,
 )
-from keras_cv.models.clip.clip_image_model import (
+from keras_cv.models.feature_extractor.clip.clip_model import CLIP
+from keras_cv.models.feature_extractor.clip.clip_processor import CLIPProcessor
+from keras_cv.models.feature_extractor.clip.clip_text_model import (
     CLIPTextEncoder,
 )
-from keras_cv.models.clip.clip_processor import CLIPProcessor
-from keras_cv.models.clip.clip_tokenizer import CLIPTokenizer
+from keras_cv.models.feature_extractor.clip.clip_tokenizer import CLIPTokenizer

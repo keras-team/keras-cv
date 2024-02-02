@@ -1,4 +1,4 @@
-# Copyright 2022 The KerasCV Authors
+# Copyright 2023 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,24 +11,3 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-import pytest
-from tensorflow.keras import mixed_precision
-
-from keras_cv.backend import ops
-from keras_cv.backend import random
-from keras_cv.models import CLIP
-from keras_cv.tests.test_case import TestCase
-
-
-@pytest.mark.tf_only
-class StableDiffusionTest(TestCase):
-    def test_clip_tokenizer(self):
-        pass
-
-    def test_presets(self):
-        pass
-
-    @pytest.mark.extra_large
-    def test_mixed_precision(self):
-        pass

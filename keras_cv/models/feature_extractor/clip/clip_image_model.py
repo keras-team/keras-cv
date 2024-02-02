@@ -14,13 +14,15 @@
 
 from keras_cv.backend import keras
 from keras_cv.backend import ops
-from keras_cv.models.feature_extractors.clip.clip_encoder import CLIPEncoder
-from keras_cv.models.feature_extractors.clip.clip_encoder import get_initializer
+from keras_cv.models.feature_extractor.clip.clip_encoder import CLIPEncoder
+from keras_cv.models.feature_extractor.clip.clip_encoder import get_initializer
 
 
 class CLIPPatchingAndEmbedding(keras.layers.Layer):
-    def __init__(self, width, patch_size, input_resolution, output_dim):
-        super().__init__()
+    def __init__(
+        self, width, patch_size, input_resolution, output_dim, **kwargs
+    ):
+        super().__init__(**kwargs)
 
         self.conv1 = keras.layers.Conv2D(
             filters=width,

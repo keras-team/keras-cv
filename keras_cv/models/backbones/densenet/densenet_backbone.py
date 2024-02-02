@@ -119,9 +119,9 @@ class DenseNetBackbone(Backbone):
             name=f"conv{len(stackwise_num_repeats) + 1}",
         )
 
-        pyramid_level_inputs[f"P{len(stackwise_num_repeats) + 1}"] = (
-            utils.get_tensor_input_name(x)
-        )
+        pyramid_level_inputs[
+            f"P{len(stackwise_num_repeats) + 1}"
+        ] = utils.get_tensor_input_name(x)
         x = keras.layers.BatchNormalization(
             axis=BN_AXIS, epsilon=BN_EPSILON, name="bn"
         )(x)

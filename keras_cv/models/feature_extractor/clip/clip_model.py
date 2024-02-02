@@ -14,11 +14,11 @@
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
-from keras_cv.models.feature_extractors.clip.clip_image_model import CLIPEncoder
-from keras_cv.models.feature_extractors.clip.clip_image_model import (
+from keras_cv.models.feature_extractor.clip.clip_image_model import CLIPEncoder
+from keras_cv.models.feature_extractor.clip.clip_image_model import (
     CLIPImageEncoder,
 )
-from keras_cv.models.feature_extractors.clip.clip_text_model import (
+from keras_cv.models.feature_extractor.clip.clip_text_model import (
     CLIPTextEncoder,
 )
 
@@ -74,9 +74,7 @@ MODEL_CONFIGS = {
 }
 
 
-@keras_cv_export(
-    ["keras_cv.models.CLIP", "keras_cv.models.feature_extractors.CLIP"]
-)
+@keras_cv_export(["keras_cv.models.CLIP"])
 class CLIP(keras.Model):
     """
         CLIP implements the Contrastive Language-Image Pretraining (CLIP)
@@ -116,8 +114,9 @@ class CLIP(keras.Model):
         transformer_width,
         transformer_heads,
         transformer_layers,
+        **kwargs,
     ):
-        super().__init__()
+        super().__init__(**kwargs)
 
         self.context_length = context_length
 
@@ -174,17 +173,7 @@ class CLIP(keras.Model):
         )
         self.image_embeddings = self.image_embeddings / normalize_image_features
         self.text_embeddings = self.text_embeddings / normalize_text_features
-
         logit_scale = ops.exp(self.logit_scale)
-        print("logit scale", logit_scale)
-        print(
-            "matmul",
-            ops.matmul(
-                self.image_embeddings,
-                ops.transpose(self.text_embeddings),
-            ),
-        )
-
         logits_per_image = (
             ops.matmul(
                 self.image_embeddings,
@@ -192,7 +181,6 @@ class CLIP(keras.Model):
             )
             * logit_scale
         )
-        print("logit per image", logits_per_image)
         logits_per_text = ops.transpose(logits_per_image)
 
         return logits_per_image, logits_per_text

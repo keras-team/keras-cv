@@ -663,9 +663,9 @@ class YOLOV8Detector(Task):
         if prediction_decoder is not None and isinstance(
             prediction_decoder, dict
         ):
-            config["prediction_decoder"] = (
-                keras.saving.deserialize_keras_object(prediction_decoder)
-            )
+            config[
+                "prediction_decoder"
+            ] = keras.saving.deserialize_keras_object(prediction_decoder)
         return cls(**config)
 
     @classproperty
