@@ -114,7 +114,7 @@ class CLIPImageEncoder(keras.Model):
             width,
             layers,
             heads,
-            name="residual_transformer_encoder",
+            name="clip_encoder",
         )
         self.post_norm = keras.layers.LayerNormalization(
             epsilon=1e-5, name="ln_2"
