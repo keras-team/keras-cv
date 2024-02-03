@@ -140,7 +140,8 @@ class ROIGenerator(keras.layers.Layer):
             boxes = ops.convert_to_tensor(boxes, dtype="float32")
             scores = ops.convert_to_tensor(scores, dtype="float32")
             scores_shape = ops.shape(scores)
-            # Check if scores is a 3-dimensional tensor ([batch_size, num_boxes, 1])
+            # Check if scores is a 3-dimensional tensor
+            # ([batch_size, num_boxes, 1])
             # If so, remove the last dimension to make it 2D
             if len(scores_shape) == 3:
                 scores = ops.squeeze(scores, axis=-1)
