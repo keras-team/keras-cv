@@ -220,7 +220,7 @@ def multilevel_crop_and_resize(
     feature_heights = []
     feature_widths = []
     for level in range(min_level, max_level + 1):
-        shape = features[f"P{level}"].get_shape().as_list()
+        shape = ops.shape(features[f"P{level}"])
         feature_heights.append(shape[1])
         feature_widths.append(shape[2])
         # Concat tensor of [batch_size, height_l * width_l, num_filters] for

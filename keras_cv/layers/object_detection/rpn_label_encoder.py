@@ -189,7 +189,7 @@ class _RpnLabelEncoder(keras.layers.Layer):
         )
 
     def unpack_targets(self, targets, anchors_dict):
-        target_shape = len(targets.get_shape().as_list())
+        target_shape = len(ops.shape(targets))
         if target_shape != 2 and target_shape != 3:
             raise ValueError(
                 "unpacking targets must be rank 2 or rank 3, got "
@@ -198,7 +198,7 @@ class _RpnLabelEncoder(keras.layers.Layer):
         unpacked_targets = {}
         count = 0
         for level, anchors in anchors_dict.items():
-            num_anchors_lvl = anchors.get_shape().as_list()[0]
+            num_anchors_lvl = ops.shape(anchors)[0]
             if target_shape == 2:
                 unpacked_targets[level] = targets[
                     count : count + num_anchors_lvl, ...
