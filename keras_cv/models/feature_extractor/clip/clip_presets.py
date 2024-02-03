@@ -15,7 +15,7 @@ clip_presets = {
             "official_name": "CLIP",
             "path": "clip",
         },
-        "kaggle_handle": "kaggle://keras/yolov8/keras/yolo_v8_m_pascalvoc/2",
+        "kaggle_handle": "TBD",
     },
     "clip-vit-base-patch32": {
         "metadata": {
@@ -31,7 +31,7 @@ clip_presets = {
             "official_name": "CLIP",
             "path": "clip",
         },
-        "kaggle_handle": "kaggle://keras/yolov8/keras/yolo_v8_m_pascalvoc/2",
+        "kaggle_handle": "TBD",
     },
     "clip-vit-large-patch14": {
         "metadata": {
@@ -47,7 +47,7 @@ clip_presets = {
             "official_name": "CLIP",
             "path": "clip",
         },
-        "kaggle_handle": "kaggle://keras/yolov8/keras/yolo_v8_m_pascalvoc/2",
+        "kaggle_handle": "TBD",
     },
     "clip-vit-large-patch14-336": {
         "metadata": {
@@ -63,6 +63,6 @@ clip_presets = {
             "official_name": "CLIP",
             "path": "clip",
         },
-        "kaggle_handle": "",
+        "kaggle_handle": "TBD",
     },
 }
