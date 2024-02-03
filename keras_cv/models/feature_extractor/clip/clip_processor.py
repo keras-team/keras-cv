@@ -63,8 +63,8 @@ class CLIPProcessor:
 
     def transform_image(self, image_path):
         input_resolution = self.input_resolution
-        mean = np.array([0.48145466, 0.4578275, 0.40821073])
-        std = np.array([0.26862954, 0.26130258, 0.27577711])
+        mean = ops.array([0.48145466, 0.4578275, 0.40821073])
+        std = ops.array([0.26862954, 0.26130258, 0.27577711])
 
         image = keras.utils.load_img(image_path)
         image = keras.utils.img_to_array(image)
