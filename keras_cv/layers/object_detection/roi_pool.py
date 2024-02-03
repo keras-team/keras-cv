@@ -12,12 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import tensorflow as tf
-from tensorflow import keras
 
 from keras_cv import bounding_box
 from keras_cv.api_export import keras_cv_export
-from keras_cv.backend import assert_tf_keras
+from keras_cv.backend import keras
+from keras_cv.backend import ops
 
 
 @keras_cv_export("keras_cv.layers.ROIPooler")
@@ -59,7 +58,6 @@ class ROIPooler(keras.layers.Layer):
         image_shape,
         **kwargs,
     ):
-        assert_tf_keras("keras_cv.layers.ROIPooler")
         if not isinstance(target_size, (tuple, list)):
             raise ValueError(
                 "Expected `target_size` to be tuple or list, got "
@@ -101,7 +99,7 @@ class ROIPooler(keras.layers.Layer):
             target="rel_yxyx",
             image_shape=self.image_shape,
         )
-        pooled_feature_map = tf.vectorized_map(
+        pooled_feature_map = ops.vectorized_map(
             self._pool_single_sample, (feature_map, rois)
         )
         return pooled_feature_map
@@ -132,18 +130,18 @@ class ROIPooler(keras.layers.Layer):
                 for j in range(self.target_width):
                     height_start = y_start + i * h_step
                     height_end = height_start + h_step
-                    height_start = tf.cast(height_start, tf.int32)
-                    height_end = tf.cast(height_end, tf.int32)
+                    height_start = ops.cast(height_start, "int32")
+                    height_end = ops.cast(height_end, "int32")
                     # if feature_map shape smaller than roi, h_step would be 0
                     # in this case the result will be feature_map[0, 0, ...]
-                    height_end = height_start + tf.maximum(
+                    height_end = height_start + ops.maximum(
                         1, height_end - height_start
                     )
                     width_start = x_start + j * w_step
                     width_end = width_start + w_step
-                    width_start = tf.cast(width_start, tf.int32)
-                    width_end = tf.cast(width_end, tf.int32)
-                    width_end = width_start + tf.maximum(
+                    width_start = ops.cast(width_start, "int32")
+                    width_end = ops.cast(width_end, "int32")
+                    width_end = width_start + ops.maximum(
                         1, width_end - width_start
                     )
                     # [h_step, w_step, C]
@@ -151,9 +149,9 @@ class ROIPooler(keras.layers.Layer):
                         height_start:height_end, width_start:width_end, :
                     ]
                     # target_height * target_width * [C]
-                    regions.append(tf.reduce_max(region, axis=[0, 1]))
-            regions = tf.reshape(
-                tf.stack(regions),
+                    regions.append(ops.max(region, axis=[0, 1]))
+            regions = ops.reshape(
+                ops.stack(regions),
                 [self.target_height, self.target_width, channel],
             )
             return regions

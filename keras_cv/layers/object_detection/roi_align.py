@@ -226,9 +226,7 @@ def multilevel_crop_and_resize(
         # Concat tensor of [batch_size, height_l * width_l, num_filters] for
         # each level.
         features_all.append(
-            ops.reshape(
-                features[f"P{level}"], [batch_size, -1, num_filters]
-            )
+            ops.reshape(features[f"P{level}"], [batch_size, -1, num_filters])
         )
     features_r2 = ops.reshape(
         ops.concatenate(features_all, 1), [-1, num_filters]
@@ -244,8 +242,12 @@ def multilevel_crop_and_resize(
     for i in range(len(feature_widths) - 1):
         level_dim_offsets.append(level_dim_offsets[i] + level_dim_sizes[i])
     batch_dim_size = level_dim_offsets[-1] + level_dim_sizes[-1]
-    level_dim_offsets = ops.ones_like(level_dim_offsets, dtype="int32") * level_dim_offsets
-    height_dim_sizes = ops.ones_like(feature_widths, dtype="int32") * feature_widths
+    level_dim_offsets = (
+        ops.ones_like(level_dim_offsets, dtype="int32") * level_dim_offsets
+    )
+    height_dim_sizes = (
+        ops.ones_like(feature_widths, dtype="int32") * feature_widths
+    )
 
     # Assigns boxes to the right level.
     box_width = boxes[:, :, 3] - boxes[:, :, 1]
@@ -290,14 +292,12 @@ def multilevel_crop_and_resize(
         ops.concatenate(
             [
                 ops.expand_dims(
-                    [[ops.cast(max_feature_height, "float32")]]
-                    / level_strides
+                    [[ops.cast(max_feature_height, "float32")]] / level_strides
                     - 1,
                     axis=-1,
                 ),
                 ops.expand_dims(
-                    [[ops.cast(max_feature_width, "float32")]]
-                    / level_strides
+                    [[ops.cast(max_feature_width, "float32")]] / level_strides
                     - 1,
                     axis=-1,
                 ),
@@ -340,8 +340,7 @@ def multilevel_crop_and_resize(
     )
     y_indices_offset = ops.tile(
         ops.reshape(
-            y_indices
-            * ops.expand_dims(ops.take(height_dim_sizes, levels), -1),
+            y_indices * ops.expand_dims(ops.take(height_dim_sizes, levels), -1),
             [batch_size, num_boxes, output_size * 2, 1],
         ),
         [1, 1, 1, output_size * 2],
@@ -351,10 +350,7 @@ def multilevel_crop_and_resize(
         [1, 1, output_size * 2, 1],
     )
     indices = ops.reshape(
-        batch_size_offset
-        + levels_offset
-        + y_indices_offset
-        + x_indices_offset,
+        batch_size_offset + levels_offset + y_indices_offset + x_indices_offset,
         [-1],
     )
 
