@@ -12,12 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import tensorflow as tf
+
+from keras_cv.backend import keras
+from keras_cv.backend import ops
 
 
 def balanced_sample(
-    positive_matches: tf.Tensor,
-    negative_matches: tf.Tensor,
+    positive_matches,
+    negative_matches,
     num_samples: int,
     positive_fraction: float,
 ):
@@ -40,7 +42,7 @@ def balanced_sample(
         indicating the index is not sampled.
     """
 
-    N = positive_matches.get_shape().as_list()[-1]
+    N = ops.shape(positive_matches)[-1]
     if N < num_samples:
         raise ValueError(
             "passed in {positive_matches.shape} has less element than "
@@ -48,35 +50,41 @@ def balanced_sample(
         )
     # random_val = tf.random.uniform(tf.shape(positive_matches), minval=0.,
     # maxval=1.)
-    zeros = tf.zeros_like(positive_matches, dtype=tf.float32)
-    ones = tf.ones_like(positive_matches, dtype=tf.float32)
-    ones_rand = ones + tf.random.uniform(ones.shape, minval=-0.2, maxval=0.2)
-    halfs = 0.5 * tf.ones_like(positive_matches, dtype=tf.float32)
-    halfs_rand = halfs + tf.random.uniform(halfs.shape, minval=-0.2, maxval=0.2)
+    zeros = ops.zeros_like(positive_matches, dtype="float32")
+    ones = ops.ones_like(positive_matches, dtype="float32")
+    ones_rand = ones + keras.random.uniform(
+        ops.shape(ones), minval=-0.2, maxval=0.2
+    )
+    halfs = 0.5 * ops.ones_like(positive_matches, dtype="float32")
+    halfs_rand = halfs + keras.random.uniform(
+        ops.shape(halfs), minval=-0.2, maxval=0.2
+    )
     values = zeros
-    values = tf.where(positive_matches, ones_rand, values)
-    values = tf.where(negative_matches, halfs_rand, values)
+    values = ops.where(positive_matches, ones_rand, values)
+    values = ops.where(negative_matches, halfs_rand, values)
     num_pos_samples = int(num_samples * positive_fraction)
-    valid_matches = tf.logical_or(positive_matches, negative_matches)
+    valid_matches = ops.logical_or(positive_matches, negative_matches)
     # this might contain negative samples as well
-    _, positive_indices = tf.math.top_k(values, k=num_pos_samples)
-    selected_indicators = tf.cast(
-        tf.reduce_sum(tf.one_hot(positive_indices, depth=N), axis=-2), tf.bool
+    _, positive_indices = ops.top_k(values, k=num_pos_samples)
+    selected_indicators = ops.cast(
+        ops.sum(ops.one_hot(positive_indices, num_classes=N), axis=-2), "bool"
     )
     # setting all selected samples to zeros
-    values = tf.where(selected_indicators, zeros, values)
+    values = ops.where(selected_indicators, zeros, values)
     # setting all excessive positive matches to zeros as well
-    values = tf.where(positive_matches, zeros, values)
+    values = ops.where(positive_matches, zeros, values)
     num_neg_samples = num_samples - num_pos_samples
-    _, negative_indices = tf.math.top_k(values, k=num_neg_samples)
-    selected_indices = tf.concat([positive_indices, negative_indices], axis=-1)
-    selected_indicators = tf.reduce_sum(
-        tf.one_hot(selected_indices, depth=N), axis=-2
+    _, negative_indices = ops.top_k(values, k=num_neg_samples)
+    selected_indices = ops.concatenate(
+        [positive_indices, negative_indices], axis=-1
     )
-    selected_indicators = tf.minimum(
-        selected_indicators, tf.ones_like(selected_indicators)
+    selected_indicators = ops.sum(
+        ops.one_hot(selected_indices, num_classes=N), axis=-2
     )
-    selected_indicators = tf.where(
-        valid_matches, selected_indicators, tf.zeros_like(selected_indicators)
+    selected_indicators = ops.minimum(
+        selected_indicators, ops.ones_like(selected_indicators)
+    )
+    selected_indicators = ops.where(
+        valid_matches, selected_indicators, ops.zeros_like(selected_indicators)
     )
     return selected_indicators
