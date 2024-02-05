@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from keras_cv.backend import keras
 from keras_cv.backend import ops
+from keras_cv.backend import random
 
 
 def balanced_sample(
@@ -51,11 +51,9 @@ def balanced_sample(
     # maxval=1.)
     zeros = ops.zeros_like(positive_matches, dtype="float32")
     ones = ops.ones_like(positive_matches, dtype="float32")
-    ones_rand = ones + keras.random.uniform(
-        ops.shape(ones), minval=-0.2, maxval=0.2
-    )
+    ones_rand = ones + random.uniform(ops.shape(ones), minval=-0.2, maxval=0.2)
     halfs = 0.5 * ops.ones_like(positive_matches, dtype="float32")
-    halfs_rand = halfs + keras.random.uniform(
+    halfs_rand = halfs + random.uniform(
         ops.shape(halfs), minval=-0.2, maxval=0.2
     )
     values = zeros
