@@ -112,15 +112,6 @@ The first line relies on having an installation of [the GitHub CLI](https://gith
 Following these commands you should be able to run the tests using `pytest keras_cv`.
 Please report any issues running tests following these steps.
 
-Note that this will _not_ install custom ops. If you'd like to install custom ops from source, you can compile the binaries and add them to your local environment manually (requires Bazel):
-
-```shell
-python build_deps/configure.py
-
-bazel build keras_cv/custom_ops:all
-mv bazel-bin/keras_cv/custom_ops/*.so keras_cv/custom_ops
-```
-
 ## Run tests
 
 KerasCV is tested using [PyTest](https://docs.pytest.org/en/6.2.x/).
@@ -147,18 +138,6 @@ You can run the unit tests for KerasCV by running:
 ```
 pytest keras_cv/
 ```
-
-### Tests that require custom ops
-
-For tests that require custom ops, you'll have to compile the custom ops and make them available to your local Python code:
-
-```shell
-python build_deps/configure.py
-bazel build keras_cv/custom_ops:all
-cp bazel-bin/keras_cv/custom_ops/*.so keras_cv/custom_ops/
-```
-
-Tests which use custom ops are disabled by default, but can be run by setting the environment variable `TEST_CUSTOM_OPS=true`.
 
 ## Formatting the Code
 

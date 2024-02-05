@@ -143,7 +143,6 @@ def apply_mixer_block(x, tokens_mlp_dim, channels_mlp_dim, name=None):
 
 @keras.utils.register_keras_serializable(package="keras_cv.models")
 class MLPMixer(keras.Model):
-
     """Instantiates the MLP Mixer architecture.
 
     Args:
