@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 
@@ -67,7 +66,7 @@ def balanced_sample(
     # this might contain negative samples as well
     _, positive_indices = ops.top_k(values, k=num_pos_samples)
     selected_indicators = ops.cast(
-        ops.sum(ops.one_hot(positive_indices, num_classes=N), axis=-2), "bool"
+        ops.sum(ops.one_hot(positive_indices, N), axis=-2), dtype="bool"
     )
     # setting all selected samples to zeros
     values = ops.where(selected_indicators, zeros, values)
@@ -78,9 +77,7 @@ def balanced_sample(
     selected_indices = ops.concatenate(
         [positive_indices, negative_indices], axis=-1
     )
-    selected_indicators = ops.sum(
-        ops.one_hot(selected_indices, num_classes=N), axis=-2
-    )
+    selected_indicators = ops.sum(ops.one_hot(selected_indices, N), axis=-2)
     selected_indicators = ops.minimum(
         selected_indicators, ops.ones_like(selected_indicators)
     )

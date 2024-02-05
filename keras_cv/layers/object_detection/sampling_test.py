@@ -217,7 +217,9 @@ class BalancedSamplingTest(TestCase):
 
     def test_balanced_sampling_many_samples(self):
         positive_matches = np.random.uniform(
-            size=[2, 1000], low=0, high=1,
+            size=[2, 1000],
+            low=0,
+            high=1,
         )
         positive_matches = positive_matches > 0.98
         negative_matches = np.logical_not(positive_matches)
