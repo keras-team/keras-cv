@@ -167,9 +167,7 @@ class ViViT_Test(TestCase):
             model.save(save_path, save_format="keras_v3")
         restored_model = keras.models.load_model(save_path)
 
-        # Check we got the real object back.
         self.assertIsInstance(restored_model, ViViT)
 
-        # Check that output matches.
         restored_output = restored_model(input_batch)
         self.assertAllClose(model_output, restored_output)
