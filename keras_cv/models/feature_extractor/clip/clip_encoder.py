@@ -59,17 +59,18 @@ class ResidualAttention(keras.layers.Layer):
         )
 
     def attention(self, x, attention_mask=None):
-        self.attn_mask = (
+        mask = (
             ops.cast(self.attn_mask, dtype=x.dtype)
             if self.attn_mask is not None
             else None
         )
-        attention_mask = (
-            ops.cast(attention_mask, dtype=x.dtype)
-            if attention_mask is not None
-            else None
-        )
-        mask = ops.add(self.attn_mask, attention_mask)
+        if attention_mask is not None:
+            attention_mask = (
+                ops.cast(attention_mask, dtype=x.dtype)
+                if attention_mask is not None
+                else None
+            )
+            mask = ops.add(self.attn_mask, attention_mask)
 
         return self.attn(
             x,
