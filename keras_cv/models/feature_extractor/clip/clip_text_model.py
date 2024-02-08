@@ -29,11 +29,15 @@ class CLIPTextEncoder(keras.Model):
             shape=[self.context_length, transformer_width],
             name="positional_embedding",
         )
+        mask = ops.ones((self.context_length, self.context_length))
+        # Zero out the lower diagonal
+        mask = ops.triu(mask)
+        mask = ops.cast(mask, "float32")
         self.encoder = CLIPEncoder(
             width=transformer_width,
             layers=transformer_layers,
             heads=transformer_heads,
-            attn_mask=self.build_attention_mask(),
+            attn_mask=mask,
             name="clip_encoder",
         )
         self.ln_final = keras.layers.LayerNormalization(name="ln_final")
@@ -44,33 +48,16 @@ class CLIPTextEncoder(keras.Model):
 
     def call(self, inputs):
         token_embedding = self.token_embedding(inputs)
-        input_shape = token_embedding.shape
-        position_ids = ops.expand_dims(
-            ops.arange(start=0, stop=input_shape[-1]), axis=0
-        )
-        position_embeds = ops.take(
-            self.positional_embedding, indices=position_ids
-        )
-        position_embeds = ops.tile(
-            position_embeds, repeats=(input_shape[0], 1, 1)
-        )
         encoded_output = self.encoder(
-            token_embedding + position_embeds
+            token_embedding + self.positional_embedding
         )
         layer_norm = self.ln_final(encoded_output)
         indices = ops.expand_dims(
             ops.cast(ops.argmax(inputs, axis=1), "int32"), axis=-1
         )
-        print("incides", indices)
         selected_features = ops.take_along_axis(
             layer_norm, indices[:, :, None], axis=1
         )
         text_features = self.text_projector(selected_features)
         output = ops.squeeze(text_features, axis=1)
         return output
-
-    def build_attention_mask(self):
-        mask = ops.ones((self.context_length, self.context_length))
-        # Zero out the lower diagonal
-        mask = ops.triu(mask)
-        return ops.cast(mask, "float32")

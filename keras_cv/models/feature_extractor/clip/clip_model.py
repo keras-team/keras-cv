@@ -146,12 +146,6 @@ class CLIP(keras.Model):
         self.image_embeddings = None
         self.text_embeddings = None
 
-    def build_attention_mask(self):
-        mask = ops.ones((self.context_length, self.context_length))
-        # Zero out the lower diagonal
-        mask = ops.triu(mask)
-        return ops.cast(mask, "float32")
-
     def encode_images(self, image):
         return self.image_encoder(image)
 
