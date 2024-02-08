@@ -49,11 +49,14 @@ class CLIPTextEncoder(keras.Model):
 
     def call(self, inputs):
         token_embedding = self.token_embedding(inputs)
-        position_ids = ops.expand_dims(ops.arange(self.context_length, dtype="int32"), 0)
-        position_embedding = self.positional_embedding(position_ids)
-        encoded_output = self.encoder(
-            token_embedding + position_embedding
+        position_ids = ops.expand_dims(
+            ops.arange(self.context_length, dtype="int32"), 0
         )
+        position_embedding = self.positional_embedding(position_ids)
+        position_embedding = ops.tile(
+            position_embedding, repeats=(inputs.shape[0], 1, 1)
+        )
+        encoded_output = self.encoder(token_embedding + position_embedding)
         layer_norm = self.ln_final(encoded_output)
         indices = ops.expand_dims(
             ops.cast(ops.argmax(inputs, axis=1), "int32"), axis=-1
