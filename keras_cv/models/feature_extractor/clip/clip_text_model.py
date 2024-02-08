@@ -60,7 +60,7 @@ class CLIPTextEncoder(keras.Model):
         expanded_mask = ops.tile(
             attention_mask[:, None, None, :], (1, 1, self.context_length, 1)
         )
-        expanded_mask = (1.0 - expanded_mask) * (-1e8)
+        # expanded_mask = (1.0 - expanded_mask) * (-1e8)
         encoded_output = self.encoder(
             token_embedding + position_embedding, attention_mask=expanded_mask
         )
