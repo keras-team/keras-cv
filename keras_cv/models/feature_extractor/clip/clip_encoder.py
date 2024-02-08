@@ -58,14 +58,23 @@ class ResidualAttention(keras.layers.Layer):
             * 0.02
         )
 
-    def attention(self, x):
+    def attention(self, x, attention_mask=None):
         self.attn_mask = (
             ops.cast(self.attn_mask, dtype=x.dtype)
             if self.attn_mask is not None
             else None
         )
+        attention_mask = (
+            ops.cast(attention_mask, dtype=x.dtype)
+            if attention_mask is not None
+            else None
+        )
 
-        return self.attn(x, attention_mask=self.attn_mask)
+        return self.attn(
+            x,
+            attention_mask=attention_mask,
+            causal_attention_mask=self.attn_mask,
+        )
 
     def build(self, input_shape):
         super().build(input_shape)
@@ -93,8 +102,8 @@ class ResidualAttention(keras.layers.Layer):
         )
         self.ln_2 = keras.layers.LayerNormalization(epsilon=1e-5, name="ln_2")
 
-    def call(self, x):
-        x = x + self.attention(self.ln_1(x))
+    def call(self, x, attention_mask=None):
+        x = x + self.attention(self.ln_1(x), attention_mask=attention_mask)
         x = x + self.mlp(self.ln_2(x))
         return x
 
@@ -109,20 +118,21 @@ class CLIPEncoder(keras.layers.Layer):
         self.layers = layers
         self.heads = heads
         self.attn_mask = attn_mask
-        self.resblocks = keras.Sequential(
-            [
-                ResidualAttention(
-                    self.width, self.heads, self.layers, self.attn_mask
-                )
-                for _ in range(self.layers)
-            ]
-        )
+        self.resblocks = [
+            ResidualAttention(
+                self.width, self.heads, self.layers, self.attn_mask
+            )
+            for _ in range(self.layers)
+        ]
 
     def build(self, input_shape):
         super().build(input_shape)
+        self.resblocks.build()
 
-    def call(self, x):
-        return self.resblocks(x)
+    def call(self, x, attention_mask=None):
+        for block in self.resblocks:
+            x = block(x, attention_mask=attention_mask)
+        return x
 
     def compute_output_shape(self, inputs_shape):
         return inputs_shape

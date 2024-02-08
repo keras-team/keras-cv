@@ -109,12 +109,11 @@ class CLIPProcessor:
             texts = [texts]
 
         def pack_tokens(text):
-            tok, _ = self.packer(
+            return self.packer(
                 self.tokenizer(text),
                 sequence_length=context_length,
                 add_start_value=True,
                 add_end_value=True,
             )
-            return tok
 
         return pack_tokens(texts)

@@ -47,7 +47,7 @@ class CLIPTextEncoder(keras.Model):
             embed_dim, name="text_projector", use_bias=False
         )
 
-    def call(self, inputs):
+    def call(self, inputs, attention_mask=None):
         token_embedding = self.token_embedding(inputs)
         position_ids = ops.expand_dims(
             ops.arange(self.context_length, dtype="int32"), 0
@@ -56,7 +56,14 @@ class CLIPTextEncoder(keras.Model):
         position_embedding = ops.tile(
             position_embedding, repeats=(inputs.shape[0], 1, 1)
         )
-        encoded_output = self.encoder(token_embedding + position_embedding)
+        attention_mask = ops.cast(attention_mask, dtype="float32")
+        expanded_mask = ops.tile(
+            attention_mask[:, None, None, :], (1, 1, self.context_length, 1)
+        )
+        expanded_mask = (1.0 - expanded_mask) * (-1e8)
+        encoded_output = self.encoder(
+            token_embedding + position_embedding, attention_mask=expanded_mask
+        )
         layer_norm = self.ln_final(encoded_output)
         indices = ops.expand_dims(
             ops.cast(ops.argmax(inputs, axis=1), "int32"), axis=-1

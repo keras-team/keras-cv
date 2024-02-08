@@ -149,12 +149,14 @@ class CLIP(keras.Model):
     def encode_images(self, image):
         return self.image_encoder(image)
 
-    def encode_text(self, text):
-        return self.text_encoder(text)
+    def encode_text(self, text, attention_mask=None):
+        return self.text_encoder(text, attention_mask=attention_mask)
 
-    def call(self, image, text):
+    def call(self, image, text, attention_mask=None):
         self.image_embeddings = self.encode_images(image)
-        self.text_embeddings = self.encode_text(text)
+        self.text_embeddings = self.encode_text(
+            text, attention_mask=attention_mask
+        )
         normalize_image_features = keras.ops.sqrt(
             keras.ops.sum(
                 keras.ops.power(self.image_embeddings, 2), keepdims=True
