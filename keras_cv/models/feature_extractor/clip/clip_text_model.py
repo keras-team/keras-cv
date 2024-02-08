@@ -34,7 +34,6 @@ class CLIPTextEncoder(keras.Model):
         # Zero out the lower diagonal
         mask = ops.triu(mask)
         mask = ops.cast(mask, "float32")
-        mask = (1.0 - mask) * (-1e8)
         self.encoder = CLIPEncoder(
             width=transformer_width,
             layers=transformer_layers,
