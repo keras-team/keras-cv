@@ -69,11 +69,11 @@ class ResidualAttention(keras.layers.Layer):
             if attention_mask is not None
             else None
         )
+        mask = ops.add(self.attn_mask, attention_mask)
 
         return self.attn(
             x,
-            attention_mask=attention_mask,
-            causal_attention_mask=self.attn_mask,
+            attention_mask=mask,
         )
 
     def build(self, input_shape):
