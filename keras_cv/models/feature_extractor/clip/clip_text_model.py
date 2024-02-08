@@ -25,8 +25,9 @@ class CLIPTextEncoder(keras.Model):
         )
 
         self.vocab_size = vocab_size
-        self.positional_embedding = self.add_weight(
-            shape=[self.context_length, transformer_width],
+        self.positional_embedding = keras.layers.Embedding(
+            self.context_length,
+            transformer_width,
             name="positional_embedding",
         )
         mask = ops.ones((self.context_length, self.context_length))
@@ -48,8 +49,10 @@ class CLIPTextEncoder(keras.Model):
 
     def call(self, inputs):
         token_embedding = self.token_embedding(inputs)
+        position_ids = ops.expand_dims(ops.arange(self.context_length, dtype="int32"), 0)
+        position_embedding = self.positional_embedding(position_ids)
         encoded_output = self.encoder(
-            token_embedding + self.positional_embedding
+            token_embedding + position_embedding
         )
         layer_norm = self.ln_final(encoded_output)
         indices = ops.expand_dims(
