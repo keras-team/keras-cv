@@ -15,7 +15,6 @@
 import pytest
 
 from keras_cv.backend import ops
-from keras_cv.backend import random
 from keras_cv.models import CLIP
 from keras_cv.tests.test_case import TestCase
 
@@ -28,6 +27,8 @@ class StableDiffusionTest(TestCase):
     def test_presets(self):
         pass
 
-    @pytest.mark.extra_large
-    def test_mixed_precision(self):
+    def test_image_encoder_golden_values(self):
+        pass
+
+    def test_text_encoder_golden_values(self):
         pass
