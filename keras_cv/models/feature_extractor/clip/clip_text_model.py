@@ -67,7 +67,7 @@ class CLIPTextEncoder(keras.Model):
         print("encoded_output", encoded_output)
         layer_norm = self.ln_final(encoded_output)
         indices = ops.expand_dims(
-            ops.cast(ops.argmax(inputs, axis=1), "int32"), axis=-1
+            ops.cast(ops.argmax(inputs, axis=-1), "int32"), axis=-1
         )
         selected_features = ops.take_along_axis(
             layer_norm, indices[:, :, None], axis=1
