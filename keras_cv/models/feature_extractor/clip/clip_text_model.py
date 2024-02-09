@@ -64,6 +64,7 @@ class CLIPTextEncoder(keras.Model):
         encoded_output = self.encoder(
             token_embedding + position_embedding, attention_mask=expanded_mask
         )
+        print("encoded_output", encoded_output)
         layer_norm = self.ln_final(encoded_output)
         indices = ops.expand_dims(
             ops.cast(ops.argmax(inputs, axis=1), "int32"), axis=-1
@@ -71,6 +72,7 @@ class CLIPTextEncoder(keras.Model):
         selected_features = ops.take_along_axis(
             layer_norm, indices[:, :, None], axis=1
         )
+        print("pooler output", selected_features)
         text_features = self.text_projector(selected_features)
         output = ops.squeeze(text_features, axis=1)
         return output
