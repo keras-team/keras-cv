@@ -11,6 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import copy
+
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
@@ -18,68 +20,23 @@ from keras_cv.models.feature_extractor.clip.clip_image_model import CLIPEncoder
 from keras_cv.models.feature_extractor.clip.clip_image_model import (
     CLIPImageEncoder,
 )
+from keras_cv.models.feature_extractor.clip.clip_presets import (  # noqa: E501
+    clip_presets,
+)
 from keras_cv.models.feature_extractor.clip.clip_text_model import (
     CLIPTextEncoder,
 )
-
-MODEL_CONFIGS = {
-    "CLIP_B32": {
-        "embed_dim": 512,
-        "context_length": 77,
-        "vocab_size": 49408,
-        "transformer_width": 512,
-        "transformer_heads": 8,
-        "transformer_layers": 12,
-        "vision_layers": 12,
-        "vision_width": 768,
-        "image_resolution": 224,
-        "vision_patch_size": 32,
-    },
-    "CLIP_B16": {
-        "embed_dim": 512,
-        "context_length": 77,
-        "vocab_size": 49408,
-        "transformer_width": 512,
-        "transformer_heads": 8,
-        "transformer_layers": 12,
-        "vision_layers": 12,
-        "vision_width": 768,
-        "image_resolution": 224,
-        "vision_patch_size": 16,
-    },
-    "CLIP_L14": {
-        "embed_dim": 768,
-        "context_length": 77,
-        "vocab_size": 49408,
-        "transformer_width": 768,
-        "transformer_heads": 12,
-        "transformer_layers": 12,
-        "vision_layers": 24,
-        "vision_width": 1024,
-        "image_resolution": 224,
-        "vision_patch_size": 14,
-    },
-    "CLIP_L14_336": {
-        "embed_dim": 768,
-        "context_length": 77,
-        "vocab_size": 49408,
-        "transformer_width": 768,
-        "transformer_heads": 12,
-        "transformer_layers": 12,
-        "vision_layers": 24,
-        "vision_width": 1024,
-        "image_resolution": 336,
-        "vision_patch_size": 14,
-    },
-}
+from keras_cv.models.task import Task
+from keras_cv.utils.python_utils import classproperty
 
 
 @keras_cv_export(["keras_cv.models.CLIP"])
-class CLIP(keras.Model):
+class CLIP(Task):
     """
         CLIP implements the Contrastive Language-Image Pretraining (CLIP)
         architecture, which enables joint learning of visual and textual
-        representations for various downstream tasks.
+        representations for various downstream tasks. The deafult base model
+        achitecture will be set to clip-vit-base-patch32.
 
     Args:
         embed_dim (int): The dimensionality of the joint embedding space for
@@ -104,16 +61,16 @@ class CLIP(keras.Model):
 
     def __init__(
         self,
-        embed_dim,
-        image_resolution,
-        vision_layers,
-        vision_width,
-        vision_patch_size,
-        context_length,
-        vocab_size,
-        transformer_width,
-        transformer_heads,
-        transformer_layers,
+        embed_dim=512,
+        image_resolution=224,
+        vision_layers=12,
+        vision_width=768,
+        vision_patch_size=32,
+        context_length=77,
+        vocab_size=49408,
+        transformer_width=768,
+        transformer_heads=8,
+        transformer_layers=12,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -180,3 +137,14 @@ class CLIP(keras.Model):
         logits_per_text = ops.transpose(logits_per_image)
 
         return logits_per_image, logits_per_text
+
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return copy.deepcopy({**clip_presets})
+
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include
+        weights."""
+        return copy.deepcopy({**clip_presets})
