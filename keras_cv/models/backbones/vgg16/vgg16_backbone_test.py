@@ -50,7 +50,7 @@ class VGG16BackboneTest(TestCase):
         )
         model_output = model(self.img_input)
         save_path = os.path.join(
-            self.get_temp_dir(), "efficientnet_v1_backbone.keras"
+            self.get_temp_dir(), "vgg16.keras"
         )
         model.save(save_path)
         restored_model = keras.models.load_model(save_path)
