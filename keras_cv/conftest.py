@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import keras_core
 import pytest
 import tensorflow as tf
 from packaging import version
@@ -101,7 +100,7 @@ def pytest_collection_modifyitems(config, items):
         reason="This test is only supported on Keras 2",
     )
     skip_tf_only = pytest.mark.skipif(
-        keras_3() and keras_core.backend.backend() != "tensorflow",
+        keras_3() and backend_config.backend() != "tensorflow",
         reason="This test is only supported on TensorFlow",
     )
     for item in items:
