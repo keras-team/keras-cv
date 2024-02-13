@@ -75,14 +75,23 @@ class CLIP(Task):
     ):
         super().__init__(**kwargs)
 
+        self.embed_dim = embed_dim
+        self.image_resolution = image_resolution
+        self.vision_layers = vision_layers
+        self.vision_width = vision_width
+        self.vision_patch_size = vision_patch_size
         self.context_length = context_length
+        self.vocab_size = vocab_size
+        self.transformer_width = transformer_width
+        self.transformer_heads = transformer_heads
+        self.transformer_layers = transformer_layers
 
         vision_heads = vision_width // 64
         self.image_encoder = CLIPImageEncoder(
             input_resolution=image_resolution,
             patch_size=vision_patch_size,
             width=vision_width,
-            layers=vision_layers,
+            num_layers=vision_layers,
             heads=vision_heads,
             output_dim=embed_dim,
             name="image_encoder",
@@ -148,3 +157,21 @@ class CLIP(Task):
         """Dictionary of preset names and configurations that include
         weights."""
         return copy.deepcopy({**clip_presets})
+
+    def get_config(self):
+        config = super().get_config()
+        config.update(
+            {
+                "embed_dim": self.embed_dim,
+                "image_resolution": self.image_resolution,
+                "vision_layers": self.vision_layers,
+                "vision_width": self.vision_width,
+                "vision_patch_size": self.vision_patch_size,
+                "context_length": self.context_length,
+                "vocab_size": self.vocab_size,
+                "transformer_width": self.transformer_width,
+                "transformer_heads": self.transformer_heads,
+                "transformer_layers": self.transformer_layers,
+            }
+        )
+        return config

@@ -40,15 +40,13 @@ class ResidualAttention(keras.layers.Layer):
     def __init__(
         self,
         proj_dim,
-        n_head,
+        num_heads,
         num_hidden_layers,
-        attn_mask=None,
         **kwargs,
     ):
         super().__init__(**kwargs)
         self.proj_dim = proj_dim
-        self.n_head = n_head
-        self.attn_mask = attn_mask
+        self.num_heads = num_heads
         self.num_hidden_layers = num_hidden_layers
         self.fc_std = ops.power(2 * self.proj_dim, -0.5) * 0.02
 
@@ -58,19 +56,21 @@ class ResidualAttention(keras.layers.Layer):
             * 0.02
         )
 
-    def attention(self, x, attention_mask=None):
-        mask = (
-            ops.cast(self.attn_mask, dtype=x.dtype)
-            if self.attn_mask is not None
-            else None
-        )
+    def attention(self, x, causal_attention_mask=None, attention_mask=None):
+        mask = None
+        if causal_attention_mask is not None:
+            mask = (
+                ops.cast(causal_attention_mask, dtype=x.dtype)
+                if causal_attention_mask is not None
+                else None
+            )
         if attention_mask is not None:
             attention_mask = (
                 ops.cast(attention_mask, dtype=x.dtype)
                 if attention_mask is not None
                 else None
             )
-            mask = ops.add(self.attn_mask, attention_mask)
+            mask = ops.add(causal_attention_mask, attention_mask)
 
         return self.attn(
             x,
@@ -81,7 +81,7 @@ class ResidualAttention(keras.layers.Layer):
         super().build(input_shape)
         self.attn = CLIPAttention(
             self.proj_dim,
-            self.n_head,
+            self.num_heads,
             self.num_hidden_layers,
             name="multi_head_attention",
         )
@@ -103,40 +103,76 @@ class ResidualAttention(keras.layers.Layer):
         )
         self.ln_2 = keras.layers.LayerNormalization(epsilon=1e-5, name="ln_2")
 
-    def call(self, x, attention_mask=None):
-        x = x + self.attention(self.ln_1(x), attention_mask=attention_mask)
+    def call(self, x, causal_attention_mask=None, attention_mask=None):
+        x = x + self.attention(
+            self.ln_1(x),
+            causal_attention_mask=causal_attention_mask,
+            attention_mask=attention_mask,
+        )
         x = x + self.mlp(self.ln_2(x))
         return x
 
     def compute_output_shape(self, inputs_shape):
         return inputs_shape
 
+    def get_config(self):
+        config = super().get_config()
+        config.update(
+            {
+                "proj_dim": self.proj_dim,
+                "num_heads": self.num_heads,
+                "num_hidden_layers": self.num_hidden_layers,
+            }
+        )
+        return config
+
 
 class CLIPEncoder(keras.layers.Layer):
-    def __init__(self, width, layers, heads, attn_mask=None, **kwargs):
+    def __init__(self, width, num_layers, heads, **kwargs):
         super().__init__(**kwargs)
         self.width = width
-        self.layers = layers
+        self.num_layers = num_layers
         self.heads = heads
-        self.attn_mask = attn_mask
         self.resblocks = [
             ResidualAttention(
-                self.width, self.heads, self.layers, self.attn_mask
+                self.width,
+                self.heads,
+                self.num_layers,
             )
-            for _ in range(self.layers)
+            for _ in range(self.num_layers)
         ]
 
     def build(self, input_shape):
         super().build(input_shape)
-        self.resblocks.build()
+        self.resblocks.build(input_shape)
 
-    def call(self, x, attention_mask=None):
+    def call(
+        self,
+        x,
+        causal_attention_mask=None,
+        attention_mask=None,
+    ):
         for block in self.resblocks:
-            x = block(x, attention_mask=attention_mask)
+            x = block(
+                x,
+                causal_attention_mask=causal_attention_mask,
+                attention_mask=attention_mask,
+            )
         return x
 
     def compute_output_shape(self, inputs_shape):
         return inputs_shape
+
+    def get_config(self):
+        config = super().get_config()
+        config.update(
+            {
+                "width": self.width,
+                "num_layers": self.num_layers,
+                "heads": self.heads,
+            }
+        )
+        return config
 
 
 class CLIPAttention(keras.layers.Layer):
@@ -146,57 +182,52 @@ class CLIPAttention(keras.layers.Layer):
     """
 
     def __init__(
-        self, project_dim, num_heads, num_hidden_layers, dropout=0.0, **kwargs
+        self, proj_dim, num_heads, num_hidden_layers, dropout=0.0, **kwargs
     ):
         super().__init__(**kwargs)
 
-        self.project_dim = project_dim
+        self.proj_dim = proj_dim
         self.num_heads = num_heads
         self.num_hidden_layers = num_hidden_layers
-        self.head_dim = self.project_dim // self.num_heads
-        if self.head_dim * self.num_heads != self.project_dim:
+        self.dropout = dropout
+        self.head_dim = self.proj_dim // self.num_heads
+        if self.head_dim * self.num_heads != self.proj_dim:
             raise ValueError(
-                f"project_dim must be divisible by num_heads (got `project_dim`"
-                f": {self.project_dim} and `num_heads`:"
+                f"proj_dim must be divisible by num_heads (got `proj_dim`"
+                f": {self.proj_dim} and `num_heads`:"
                 f" {self.num_heads})."
             )
 
-        self.sqrt_att_head_size = ops.sqrt(self.head_dim)
         self.scale = self.head_dim**-0.5
+
+    def build(self, input_shape):
+        super().build(input_shape)
         in_proj_std = (
-            (self.project_dim**-0.5)
+            (self.proj_dim**-0.5)
             * ((2 * self.num_hidden_layers) ** -0.5)
             * 0.02
         )
-        out_proj_std = (self.project_dim**-0.5) * 0.02
-        self.dropout = dropout
+        out_proj_std = (self.proj_dim**-0.5) * 0.02
         self.q_proj = keras.layers.Dense(
-            units=self.project_dim,
+            units=self.proj_dim,
             kernel_initializer=get_initializer(in_proj_std),
             name="q_proj",
         )
         self.k_proj = keras.layers.Dense(
-            units=self.project_dim,
+            units=self.proj_dim,
             kernel_initializer=get_initializer(in_proj_std),
             name="k_proj",
         )
         self.v_proj = keras.layers.Dense(
-            units=self.project_dim,
+            units=self.proj_dim,
             kernel_initializer=get_initializer(in_proj_std),
             name="v_proj",
         )
         self.out_proj = keras.layers.Dense(
-            units=self.project_dim,
+            units=self.proj_dim,
             kernel_initializer=get_initializer(out_proj_std),
             name="out_proj",
         )
-
-    def build(self, input_shape):
-        super().build(input_shape)
-        self.q_proj.build(input_shape)
-        self.k_proj.build(input_shape)
-        self.v_proj.build(input_shape)
-        self.out_proj.build(input_shape)
 
     def _transpose_for_scores(self, tensor, batch_size):
         """
@@ -215,7 +246,6 @@ class CLIPAttention(keras.layers.Layer):
         self,
         x,
         attention_mask=None,
-        causal_attention_mask=None,
         output_attentions=None,
         training=False,
     ):
@@ -236,12 +266,6 @@ class CLIPAttention(keras.layers.Layer):
             attention_scores, dk
         )  # (batch_size, num_heads, seq_len_q, seq_len_k)
 
-        # Apply the causal_attention_mask first
-        if causal_attention_mask is not None:
-            # Apply the causal attention mask (precomputed for all layers in
-            # the call() function)
-            attention_scores = ops.add(attention_scores, causal_attention_mask)
-
         if attention_mask is not None:
             # Apply the attention mask (precomputed for all layers in the
             # call() function)
@@ -259,10 +283,8 @@ class CLIPAttention(keras.layers.Layer):
         attn_output = ops.matmul(attention_probs, value_layer)
         attn_output = ops.transpose(attn_output, axes=[0, 2, 1, 3])
 
-        # (batch_size, seq_len_q, project_dim)
-        attn_output = ops.reshape(
-            attn_output, (batch_size, -1, self.project_dim)
-        )
+        # (batch_size, seq_len_q, proj_dim)
+        attn_output = ops.reshape(attn_output, (batch_size, -1, self.proj_dim))
 
         attn_output = self.out_proj(attn_output, training=training)
         outputs = (
@@ -272,3 +294,15 @@ class CLIPAttention(keras.layers.Layer):
         )
 
         return outputs
+
+    def get_config(self):
+        config = super().get_config()
+        config.update(
+            {
+                "proj_dim": self.proj_dim,
+                "num_heads": self.num_heads,
+                "num_hidden_layers": self.num_hidden_layers,
+                "dropout": self.dropout,
+            }
+        )
+        return config

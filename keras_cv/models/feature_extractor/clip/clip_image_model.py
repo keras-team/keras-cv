@@ -81,6 +81,18 @@ class CLIPPatchingAndEmbedding(keras.layers.Layer):
         embeddings = embeddings + positional_embedding
         return embeddings
 
+    def get_config(self):
+        config = super().get_config()
+        config.update(
+            {
+                "width": self.width,
+                "patch_size": self.patch_size,
+                "input_resolution": self.input_resolution,
+                "output_dim": self.output_dim,
+            }
+        )
+        return config
+
 
 class CLIPImageEncoder(keras.Model):
     def __init__(
@@ -88,7 +100,7 @@ class CLIPImageEncoder(keras.Model):
         input_resolution: int,
         patch_size: int,
         width: int,
-        layers: int,
+        num_layers: int,
         heads: int,
         output_dim: int,
         **kwargs,
@@ -100,6 +112,8 @@ class CLIPImageEncoder(keras.Model):
         self.width = width
         self.patch_size = patch_size
         self.output_dim = output_dim
+        self.heads = heads
+        self.num_layers = num_layers
 
         self.embeddings = CLIPPatchingAndEmbedding(
             width=self.width,
@@ -111,9 +125,9 @@ class CLIPImageEncoder(keras.Model):
             epsilon=1e-5, name="ln_1"
         )
         self.encoder = CLIPEncoder(
-            width,
-            layers,
-            heads,
+            self.width,
+            self.num_layers,
+            self.heads,
             name="clip_encoder",
         )
         self.post_norm = keras.layers.LayerNormalization(
@@ -133,3 +147,17 @@ class CLIPImageEncoder(keras.Model):
         post_norm = self.post_norm(encoded_output[:, 0, :])
         image_projected_embeddings = self.image_projector(post_norm)
         return image_projected_embeddings
+
+    def get_config(self):
+        config = super().get_config()
+        config.update(
+            {
+                "input_resolution": self.input_resolution,
+                "patch_size": self.patch_size,
+                "width": self.width,
+                "layers": self.num_layers,
+                "heads": self.heads,
+                "output_dim": self.output_dim,
+            }
+        )
+        return config

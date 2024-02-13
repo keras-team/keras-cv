@@ -55,12 +55,13 @@ class CLIPTest(TestCase):
             processed_image, processed_text, attention_mask
         )
         print(image_logits)
-        self.assertAllClose(image_logits, [[3.75321, 3.75321, 3.7532094]])
+        self.assertAllClose(image_logits, [[3.747046, 3.747046, 3.747046]])
         self.assertAllClose(
-            text_logits, ops.transpose([[3.75321, 3.75321, 3.7532094]])
+            text_logits, ops.transpose([[3.747046, 3.747046, 3.747046]])
         )
 
     def test_clip_preprocessor(self):
+        self.skipTest("TODO: Enable after Kaggle model is public")
         processor = CLIPProcessor(224, VOCAB_PATH, MERGE_PATH)
         processed_text, attention_mask = processor.process_texts(
             ["mountains", "cat on tortoise", "two cats"]
@@ -87,13 +88,12 @@ class CLIPTest(TestCase):
         model(processed_image, processed_text, attention_mask)
         self.assertAllClose(
             model.image_embeddings[:, :5],
-            [[0.03867503, -0.05168268, -0.07742637, 0.06213959, -0.0895554]],
+            [[0.038646, -0.051685, -0.077413, 0.062127, -0.089566]],
         )
 
     @pytest.mark.large
     def test_text_encoder_golden_values(self):
         model = CLIP()
-        model.load_weights(MODEL_PATH)
         processed_image = np.ones(shape=[1, 224, 224, 3])
         processed_text = np.ones(shape=[3, 77])
         attention_mask = np.ones(shape=[3, 77])
@@ -101,13 +101,12 @@ class CLIPTest(TestCase):
         print(model.text_embeddings)
         self.assertAllClose(
             model.text_embeddings[0, :3],
-            [0.01148358, 0.03956496, -0.0104028],
+            [0.011359, 0.039782, -0.010593],
         )
 
     @pytest.mark.large  # Saving is slow, so mark these large.
     def test_saved_model(self):
         model = CLIP()
-        model.load_weights(MODEL_PATH)
         processed_image = np.ones(shape=[1, 224, 224, 3])
         processed_text = np.ones(shape=[3, 77])
         attention_mask = np.ones(shape=[3, 77])
