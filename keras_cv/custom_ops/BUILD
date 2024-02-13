@@ -1,6 +1,8 @@
-licenses(["notice"])  # Apache 2.0
-
-package(default_visibility = ["//visibility:public"])
+package(
+    # copybara:uncomment default_applicable_licenses = ["//keras_cv:license"],
+    default_visibility = ["//visibility:public"],
+    licenses = ["notice"],
+)
 
 config_setting(
     name = "windows",
