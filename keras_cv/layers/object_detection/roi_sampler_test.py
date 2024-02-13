@@ -88,7 +88,7 @@ class ROISamplerTest(TestCase):
     #     gt_boxes = gt_boxes[np.newaxis, ...]
     #     gt_classes = np.array([[2, 10, -1]], dtype=np.int32)
     #     gt_classes = gt_classes[..., np.newaxis]
-    #     sampled_rois, sampled_gt_boxes, _, sampled_gt_classes, _ = roi_sampler(
+    #     sampled_rois, sampled_gt_boxes, _, sampled_gt_classes, _ = roi_sampler( # noqa: E501
     #         rois, gt_boxes, gt_classes
     #     )
     #     # given we only choose 1 positive sample, and `append_label` is False,
