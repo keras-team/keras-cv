@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import numpy as np
 from keras_nlp.layers import StartEndPacker
 
 from keras_cv.api_export import keras_cv_export
@@ -45,12 +44,14 @@ class CLIPProcessor:
 
     """
 
-    def __init__(self, input_resolution, vocabulary, merges):
+    def __init__(self, input_resolution, vocabulary, merges, **kwargs):
         self.input_resolution = input_resolution
+        self.vocabulary = vocabulary
+        self.merges = merges
         self.image_transform = self.transform_image
         self.tokenizer = CLIPTokenizer(
-            vocabulary=vocabulary,
-            merges=merges,
+            vocabulary=self.vocabulary,
+            merges=self.merges,
             unsplittable_tokens=["</w>"],
         )
         self.packer = StartEndPacker(
@@ -117,3 +118,14 @@ class CLIPProcessor:
             )
 
         return pack_tokens(texts)
+
+    def get_config(self):
+        config = super().get_config()
+        config.update(
+            {
+                "input_resolution": self.input_resolution,
+                "vocabulary": self.vocabulary,
+                "merges": self.merges,
+            }
+        )
+        return config

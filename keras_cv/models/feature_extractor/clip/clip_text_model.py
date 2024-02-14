@@ -46,6 +46,14 @@ class CLIPTextEncoder(keras.Model):
             embed_dim, name="text_projector", use_bias=False
         )
 
+    def build(self, input_shape):
+        super().build(input_shape)
+        self.token_embedding.build(input_shape)
+        self.positional_embedding.build([1, self.context_length])
+        self.encoder.build(None)
+        self.ln_final.build([None, None, self.transformer_width])
+        self.text_projector.build([None, None, self.transformer_width])
+
     def call(self, inputs, attention_mask=None):
         token_embedding = self.token_embedding(inputs)
         position_ids = ops.expand_dims(

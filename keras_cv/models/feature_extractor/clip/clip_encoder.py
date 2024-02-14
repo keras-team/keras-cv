@@ -11,6 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import numpy as np
+
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 
@@ -20,7 +22,8 @@ def get_initializer(initializer_range=0.02):
     Creates a `keras.initializers.TruncatedNormal` with the given range.
 
     Args:
-        initializer_range (*float*, defaults to 0.02): Standard deviation of the initializer range.
+        initializer_range (*float*, defaults to 0.02): Standard deviation of the
+        initializer range.
 
     Returns:
         `keras.initializers.TruncatedNormal`: The truncated normal initializer.
@@ -48,13 +51,34 @@ class ResidualAttention(keras.layers.Layer):
         self.proj_dim = proj_dim
         self.num_heads = num_heads
         self.num_hidden_layers = num_hidden_layers
-        self.fc_std = ops.power(2 * self.proj_dim, -0.5) * 0.02
+        self.fc_std = np.power(2 * self.proj_dim, -0.5) * 0.02
 
         self.in_proj_std = (
-            ops.power(self.proj_dim, -0.5)
-            * (ops.power(2 * self.num_hidden_layers, -0.5))
+            np.power(self.proj_dim, -0.5)
+            * (np.power(2 * self.num_hidden_layers, -0.5))
             * 0.02
         )
+        self.attn = CLIPAttention(
+            self.proj_dim,
+            self.num_heads,
+            self.num_hidden_layers,
+            name="multi_head_attention",
+        )
+        self.ln_1 = keras.layers.LayerNormalization(epsilon=1e-5, name="ln_1")
+        self.mlp = keras.Sequential(
+            [
+                keras.layers.Dense(
+                    self.proj_dim * 4,
+                    name="c_fc",
+                ),
+                QuickGELU(name="gelu"),
+                keras.layers.Dense(
+                    self.proj_dim,
+                    name="c_proj",
+                ),
+            ]
+        )
+        self.ln_2 = keras.layers.LayerNormalization(epsilon=1e-5, name="ln_2")
 
     def attention(self, x, causal_attention_mask=None, attention_mask=None):
         mask = None
@@ -75,33 +99,14 @@ class ResidualAttention(keras.layers.Layer):
         return self.attn(
             x,
             attention_mask=mask,
-        )
+        )[0]
 
     def build(self, input_shape):
         super().build(input_shape)
-        self.attn = CLIPAttention(
-            self.proj_dim,
-            self.num_heads,
-            self.num_hidden_layers,
-            name="multi_head_attention",
-        )
-        self.ln_1 = keras.layers.LayerNormalization(epsilon=1e-5, name="ln_1")
-        self.mlp = keras.Sequential(
-            [
-                keras.layers.Dense(
-                    self.proj_dim * 4,
-                    kernel_initializer=get_initializer(self.in_proj_std),
-                    name="c_fc",
-                ),
-                QuickGELU(name="gelu"),
-                keras.layers.Dense(
-                    self.proj_dim,
-                    kernel_initializer=get_initializer(self.fc_std),
-                    name="c_proj",
-                ),
-            ]
-        )
-        self.ln_2 = keras.layers.LayerNormalization(epsilon=1e-5, name="ln_2")
+        self.attn.build(None)
+        self.ln_1.build([None, None, self.proj_dim])
+        self.mlp.build(None)
+        self.ln_2.build([None, None, self.proj_dim])
 
     def call(self, x, causal_attention_mask=None, attention_mask=None):
         x = x + self.attention(
@@ -144,7 +149,7 @@ class CLIPEncoder(keras.layers.Layer):
 
     def build(self, input_shape):
         super().build(input_shape)
-        self.resblocks.build(input_shape)
+        map(lambda blocks: blocks.build(input_shape), self.resblocks)
 
     def call(
         self,
@@ -199,9 +204,6 @@ class CLIPAttention(keras.layers.Layer):
             )
 
         self.scale = self.head_dim**-0.5
-
-    def build(self, input_shape):
-        super().build(input_shape)
         in_proj_std = (
             (self.proj_dim**-0.5)
             * ((2 * self.num_hidden_layers) ** -0.5)
@@ -228,6 +230,13 @@ class CLIPAttention(keras.layers.Layer):
             kernel_initializer=get_initializer(out_proj_std),
             name="out_proj",
         )
+
+    def build(self, input_shape):
+        super().build(input_shape)
+        self.q_proj.build([None, None, self.proj_dim])
+        self.k_proj.build([None, None, self.proj_dim])
+        self.v_proj.build([None, None, self.proj_dim])
+        self.out_proj.build([None, None, self.proj_dim])
 
     def _transpose_for_scores(self, tensor, batch_size):
         """
@@ -290,7 +299,7 @@ class CLIPAttention(keras.layers.Layer):
         outputs = (
             (attn_output, _attention_probs)
             if output_attentions
-            else attn_output
+            else (attn_output,)
         )
 
         return outputs

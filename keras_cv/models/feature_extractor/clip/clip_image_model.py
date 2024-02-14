@@ -138,7 +138,12 @@ class CLIPImageEncoder(keras.Model):
         )
 
     def build(self, input_shape):
+        super().build(input_shape)
         self.embeddings.build(input_shape)
+        self.pre_norm.build([None, None, self.width])
+        self.encoder.build(None)
+        self.post_norm.build([None, self.width])
+        self.image_projector.build([None, None, self.width])
 
     def call(self, image):
         embeddings = self.embeddings(image)

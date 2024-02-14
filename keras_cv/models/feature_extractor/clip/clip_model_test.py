@@ -21,10 +21,7 @@ from keras_cv.backend import keras
 from keras_cv.backend import ops
 from keras_cv.backend.config import keras_3
 from keras_cv.models import CLIP
-from keras_cv.models.feature_extractor.clip import CLIPImageEncoder
 from keras_cv.models.feature_extractor.clip import CLIPProcessor
-from keras_cv.models.feature_extractor.clip import CLIPTextEncoder
-from keras_cv.models.feature_extractor.clip import CLIPTokenizer
 from keras_cv.tests.test_case import TestCase
 
 VOCAB_PATH = keras.utils.get_file(
@@ -38,7 +35,7 @@ MERGE_PATH = keras.utils.get_file(
 
 MODEL_PATH = keras.utils.get_file(
     None,
-    "https://storage.googleapis.com/keras-cv/models/clip/clip-vit-base-patch32.weights.h5",
+    "https://storage.googleapis.com/keras-cv/models/clip/clip-vit-base-patch32.weights.h5",  # noqa: E501
 )
 
 
@@ -55,9 +52,9 @@ class CLIPTest(TestCase):
             processed_image, processed_text, attention_mask
         )
         print(image_logits)
-        self.assertAllClose(image_logits, [[3.747046, 3.747046, 3.747046]])
+        self.assertAllClose(image_logits, [[2.932678, 2.932678, 2.932675]])
         self.assertAllClose(
-            text_logits, ops.transpose([[3.747046, 3.747046, 3.747046]])
+            text_logits, ops.transpose([[2.932678, 2.932678, 2.932675]])
         )
 
     def test_clip_preprocessor(self):
@@ -88,7 +85,7 @@ class CLIPTest(TestCase):
         model(processed_image, processed_text, attention_mask)
         self.assertAllClose(
             model.image_embeddings[:, :5],
-            [[0.038646, -0.051685, -0.077413, 0.062127, -0.089566]],
+            [[0.023215, 0.026526, 0.008914, -0.091689, 0.021791]],
         )
 
     @pytest.mark.large
@@ -101,7 +98,7 @@ class CLIPTest(TestCase):
         print(model.text_embeddings)
         self.assertAllClose(
             model.text_embeddings[0, :3],
-            [0.011359, 0.039782, -0.010593],
+            [-0.018502, 0.000906, 0.020372],
         )
 
     @pytest.mark.large  # Saving is slow, so mark these large.

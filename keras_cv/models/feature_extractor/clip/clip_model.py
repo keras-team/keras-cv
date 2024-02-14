@@ -16,7 +16,6 @@ import copy
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
-from keras_cv.models.feature_extractor.clip.clip_image_model import CLIPEncoder
 from keras_cv.models.feature_extractor.clip.clip_image_model import (
     CLIPImageEncoder,
 )
@@ -86,23 +85,23 @@ class CLIP(Task):
         self.transformer_heads = transformer_heads
         self.transformer_layers = transformer_layers
 
-        vision_heads = vision_width // 64
+        vision_heads = self.vision_width // 64
         self.image_encoder = CLIPImageEncoder(
-            input_resolution=image_resolution,
-            patch_size=vision_patch_size,
-            width=vision_width,
-            num_layers=vision_layers,
+            input_resolution=self.image_resolution,
+            patch_size=self.vision_patch_size,
+            width=self.vision_width,
+            num_layers=self.vision_layers,
             heads=vision_heads,
-            output_dim=embed_dim,
+            output_dim=self.embed_dim,
             name="image_encoder",
         )
         self.text_encoder = CLIPTextEncoder(
-            transformer_width=transformer_width,
-            transformer_layers=transformer_layers,
-            transformer_heads=transformer_heads,
-            vocab_size=vocab_size,
-            embed_dim=embed_dim,
-            context_length=context_length,
+            transformer_width=self.transformer_width,
+            transformer_layers=self.transformer_layers,
+            transformer_heads=self.transformer_heads,
+            vocab_size=self.vocab_size,
+            embed_dim=self.embed_dim,
+            context_length=self.context_length,
             name="text_encoder",
         )
 
@@ -111,6 +110,13 @@ class CLIP(Task):
         )
         self.image_embeddings = None
         self.text_embeddings = None
+
+    def build(self, input_shape):
+        super().build(input_shape)
+        self.text_encoder.build([None, self.context_length])
+        self.image_encoder.build(
+            [None, self.image_resolution, self.image_resolution, 3]
+        )
 
     def encode_images(self, image):
         return self.image_encoder(image)
