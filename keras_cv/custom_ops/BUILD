@@ -1,5 +1,4 @@
 package(
-    # copybara:uncomment default_applicable_licenses = ["//keras_cv:license"],
     default_visibility = ["//visibility:public"],
     licenses = ["notice"],
 )
