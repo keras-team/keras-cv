@@ -65,18 +65,14 @@ class ResidualAttention(keras.layers.Layer):
             name="multi_head_attention",
         )
         self.ln_1 = keras.layers.LayerNormalization(epsilon=1e-5, name="ln_1")
-        self.mlp = keras.Sequential(
-            [
-                keras.layers.Dense(
-                    self.proj_dim * 4,
-                    name="c_fc",
-                ),
-                QuickGELU(name="gelu"),
-                keras.layers.Dense(
-                    self.proj_dim,
-                    name="c_proj",
-                ),
-            ]
+        self.mlp_dense_1 = keras.layers.Dense(
+            self.proj_dim * 4,
+            name="c_fc",
+        )
+        self.mlp_activation = QuickGELU(name="gelu")
+        self.mlp_dense_2 = keras.layers.Dense(
+            self.proj_dim,
+            name="c_proj",
         )
         self.ln_2 = keras.layers.LayerNormalization(epsilon=1e-5, name="ln_2")
 
@@ -105,16 +101,20 @@ class ResidualAttention(keras.layers.Layer):
         super().build(input_shape)
         self.attn.build(None)
         self.ln_1.build([None, None, self.proj_dim])
-        self.mlp.build(None)
+        self.mlp_dense_1.build([None, None, self.proj_dim])
+        self.mlp_dense_2.build([None, None, self.proj_dim * 4])
         self.ln_2.build([None, None, self.proj_dim])
 
     def call(self, x, causal_attention_mask=None, attention_mask=None):
-        x = x + self.attention(
+        attn_x = x + self.attention(
             self.ln_1(x),
             causal_attention_mask=causal_attention_mask,
             attention_mask=attention_mask,
         )
-        x = x + self.mlp(self.ln_2(x))
+        x = self.mlp_dense_1(self.ln_2(attn_x))
+        x = self.mlp_activation(x)
+        x = self.mlp_dense_2(x)
+        x = attn_x + x
         return x
 
     def compute_output_shape(self, inputs_shape):
@@ -149,7 +149,8 @@ class CLIPEncoder(keras.layers.Layer):
 
     def build(self, input_shape):
         super().build(input_shape)
-        map(lambda blocks: blocks.build(input_shape), self.resblocks)
+        for block in self.resblocks:
+            block.build(input_shape)
 
     def call(
         self,

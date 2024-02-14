@@ -117,7 +117,6 @@ class CLIPTest(TestCase):
 
         # Check we got the real object back.
         self.assertIsInstance(restored_model, CLIP)
-
         # Check that output matches.
         restored_output, _ = restored_model(
             processed_image, processed_text, attention_mask
