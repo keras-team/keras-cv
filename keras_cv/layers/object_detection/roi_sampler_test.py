@@ -62,58 +62,60 @@ class ROISamplerTest(TestCase):
             np.min(sampled_gt_classes),
         )
 
-    # TODO: https://github.com/keras-team/keras-cv/issues/2336
-    # def test_roi_sampler_small_threshold(self):
-    #     box_matcher = BoxMatcher(thresholds=[0.1], match_values=[-1, 1])
-    #     roi_sampler = _ROISampler(
-    #         bounding_box_format="xyxy",
-    #         roi_matcher=box_matcher,
-    #         positive_fraction=0.5,
-    #         num_sampled_rois=2,
-    #         append_gt_boxes=False,
-    #     )
-    #     rois = np.array(
-    #         [
-    #             [0, 0, 5, 5],
-    #             [2.5, 2.5, 7.5, 7.5],
-    #             [5, 5, 10, 10],
-    #             [7.5, 7.5, 12.5, 12.5],
-    #         ]
-    #     )
-    #     rois = rois[np.newaxis, ...]
-    #     # the 3rd box will generate 0 IOUs and not sampled.
-    #     gt_boxes = np.array(
-    #         [[10, 10, 15, 15], [2.6, 2.6, 7.6, 7.6], [-1, -1, -1, -1]]
-    #     )
-    #     gt_boxes = gt_boxes[np.newaxis, ...]
-    #     gt_classes = np.array([[2, 10, -1]], dtype=np.int32)
-    #     gt_classes = gt_classes[..., np.newaxis]
-    #     sampled_rois, sampled_gt_boxes, _, sampled_gt_classes, _ = roi_sampler( # noqa: E501
-    #         rois, gt_boxes, gt_classes
-    #     )
-    #     # given we only choose 1 positive sample, and `append_label` is False,
-    #     # only the 2nd ROI is chosen. No negative samples exist given we
-    #     # select positive_threshold to be 0.1. (the minimum IOU is 1/7)
-    #     # given num_sampled_rois=2, it selects the 1st ROI as well.
-    #     expected_rois = np.array([[5, 5, 10, 10], [0.0, 0.0, 5.0, 5.0]])
-    #     expected_rois = expected_rois[np.newaxis, ...]
-    #     # all ROIs are matched to the 2nd gt box.
-    #     # the boxes are encoded by dimensions, so the result is
-    #     # tx, ty = (5.1 - 5.0) / 5 = 0.02, tx, ty = (5.1 - 2.5) / 5 = 0.52
-    #     # then divide by 0.1 as box variance.
-    #     expected_gt_boxes = (
-    #         np.array([[0.02, 0.02, 0.0, 0.0], [0.52, 0.52, 0.0, 0.0]]) / 0.1
-    #     )
-    #     expected_gt_boxes = expected_gt_boxes[np.newaxis, ...]
-    #     # only the 2nd ROI is chosen, and the negative ROI is mapped to 0.
-    #     expected_gt_classes = np.array([[10], [10]], dtype=np.int32)
-    #     expected_gt_classes = expected_gt_classes[np.newaxis, ...]
-    #     self.assertAllClose(np.max(expected_rois, 1), np.max(sampled_rois, 1))
-    #     self.assertAllClose(
-    #         np.max(expected_gt_boxes, 1),
-    #         np.max(sampled_gt_boxes, 1),
-    #     )
-    #     self.assertAllClose(expected_gt_classes, sampled_gt_classes)
+    def test_roi_sampler_small_threshold(self):
+        self.skipTest(
+            "TODO: resolving flaky test, https://github.com/keras-team/keras-cv/issues/2336" # noqa
+        )
+        box_matcher = BoxMatcher(thresholds=[0.1], match_values=[-1, 1])
+        roi_sampler = _ROISampler(
+            bounding_box_format="xyxy",
+            roi_matcher=box_matcher,
+            positive_fraction=0.5,
+            num_sampled_rois=2,
+            append_gt_boxes=False,
+        )
+        rois = np.array(
+            [
+                [0, 0, 5, 5],
+                [2.5, 2.5, 7.5, 7.5],
+                [5, 5, 10, 10],
+                [7.5, 7.5, 12.5, 12.5],
+            ]
+        )
+        rois = rois[np.newaxis, ...]
+        # the 3rd box will generate 0 IOUs and not sampled.
+        gt_boxes = np.array(
+            [[10, 10, 15, 15], [2.6, 2.6, 7.6, 7.6], [-1, -1, -1, -1]]
+        )
+        gt_boxes = gt_boxes[np.newaxis, ...]
+        gt_classes = np.array([[2, 10, -1]], dtype=np.int32)
+        gt_classes = gt_classes[..., np.newaxis]
+        sampled_rois, sampled_gt_boxes, _, sampled_gt_classes, _ = roi_sampler(
+            rois, gt_boxes, gt_classes
+        )
+        # given we only choose 1 positive sample, and `append_label` is False,
+        # only the 2nd ROI is chosen. No negative samples exist given we
+        # select positive_threshold to be 0.1. (the minimum IOU is 1/7)
+        # given num_sampled_rois=2, it selects the 1st ROI as well.
+        expected_rois = np.array([[5, 5, 10, 10], [0.0, 0.0, 5.0, 5.0]])
+        expected_rois = expected_rois[np.newaxis, ...]
+        # all ROIs are matched to the 2nd gt box.
+        # the boxes are encoded by dimensions, so the result is
+        # tx, ty = (5.1 - 5.0) / 5 = 0.02, tx, ty = (5.1 - 2.5) / 5 = 0.52
+        # then divide by 0.1 as box variance.
+        expected_gt_boxes = (
+            np.array([[0.02, 0.02, 0.0, 0.0], [0.52, 0.52, 0.0, 0.0]]) / 0.1
+        )
+        expected_gt_boxes = expected_gt_boxes[np.newaxis, ...]
+        # only the 2nd ROI is chosen, and the negative ROI is mapped to 0.
+        expected_gt_classes = np.array([[10], [10]], dtype=np.int32)
+        expected_gt_classes = expected_gt_classes[np.newaxis, ...]
+        self.assertAllClose(np.max(expected_rois, 1), np.max(sampled_rois, 1))
+        self.assertAllClose(
+            np.max(expected_gt_boxes, 1),
+            np.max(sampled_gt_boxes, 1),
+        )
+        self.assertAllClose(expected_gt_classes, sampled_gt_classes)
 
     def test_roi_sampler_large_threshold(self):
         # the 2nd roi and 2nd gt box has IOU of 0.923, setting

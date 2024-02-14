@@ -65,32 +65,34 @@ class RpnLabelEncoderTest(TestCase):
         self.assertAllClose(np.max(box_weights), 1.0)
         self.assertAllClose(np.min(box_weights), 0.0)
 
-    # TODO: https://github.com/keras-team/keras-cv/issues/2336
-    # def test_rpn_label_encoder_multi_level(self):
-    #     rpn_encoder = _RpnLabelEncoder(
-    #         anchor_format="xyxy",
-    #         ground_truth_box_format="xyxy",
-    #         positive_threshold=0.7,
-    #         negative_threshold=0.3,
-    #         positive_fraction=0.5,
-    #         samples_per_image=2,
-    #     )
-    #     rois = {
-    #         2: np.array([[0, 0, 5, 5], [2.5, 2.5, 7.5, 7.5]]),
-    #         3: np.array([[5, 5, 10, 10], [7.5, 7.5, 12.5, 12.5]]),
-    #     }
-    #     # the 3rd box will generate 0 IOUs and not sampled.
-    #     gt_boxes = np.array([[10, 10, 15, 15], [2.5, 2.5, 7.5, 7.5]])
-    #     gt_classes = np.array([2, 10, -1], dtype=np.float32)
-    #     gt_classes = gt_classes[..., np.newaxis]
-    #     _, _, _, cls_weights = rpn_encoder(rois, gt_boxes, gt_classes)
-    #     # the 2nd level found 2 positive matches, the 3rd level found no match
-    #     expected_cls_weights = {
-    #         2: np.array([[0.0], [1.0]]),
-    #         3: np.array([[0.0], [1.0]]),
-    #     }
-    #     self.assertAllClose(expected_cls_weights[2], cls_weights[2])
-    #     self.assertAllClose(expected_cls_weights[3], cls_weights[3])
+    def test_rpn_label_encoder_multi_level(self):
+        self.skipTest(
+            "TODO: resolving flaky test, https://github.com/keras-team/keras-cv/issues/2336" # noqa
+        )
+        rpn_encoder = _RpnLabelEncoder(
+            anchor_format="xyxy",
+            ground_truth_box_format="xyxy",
+            positive_threshold=0.7,
+            negative_threshold=0.3,
+            positive_fraction=0.5,
+            samples_per_image=2,
+        )
+        rois = {
+            2: np.array([[0, 0, 5, 5], [2.5, 2.5, 7.5, 7.5]]),
+            3: np.array([[5, 5, 10, 10], [7.5, 7.5, 12.5, 12.5]]),
+        }
+        # the 3rd box will generate 0 IOUs and not sampled.
+        gt_boxes = np.array([[10, 10, 15, 15], [2.5, 2.5, 7.5, 7.5]])
+        gt_classes = np.array([2, 10, -1], dtype=np.float32)
+        gt_classes = gt_classes[..., np.newaxis]
+        _, _, _, cls_weights = rpn_encoder(rois, gt_boxes, gt_classes)
+        # the 2nd level found 2 positive matches, the 3rd level found no match
+        expected_cls_weights = {
+            2: np.array([[0.0], [1.0]]),
+            3: np.array([[0.0], [1.0]]),
+        }
+        self.assertAllClose(expected_cls_weights[2], cls_weights[2])
+        self.assertAllClose(expected_cls_weights[3], cls_weights[3])
 
     def test_rpn_label_encoder_batched(self):
         rpn_encoder = _RpnLabelEncoder(
