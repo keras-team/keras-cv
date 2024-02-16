@@ -46,6 +46,7 @@ class CLIPPatchingAndEmbedding(keras.layers.Layer):
         self.output_dim = output_dim
 
     def build(self, input_shape):
+        super().build(input_shape)
         self.conv1.build(input_shape)
         self.class_embedding = self.add_weight(
             shape=((self.width,)),

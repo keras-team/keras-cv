@@ -13,5 +13,4 @@ isort
 black
 pytest
 build
-keras_nlp_nightly
 namex

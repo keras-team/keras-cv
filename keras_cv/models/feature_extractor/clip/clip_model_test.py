@@ -39,7 +39,6 @@ MODEL_PATH = keras.utils.get_file(
 )
 
 
-@pytest.mark.tf_only
 class CLIPTest(TestCase):
     @pytest.mark.large
     def test_clip_model_golden_values(self):

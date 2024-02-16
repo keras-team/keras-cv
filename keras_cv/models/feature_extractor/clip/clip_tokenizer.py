@@ -14,8 +14,13 @@
 import regex as re
 import tensorflow as tf
 import tensorflow_text as tf_text
-from keras_nlp.tokenizers import BytePairTokenizer
-
+try:
+    from keras_nlp.tokenizers import BytePairTokenizer
+except ImportError:
+    raise ImportError(
+        "CLIP model requires keras-nlp. Please pip "
+        "install keras-nlp."
+            )
 VOCAB_FILENAME = "keras_cv/models/feature_extractors/clip/vocab.json"
 MERGES_FILENAME = "keras_cv/models/feature_extractors/clip/merges.txt"
 # As python and TF handles special spaces differently, we need to
