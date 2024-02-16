@@ -58,10 +58,16 @@ class CLIPTest(TestCase):
         )
 
     def test_clip_preprocessor(self):
-        self.skipTest("TODO: Enable after Kaggle model is public")
+        # self.skipTest("TODO: Enable after Kaggle model is public")
         processor = CLIPProcessor(224, VOCAB_PATH, MERGE_PATH)
         processed_text, attention_mask = processor.process_texts(
-            ["mountains", "cat on tortoise", "two cats"]
+            ["mountains", "cat on tortoise"]
+        )
+        self.assertAllClose(
+            processed_text[:, :3], [[49406, 5873, 49407], [49406, 2368, 525]]
+        )
+        self.assertAllClose(
+            attention_mask[0, :5], [True, True, True, False, False]
         )
 
     @pytest.mark.large

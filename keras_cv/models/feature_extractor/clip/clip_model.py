@@ -73,7 +73,13 @@ class CLIP(Task):
         **kwargs,
     ):
         super().__init__(**kwargs)
-
+        try:
+            import keras_nlp  # noqa: F401
+        except ImportError:
+            raise ImportError(
+                "CLIP model requires keras-nlp. Please pip "
+                "install keras-nlp."
+            )
         self.embed_dim = embed_dim
         self.image_resolution = image_resolution
         self.vision_layers = vision_layers

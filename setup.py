@@ -75,7 +75,6 @@ setup(
         "regex",
         "tensorflow-datasets",
         "keras-core",
-        "keras_nlp_nightly",
         "kagglehub",
     ],
     extras_require={
