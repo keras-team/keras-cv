@@ -20,7 +20,7 @@ nvcc --version
 
 cd "src/github/keras-cv"
 pip install -U pip setuptools
-# psutil is used by backgroup log reader
+# psutil is used by background log reader
 pip install -U psutil
 
 if [ "${KERAS2:-0}" == "1" ]
