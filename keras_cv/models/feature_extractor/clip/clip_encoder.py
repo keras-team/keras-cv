@@ -106,15 +106,19 @@ class ResidualAttention(keras.layers.Layer):
         self.ln_2.build([None, None, self.proj_dim])
 
     def call(self, x, causal_attention_mask=None, attention_mask=None):
-        attn_x = x + self.attention(
-            self.ln_1(x),
+        residual = x
+        x = self.ln_1(x)
+        x = self.attention(
+            x,
             causal_attention_mask=causal_attention_mask,
             attention_mask=attention_mask,
         )
-        x = self.mlp_dense_1(self.ln_2(attn_x))
+        x = x + residual
+        residual = x
+        x = self.mlp_dense_1(self.ln_2(residual))
         x = self.mlp_activation(x)
         x = self.mlp_dense_2(x)
-        x = attn_x + x
+        x = residual + x
         return x
 
     def compute_output_shape(self, inputs_shape):
@@ -183,8 +187,7 @@ class CLIPEncoder(keras.layers.Layer):
 
 class CLIPAttention(keras.layers.Layer):
     """
-    - Documentation page: https://huggingface.co/docs/transformers/model_doc/clip # noqa: E501
-    - Implementation: https://github.com/huggingface/transformers/blob/main/src/transformers/models/clip/modeling_clip.py # noqa: E501
+    Adapted from https://github.com/huggingface/transformers/blob/main/src/transformers/models/clip/modeling_clip.py # noqa: E501
     """
 
     def __init__(
@@ -241,7 +244,7 @@ class CLIPAttention(keras.layers.Layer):
 
     def _transpose_for_scores(self, tensor, batch_size):
         """
-        Copied from https://github.com/huggingface/transformers/blob/8e164c5400b7b413c7b8fb32e35132001effc970/src/transformers/models/bert/modeling_tf_bert.py#L252 # noqa: E501
+        Adapted from https://github.com/huggingface/transformers/blob/8e164c5400b7b413c7b8fb32e35132001effc970/src/transformers/models/bert/modeling_tf_bert.py#L252 # noqa: E501
         """
         # [batch_size, seq_len, all_head_dim] ->
         # [batch_size, seq_len, num_heads, head_dim]
@@ -282,15 +285,15 @@ class CLIPAttention(keras.layers.Layer):
             attention_scores = ops.add(attention_scores, attention_mask)
 
         # Normalize the attention scores to probabilities.
-        _attention_probs = ops.softmax(attention_scores + 1e-9, axis=-1)
+        attention_probs = ops.softmax(attention_scores, axis=-1)
 
         # This is actually dropping out entire tokens to attend to, which might
         # seem a bit unusual, but is taken from the original Transformer paper.
-        attention_probs = keras.layers.Dropout(self.dropout)(
-            inputs=_attention_probs, training=training
+        dropout_attention_probs = keras.layers.Dropout(self.dropout)(
+            inputs=attention_probs, training=training
         )
 
-        attn_output = ops.matmul(attention_probs, value_layer)
+        attn_output = ops.matmul(dropout_attention_probs, value_layer)
         attn_output = ops.transpose(attn_output, axes=[0, 2, 1, 3])
 
         # (batch_size, seq_len_q, proj_dim)
@@ -298,7 +301,7 @@ class CLIPAttention(keras.layers.Layer):
 
         attn_output = self.out_proj(attn_output, training=training)
         outputs = (
-            (attn_output, _attention_probs)
+            (attn_output, attention_probs)
             if output_attentions
             else (attn_output,)
         )

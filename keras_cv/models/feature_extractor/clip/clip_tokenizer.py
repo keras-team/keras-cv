@@ -14,15 +14,13 @@
 import regex as re
 import tensorflow as tf
 import tensorflow_text as tf_text
+
 try:
     from keras_nlp.tokenizers import BytePairTokenizer
 except ImportError:
     raise ImportError(
-        "CLIP model requires keras-nlp. Please pip "
-        "install keras-nlp."
-            )
-VOCAB_FILENAME = "keras_cv/models/feature_extractors/clip/vocab.json"
-MERGES_FILENAME = "keras_cv/models/feature_extractors/clip/merges.txt"
+        "CLIP model requires keras-nlp. Please pip " "install keras-nlp."
+    )
 # As python and TF handles special spaces differently, we need to
 # manually handle special spaces during string split.
 SPECIAL_WHITESPACES = r"\x{a0}\x{2009}\x{202f}\x{3000}"
@@ -91,25 +89,6 @@ def create_alts_for_unsplittable_tokens(unsplittable_tokens):
         token = re.sub(replace_pattern, "", token)
         alts.append(prefix + token)
     return alts
-
-
-def bytes_to_unicode():
-    bs = (
-        list(range(ord("!"), ord("~") + 1))
-        + list(range(ord("¡"), ord("¬") + 1))
-        + list(range(ord("®"), ord("ÿ") + 1))
-    )
-    cs = bs[:]
-    n = 0
-    # removes mapping an int to a whitespace character
-    for b in range(2**8):
-        if b not in bs:
-            bs.append(b)
-            cs.append(2**8 + n)
-            n += 1
-    cs = [chr(n) for n in cs]
-    bs = [n.to_bytes(1, "little") for n in bs]
-    return bs, cs  # int to string mapping
 
 
 def remove_strings_from_inputs(tensor, string_to_remove):

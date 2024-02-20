@@ -82,6 +82,7 @@ class CLIPTextEncoder(keras.Model):
         # Zero out the lower diagonal
         causal_attention_mask = ops.triu(causal_attention_mask)
         causal_attention_mask = ops.cast(causal_attention_mask, "float32")
+        causal_attention_mask = (1.0 - causal_attention_mask) * (-1e8)
         attention_mask = ops.cast(attention_mask, dtype="float32")
         expanded_mask = ops.tile(
             attention_mask[:, None, None, :], (1, 1, self.context_length, 1)

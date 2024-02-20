@@ -66,7 +66,7 @@ class CLIPPatchingAndEmbedding(keras.layers.Layer):
         )
 
     def call(self, x):
-        batch_size, _, _, _ = ops.shape(x)
+        batch_size = ops.shape(x)[0]
         patch_embeddings = self.conv1(x)  # shape = [*, grid, grid, channel]
 
         patch_embeddings = ops.reshape(
@@ -98,12 +98,12 @@ class CLIPPatchingAndEmbedding(keras.layers.Layer):
 class CLIPImageEncoder(keras.Model):
     def __init__(
         self,
-        input_resolution: int,
-        patch_size: int,
-        width: int,
-        num_layers: int,
-        heads: int,
-        output_dim: int,
+        input_resolution,
+        patch_size,
+        width,
+        num_layers,
+        heads,
+        output_dim,
         **kwargs,
     ):
         super().__init__(

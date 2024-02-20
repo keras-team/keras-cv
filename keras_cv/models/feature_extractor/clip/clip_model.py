@@ -32,10 +32,10 @@ from keras_cv.utils.python_utils import classproperty
 @keras_cv_export(["keras_cv.models.CLIP"])
 class CLIP(Task):
     """
-        CLIP implements the Contrastive Language-Image Pretraining (CLIP)
-        architecture, which enables joint learning of visual and textual
-        representations for various downstream tasks. The deafult base model
-        achitecture will be set to clip-vit-base-patch32.
+    CLIP implements the Contrastive Language-Image Pretraining (CLIP)
+    architecture, which enables joint learning of visual and textual
+    representations for various downstream tasks. The deafult base model
+    achitecture will be set to clip-vit-base-patch32.
 
     Args:
         embed_dim (int): The dimensionality of the joint embedding space for
@@ -135,15 +135,11 @@ class CLIP(Task):
         self.text_embeddings = self.encode_text(
             text, attention_mask=attention_mask
         )
-        normalize_image_features = keras.ops.sqrt(
-            keras.ops.sum(
-                keras.ops.power(self.image_embeddings, 2), keepdims=True
-            )
+        normalize_image_features = ops.sqrt(
+            ops.sum(ops.power(self.image_embeddings, 2), keepdims=True)
         )
-        normalize_text_features = keras.ops.sqrt(
-            keras.ops.sum(
-                keras.ops.power(self.text_embeddings, 2), keepdims=True
-            )
+        normalize_text_features = ops.sqrt(
+            ops.sum(ops.power(self.text_embeddings, 2), keepdims=True)
         )
         self.image_embeddings = self.image_embeddings / normalize_image_features
         self.text_embeddings = self.text_embeddings / normalize_text_features
