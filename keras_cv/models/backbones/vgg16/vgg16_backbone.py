@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from keras import layers
+
 from keras_cv.models import utils
 from keras_cv.models.backbones.backbone import Backbone
 
