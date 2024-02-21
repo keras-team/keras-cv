@@ -121,6 +121,7 @@ class CLIPImageEncoder(keras.Model):
             patch_size=self.patch_size,
             input_resolution=self.input_resolution,
             output_dim=self.output_dim,
+            name="clip_patch_embedding",
         )
         self.pre_norm = keras.layers.LayerNormalization(
             epsilon=1e-5, name="ln_1"
@@ -147,11 +148,11 @@ class CLIPImageEncoder(keras.Model):
         self.image_projector.build([None, None, self.width])
 
     def call(self, image):
-        embeddings = self.embeddings(image)
-        pre_norm = self.pre_norm(embeddings)
-        encoded_output = self.encoder(pre_norm)
-        post_norm = self.post_norm(encoded_output[:, 0, :])
-        image_projected_embeddings = self.image_projector(post_norm)
+        x = self.embeddings(image)
+        x = self.pre_norm(x)
+        x = self.encoder(x)
+        x = self.post_norm(x[:, 0, :])
+        image_projected_embeddings = self.image_projector(x)
         return image_projected_embeddings
 
     def get_config(self):

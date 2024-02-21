@@ -18,9 +18,8 @@ import tensorflow_text as tf_text
 try:
     from keras_nlp.tokenizers import BytePairTokenizer
 except ImportError:
-    raise ImportError(
-        "CLIP model requires keras-nlp. Please pip " "install keras-nlp."
-    )
+    keras_nlp = None
+
 # As python and TF handles special spaces differently, we need to
 # manually handle special spaces during string split.
 SPECIAL_WHITESPACES = r"\x{a0}\x{2009}\x{202f}\x{3000}"
@@ -105,6 +104,14 @@ def remove_strings_from_inputs(tensor, string_to_remove):
 
 
 class CLIPTokenizer(BytePairTokenizer):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        if keras_nlp is None:
+            raise ValueError(
+                "ClipTokenizer requires keras-nlp. Please install "
+                "using pip `pip install keras-nlp`"
+            )
+
     def _bpe_merge_and_update_cache(self, tokens):
         """Process unseen tokens and add to cache."""
         words = self._transform_bytes(tokens)

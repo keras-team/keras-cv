@@ -28,6 +28,11 @@ from keras_cv.models.feature_extractor.clip.clip_text_model import (
 from keras_cv.models.task import Task
 from keras_cv.utils.python_utils import classproperty
 
+try:
+    import keras_nlp
+except ImportError:
+    keras_nlp = None
+
 
 @keras_cv_export(["keras_cv.models.CLIP"])
 class CLIP(Task):
@@ -73,12 +78,10 @@ class CLIP(Task):
         **kwargs,
     ):
         super().__init__(**kwargs)
-        try:
-            import keras_nlp  # noqa: F401
-        except ImportError:
-            raise ImportError(
-                "CLIP model requires keras-nlp. Please pip "
-                "install keras-nlp."
+        if keras_nlp is None:
+            raise ValueError(
+                "ClipTokenizer requires keras-nlp. Please install "
+                "using pip `pip install keras-nlp`"
             )
         self.embed_dim = embed_dim
         self.image_resolution = image_resolution
