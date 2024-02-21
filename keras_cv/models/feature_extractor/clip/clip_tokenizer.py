@@ -16,6 +16,7 @@ import tensorflow as tf
 import tensorflow_text as tf_text
 
 try:
+    import keras_nlp
     from keras_nlp.tokenizers import BytePairTokenizer
 except ImportError:
     keras_nlp = None
