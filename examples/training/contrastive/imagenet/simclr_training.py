@@ -17,14 +17,14 @@ import sys
 import tensorflow as tf
 from absl import flags
 from tensorflow import keras
-from tensorflow.keras import callbacks
-from tensorflow.keras import layers
-from tensorflow.keras import metrics
-from tensorflow.keras import optimizers
 
 from keras_cv import losses
 from keras_cv import models
 from keras_cv import training
+from keras_cv.backend.keras import callbacks
+from keras_cv.backend.keras import layers
+from keras_cv.backend.keras import metrics
+from keras_cv.backend.keras import optimizers
 from keras_cv.datasets import imagenet
 
 flags.DEFINE_string(

@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import numpy as np
-from tensorflow.keras.callbacks import Callback
 
 from keras_cv import bounding_box
 from keras_cv.api_export import keras_cv_export
+from keras_cv.backend import keras
 from keras_cv.backend import ops
 from keras_cv.metrics.coco import compute_pycoco_metrics
 from keras_cv.models.object_detection.__internal__ import unpack_input
@@ -23,7 +23,7 @@ from keras_cv.utils.conditional_imports import assert_pycocotools_installed
 
 
 @keras_cv_export("keras_cv.callbacks.PyCOCOCallback")
-class PyCOCOCallback(Callback):
+class PyCOCOCallback(keras.callbacks.Callback):
     def __init__(
         self, validation_data, bounding_box_format, cache=True, **kwargs
     ):

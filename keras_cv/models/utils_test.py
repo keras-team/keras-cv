@@ -13,8 +13,7 @@
 # limitations under the License.
 """Tests for KerasCV model utils."""
 
-from tensorflow.keras import layers
-
+from keras_cv.backend.keras import layers
 from keras_cv.models import utils
 from keras_cv.tests.test_case import TestCase
 

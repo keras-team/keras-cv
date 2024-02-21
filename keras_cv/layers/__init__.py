@@ -15,7 +15,6 @@
 from tensorflow.keras.layers import CenterCrop
 from tensorflow.keras.layers import RandomHeight
 from tensorflow.keras.layers import RandomWidth
-
 from keras_cv.layers.augmenter import Augmenter
 from keras_cv.layers.feature_pyramid import FeaturePyramid
 from keras_cv.layers.fusedmbconv import FusedMBConvBlock

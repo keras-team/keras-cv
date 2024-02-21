@@ -14,9 +14,8 @@
 
 import inspect
 
-from tensorflow import keras
-
 from keras_cv import core
+from keras_cv.backend import keras
 
 
 def exhaustive_compare(obj1, obj2):

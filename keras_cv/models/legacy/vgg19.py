@@ -19,9 +19,9 @@ Reference:
     (ICLR 2015)
 """  # noqa: E501
 import tensorflow as tf
-from tensorflow import keras
-from tensorflow.keras import layers
 
+from keras_cv.backend import keras
+from keras_cv.backend.keras import layers
 from keras_cv.models.legacy import utils
 from keras_cv.models.legacy.vgg16 import apply_vgg_block
 

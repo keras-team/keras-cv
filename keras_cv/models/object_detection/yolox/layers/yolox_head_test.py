@@ -14,8 +14,8 @@
 
 
 import tensorflow as tf
-from tensorflow import keras
 
+from keras_cv.backend import keras
 from keras_cv.models.object_detection.yolox.layers import YoloXHead
 from keras_cv.tests.test_case import TestCase
 

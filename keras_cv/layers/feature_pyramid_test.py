@@ -13,8 +13,8 @@
 # limitations under the License.
 
 import numpy as np
-from tensorflow import keras
 
+from keras_cv.backend import keras
 from keras_cv.layers import FeaturePyramid
 from keras_cv.tests.test_case import TestCase
 

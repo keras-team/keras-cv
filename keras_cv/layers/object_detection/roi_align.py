@@ -18,10 +18,10 @@ from typing import Optional
 from typing import Tuple
 
 import tensorflow as tf
-from tensorflow import keras
 
 from keras_cv import bounding_box
 from keras_cv.backend import assert_tf_keras
+from keras_cv.backend import keras
 
 
 def _feature_bilinear_interpolation(

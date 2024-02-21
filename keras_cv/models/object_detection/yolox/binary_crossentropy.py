@@ -16,7 +16,8 @@
 import warnings
 
 import tensorflow as tf
-from tensorflow import keras
+
+from keras_cv.backend import keras
 
 
 class BinaryCrossentropy(keras.losses.Loss):

@@ -3,8 +3,8 @@
 # Licensed under the terms in https://github.com/keras-team/keras-cv/blob/master/keras_cv/layers/preprocessing_3d/waymo/LICENSE  # noqa: E501
 
 import numpy as np
-from tensorflow import keras
 
+from keras_cv.backend import keras
 from keras_cv.layers.preprocessing_3d import base_augmentation_layer_3d
 from keras_cv.layers.preprocessing_3d.waymo.random_drop_box import RandomDropBox
 from keras_cv.tests.test_case import TestCase

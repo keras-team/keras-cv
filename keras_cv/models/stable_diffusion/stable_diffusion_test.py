@@ -13,10 +13,10 @@
 # limitations under the License.
 
 import pytest
-from tensorflow.keras import mixed_precision
 
 from keras_cv.backend import ops
 from keras_cv.backend import random
+from keras_cv.backend.keras import mixed_precision
 from keras_cv.models import StableDiffusion
 from keras_cv.tests.test_case import TestCase
 
