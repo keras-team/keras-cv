@@ -16,6 +16,7 @@ import os
 
 import numpy as np
 import pytest
+from tensorflow import data as tf_data
 
 from keras_cv.backend import keras
 from keras_cv.backend import ops
@@ -57,7 +58,6 @@ class CLIPTest(TestCase):
         )
 
     def test_clip_preprocessor(self):
-        # self.skipTest("TODO: Enable after Kaggle model is public")
         processor = CLIPProcessor(224, VOCAB_PATH, MERGE_PATH)
         processed_text, attention_mask = processor.process_texts(
             ["mountains", "cat on tortoise"]
@@ -68,6 +68,12 @@ class CLIPTest(TestCase):
         self.assertAllClose(
             attention_mask[0, :5], [True, True, True, False, False]
         )
+
+    def test_clip_preprocessor_tf_data(self):
+        processor = CLIPProcessor(224, VOCAB_PATH, MERGE_PATH)
+        text_input = ["a bus", "a dog", "a cat"]
+        dataset = tf_data.Dataset.from_tensor_slices(text_input)
+        dataset.map(processor.process_texts)
 
     @pytest.mark.large
     def test_presets(self):
