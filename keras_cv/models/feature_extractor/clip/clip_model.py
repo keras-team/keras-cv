@@ -81,7 +81,7 @@ class CLIP(Task):
         if keras_nlp is None:
             raise ValueError(
                 "ClipTokenizer requires keras-nlp. Please install "
-                "using pip `pip install keras-nlp`"
+                "using pip `pip install -U keras-nlp && pip install -U keras`"
             )
         self.embed_dim = embed_dim
         self.image_resolution = image_resolution

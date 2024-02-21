@@ -110,7 +110,7 @@ class CLIPTokenizer(BytePairTokenizer):
         if keras_nlp is None:
             raise ValueError(
                 "ClipTokenizer requires keras-nlp. Please install "
-                "using pip `pip install keras-nlp`"
+                "using pip `pip install -U keras-nlp && pip install -U keras`"
             )
 
     def _bpe_merge_and_update_cache(self, tokens):
