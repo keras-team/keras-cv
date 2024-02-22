@@ -52,9 +52,9 @@ class CLIPTest(TestCase):
             processed_image, processed_text, attention_mask
         )
         print(image_logits)
-        self.assertAllClose(image_logits, [[2.932678, 2.932678, 2.932675]])
+        self.assertAllClose(image_logits, [[1.896713, 1.896713, 1.896713]])
         self.assertAllClose(
-            text_logits, ops.transpose([[2.932678, 2.932678, 2.932675]])
+            text_logits, ops.transpose([[1.896713, 1.896713, 1.896713]])
         )
 
     def test_clip_preprocessor(self):
@@ -77,8 +77,8 @@ class CLIPTest(TestCase):
 
     @pytest.mark.large
     def test_presets(self):
-        self.skipTest("TODO: Enable after Kaggle model is public")
-        model = CLIP.from_preset("clip-vit-base-patch32")
+        # self.skipTest("TODO: Enable after Kaggle model is public")
+        model = CLIP.from_preset("clip-vit-base-patch16")
         processed_image = np.ones(shape=[1, 224, 224, 3])
         processed_text = np.ones(shape=[3, 77])
         attention_mask = np.ones(shape=[3, 77])
@@ -109,7 +109,7 @@ class CLIPTest(TestCase):
         print(model.text_embeddings)
         self.assertAllClose(
             model.text_embeddings[0, :3],
-            [-0.018502, 0.000906, 0.020372],
+            [0.007531, -0.038361, -0.035686],
         )
 
     @pytest.mark.large  # Saving is slow, so mark these large.
