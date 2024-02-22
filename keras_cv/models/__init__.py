@@ -178,6 +178,7 @@ from keras_cv.models.backbones.resnet_v2.resnet_v2_aliases import (
 from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
     ResNetV2Backbone,
 )
+from keras_cv.models.backbones.vgg16.vgg16_backbone import VGG16Backbone
 from keras_cv.models.backbones.vit_det.vit_det_aliases import ViTDetBBackbone
 from keras_cv.models.backbones.vit_det.vit_det_aliases import ViTDetHBackbone
 from keras_cv.models.backbones.vit_det.vit_det_aliases import ViTDetLBackbone
