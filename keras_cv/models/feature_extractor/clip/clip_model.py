@@ -72,7 +72,7 @@ class CLIP(Task):
         vision_patch_size=32,
         context_length=77,
         vocab_size=49408,
-        transformer_width=768,
+        transformer_width=512,
         transformer_heads=8,
         transformer_layers=12,
         **kwargs,
