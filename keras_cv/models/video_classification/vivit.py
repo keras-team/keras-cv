@@ -15,6 +15,8 @@
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.models.task import Task
+from keras_cv.models.video_classification.vivit_layers import PositionalEncoder
+from keras_cv.models.video_classification.vivit_layers import TubeletEmbedding
 
 
 @keras_cv_export(
@@ -32,17 +34,16 @@ class ViViT(Task):
       (ICCV 2021)
 
     Args:
-        tubelet_embedder: 'keras.layers.Layer'. A layer for spatio-temporal tube
-            embedding applied to input sequences retrieved from video frames.
-        positional_encoder: 'keras.layers.Layer'. A layer for adding positional
-            information to the encoded video tokens.
         inp_shape: tuple, the shape of the input video frames.
         num_classes: int, the number of classes for video classification.
         transformer_layers: int, the number of transformer layers in the model.
             Defaults to 8.
+        patch_size: tuple , contains the size of the
+        spatio-temporal patches for each dimension
+            Defaults to (8,8,8)
         num_heads: int, the number of heads for multi-head
             self-attention mechanism. Defaults to 8.
-        embed_dim: int, number of dimensions in the embedding space.
+        projection_dim: int, number of dimensions in the projection space.
             Defaults to 128.
         layer_norm_eps: float, epsilon value for layer normalization.
             Defaults to 1e-6.
@@ -62,11 +63,10 @@ class ViViT(Task):
 
     frames = np.random.uniform(size=(5, 32, 32, 32, 1))
     labels = np.ones(shape=(5))
+
     model = ViViT(
-        tubelet_embedder=TubeletEmbedding(
-            embed_dim=PROJECTION_DIM, patch_size=PATCH_SIZE
-        ),
-        positional_encoder=PositionalEncoder(embed_dim=PROJECTION_DIM),
+        projection_dim=PROJECTION_DIM,
+        patch_size=PATCH_SIZE,
         inp_shape=INPUT_SHAPE,
         transformer_layers=NUM_LAYERS,
         num_heads=NUM_HEADS,
@@ -94,37 +94,29 @@ class ViViT(Task):
 
     def __init__(
         self,
-        tubelet_embedder,
-        positional_encoder,
         inp_shape,
         num_classes,
+        projection_dim=128,
+        patch_size=(8, 8, 8),
         transformer_layers=8,
         num_heads=8,
         embed_dim=128,
         layer_norm_eps=1e-6,
         **kwargs,
     ):
-        if not isinstance(tubelet_embedder, keras.layers.Layer):
-            raise ValueError(
-                "Argument `tubelet_embedder` must be a "
-                " `keras.layers.Layer` instance "
-                f" . Received instead "
-                f"tubelet_embedder={tubelet_embedder} "
-                f"(of type {type(tubelet_embedder)})."
-            )
+        self.projection_dim = projection_dim
+        self.patch_size = patch_size
+        self.tubelet_embedder = TubeletEmbedding(
+            embed_dim=self.projection_dim, patch_size=self.patch_size
+        )
 
-        if not isinstance(positional_encoder, keras.layers.Layer):
-            raise ValueError(
-                "Argument `positional_encoder` must be a "
-                "`keras.layers.Layer` instance "
-                f" . Received instead "
-                f"positional_encoder={positional_encoder} "
-                f"(of type {type(positional_encoder)})."
-            )
+        self.positional_encoder = PositionalEncoder(
+            embed_dim=self.projection_dim
+        )
 
         inputs = keras.layers.Input(shape=inp_shape)
-        patches = tubelet_embedder(inputs)
-        encoded_patches = positional_encoder(patches)
+        patches = self.tubelet_embedder(inputs)
+        encoded_patches = self.positional_encoder(patches)
 
         for _ in range(transformer_layers):
             x1 = keras.layers.LayerNormalization(epsilon=1e-6)(encoded_patches)
@@ -164,8 +156,15 @@ class ViViT(Task):
         self.inp_shape = inp_shape
         self.num_heads = num_heads
         self.num_classes = num_classes
-        self.tubelet_embedder = tubelet_embedder
-        self.positional_encoder = positional_encoder
+        self.projection_dim = projection_dim
+        self.patch_size = patch_size
+
+    def build(self, input_shape):
+        self.tubelet_embedder.build(input_shape)
+        flattened_patch_shape = self.tubelet_embedder.compute_output_shape(
+            input_shape
+        )
+        self.positional_encoder.build(flattened_patch_shape)
 
     def get_config(self):
         config = super().get_config()
@@ -174,28 +173,8 @@ class ViViT(Task):
                 "num_heads": self.num_heads,
                 "inp_shape": self.inp_shape,
                 "num_classes": self.num_classes,
-                "tubelet_embedder": keras.saving.serialize_keras_object(
-                    self.tubelet_embedder
-                ),
-                "positional_encoder": keras.saving.serialize_keras_object(
-                    self.positional_encoder
-                ),
+                "projection_dim": self.projection_dim,
+                "patch_size": self.patch_size,
             }
         )
         return config
-
-    @classmethod
-    def from_config(cls, config):
-        if "tubelet_embedder" in config and isinstance(
-            config["tubelet_embedder"], dict
-        ):
-            config["tubelet_embedder"] = keras.layers.deserialize(
-                config["tubelet_embedder"]
-            )
-        if "positional_encoder" in config and isinstance(
-            config["positional_encoder"], dict
-        ):
-            config["positional_encoder"] = keras.layers.deserialize(
-                config["positional_encoder"]
-            )
-        return super().from_config(config)

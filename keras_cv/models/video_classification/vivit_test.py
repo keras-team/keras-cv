@@ -22,8 +22,6 @@ from keras_cv.backend import keras
 from keras_cv.backend import ops
 from keras_cv.backend.config import keras_3
 from keras_cv.models.video_classification.vivit import ViViT
-from keras_cv.models.video_classification.vivit_layers import PositionalEncoder
-from keras_cv.models.video_classification.vivit_layers import TubeletEmbedding
 from keras_cv.tests.test_case import TestCase
 
 
@@ -38,10 +36,8 @@ class ViViT_Test(TestCase):
         num_layers = 8
 
         model = ViViT(
-            tubelet_embedder=TubeletEmbedding(
-                embed_dim=projection_dim, patch_size=patch_size
-            ),
-            positional_encoder=PositionalEncoder(embed_dim=projection_dim),
+            projection_dim=projection_dim,
+            patch_size=patch_size,
             inp_shape=input_shape,
             transformer_layers=num_layers,
             num_heads=num_heads,
@@ -70,10 +66,8 @@ class ViViT_Test(TestCase):
         num_layers = 8
 
         model = ViViT(
-            tubelet_embedder=TubeletEmbedding(
-                embed_dim=projection_dim, patch_size=patch_size
-            ),
-            positional_encoder=PositionalEncoder(embed_dim=projection_dim),
+            projection_dim=projection_dim,
+            patch_size=patch_size,
             inp_shape=input_shape,
             transformer_layers=num_layers,
             num_heads=num_heads,
@@ -100,10 +94,8 @@ class ViViT_Test(TestCase):
         ds = ds.batch(2)
 
         model = ViViT(
-            tubelet_embedder=TubeletEmbedding(
-                embed_dim=projection_dim, patch_size=patch_size
-            ),
-            positional_encoder=PositionalEncoder(embed_dim=projection_dim),
+            projection_dim=projection_dim,
+            patch_size=patch_size,
             inp_shape=input_shape,
             transformer_layers=num_layers,
             num_heads=num_heads,
@@ -123,8 +115,7 @@ class ViViT_Test(TestCase):
             ],
         )
 
-        layer_name = "multi_head_attention_23"
-        representation_layer = model.get_layer(layer_name)
+        representation_layer = model.get_layer(index=-8)  # Accesses MHSA Layer
 
         original_weights = representation_layer.get_weights()
         model.fit(ds, epochs=1)
@@ -134,7 +125,7 @@ class ViViT_Test(TestCase):
             self.assertNotAllEqual(w1, w2)
             self.assertFalse(ops.any(ops.isnan(w2)))
 
-    @pytest.mark.large  # Saving is slow, so mark these large.
+    # @pytest.mark.large  # Saving is slow, so mark these large.
     def test_saved_model(self):
         input_shape = (28, 28, 28, 1)
         num_classes = 11
@@ -145,10 +136,8 @@ class ViViT_Test(TestCase):
         num_layers = 8
 
         model = ViViT(
-            tubelet_embedder=TubeletEmbedding(
-                embed_dim=projection_dim, patch_size=patch_size
-            ),
-            positional_encoder=PositionalEncoder(embed_dim=projection_dim),
+            projection_dim=projection_dim,
+            patch_size=patch_size,
             inp_shape=input_shape,
             transformer_layers=num_layers,
             num_heads=num_heads,

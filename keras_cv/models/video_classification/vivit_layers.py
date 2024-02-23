@@ -33,19 +33,16 @@ class TubeletEmbedding(keras.layers.Layer):
     Args:
     embed_dim: int, number of dimensions in the embedding space.
         Defaults to 128.
-    patch_size: tuple or int, size of the spatio-temporal patch.
-        If int, the same size is used for all dimensions.
-        If tuple, specifies the size for each dimension.
-        Defaults to 8.
+    patch_size: tuple , size of the spatio-temporal patch.
+        Specifies the size for each dimension.
+        Defaults to (8,8,8).
 
     """
 
-    def __init__(self, embed_dim=128, patch_size=8, **kwargs):
+    def __init__(self, embed_dim=128, patch_size=(8, 8, 8), **kwargs):
         super().__init__(**kwargs)
         self.embed_dim = embed_dim
         self.patch_size = patch_size
-
-    def build(self, input_shape):
         self.projection = keras.layers.Conv3D(
             filters=self.embed_dim,
             kernel_size=self.patch_size,
@@ -54,17 +51,25 @@ class TubeletEmbedding(keras.layers.Layer):
         )
         self.flatten = keras.layers.Reshape(target_shape=(-1, self.embed_dim))
 
+    def build(self, input_shape):
+        if input_shape is not None:
+            self.projection.build(input_shape)
+            projected_patch_shape = self.projection.compute_output_shape(
+                input_shape
+            )
+            self.flatten.build(projected_patch_shape)
+
+    def compute_output_shape(self, input_shape):
+        if input_shape is not None:
+            projected_patch_shape = self.projection.compute_output_shape(
+                input_shape
+            )
+            return self.flatten.compute_output_shape(projected_patch_shape)
+
     def call(self, videos):
         projected_patches = self.projection(videos)
         flattened_patches = self.flatten(projected_patches)
         return flattened_patches
-
-    def get_config(self):
-        config = super().get_config()
-        config.update(
-            {"embed_dim": self.embed_dim, "patch_size": self.patch_size}
-        )
-        return config
 
 
 @keras_cv_export(
@@ -90,11 +95,13 @@ class PositionalEncoder(keras.layers.Layer):
         self.embed_dim = embed_dim
 
     def build(self, input_shape):
-        _, num_tokens, _ = input_shape
-        self.position_embedding = keras.layers.Embedding(
-            input_dim=num_tokens, output_dim=self.embed_dim
-        )
-        self.positions = ops.arange(start=0, stop=num_tokens, step=1)
+        if input_shape is not None:
+            _, num_tokens, _ = input_shape
+            self.position_embedding = keras.layers.Embedding(
+                input_dim=num_tokens, output_dim=self.embed_dim
+            )
+            self.position_embedding.build(input_shape)
+            self.positions = ops.arange(start=0, stop=num_tokens, step=1)
 
     def call(self, encoded_tokens):
         encoded_positions = self.position_embedding(self.positions)
