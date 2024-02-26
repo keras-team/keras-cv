@@ -28,7 +28,7 @@ clip_presets = {
             "official_name": "CLIP",
             "path": "clip",
         },
-        "kaggle_handle": "kaggle://keras/clip/keras/clip-vit-base-patch16/4",
+        "kaggle_handle": "kaggle://keras/clip/keras/clip-vit-base-patch16/7",
     },
     "clip-vit-base-patch32": {
         "metadata": {
@@ -44,7 +44,7 @@ clip_presets = {
             "official_name": "CLIP",
             "path": "clip",
         },
-        "kaggle_handle": "kaggle://keras/clip/keras/clip-vit-base-patch32/4",
+        "kaggle_handle": "kaggle://keras/clip/keras/clip-vit-base-patch32/6",
     },
     "clip-vit-large-patch14": {
         "metadata": {
@@ -60,7 +60,7 @@ clip_presets = {
             "official_name": "CLIP",
             "path": "clip",
         },
-        "kaggle_handle": "kaggle://keras/clip/keras/clip-vit-large-patch14/4",
+        "kaggle_handle": "kaggle://keras/clip/keras/clip-vit-large-patch14/6",
     },
     "clip-vit-large-patch14-336": {
         "metadata": {
@@ -76,6 +76,6 @@ clip_presets = {
             "official_name": "CLIP",
             "path": "clip",
         },
-        "kaggle_handle": "kaggle://keras/clip/keras/clip-vit-large-patch14-336/4",  # noqa: E501
+        "kaggle_handle": "kaggle://keras/clip/keras/clip-vit-large-patch14-336/6",  # noqa: E501
     },
 }

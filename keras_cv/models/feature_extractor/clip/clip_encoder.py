@@ -156,9 +156,14 @@ class CLIPEncoder(keras.layers.Layer):
         ]
 
     def build(self, input_shape):
-        super().build(input_shape)
         for block in self.resblocks:
             block.build(input_shape)
+        self.built = True
+
+    def compute_output_shape(self, input_shape):
+        for block in self.resblocks:
+            input_shape = block.compute_output_shape(input_shape)
+        return input_shape
 
     def call(
         self,
@@ -173,9 +178,6 @@ class CLIPEncoder(keras.layers.Layer):
                 attention_mask=attention_mask,
             )
         return x
-
-    def compute_output_shape(self, inputs_shape):
-        return inputs_shape
 
     def get_config(self):
         config = super().get_config()
