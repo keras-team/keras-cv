@@ -73,7 +73,7 @@ class CLIPPatchingAndEmbedding(keras.layers.Layer):
             patch_embeddings, (batch_size, self.num_patches, -1)
         )
         class_embeds = ops.broadcast_to(
-            self.class_embedding, (batch_size, 1, self.width)
+            self.class_embedding.value, (batch_size, 1, self.width)
         )
         embeddings = ops.concatenate(
             [class_embeds, patch_embeddings], axis=1
