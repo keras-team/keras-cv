@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numpy as np
+
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 from keras_cv.models.feature_extractor.clip.clip_encoder import CLIPEncoder
@@ -72,7 +74,7 @@ class CLIPPatchingAndEmbedding(keras.layers.Layer):
         patch_embeddings = ops.reshape(
             patch_embeddings, (batch_size, self.num_patches, -1)
         )
-        class_embeds = ops.broadcast_to(
+        class_embeds = np.broadcast_to(
             self.class_embedding, (batch_size, 1, self.width)
         )
         embeddings = ops.concatenate(
