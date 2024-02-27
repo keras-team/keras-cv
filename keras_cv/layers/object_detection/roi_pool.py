@@ -153,10 +153,12 @@ class ROIPooler(keras.layers.Layer):
                     ]
                     # target_height * target_width * [C]
                     region_steps.append(tf.reduce_max(region_step, axis=[0, 1]))
-            regions.append(tf.reshape(
-                tf.stack(region_steps),
-                [self.target_height, self.target_width, channel],
-            ))
+            regions.append(
+                tf.reshape(
+                    tf.stack(region_steps),
+                    [self.target_height, self.target_width, channel],
+                )
+            )
         return tf.stack(regions)
 
     def get_config(self):

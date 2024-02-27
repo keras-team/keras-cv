@@ -168,7 +168,8 @@ class ROIPoolTest(TestCase):
         # ------------------repeated----------------------
         # | 12, 13(max) | 14, 15(max)   |
         expected_feature_map = tf.reshape(
-            tf.constant([1, 3, 1, 3, 5, 7, 9, 11, 9, 11, 13, 15]), [1, 1, 6, 2, 1]
+            tf.constant([1, 3, 1, 3, 5, 7, 9, 11, 9, 11, 13, 15]),
+            [1, 1, 6, 2, 1],
         )
         self.assertAllClose(expected_feature_map, pooled_feature_map)
 
@@ -212,15 +213,17 @@ class ROIPoolTest(TestCase):
             )
 
     def test_multiple_rois(self):
-        feature_map = tf.expand_dims(tf.reshape(tf.range(0, 64), [8, 8, 1]), axis=0)
+        feature_map = tf.expand_dims(
+            tf.reshape(tf.range(0, 64), [8, 8, 1]), axis=0
+        )
 
         roi_pooler = ROIPooler(
-            bounding_box_format="yxyx", target_size=[2, 2], image_shape=[224, 224, 3]
+            bounding_box_format="yxyx",
+            target_size=[2, 2],
+            image_shape=[224, 224, 3],
         )
         rois = tf.constant(
-            [
-                [[0.0, 0.0, 112.0, 112.0], [0.0, 112.0, 224.0, 224.0]]
-            ],
+            [[[0.0, 0.0, 112.0, 112.0], [0.0, 112.0, 224.0, 224.0]]],
         )
 
         pooled_feature_map = roi_pooler(feature_map, rois)
