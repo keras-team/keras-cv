@@ -14,6 +14,7 @@
 
 import numpy as np
 
+from keras_cv.backend import ops
 from keras_cv.layers.object_detection.rpn_label_encoder import _RpnLabelEncoder
 from keras_cv.tests.test_case import TestCase
 
@@ -57,17 +58,17 @@ class RpnLabelEncoderTest(TestCase):
         )
         self.assertAllClose(expected_box_targets, box_targets)
         # only foreground and background classes
-        self.assertAllClose(np.max(cls_targets), 1.0)
-        self.assertAllClose(np.min(cls_targets), 0.0)
+        self.assertAllClose(np.max(ops.convert_to_numpy(cls_targets)), 1.0)
+        self.assertAllClose(np.min(ops.convert_to_numpy(cls_targets)), 0.0)
         # all weights between 0 and 1
-        self.assertAllClose(np.max(cls_weights), 1.0)
-        self.assertAllClose(np.min(cls_weights), 0.0)
-        self.assertAllClose(np.max(box_weights), 1.0)
-        self.assertAllClose(np.min(box_weights), 0.0)
+        self.assertAllClose(np.max(ops.convert_to_numpy(cls_weights)), 1.0)
+        self.assertAllClose(np.min(ops.convert_to_numpy(cls_weights)), 0.0)
+        self.assertAllClose(np.max(ops.convert_to_numpy(box_weights)), 1.0)
+        self.assertAllClose(np.min(ops.convert_to_numpy(box_weights)), 0.0)
 
     def test_rpn_label_encoder_multi_level(self):
         self.skipTest(
-            "TODO: resolving flaky test, https://github.com/keras-team/keras-cv/issues/2336" # noqa
+            "TODO: resolving flaky test, https://github.com/keras-team/keras-cv/issues/2336"  # noqa
         )
         rpn_encoder = _RpnLabelEncoder(
             anchor_format="xyxy",
@@ -136,10 +137,10 @@ class RpnLabelEncoderTest(TestCase):
         expected_box_targets = expected_box_targets[np.newaxis, ...]
         self.assertAllClose(expected_box_targets, box_targets)
         # only foreground and background classes
-        self.assertAllClose(np.max(cls_targets), 1.0)
-        self.assertAllClose(np.min(cls_targets), 0.0)
+        self.assertAllClose(np.max(ops.convert_to_numpy(cls_targets)), 1.0)
+        self.assertAllClose(np.min(ops.convert_to_numpy(cls_targets)), 0.0)
         # all weights between 0 and 1
-        self.assertAllClose(np.max(cls_weights), 1.0)
-        self.assertAllClose(np.min(cls_weights), 0.0)
-        self.assertAllClose(np.max(box_weights), 1.0)
-        self.assertAllClose(np.min(box_weights), 0.0)
+        self.assertAllClose(np.max(ops.convert_to_numpy(cls_weights)), 1.0)
+        self.assertAllClose(np.min(ops.convert_to_numpy(cls_weights)), 0.0)
+        self.assertAllClose(np.max(ops.convert_to_numpy(box_weights)), 1.0)
+        self.assertAllClose(np.min(ops.convert_to_numpy(box_weights)), 0.0)

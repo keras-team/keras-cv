@@ -99,10 +99,14 @@ class ROIPooler(keras.layers.Layer):
             target="rel_yxyx",
             image_shape=self.image_shape,
         )
-        pooled_feature_map = ops.vectorized_map(
-            self._pool_single_sample, (feature_map, rois)
-        )
-        return pooled_feature_map
+        pooled_feature_map = list()
+        for batch_idx in range(ops.shape(feature_map)[0]):
+            pooled_feature_map.append(
+                self._pool_single_sample(
+                    args=[feature_map[batch_idx], rois[batch_idx]]
+                )
+            )
+        return ops.stack(pooled_feature_map, axis=0)
 
     def _pool_single_sample(self, args):
         """
@@ -146,10 +150,15 @@ class ROIPooler(keras.layers.Layer):
                         1, width_end - width_start
                     )
                     # [h_step, w_step, C]
-                    region_step = feature_map[
-                        height_start:height_end, width_start:width_end, :
-                    ]
-                    # target_height * target_width * [C]
+                    region_step = ops.slice(
+                        inputs=feature_map,
+                        start_indices=[height_start, width_start, 0],
+                        shape=[
+                            height_end - height_start,
+                            width_end - width_start,
+                            ops.shape(feature_map)[-1],
+                        ],
+                    )
                     region_steps.append(ops.max(region_step, axis=[0, 1]))
             regions.append(
                 ops.reshape(

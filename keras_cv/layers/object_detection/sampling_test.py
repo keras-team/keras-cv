@@ -14,6 +14,7 @@
 
 import numpy as np
 
+from keras_cv.backend import ops
 from keras_cv.layers.object_detection.sampling import balanced_sample
 from keras_cv.tests.test_case import TestCase
 
@@ -143,7 +144,8 @@ class BalancedSamplingTest(TestCase):
         )
         # no positive is chosen
         self.assertAllClose(res[0], 0)
-        self.assertAllClose(np.sum(res), 5)
+        print(res)
+        self.assertAllClose(np.sum(ops.convert_to_numpy(res)), 5)
 
     def test_balanced_sampling_over_num_samples(self):
         positive_matches = np.array(

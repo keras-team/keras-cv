@@ -15,6 +15,7 @@
 
 import numpy as np
 
+from keras_cv.backend import ops
 from keras_cv.layers.object_detection.box_matcher import BoxMatcher
 from keras_cv.layers.object_detection.roi_sampler import _ROISampler
 from keras_cv.tests.test_case import TestCase
@@ -56,15 +57,18 @@ class ROISamplerTest(TestCase):
         # only the 2nd ROI is chosen, and the negative ROI is mapped to 0.
         expected_gt_classes = np.array([[10], [0]], dtype=np.int32)
         expected_gt_classes = expected_gt_classes[np.newaxis, ...]
-        self.assertAllClose(np.max(expected_gt_boxes), np.max(sampled_gt_boxes))
+        self.assertAllClose(
+            np.max(expected_gt_boxes),
+            np.max(ops.convert_to_numpy(sampled_gt_boxes)),
+        )
         self.assertAllClose(
             np.min(expected_gt_classes),
-            np.min(sampled_gt_classes),
+            np.min(ops.convert_to_numpy(sampled_gt_classes)),
         )
 
     def test_roi_sampler_small_threshold(self):
         self.skipTest(
-            "TODO: resolving flaky test, https://github.com/keras-team/keras-cv/issues/2336" # noqa
+            "TODO: resolving flaky test, https://github.com/keras-team/keras-cv/issues/2336"  # noqa
         )
         box_matcher = BoxMatcher(thresholds=[0.1], match_values=[-1, 1])
         roi_sampler = _ROISampler(
@@ -229,11 +233,15 @@ class ROISamplerTest(TestCase):
         )
         # the selected gt boxes should be [0, 0, 0, 0], and [10, 10, 15, 15]
         # but the 2nd will be encoded to 0.
-        self.assertAllClose(np.min(sampled_gt_boxes), 0)
-        self.assertAllClose(np.max(sampled_gt_boxes), 0)
+        self.assertAllClose(np.min(ops.convert_to_numpy(sampled_gt_boxes)), 0)
+        self.assertAllClose(np.max(ops.convert_to_numpy(sampled_gt_boxes)), 0)
         # the selected gt classes should be [0, 2 or 10]
-        self.assertAllLessEqual(np.max(sampled_gt_classes), 10)
-        self.assertAllGreaterEqual(np.min(sampled_gt_classes), 0)
+        self.assertAllLessEqual(
+            np.max(ops.convert_to_numpy(sampled_gt_classes)), 10
+        )
+        self.assertAllGreaterEqual(
+            np.min(ops.convert_to_numpy(sampled_gt_classes)), 0
+        )
 
     def test_roi_sampler_large_num_sampled_rois(self):
         box_matcher = BoxMatcher(thresholds=[0.95], match_values=[-1, 1])
