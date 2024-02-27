@@ -110,11 +110,12 @@ class ROIPooler(keras.layers.Layer):
           feature_map: [H, W, C] float Tensor
           rois: [N, 4] float Tensor
         Returns:
-          pooled_feature_map: [target_size, C] float Tensor
+          pooled_feature_map: [N, target_height, target_width, C] float Tensor
         """
         feature_map, rois = args
-        num_rois = ops.shape(rois)[0]
-        height, width, channel = ops.shape(feature_map)
+        num_rois = rois.get_shape().as_list()[0]
+        height, width, channel = feature_map.get_shape().as_list()
+        regions = []
         # TODO (consider vectorize it for better performance)
         for n in range(num_rois):
             # [4]
@@ -125,7 +126,7 @@ class ROIPooler(keras.layers.Layer):
             region_width = width * (roi[3] - roi[1])
             h_step = region_height / self.target_height
             w_step = region_width / self.target_width
-            regions = []
+            region_steps = []
             for i in range(self.target_height):
                 for j in range(self.target_width):
                     height_start = y_start + i * h_step
@@ -145,16 +146,18 @@ class ROIPooler(keras.layers.Layer):
                         1, width_end - width_start
                     )
                     # [h_step, w_step, C]
-                    region = feature_map[
+                    region_step = feature_map[
                         height_start:height_end, width_start:width_end, :
                     ]
                     # target_height * target_width * [C]
-                    regions.append(ops.max(region, axis=[0, 1]))
-            regions = ops.reshape(
-                ops.stack(regions),
-                [self.target_height, self.target_width, channel],
+                    region_steps.append(ops.max(region_step, axis=[0, 1]))
+            regions.append(
+                ops.reshape(
+                    ops.stack(region_steps),
+                    [self.target_height, self.target_width, channel],
+                )
             )
-            return regions
+        return ops.stack(regions)
 
     def get_config(self):
         config = {

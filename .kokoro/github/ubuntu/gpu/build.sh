@@ -20,6 +20,8 @@ nvcc --version
 
 cd "src/github/keras-cv"
 pip install -U pip setuptools
+# psutil is used by background log reader
+pip install -U psutil
 
 if [ "${KERAS2:-0}" == "1" ]
 then
@@ -29,21 +31,26 @@ then
    pip install --extra-index-url https://download.pytorch.org/whl/cpu torch==2.1.0+cpu
    pip install torchvision~=0.16.0
    pip install "jax[cpu]"
+   pip install keras-nlp-nightly --no-deps
+   pip install tensorflow-text==2.15
 
 elif [ "$KERAS_BACKEND" == "tensorflow" ]
 then
    echo "TensorFlow backend detected."
    pip install -r requirements-tensorflow-cuda.txt --progress-bar off
+   pip install keras-nlp-nightly
 
 elif [ "$KERAS_BACKEND" == "jax" ]
 then
    echo "JAX backend detected."
    pip install -r requirements-jax-cuda.txt --progress-bar off
+   pip install keras-nlp-nightly
 
 elif [ "$KERAS_BACKEND" == "torch" ]
 then
    echo "PyTorch backend detected."
    pip install -r requirements-torch-cuda.txt --progress-bar off
+   pip install keras-nlp-nightly
 fi
 
 pip install --no-deps -e "." --progress-bar off
