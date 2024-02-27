@@ -12,17 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pytest
-import tensorflow as tf
+import numpy as np
 
+from keras_cv.backend import ops
 from keras_cv.layers.object_detection.sampling import balanced_sample
 from keras_cv.tests.test_case import TestCase
 
 
-@pytest.mark.tf_keras_only
 class BalancedSamplingTest(TestCase):
     def test_balanced_sampling(self):
-        positive_matches = tf.constant(
+        positive_matches = np.array(
             [
                 True,
                 False,
@@ -36,7 +35,7 @@ class BalancedSamplingTest(TestCase):
                 False,
             ]
         )
-        negative_matches = tf.constant(
+        negative_matches = np.array(
             [False, True, True, True, True, True, True, True, True, True]
         )
         num_samples = 5
@@ -48,7 +47,7 @@ class BalancedSamplingTest(TestCase):
         self.assertAllClose(res[0], 1)
 
     def test_balanced_batched_sampling(self):
-        positive_matches = tf.constant(
+        positive_matches = np.array(
             [
                 [
                     True,
@@ -76,7 +75,7 @@ class BalancedSamplingTest(TestCase):
                 ],
             ]
         )
-        negative_matches = tf.constant(
+        negative_matches = np.array(
             [
                 [False, True, True, True, True, True, True, True, True, True],
                 [True, True, True, True, True, True, False, True, True, True],
@@ -95,7 +94,7 @@ class BalancedSamplingTest(TestCase):
         self.assertAllClose(res[1][6], 1)
 
     def test_balanced_sampling_over_positive_fraction(self):
-        positive_matches = tf.constant(
+        positive_matches = np.array(
             [
                 True,
                 False,
@@ -109,7 +108,7 @@ class BalancedSamplingTest(TestCase):
                 False,
             ]
         )
-        negative_matches = tf.constant(
+        negative_matches = np.array(
             [False, True, True, True, True, True, True, True, True, True]
         )
         num_samples = 5
@@ -121,7 +120,7 @@ class BalancedSamplingTest(TestCase):
         self.assertAllClose(res[0], 1)
 
     def test_balanced_sampling_under_positive_fraction(self):
-        positive_matches = tf.constant(
+        positive_matches = np.array(
             [
                 True,
                 False,
@@ -135,7 +134,7 @@ class BalancedSamplingTest(TestCase):
                 False,
             ]
         )
-        negative_matches = tf.constant(
+        negative_matches = np.array(
             [False, True, True, True, True, True, True, True, True, True]
         )
         num_samples = 5
@@ -145,10 +144,11 @@ class BalancedSamplingTest(TestCase):
         )
         # no positive is chosen
         self.assertAllClose(res[0], 0)
-        self.assertAllClose(tf.reduce_sum(res), 5)
+        print(res)
+        self.assertAllClose(np.sum(ops.convert_to_numpy(res)), 5)
 
     def test_balanced_sampling_over_num_samples(self):
-        positive_matches = tf.constant(
+        positive_matches = np.array(
             [
                 True,
                 False,
@@ -162,7 +162,7 @@ class BalancedSamplingTest(TestCase):
                 False,
             ]
         )
-        negative_matches = tf.constant(
+        negative_matches = np.array(
             [False, True, True, True, True, True, True, True, True, True]
         )
         # users want to get 20 samples, but only 10 are available
@@ -177,7 +177,7 @@ class BalancedSamplingTest(TestCase):
             )
 
     def test_balanced_sampling_no_positive(self):
-        positive_matches = tf.constant(
+        positive_matches = np.array(
             [
                 False,
                 False,
@@ -192,7 +192,7 @@ class BalancedSamplingTest(TestCase):
             ]
         )
         # the rest are neither positive nor negative, but ignored matches
-        negative_matches = tf.constant(
+        negative_matches = np.array(
             [False, False, True, False, False, True, False, False, True, False]
         )
         num_samples = 5
@@ -204,11 +204,11 @@ class BalancedSamplingTest(TestCase):
         self.assertAllClose(res, [0, 0, 1, 0, 0, 1, 0, 0, 1, 0])
 
     def test_balanced_sampling_no_negative(self):
-        positive_matches = tf.constant(
+        positive_matches = np.array(
             [True, True, False, False, False, False, False, False, False, False]
         )
         # 2-9 indices are neither positive nor negative, they're ignored matches
-        negative_matches = tf.constant([False] * 10)
+        negative_matches = np.array([False] * 10)
         num_samples = 5
         positive_fraction = 0.5
         res = balanced_sample(
@@ -218,11 +218,13 @@ class BalancedSamplingTest(TestCase):
         self.assertAllClose(res, [1, 1, 0, 0, 0, 0, 0, 0, 0, 0])
 
     def test_balanced_sampling_many_samples(self):
-        positive_matches = tf.random.uniform(
-            [2, 1000], minval=0, maxval=1, dtype=tf.float32
+        positive_matches = np.random.uniform(
+            size=[2, 1000],
+            low=0,
+            high=1,
         )
         positive_matches = positive_matches > 0.98
-        negative_matches = tf.logical_not(positive_matches)
+        negative_matches = np.logical_not(positive_matches)
         num_samples = 256
         positive_fraction = 0.25
         _ = balanced_sample(
