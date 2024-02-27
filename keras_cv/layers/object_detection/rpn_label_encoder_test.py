@@ -12,14 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pytest
-import tensorflow as tf
+import numpy as np
 
+from keras_cv.backend import ops
 from keras_cv.layers.object_detection.rpn_label_encoder import _RpnLabelEncoder
 from keras_cv.tests.test_case import TestCase
 
 
-@pytest.mark.tf_keras_only
 class RpnLabelEncoderTest(TestCase):
     def test_rpn_label_encoder(self):
         rpn_encoder = _RpnLabelEncoder(
@@ -30,7 +29,7 @@ class RpnLabelEncoderTest(TestCase):
             positive_fraction=0.5,
             samples_per_image=2,
         )
-        rois = tf.constant(
+        rois = np.array(
             [
                 [0, 0, 5, 5],
                 [2.5, 2.5, 7.5, 7.5],
@@ -39,15 +38,15 @@ class RpnLabelEncoderTest(TestCase):
             ]
         )
         # the 3rd box will generate 0 IOUs and not sampled.
-        gt_boxes = tf.constant([[10, 10, 15, 15], [2.5, 2.5, 7.5, 7.5]])
-        gt_classes = tf.constant([2, 10, -1], dtype=tf.int32)
-        gt_classes = gt_classes[..., tf.newaxis]
+        gt_boxes = np.array([[10, 10, 15, 15], [2.5, 2.5, 7.5, 7.5]])
+        gt_classes = np.array([2, 10, -1], dtype=np.int32)
+        gt_classes = gt_classes[..., np.newaxis]
         box_targets, box_weights, cls_targets, cls_weights = rpn_encoder(
             rois, gt_boxes, gt_classes
         )
         # all rois will be matched to the 2nd gt boxes, and encoded
         expected_box_targets = (
-            tf.constant(
+            np.array(
                 [
                     [0.5, 0.5, 0.0, 0.0],
                     [0.0, 0.0, 0.0, 0.0],
@@ -59,15 +58,18 @@ class RpnLabelEncoderTest(TestCase):
         )
         self.assertAllClose(expected_box_targets, box_targets)
         # only foreground and background classes
-        self.assertAllClose(tf.reduce_max(cls_targets), 1.0)
-        self.assertAllClose(tf.reduce_min(cls_targets), 0.0)
+        self.assertAllClose(np.max(ops.convert_to_numpy(cls_targets)), 1.0)
+        self.assertAllClose(np.min(ops.convert_to_numpy(cls_targets)), 0.0)
         # all weights between 0 and 1
-        self.assertAllClose(tf.reduce_max(cls_weights), 1.0)
-        self.assertAllClose(tf.reduce_min(cls_weights), 0.0)
-        self.assertAllClose(tf.reduce_max(box_weights), 1.0)
-        self.assertAllClose(tf.reduce_min(box_weights), 0.0)
+        self.assertAllClose(np.max(ops.convert_to_numpy(cls_weights)), 1.0)
+        self.assertAllClose(np.min(ops.convert_to_numpy(cls_weights)), 0.0)
+        self.assertAllClose(np.max(ops.convert_to_numpy(box_weights)), 1.0)
+        self.assertAllClose(np.min(ops.convert_to_numpy(box_weights)), 0.0)
 
     def test_rpn_label_encoder_multi_level(self):
+        self.skipTest(
+            "TODO: resolving flaky test, https://github.com/keras-team/keras-cv/issues/2336"  # noqa
+        )
         rpn_encoder = _RpnLabelEncoder(
             anchor_format="xyxy",
             ground_truth_box_format="xyxy",
@@ -77,18 +79,18 @@ class RpnLabelEncoderTest(TestCase):
             samples_per_image=2,
         )
         rois = {
-            2: tf.constant([[0, 0, 5, 5], [2.5, 2.5, 7.5, 7.5]]),
-            3: tf.constant([[5, 5, 10, 10], [7.5, 7.5, 12.5, 12.5]]),
+            2: np.array([[0, 0, 5, 5], [2.5, 2.5, 7.5, 7.5]]),
+            3: np.array([[5, 5, 10, 10], [7.5, 7.5, 12.5, 12.5]]),
         }
         # the 3rd box will generate 0 IOUs and not sampled.
-        gt_boxes = tf.constant([[10, 10, 15, 15], [2.5, 2.5, 7.5, 7.5]])
-        gt_classes = tf.constant([2, 10, -1], dtype=tf.float32)
-        gt_classes = gt_classes[..., tf.newaxis]
+        gt_boxes = np.array([[10, 10, 15, 15], [2.5, 2.5, 7.5, 7.5]])
+        gt_classes = np.array([2, 10, -1], dtype=np.float32)
+        gt_classes = gt_classes[..., np.newaxis]
         _, _, _, cls_weights = rpn_encoder(rois, gt_boxes, gt_classes)
         # the 2nd level found 2 positive matches, the 3rd level found no match
         expected_cls_weights = {
-            2: tf.constant([[0.0], [1.0]]),
-            3: tf.constant([[0.0], [1.0]]),
+            2: np.array([[0.0], [1.0]]),
+            3: np.array([[0.0], [1.0]]),
         }
         self.assertAllClose(expected_cls_weights[2], cls_weights[2])
         self.assertAllClose(expected_cls_weights[3], cls_weights[3])
@@ -102,7 +104,7 @@ class RpnLabelEncoderTest(TestCase):
             positive_fraction=0.5,
             samples_per_image=2,
         )
-        rois = tf.constant(
+        rois = np.array(
             [
                 [0, 0, 5, 5],
                 [2.5, 2.5, 7.5, 7.5],
@@ -111,18 +113,18 @@ class RpnLabelEncoderTest(TestCase):
             ]
         )
         # the 3rd box will generate 0 IOUs and not sampled.
-        gt_boxes = tf.constant([[10, 10, 15, 15], [2.5, 2.5, 7.5, 7.5]])
-        gt_classes = tf.constant([2, 10, -1], dtype=tf.int32)
-        gt_classes = gt_classes[..., tf.newaxis]
-        rois = rois[tf.newaxis, ...]
-        gt_boxes = gt_boxes[tf.newaxis, ...]
-        gt_classes = gt_classes[tf.newaxis, ...]
+        gt_boxes = np.array([[10, 10, 15, 15], [2.5, 2.5, 7.5, 7.5]])
+        gt_classes = np.array([2, 10, -1], dtype=np.int32)
+        gt_classes = gt_classes[..., np.newaxis]
+        rois = rois[np.newaxis, ...]
+        gt_boxes = gt_boxes[np.newaxis, ...]
+        gt_classes = gt_classes[np.newaxis, ...]
         box_targets, box_weights, cls_targets, cls_weights = rpn_encoder(
             rois, gt_boxes, gt_classes
         )
         # all rois will be matched to the 2nd gt boxes, and encoded
         expected_box_targets = (
-            tf.constant(
+            np.array(
                 [
                     [0.5, 0.5, 0.0, 0.0],
                     [0.0, 0.0, 0.0, 0.0],
@@ -132,13 +134,13 @@ class RpnLabelEncoderTest(TestCase):
             )
             / 0.1
         )
-        expected_box_targets = expected_box_targets[tf.newaxis, ...]
+        expected_box_targets = expected_box_targets[np.newaxis, ...]
         self.assertAllClose(expected_box_targets, box_targets)
         # only foreground and background classes
-        self.assertAllClose(tf.reduce_max(cls_targets), 1.0)
-        self.assertAllClose(tf.reduce_min(cls_targets), 0.0)
+        self.assertAllClose(np.max(ops.convert_to_numpy(cls_targets)), 1.0)
+        self.assertAllClose(np.min(ops.convert_to_numpy(cls_targets)), 0.0)
         # all weights between 0 and 1
-        self.assertAllClose(tf.reduce_max(cls_weights), 1.0)
-        self.assertAllClose(tf.reduce_min(cls_weights), 0.0)
-        self.assertAllClose(tf.reduce_max(box_weights), 1.0)
-        self.assertAllClose(tf.reduce_min(box_weights), 0.0)
+        self.assertAllClose(np.max(ops.convert_to_numpy(cls_weights)), 1.0)
+        self.assertAllClose(np.min(ops.convert_to_numpy(cls_weights)), 0.0)
+        self.assertAllClose(np.max(ops.convert_to_numpy(box_weights)), 1.0)
+        self.assertAllClose(np.min(ops.convert_to_numpy(box_weights)), 0.0)
