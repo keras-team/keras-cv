@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import gc
 import os
 
 import numpy as np
@@ -23,15 +24,15 @@ from keras_cv.backend import keras
 from keras_cv.backend import ops
 from keras_cv.backend.config import keras_3
 from keras_cv.models import BASNet
-from keras_cv.models import ResNet34Backbone
+from keras_cv.models import ResNet18Backbone
 from keras_cv.tests.test_case import TestCase
 
 
 class BASNetTest(TestCase):
     def test_basnet_construction(self):
-        backbone = ResNet34Backbone()
+        backbone = ResNet18Backbone()
         model = BASNet(
-            input_shape=[288, 288, 3], backbone=backbone, num_classes=1
+            input_shape=[64, 64, 3], backbone=backbone, num_classes=1
         )
         model.compile(
             optimizer="adam",
@@ -41,19 +42,19 @@ class BASNetTest(TestCase):
 
     @pytest.mark.large
     def test_basnet_call(self):
-        backbone = ResNet34Backbone()
+        backbone = ResNet18Backbone()
         model = BASNet(
-            input_shape=[288, 288, 3], backbone=backbone, num_classes=1
+            input_shape=[64, 64, 3], backbone=backbone, num_classes=1
         )
-        images = np.random.uniform(size=(2, 288, 288, 3))
+        images = np.random.uniform(size=(2, 64, 64, 3))
         _ = model(images)
         _ = model.predict(images)
 
     @pytest.mark.large
     @pytest.mark.filterwarnings("ignore::UserWarning")
     def test_weights_change(self):
-        input_size = [288, 288, 3]
-        target_size = [288, 288, 1]
+        input_size = [64, 64, 3]
+        target_size = [64, 64, 1]
 
         images = np.ones([1] + input_size)
         labels = np.random.uniform(size=[1] + target_size)
@@ -61,9 +62,9 @@ class BASNetTest(TestCase):
         ds = ds.repeat(2)
         ds = ds.batch(2)
 
-        backbone = ResNet34Backbone()
+        backbone = ResNet18Backbone()
         model = BASNet(
-            input_shape=[288, 288, 3], backbone=backbone, num_classes=1
+            input_shape=[64, 64, 3], backbone=backbone, num_classes=1
         )
         model_metrics = ["accuracy"]
         if keras_3():
@@ -76,7 +77,7 @@ class BASNetTest(TestCase):
         )
 
         original_weights = model.refinement_head.get_weights()
-        model.fit(ds, epochs=1)
+        model.fit(ds, epochs=1, batch_size=1)
         updated_weights = model.refinement_head.get_weights()
 
         for w1, w2 in zip(original_weights, updated_weights):
@@ -97,11 +98,11 @@ class BASNetTest(TestCase):
 
     @pytest.mark.large
     def test_saved_model(self):
-        target_size = [288, 288, 3]
+        target_size = [64, 64, 3]
 
-        backbone = ResNet34Backbone()
+        backbone = ResNet18Backbone()
         model = BASNet(
-            input_shape=[288, 288, 3], backbone=backbone, num_classes=1
+            input_shape=[64, 64, 3], backbone=backbone, num_classes=1
         )
 
         input_batch = np.ones(shape=[2] + target_size)
@@ -112,6 +113,9 @@ class BASNetTest(TestCase):
             model.save(save_path)
         else:
             model.save(save_path, save_format="keras_v3")
+        # Free up model memory
+        del model
+        gc.collect()
         restored_model = keras.models.load_model(save_path)
 
         # Check we got the real object back.

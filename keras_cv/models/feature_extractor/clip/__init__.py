@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from keras_cv.api_export import keras_cv_export
-
-# Unique source of truth for the version number.
-__version__ = "0.8.3"
-
-
-@keras_cv_export("keras_cv.version")
-def version():
-    return __version__
+from keras_cv.models.feature_extractor.clip.clip_image_model import (
+    CLIPImageEncoder,
+)
+from keras_cv.models.feature_extractor.clip.clip_model import CLIP
+from keras_cv.models.feature_extractor.clip.clip_processor import CLIPProcessor
+from keras_cv.models.feature_extractor.clip.clip_text_model import (
+    CLIPTextEncoder,
+)
+from keras_cv.models.feature_extractor.clip.clip_tokenizer import CLIPTokenizer

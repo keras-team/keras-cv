@@ -11,13 +11,3 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-from keras_cv.api_export import keras_cv_export
-
-# Unique source of truth for the version number.
-__version__ = "0.8.3"
-
-
-@keras_cv_export("keras_cv.version")
-def version():
-    return __version__
