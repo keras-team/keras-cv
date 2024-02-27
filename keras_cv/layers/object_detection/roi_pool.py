@@ -113,8 +113,8 @@ class ROIPooler(keras.layers.Layer):
           pooled_feature_map: [N, target_height, target_width, C] float Tensor
         """
         feature_map, rois = args
-        num_rois = rois.get_shape().as_list()[0]
-        height, width, channel = feature_map.get_shape().as_list()
+        num_rois = ops.shape(rois)[0]
+        height, width, channel = ops.shape(feature_map)
         regions = []
         # TODO (consider vectorize it for better performance)
         for n in range(num_rois):
