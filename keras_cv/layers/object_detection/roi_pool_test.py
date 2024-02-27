@@ -43,7 +43,7 @@ class ROIPoolTest(TestCase):
         # | 56, 57, 58, 59(max) | 60, 61, 62, 63(max)   |
         # --------------------------------------------
         expected_feature_map = tf.reshape(
-            tf.constant([27, 31, 59, 63]), [1, 2, 2, 1]
+            tf.constant([27, 31, 59, 63]), [1, 1, 2, 2, 1]
         )
         self.assertAllClose(expected_feature_map, pooled_feature_map)
 
@@ -69,7 +69,7 @@ class ROIPoolTest(TestCase):
         # | 56, 57, 58(max)     | 59, 60, 61, 62(max)   | 63 (removed)
         # --------------------------------------------
         expected_feature_map = tf.reshape(
-            tf.constant([26, 30, 58, 62]), [1, 2, 2, 1]
+            tf.constant([26, 30, 58, 62]), [1, 1, 2, 2, 1]
         )
         self.assertAllClose(expected_feature_map, pooled_feature_map)
 
@@ -94,7 +94,7 @@ class ROIPoolTest(TestCase):
         # | 48, 49, 50, 51(max) | 52, 53, 54, 55(max)   |
         # --------------------------------------------
         expected_feature_map = tf.reshape(
-            tf.constant([19, 23, 51, 55]), [1, 2, 2, 1]
+            tf.constant([19, 23, 51, 55]), [1, 1, 2, 2, 1]
         )
         self.assertAllClose(expected_feature_map, pooled_feature_map)
 
@@ -121,7 +121,7 @@ class ROIPoolTest(TestCase):
         # | 56, 57, 58, 59(max) | 60, 61, 62, 63(max)   |
         # --------------------------------------------
         expected_feature_map = tf.reshape(
-            tf.constant([11, 15, 35, 39, 59, 63]), [1, 3, 2, 1]
+            tf.constant([11, 15, 35, 39, 59, 63]), [1, 1, 3, 2, 1]
         )
         self.assertAllClose(expected_feature_map, pooled_feature_map)
 
@@ -147,7 +147,7 @@ class ROIPoolTest(TestCase):
         # | 56, 57(max) | 58, 59, 60(max)   | 61, 62, 63(max)   |
         # --------------------------------------------
         expected_feature_map = tf.reshape(
-            tf.constant([25, 28, 31, 57, 60, 63]), [1, 2, 3, 1]
+            tf.constant([25, 28, 31, 57, 60, 63]), [1, 1, 2, 3, 1]
         )
         self.assertAllClose(expected_feature_map, pooled_feature_map)
 
@@ -168,7 +168,7 @@ class ROIPoolTest(TestCase):
         # ------------------repeated----------------------
         # | 12, 13(max) | 14, 15(max)   |
         expected_feature_map = tf.reshape(
-            tf.constant([1, 3, 1, 3, 5, 7, 9, 11, 9, 11, 13, 15]), [1, 6, 2, 1]
+            tf.constant([1, 3, 1, 3, 5, 7, 9, 11, 9, 11, 13, 15]), [1, 1, 6, 2, 1]
         )
         self.assertAllClose(expected_feature_map, pooled_feature_map)
 
@@ -189,7 +189,7 @@ class ROIPoolTest(TestCase):
         # --------------------------------------------
         expected_feature_map = tf.reshape(
             tf.constant([4, 4, 5, 6, 6, 7, 12, 12, 13, 14, 14, 15]),
-            [1, 2, 6, 1],
+            [1, 1, 2, 6, 1],
         )
         self.assertAllClose(expected_feature_map, pooled_feature_map)
 
@@ -203,10 +203,41 @@ class ROIPoolTest(TestCase):
         rois = tf.reshape(tf.constant([0.0, 0.0, 0.0, 0.0]), [1, 1, 4])
         pooled_feature_map = roi_pooler(feature_map, rois)
         # all outputs should be top-left pixel
-        self.assertAllClose(tf.ones([1, 2, 2, 1]), pooled_feature_map)
+        self.assertAllClose(tf.ones([1, 1, 2, 2, 1]), pooled_feature_map)
 
     def test_invalid_image_shape(self):
         with self.assertRaisesRegex(ValueError, "dynamic shape"):
             _ = ROIPooler(
                 "rel_yxyx", target_size=[2, 2], image_shape=[None, 224, 3]
             )
+
+    def test_multiple_rois(self):
+        feature_map = tf.expand_dims(tf.reshape(tf.range(0, 64), [8, 8, 1]), axis=0)
+
+        roi_pooler = ROIPooler(
+            bounding_box_format="yxyx", target_size=[2, 2], image_shape=[224, 224, 3]
+        )
+        rois = tf.constant(
+            [
+                [[0.0, 0.0, 112.0, 112.0], [0.0, 112.0, 224.0, 224.0]]
+            ],
+        )
+
+        pooled_feature_map = roi_pooler(feature_map, rois)
+        # the maximum value would be at bottom-right at each block, roi sharded
+        # into 2x2 blocks
+        # | 0, 1, 2, 3          | 4, 5, 6, 7            |
+        # | 8, 9, 10, 11        | 12, 13, 14, 15        |
+        # | 16, 17, 18, 19      | 20, 21, 22, 23        |
+        # | 24, 25, 26, 27(max) | 28, 29, 30, 31(max)   |
+        # --------------------------------------------
+        # | 32, 33, 34, 35      | 36, 37, 38, 39        |
+        # | 40, 41, 42, 43      | 44, 45, 46, 47        |
+        # | 48, 49, 50, 51      | 52, 53, 54, 55        |
+        # | 56, 57, 58, 59(max) | 60, 61, 62, 63(max)   |
+        # --------------------------------------------
+
+        expected_feature_map = tf.reshape(
+            tf.constant([9, 11, 25, 27, 29, 31, 61, 63]), [1, 2, 2, 2, 1]
+        )
+        self.assertAllClose(expected_feature_map, pooled_feature_map)
