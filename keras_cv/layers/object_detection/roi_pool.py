@@ -152,7 +152,11 @@ class ROIPooler(keras.layers.Layer):
                     # [h_step, w_step, C]
                     region_step = ops.slice(
                         inputs=feature_map,
-                        start_indices=[height_start, width_start, 0],
+                        start_indices=[
+                            height_start,
+                            width_start,
+                            ops.convert_to_tensor(0, dtype="int32"),
+                        ],
                         shape=[
                             height_end - height_start,
                             width_end - width_start,
