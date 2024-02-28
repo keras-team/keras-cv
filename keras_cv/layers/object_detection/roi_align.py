@@ -12,17 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Optional
+
 from keras_cv import bounding_box
-from keras_cv.backend import assert_tf_keras
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 
 
-def _feature_bilinear_interpolation(
-    features,
-    kernel_y,
-    kernel_x,
-):
+def _feature_bilinear_interpolation(features, kernel_y, kernel_x):
     """
     Feature bilinear interpolation.
 
@@ -173,8 +170,8 @@ def _compute_grid_positions(
 def multilevel_crop_and_resize(
     features,
     boxes,
-    output_size=7,
-    sample_offset=0.5,
+    output_size: int = 7,
+    sample_offset: float = 0.5,
 ):
     """
     Crop and resize on multilevel feature pyramid.
@@ -201,192 +198,181 @@ def multilevel_crop_and_resize(
       [batch_size, num_boxes, output_size, output_size, num_filters].
     """
 
-    with keras.backend.name_scope("multilevel_crop_and_resize"):
-        levels_str = list(features.keys())
-        # Levels are represented by strings with a prefix "P" to represent
-        # pyramid levels. The integer level can be obtained by looking at
-        # the value that follows the "P".
-        levels = [int(level_str[1:]) for level_str in levels_str]
-        min_level = min(levels)
-        max_level = max(levels)
-        features_shape = ops.shape(features[f"P{min_level}"])
-        batch_size, max_feature_height, max_feature_width, num_filters = (
-            features_shape[0],
-            features_shape[1],
-            features_shape[2],
-            features_shape[3],
+    levels_str = list(features.keys())
+    # Levels are represented by strings with a prefix "P" to represent
+    # pyramid levels. The integer level can be obtained by looking at
+    # the value that follows the "P".
+    levels = [int(level_str[1:]) for level_str in levels_str]
+    min_level = min(levels)
+    max_level = max(levels)
+    features_shape = ops.shape(features[f"P{min_level}"])
+    batch_size, max_feature_height, max_feature_width, num_filters = (
+        features_shape[0],
+        features_shape[1],
+        features_shape[2],
+        features_shape[3],
+    )
+
+    num_boxes = ops.shape(boxes)[1]
+
+    # Stack feature pyramid into a features_all of shape
+    # [batch_size, levels, height, width, num_filters].
+    features_all = []
+    feature_heights = []
+    feature_widths = []
+    for level in range(min_level, max_level + 1):
+        shape = ops.shape(features[f"P{level}"])
+        feature_heights.append(shape[1])
+        feature_widths.append(shape[2])
+        # Concat tensor of [batch_size, height_l * width_l, num_filters] for
+        # each level.
+        features_all.append(
+            ops.reshape(features[f"P{level}"], [batch_size, -1, num_filters])
         )
+    features_r2 = ops.reshape(
+        ops.concatenate(features_all, 1), [-1, num_filters]
+    )
 
-        num_boxes = ops.shape(boxes)[1]
+    # Calculate height_l * width_l for each level.
+    level_dim_sizes = [
+        feature_widths[i] * feature_heights[i]
+        for i in range(len(feature_widths))
+    ]
+    # level_dim_offsets is accumulated sum of level_dim_size.
+    level_dim_offsets = [0]
+    for i in range(len(feature_widths) - 1):
+        level_dim_offsets.append(level_dim_offsets[i] + level_dim_sizes[i])
+    batch_dim_size = level_dim_offsets[-1] + level_dim_sizes[-1]
+    level_dim_offsets = (
+        ops.ones_like(level_dim_offsets, dtype="int32") * level_dim_offsets
+    )
+    height_dim_sizes = (
+        ops.ones_like(feature_widths, dtype="int32") * feature_widths
+    )
 
-        # Stack feature pyramid into a features_all of shape
-        # [batch_size, levels, height, width, num_filters].
-        features_all = []
-        feature_heights = []
-        feature_widths = []
-        for level in range(min_level, max_level + 1):
-            shape = ops.shape(features[f"P{level}"])
-            feature_heights.append(shape[1])
-            feature_widths.append(shape[2])
-            # Concat tensor of [batch_size, height_l * width_l, num_filters] for
-            # each level.
-            features_all.append(
-                ops.reshape(
-                    features[f"P{level}"], [batch_size, -1, num_filters]
-                )
-            )
-        features_r2 = ops.reshape(
-            ops.concatenate(features_all, 1), [-1, num_filters]
+    # Assigns boxes to the right level.
+    box_width = boxes[:, :, 3] - boxes[:, :, 1]
+    box_height = boxes[:, :, 2] - boxes[:, :, 0]
+    areas_sqrt = ops.sqrt(
+        ops.cast(box_height, "float32") * ops.cast(box_width, "float32")
+    )
+
+    # following the FPN paper to divide by 224.
+    levels = ops.cast(
+        ops.floor_divide(
+            ops.log(ops.divide(areas_sqrt, 224.0)),
+            ops.log(2.0),
         )
+        + 4.0,
+        dtype="int32",
+    )
+    # Maps levels between [min_level, max_level].
+    levels = ops.minimum(max_level, ops.maximum(levels, min_level))
 
-        # Calculate height_l * width_l for each level.
-        level_dim_sizes = [
-            feature_widths[i] * feature_heights[i]
-            for i in range(len(feature_widths))
-        ]
-        # level_dim_offsets is accumulated sum of level_dim_size.
-        level_dim_offsets = [0]
-        for i in range(len(feature_widths) - 1):
-            level_dim_offsets.append(level_dim_offsets[i] + level_dim_sizes[i])
-        batch_dim_size = level_dim_offsets[-1] + level_dim_sizes[-1]
-        level_dim_offsets = keras.backend.constant(level_dim_offsets, "int32")
-        height_dim_sizes = keras.backend.constant(feature_widths, "int32")
+    # Projects box location and sizes to corresponding feature levels.
+    scale_to_level = ops.cast(
+        ops.pow(2.0, ops.cast(levels, "float32")),
+        dtype=boxes.dtype,
+    )
+    boxes /= ops.expand_dims(scale_to_level, axis=2)
+    box_width /= scale_to_level
+    box_height /= scale_to_level
+    boxes = ops.concatenate(
+        [
+            boxes[:, :, 0:2],
+            ops.expand_dims(box_height, -1),
+            ops.expand_dims(box_width, -1),
+        ],
+        axis=-1,
+    )
 
-        # Assigns boxes to the right level.
-        box_width = boxes[:, :, 3] - boxes[:, :, 1]
-        box_height = boxes[:, :, 2] - boxes[:, :, 0]
-        areas_sqrt = ops.sqrt(
-            ops.cast(box_height, "float32") * ops.cast(box_width, "float32")
-        )
-
-        # following the FPN paper to divide by 224.
-        levels = ops.cast(
-            ops.numpy.floor_divide(
-                ops.numpy.log(
-                    ops.numpy.divide(areas_sqrt, 224.0)
-                ),  # tf.math.divide_no_nan
-                ops.numpy.log(2.0),
-            )
-            + 4.0,
-            dtype="int32",
-        )
-        # Maps levels between [min_level, max_level].
-        levels = ops.minimum(max_level, ops.maximum(levels, min_level))
-
-        # Projects box location and sizes to corresponding feature levels.
-        scale_to_level = ops.cast(
-            ops.numpy.power(
-                keras.backend.constant(2.0), ops.cast(levels, "float32")
-            ),
-            dtype=boxes.dtype,
-        )
-        boxes /= ops.expand_dims(scale_to_level, axis=2)
-        box_width /= scale_to_level
-        box_height /= scale_to_level
-        boxes = ops.concatenate(
+    # Maps levels to [0, max_level-min_level].
+    levels -= min_level
+    level_strides = ops.pow([[2.0]], ops.cast(levels, "float32"))
+    boundary = ops.cast(
+        ops.concatenate(
             [
-                boxes[:, :, 0:2],
-                ops.expand_dims(box_height, -1),
-                ops.expand_dims(box_width, -1),
+                ops.expand_dims(
+                    [[ops.cast(max_feature_height, "float32")]] / level_strides
+                    - 1,
+                    axis=-1,
+                ),
+                ops.expand_dims(
+                    [[ops.cast(max_feature_width, "float32")]] / level_strides
+                    - 1,
+                    axis=-1,
+                ),
             ],
             axis=-1,
-        )
+        ),
+        boxes.dtype,
+    )
 
-        # Maps levels to [0, max_level-min_level].
-        levels -= min_level
-        level_strides = ops.numpy.power([[2.0]], ops.cast(levels, "float32"))
-        boundary = ops.cast(
-            ops.concatenate(
-                [
-                    ops.expand_dims(
-                        [[ops.cast(max_feature_height, "float32")]]
-                        / level_strides
-                        - 1,
-                        axis=-1,
-                    ),
-                    ops.expand_dims(
-                        [[ops.cast(max_feature_width, "float32")]]
-                        / level_strides
-                        - 1,
-                        axis=-1,
-                    ),
-                ],
-                axis=-1,
-            ),
-            boxes.dtype,
-        )
+    # Compute grid positions.
+    (
+        kernel_y,
+        kernel_x,
+        box_gridy0y1,
+        box_gridx0x1,
+    ) = _compute_grid_positions(boxes, boundary, output_size, sample_offset)
 
-        # Compute grid positions.
-        (
-            kernel_y,
-            kernel_x,
-            box_gridy0y1,
-            box_gridx0x1,
-        ) = _compute_grid_positions(boxes, boundary, output_size, sample_offset)
+    x_indices = ops.cast(
+        ops.reshape(box_gridx0x1, [batch_size, num_boxes, output_size * 2]),
+        dtype="int32",
+    )
+    y_indices = ops.cast(
+        ops.reshape(box_gridy0y1, [batch_size, num_boxes, output_size * 2]),
+        dtype="int32",
+    )
 
-        x_indices = ops.cast(
-            ops.reshape(box_gridx0x1, [batch_size, num_boxes, output_size * 2]),
-            dtype="int32",
-        )
-        y_indices = ops.cast(
-            ops.reshape(box_gridy0y1, [batch_size, num_boxes, output_size * 2]),
-            dtype="int32",
-        )
+    batch_size_offset = ops.tile(
+        ops.reshape(
+            ops.arange(batch_size) * batch_dim_size, [batch_size, 1, 1, 1]
+        ),
+        [1, num_boxes, output_size * 2, output_size * 2],
+    )
+    # Get level offset for each box. Each box belongs to one level.
+    levels_offset = ops.tile(
+        ops.reshape(
+            ops.take(level_dim_offsets, levels),
+            [batch_size, num_boxes, 1, 1],
+        ),
+        [1, 1, output_size * 2, output_size * 2],
+    )
+    y_indices_offset = ops.tile(
+        ops.reshape(
+            y_indices * ops.expand_dims(ops.take(height_dim_sizes, levels), -1),
+            [batch_size, num_boxes, output_size * 2, 1],
+        ),
+        [1, 1, 1, output_size * 2],
+    )
+    x_indices_offset = ops.tile(
+        ops.reshape(x_indices, [batch_size, num_boxes, 1, output_size * 2]),
+        [1, 1, output_size * 2, 1],
+    )
+    indices = ops.reshape(
+        batch_size_offset + levels_offset + y_indices_offset + x_indices_offset,
+        [-1],
+    )
 
-        batch_size_offset = ops.tile(
-            ops.reshape(
-                ops.arange(batch_size) * batch_dim_size, [batch_size, 1, 1, 1]
-            ),
-            [1, num_boxes, output_size * 2, output_size * 2],
-        )
-        # Get level offset for each box. Each box belongs to one level.
-        levels_offset = ops.tile(
-            ops.reshape(
-                keras.backend.gather(level_dim_offsets, levels),
-                [batch_size, num_boxes, 1, 1],
-            ),
-            [1, 1, output_size * 2, output_size * 2],
-        )
-        y_indices_offset = ops.tile(
-            ops.reshape(
-                y_indices
-                * ops.expand_dims(
-                    keras.backend.gather(height_dim_sizes, levels), -1
-                ),
-                [batch_size, num_boxes, output_size * 2, 1],
-            ),
-            [1, 1, 1, output_size * 2],
-        )
-        x_indices_offset = ops.tile(
-            ops.reshape(x_indices, [batch_size, num_boxes, 1, output_size * 2]),
-            [1, 1, output_size * 2, 1],
-        )
-        indices = ops.reshape(
-            batch_size_offset
-            + levels_offset
-            + y_indices_offset
-            + x_indices_offset,
-            [-1],
-        )
+    # TODO(tanzhenyu): replace tf.gather with tf.gather_nd and try to get
+    #  similar performance.
+    features_per_box = ops.reshape(
+        ops.take(features_r2, indices),
+        [
+            batch_size,
+            num_boxes,
+            output_size * 2,
+            output_size * 2,
+            num_filters,
+        ],
+    )
 
-        # TODO(tanzhenyu): replace tf.gather with tf.gather_nd and try to get
-        #  similar performance.
-        features_per_box = ops.reshape(
-            keras.backend.gather(features_r2, indices),
-            [
-                batch_size,
-                num_boxes,
-                output_size * 2,
-                output_size * 2,
-                num_filters,
-            ],
-        )
-
-        # Bilinear interpolation.
-        features_per_box = _feature_bilinear_interpolation(
-            features_per_box, kernel_y, kernel_x
-        )
-        return features_per_box
+    # Bilinear interpolation.
+    features_per_box = _feature_bilinear_interpolation(
+        features_per_box, kernel_y, kernel_x
+    )
+    return features_per_box
 
 
 # TODO(tanzhenyu): Remove this implementation once roi_pool has better
@@ -423,7 +409,7 @@ class _ROIAligner(keras.layers.Layer):
         self,
         features,
         boxes,
-        training=None,
+        training: Optional[bool] = None,
     ):
         """
 

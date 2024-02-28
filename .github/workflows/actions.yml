@@ -26,7 +26,7 @@ jobs:
         python -m pip install --upgrade pip setuptools
         echo "::set-output name=dir::$(pip cache dir)"
     - name: pip cache
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ${{ steps.pip-cache.outputs.dir }}
         key: ${{ runner.os }}-pip-${{ hashFiles('setup.py') }}
@@ -38,6 +38,8 @@ jobs:
         pip install torch>=2.0.1+cpu
         pip install "jax[cpu]"
         pip install keras-core
+        pip install keras-nlp-nightly --no-deps
+        pip install tensorflow-text==2.15
         pip install -e ".[tests]" --progress-bar off --upgrade
     - name: Test with pytest
       env:
@@ -65,7 +67,7 @@ jobs:
         python -m pip install --upgrade pip setuptools
         echo "::set-output name=dir::$(pip cache dir)"
     - name: pip cache
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ${{ steps.pip-cache.outputs.dir }}
         key: ${{ runner.os }}-pip-${{ hashFiles('setup.py') }}
@@ -75,6 +77,7 @@ jobs:
       run: |
         pip install -r requirements.txt
         pip install -e ".[tests]" --progress-bar off --upgrade
+        pip install keras-nlp-nightly
     - name: Test with pytest
       env:
         TEST_CUSTOM_OPS: false # TODO(ianstenbit): test custom ops, or figure out what our story is here
@@ -110,7 +113,7 @@ jobs:
         python -m pip install --upgrade pip setuptools
         echo "::set-output name=dir::$(pip cache dir)"
     - name: pip cache
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ${{ steps.pip-cache.outputs.dir }}
         key: ${{ runner.os }}-pip-${{ hashFiles('setup.py') }}

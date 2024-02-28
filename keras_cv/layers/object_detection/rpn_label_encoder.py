@@ -12,11 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import numpy as np  # Used for newaxis
 import tree
 
 from keras_cv import bounding_box
-from keras_cv.backend import assert_tf_keras
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 from keras_cv.bounding_box import iou
@@ -73,7 +71,6 @@ class _RpnLabelEncoder(keras.layers.Layer):
         box_variance=[0.1, 0.1, 0.2, 0.2],
         **kwargs,
     ):
-        assert_tf_keras("keras_cv.layers._RpnLabelEncoder")
         super().__init__(**kwargs)
         self.anchor_format = anchor_format
         self.ground_truth_box_format = ground_truth_box_format
@@ -149,7 +146,7 @@ class _RpnLabelEncoder(keras.layers.Layer):
         )
         # [num_anchors, 1] or [batch_size, num_anchors, 1]
         box_sample_weights = ops.cast(
-            positive_matches[..., np.newaxis], gt_boxes.dtype
+            positive_matches[..., None], gt_boxes.dtype
         )
 
         # [num_anchors, 1] or [batch_size, num_anchors, 1]
@@ -171,7 +168,7 @@ class _RpnLabelEncoder(keras.layers.Layer):
         )
         # [num_anchors, 1] or [batch_size, num_anchors, 1]
         class_sample_weights = ops.cast(
-            sampled_indicators[..., np.newaxis], gt_classes.dtype
+            sampled_indicators[..., None], gt_classes.dtype
         )
         if pack:
             encoded_box_targets = self.unpack_targets(
@@ -192,7 +189,7 @@ class _RpnLabelEncoder(keras.layers.Layer):
         )
 
     def unpack_targets(self, targets, anchors_dict):
-        target_shape = len(targets.get_shape().as_list())
+        target_shape = len(ops.shape(targets))
         if target_shape != 2 and target_shape != 3:
             raise ValueError(
                 "unpacking targets must be rank 2 or rank 3, got "
@@ -201,7 +198,7 @@ class _RpnLabelEncoder(keras.layers.Layer):
         unpacked_targets = {}
         count = 0
         for level, anchors in anchors_dict.items():
-            num_anchors_lvl = anchors.get_shape().as_list()[0]
+            num_anchors_lvl = ops.shape(anchors)[0]
             if target_shape == 2:
                 unpacked_targets[level] = targets[
                     count : count + num_anchors_lvl, ...

@@ -549,3 +549,15 @@ class VectorizedBaseImageAugmentationLayerTest(TestCase):
             {"images": images, "segmentation_masks": segmentation_masks}
         )
         self.assertTrue(isinstance(result["segmentation_masks"], tf.Tensor))
+
+    def test_in_tf_data_pipeline(self):
+        images = np.random.randn(4, 100, 100, 3).astype("float32")
+        train_ds = tf.data.Dataset.from_tensor_slices(images)
+        train_ds = train_ds.map(lambda x: {"images": x})
+        train_ds = train_ds.map(
+            VectorizedRandomAddLayer(fixed_value=2.0)
+        ).batch(4)
+        for output in train_ds.take(1):
+            pass
+        self.assertTrue(isinstance(output["images"], tf.Tensor))
+        self.assertAllClose(output["images"], images + 2.0)

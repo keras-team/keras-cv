@@ -12,10 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import numpy as np  # used for newaxis
-
 from keras_cv import bounding_box
-from keras_cv.backend import assert_tf_keras
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 from keras_cv.bounding_box import iou
@@ -70,7 +67,6 @@ class _ROISampler(keras.layers.Layer):
         append_gt_boxes: bool = True,
         **kwargs,
     ):
-        assert_tf_keras("keras_cv.layers._ROISampler")
         super().__init__(**kwargs)
         self.bounding_box_format = bounding_box_format
         self.roi_matcher = roi_matcher
@@ -107,7 +103,7 @@ class _ROISampler(keras.layers.Layer):
         num_rois = ops.shape(rois)[1]
         if num_rois is None:
             raise ValueError(
-                f"`rois` must have static shape, got {rois.get_shape()}"
+                f"`rois` must have static shape, got {ops.shape(rois)}"
             )
         if num_rois < self.num_sampled_rois:
             raise ValueError(
@@ -177,7 +173,7 @@ class _ROISampler(keras.layers.Layer):
             self.positive_fraction,
         )
         # [batch_size, num_sampled_rois] in the range of [0, num_rois)
-        sampled_indicators, sampled_indices = ops.math.top_k(
+        sampled_indicators, sampled_indices = ops.top_k(
             sampled_indicators, k=self.num_sampled_rois, sorted=True
         )
         # [batch_size, num_sampled_rois, 4]
@@ -193,11 +189,11 @@ class _ROISampler(keras.layers.Layer):
         # [batch_size, num_sampled_rois, 1]
         # all negative samples will be ignored in regression
         sampled_box_weights = target_gather._target_gather(
-            ops.cast(positive_matches[..., np.newaxis], gt_boxes.dtype),
+            ops.cast(positive_matches[..., None], gt_boxes.dtype),
             sampled_indices,
         )
         # [batch_size, num_sampled_rois, 1]
-        sampled_indicators = sampled_indicators[..., np.newaxis]
+        sampled_indicators = sampled_indicators[..., None]
         sampled_class_weights = ops.cast(sampled_indicators, gt_classes.dtype)
         return (
             sampled_rois,
