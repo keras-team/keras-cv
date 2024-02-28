@@ -243,9 +243,11 @@ def multilevel_crop_and_resize(
     for i in range(len(feature_widths) - 1):
         level_dim_offsets.append(level_dim_offsets[i] + level_dim_sizes[i])
     batch_dim_size = level_dim_offsets[-1] + level_dim_sizes[-1]
+    level_dim_offsets = ops.convert_to_tensor(level_dim_offsets)
     level_dim_offsets = (
         ops.ones_like(level_dim_offsets, dtype="int32") * level_dim_offsets
     )
+    feature_widths = ops.convert_to_tensor(feature_widths)
     height_dim_sizes = (
         ops.ones_like(feature_widths, dtype="int32") * feature_widths
     )
@@ -271,7 +273,7 @@ def multilevel_crop_and_resize(
 
     # Projects box location and sizes to corresponding feature levels.
     scale_to_level = ops.cast(
-        ops.pow(2.0, ops.cast(levels, "float32")),
+        ops.power(2.0, ops.cast(levels, "float32")),
         dtype=boxes.dtype,
     )
     boxes /= ops.expand_dims(scale_to_level, axis=2)
@@ -288,7 +290,9 @@ def multilevel_crop_and_resize(
 
     # Maps levels to [0, max_level-min_level].
     levels -= min_level
-    level_strides = ops.pow([[2.0]], ops.cast(levels, "float32"))
+    level_strides = ops.power([[2.0]], ops.cast(levels, "float32"))
+    print(f"{max_feature_height=}")
+    print(f"{level_strides=}")
     boundary = ops.cast(
         ops.concatenate(
             [

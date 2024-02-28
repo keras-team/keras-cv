@@ -73,7 +73,7 @@ class RPNHead(keras.layers.Layer):
 
     def call(self, feature_map, training=None):
         def call_single_level(f_map):
-            batch_size = f_map.get_shape().as_list()[0] or ops.shape(f_map)[0]
+            batch_size = ops.shape(f_map)[0]
             # [BS, H, W, C]
             t = self.conv(f_map)
             # [BS, H, W, K]
