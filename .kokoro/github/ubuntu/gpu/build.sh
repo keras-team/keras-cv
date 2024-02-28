@@ -69,6 +69,7 @@ then
       keras_cv/models/object_detection/retinanet \
       keras_cv/models/object_detection/yolo_v8 \
       keras_cv/models/object_detection_3d \
+      keras_cv/models/object_detection/faster_rcnn \
       keras_cv/models/segmentation \
       keras_cv/models/stable_diffusion
 else
@@ -83,6 +84,7 @@ else
       keras_cv/models/object_detection/retinanet \
       keras_cv/models/object_detection/yolo_v8 \
       keras_cv/models/object_detection_3d \
+      keras_cv/models/object_detection/faster_rcnn \
       keras_cv/models/segmentation \
       keras_cv/models/stable_diffusion
 fi
