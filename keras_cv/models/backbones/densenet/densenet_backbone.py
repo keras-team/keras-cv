@@ -33,7 +33,6 @@ from keras_cv.models.backbones.densenet.densenet_backbone_presets import (
 )
 from keras_cv.utils.python_utils import classproperty
 
-BN_AXIS = 3
 BN_EPSILON = 1.001e-5
 
 
@@ -82,6 +81,9 @@ class DenseNetBackbone(Backbone):
         **kwargs,
     ):
         inputs = utils.parse_model_inputs(input_shape, input_tensor)
+        channel_axis = (
+            1 if keras.backend.image_data_format() == "channels_first" else -1
+        )
 
         x = inputs
         if include_rescaling:
@@ -91,7 +93,7 @@ class DenseNetBackbone(Backbone):
             64, 7, strides=2, use_bias=False, padding="same", name="conv1_conv"
         )(x)
         x = keras.layers.BatchNormalization(
-            axis=BN_AXIS, epsilon=BN_EPSILON, name="conv1_bn"
+            axis=channel_axis, epsilon=BN_EPSILON, name="conv1_bn"
         )(x)
         x = keras.layers.Activation("relu", name="conv1_relu")(x)
         x = keras.layers.MaxPooling2D(
@@ -123,7 +125,7 @@ class DenseNetBackbone(Backbone):
             utils.get_tensor_input_name(x)
         )
         x = keras.layers.BatchNormalization(
-            axis=BN_AXIS, epsilon=BN_EPSILON, name="bn"
+            axis=channel_axis, epsilon=BN_EPSILON, name="bn"
         )(x)
         x = keras.layers.Activation("relu", name="relu")(x)
 
@@ -189,15 +191,18 @@ def apply_transition_block(x, compression_ratio, name=None):
       compression_ratio: float, compression rate at transition layers.
       name: string, block label.
     """
+    channel_axis = (
+        1 if keras.backend.image_data_format() == "channels_first" else -1
+    )
     if name is None:
         name = f"transition_block_{keras.backend.get_uid('transition_block')}"
 
     x = keras.layers.BatchNormalization(
-        axis=BN_AXIS, epsilon=BN_EPSILON, name=f"{name}_bn"
+        axis=channel_axis, epsilon=BN_EPSILON, name=f"{name}_bn"
     )(x)
     x = keras.layers.Activation("relu", name=f"{name}_relu")(x)
     x = keras.layers.Conv2D(
-        int(x.shape[BN_AXIS] * compression_ratio),
+        int(x.shape[channel_axis] * compression_ratio),
         1,
         use_bias=False,
         name=f"{name}_conv",
@@ -214,19 +219,22 @@ def apply_conv_block(x, growth_rate, name=None):
       growth_rate: int, number of filters added by each dense block.
       name: string, block label.
     """
+    channel_axis = (
+        1 if keras.backend.image_data_format() == "channels_first" else -1
+    )
     if name is None:
         name = f"conv_block_{keras.backend.get_uid('conv_block')}"
 
     shortcut = x
     x = keras.layers.BatchNormalization(
-        axis=BN_AXIS, epsilon=BN_EPSILON, name=f"{name}_0_bn"
+        axis=channel_axis, epsilon=BN_EPSILON, name=f"{name}_0_bn"
     )(x)
     x = keras.layers.Activation("relu", name=f"{name}_0_relu")(x)
     x = keras.layers.Conv2D(
         4 * growth_rate, 1, use_bias=False, name=f"{name}_1_conv"
     )(x)
     x = keras.layers.BatchNormalization(
-        axis=BN_AXIS, epsilon=BN_EPSILON, name=f"{name}_1_bn"
+        axis=channel_axis, epsilon=BN_EPSILON, name=f"{name}_1_bn"
     )(x)
     x = keras.layers.Activation("relu", name=f"{name}_1_relu")(x)
     x = keras.layers.Conv2D(
@@ -236,7 +244,7 @@ def apply_conv_block(x, growth_rate, name=None):
         use_bias=False,
         name=f"{name}_2_conv",
     )(x)
-    x = keras.layers.Concatenate(axis=BN_AXIS, name=f"{name}_concat")(
+    x = keras.layers.Concatenate(axis=channel_axis, name=f"{name}_concat")(
         [shortcut, x]
     )
     return x

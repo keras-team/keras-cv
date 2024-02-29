@@ -32,7 +32,6 @@ from keras_cv.models.backbones.resnet_v1.resnet_v1_backbone_presets import (
 )
 from keras_cv.utils.python_utils import classproperty
 
-BN_AXIS = 3
 BN_EPSILON = 1.001e-5
 
 
@@ -99,6 +98,9 @@ class ResNetBackbone(Backbone):
         **kwargs,
     ):
         inputs = utils.parse_model_inputs(input_shape, input_tensor)
+        channel_axis = (
+            1 if keras.backend.image_data_format() == "channels_first" else -1
+        )
         x = inputs
 
         if include_rescaling:
@@ -109,7 +111,7 @@ class ResNetBackbone(Backbone):
         )(x)
 
         x = keras.layers.BatchNormalization(
-            axis=BN_AXIS, epsilon=BN_EPSILON, name="conv1_bn"
+            axis=channel_axis, epsilon=BN_EPSILON, name="conv1_bn"
         )(x)
         x = keras.layers.Activation("relu", name="conv1_relu")(x)
 
@@ -191,7 +193,9 @@ def apply_basic_block(
     Returns:
       Output tensor for the residual block.
     """
-
+    channel_axis = (
+        1 if keras.backend.image_data_format() == "channels_first" else -1
+    )
     if name is None:
         name = f"v1_basic_block_{keras.backend.get_uid('v1_basic_block_')}"
 
@@ -204,7 +208,7 @@ def apply_basic_block(
             name=name + "_0_conv",
         )(x)
         shortcut = keras.layers.BatchNormalization(
-            axis=BN_AXIS, epsilon=BN_EPSILON, name=name + "_0_bn"
+            axis=channel_axis, epsilon=BN_EPSILON, name=name + "_0_bn"
         )(shortcut)
     else:
         shortcut = x
@@ -218,7 +222,7 @@ def apply_basic_block(
         name=name + "_1_conv",
     )(x)
     x = keras.layers.BatchNormalization(
-        axis=BN_AXIS, epsilon=BN_EPSILON, name=name + "_1_bn"
+        axis=channel_axis, epsilon=BN_EPSILON, name=name + "_1_bn"
     )(x)
     x = keras.layers.Activation("relu", name=name + "_1_relu")(x)
 
@@ -230,7 +234,7 @@ def apply_basic_block(
         name=name + "_2_conv",
     )(x)
     x = keras.layers.BatchNormalization(
-        axis=BN_AXIS, epsilon=BN_EPSILON, name=name + "_2_bn"
+        axis=channel_axis, epsilon=BN_EPSILON, name=name + "_2_bn"
     )(x)
 
     x = keras.layers.Add(name=name + "_add")([shortcut, x])
@@ -255,7 +259,9 @@ def apply_block(
     Returns:
       Output tensor for the residual block.
     """
-
+    channel_axis = (
+        1 if keras.backend.image_data_format() == "channels_first" else -1
+    )
     if name is None:
         name = f"v1_block_{keras.backend.get_uid('v1_block')}"
 
@@ -268,7 +274,7 @@ def apply_block(
             name=name + "_0_conv",
         )(x)
         shortcut = keras.layers.BatchNormalization(
-            axis=BN_AXIS, epsilon=BN_EPSILON, name=name + "_0_bn"
+            axis=channel_axis, epsilon=BN_EPSILON, name=name + "_0_bn"
         )(shortcut)
     else:
         shortcut = x
@@ -277,7 +283,7 @@ def apply_block(
         filters, 1, strides=stride, use_bias=False, name=name + "_1_conv"
     )(x)
     x = keras.layers.BatchNormalization(
-        axis=BN_AXIS, epsilon=BN_EPSILON, name=name + "_1_bn"
+        axis=channel_axis, epsilon=BN_EPSILON, name=name + "_1_bn"
     )(x)
     x = keras.layers.Activation("relu", name=name + "_1_relu")(x)
 
@@ -289,7 +295,7 @@ def apply_block(
         name=name + "_2_conv",
     )(x)
     x = keras.layers.BatchNormalization(
-        axis=BN_AXIS, epsilon=BN_EPSILON, name=name + "_2_bn"
+        axis=channel_axis, epsilon=BN_EPSILON, name=name + "_2_bn"
     )(x)
     x = keras.layers.Activation("relu", name=name + "_2_relu")(x)
 
@@ -297,7 +303,7 @@ def apply_block(
         4 * filters, 1, use_bias=False, name=name + "_3_conv"
     )(x)
     x = keras.layers.BatchNormalization(
-        axis=BN_AXIS, epsilon=BN_EPSILON, name=name + "_3_bn"
+        axis=channel_axis, epsilon=BN_EPSILON, name=name + "_3_bn"
     )(x)
 
     x = keras.layers.Add(name=name + "_add")([shortcut, x])

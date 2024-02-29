@@ -35,7 +35,6 @@ from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_backbone_presets import
 )
 from keras_cv.utils.python_utils import classproperty
 
-CHANNEL_AXIS = -1
 BN_EPSILON = 1e-3
 BN_MOMENTUM = 0.999
 
@@ -109,6 +108,9 @@ class MobileNetV3Backbone(Backbone):
         **kwargs,
     ):
         inputs = utils.parse_model_inputs(input_shape, input_tensor)
+        channel_axis = (
+            1 if keras.backend.image_data_format() == "channels_first" else -1
+        )
         x = inputs
 
         if include_rescaling:
@@ -123,7 +125,7 @@ class MobileNetV3Backbone(Backbone):
             name="Conv",
         )(x)
         x = keras.layers.BatchNormalization(
-            axis=CHANNEL_AXIS,
+            axis=channel_axis,
             epsilon=BN_EPSILON,
             momentum=BN_MOMENTUM,
             name="Conv_BatchNorm",
@@ -148,7 +150,7 @@ class MobileNetV3Backbone(Backbone):
             )
         pyramid_level_inputs.append(utils.get_tensor_input_name(x))
 
-        last_conv_ch = adjust_channels(x.shape[CHANNEL_AXIS] * 6)
+        last_conv_ch = adjust_channels(x.shape[channel_axis] * 6)
 
         x = keras.layers.Conv2D(
             last_conv_ch,
@@ -158,7 +160,7 @@ class MobileNetV3Backbone(Backbone):
             name="Conv_1",
         )(x)
         x = keras.layers.BatchNormalization(
-            axis=CHANNEL_AXIS,
+            axis=channel_axis,
             epsilon=BN_EPSILON,
             momentum=BN_MOMENTUM,
             name="Conv_1_BatchNorm",
@@ -284,6 +286,9 @@ def apply_inverted_res_block(
     Returns:
         the updated input tensor.
     """
+    channel_axis = (
+        1 if keras.backend.image_data_format() == "channels_first" else -1
+    )
     if isinstance(activation, str):
         if activation == "hard_swish":
             activation = apply_hard_swish
@@ -292,7 +297,7 @@ def apply_inverted_res_block(
 
     shortcut = x
     prefix = "expanded_conv_"
-    infilters = x.shape[CHANNEL_AXIS]
+    infilters = x.shape[channel_axis]
 
     if expansion_index > 0:
         prefix = f"expanded_conv_{expansion_index}_"
@@ -305,7 +310,7 @@ def apply_inverted_res_block(
             name=prefix + "expand",
         )(x)
         x = keras.layers.BatchNormalization(
-            axis=CHANNEL_AXIS,
+            axis=channel_axis,
             epsilon=BN_EPSILON,
             momentum=BN_MOMENTUM,
             name=prefix + "expand_BatchNorm",
@@ -326,7 +331,7 @@ def apply_inverted_res_block(
         name=prefix + "depthwise",
     )(x)
     x = keras.layers.BatchNormalization(
-        axis=CHANNEL_AXIS,
+        axis=channel_axis,
         epsilon=BN_EPSILON,
         momentum=BN_MOMENTUM,
         name=prefix + "depthwise_BatchNorm",
@@ -350,7 +355,7 @@ def apply_inverted_res_block(
         name=prefix + "project",
     )(x)
     x = keras.layers.BatchNormalization(
-        axis=CHANNEL_AXIS,
+        axis=channel_axis,
         epsilon=BN_EPSILON,
         momentum=BN_MOMENTUM,
         name=prefix + "project_BatchNorm",
