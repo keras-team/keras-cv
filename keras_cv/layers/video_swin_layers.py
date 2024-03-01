@@ -620,9 +620,9 @@ class VideoSwinBasicLayer(keras.Model):
         window_size, _ = get_window_size(
             input_shape[1:-1], self.window_size, self.shift_size
         )
-        depth_p = self.compute_dim_padded(input_shape[1], window_size[0])
-        height_p = self.compute_dim_padded(input_shape[2], window_size[1])
-        width_p = self.compute_dim_padded(input_shape[3], window_size[2])
+        depth_p = self._compute_dim_padded(input_shape[1], window_size[0])
+        height_p = self._compute_dim_padded(input_shape[2], window_size[1])
+        width_p = self._compute_dim_padded(input_shape[3], window_size[2])
         
         if self.downsample is not None:
             output_shape = (
@@ -754,7 +754,7 @@ class VideoSwinTransformerBlock(keras.Model):
         self.norm1 = self.norm_layer(axis=-1, epsilon=1e-05)
         self.norm1.build(input_shape)
         
-        self.attn = WindowAttention3D(
+        self.attn = VideoSwinWindowAttention(
             self.input_dim, 
             window_size=self.window_size, 
             num_heads=self.num_heads, 
