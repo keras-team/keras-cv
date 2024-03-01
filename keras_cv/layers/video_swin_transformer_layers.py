@@ -215,8 +215,11 @@ class MLP(layers.Layer):
         return config
     
 
-class PatchEmbed3D(keras.Model):
-    """Video to Patch Embedding layer.
+@keras_cv_export(
+    "keras_cv.layers.VideoSwinPatchingAndEmbedding", package="keras_cv.layers"
+)
+class VideoSwinPatchingAndEmbedding(keras.Model):
+    """Video to Patch Embedding layer for Video Swin Model.
 
     Args:
         patch_size (int): Patch token size. Default: (2,4,4).
@@ -301,7 +304,7 @@ class PatchEmbed3D(keras.Model):
         return config
     
 
-class PatchMerging(layers.Layer):
+class VideoSwinPatchMerging(layers.Layer):
     """Patch Merging Layer.
 
     Args:
@@ -373,7 +376,7 @@ class PatchMerging(layers.Layer):
         return config
     
 
-class WindowAttention3D(keras.Model):
+class VideoSwinWindowAttention(keras.Model):
     """Window based multi-head self attention (W-MSA) module with relative position bias.
     It supports both of shifted and non-shifted window.
 
@@ -511,7 +514,7 @@ class WindowAttention3D(keras.Model):
         return config
     
 
-class BasicLayer(keras.Model):
+class VideoSwinBasicLayer(keras.Model):
     """A basic Swin Transformer layer for one stage.
 
     Args:
@@ -676,7 +679,7 @@ class BasicLayer(keras.Model):
         return config
     
 
-class SwinTransformerBlock3D(keras.Model):
+class VideoSwinTransformerBlock(keras.Model):
     """Swin Transformer Block.
 
     Args:
