@@ -39,7 +39,7 @@ class ViViT(Task):
         transformer_layers: int, the number of transformer layers in the model.
             Defaults to 8.
         patch_size: tuple , contains the size of the
-        spatio-temporal patches for each dimension
+            spatio-temporal patches for each dimension
             Defaults to (8,8,8)
         num_heads: int, the number of heads for multi-head
             self-attention mechanism. Defaults to 8.
@@ -64,21 +64,18 @@ class ViViT(Task):
     frames = np.random.uniform(size=(5, 32, 32, 32, 1))
     labels = np.ones(shape=(5))
 
+    # Instantiate Model
     model = ViViT(
         projection_dim=PROJECTION_DIM,
         patch_size=PATCH_SIZE,
         inp_shape=INPUT_SHAPE,
         transformer_layers=NUM_LAYERS,
         num_heads=NUM_HEADS,
-        embed_dim=PROJECTION_DIM,
         layer_norm_eps=LAYER_NORM_EPS,
         num_classes=NUM_CLASSES,
     )
 
-    # Evaluate model
-    model(frames)
-
-    # Train model
+    # Compile model
     model.compile(
         optimizer="adam",
         loss="sparse_categorical_crossentropy",
@@ -87,6 +84,10 @@ class ViViT(Task):
         ],
     )
 
+    # Build Model
+    model.build(INPUT_SHAPE)
+
+    # Train Model
     model.fit(frames, labels, epochs=3)
 
     ```
@@ -100,10 +101,11 @@ class ViViT(Task):
         patch_size=(8, 8, 8),
         transformer_layers=8,
         num_heads=8,
-        embed_dim=128,
         layer_norm_eps=1e-6,
         **kwargs,
     ):
+        super().__init__(**kwargs)
+
         self.projection_dim = projection_dim
         self.patch_size = patch_size
         self.tubelet_embedder = TubeletEmbedding(
@@ -113,58 +115,73 @@ class ViViT(Task):
         self.positional_encoder = PositionalEncoder(
             embed_dim=self.projection_dim
         )
-
-        inputs = keras.layers.Input(shape=inp_shape)
-        patches = self.tubelet_embedder(inputs)
-        encoded_patches = self.positional_encoder(patches)
-
-        for _ in range(transformer_layers):
-            x1 = keras.layers.LayerNormalization(epsilon=1e-6)(encoded_patches)
-            attention_output = keras.layers.MultiHeadAttention(
-                num_heads=num_heads,
-                key_dim=embed_dim // num_heads,
-                dropout=0.1,
-            )(x1, x1)
-
-            x2 = keras.layers.Add()([attention_output, encoded_patches])
-
-            x3 = keras.layers.LayerNormalization(epsilon=1e-6)(x2)
-            x3 = keras.Sequential(
-                [
-                    keras.layers.Dense(
-                        units=embed_dim * 4, activation=keras.ops.gelu
-                    ),
-                    keras.layers.Dense(
-                        units=embed_dim, activation=keras.ops.gelu
-                    ),
-                ]
-            )(x3)
-
-            encoded_patches = keras.layers.Add()([x3, x2])
-
-        representation = keras.layers.LayerNormalization(
+        self.layer_norm = keras.layers.LayerNormalization(
             epsilon=layer_norm_eps
-        )(encoded_patches)
-        representation = keras.layers.GlobalAvgPool1D()(representation)
-
-        outputs = keras.layers.Dense(units=num_classes, activation="softmax")(
-            representation
+        )
+        self.attention_output = keras.layers.MultiHeadAttention(
+            num_heads=num_heads,
+            key_dim=projection_dim // num_heads,
+            dropout=0.1,
+        )
+        self.dense_1 = keras.layers.Dense(
+            units=projection_dim * 4, activation=keras.ops.gelu
         )
 
-        super().__init__(inputs=inputs, outputs=outputs, **kwargs)
+        self.dense_2 = keras.layers.Dense(
+            units=projection_dim, activation=keras.ops.gelu
+        )
+        self.add = keras.layers.Add()
+        self.pooling = keras.layers.GlobalAvgPool1D()
+        self.dense_output = keras.layers.Dense(
+            units=num_classes, activation="softmax"
+        )
 
         self.inp_shape = inp_shape
         self.num_heads = num_heads
         self.num_classes = num_classes
         self.projection_dim = projection_dim
         self.patch_size = patch_size
+        self.transformer_layers = transformer_layers
 
     def build(self, input_shape):
+        super().build(input_shape)
         self.tubelet_embedder.build(input_shape)
         flattened_patch_shape = self.tubelet_embedder.compute_output_shape(
             input_shape
         )
         self.positional_encoder.build(flattened_patch_shape)
+        self.layer_norm.build([None, None, self.projection_dim])
+        self.attention_output.build(
+            query_shape=[None, None, self.projection_dim],
+            value_shape=[None, None, self.projection_dim],
+        )
+        self.add.build(
+            [
+                (None, None, self.projection_dim),
+                (None, None, self.projection_dim),
+            ]
+        )
+
+        self.dense_1.build([None, None, self.projection_dim])
+        self.dense_2.build([None, None, self.projection_dim * 4])
+        self.pooling.build([None, None, self.projection_dim])
+        self.dense_output.build([None, self.projection_dim])
+
+    def call(self, x):
+        patches = self.tubelet_embedder(x)
+        encoded_patches = self.positional_encoder(patches)
+        for _ in range(self.transformer_layers):
+            x1 = self.layer_norm(encoded_patches)
+            attention_output = self.attention_output(x1, x1)
+            x2 = self.add([attention_output, encoded_patches])
+            x3 = self.layer_norm(x2)
+            x4 = self.dense_1(x3)
+            x5 = self.dense_2(x4)
+            encoded_patches = self.add([x5, x2])
+        representation = self.layer_norm(encoded_patches)
+        pooled_representation = self.pooling(representation)
+        outputs = self.dense_output(pooled_representation)
+        return outputs
 
     def get_config(self):
         config = super().get_config()

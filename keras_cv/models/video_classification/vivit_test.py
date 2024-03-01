@@ -41,7 +41,6 @@ class ViViT_Test(TestCase):
             inp_shape=input_shape,
             transformer_layers=num_layers,
             num_heads=num_heads,
-            embed_dim=projection_dim,
             layer_norm_eps=layer_norm_eps,
             num_classes=num_classes,
         )
@@ -71,10 +70,10 @@ class ViViT_Test(TestCase):
             inp_shape=input_shape,
             transformer_layers=num_layers,
             num_heads=num_heads,
-            embed_dim=projection_dim,
             layer_norm_eps=layer_norm_eps,
             num_classes=num_classes,
         )
+        model.build(input_shape)
         frames = np.random.uniform(size=(5, 28, 28, 28, 1))
         _ = model(frames)
 
@@ -99,7 +98,6 @@ class ViViT_Test(TestCase):
             inp_shape=input_shape,
             transformer_layers=num_layers,
             num_heads=num_heads,
-            embed_dim=projection_dim,
             layer_norm_eps=layer_norm_eps,
             num_classes=num_classes,
         )
@@ -114,9 +112,8 @@ class ViViT_Test(TestCase):
                 ),
             ],
         )
-
+        model.build(input_shape)
         representation_layer = model.get_layer(index=-8)  # Accesses MHSA Layer
-
         original_weights = representation_layer.get_weights()
         model.fit(ds, epochs=1)
         updated_weights = representation_layer.get_weights()
@@ -125,7 +122,7 @@ class ViViT_Test(TestCase):
             self.assertNotAllEqual(w1, w2)
             self.assertFalse(ops.any(ops.isnan(w2)))
 
-    # @pytest.mark.large  # Saving is slow, so mark these large.
+    @pytest.mark.large  # Saving is slow, so mark these large.
     def test_saved_model(self):
         input_shape = (28, 28, 28, 1)
         num_classes = 11
@@ -141,11 +138,10 @@ class ViViT_Test(TestCase):
             inp_shape=input_shape,
             transformer_layers=num_layers,
             num_heads=num_heads,
-            embed_dim=projection_dim,
             layer_norm_eps=layer_norm_eps,
             num_classes=num_classes,
         )
-
+        model.build(input_shape)
         input_batch = np.random.uniform(size=(5, 28, 28, 28, 1))
         model_output = model(input_batch)
 

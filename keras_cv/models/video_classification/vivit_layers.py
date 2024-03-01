@@ -47,24 +47,44 @@ class TubeletEmbedding(keras.layers.Layer):
             filters=self.embed_dim,
             kernel_size=self.patch_size,
             strides=self.patch_size,
+            data_format="channels_last",
             padding="VALID",
         )
         self.flatten = keras.layers.Reshape(target_shape=(-1, self.embed_dim))
 
     def build(self, input_shape):
-        if input_shape is not None:
-            self.projection.build(input_shape)
-            projected_patch_shape = self.projection.compute_output_shape(
-                input_shape
+        super().build(input_shape)
+        self.projection.build(
+            (
+                None,
+                input_shape[0],
+                input_shape[1],
+                input_shape[2],
+                input_shape[3],
             )
-            self.flatten.build(projected_patch_shape)
+        )
+        projected_patch_shape = self.projection.compute_output_shape(
+            (
+                None,
+                input_shape[0],
+                input_shape[1],
+                input_shape[2],
+                input_shape[3],
+            )
+        )
+        self.flatten.build(projected_patch_shape)
 
     def compute_output_shape(self, input_shape):
-        if input_shape is not None:
-            projected_patch_shape = self.projection.compute_output_shape(
-                input_shape
+        projected_patch_shape = self.projection.compute_output_shape(
+            (
+                None,
+                input_shape[0],
+                input_shape[1],
+                input_shape[2],
+                input_shape[3],
             )
-            return self.flatten.compute_output_shape(projected_patch_shape)
+        )
+        return self.flatten.compute_output_shape(projected_patch_shape)
 
     def call(self, videos):
         projected_patches = self.projection(videos)
@@ -95,13 +115,13 @@ class PositionalEncoder(keras.layers.Layer):
         self.embed_dim = embed_dim
 
     def build(self, input_shape):
-        if input_shape is not None:
-            _, num_tokens, _ = input_shape
-            self.position_embedding = keras.layers.Embedding(
-                input_dim=num_tokens, output_dim=self.embed_dim
-            )
-            self.position_embedding.build(input_shape)
-            self.positions = ops.arange(start=0, stop=num_tokens, step=1)
+        super().build(input_shape)
+        _, num_tokens, _ = input_shape
+        self.position_embedding = keras.layers.Embedding(
+            input_dim=num_tokens, output_dim=self.embed_dim
+        )
+        self.position_embedding.build(input_shape)
+        self.positions = ops.arange(start=0, stop=num_tokens, step=1)
 
     def call(self, encoded_tokens):
         encoded_positions = self.position_embedding(self.positions)
