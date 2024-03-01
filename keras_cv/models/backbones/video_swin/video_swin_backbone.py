@@ -19,7 +19,6 @@ from functools import partial
 from keras import layers
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
-from keras_cv.backend import ops
 from keras_cv.models import utils
 from keras_cv.models.backbones.backbone import Backbone
 from keras_cv.models.backbones.vit_det.vit_det_backbone_presets import (
@@ -41,21 +40,20 @@ class VideoSwinBackbone(Backbone):
         self,
         *,
         include_rescaling,
-        input_shape,
-        input_tensor, 
-        embed_dim, 
-        patch_size, 
-        window_size,
-        mlp_ratio,
-        patch_norm, 
-        drop_rate,
-        attn_drop_rate,
-        drop_path_rate,
-        depths,
-        num_heads,
-        qkv_bias,
-        qk_scale,
-        num_classes,
+        input_shape=(32, 224, 224, 3),
+        input_tensor=None, 
+        embed_dim=96, 
+        patch_size=[2, 4, 4], 
+        window_size=[8, 7, 7],
+        mlp_ratio=4.0,
+        patch_norm=True, 
+        drop_rate=0.0,
+        attn_drop_rate=0.0,
+        drop_path_rate=0.2,
+        depths=[2, 2, 6, 2],
+        num_heads=[3, 6, 12, 24],
+        qkv_bias=True,
+        qk_scale=None,
         **kwargs
     ):
         
@@ -115,11 +113,7 @@ class VideoSwinBackbone(Backbone):
             x = layer(x)
 
         x = norm_layer(axis=-1, epsilon=1e-05, name='norm')(x)
-        x = layers.GlobalAveragePooling3D(name='gap3d')(x)
-        output = layers.Dense(
-            num_classes, use_bias=True, name='head', dtype='float32'
-        )(x)
-        super().__init__(inputs=input_spec, outputs=output, **kwargs)
+        super().__init__(inputs=input_spec, outputs=x, **kwargs)
         
         self.embed_dim = embed_dim
         self.patch_size = patch_size
@@ -134,7 +128,6 @@ class VideoSwinBackbone(Backbone):
         self.num_heads = num_heads
         self.qkv_bias = qkv_bias
         self.qk_scale = qk_scale
-        self.num_classes = num_classes
         self.depths = depths
 
     def get_config(self):
@@ -152,7 +145,6 @@ class VideoSwinBackbone(Backbone):
             "num_heads": self.num_heads,
             "qkv_bias": self.qkv_bias,
             "qk_scale": self.qk_scale,
-            "num_classes": self.num_classes,
         })
         return config
     
