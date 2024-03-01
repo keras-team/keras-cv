@@ -509,3 +509,166 @@ class WindowAttention3D(keras.Model):
             }
         )
         return config
+    
+
+class BasicLayer(keras.Model):
+    """A basic Swin Transformer layer for one stage.
+
+    Args:
+        input_dim (int): Number of feature channels
+        depth (int): Depths of this stage.
+        num_heads (int): Number of attention head.
+        window_size (tuple[int]): Local window size. Default: (1,7,7).
+        mlp_ratio (float): Ratio of mlp hidden dim to embedding dim. Default: 4.
+        qkv_bias (bool, optional): If True, add a learnable bias to query, key, value. Default: True
+        qk_scale (float | None, optional): Override default qk scale of head_dim ** -0.5 if set.
+        drop (float, optional): Dropout rate. Default: 0.0
+        attn_drop (float, optional): Attention dropout rate. Default: 0.0
+        drop_path (float | tuple[float], optional): Stochastic depth rate. Default: 0.0
+        norm_layer (keras.layers, optional): Normalization layer. Default: LayerNormalization
+        downsample (keras.layers | None, optional): Downsample layer at the end of the layer. Default: None
+
+    References:
+        - [Video Swin Transformer](https://arxiv.org/abs/2106.13230)
+        - [Video Swin Transformer GitHub](https://github.com/SwinTransformer/Video-Swin-Transformer)
+    """  # noqa: E501
+    
+    def __init__(
+        self,
+        input_dim,
+        depth,
+        num_heads,
+        window_size=(1,7,7),
+        mlp_ratio=4.,
+        qkv_bias=False,
+        qk_scale=None,
+        drop_rate=0.,
+        attn_drop_rate=0.,
+        drop_path_rate=0.,
+        norm_layer=partial(layers.LayerNormalization, epsilon=1e-05),
+        downsample=None,
+        **kwargs
+    ):
+        super().__init__(**kwargs)
+        self.input_dim = input_dim
+        self.num_heads = num_heads
+        self.window_size = window_size
+        self.mlp_ratio = mlp_ratio
+        self.shift_size = tuple([i // 2 for i in window_size])
+        self.depth = depth
+        self.qkv_bias = qkv_bias
+        self.qk_scale = qk_scale
+        self.drop_rate = drop_rate
+        self.attn_drop_rate = attn_drop_rate
+        self.drop_path_rate = drop_path_rate
+        self.norm_layer = norm_layer
+        self.downsample = downsample
+    
+    def _compute_dim_padded(self, input_dim, window_dim_size):
+        input_dim = ops.cast(input_dim, dtype="float32")
+        window_dim_size = ops.cast(window_dim_size, dtype="float32")
+        return ops.cast(
+            ops.ceil(input_dim / window_dim_size) * window_dim_size,
+            "int32"
+        )
+    
+    def build(self, input_shape):
+        window_size, shift_size = get_window_size(
+            input_shape[1:-1], self.window_size, self.shift_size
+        )
+        Dp = self._compute_dim_padded(input_shape[1], window_size[0])
+        Hp = self._compute_dim_padded(input_shape[2], window_size[1])
+        Wp = self._compute_dim_padded(input_shape[3], window_size[2])
+        self.attn_mask = compute_mask(
+            Dp, Hp, Wp, window_size, shift_size
+        )
+        
+        # build blocks
+        self.blocks = [
+            SwinTransformerBlock3D(
+                self.input_dim,
+                num_heads=self.num_heads,
+                window_size=self.window_size,
+                shift_size=(0,0,0) if (i % 2 == 0) else self.shift_size,
+                mlp_ratio=self.mlp_ratio,
+                qkv_bias=self.qkv_bias,
+                qk_scale=self.qk_scale,
+                drop_rate=self.drop_rate,
+                attn_drop_rate=self.attn_drop_rate,
+                drop_path_rate=self.drop_path_rate[i] if isinstance(self.drop_path_rate, list) else self.drop_path_rate,
+                norm_layer=self.norm_layer,
+            )
+            for i in range(self.depth)
+        ]
+
+        if self.downsample is not None:
+            self.downsample = self.downsample(input_dim=self.input_dim, norm_layer=self.norm_layer)
+            self.downsample.build(input_shape)
+            
+        for i in range(self.depth):
+            self.blocks[i].build(input_shape)
+        
+        self.built = True
+        
+        
+    def compute_output_shape(self, input_shape):
+        window_size, _ = get_window_size(
+            input_shape[1:-1], self.window_size, self.shift_size
+        )
+        depth_p = self.compute_dim_padded(input_shape[1], window_size[0])
+        height_p = self.compute_dim_padded(input_shape[2], window_size[1])
+        width_p = self.compute_dim_padded(input_shape[3], window_size[2])
+        
+        if self.downsample is not None:
+            output_shape = (
+                input_shape[0], depth_p, height_p // 2, width_p // 2, 2*self.input_dim
+            )
+            return output_shape
+        
+        return input_shape
+
+    def call(self, x, training=None):
+        input_shape = ops.shape(x)
+        B,D,H,W,C = (
+            input_shape[0], 
+            input_shape[1],
+            input_shape[2],
+            input_shape[3],
+            input_shape[4],
+        )
+
+        for blk in self.blocks:
+            x = blk(
+                x, 
+                self.attn_mask,
+                training=training
+            )
+
+        x = ops.reshape(
+            x, [B, D, H, W, -1]
+        )
+ 
+        if self.downsample is not None:
+            x = self.downsample(x)
+            
+        return x
+    
+    
+    def get_config(self):
+        config = super().get_config()
+        config.update(
+            {
+                "input_dim": self.input_dim,
+                "window_size": self.window_size,
+                "num_heads": self.num_heads,
+                "mlp_ratio": self.mlp_ratio,
+                "shift_size": self.shift_size,
+                "depth": self.depth,
+                "qkv_bias": self.qkv_bias,
+                "qk_scale": self.qk_scale,
+                "drop": self.drop,
+                "attn_drop": self.attn_drop,
+                "drop_path": self.drop_path
+            }
+        )
+        return config
