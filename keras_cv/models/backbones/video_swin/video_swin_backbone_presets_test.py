@@ -22,8 +22,7 @@ from keras_cv.tests.test_case import TestCase
 
 @pytest.mark.large
 class VideoSwinPresetSmokeTest(TestCase):
-    """
-    A smoke test for VideoSwin presets we run continuously.
+    """A smoke test for VideoSwin presets we run continuously.
     This only tests the smallest weights we have available. Run with:
     `pytest keras_cv/models/backbones/video_swin/video_swin_backbone_presets_test.py --run_large`  # noqa: E501
     """
@@ -52,3 +51,18 @@ class VideoSwinPresetSmokeTest(TestCase):
         # Not a preset name
         with self.assertRaises(ValueError):
             VideoSwinBackbone.from_preset("videoswin_nonexistant")
+
+
+@pytest.mark.extra_large
+class VideoSwinPresetFullTest(TestCase):
+    """Test the full enumeration of our preset.
+    This tests every preset for VideoSwin and is only run manually.
+    Run with:
+    `pytest keras_cv/models/backbones/video_swin/video_swin_backbone_presets_test.py --run_extra_large`  # noqa: E501
+    """
+
+    def test_load_ViTDet(self):
+        input_data = np.ones(shape=(1, 1024, 1024, 3))
+        for preset in VideoSwinBackbone.presets:
+            model = VideoSwinBackbone.from_preset(preset)
+            model(input_data)
