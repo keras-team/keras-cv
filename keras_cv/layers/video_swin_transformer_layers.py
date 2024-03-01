@@ -576,11 +576,11 @@ class BasicLayer(keras.Model):
         window_size, shift_size = get_window_size(
             input_shape[1:-1], self.window_size, self.shift_size
         )
-        Dp = self._compute_dim_padded(input_shape[1], window_size[0])
-        Hp = self._compute_dim_padded(input_shape[2], window_size[1])
-        Wp = self._compute_dim_padded(input_shape[3], window_size[2])
+        depth_pad = self._compute_dim_padded(input_shape[1], window_size[0])
+        height_pad = self._compute_dim_padded(input_shape[2], window_size[1])
+        width_pad = self._compute_dim_padded(input_shape[3], window_size[2])
         self.attn_mask = compute_mask(
-            Dp, Hp, Wp, window_size, shift_size
+            depth_pad, height_pad, width_pad, window_size, shift_size
         )
         
         # build blocks
@@ -602,7 +602,9 @@ class BasicLayer(keras.Model):
         ]
 
         if self.downsample is not None:
-            self.downsample = self.downsample(input_dim=self.input_dim, norm_layer=self.norm_layer)
+            self.downsample = self.downsample(
+                input_dim=self.input_dim, norm_layer=self.norm_layer
+            )
             self.downsample.build(input_shape)
             
         for i in range(self.depth):
@@ -629,7 +631,7 @@ class BasicLayer(keras.Model):
 
     def call(self, x, training=None):
         input_shape = ops.shape(x)
-        B,D,H,W,C = (
+        batch_size, depth, height, width, channel = (
             input_shape[0], 
             input_shape[1],
             input_shape[2],
@@ -637,15 +639,15 @@ class BasicLayer(keras.Model):
             input_shape[4],
         )
 
-        for blk in self.blocks:
-            x = blk(
+        for block in self.blocks:
+            x = block(
                 x, 
                 self.attn_mask,
                 training=training
             )
 
         x = ops.reshape(
-            x, [B, D, H, W, -1]
+            x, [batch_size, depth, height, width, -1]
         )
  
         if self.downsample is not None:
