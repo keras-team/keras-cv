@@ -588,7 +588,7 @@ class VideoSwinBasicLayer(keras.Model):
         
         # build blocks
         self.blocks = [
-            SwinTransformerBlock3D(
+            VideoSwinTransformerBlock(
                 self.input_dim,
                 num_heads=self.num_heads,
                 window_size=self.window_size,
