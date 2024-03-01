@@ -141,3 +141,6 @@ from keras_cv.layers.vit_det_layers import ViTDetPatchingAndEmbedding
 from keras_cv.layers.vit_det_layers import WindowedTransformerEncoder
 from keras_cv.layers.vit_det_layers import WindowPartitioning
 from keras_cv.layers.vit_layers import PatchingAndEmbedding
+from keras_cv.layers.video_swin_layers import VideoSwinPatchingAndEmbedding
+from keras_cv.layers.video_swin_layers import VideoSwinBasicLayer
+from keras_cv.layers.video_swin_layers import VideoSwinPatchMerging

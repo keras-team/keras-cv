@@ -30,6 +30,10 @@ from keras_cv.models.backbones.vit_det.vit_det_backbone_presets import (
 )
 from keras_cv.utils.python_utils import classproperty
 
+from keras_cv.layers.video_swin_layers import VideoSwinBasicLayer
+from keras_cv.layers.video_swin_layers import VideoSwinPatchingAndEmbedding
+from keras_cv.layers.video_swin_layers import VideoSwinPatchMerging
+
 
 @keras_cv_export("keras_cv.models.VideoSwinBackbone", package="keras_cv.models")
 class VideoSwinBackbone(Backbone):
@@ -80,7 +84,7 @@ class VideoSwinBackbone(Backbone):
 
         norm_layer = partial(layers.LayerNormalization, epsilon=1e-05)
 
-        x = PatchEmbed3D(
+        x = VideoSwinPatchingAndEmbedding(
             patch_size=patch_size,
             embed_dim=embed_dim,
             norm_layer=norm_layer if patch_norm else None,
@@ -93,7 +97,7 @@ class VideoSwinBackbone(Backbone):
         num_layers = len(depths)
         
         for i in range(num_layers):
-            layer = BasicLayer(
+            layer = VideoSwinBasicLayer(
                 input_dim=int(embed_dim * 2 ** i),
                 depth=depths[i],
                 num_heads=num_heads[i],
@@ -105,7 +109,7 @@ class VideoSwinBackbone(Backbone):
                 attn_drop_rate=attn_drop_rate,
                 drop_path_rate=dpr[sum(depths[:i]):sum(depths[:i + 1])],
                 norm_layer=norm_layer,
-                downsample=PatchMerging if (i < num_layers - 1) else None,
+                downsample=VideoSwinPatchMerging if (i < num_layers - 1) else None,
                 name=f'BasicLayer{i + 1}'
             )
             x = layer(x)

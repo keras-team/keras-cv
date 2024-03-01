@@ -320,7 +320,7 @@ class VideoSwinPatchMerging(layers.Layer):
     def __init__(
         self, 
         input_dim, 
-        norm_layer=layers.LayerNormalization,
+        norm_layer=None,
         **kwargs
     ):
         super().__init__(**kwargs)
@@ -548,7 +548,7 @@ class VideoSwinBasicLayer(keras.Model):
         drop_rate=0.,
         attn_drop_rate=0.,
         drop_path_rate=0.,
-        norm_layer=partial(layers.LayerNormalization, epsilon=1e-05),
+        norm_layer=None,
         downsample=None,
         **kwargs
     ):
