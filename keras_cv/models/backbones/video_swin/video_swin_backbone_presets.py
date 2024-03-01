@@ -16,31 +16,23 @@
 backbone_presets_no_weights = {
     "videoswin_tiny": {
         "metadata": {
-            "description": (
-                "Video Swin backbone " # TODO: update
-            ),
+            "description": ("Video Swin backbone "),  # TODO: update
             "params": 27_850_470,
             "official_name": "VideoSwinT",
             "path": "video_swin",
         },
     },
-
     "videoswin_small": {
         "metadata": {
-            "description": (
-                "Video Swin backbone " # TODO: update
-            ),
+            "description": ("Video Swin backbone "),  # TODO: update
             "params": 49_509_078,
             "official_name": "VideoSwinS",
             "path": "video_swin",
         },
     },
-
     "videoswin_base": {
         "metadata": {
-            "description": (
-                "Video Swin backbone " # TODO: update
-            ),
+            "description": ("Video Swin backbone "),  # TODO: update
             "params": 87_638_984,
             "official_name": "VideoSwinB",
             "path": "video_swin",

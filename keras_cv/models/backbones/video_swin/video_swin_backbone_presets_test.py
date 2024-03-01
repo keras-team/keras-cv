@@ -16,9 +16,14 @@
 import numpy as np
 import pytest
 
-from keras_cv.models.backbones.video_swin.video_swin_backbone import VideoSwinBackbone
-from keras_cv.models.backbones.video_swin.video_swin_aliases import VideoSwinTBackbone
+from keras_cv.models.backbones.video_swin.video_swin_aliases import (
+    VideoSwinTBackbone,
+)
+from keras_cv.models.backbones.video_swin.video_swin_backbone import (
+    VideoSwinBackbone,
+)
 from keras_cv.tests.test_case import TestCase
+
 
 @pytest.mark.large
 class VideoSwinPresetSmokeTest(TestCase):

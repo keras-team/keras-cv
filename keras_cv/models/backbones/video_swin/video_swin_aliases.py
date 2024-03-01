@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import copy
 
-from keras_cv.models.backbones.video_swin.video_swin_backbone import VideoSwinBackbone
+from keras_cv.models.backbones.video_swin.video_swin_backbone import (
+    VideoSwinBackbone,
+)
 from keras_cv.utils.python_utils import classproperty
-
 
 ALIAS_DOCSTRING = """VideoSwin{size}Backbone model.
 
@@ -37,6 +37,7 @@ ALIAS_DOCSTRING = """VideoSwin{size}Backbone model.
     ```
 """  # noqa: E501
 
+
 class VideoSwinTBackbone(VideoSwinBackbone):
     def __new__(
         cls,
@@ -49,7 +50,8 @@ class VideoSwinTBackbone(VideoSwinBackbone):
         """Dictionary of preset names and configurations that include
         weights."""
         return cls.presets
-    
+
+
 class VideoSwinSBackbone(VideoSwinBackbone):
     def __new__(
         cls,
@@ -62,7 +64,8 @@ class VideoSwinSBackbone(VideoSwinBackbone):
         """Dictionary of preset names and configurations that include
         weights."""
         return cls.presets
-    
+
+
 class VideoSwinBBackbone(VideoSwinBackbone):
     def __new__(
         cls,
@@ -75,7 +78,7 @@ class VideoSwinBBackbone(VideoSwinBackbone):
         """Dictionary of preset names and configurations that include
         weights."""
         return cls.presets
-    
+
 
 setattr(VideoSwinTBackbone, "__doc__", ALIAS_DOCSTRING.format(size="T"))
 setattr(VideoSwinSBackbone, "__doc__", ALIAS_DOCSTRING.format(size="S"))

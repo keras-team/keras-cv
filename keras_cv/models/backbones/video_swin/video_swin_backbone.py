@@ -12,20 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import copy
-import numpy as np
 from functools import partial
 
+import numpy as np
 from keras import layers
+
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
-from keras_cv.models import utils
-from keras_cv.models.backbones.backbone import Backbone
-from keras_cv.utils.python_utils import classproperty
-
 from keras_cv.layers.video_swin_layers import VideoSwinBasicLayer
 from keras_cv.layers.video_swin_layers import VideoSwinPatchingAndEmbedding
 from keras_cv.layers.video_swin_layers import VideoSwinPatchMerging
+from keras_cv.models import utils
+from keras_cv.models.backbones.backbone import Backbone
 
 
 @keras_cv_export("keras_cv.models.VideoSwinBackbone", package="keras_cv.models")
@@ -35,12 +33,12 @@ class VideoSwinBackbone(Backbone):
         *,
         include_rescaling,
         input_shape=(32, 224, 224, 3),
-        input_tensor=None, 
-        embed_dim=96, 
-        patch_size=[2, 4, 4], 
+        input_tensor=None,
+        embed_dim=96,
+        patch_size=[2, 4, 4],
         window_size=[8, 7, 7],
         mlp_ratio=4.0,
-        patch_norm=True, 
+        patch_norm=True,
         drop_rate=0.0,
         attn_drop_rate=0.0,
         drop_path_rate=0.2,
@@ -48,9 +46,8 @@ class VideoSwinBackbone(Backbone):
         num_heads=[3, 6, 12, 24],
         qkv_bias=True,
         qk_scale=None,
-        **kwargs
+        **kwargs,
     ):
-        
         input_spec = utils.parse_model_inputs(
             input_shape, input_tensor, name="videos"
         )
@@ -67,7 +64,7 @@ class VideoSwinBackbone(Backbone):
                 " be equal to the width in the `input_shape`"
                 " tuple/tensor."
             )
-        
+
         x = input_spec
 
         if include_rescaling:
@@ -80,17 +77,17 @@ class VideoSwinBackbone(Backbone):
             patch_size=patch_size,
             embed_dim=embed_dim,
             norm_layer=norm_layer if patch_norm else None,
-            name='PatchEmbed3D'
+            name="PatchEmbed3D",
         )(x)
 
-        x = layers.Dropout(drop_rate, name='pos_drop')(x)
-        dpr = np.linspace(0., drop_path_rate, sum(depths)).tolist()
+        x = layers.Dropout(drop_rate, name="pos_drop")(x)
+        dpr = np.linspace(0.0, drop_path_rate, sum(depths)).tolist()
 
         num_layers = len(depths)
-        
+
         for i in range(num_layers):
             layer = VideoSwinBasicLayer(
-                input_dim=int(embed_dim * 2 ** i),
+                input_dim=int(embed_dim * 2**i),
                 depth=depths[i],
                 num_heads=num_heads[i],
                 window_size=window_size,
@@ -99,16 +96,18 @@ class VideoSwinBackbone(Backbone):
                 qk_scale=qk_scale,
                 drop_rate=drop_rate,
                 attn_drop_rate=attn_drop_rate,
-                drop_path_rate=dpr[sum(depths[:i]):sum(depths[:i + 1])],
+                drop_path_rate=dpr[sum(depths[:i]) : sum(depths[: i + 1])],
                 norm_layer=norm_layer,
-                downsample=VideoSwinPatchMerging if (i < num_layers - 1) else None,
-                name=f'BasicLayer{i + 1}'
+                downsample=VideoSwinPatchMerging
+                if (i < num_layers - 1)
+                else None,
+                name=f"BasicLayer{i + 1}",
             )
             x = layer(x)
 
-        x = norm_layer(axis=-1, epsilon=1e-05, name='norm')(x)
+        x = norm_layer(axis=-1, epsilon=1e-05, name="norm")(x)
         super().__init__(inputs=input_spec, outputs=x, **kwargs)
-        
+
         self.embed_dim = embed_dim
         self.patch_size = patch_size
         self.window_size = window_size
@@ -126,18 +125,20 @@ class VideoSwinBackbone(Backbone):
 
     def get_config(self):
         config = super().get_config()
-        config.update({
-            "embed_dim": self.embed_dim,
-            "patch_norm": self.patch_norm,
-            "window_size": self.window_size,
-            "patch_size": self.patch_size,
-            "mlp_ratio": self.mlp_ratio,
-            "drop_rate": self.drop_rate,
-            "drop_path_rate": self.drop_path_rate,
-            "attn_drop_rate": self.attn_drop_rate,
-            "depths": self.depths,
-            "num_heads": self.num_heads,
-            "qkv_bias": self.qkv_bias,
-            "qk_scale": self.qk_scale,
-        })
+        config.update(
+            {
+                "embed_dim": self.embed_dim,
+                "patch_norm": self.patch_norm,
+                "window_size": self.window_size,
+                "patch_size": self.patch_size,
+                "mlp_ratio": self.mlp_ratio,
+                "drop_rate": self.drop_rate,
+                "drop_path_rate": self.drop_path_rate,
+                "attn_drop_rate": self.attn_drop_rate,
+                "depths": self.depths,
+                "num_heads": self.num_heads,
+                "qkv_bias": self.qkv_bias,
+                "qk_scale": self.qk_scale,
+            }
+        )
         return config
