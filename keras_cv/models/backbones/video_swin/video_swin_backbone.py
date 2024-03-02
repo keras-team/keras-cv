@@ -16,6 +16,7 @@ from functools import partial
 
 import numpy as np
 from keras import layers
+from keras_cv.backend import ops
 
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
@@ -70,6 +71,16 @@ class VideoSwinBackbone(Backbone):
         if include_rescaling:
             # Use common rescaling strategy across keras_cv
             x = keras.layers.Rescaling(1.0 / 255.0)(x)
+
+            # Video Swin scales inputs based on the standard ImageNet mean/stddev.
+            # Officially, Videw Swin takes tensor of [0-255] ranges. 
+            # And use mean=[123.675, 116.28, 103.53] and 
+            # std=[58.395, 57.12, 57.375] for normalization. 
+            # So, if include_rescaling is set to True, then, to match with the 
+            # official scores, following normalization should be added.
+            x = (x - ops.array([0.485, 0.456, 0.406], dtype=x.dtype)) / (
+                ops.array([0.229, 0.224, 0.225], dtype=x.dtype)
+            )
 
         norm_layer = partial(layers.LayerNormalization, epsilon=1e-05)
 
