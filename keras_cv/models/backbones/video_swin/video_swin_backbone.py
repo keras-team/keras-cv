@@ -77,14 +77,12 @@ class VideoSwinBackbone(Backbone):
             patch_size=patch_size,
             embed_dim=embed_dim,
             norm_layer=norm_layer if patch_norm else None,
-            name="PatchEmbed3D",
+            name="videoswin_patching_and_embedding",
         )(x)
-
         x = layers.Dropout(drop_rate, name="pos_drop")(x)
+
         dpr = np.linspace(0.0, drop_path_rate, sum(depths)).tolist()
-
         num_layers = len(depths)
-
         for i in range(num_layers):
             layer = VideoSwinBasicLayer(
                 input_dim=int(embed_dim * 2**i),
@@ -101,7 +99,7 @@ class VideoSwinBackbone(Backbone):
                 downsample=VideoSwinPatchMerging
                 if (i < num_layers - 1)
                 else None,
-                name=f"BasicLayer{i + 1}",
+                name=f"videoswin_basic_layer_{i + 1}",
             )
             x = layer(x)
 

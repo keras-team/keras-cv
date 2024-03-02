@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from functools import partial
-
 import numpy as np
 from keras import layers
 
@@ -679,6 +677,9 @@ class VideoSwinBasicLayer(keras.Model):
         return config
     
 
+@keras_cv_export(
+    "keras_cv.layers.VideoSwinTransformerBlock", package="keras_cv.layers"
+)
 class VideoSwinTransformerBlock(keras.Model):
     """Swin Transformer Block.
 
