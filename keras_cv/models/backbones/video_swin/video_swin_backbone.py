@@ -88,6 +88,7 @@ class VideoSwinBackbone(Backbone):
         qk_scale=None,
         **kwargs,
     ):
+        # Parse input specification.
         input_spec = utils.parse_model_inputs(
             input_shape, input_tensor, name="videos"
         )
@@ -95,7 +96,7 @@ class VideoSwinBackbone(Backbone):
         # Check that the input video is well specified.
         if input_spec.shape[-4] is None or input_spec.shape[-3] is None or input_spec.shape[-2] is None:
             raise ValueError(
-                "Depth, Height and width of the video must be specified"
+                "Depth, height and width of the video must be specified"
                 " in `input_shape`."
             )
         if input_spec.shape[-3] != input_spec.shape[-2]:
