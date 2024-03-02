@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pytest
 
 from keras_cv.backend import ops
 from keras_cv.layers.video_swin_layers import VideoSwinPatchingAndEmbedding
 from keras_cv.layers.video_swin_layers import VideoSwinWindowAttention
+from keras_cv.layers.video_swin_layers import VideoSwinPatchMerging
 from keras_cv.tests.test_case import TestCase
 
 
@@ -69,3 +69,21 @@ class TestVideoSwinWindowAttention(TestCase):
         assert config["qk_scale"] is None
         assert config["attn_drop_rate"] == 0.1
         assert config["proj_drop_rate"] == 0.1
+
+
+class TestVideoSwinPatchMerging(TestCase):
+    def setUp(self):
+        self.patch_merging = VideoSwinPatchMerging(input_dim=32)
+
+    def test_output_shape(self):
+        input_shape = (2, 4, 32, 32, 3)
+        input_tensor = ops.ones(*input_shape)
+        output_shape = self.patch_merging(input_tensor).shape
+        expected_shape = (
+            input_shape[0], 
+            input_shape[1], 
+            input_shape[2] // 2, 
+            input_shape[3] // 2, 
+            input_shape[4] * 4
+        )
+        self.assertEqual(output_shape, expected_shape)
