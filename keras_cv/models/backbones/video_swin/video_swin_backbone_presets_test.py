@@ -28,7 +28,7 @@ from keras_cv.tests.test_case import TestCase
 @pytest.mark.large
 class VideoSwinPresetSmokeTest(TestCase):
     """A smoke test for VideoSwin presets we run continuously.
-    This only tests the smallest weights we have available. Run with:
+    Run with:
     `pytest keras_cv/models/backbones/video_swin/video_swin_backbone_presets_test.py --run_large`  # noqa: E501
     """
 
@@ -67,7 +67,7 @@ class VideoSwinPresetFullTest(TestCase):
     """
 
     def test_load_ViTDet(self):
-        input_data = np.ones(shape=(1, 1024, 1024, 3))
+        input_data = np.ones(shape=(1, 32, 224, 224, 3))
         for preset in VideoSwinBackbone.presets:
             model = VideoSwinBackbone.from_preset(preset)
             model(input_data)
