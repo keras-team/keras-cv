@@ -39,3 +39,66 @@ backbone_presets_no_weights = {
         },
     },
 }
+
+backbone_presets_with_weights = {
+    "videoswin_tiny_kinetics400": {
+        "metadata": {
+            "description": (
+                "A tiny Video Swin backbone architecture. "
+                "It is pretrained on ImageNet 1K dataset, and "
+                "trained on Kinetics 400 dataset."
+            ),
+            "params": 27_850_470,
+            "official_name": "VideoSwinT",
+            "path": "video_swin",
+        },
+    },
+    "videoswin_small_kinetics400": {
+        "metadata": {
+            "description": (
+                "A small Video Swin backbone architecture. "
+                "It is pretrained on ImageNet 1K dataset, and "
+                "trained on Kinetics 400 dataset."
+            ),
+            "params": 49_509_078,
+            "official_name": "VideoSwinS",
+            "path": "video_swin",
+        },
+    },
+    "videoswin_base_kinetics400": {
+        "metadata": {
+            "description": (
+                "A base Video Swin backbone architecture. "
+                "It is pretrained on ImageNet 1K dataset, and "
+                "trained on Kinetics 400 dataset."
+            ),
+            "params": 87_638_984,
+            "official_name": "VideoSwinB",
+            "path": "video_swin",
+        },
+    },
+    "videoswin_base_kinetics600": {
+        "metadata": {
+            "description": (
+                "A base Video Swin backbone architecture. "
+                "It is pretrained on ImageNet 22K dataset, and "
+                "trained on Kinetics 600 dataset."
+            ),
+            "params": 87_638_984,
+            "official_name": "VideoSwinB",
+            "path": "video_swin",
+        },
+    },
+    "videoswin_base_something_something_v2": {
+        "metadata": {
+            "description": (
+                "A base Video Swin backbone architecture. "
+                "It is pretrained on Kinetics 400 dataset, and "
+                "trained on Something Something V2 dataset."
+            ),
+            "params": 87_638_984,
+            "official_name": "VideoSwinB",
+            "path": "video_swin",
+        },
+    },
+}
