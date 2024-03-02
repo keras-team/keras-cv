@@ -12,11 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
+import copy
 from keras_cv.models.backbones.video_swin.video_swin_backbone import (
     VideoSwinBackbone,
 )
 from keras_cv.utils.python_utils import classproperty
+from keras_cv.models.backbones.video_swin.video_swin_backbone_presets import backbone_presets
 
 ALIAS_DOCSTRING = """VideoSwin{size}Backbone model.
 
@@ -54,7 +55,17 @@ class VideoSwinTBackbone(VideoSwinBackbone):
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
-        return {}
+        return {
+            "videoswin_tiny_kinetics400": copy.deepcopy(
+                backbone_presets["videoswin_tiny_kinetics400"]
+            ),
+        }
+
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include
+        weights."""
+        return cls.presets
 
 
 class VideoSwinSBackbone(VideoSwinBackbone):
@@ -73,7 +84,17 @@ class VideoSwinSBackbone(VideoSwinBackbone):
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
-        return {}
+        return {
+            "videoswin_small_kinetics400": copy.deepcopy(
+                backbone_presets["videoswin_small_kinetics400"]
+            ),
+        }
+
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include
+        weights."""
+        return cls.presets
 
 
 class VideoSwinBBackbone(VideoSwinBackbone):
@@ -92,7 +113,17 @@ class VideoSwinBBackbone(VideoSwinBackbone):
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""
-        return {}
+        return {
+            "videoswin_base_kinetics400": copy.deepcopy(
+                backbone_presets["videoswin_base_kinetics400"]
+            ),
+        }
+
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include
+        weights."""
+        return cls.presets
 
 
 setattr(VideoSwinTBackbone, "__doc__", ALIAS_DOCSTRING.format(size="T"))
