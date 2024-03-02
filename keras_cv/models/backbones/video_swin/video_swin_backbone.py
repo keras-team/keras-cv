@@ -29,6 +29,45 @@ from keras_cv.models.backbones.backbone import Backbone
 
 @keras_cv_export("keras_cv.models.VideoSwinBackbone", package="keras_cv.models")
 class VideoSwinBackbone(Backbone):
+    """A Video Swin Transformer backbone model.
+
+    Args:
+        input_shape (tuple[int], optional): The size of the input image in
+            `(depth, height, width, channel)` format. 
+            Defaults to `(32, 224, 224, 3)`.
+        input_tensor (KerasTensor, optional): Output of
+            `keras.layers.Input()`) to use as image input for the model.
+            Defaults to `None`.
+        include_rescaling (bool, optional): Whether to rescale the inputs. If
+            set to `True`, inputs will be passed through a
+            `Rescaling(1/255.0)` layer and normalize with
+            mean=[0.485, 0.456, 0.406] and std=[0.229, 0.224, 0.225],
+            Defaults to `False`.
+        patch_size (int | tuple(int)): Patch size. Default: (2,4,4).
+        embed_dim (int): Number of linear projection output channels.
+            Default to 96.
+        depths (tuple[int]): Depths of each Swin Transformer stage.
+            Default to [2, 2, 6, 2]
+        num_heads (tuple[int]): Number of attention head of each stage.
+            Default to [3, 6, 12, 24]
+        window_size (int): Window size. Default to [8, 7, 7].
+        mlp_ratio (float): Ratio of mlp hidden dim to embedding dim. 
+            Default to 4.
+        qkv_bias (bool): If True, add a learnable bias to query, key, value. 
+            Default to True.
+        qk_scale (float): Override default qk scale of head_dim ** -0.5 if set.
+            Default to None.
+        drop_rate (float): Dropout rate.
+        attn_drop_rate (float): Attention dropout rate. Default: 0.
+        drop_path_rate (float): Stochastic depth rate. Default: 0.2.
+        patch_norm (bool): If True, add normalization after patch embedding. 
+            Default to False.
+ 
+    References:
+        - [Video Swin Transformer](https://arxiv.org/abs/2106.13230)
+        - [Official Code](https://github.com/SwinTransformer/Video-Swin-Transformer)
+    """  # noqa: E501
+
     def __init__(
         self,
         *,
@@ -54,9 +93,9 @@ class VideoSwinBackbone(Backbone):
         )
 
         # Check that the input video is well specified.
-        if input_spec.shape[-3] is None or input_spec.shape[-2] is None:
+        if input_spec.shape[-4] is None or input_spec.shape[-3] is None or input_spec.shape[-2] is None:
             raise ValueError(
-                "Height and width of the video must be specified"
+                "Depth, Height and width of the video must be specified"
                 " in `input_shape`."
             )
         if input_spec.shape[-3] != input_spec.shape[-2]:
