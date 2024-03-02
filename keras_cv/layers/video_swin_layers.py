@@ -888,3 +888,4 @@ class VideoSwinTransformerBlock(keras.Model):
             }
         )
         return config
+    
