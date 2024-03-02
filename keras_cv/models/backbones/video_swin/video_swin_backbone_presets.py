@@ -16,7 +16,7 @@
 backbone_presets_no_weights = {
     "videoswin_tiny": {
         "metadata": {
-            "description": ("Video Swin backbone "),  # TODO: update
+            "description": ("A tiny Video Swin backbone architecture."),
             "params": 27_850_470,
             "official_name": "VideoSwinT",
             "path": "video_swin",
@@ -24,7 +24,7 @@ backbone_presets_no_weights = {
     },
     "videoswin_small": {
         "metadata": {
-            "description": ("Video Swin backbone "),  # TODO: update
+            "description": ("A small Video Swin backbone architecture."),
             "params": 49_509_078,
             "official_name": "VideoSwinS",
             "path": "video_swin",
@@ -32,7 +32,7 @@ backbone_presets_no_weights = {
     },
     "videoswin_base": {
         "metadata": {
-            "description": ("Video Swin backbone "),  # TODO: update
+            "description": ("A base Video Swin backbone architecture."),
             "params": 87_638_984,
             "official_name": "VideoSwinB",
             "path": "video_swin",
