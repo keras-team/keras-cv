@@ -17,8 +17,6 @@ import copy
 
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
-from keras_cv.models.task import Task
-from keras_cv.utils.python_utils import classproperty
 from keras_cv.models.backbones.backbone_presets import backbone_presets
 from keras_cv.models.backbones.backbone_presets import (
     backbone_presets_with_weights,
@@ -26,6 +24,9 @@ from keras_cv.models.backbones.backbone_presets import (
 from keras_cv.models.classification.video_classifier_presets import (
     classifier_presets,
 )
+from keras_cv.models.task import Task
+from keras_cv.utils.python_utils import classproperty
+
 
 @keras_cv_export(
     [
@@ -98,7 +99,7 @@ class VideoClassifier(Task):
             num_classes,
             activation=activation,
             name="predictions",
-            dtype='float32'
+            dtype="float32",
         )(x)
 
         # Instantiate using Functional API Model constructor

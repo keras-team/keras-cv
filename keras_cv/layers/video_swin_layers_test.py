@@ -15,8 +15,8 @@
 
 from keras_cv.backend import ops
 from keras_cv.layers.video_swin_layers import VideoSwinPatchingAndEmbedding
-from keras_cv.layers.video_swin_layers import VideoSwinWindowAttention
 from keras_cv.layers.video_swin_layers import VideoSwinPatchMerging
+from keras_cv.layers.video_swin_layers import VideoSwinWindowAttention
 from keras_cv.tests.test_case import TestCase
 
 
@@ -80,10 +80,10 @@ class TestVideoSwinPatchMerging(TestCase):
         input_tensor = ops.ones(*input_shape)
         output_shape = self.patch_merging(input_tensor).shape
         expected_shape = (
-            input_shape[0], 
-            input_shape[1], 
-            input_shape[2] // 2, 
-            input_shape[3] // 2, 
-            input_shape[4] * 4
+            input_shape[0],
+            input_shape[1],
+            input_shape[2] // 2,
+            input_shape[3] // 2,
+            input_shape[4] * 4,
         )
         self.assertEqual(output_shape, expected_shape)
