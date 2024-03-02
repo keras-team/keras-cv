@@ -13,11 +13,14 @@
 # limitations under the License.
 
 import copy
+
 from keras_cv.models.backbones.video_swin.video_swin_backbone import (
     VideoSwinBackbone,
 )
+from keras_cv.models.backbones.video_swin.video_swin_backbone_presets import (
+    backbone_presets,
+)
 from keras_cv.utils.python_utils import classproperty
-from keras_cv.models.backbones.video_swin.video_swin_backbone_presets import backbone_presets
 
 ALIAS_DOCSTRING = """VideoSwin{size}Backbone model.
 
