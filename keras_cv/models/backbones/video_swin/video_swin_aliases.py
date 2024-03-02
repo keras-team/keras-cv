@@ -41,43 +41,58 @@ ALIAS_DOCSTRING = """VideoSwin{size}Backbone model.
 class VideoSwinTBackbone(VideoSwinBackbone):
     def __new__(
         cls,
+        include_rescaling=False,
         **kwargs,
     ):
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+            }
+        )
         return VideoSwinBackbone.from_preset("videoswin_tiny", **kwargs)
 
     @classproperty
-    def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include
-        weights."""
-        return cls.presets
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
 
 
 class VideoSwinSBackbone(VideoSwinBackbone):
     def __new__(
         cls,
+        include_rescaling=False,
         **kwargs,
     ):
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+            }
+        )
         return VideoSwinBackbone.from_preset("videoswin_small", **kwargs)
 
     @classproperty
-    def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include
-        weights."""
-        return cls.presets
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
 
 
 class VideoSwinBBackbone(VideoSwinBackbone):
     def __new__(
         cls,
+        include_rescaling=False,
         **kwargs,
     ):
+        kwargs.update(
+            {
+                "include_rescaling": include_rescaling,
+            }
+        )
         return VideoSwinBackbone.from_preset("videoswin_base", **kwargs)
 
     @classproperty
-    def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include
-        weights."""
-        return cls.presets
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return {}
 
 
 setattr(VideoSwinTBackbone, "__doc__", ALIAS_DOCSTRING.format(size="T"))
