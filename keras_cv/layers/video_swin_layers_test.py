@@ -44,6 +44,7 @@ class TestVideoSwinWindowAttention(TestCase):
 
     def setUp(self):
         self.window_attention_model = VideoSwinWindowAttention(
+            input_dim=32,
             window_size=(2, 4, 4),
             num_heads=8,
             qkv_bias=True,
@@ -53,7 +54,7 @@ class TestVideoSwinWindowAttention(TestCase):
         )
 
     def test_window_attention_output_shape(self):
-        input_shape = (4, 10, 256)
+        input_shape = (2, 16, 32)
         input_array = ops.ones(input_shape)
         output_shape = self.window_attention_model(input_array).shape
         expected_output_shape = input_shape
@@ -77,13 +78,13 @@ class TestVideoSwinPatchMerging(TestCase):
 
     def test_output_shape(self):
         input_shape = (2, 4, 32, 32, 3)
-        input_tensor = ops.ones(*input_shape)
+        input_tensor = ops.ones(input_shape)
         output_shape = self.patch_merging(input_tensor).shape
         expected_shape = (
             input_shape[0],
             input_shape[1],
             input_shape[2] // 2,
             input_shape[3] // 2,
-            input_shape[4] * 4,
+            2 * 32,
         )
         self.assertEqual(output_shape, expected_shape)

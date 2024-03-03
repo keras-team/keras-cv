@@ -315,10 +315,13 @@ class VideoSwinPatchMerging(layers.Layer):
         self.reduction.build(
             (batch_size, depth, height // 2, width // 2, 4 * channel)
         )
-        self.norm = self.norm_layer(axis=-1, epsilon=1e-5)
-        self.norm.build(
-            (batch_size, depth, height // 2, width // 2, 4 * channel)
-        )
+
+        self.norm = None
+        if self.norm_layer is not None:
+            self.norm = self.norm_layer(axis=-1, epsilon=1e-5)
+            self.norm.build(
+                (batch_size, depth, height // 2, width // 2, 4 * channel)
+            )
         self.built = True
 
     def call(self, x):
@@ -348,7 +351,10 @@ class VideoSwinPatchMerging(layers.Layer):
         x2 = x[:, :, 0::2, 1::2, :]  # B D H/2 W/2 C
         x3 = x[:, :, 1::2, 1::2, :]  # B D H/2 W/2 C
         x = ops.concatenate([x0, x1, x2, x3], axis=-1)  # B D H/2 W/2 4*C
-        x = self.norm(x)
+
+        if self.norm is not None:
+            x = self.norm(x)
+
         x = self.reduction(x)
         return x
 
