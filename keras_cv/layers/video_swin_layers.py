@@ -97,7 +97,7 @@ def get_window_size(x_size, window_size, shift_size=None):
     <https://arxiv.org/abs/2103.14030>"
     https://github.com/microsoft/Swin-Transformer
 
-     Args:
+    Args:
         x_size: input size.
         window_size: local window size.
         shift_size: window shifting size.

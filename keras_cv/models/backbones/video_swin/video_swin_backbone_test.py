@@ -19,8 +19,11 @@ import pytest
 
 from keras_cv.backend import keras
 from keras_cv.backend import ops
-from keras_cv.models.backbones.video_swin.video_swin_aliases import VideoSwinSBackbone
+from keras_cv.models.backbones.video_swin.video_swin_aliases import (
+    VideoSwinSBackbone,
+)
 from keras_cv.tests.test_case import TestCase
+
 
 class TestViTDetBackbone(TestCase):
     @pytest.mark.large
