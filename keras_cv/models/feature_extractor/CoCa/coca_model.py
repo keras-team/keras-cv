@@ -31,9 +31,11 @@ class CoCa(Task):
                  encoder_heads=16,
                  encoder_intermediate_dim=6144,
                  encoder_width=1408,
+                 unimodal_decoder_depth=18,
+                 multimodal_decoder_depth=18,
                  decoder_intermediate_dim=5632,
-                 unimodal_decoder_heads=18,
-                 multimodal_decoder_heads=18,
+                 unimodal_decoder_heads=16,
+                 multimodal_decoder_heads=16,
                  con_queries=1,
                  cap_queries=256,
                  con_heads=16,
@@ -52,6 +54,8 @@ class CoCa(Task):
         self.encoder_intermediate_dim = encoder_intermediate_dim
 
         self.text_proj_dim = text_proj_dim
+        self.unimodal_decoder_depth = unimodal_decoder_depth
+        self.multimodal_decoder_depth = multimodal_decoder_depth
         self.decoder_intermediate_dim = decoder_intermediate_dim
         self.unimodal_decoder_heads = unimodal_decoder_heads
         self.multimodal_decoder_heads = multimodal_decoder_heads
@@ -78,12 +82,12 @@ class CoCa(Task):
         self.text_embedding = RotaryEmbedding()
         self.unimodal_text_decoder = Sequential([
             TransformerDecoder(self.decoder_intermediate_dim, self.unimodal_decoder_heads)
-            for _ in range(self.con_queries)
+            for _ in range(self.unimodal_decoder_depth)
         ])
-        self.multimodal_text_decoder = TransformerDecoder(
-            self.decoder_intermediate_dim,
-            self.multimodal_decoder_heads
-        )
+        self.multimodal_text_decoder = Sequential([
+            TransformerDecoder(self.decoder_intermediate_dim, self.multimodal_decoder_heads)
+            for _ in range(self.multimodal_decoder_depth)
+        ])
 
         self.con_query = self.add_weight(shape=[1, 1, self.con_queries], trainable=True)
         self.cap_query = self.add_weight(shape=[1, 1, self.cap_queries], trainable=True)
