@@ -127,11 +127,24 @@ class CoCa(Task):
         config = super().get_config()
         config.update(
             {
-                "img_query_dim": self.img_query_dim,
                 "img_patch_size": self.img_patch_size,
+                "img_query_dim": self.img_query_dim,
+                "encoder_depth": self.encoder_depth,
+                "encoder_heads": self.encoder_heads,
+                "encoder_width": self.encoder_width,
+                "encoder_intermediate_dim": self.encoder_intermediate_dim,
                 "text_proj_dim": self.text_proj_dim,
+                "unimodal_decoder_depth": self.unimodal_decoder_depth,
+                "multimodal_decoder_depth": self.multimodal_decoder_depth,
+                "decoder_intermediate_dim": self.decoder_intermediate_dim,
+                "unimodal_decoder_heads": self.unimodal_decoder_heads,
+                "multimodal_decoder_heads": self.multimodal_decoder_heads,
+                "con_queries": self.con_queries,
+                "con_heads": self.con_heads,
+                "con_loss_weight": self.con_loss_weight,
+                "cap_queries": self.cap_queries,
+                "cap_heads": self.cap_heads,
                 "cap_loss_weight": self.cap_loss_weight,
-                "con_loss_weight": self.con_loss_weight
             }
         )
         return config
