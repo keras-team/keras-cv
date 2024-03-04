@@ -40,9 +40,7 @@ classifier_presets = {
     },
     "videoswin_base_something_something_v2_classifier": {
         "metadata": {
-            "description": (
-                "videoswin_base_something_something_v2 "
-            ),
+            "description": ("videoswin_base_something_something_v2 "),
             "params": 25_613_800,
             "official_name": "VideoClassifier",
             "path": "video_classifier",

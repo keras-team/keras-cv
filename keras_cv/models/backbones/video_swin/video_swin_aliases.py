@@ -45,7 +45,7 @@ ALIAS_DOCSTRING = """VideoSwin{size}Backbone model.
 class VideoSwinTBackbone(VideoSwinBackbone):
     def __new__(
         cls,
-        include_rescaling=False,
+        include_rescaling=True,
         **kwargs,
     ):
         kwargs.update(
@@ -74,7 +74,7 @@ class VideoSwinTBackbone(VideoSwinBackbone):
 class VideoSwinSBackbone(VideoSwinBackbone):
     def __new__(
         cls,
-        include_rescaling=False,
+        include_rescaling=True,
         **kwargs,
     ):
         kwargs.update(
@@ -103,7 +103,7 @@ class VideoSwinSBackbone(VideoSwinBackbone):
 class VideoSwinBBackbone(VideoSwinBackbone):
     def __new__(
         cls,
-        include_rescaling=False,
+        include_rescaling=True,
         **kwargs,
     ):
         kwargs.update(

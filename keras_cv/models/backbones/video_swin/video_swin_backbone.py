@@ -32,11 +32,11 @@ class VideoSwinBackbone(Backbone):
     """A Video Swin Transformer backbone model.
 
     Args:
-        input_shape (tuple[int], optional): The size of the input image in
+        input_shape (tuple[int], optional): The size of the input video in
             `(depth, height, width, channel)` format.
             Defaults to `(32, 224, 224, 3)`.
         input_tensor (KerasTensor, optional): Output of
-            `keras.layers.Input()`) to use as image input for the model.
+            `keras.layers.Input()`) to use as video input for the model.
             Defaults to `None`.
         include_rescaling (bool, optional): Whether to rescale the inputs. If
             set to `True`, inputs will be passed through a
