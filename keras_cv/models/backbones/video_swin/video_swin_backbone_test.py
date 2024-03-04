@@ -28,6 +28,7 @@ from keras_cv.tests.test_case import TestCase
 class TestViTDetBackbone(TestCase):
     @pytest.mark.large
     def test_call(self):
+        self.skipTest("TODO: Enable after Kaggle model is public")
         model = VideoSwinSBackbone()
         x = np.ones((1, 32, 224, 224, 3))
         x_out = ops.convert_to_numpy(model(x))
@@ -39,6 +40,7 @@ class TestViTDetBackbone(TestCase):
 
     @pytest.mark.extra_large
     def teat_save(self):
+        self.skipTest("TODO: Enable after Kaggle model is public")
         # saving test
         model = VideoSwinSBackbone()
         x = np.ones((1, 32, 224, 224, 3))
@@ -51,6 +53,7 @@ class TestViTDetBackbone(TestCase):
 
     @pytest.mark.extra_large
     def test_fit(self):
+        self.skipTest("TODO: Enable after Kaggle model is public")
         model = VideoSwinSBackbone()
         x = np.ones((1, 32, 224, 224, 3))
         y = np.zeros((1, 16, 7, 7, 768))
@@ -58,6 +61,7 @@ class TestViTDetBackbone(TestCase):
         model.fit(x, y, epochs=1)
 
     def test_pyramid_level_inputs_error(self):
+        self.skipTest("TODO: Enable after Kaggle model is public")
         model = VideoSwinSBackbone()
         with self.assertRaises(NotImplementedError, msg="doesn't compute"):
             model.pyramid_level_inputs
