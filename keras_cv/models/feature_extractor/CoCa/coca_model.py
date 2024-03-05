@@ -23,6 +23,9 @@ from keras_cv.layers.vit_layers import PatchingAndEmbedding
 
 @keras_cv_export(["keras_cv.models.CoCa"])
 class CoCa(Task):
+    """ Contrastive Captioner foundational model implementation.
+
+    CoCa Paper: https://arxiv.org/pdf/2205.01917.pdf"""
     def __init__(self,
                  img_query_dim,
                  text_proj_dim,
@@ -68,16 +71,12 @@ class CoCa(Task):
         self.cap_heads = cap_heads
         self.cap_loss_weight = cap_loss_weight
 
-    def build(self, input_shape):
-        super().build(input_shape)
-
+        # Layer Definitions
         self.image_patching = PatchingAndEmbedding(self.encoder_width, self.img_patch_size)
         self.image_encoder = Sequential([
             CVTransformerEncoder(self.img_query_dim, self.encoder_heads, self.encoder_intermediate_dim)
             for _ in range(self.encoder_depth)
         ])
-
-        self.cls_token = self.add_weight(shape=[1, 1, self.text_proj_dim], name="cls_token", trainable=True)
 
         self.text_embedding = RotaryEmbedding()
         self.unimodal_text_decoder = Sequential([
@@ -89,21 +88,71 @@ class CoCa(Task):
             for _ in range(self.multimodal_decoder_depth)
         ])
 
-        self.con_query = self.add_weight(shape=[1, 1, self.con_queries], trainable=True)
-        self.cap_query = self.add_weight(shape=[1, 1, self.cap_queries], trainable=True)
-
         self.con_attn_pooling = AttentionPooling(self.img_query_dim, self.con_heads)
         self.cap_attn_pooling = AttentionPooling(self.img_query_dim, self.cap_heads)
 
+        # These are learnable weights defined in build as per Keras recommendations
+        self.cls_token = None
+        self.con_query = None
+        self.cap_query = None
+
+    def build(self, input_shape):
+        super().build(input_shape)
+
+        # Validate Input Shape
+        if len(input_shape) < 2:
+            raise ValueError("Build arguments to CoCa expected to contain shapes of both text and image data; "
+                             f"got {len(input_shape)} shapes.")
+
+        images_shape = input_shape[0]
+        text_shape = input_shape[1]
+
+        if len(images_shape) != 4:
+            raise ValueError("Image shape expected to be of shape [batch_size, height, width, channels]. Instead got "
+                             f"shape: {images_shape}")
+        elif len(text_shape) != 2:
+            raise ValueError("Text shape expected to be of shape [batch_size, context_length]. Instead got shape"
+                             f": {text_shape}")
+
+        text_dim = text_shape[1]
+        batch_size = images_shape[0]
+        if batch_size != text_shape[0]:
+            raise ValueError(f"Differing batch sizes between images and texts input. {batch_size} vs {text_shape[0]}")
+
+        # Build Layers
+        self.image_patching.build(images_shape)
+        self.image_encoder.build((batch_size, self.image_patching.num_patches, self.encoder_width))
+
+        text_shape_with_cls_token = [s for s in text_shape]
+        text_shape_with_cls_token[-1] += 1
+        self.text_embedding.build(text_shape_with_cls_token)
+
+        self.unimodal_text_decoder.build(text_shape_with_cls_token)
+
+        self.con_attn_pooling.build((batch_size, text_dim, self.con_queries))
+        self.cap_attn_pooling.build((batch_size, text_dim, self.cap_queries))
+
+        self.multimodal_text_decoder.build((batch_size, self.image_patching.num_patches, self.encoder_width),
+                                           text_shape_with_cls_token)
+
+        # Learnable Weights
+        self.cls_token = self.add_weight(shape=(batch_size, 1, text_dim), name="cls_token", trainable=True)
+
+        self.con_query = self.add_weight(shape=(batch_size, text_dim, self.con_queries), trainable=True)
+        self.cap_query = self.add_weight(shape=(batch_size, text_dim, self.cap_queries), trainable=True)
+
     def call(self, images, texts):
         """
-        Forward pass of the Coca Model
+        Forward pass of the Coca Model from raw image and text data
 
-        :param images: [batch_size, height, width, channels] representing images
-        :param texts: Tensor, typically represented as [batch_size, sequence_length, feature_length] or
-            [batch_size, sequence_length, num_heads, feature_length]. The sequence_length and/or feature_length
-            are required.
-        :return: output of the captioning Transformer Decoder with captioning cross-attention
+        Args:
+            images: [batch_size, height, width, channels] representing images
+            texts: Tensor, typically represented as [batch_size, sequence_length, feature_length] or
+                [batch_size, sequence_length, num_heads, feature_length]. The sequence_length and/or feature_length
+                are required.
+
+        Returns:
+            Output: Output of the captioning Transformer Decoder with captioning cross-attention
         """
         img_encoding = self.image_patching(images)
         img_encoding = self.image_encoder(img_encoding)  # [batch, patches_len+1, img_query_dim]
