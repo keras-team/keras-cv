@@ -169,6 +169,8 @@ class VideoSwinBackbone(Backbone):
         x = norm_layer(axis=-1, epsilon=1e-05, name="videoswin_top_norm")(x)
         super().__init__(inputs=input_spec, outputs=x, **kwargs)
 
+        self.include_rescaling = include_rescaling
+        self.input_tensor = input_tensor
         self.embed_dim = embed_dim
         self.patch_size = patch_size
         self.window_size = window_size
@@ -188,6 +190,9 @@ class VideoSwinBackbone(Backbone):
         config = super().get_config()
         config.update(
             {
+                "include_rescaling": self.include_rescaling,
+                "input_shape": self.input_shape[1:],
+                "input_tensor": self.input_tensor,
                 "embed_dim": self.embed_dim,
                 "patch_norm": self.patch_norm,
                 "window_size": self.window_size,
