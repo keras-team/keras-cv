@@ -656,14 +656,13 @@ class VideoSwinBasicLayer(keras.Model):
         self.built = True
 
     def compute_output_shape(self, input_shape):
-        window_size, _ = get_window_size(
-            input_shape[1:-1], self.window_size, self.shift_size
-        )
-        depth_pad = self._compute_dim_padded(input_shape[1], window_size[0])
-        height_pad = self._compute_dim_padded(input_shape[2], window_size[1])
-        width_pad = self._compute_dim_padded(input_shape[3], window_size[2])
-
         if self.downsample is not None:
+            window_size, _ = get_window_size(
+                input_shape[1:-1], self.window_size, self.shift_size
+            )
+            depth_pad = self._compute_dim_padded(input_shape[1], window_size[0])
+            height_pad = self._compute_dim_padded(input_shape[2], window_size[1])
+            width_pad = self._compute_dim_padded(input_shape[3], window_size[2])
             output_shape = (
                 input_shape[0],
                 depth_pad,
@@ -677,7 +676,7 @@ class VideoSwinBasicLayer(keras.Model):
 
     def call(self, x, training=None):
         input_shape = ops.shape(x)
-        batch_size, depth, height, width, _ = (
+        batch_size, depth, height, width, channel = (
             input_shape[0],
             input_shape[1],
             input_shape[2],
@@ -688,7 +687,7 @@ class VideoSwinBasicLayer(keras.Model):
         for block in self.blocks:
             x = block(x, self.attn_mask, training=training)
 
-        x = ops.reshape(x, [batch_size, depth, height, width, -1])
+        x = ops.reshape(x, [batch_size, depth, height, width, channel])
 
         if self.downsample is not None:
             x = self.downsample(x)
@@ -812,7 +811,7 @@ class VideoSwinTransformerBlock(keras.Model):
         self.attn.build((None, None, self.input_dim))
 
         self.norm2 = self.norm_layer(axis=-1, epsilon=1e-05)
-        self.norm2.build((*input_shape[1:-1], self.input_dim))
+        self.norm2.build((*input_shape[:-1], self.input_dim))
 
         self.mlp = MLP(
             output_dim=self.input_dim,

@@ -1,4 +1,4 @@
-# Copyright 2023 The KerasCV Authors
+# Copyright 2024 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -28,7 +28,6 @@ from keras_cv.tests.test_case import TestCase
 class TestViTDetBackbone(TestCase):
     @pytest.mark.large
     def test_call(self):
-        self.skipTest("TODO: Enable after Kaggle model is public")
         model = VideoSwinSBackbone()
         x = np.ones((1, 32, 224, 224, 3))
         x_out = ops.convert_to_numpy(model(x))
@@ -36,7 +35,7 @@ class TestViTDetBackbone(TestCase):
             np.prod(tuple(x.shape)) for x in model.trainable_variables
         )
         self.assertEqual(x_out.shape, (1, 16, 7, 7, 768))
-        self.assertEqual(num_parameters, 49_509_078)
+        self.assertEqual(num_parameters, 27_850_470)
 
     @pytest.mark.extra_large
     def teat_save(self):

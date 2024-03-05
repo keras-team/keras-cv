@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import copy
 from functools import partial
 
 import numpy as np
@@ -26,6 +26,9 @@ from keras_cv.layers.video_swin_layers import VideoSwinPatchMerging
 from keras_cv.models import utils
 from keras_cv.models.backbones.backbone import Backbone
 
+from keras_cv.models.backbones.video_swin.video_swin_backbone_presets import backbone_presets # noqa: E501
+from keras_cv.models.backbones.video_swin.video_swin_backbone_presets import backbone_presets_with_weights # noqa: E501
+from keras_cv.utils.python_utils import classproperty
 
 @keras_cv_export("keras_cv.models.VideoSwinBackbone", package="keras_cv.models")
 class VideoSwinBackbone(Backbone):
@@ -126,9 +129,10 @@ class VideoSwinBackbone(Backbone):
             # std=[58.395, 57.12, 57.375] for normalization.
             # So, if include_rescaling is set to True, then, to match with the
             # official scores, following normalization should be added.
-            x = (x - ops.array([0.485, 0.456, 0.406], dtype=x.dtype)) / (
-                ops.array([0.229, 0.224, 0.225], dtype=x.dtype)
-            )
+            x = layers.Normalization(
+                mean=[0.485, 0.456, 0.406],
+                variance=[0.229 ** 2, 0.224 ** 2, 0.225 ** 2]
+            )(x)
 
         norm_layer = partial(layers.LayerNormalization, epsilon=1e-05)
 
@@ -162,7 +166,7 @@ class VideoSwinBackbone(Backbone):
             )
             x = layer(x)
 
-        x = norm_layer(axis=-1, epsilon=1e-05, name="norm")(x)
+        x = norm_layer(axis=-1, epsilon=1e-05, name="videoswin_top_norm")(x)
         super().__init__(inputs=input_spec, outputs=x, **kwargs)
 
         self.embed_dim = embed_dim
@@ -199,3 +203,14 @@ class VideoSwinBackbone(Backbone):
             }
         )
         return config
+    
+    @classproperty
+    def presets(cls):
+        """Dictionary of preset names and configurations."""
+        return copy.deepcopy(backbone_presets)
+
+    @classproperty
+    def presets_with_weights(cls):
+        """Dictionary of preset names and configurations that include
+        weights."""
+        return copy.deepcopy(backbone_presets_with_weights)
