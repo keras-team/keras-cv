@@ -232,3 +232,10 @@ class VideoSwinBackbone(Backbone):
         """Dictionary of preset names and configurations that include
         weights."""
         return copy.deepcopy(backbone_presets_with_weights)
+
+    @property
+    def pyramid_level_inputs(self):
+        raise NotImplementedError(
+            "The `ViTDetBackbone` model doesn't compute"
+            " pyramid level features."
+        )

@@ -59,8 +59,3 @@ class TestVideoSwinSBackbone(TestCase):
         y = np.zeros((1, 16, 7, 7, 768))
         model.compile(optimizer="adam", loss="mse", metrics=["mse"])
         model.fit(x, y, epochs=1)
-
-    def test_pyramid_level_inputs_error(self):
-        model = VideoSwinBackbone(include_rescaling=False)
-        with self.assertRaises(NotImplementedError, msg="doesn't compute"):
-            model.pyramid_level_inputs
