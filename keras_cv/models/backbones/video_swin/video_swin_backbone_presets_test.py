@@ -36,7 +36,6 @@ class VideoSwinPresetSmokeTest(TestCase):
         self.input_batch = np.ones(shape=(1, 32, 224, 224, 3))
 
     def test_applications_model_output(self):
-        self.skipTest("TODO: Enable after Kaggle model is public")
         model = VideoSwinBackbone()
         model(self.input_batch)
 
