@@ -26,21 +26,24 @@ from keras_cv.tests.test_case import TestCase
 
 
 class TestViTDetBackbone(TestCase):
+
     @pytest.mark.large
     def test_call(self):
-        model = VideoSwinSBackbone()
-        x = np.ones((1, 32, 224, 224, 3))
+        model = VideoSwinSBackbone(
+            include_rescaling=True, input_shape=(8,256,256,3)
+        )
+        x = np.ones((1, 8, 256, 256, 3))
         x_out = ops.convert_to_numpy(model(x))
         num_parameters = sum(
             np.prod(tuple(x.shape)) for x in model.trainable_variables
         )
-        self.assertEqual(x_out.shape, (1, 16, 7, 7, 768))
-        self.assertEqual(num_parameters, 27_850_470)
+        self.assertEqual(x_out.shape, (1, 4, 8, 8, 768))
+        self.assertEqual(num_parameters, 27_663_894)
 
     @pytest.mark.extra_large
     def teat_save(self):
         # saving test
-        model = VideoSwinSBackbone()
+        model = VideoSwinSBackbone(include_rescaling=False)
         x = np.ones((1, 32, 224, 224, 3))
         x_out = ops.convert_to_numpy(model(x))
         path = os.path.join(self.get_temp_dir(), "model.keras")
@@ -51,13 +54,13 @@ class TestViTDetBackbone(TestCase):
 
     @pytest.mark.extra_large
     def test_fit(self):
-        model = VideoSwinSBackbone()
+        model = VideoSwinSBackbone(include_rescaling=False)
         x = np.ones((1, 32, 224, 224, 3))
         y = np.zeros((1, 16, 7, 7, 768))
         model.compile(optimizer="adam", loss="mse", metrics=["mse"])
         model.fit(x, y, epochs=1)
 
     def test_pyramid_level_inputs_error(self):
-        model = VideoSwinSBackbone()
+        model = VideoSwinSBackbone(include_rescaling=False)
         with self.assertRaises(NotImplementedError, msg="doesn't compute"):
             model.pyramid_level_inputs
