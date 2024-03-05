@@ -21,7 +21,7 @@ from keras_cv.layers.attention_pooling import AttentionPooling
 from keras_cv.layers.vit_layers import PatchingAndEmbedding
 
 
-@keras_cv_export(["keras_cv.models.CoCa"])
+@keras_cv_export(["keras_cv.models.coca"])
 class CoCa(Task):
     def __init__(self,
                  img_patch_size=18,
@@ -91,7 +91,7 @@ class CoCa(Task):
     """ Contrastive Captioner foundational model implementation.
 
     This model implements the "Contrastive Captioners are image-Text Foundational Models" by Yu, et al.
-    (https://arxiv.org/pdf/2205.01917.pdf). In short, the CoCa model combines the ideas of Contrastive techniques
+    (https://arxiv.org/pdf/2205.01917.pdf). In short, the coca model combines the ideas of Contrastive techniques
     such as CLIP, with Generative Captioning approaches such as SimVLM.
 
     The architecture of clip can be described as an Image Visual Transformer Encoder in parallel to self-attention-only
@@ -105,7 +105,7 @@ class CoCa(Task):
     images = ... # [batch_size, height, width, channel]
     text = ... # [batch_size, text_dim, sequence_length]
 
-    coca = CoCa()
+    coca = coca()
 
     # [batch_size, sequence_length, captioning_query_length]
     output = coca(images, text)
@@ -118,7 +118,7 @@ class CoCa(Task):
         encoder_depth: number of image encoder blocks
         encoder_heads: number of attention heads used in each image encoder block
         encoder_intermediate_dim: dimensionality of the encoder blocks' intermediate representation (MLP dimensionality)
-        encoder_width: dimensionality of the encoder's projection, consistent with wording used in CoCa paper.
+        encoder_width: dimensionality of the encoder's projection, consistent with wording used in coca paper.
         unimodal_decoder_depth: number of decoder blocks used for text self-attention/embedding
         multimodal_decoder_depth: number of decoder blocks used for image-text cross-attention and captioning
         decoder_intermediate_dim: dimensionality of the decoder blocks' MLPs
@@ -137,7 +137,7 @@ class CoCa(Task):
 
         # Validate Input Shape
         if len(input_shape) < 2:
-            raise ValueError("Build arguments to CoCa expected to contain shapes of both text and image data; "
+            raise ValueError("Build arguments to coca expected to contain shapes of both text and image data; "
                              f"got {len(input_shape)} shapes.")
 
         images_shape = input_shape[0]

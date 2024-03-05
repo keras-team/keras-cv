@@ -2,7 +2,7 @@ from keras import layers
 
 
 class AttentionPooling(layers.Layer):
-    """Implements the Pooled Attention Layer used in "CoCa": Contrastive Captioners are Image-Text Foundation Models"
+    """Implements the Pooled Attention Layer used in "coca": Contrastive Captioners are Image-Text Foundation Models"
     (https://arxiv.org/pdf/2205.01917.pdf), consisting of a Multiheaded Attention followed by Layer Normalization.
 
     Args:
