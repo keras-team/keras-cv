@@ -236,6 +236,6 @@ class VideoSwinBackbone(Backbone):
     @property
     def pyramid_level_inputs(self):
         raise NotImplementedError(
-            "The `ViTDetBackbone` model doesn't compute"
+            "The `VideoSwinBackbone` model doesn't compute"
             " pyramid level features."
         )
