@@ -1,4 +1,4 @@
-# Copyright 2023 The KerasCV Authors
+# Copyright 2024 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -39,28 +39,32 @@ class VideoSwinBackbone(Backbone):
             `keras.layers.Input()`) to use as video input for the model.
             Defaults to `None`.
         include_rescaling (bool, optional): Whether to rescale the inputs. If
-            set to `True`, inputs will be passed through a
-            `Rescaling(1/255.0)` layer and normalize with
-            mean=[0.485, 0.456, 0.406] and std=[0.229, 0.224, 0.225],
+            set to `True`, inputs will be passed through a `Rescaling(1/255.0)` layer 
+            and normalize with mean=[0.485, 0.456, 0.406] and std=[0.229, 0.224, 0.225].
             Defaults to `False`.
-        patch_size (int | tuple(int)): Patch size. Default: (2,4,4).
+        patch_size (int | tuple(int)): The patch size for depth, height, and width 
+            dimensions respectively. Default: (2,4,4).
         embed_dim (int): Number of linear projection output channels.
             Default to 96.
         depths (tuple[int]): Depths of each Swin Transformer stage.
             Default to [2, 2, 6, 2]
         num_heads (tuple[int]): Number of attention head of each stage.
             Default to [3, 6, 12, 24]
-        window_size (int): Window size. Default to [8, 7, 7].
+        window_size (int): The window size for depth, height, and width 
+            dimensions respectively. Default to [8, 7, 7].
         mlp_ratio (float): Ratio of mlp hidden dim to embedding dim.
             Default to 4.
         qkv_bias (bool): If True, add a learnable bias to query, key, value.
             Default to True.
         qk_scale (float): Override default qk scale of head_dim ** -0.5 if set.
             Default to None.
-        drop_rate (float): Dropout rate.
-        attn_drop_rate (float): Attention dropout rate. Default: 0.
-        drop_path_rate (float): Stochastic depth rate. Default: 0.2.
-        patch_norm (bool): If True, add normalization after patch embedding.
+        drop_rate (float): Float between 0 and 1. Fraction of the input units to drop.
+            Default: 0.
+        attn_drop_rate (float): Float between 0 and 1. Attention dropout rate. 
+            Default: 0.
+        drop_path_rate (float): Float between 0 and 1. Stochastic depth rate. 
+            Default: 0.2.
+        patch_norm (bool): If True, add layer normalization after patch embedding.
             Default to False.
 
     References:
