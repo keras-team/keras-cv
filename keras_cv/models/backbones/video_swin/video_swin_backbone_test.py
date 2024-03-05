@@ -30,7 +30,7 @@ class TestViTDetBackbone(TestCase):
     @pytest.mark.large
     def test_call(self):
         model = VideoSwinSBackbone(
-            include_rescaling=True, input_shape=(8,256,256,3)
+            include_rescaling=True, input_shape=(8, 256, 256, 3)
         )
         x = np.ones((1, 8, 256, 256, 3))
         x_out = ops.convert_to_numpy(model(x))

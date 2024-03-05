@@ -19,16 +19,19 @@ from keras import layers
 
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
-from keras_cv.backend import ops
 from keras_cv.layers.video_swin_layers import VideoSwinBasicLayer
 from keras_cv.layers.video_swin_layers import VideoSwinPatchingAndEmbedding
 from keras_cv.layers.video_swin_layers import VideoSwinPatchMerging
 from keras_cv.models import utils
 from keras_cv.models.backbones.backbone import Backbone
-
-from keras_cv.models.backbones.video_swin.video_swin_backbone_presets import backbone_presets # noqa: E501
-from keras_cv.models.backbones.video_swin.video_swin_backbone_presets import backbone_presets_with_weights # noqa: E501
+from keras_cv.models.backbones.video_swin.video_swin_backbone_presets import (  # noqa: E501
+    backbone_presets,
+)
+from keras_cv.models.backbones.video_swin.video_swin_backbone_presets import (  # noqa: E501
+    backbone_presets_with_weights,
+)
 from keras_cv.utils.python_utils import classproperty
+
 
 @keras_cv_export("keras_cv.models.VideoSwinBackbone", package="keras_cv.models")
 class VideoSwinBackbone(Backbone):
@@ -42,10 +45,10 @@ class VideoSwinBackbone(Backbone):
             `keras.layers.Input()`) to use as video input for the model.
             Defaults to `None`.
         include_rescaling (bool, optional): Whether to rescale the inputs. If
-            set to `True`, inputs will be passed through a `Rescaling(1/255.0)` layer 
+            set to `True`, inputs will be passed through a `Rescaling(1/255.0)` layer
             and normalize with mean=[0.485, 0.456, 0.406] and std=[0.229, 0.224, 0.225].
             Defaults to `False`.
-        patch_size (int | tuple(int)): The patch size for depth, height, and width 
+        patch_size (int | tuple(int)): The patch size for depth, height, and width
             dimensions respectively. Default: (2,4,4).
         embed_dim (int): Number of linear projection output channels.
             Default to 96.
@@ -53,7 +56,7 @@ class VideoSwinBackbone(Backbone):
             Default to [2, 2, 6, 2]
         num_heads (tuple[int]): Number of attention head of each stage.
             Default to [3, 6, 12, 24]
-        window_size (int): The window size for depth, height, and width 
+        window_size (int): The window size for depth, height, and width
             dimensions respectively. Default to [8, 7, 7].
         mlp_ratio (float): Ratio of mlp hidden dim to embedding dim.
             Default to 4.
@@ -63,12 +66,22 @@ class VideoSwinBackbone(Backbone):
             Default to None.
         drop_rate (float): Float between 0 and 1. Fraction of the input units to drop.
             Default: 0.
-        attn_drop_rate (float): Float between 0 and 1. Attention dropout rate. 
+        attn_drop_rate (float): Float between 0 and 1. Attention dropout rate.
             Default: 0.
-        drop_path_rate (float): Float between 0 and 1. Stochastic depth rate. 
+        drop_path_rate (float): Float between 0 and 1. Stochastic depth rate.
             Default: 0.2.
         patch_norm (bool): If True, add layer normalization after patch embedding.
             Default to False.
+
+    Example:
+    ```python
+    # Build video swin backbone without top layer
+    model = VideoSwinSBackbone(
+        include_rescaling=True, input_shape=(8, 256, 256, 3),
+    )
+    videos = tf.ones((1, 8, 256, 256, 3))
+    outputs = model.predict(videos)
+    ```
 
     References:
         - [Video Swin Transformer](https://arxiv.org/abs/2106.13230)
@@ -131,7 +144,7 @@ class VideoSwinBackbone(Backbone):
             # official scores, following normalization should be added.
             x = layers.Normalization(
                 mean=[0.485, 0.456, 0.406],
-                variance=[0.229 ** 2, 0.224 ** 2, 0.225 ** 2]
+                variance=[0.229**2, 0.224**2, 0.225**2],
             )(x)
 
         norm_layer = partial(layers.LayerNormalization, epsilon=1e-05)
@@ -208,7 +221,7 @@ class VideoSwinBackbone(Backbone):
             }
         )
         return config
-    
+
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configurations."""

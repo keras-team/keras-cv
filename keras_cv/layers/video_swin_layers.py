@@ -150,7 +150,8 @@ def compute_mask(depth, height, width, window_size, shift_size):
                     (width - window_size[2]) // shift_size[2] + 1
                     )`.
 
-    """
+    """  # noqa: E501
+
     img_mask = np.zeros((1, depth, height, width, 1))
     cnt = 0
     for d in (
@@ -661,7 +662,9 @@ class VideoSwinBasicLayer(keras.Model):
                 input_shape[1:-1], self.window_size, self.shift_size
             )
             depth_pad = self._compute_dim_padded(input_shape[1], window_size[0])
-            height_pad = self._compute_dim_padded(input_shape[2], window_size[1])
+            height_pad = self._compute_dim_padded(
+                input_shape[2], window_size[1]
+            )
             width_pad = self._compute_dim_padded(input_shape[3], window_size[2])
             output_shape = (
                 input_shape[0],
@@ -776,8 +779,9 @@ class VideoSwinTransformerBlock(keras.Model):
         ):
             if not (0 <= shift < window):
                 raise ValueError(
-                    f"shift_size[{i}] must be in the range 0 to less than window_size[{i}], "
-                    f"but got shift_size[{i}]={shift} and window_size[{i}]={window}."
+                    f"shift_size[{i}] must be in the range 0 to less than "
+                    f"window_size[{i}], but got shift_size[{i}]={shift} "
+                    f"and window_size[{i}]={window}."
                 )
 
     def build(self, input_shape):
