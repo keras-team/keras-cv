@@ -22,13 +22,17 @@ from keras_cv.layers import DropPath
 
 
 def window_partition(x, window_size):
-    """
+    """Partitions the input tensor into windows of specified size.
+
     Args:
-        x: (batch_size, depth, height, width, channel)
-        window_size (tuple[int]): window size
+        x (Tensor): Input tensor of shape `(batch_size, depth, height, width, channel)`.
+        window_size (tuple[int]): Size of the window in each dimension (depth, height, width).
 
     Returns:
-        windows: (batch_size*num_windows, window_size*window_size, channel)
+        Tensor: Windows of shape `(batch_size*num_windows, window_size*window_size, channel)`,
+                where `num_windows = (
+                    depth//window_size[0]) * (height//window_size[1]) * (width//window_size[2]
+                )`.
     """  # noqa: E501
 
     input_shape = ops.shape(x)
@@ -63,15 +67,18 @@ def window_partition(x, window_size):
 
 
 def window_reverse(windows, window_size, batch_size, depth, height, width):
-    """
+    """Reconstructs the original tensor from windows of specified size.
+
     Args:
-        windows: (batch_size*num_windows, window_size, window_size, channel)
-        window_size (tuple[int]): Window size
-        height (int): Height of image
-        width (int): Width of image
+        windows (Tensor): Windows of shape `(batch_size*num_windows, window_size, window_size, channel)`.
+        window_size (tuple[int]): Size of the window in each dimension `(depth, height, width)`.
+        batch_size (int): Batch size.
+        depth (int): Depth of the original tensor.
+        height (int): Height of the original tensor.
+        width (int): Width of the original tensor.
 
     Returns:
-        x: (batch_size, depth, height, width, channel)
+        Tensor: Reconstructed tensor of shape `(batch_size, depth, height, width, channel)`.
     """  # noqa: E501
     x = ops.reshape(
         windows,
@@ -124,6 +131,26 @@ def get_window_size(x_size, window_size, shift_size=None):
 
 
 def compute_mask(depth, height, width, window_size, shift_size):
+    """Computes attention mask for sliding window self-attention mechanism.
+
+    Args:
+        depth (int): Depth of the input video.
+        height (int): Height of the input video.
+        width (int): Width of the input video.
+        window_size (tuple[int]): Size of the sliding window in each dimension (depth, height, width).
+        shift_size (tuple[int]): Size of the shifting step in each dimension (depth, height, width).
+
+    Returns:
+        Tensor: Attention mask of shape `(batch_size, num_windows, num_windows)`,
+                where `num_windows = (
+                    (depth - window_size[0]) // shift_size[0] + 1
+                    ) * (
+                    (height - window_size[1]) // shift_size[1] + 1
+                    ) * (
+                    (width - window_size[2]) // shift_size[2] + 1
+                    )`.
+
+    """
     img_mask = np.zeros((1, depth, height, width, 1))
     cnt = 0
     for d in (
@@ -292,7 +319,7 @@ class VideoSwinPatchingAndEmbedding(keras.Model):
 
 
 class VideoSwinPatchMerging(layers.Layer):
-    """Patch Merging Layer.
+    """Patch Merging Layer for Video Swin Model.
 
     Args:
         input_dim (int): Number of input channels.
@@ -325,12 +352,6 @@ class VideoSwinPatchMerging(layers.Layer):
         self.built = True
 
     def call(self, x):
-        """The call function.
-
-        Args:
-            x: Input feature,
-            shape: (batch_size, depth, height, width, channel).
-        """
         input_shape = ops.shape(x)
         height, width = (
             input_shape[2],
@@ -755,10 +776,9 @@ class VideoSwinTransformerBlock(keras.Model):
             zip(self.shift_size, self.window_size)
         ):
             if not (0 <= shift < window):
-                # TODO: Add more description.
                 raise ValueError(
-                    f"shift_size[{i}] must be in the "
-                    "range 0 to window_size[{i}]"
+                    f"shift_size[{i}] must be in the range 0 to less than window_size[{i}], "
+                    f"but got shift_size[{i}]={shift} and window_size[{i}]={window}."
                 )
 
     def build(self, input_shape):
