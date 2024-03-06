@@ -98,8 +98,13 @@ class FrustumRandomPointFeatureNoise(
         # frustum.
         valid_points = point_clouds[0, :, POINTCLOUD_LABEL_INDEX] > 0
         num_valid_points = tf.math.reduce_sum(tf.cast(valid_points, tf.int32))
+        maxval = tf.cond(
+            num_valid_points > 0,
+            lambda: num_valid_points,
+            lambda: tf.constant(1, dtype=tf.int32),
+        )
         randomly_select_point_index = tf.random.uniform(
-            (), minval=0, maxval=num_valid_points, dtype=tf.int32
+            (), minval=0, maxval=maxval, dtype=tf.int32
         )
         randomly_select_frustum_center = tf.boolean_mask(
             point_clouds[0], valid_points, axis=0
