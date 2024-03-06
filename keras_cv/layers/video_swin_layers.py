@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import numpy as np
+import tensorflow as tf
 from keras import layers
 
 from keras_cv.api_export import keras_cv_export
@@ -668,12 +669,16 @@ class VideoSwinBasicLayer(keras.Model):
 
     def compute_output_shape(self, input_shape):
         if self.downsample is not None:
-            output_shape = (
-                input_shape[0],
-                self.depth_pad,
-                self.height_pad // 2,
-                self.width_pad // 2,
-                2 * self.input_dim,
+            # TODO: remove tensorflow dependencies.
+            # GitHub issue: fix https://github.com/keras-team/keras/issues/19259 # noqa: E501
+            output_shape = tf.TensorShape(
+                [
+                    input_shape[0],
+                    self.depth_pad,
+                    self.height_pad // 2,
+                    self.width_pad // 2,
+                    2 * self.input_dim,
+                ]
             )
             return output_shape
 
