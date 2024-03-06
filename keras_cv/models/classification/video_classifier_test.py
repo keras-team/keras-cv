@@ -86,7 +86,7 @@ class VideoClassifierTest(TestCase):
             ),
             num_classes=10,
         )
-        model_output = model.predict(self.input_batch)
+        model_output = model(self.input_batch)
         save_path = os.path.join(self.get_temp_dir(), "video_classifier.keras")
         model.save(save_path)
         restored_model = keras.models.load_model(save_path)
@@ -95,7 +95,7 @@ class VideoClassifierTest(TestCase):
         self.assertIsInstance(restored_model, VideoClassifier)
 
         # Check that output matches.
-        restored_output = restored_model.predict(self.input_batch)
+        restored_output = restored_model(self.input_batch)
         self.assertAllClose(
             ops.convert_to_numpy(model_output),
             ops.convert_to_numpy(restored_output),
