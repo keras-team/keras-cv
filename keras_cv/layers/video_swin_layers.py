@@ -212,7 +212,7 @@ class MLP(layers.Layer):
 
     def build(self, input_shape):
         self.fc1.build(input_shape)
-        self.fc2.build((*input_shape[1:-1], self.hidden_dim))
+        self.fc2.build((*input_shape[:-1], self.hidden_dim))
         self.built = True
 
     def call(self, x, training=None):
@@ -823,7 +823,7 @@ class VideoSwinTransformerBlock(keras.Model):
             activation=self._activation_identifier,
             drop_rate=self.drop_rate,
         )
-        self.mlp.build((*input_shape[1:-1], self.input_dim))
+        self.mlp.build((*input_shape[:-1], self.input_dim))
         self.built = True
 
     def first_forward(self, x, mask_matrix, training):
