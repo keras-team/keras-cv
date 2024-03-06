@@ -32,17 +32,19 @@ from keras_cv.tests.test_case import TestCase
 
 class VideoClassifierTest(TestCase):
     def setUp(self):
-        self.input_batch = np.ones(shape=(2, 8, 224, 224, 3))
+        self.input_batch = np.ones(shape=(10, 8, 224, 224, 3))
         self.dataset = tf.data.Dataset.from_tensor_slices(
-            (self.input_batch, tf.one_hot(tf.ones((10,), dtype="int32"), 2))
+            (self.input_batch, tf.one_hot(tf.ones((10,), dtype="int32"), 10))
         ).batch(4)
 
     def test_valid_call(self):
         model = VideoClassifier(
-            backbone=VideoSwinBackbone(include_rescaling=False),
+            backbone=VideoSwinBackbone(
+                input_shape=(8, 224, 224, 3), include_rescaling=False
+            ),
             num_classes=10,
         )
-        model(self.input_batch)
+        model.predict(self.input_batch)
 
     @parameterized.named_parameters(
         ("jit_compile_false", False), ("jit_compile_true", True)
@@ -50,7 +52,9 @@ class VideoClassifierTest(TestCase):
     @pytest.mark.large  # Fit is slow, so mark these large.
     def test_classifier_fit(self, jit_compile):
         model = VideoClassifier(
-            backbone=VideoSwinBackbone(include_rescaling=False),
+            backbone=VideoSwinBackbone(
+                input_shape=(8, 224, 224, 3), include_rescaling=True
+            ),
             num_classes=10,
         )
         model.compile(
@@ -70,15 +74,17 @@ class VideoClassifierTest(TestCase):
             num_classes=10,
             pooling=pooling,
         )
-        model(self.input_batch)
+        model.predict(self.input_batch)
 
     @pytest.mark.large  # Saving is slow, so mark these large.
     def test_saved_model(self):
         model = VideoClassifier(
-            backbone=VideoSwinBackbone(include_rescaling=False),
-            num_classes=2,
+            backbone=VideoSwinBackbone(
+                input_shape=(8, 224, 224, 3), include_rescaling=False
+            ),
+            num_classes=10,
         )
-        model_output = model(self.input_batch)
+        model_output = model.predict(self.input_batch)
         save_path = os.path.join(self.get_temp_dir(), "video_classifier.keras")
         model.save(save_path)
         restored_model = keras.models.load_model(save_path)
@@ -87,7 +93,7 @@ class VideoClassifierTest(TestCase):
         self.assertIsInstance(restored_model, VideoClassifier)
 
         # Check that output matches.
-        restored_output = restored_model(self.input_batch)
+        restored_output = restored_model.predict(self.input_batch)
         self.assertAllClose(
             ops.convert_to_numpy(model_output),
             ops.convert_to_numpy(restored_output),
