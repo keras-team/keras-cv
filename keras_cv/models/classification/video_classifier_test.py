@@ -44,7 +44,7 @@ class VideoClassifierTest(TestCase):
             ),
             num_classes=10,
         )
-        model.predict(self.input_batch)
+        model(self.input_batch)
 
     @parameterized.named_parameters(
         ("jit_compile_false", False), ("jit_compile_true", True)
@@ -76,7 +76,7 @@ class VideoClassifierTest(TestCase):
             num_classes=10,
             pooling=pooling,
         )
-        model.predict(self.input_batch)
+        model(self.input_batch)
 
     @pytest.mark.large  # Saving is slow, so mark these large.
     def test_saved_model(self):
