@@ -613,14 +613,24 @@ class VideoSwinBasicLayer(keras.Model):
         )
 
     def build(self, input_shape):
-        window_size, shift_size = get_window_size(
+        self.window_size, self.shift_size = get_window_size(
             input_shape[1:-1], self.window_size, self.shift_size
         )
-        depth_pad = self._compute_dim_padded(input_shape[1], window_size[0])
-        height_pad = self._compute_dim_padded(input_shape[2], window_size[1])
-        width_pad = self._compute_dim_padded(input_shape[3], window_size[2])
+        self.depth_pad = self._compute_dim_padded(
+            input_shape[1], self.window_size[0]
+        )
+        self.height_pad = self._compute_dim_padded(
+            input_shape[2], self.window_size[1]
+        )
+        self.width_pad = self._compute_dim_padded(
+            input_shape[3], self.window_size[2]
+        )
         self.attn_mask = compute_mask(
-            depth_pad, height_pad, width_pad, window_size, shift_size
+            self.depth_pad,
+            self.height_pad,
+            self.width_pad,
+            self.window_size,
+            self.shift_size,
         )
 
         # build blocks
@@ -658,19 +668,11 @@ class VideoSwinBasicLayer(keras.Model):
 
     def compute_output_shape(self, input_shape):
         if self.downsample is not None:
-            window_size, _ = get_window_size(
-                input_shape[1:-1], self.window_size, self.shift_size
-            )
-            depth_pad = self._compute_dim_padded(input_shape[1], window_size[0])
-            height_pad = self._compute_dim_padded(
-                input_shape[2], window_size[1]
-            )
-            width_pad = self._compute_dim_padded(input_shape[3], window_size[2])
             output_shape = (
                 input_shape[0],
-                depth_pad,
-                height_pad // 2,
-                width_pad // 2,
+                self.depth_pad,
+                self.height_pad // 2,
+                self.width_pad // 2,
                 2 * self.input_dim,
             )
             return output_shape
