@@ -70,7 +70,9 @@ class VideoClassifierTest(TestCase):
     )
     def test_pooling_arg_call(self, pooling):
         model = VideoClassifier(
-            backbone=VideoSwinBackbone(include_rescaling=False),
+            backbone=VideoSwinBackbone(
+                input_shape=(8, 224, 224, 3), include_rescaling=True
+            ),
             num_classes=10,
             pooling=pooling,
         )
