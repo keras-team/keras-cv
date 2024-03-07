@@ -210,7 +210,11 @@ class StableDiffusionBase:
 
         # Iterative reverse diffusion stage
         num_timesteps = 1000
-        ratio = (num_timesteps - 1) / (num_steps - 1)
+        ratio = (
+            (num_timesteps - 1) / (num_steps - 1)
+            if num_steps > 1
+            else num_timesteps
+        )
         timesteps = (np.arange(0, num_steps) * ratio).round().astype(np.int64)
 
         alphas, alphas_prev = self._get_initial_alphas(timesteps)
