@@ -46,7 +46,7 @@ backbone_presets_with_weights = {
             "description": (
                 "A tiny Video Swin backbone architecture. "
                 "It is pretrained on ImageNet 1K dataset, and "
-                "trained on Kinetics 400 dataset."
+                "trained on Kinetics 400 dataset. "
             ),
             "params": 27_850_470,
             "official_name": "VideoSwinT",
@@ -58,7 +58,10 @@ backbone_presets_with_weights = {
             "description": (
                 "A small Video Swin backbone architecture. "
                 "It is pretrained on ImageNet 1K dataset, and "
-                "trained on Kinetics 400 dataset."
+                "trained on Kinetics 400 dataset. "
+                "Published weight is capable of scoring "
+                "80.6% top1 and 94.5% top5 accuracy on the "
+                "Kinetics 400 dataset"
             ),
             "params": 49_509_078,
             "official_name": "VideoSwinS",
@@ -70,19 +73,40 @@ backbone_presets_with_weights = {
             "description": (
                 "A base Video Swin backbone architecture. "
                 "It is pretrained on ImageNet 1K dataset, and "
-                "trained on Kinetics 400 dataset."
+                "trained on Kinetics 400 dataset. "
+                "Published weight is capable of scoring "
+                "80.6% top1 and 94.6% top5 accuracy on the "
+                "Kinetics 400 dataset"
             ),
             "params": 87_638_984,
             "official_name": "VideoSwinB",
             "path": "video_swin",
         },
     },
-    "videoswin_base_kinetics600": {
+    "videoswin_base_kinetics400_imagenet22k": {
         "metadata": {
             "description": (
                 "A base Video Swin backbone architecture. "
                 "It is pretrained on ImageNet 22K dataset, and "
-                "trained on Kinetics 600 dataset."
+                "trained on Kinetics 400 dataset. "
+                "Published weight is capable of scoring "
+                "82.7% top1 and 95.5% top5 accuracy on the "
+                "Kinetics 400 dataset"
+            ),
+            "params": 87_638_984,
+            "official_name": "VideoSwinB",
+            "path": "video_swin",
+        },
+    },
+    "videoswin_base_kinetics600_imagenet22k": {
+        "metadata": {
+            "description": (
+                "A base Video Swin backbone architecture. "
+                "It is pretrained on ImageNet 22K dataset, and "
+                "trained on Kinetics 600 dataset. "
+                "Published weight is capable of scoring "
+                "84.0% top1 and 96.5% top5 accuracy on the "
+                "Kinetics 600 dataset"
             ),
             "params": 87_638_984,
             "official_name": "VideoSwinB",
@@ -94,7 +118,10 @@ backbone_presets_with_weights = {
             "description": (
                 "A base Video Swin backbone architecture. "
                 "It is pretrained on Kinetics 400 dataset, and "
-                "trained on Something Something V2 dataset."
+                "trained on Something Something V2 dataset. "
+                "Published weight is capable of scoring "
+                "69.6% top1 and 92.7% top5 accuracy on the "
+                "Kinetics 400 dataset"
             ),
             "params": 87_638_984,
             "official_name": "VideoSwinB",

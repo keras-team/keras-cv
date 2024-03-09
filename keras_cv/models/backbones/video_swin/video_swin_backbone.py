@@ -79,7 +79,7 @@ class VideoSwinBackbone(Backbone):
     model = VideoSwinSBackbone(
         include_rescaling=True, input_shape=(8, 256, 256, 3),
     )
-    videos = tf.ones((1, 8, 256, 256, 3))
+    videos = keras.ops.ones((1, 8, 256, 256, 3))
     outputs = model.predict(videos)
     ```
 

@@ -1,4 +1,4 @@
-# Copyright 2023 The KerasCV Authors
+# Copyright 2024 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -51,15 +51,15 @@ class VideoClassifier(Task):
     ```python
     input_data = keras.ops.ones(shape=(1, 32, 224, 224, 3))
 
-    # Pretrained classifier (e.g., for imagenet categories)
+    # Pretrained classifier (e.g., for kinetics categories)
     model = keras_cv.models.VideoClassifier.from_preset(
-        "videoswin_tiny_imagenet_classifier",
+        "videoswin_tiny_kinetics400_classifier",
     )
     output = model(input_data)
 
     # Pretrained backbone
     backbone = keras_cv.models.VideoSwinBackbone.from_preset(
-        "videoswin_tiny_imagenet",
+        "videoswin_tiny_kinetics400",
     )
     model = keras_cv.models.VideoClassifier(
         backbone=backbone,
@@ -69,7 +69,9 @@ class VideoClassifier(Task):
 
     # Randomly initialized backbone with a custom config
     model = keras_cv.models.VideoClassifier(
-        backbone=keras_cv.models.VideoSwinBackbone(),
+        backbone=keras_cv.models.VideoSwinBackbone(
+            include_rescaling=True
+        ),
         num_classes=400,
     )
     output = model(input_data)

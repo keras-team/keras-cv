@@ -24,7 +24,7 @@ from absl.testing import parameterized
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 from keras_cv.models.backbones.video_swin.video_swin_backbone import (
-    VideoSwinBackbone,  # TODO: update with aliases
+    VideoSwinBackbone,  # TODO: update with aliases (kaggle handle)
 )
 from keras_cv.models.classification.video_classifier import VideoClassifier
 from keras_cv.tests.test_case import TestCase

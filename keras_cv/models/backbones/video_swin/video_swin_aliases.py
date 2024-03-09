@@ -120,6 +120,16 @@ class VideoSwinBBackbone(VideoSwinBackbone):
             "videoswin_base_kinetics400": copy.deepcopy(
                 backbone_presets["videoswin_base_kinetics400"]
             ),
+            # TODO: update: should these be here or separate class for each!
+            # "videoswin_base_kinetics400_imagenet22k": copy.deepcopy(
+            #     backbone_presets["videoswin_base_kinetics400_imagenet22k"]
+            # ),
+            # "videoswin_base_kinetics600_imagenet22k": copy.deepcopy(
+            #     backbone_presets["videoswin_base_kinetics600_imagenet22k"]
+            # ),
+            # "videoswin_base_something_something_v2": copy.deepcopy(
+            #     backbone_presets["videoswin_base_something_something_v2"]
+            # ),
         }
 
     @classproperty
