@@ -52,7 +52,7 @@ class Posterization(BaseImageAugmentationLayer):
         dtype.
     ```
 
-     Call arguments:
+    Call arguments:
         inputs: input tensor in two possible formats:
             1. single 3D (HWC) image or 4D (NHWC) batch of images.
             2. A dict of tensors where the images are under `"images"` key.
