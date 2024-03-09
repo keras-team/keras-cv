@@ -37,7 +37,7 @@ class Posterization(BaseImageAugmentationLayer):
         bits: integer, the number of bits to keep for each channel. Must be a
             value between 1-8.
 
-     Usage:
+    Usage:
     ```python
     (images, labels), _ = keras.datasets.cifar10.load_data()
     print(images[0, 0, 0])
