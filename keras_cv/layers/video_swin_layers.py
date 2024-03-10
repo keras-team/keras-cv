@@ -393,24 +393,20 @@ class VideoSwinPatchMerging(layers.Layer):
             self.norm.build(
                 (batch_size, depth, height // 2, width // 2, 4 * channel)
             )
-        self.built = True
 
-    def call(self, x):
-        input_shape = ops.shape(x)
-        height, width = (
-            input_shape[2],
-            input_shape[3],
-        )
-
-        # padding if needed
-        paddings = [
+        # compute padding if needed
+        self.pads = [
             [0, 0],
             [0, 0],
             [0, ops.mod(height, 2)],
             [0, ops.mod(width, 2)],
             [0, 0],
         ]
-        x = ops.pad(x, paddings)
+        self.built = True
+
+    def call(self, x):
+        # padding if needed
+        x = ops.pad(x, self.pads)
         x0 = x[:, :, 0::2, 0::2, :]  # B D H/2 W/2 C
         x1 = x[:, :, 1::2, 0::2, :]  # B D H/2 W/2 C
         x2 = x[:, :, 0::2, 1::2, :]  # B D H/2 W/2 C
@@ -879,6 +875,21 @@ class VideoSwinTransformerBlock(keras.Model):
             drop_rate=self.drop_rate,
         )
         self.mlp.build((*input_shape[:-1], self.input_dim))
+
+        # compute padding if needed.
+        # pad input feature maps to multiples of window size.
+        _, depth, height, width, _ = input_shape
+        pad_l = pad_t = pad_d0 = 0
+        self.pad_d1 = ops.mod(-depth + self.window_size[0], self.window_size[0])
+        self.pad_b = ops.mod(-height + self.window_size[1], self.window_size[1])
+        self.pad_r = ops.mod(-width + self.window_size[2], self.window_size[2])
+        self.pads = [
+            [0, 0],
+            [pad_d0, self.pad_d1],
+            [pad_t, self.pad_b],
+            [pad_l, self.pad_r],
+            [0, 0],
+        ]
         self.built = True
 
     def first_forward(self, x, mask_matrix, training):
@@ -890,22 +901,10 @@ class VideoSwinTransformerBlock(keras.Model):
             input_shape[3],
             input_shape[4],
         )
-        window_size, shift_size = self.window_size, self.shift_size
         x = self.norm1(x)
 
-        # pad feature maps to multiples of window size
-        pad_l = pad_t = pad_d0 = 0
-        pad_d1 = ops.mod(-depth + window_size[0], window_size[0])
-        pad_b = ops.mod(-height + window_size[1], window_size[1])
-        pad_r = ops.mod(-width + window_size[2], window_size[2])
-        paddings = [
-            [0, 0],
-            [pad_d0, pad_d1],
-            [pad_t, pad_b],
-            [pad_l, pad_r],
-            [0, 0],
-        ]
-        x = ops.pad(x, paddings)
+        # apply padding if needed.
+        x = ops.pad(x, self.pads)
 
         input_shape = ops.shape(x)
         depth_pad, height_pad, width_pad = (
@@ -918,7 +917,11 @@ class VideoSwinTransformerBlock(keras.Model):
         if self.apply_cyclic_shift:
             shifted_x = ops.roll(
                 x,
-                shift=(-shift_size[0], -shift_size[1], -shift_size[2]),
+                shift=(
+                    -self.shift_size[0],
+                    -self.shift_size[1],
+                    -self.shift_size[2],
+                ),
                 axis=(1, 2, 3),
             )
             attn_mask = mask_matrix
@@ -927,7 +930,7 @@ class VideoSwinTransformerBlock(keras.Model):
             attn_mask = None
 
         # partition windows
-        x_windows = window_partition(shifted_x, window_size)
+        x_windows = window_partition(shifted_x, self.window_size)
 
         # get attentions params
         attn_windows = self.attn(x_windows, mask=attn_mask, training=training)
@@ -935,7 +938,7 @@ class VideoSwinTransformerBlock(keras.Model):
         # reverse the swin windows
         shifted_x = window_reverse(
             attn_windows,
-            window_size,
+            self.window_size,
             batch_size,
             depth_pad,
             height_pad,
@@ -946,7 +949,11 @@ class VideoSwinTransformerBlock(keras.Model):
         if self.apply_cyclic_shift:
             x = ops.roll(
                 shifted_x,
-                shift=(shift_size[0], shift_size[1], shift_size[2]),
+                shift=(
+                    self.shift_size[0],
+                    self.shift_size[1],
+                    self.shift_size[2],
+                ),
                 axis=(1, 2, 3),
             )
         else:
@@ -954,8 +961,10 @@ class VideoSwinTransformerBlock(keras.Model):
 
         # pad if required
         do_pad = ops.logical_or(
-            ops.greater(pad_d1, 0),
-            ops.logical_or(ops.greater(pad_r, 0), ops.greater(pad_b, 0)),
+            ops.greater(self.pad_d1, 0),
+            ops.logical_or(
+                ops.greater(self.pad_r, 0), ops.greater(self.pad_b, 0)
+            ),
         )
         x = ops.cond(
             do_pad, lambda: x[:, :depth, :height, :width, :], lambda: x
