@@ -45,11 +45,17 @@ ALIAS_DOCSTRING = """VideoSwin{size}Backbone model.
 class VideoSwinTBackbone(VideoSwinBackbone):
     def __new__(
         cls,
+        embed_dim=96,
+        depths=[2, 2, 6, 2],
+        num_heads=[3, 6, 12, 24],
         include_rescaling=True,
         **kwargs,
     ):
         kwargs.update(
             {
+                "embed_dim": embed_dim,
+                "depths": depths,
+                "num_heads": num_heads,
                 "include_rescaling": include_rescaling,
             }
         )
@@ -74,11 +80,17 @@ class VideoSwinTBackbone(VideoSwinBackbone):
 class VideoSwinSBackbone(VideoSwinBackbone):
     def __new__(
         cls,
+        embed_dim=96,
+        depths=[2, 2, 18, 2],
+        num_heads=[3, 6, 12, 24],
         include_rescaling=True,
         **kwargs,
     ):
         kwargs.update(
             {
+                "embed_dim": embed_dim,
+                "depths": depths,
+                "num_heads": num_heads,
                 "include_rescaling": include_rescaling,
             }
         )
@@ -103,11 +115,17 @@ class VideoSwinSBackbone(VideoSwinBackbone):
 class VideoSwinBBackbone(VideoSwinBackbone):
     def __new__(
         cls,
+        embed_dim=128,
+        depths=[2, 2, 18, 2],
+        num_heads=[4, 8, 16, 32],
         include_rescaling=True,
         **kwargs,
     ):
         kwargs.update(
             {
+                "embed_dim": embed_dim,
+                "depths": depths,
+                "num_heads": num_heads,
                 "include_rescaling": include_rescaling,
             }
         )
@@ -120,16 +138,6 @@ class VideoSwinBBackbone(VideoSwinBackbone):
             "videoswin_base_kinetics400": copy.deepcopy(
                 backbone_presets["videoswin_base_kinetics400"]
             ),
-            # TODO: update: should these be here or separate class for each!
-            # "videoswin_base_kinetics400_imagenet22k": copy.deepcopy(
-            #     backbone_presets["videoswin_base_kinetics400_imagenet22k"]
-            # ),
-            # "videoswin_base_kinetics600_imagenet22k": copy.deepcopy(
-            #     backbone_presets["videoswin_base_kinetics600_imagenet22k"]
-            # ),
-            # "videoswin_base_something_something_v2": copy.deepcopy(
-            #     backbone_presets["videoswin_base_something_something_v2"]
-            # ),
         }
 
     @classproperty
