@@ -102,7 +102,7 @@ class CLIPTest(TestCase):
         )
         self.assertAllClose(
             model.image_embeddings[:, :5],
-            [[0.023215,  0.026526,  0.008914, -0.091689,  0.021791]],
+            [[0.023215, 0.026526, 0.008914, -0.091689, 0.021791]],
         )
 
     @pytest.mark.large
