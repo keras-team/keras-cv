@@ -95,13 +95,6 @@ class CLIP(Task):
         self.transformer_layers = transformer_layers
 
         vision_heads = self.vision_width // 64
-        self.image_input = keras.layers.Input(shape=(None,), name="image")
-        self.text_input = keras.layers.Input(
-            shape=(None, None, self.context_length), name="text"
-        )
-        self.attention_mask_input = keras.layers.Input(
-            shape=(None, None, self.context_length), name="attention_mask"
-        )
         self.image_encoder = CLIPImageEncoder(
             input_resolution=self.image_resolution,
             patch_size=self.vision_patch_size,
