@@ -6,21 +6,18 @@ class AttentionPooling(layers.Layer):
     (https://arxiv.org/pdf/2205.01917.pdf), consisting of a Multiheaded Attention followed by Layer Normalization.
 
     Args:
-        proj_dim: The dimensions of the attention heads
+        head_dim: The dimensions of the attention heads
         num_heads: The number of attention heads in the multi-headed attention layer
     """
-    def __init__(self,
-                 proj_dim,
-                 num_heads,
-                 **kwargs):
+
+    def __init__(self, head_dim, num_heads, **kwargs):
         super().__init__(self, **kwargs)
 
-        self.proj_dim = proj_dim
+        self.head_dim = head_dim
         self.num_heads = num_heads
 
         self.multi_head_attn = layers.MultiHeadAttention(
-            self.num_heads,
-            self.proj_dim
+            self.num_heads, self.head_dim
         )
 
         self.layer_norm = layers.LayerNormalization()

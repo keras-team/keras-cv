@@ -11,84 +11,21 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import numpy as np
 from keras import Sequential
+from keras_nlp.layers import RotaryEmbedding
+from keras_nlp.layers import TransformerDecoder
+
 from keras_cv.api_export import keras_cv_export
-from keras_nlp.layers import RotaryEmbedding, TransformerDecoder
+from keras_cv.backend import ops
 from keras_cv.layers import TransformerEncoder as CVTransformerEncoder
-from keras_cv.models.task import Task
 from keras_cv.layers.attention_pooling import AttentionPooling
 from keras_cv.layers.vit_layers import PatchingAndEmbedding
+from keras_cv.models.task import Task
 
 
 @keras_cv_export(["keras_cv.models.coca"])
 class CoCa(Task):
-    def __init__(self,
-                 img_patch_size=18,
-                 encoder_depth=40,
-                 encoder_heads=16,
-                 encoder_intermediate_dim=6144,
-                 encoder_width=1408,
-                 unimodal_decoder_depth=18,
-                 multimodal_decoder_depth=18,
-                 decoder_intermediate_dim=5632,
-                 unimodal_decoder_heads=16,
-                 multimodal_decoder_heads=16,
-                 contrastive_query_length=1,
-                 captioning_query_length=256,
-                 contrastive_attn_heads=16,
-                 captioning_attn_heads=16,
-                 contrastive_loss_weight=0.5,
-                 captioning_loss_weight=0.5,
-                 **kwargs):
-        super().__init__(**kwargs)
-
-        self.img_patch_size = img_patch_size
-
-        self.encoder_depth = encoder_depth
-        self.encoder_heads = encoder_heads
-        self.encoder_width = encoder_width
-        self.encoder_intermediate_dim = encoder_intermediate_dim
-
-        self.unimodal_decoder_depth = unimodal_decoder_depth
-        self.multimodal_decoder_depth = multimodal_decoder_depth
-        self.decoder_intermediate_dim = decoder_intermediate_dim
-        self.unimodal_decoder_heads = unimodal_decoder_heads
-        self.multimodal_decoder_heads = multimodal_decoder_heads
-
-        self.contrastive_query_length = contrastive_query_length
-        self.contrastive_attn_heads = contrastive_attn_heads
-        self.contrastive_loss_weight = contrastive_loss_weight
-
-        self.captioning_query_length = captioning_query_length
-        self.captioning_attn_heads = captioning_attn_heads
-        self.captioning_loss_weight = captioning_loss_weight
-
-        # Layer Definitions
-        self.image_patching = PatchingAndEmbedding(self.encoder_width, self.img_patch_size)
-        self.image_encoder = Sequential([
-            CVTransformerEncoder(self.encoder_width, self.encoder_heads, self.encoder_intermediate_dim)
-            for _ in range(self.encoder_depth)
-        ])
-
-        self.text_embedding = RotaryEmbedding()
-        self.unimodal_text_decoder = Sequential([
-            TransformerDecoder(self.decoder_intermediate_dim, self.unimodal_decoder_heads)
-            for _ in range(self.unimodal_decoder_depth)
-        ])
-        self.multimodal_text_decoder = Sequential([
-            TransformerDecoder(self.decoder_intermediate_dim, self.multimodal_decoder_heads)
-            for _ in range(self.multimodal_decoder_depth)
-        ])
-
-        self.contrastive_attn_pooling = AttentionPooling(self.encoder_width, self.contrastive_attn_heads)
-        self.captioning_attn_pooling = AttentionPooling(self.encoder_width, self.captioning_attn_heads)
-
-        # These are learnable weights defined in build as per Keras recommendations
-        self.cls_token = None
-        self.contrastive_query = None
-        self.captioning_query = None
-    """ Contrastive Captioner foundational model implementation.
+    """Contrastive Captioner foundational model implementation.
 
     This model implements the "Contrastive Captioners are image-Text Foundational Models" by Yu, et al.
     (https://arxiv.org/pdf/2205.01917.pdf). In short, the coca model combines the ideas of Contrastive techniques
@@ -132,34 +69,132 @@ class CoCa(Task):
         captioning_loss_weight: weighting of captioning loss
     """
 
+    def __init__(
+        self,
+        img_patch_size=18,
+        encoder_depth=40,
+        encoder_heads=16,
+        encoder_intermediate_dim=6144,
+        encoder_width=1408,
+        unimodal_decoder_depth=18,
+        multimodal_decoder_depth=18,
+        decoder_intermediate_dim=5632,
+        unimodal_decoder_heads=16,
+        multimodal_decoder_heads=16,
+        contrastive_query_length=1,
+        captioning_query_length=256,
+        contrastive_attn_heads=16,
+        captioning_attn_heads=16,
+        contrastive_loss_weight=0.5,
+        captioning_loss_weight=0.5,
+        **kwargs,
+    ):
+        super().__init__(**kwargs)
+
+        self.img_patch_size = img_patch_size
+
+        self.encoder_depth = encoder_depth
+        self.encoder_heads = encoder_heads
+        self.encoder_width = encoder_width
+        self.encoder_intermediate_dim = encoder_intermediate_dim
+
+        self.unimodal_decoder_depth = unimodal_decoder_depth
+        self.multimodal_decoder_depth = multimodal_decoder_depth
+        self.decoder_intermediate_dim = decoder_intermediate_dim
+        self.unimodal_decoder_heads = unimodal_decoder_heads
+        self.multimodal_decoder_heads = multimodal_decoder_heads
+
+        self.contrastive_query_length = contrastive_query_length
+        self.contrastive_attn_heads = contrastive_attn_heads
+        self.contrastive_loss_weight = contrastive_loss_weight
+
+        self.captioning_query_length = captioning_query_length
+        self.captioning_attn_heads = captioning_attn_heads
+        self.captioning_loss_weight = captioning_loss_weight
+
+        # Layer Definitions
+        self.image_patching = PatchingAndEmbedding(
+            self.encoder_width, self.img_patch_size
+        )
+        self.image_encoder = Sequential(
+            [
+                CVTransformerEncoder(
+                    self.encoder_width,
+                    self.encoder_heads,
+                    self.encoder_intermediate_dim,
+                )
+                for _ in range(self.encoder_depth)
+            ]
+        )
+
+        self.text_embedding = RotaryEmbedding()
+        self.unimodal_text_decoder = Sequential(
+            [
+                TransformerDecoder(
+                    self.decoder_intermediate_dim, self.unimodal_decoder_heads
+                )
+                for _ in range(self.unimodal_decoder_depth)
+            ]
+        )
+        self.multimodal_text_decoder = Sequential(
+            [
+                TransformerDecoder(
+                    self.decoder_intermediate_dim, self.multimodal_decoder_heads
+                )
+                for _ in range(self.multimodal_decoder_depth)
+            ]
+        )
+
+        self.contrastive_attn_pooling = AttentionPooling(
+            self.encoder_width, self.contrastive_attn_heads
+        )
+        self.captioning_attn_pooling = AttentionPooling(
+            self.encoder_width, self.captioning_attn_heads
+        )
+
+        # These are learnable weights defined in build as per Keras recommendations
+        self.cls_token = None
+        self.contrastive_query = None
+        self.captioning_query = None
+
     def build(self, input_shape):
         super().build(input_shape)
 
         # Validate Input Shape
         if len(input_shape) < 2:
-            raise ValueError("Build arguments to coca expected to contain shapes of both text and image data; "
-                             f"got {len(input_shape)} shapes.")
+            raise ValueError(
+                "Build arguments to coca expected to contain shapes of both text and image data; "
+                f"got {len(input_shape)} shapes."
+            )
 
         images_shape = input_shape[0]
         text_shape = input_shape[1]
 
         if len(images_shape) != 4:
-            raise ValueError("Image shape expected to be of shape [batch_size, height, width, channels]. Instead got "
-                             f"shape: {images_shape}")
+            raise ValueError(
+                "Image shape expected to be of shape [batch_size, height, width, channels]. Instead got "
+                f"shape: {images_shape}"
+            )
         elif len(text_shape) != 2:
-            raise ValueError("Text shape expected to be of shape [batch_size, context_length]. Instead got shape"
-                             f": {text_shape}")
+            raise ValueError(
+                "Text shape expected to be of shape [batch_size, context_length]. Instead got shape"
+                f": {text_shape}"
+            )
 
         text_dim = text_shape[1]
         batch_size = images_shape[0]
         if batch_size != text_shape[0]:
-            raise ValueError(f"Differing batch sizes between images and texts input. {batch_size} vs {text_shape[0]}")
+            raise ValueError(
+                f"Differing batch sizes between images and texts input. {batch_size} vs {text_shape[0]}"
+            )
 
         # Build Layers
         self.image_patching.build(images_shape)
 
         # Add 1 for CLs token appended by patching
-        num_patches = (images_shape[1] // self.img_patch_size) * (images_shape[2] // self.img_patch_size) + 1
+        num_patches = (images_shape[1] // self.img_patch_size) * (
+            images_shape[2] // self.img_patch_size
+        ) + 1
         self.image_encoder.build((batch_size, self.encoder_width, num_patches))
 
         text_shape_with_cls_token = [s for s in text_shape]
@@ -168,19 +203,39 @@ class CoCa(Task):
 
         self.unimodal_text_decoder.build(text_shape_with_cls_token)
 
-        self.contrastive_attn_pooling.build((batch_size, num_patches, self.encoder_width))
-        self.captioning_attn_pooling.build((batch_size, num_patches, self.encoder_width))
+        self.contrastive_attn_pooling.build(
+            (batch_size, num_patches, self.encoder_width)
+        )
+        self.captioning_attn_pooling.build(
+            (batch_size, num_patches, self.encoder_width)
+        )
 
-        self.multimodal_text_decoder.build((batch_size, self.encoder_width, self.captioning_query_length),
-                                           text_shape_with_cls_token)
+        self.multimodal_text_decoder.build(
+            (batch_size, self.encoder_width, self.captioning_query_length),
+            text_shape_with_cls_token,
+        )
 
         # Learnable Weights
-        self.cls_token = self.add_weight(shape=(batch_size, 1, text_dim), name="cls_token", trainable=True)
+        self.cls_token = self.add_weight(
+            shape=(batch_size, 1, text_dim), name="cls_token", trainable=True
+        )
 
-        self.contrastive_query = self.add_weight(shape=(batch_size, self.encoder_width, self.contrastive_query_length),
-                                                 trainable=True)
-        self.captioning_query = self.add_weight(shape=(batch_size, self.encoder_width, self.captioning_query_length),
-                                                trainable=True)
+        self.contrastive_query = self.add_weight(
+            shape=(
+                batch_size,
+                self.encoder_width,
+                self.contrastive_query_length,
+            ),
+            trainable=True,
+        )
+        self.captioning_query = self.add_weight(
+            shape=(
+                batch_size,
+                self.encoder_width,
+                self.captioning_query_length,
+            ),
+            trainable=True,
+        )
 
     def call(self, images, texts):
         """
@@ -195,27 +250,39 @@ class CoCa(Task):
         Returns:
             Output: Output of the captioning Transformer Decoder with captioning cross-attention
         """
-        img_encoding = self.image_patching(images) # [batch_size, encoder_width, img_patches_len+1]
-        img_encoding = self.image_encoder(img_encoding)  # [batch_size, img_patches_len+1, encoder_width]
+        img_encoding = self.image_patching(
+            images
+        )  # [batch_size, encoder_width, img_patches_len+1]
+        img_encoding = self.image_encoder(
+            img_encoding
+        )  # [batch_size, img_patches_len+1, encoder_width]
 
         # This is only needed for loss calculations
         # contrastive_feature = self.con_attn_pooling(self.contrastive_query, img_encoding)
 
         # [batch_size, encoder_width, captioning_query_length]
-        captioning_feature = self.captioning_attn_pooling(self.captioning_query, img_encoding)
+        captioning_feature = self.captioning_attn_pooling(
+            self.captioning_query, img_encoding
+        )
 
         # [batch_size, sequence_length+1, text_dim]
-        text_tokens = np.concatenate(texts, self.cls_token)
-        mask = np.concatenate((np.ones_like(texts), np.zeros_like(self.cls_token)))
+        text_tokens = ops.concatenate(texts, self.cls_token)
+        mask = ops.concatenate(
+            (ops.ones_like(texts), ops.zeros_like(self.cls_token))
+        )
 
         # [batch_size, sequence_length+1, text_dim]
         embed_text = self.text_embedding(text_tokens)
-        unimodal_out = self.unimodal_text_decoder(embed_text, attention_mask=mask)
+        unimodal_out = self.unimodal_text_decoder(
+            embed_text, attention_mask=mask
+        )
 
         # [batch_size, sequence_length, captioning_query_length], notice we remove the CLs token
-        multimodal_out = self.multimodal_text_decoder(unimodal_out[:, :-1, :],
-                                                      encoder_sequence=captioning_feature,
-                                                      decoder_attention_mask=mask)
+        multimodal_out = self.multimodal_text_decoder(
+            unimodal_out[:, :-1, :],
+            encoder_sequence=captioning_feature,
+            decoder_attention_mask=mask,
+        )
 
         return multimodal_out
 
