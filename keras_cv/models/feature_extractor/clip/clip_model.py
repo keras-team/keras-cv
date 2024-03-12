@@ -61,6 +61,26 @@ class CLIP(Task):
             transformer-based text encoder.
         transformer_layers (int): The number of layers in the transformer-based
             text encoder.
+    Example:
+    ```python
+    processor = CLIPProcessor(
+      input_resolution=224,
+      "path_to_vocab.json",
+      "path_to_merges.txt"
+      )
+    processed_image = processor.process_images(["cat.jpg"])
+    processed_text, attention_mask = processor.process_texts(
+      ["mountains", "cat on tortoise", "two cats"]
+      )
+    model = CLIP.from_preset("clip-vit-base-patch16")
+    image_logits, text_logits = model(
+            {
+                "image": processed_image,
+                "text": processed_text,
+                "attention_mask": attention_mask,
+            }
+        )
+    ```
     """
 
     def __init__(
