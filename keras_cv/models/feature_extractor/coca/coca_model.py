@@ -18,7 +18,7 @@ from keras_nlp.layers import TransformerDecoder
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import ops
 from keras_cv.layers import TransformerEncoder as CVTransformerEncoder
-from keras_cv.layers.attention_pooling import AttentionPooling
+from keras_cv.models.feature_extractor.coca.coca_layers import CoCaAttentionPooling
 from keras_cv.layers.vit_layers import PatchingAndEmbedding
 from keras_cv.models.task import Task
 
@@ -145,10 +145,10 @@ class CoCa(Task):
             ]
         )
 
-        self.contrastive_attn_pooling = AttentionPooling(
+        self.contrastive_attn_pooling = CoCaAttentionPooling(
             self.encoder_width, self.contrastive_attn_heads
         )
-        self.captioning_attn_pooling = AttentionPooling(
+        self.captioning_attn_pooling = CoCaAttentionPooling(
             self.encoder_width, self.captioning_attn_heads
         )
 
@@ -204,10 +204,12 @@ class CoCa(Task):
         self.unimodal_text_decoder.build(text_shape_with_cls_token)
 
         self.contrastive_attn_pooling.build(
-            (batch_size, num_patches, self.encoder_width)
+            ((batch_size, self.encoder_width, self.contrastive_query_length),
+             (batch_size, num_patches, self.encoder_width))
         )
         self.captioning_attn_pooling.build(
-            (batch_size, num_patches, self.encoder_width)
+            ((batch_size, self.encoder_width, self.captioning_query_length),
+             (batch_size, num_patches, self.encoder_width))
         )
 
         self.multimodal_text_decoder.build(
