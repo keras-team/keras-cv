@@ -41,8 +41,6 @@ from keras_cv.models.segmentation.segment_anything.sam_transformer import (
 )
 from keras_cv.tests.test_case import TestCase
 
-keras.config.disable_traceback_filtering()
-
 
 class SAMTest(TestCase):
     def setUp(self):
