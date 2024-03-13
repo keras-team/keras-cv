@@ -145,7 +145,7 @@ class RandomFlipTest(TestCase):
         self.assertAllEqual(
             ops.convert_to_numpy(layer(inputs)).dtype, "float32"
         )
-        layer = RandomFlip(dtype="uint8")
+        layer = RandomFlip(dtype="int8_from_float32")
         self.assertAllEqual(ops.convert_to_numpy(layer(inputs)).dtype, "uint8")
 
     def test_augment_bounding_box_batched_input(self):

@@ -228,5 +228,7 @@ class RandomTranslationTest(TestCase):
         self.assertAllEqual(
             ops.convert_to_numpy(layer(inputs)).dtype, "float32"
         )
-        layer = preprocessing.RandomTranslation(0.5, 0.6, dtype="uint8")
+        layer = preprocessing.RandomTranslation(
+            0.5, 0.6, dtype="int8_from_float32"
+        )
         self.assertAllEqual(ops.convert_to_numpy(layer(inputs)).dtype, "uint8")

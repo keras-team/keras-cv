@@ -187,7 +187,7 @@ class ResizingTest(TestCase):
         self.assertAllEqual(
             ops.convert_to_numpy(layer(inputs)).dtype, "float32"
         )
-        layer = cv_layers.Resizing(2, 2, dtype="uint8")
+        layer = cv_layers.Resizing(2, 2, dtype="int8_from_float32")
         self.assertAllEqual(ops.convert_to_numpy(layer(inputs)).dtype, "uint8")
 
     @parameterized.named_parameters(

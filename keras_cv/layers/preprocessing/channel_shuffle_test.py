@@ -121,7 +121,7 @@ class ChannelShuffleTest(TestCase):
         self.assertAllEqual(
             ops.convert_to_numpy(layer(inputs)).dtype, "float32"
         )
-        layer = ChannelShuffle(groups=1, dtype="uint8")
+        layer = ChannelShuffle(groups=1, dtype="int8_from_float32")
         self.assertAllEqual(ops.convert_to_numpy(layer(inputs)).dtype, "uint8")
 
     def test_config(self):
