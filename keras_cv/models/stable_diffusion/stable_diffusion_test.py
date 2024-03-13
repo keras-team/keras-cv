@@ -73,6 +73,14 @@ class StableDiffusionTest(TestCase):
         )
 
     @pytest.mark.extra_large
+    def test_num_steps_equal_to_one_no_error(self):
+        stablediff = StableDiffusion(128, 128)
+        _ = stablediff.generate_image(
+            stablediff.encode_text("thou shall not render"),
+            num_steps=1,
+        )
+
+    @pytest.mark.extra_large
     def test_mixed_precision(self):
         try:
             mixed_precision.set_global_policy("mixed_float16")

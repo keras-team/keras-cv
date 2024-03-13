@@ -37,7 +37,7 @@ class Posterization(BaseImageAugmentationLayer):
         bits: integer, the number of bits to keep for each channel. Must be a
             value between 1-8.
 
-     Usage:
+    Usage:
     ```python
     (images, labels), _ = keras.datasets.cifar10.load_data()
     print(images[0, 0, 0])
@@ -52,7 +52,7 @@ class Posterization(BaseImageAugmentationLayer):
         dtype.
     ```
 
-     Call arguments:
+    Call arguments:
         inputs: input tensor in two possible formats:
             1. single 3D (HWC) image or 4D (NHWC) batch of images.
             2. A dict of tensors where the images are under `"images"` key.
