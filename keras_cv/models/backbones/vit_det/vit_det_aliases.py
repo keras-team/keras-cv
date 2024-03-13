@@ -14,6 +14,7 @@
 
 import copy
 
+from keras_cv.api_export import keras_cv_export
 from keras_cv.models.backbones.vit_det.vit_det_backbone import ViTDetBackbone
 from keras_cv.models.backbones.vit_det.vit_det_backbone_presets import (
     backbone_presets,
@@ -41,6 +42,7 @@ ALIAS_DOCSTRING = """VitDet{size}Backbone model.
 """  # noqa: E501
 
 
+@keras_cv_export("keras_cv.models.ViTDetBBackbone")
 class ViTDetBBackbone(ViTDetBackbone):
     def __new__(
         cls,
@@ -64,6 +66,7 @@ class ViTDetBBackbone(ViTDetBackbone):
         return cls.presets
 
 
+@keras_cv_export("keras_cv.models.ViTDetLBackbone")
 class ViTDetLBackbone(ViTDetBackbone):
     def __new__(
         cls,
@@ -87,6 +90,7 @@ class ViTDetLBackbone(ViTDetBackbone):
         return cls.presets
 
 
+@keras_cv_export("keras_cv.models.ViTDetHBackbone")
 class ViTDetHBackbone(ViTDetBackbone):
     def __new__(
         cls,
