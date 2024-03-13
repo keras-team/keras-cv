@@ -1,7 +1,9 @@
-import keras
 import numpy as np
 
 import keras_cv
+
+import os
+os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 
 # Note: We absolutely need this while creating the Backbone
 batch_size = 32

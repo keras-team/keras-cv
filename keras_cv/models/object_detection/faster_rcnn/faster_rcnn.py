@@ -12,18 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from keras_cv import models
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
-from keras_cv.backend import ops
 from keras_cv.bounding_box.converters import _decode_deltas_to_boxes
 from keras_cv.bounding_box.utils import _clip_boxes
 from keras_cv.layers.object_detection.anchor_generator import AnchorGenerator
-from keras_cv.layers.object_detection.box_matcher import BoxMatcher
 from keras_cv.layers.object_detection.roi_generator import ROIGenerator
-from keras_cv.layers.object_detection.roi_pool import ROIPooler
-from keras_cv.layers.object_detection.roi_sampler import _ROISampler
-from keras_cv.models.object_detection.__internal__ import unpack_input
+from keras_cv.layers.object_detection.roi_align import _ROIAligner
 from keras_cv.models.object_detection.faster_rcnn import FeaturePyramid
 from keras_cv.models.object_detection.faster_rcnn import RPNHead
 from keras_cv.models.task import Task
@@ -56,7 +51,7 @@ class FasterRCNN(Task):
             backbone, extractor_layer_names, extractor_levels
         )
         feature_pyramid = feature_pyramid or FeaturePyramid()
-        image_shape = feature_extractor.input_shape[1:]  # excule the batch size
+        image_shape = feature_extractor.input_shape[1:]  # exclude the batch size
         images = keras.layers.Input(
             image_shape, batch_size=batch_size, name="images"
         )
@@ -132,19 +127,10 @@ class FasterRCNN(Task):
         print(f"{rois.shape=}")
 
         # Using the regions call the rcnn head
-        roi_pooler = ROIPooler(
-            bounding_box_format=bounding_box_format,
-            target_size=[7, 7],
-            image_shape=image_shape,
-        )
-        feature_map_pooled = dict()
-        for key, value in feature_map.items():
-            feature_map_pooled[key] = roi_pooler(value, rois)
-
-        print("feature_map_pooled")
-        for key, value in feature_map_pooled.item():
-            print(f"{key}: {value.shape}")
-
+        roi_pooler = _ROIAligner(bounding_box_format="yxyx")
+        feature_map = roi_pooler(features=feature_map, boxes=rois)
+        print(f"{feature_map.shape=}")
+        
         #
         # # Create the anchor generator
         # scales = [2**x for x in [0]]
