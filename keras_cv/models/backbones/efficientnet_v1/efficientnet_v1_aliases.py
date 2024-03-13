@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from keras_cv.api_export import keras_cv_export
 from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_backbone import (
     EfficientNetV1Backbone,
 )
@@ -33,6 +34,7 @@ ALIAS_DOCSTRING = """Instantiates the {name} architecture.
 """  # noqa: E501
 
 
+@keras_cv_export("keras_cv.models.EfficientNetV1B0Backbone")
 class EfficientNetV1B0Backbone(EfficientNetV1Backbone):
     def __new__(
         cls,
@@ -63,6 +65,7 @@ class EfficientNetV1B0Backbone(EfficientNetV1Backbone):
         return {}
 
 
+@keras_cv_export("keras_cv.models.EfficientNetV1B1Backbone")
 class EfficientNetV1B1Backbone(EfficientNetV1Backbone):
     def __new__(
         cls,
@@ -93,6 +96,7 @@ class EfficientNetV1B1Backbone(EfficientNetV1Backbone):
         return {}
 
 
+@keras_cv_export("keras_cv.models.EfficientNetV1B2Backbone")
 class EfficientNetV1B2Backbone(EfficientNetV1Backbone):
     def __new__(
         cls,
@@ -123,6 +127,7 @@ class EfficientNetV1B2Backbone(EfficientNetV1Backbone):
         return {}
 
 
+@keras_cv_export("keras_cv.models.EfficientNetV1B3Backbone")
 class EfficientNetV1B3Backbone(EfficientNetV1Backbone):
     def __new__(
         cls,
@@ -153,6 +158,7 @@ class EfficientNetV1B3Backbone(EfficientNetV1Backbone):
         return {}
 
 
+@keras_cv_export("keras_cv.models.EfficientNetV1B4Backbone")
 class EfficientNetV1B4Backbone(EfficientNetV1Backbone):
     def __new__(
         cls,
@@ -183,6 +189,7 @@ class EfficientNetV1B4Backbone(EfficientNetV1Backbone):
         return {}
 
 
+@keras_cv_export("keras_cv.models.EfficientNetV1B5Backbone")
 class EfficientNetV1B5Backbone(EfficientNetV1Backbone):
     def __new__(
         cls,
@@ -213,6 +220,7 @@ class EfficientNetV1B5Backbone(EfficientNetV1Backbone):
         return {}
 
 
+@keras_cv_export("keras_cv.models.EfficientNetV1B6Backbone")
 class EfficientNetV1B6Backbone(EfficientNetV1Backbone):
     def __new__(
         cls,
@@ -243,6 +251,7 @@ class EfficientNetV1B6Backbone(EfficientNetV1Backbone):
         return {}
 
 
+@keras_cv_export("keras_cv.models.EfficientNetV1B7Backbone")
 class EfficientNetV1B7Backbone(EfficientNetV1Backbone):
     def __new__(
         cls,
