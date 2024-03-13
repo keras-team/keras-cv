@@ -16,11 +16,6 @@ import keras
 import tensorflow as tf
 import tree
 
-if hasattr(keras, "src"):
-    keras_backend = keras.src.backend
-else:
-    keras_backend = keras.backend
-
 from keras_cv import bounding_box
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import config
