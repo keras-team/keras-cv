@@ -54,7 +54,7 @@ class RescalingTest(TestCase):
         self.assertAllEqual(
             ops.convert_to_numpy(layer(inputs)).dtype.name, "float32"
         )
-        layer = Rescaling(0.5, dtype="int8_from_float32")
+        layer = Rescaling(0.5, dtype="uint8")
         self.assertAllEqual(
             ops.convert_to_numpy(layer(inputs)).dtype.name, "uint8"
         )

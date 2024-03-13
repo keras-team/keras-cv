@@ -257,7 +257,7 @@ class RandomCropTest(TestCase):
         self.assertAllEqual(
             ops.convert_to_numpy(layer(inputs)).dtype, "float32"
         )
-        layer = RandomCrop(2, 2, dtype="int8_from_float32")
+        layer = RandomCrop(2, 2, dtype="uint8")
         self.assertAllEqual(ops.convert_to_numpy(layer(inputs)).dtype, "uint8")
 
     def test_config(self):

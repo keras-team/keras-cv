@@ -87,7 +87,7 @@ class RandomRotationTest(TestCase):
         self.assertAllEqual(
             ops.convert_to_numpy(layer(inputs)).dtype, "float32"
         )
-        layer = RandomRotation(0.5, dtype="int8_from_float32")
+        layer = RandomRotation(0.5, dtype="uint8")
         self.assertAllEqual(ops.convert_to_numpy(layer(inputs)).dtype, "uint8")
 
     def test_ragged_bounding_boxes(self):

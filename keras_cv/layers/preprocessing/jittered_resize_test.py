@@ -227,7 +227,7 @@ class JitteredResizeTest(TestCase):
         layer = layers.JitteredResize(
             target_size=self.target_size,
             scale_factor=(3 / 4, 4 / 3),
-            dtype="int8_from_float32",
+            dtype="uint8",
         )
         self.assertAllEqual(ops.convert_to_numpy(layer(inputs)).dtype, "uint8")
 
