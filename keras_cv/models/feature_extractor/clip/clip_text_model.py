@@ -11,11 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 from keras_cv.models.feature_extractor.clip.clip_encoder import CLIPEncoder
 
 
+@keras_cv_export("keras_cv.models.feature_extractors.CLIPTextEncoder")
 class CLIPTextEncoder(keras.Model):
     def __init__(
         self,

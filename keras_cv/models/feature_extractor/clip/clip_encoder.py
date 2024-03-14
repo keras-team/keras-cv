@@ -13,6 +13,7 @@
 # limitations under the License.
 import numpy as np
 
+from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 
@@ -31,6 +32,7 @@ def get_initializer(initializer_range=0.02):
     return keras.initializers.TruncatedNormal(stddev=initializer_range)
 
 
+@keras_cv_export("keras_cv.models.feature_extractor.QuickGELU")
 class QuickGELU(keras.layers.Layer):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -39,6 +41,7 @@ class QuickGELU(keras.layers.Layer):
         return x * ops.sigmoid(1.702 * x)
 
 
+@keras_cv_export("keras_cv.models.feature_extractor.ResidualAttention")
 class ResidualAttention(keras.layers.Layer):
     def __init__(
         self,
@@ -136,6 +139,7 @@ class ResidualAttention(keras.layers.Layer):
         return config
 
 
+@keras_cv_export("keras_cv.models.feature_extractor.CLIPEncoder")
 class CLIPEncoder(keras.layers.Layer):
     def __init__(self, width, num_layers, heads, **kwargs):
         super().__init__(**kwargs)
@@ -185,6 +189,7 @@ class CLIPEncoder(keras.layers.Layer):
         return config
 
 
+@keras_cv_export("keras_cv.models.feature_extractor.CLIPAttention")
 class CLIPAttention(keras.layers.Layer):
     """
     Adapted from https://github.com/huggingface/transformers/blob/main/src/transformers/models/clip/modeling_clip.py # noqa: E501

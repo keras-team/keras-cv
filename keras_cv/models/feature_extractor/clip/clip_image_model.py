@@ -12,12 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 from keras_cv.models.feature_extractor.clip.clip_encoder import CLIPEncoder
 from keras_cv.models.feature_extractor.clip.clip_encoder import get_initializer
 
 
+@keras_cv_export("keras_cv.models.feature_extractor.CLIPPatchingAndEmbedding")
 class CLIPPatchingAndEmbedding(keras.layers.Layer):
     def __init__(
         self, width, patch_size, input_resolution, output_dim, **kwargs
@@ -95,6 +97,7 @@ class CLIPPatchingAndEmbedding(keras.layers.Layer):
         return config
 
 
+@keras_cv_export("keras_cv.models.feature_extractor.CLIPImageEncoder")
 class CLIPImageEncoder(keras.Model):
     def __init__(
         self,
