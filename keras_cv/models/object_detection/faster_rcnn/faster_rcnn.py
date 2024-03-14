@@ -12,31 +12,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import tree
+
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
-from keras_cv.models.object_detection.__internal__ import unpack_input
 from keras_cv.bounding_box.converters import _decode_deltas_to_boxes
 from keras_cv.bounding_box.utils import _clip_boxes
 from keras_cv.layers.object_detection.anchor_generator import AnchorGenerator
-from keras_cv.layers.object_detection.roi_generator import ROIGenerator
 from keras_cv.layers.object_detection.box_matcher import BoxMatcher
 from keras_cv.layers.object_detection.roi_align import _ROIAligner
+from keras_cv.layers.object_detection.roi_generator import ROIGenerator
 from keras_cv.layers.object_detection.roi_sampler import _ROISampler
 from keras_cv.layers.object_detection.rpn_label_encoder import _RpnLabelEncoder
+from keras_cv.models.object_detection.__internal__ import unpack_input
 from keras_cv.models.object_detection.faster_rcnn import FeaturePyramid
-from keras_cv.models.object_detection.faster_rcnn import RPNHead
 from keras_cv.models.object_detection.faster_rcnn import RCNNHead
+from keras_cv.models.object_detection.faster_rcnn import RPNHead
 from keras_cv.models.task import Task
 from keras_cv.utils.train import get_feature_extractor
-import tree
+
 BOX_VARIANCE = [0.1, 0.1, 0.2, 0.2]
 
-class StopGradientLayer(keras.layers.Layer):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-    
-    def call(self, x):
-        return keras.ops.stop_gradient(x)
 
 # TODO(tanzheny): add more configurations
 @keras_cv_export("keras_cv.models.FasterRCNN")
@@ -63,10 +59,16 @@ class FasterRCNN(Task):
         feature_extractor = get_feature_extractor(
             backbone, extractor_layer_names, extractor_levels
         )
-        feature_pyramid = feature_pyramid or FeaturePyramid(name="feature_pyramid")
-        image_shape = feature_extractor.input_shape[1:]  # exclude the batch size
+        feature_pyramid = feature_pyramid or FeaturePyramid(
+            name="feature_pyramid"
+        )
+        image_shape = feature_extractor.input_shape[
+            1:
+        ]  # exclude the batch size
         images = keras.layers.Input(
-            image_shape, batch_size=batch_size, name="images",
+            image_shape,
+            batch_size=batch_size,
+            name="images",
         )
 
         # 2. Create the anchors
@@ -101,7 +103,9 @@ class FasterRCNN(Task):
 
         # 4. Get the Region Proposal Boxes and Scores
         num_anchors_per_location = len(scales) * len(aspect_ratios)
-        rpn_head = RPNHead(num_anchors_per_location=num_anchors_per_location, name="rpn_head")
+        rpn_head = RPNHead(
+            num_anchors_per_location=num_anchors_per_location, name="rpn_head"
+        )
         # [BS, num_anchors, 4], [BS, num_anchors, 1]
         rpn_boxes, rpn_scores = rpn_head(feature_map)
 
@@ -136,20 +140,29 @@ class FasterRCNN(Task):
 
         # 8. Reshape the feature map [BS, H*W*K]
         feature_map = keras.ops.reshape(
-            feature_map, newshape=keras.ops.shape(rois)[:2] + (-1,),
+            feature_map,
+            newshape=keras.ops.shape(rois)[:2] + (-1,),
         )
-        
+
         # 9. Pass the feature map to RCNN head
         # [BS, H*W*K, 4], [BS, H*W*K, num_classes + 1]
-        rcnn_head = rcnn_head or RCNNHead(num_classes=num_classes, name="rcnn_head")
+        rcnn_head = rcnn_head or RCNNHead(
+            num_classes=num_classes, name="rcnn_head"
+        )
         box_pred, cls_pred = rcnn_head(feature_map=feature_map)
 
         # 10. Create the model using Functional API
         inputs = {"images": images}
         box_pred = keras.layers.Concatenate(axis=1, name="box")([box_pred])
-        cls_pred = keras.layers.Concatenate(axis=1, name="classification")([cls_pred])
-        rpn_box_pred = keras.layers.Concatenate(axis=1, name="rpn_box")([rpn_box_pred])
-        rpn_cls_pred = keras.layers.Concatenate(axis=1, name="rpn_classification")([rpn_cls_pred])
+        cls_pred = keras.layers.Concatenate(axis=1, name="classification")(
+            [cls_pred]
+        )
+        rpn_box_pred = keras.layers.Concatenate(axis=1, name="rpn_box")(
+            [rpn_box_pred]
+        )
+        rpn_cls_pred = keras.layers.Concatenate(
+            axis=1, name="rpn_classification"
+        )([rpn_cls_pred])
         outputs = {
             "box": box_pred,
             "classification": cls_pred,
@@ -207,46 +220,10 @@ class FasterRCNN(Task):
         box_loss = _parse_box_loss(box_loss)
         classification_loss = _parse_classification_loss(classification_loss)
 
-        # if hasattr(box_loss, "bounding_box_format"):
-        #     if box_loss.bounding_box_format != self.bounding_box_format:
-        #         raise ValueError(
-        #             "Wrong `bounding_box_format` passed to `box_loss` in "
-        #             "`RetinaNet.compile()`. Got "
-        #             "`box_loss.bounding_box_format="
-        #             f"{box_loss.bounding_box_format}`, want "
-        #             "`box_loss.bounding_box_format="
-        #             f"{self.bounding_box_format}`"
-        #         )
-        # if hasattr(classification_loss, "from_logits"):
-        #     if not classification_loss.from_logits:
-        #         raise ValueError(
-        #             "FasterRCNN.compile() expects `from_logits` to be True for "
-        #             "`classification_loss`. Got "
-        #             "`classification_loss.from_logits="
-        #             f"{classification_loss.from_logits}`"
-        #         )
-
         rpn_box_loss = _parse_box_loss(rpn_box_loss)
-        rpn_classification_loss = _parse_classification_loss(rpn_classification_loss)
-        
-        # if hasattr(rpn_box_loss, "bounding_box_format"):
-        #     if rpn_box_loss.bounding_box_format != self.bounding_box_format:
-        #         raise ValueError(
-        #             "Wrong `bounding_box_format` passed to `box_loss` in "
-        #             "`RetinaNet.compile()`. Got "
-        #             "`box_loss.bounding_box_format="
-        #             f"{box_loss.bounding_box_format}`, want "
-        #             "`box_loss.bounding_box_format="
-        #             f"{self.bounding_box_format}`"
-        #         )
-        # if hasattr(rpn_classification_loss, "from_logits"):
-        #     if not rpn_classification_loss.from_logits:
-        #         raise ValueError(
-        #             "FasterRCNN.compile() expects `from_logits` to be True for "
-        #             "`classification_loss`. Got "
-        #             "`classification_loss.from_logits="
-        #             f"{classification_loss.from_logits}`"
-        #         )
+        rpn_classification_loss = _parse_classification_loss(
+            rpn_classification_loss
+        )
 
         self.rpn_box_loss = rpn_box_loss
         self.rpn_cls_loss = rpn_classification_loss
@@ -281,7 +258,7 @@ class FasterRCNN(Task):
         local_batch = keras.ops.shape(images)[0]
         image_shape = keras.ops.shape(images)[1:]
         anchors = self.anchor_generator(image_shape=image_shape)
-        
+
         # 2. Label with the anchors -- exclusive to compute_loss
         (
             rpn_box_targets,
@@ -296,9 +273,11 @@ class FasterRCNN(Task):
             gt_boxes=gt_boxes,
             gt_classes=gt_classes,
         )
-        
+
         # 3. Computing the weights
-        rpn_box_weights /= self.rpn_labeler.samples_per_image * local_batch * 0.25
+        rpn_box_weights /= (
+            self.rpn_labeler.samples_per_image * local_batch * 0.25
+        )
         rpn_cls_weights /= self.rpn_labeler.samples_per_image * local_batch
 
         #######################################################################
@@ -348,17 +327,18 @@ class FasterRCNN(Task):
 
         # [BS, H*W*K]
         feature_map = keras.ops.reshape(
-            feature_map, newshape=keras.ops.shape(rois)[:2] + (-1,),
+            feature_map,
+            newshape=keras.ops.shape(rois)[:2] + (-1,),
         )
-        
+
         # [BS, H*W*K, 4], [BS, H*W*K, num_classes + 1]
         box_pred, cls_pred = self.rcnn_head(feature_map=feature_map)
 
         y_true = {
-        "rpn_box": rpn_box_targets,
-        "rpn_classification": rpn_cls_targets,
-        "box": box_targets,
-        "classification": cls_targets,
+            "rpn_box": rpn_box_targets,
+            "rpn_classification": rpn_cls_targets,
+            "box": box_targets,
+            "classification": cls_targets,
         }
         y_pred = {
             "rpn_box": rpn_box_pred,
@@ -372,7 +352,7 @@ class FasterRCNN(Task):
             "box": box_weights,
             "classification": cls_weights,
         }
-        
+
         return super().compute_loss(
             x=x, y=y_true, y_pred=y_pred, sample_weight=weights, **kwargs
         )
@@ -405,6 +385,7 @@ def _parse_box_loss(loss):
         "Expected `box_loss` to be either a Keras Loss, "
         f"callable, or the string 'SmoothL1', 'Huber'. Got loss={loss}."
     )
+
 
 def _parse_classification_loss(loss):
     if not isinstance(loss, str):
