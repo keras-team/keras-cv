@@ -17,7 +17,7 @@ from keras_cv.backend import ops
 from keras_cv.models.feature_extractor.clip.clip_encoder import CLIPEncoder
 
 
-@keras_cv_export("keras_cv.models.feature_extractors.CLIPTextEncoder")
+@keras_cv_export("keras_cv.models.feature_extractor.CLIPTextEncoder")
 class CLIPTextEncoder(keras.Model):
     def __init__(
         self,

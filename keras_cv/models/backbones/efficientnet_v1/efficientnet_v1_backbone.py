@@ -24,7 +24,7 @@ from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_backbone_presets 
 from keras_cv.utils.python_utils import classproperty
 
 
-@keras_cv_export("keras_cv.models.EfficientNetLiteB4Backbone")
+@keras_cv_export("keras_cv.models.EfficientNetV1Backbone")
 @keras.saving.register_keras_serializable(package="keras_cv.models")
 class EfficientNetV1Backbone(Backbone):
     """Instantiates the EfficientNetV1 architecture.
