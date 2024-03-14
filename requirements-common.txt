@@ -4,6 +4,7 @@ regex
 pandas
 kagglehub
 keras-core>=0.1.6
+keras_nlp
 tensorflow-datasets
 pycocotools
 # Tooling deps.
