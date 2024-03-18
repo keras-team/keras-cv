@@ -74,11 +74,11 @@ class TestVideoSwinSBackbone(TestCase):
     @pytest.mark.extra_large
     def test_can_run_on_gray_video(self):
         model = VideoSwinBackbone(
-            include_rescaling=False, 
-            input_shape=(96, 96, 96, 1), 
-            window_size=[6, 6, 6]
+            include_rescaling=False,
+            input_shape=(96, 96, 96, 1),
+            window_size=[6, 6, 6],
         )
-        x = np.ones((1, 8, 224, 224, 3))
+        x = np.ones((1, 96, 96, 96, 1))
         y = np.zeros((1, 48, 3, 3, 768))
         model.compile(optimizer="adam", loss="mse", metrics=["mse"])
         model.fit(x, y, epochs=1)
