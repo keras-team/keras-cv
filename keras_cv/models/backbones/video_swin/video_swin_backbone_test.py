@@ -59,3 +59,14 @@ class TestVideoSwinSBackbone(TestCase):
         y = np.zeros((1, 16, 7, 7, 768))
         model.compile(optimizer="adam", loss="mse", metrics=["mse"])
         model.fit(x, y, epochs=1)
+
+    @pytest.mark.extra_large
+    def test_can_run_in_mixed_precision(self):
+        keras.mixed_precision.set_global_policy("mixed_float16")
+        model = VideoSwinBackbone(
+            include_rescaling=False, input_shape=(8, 224, 224, 3)
+        )
+        x = np.ones((1, 8, 224, 224, 3))
+        y = np.zeros((1, 4, 7, 7, 768))
+        model.compile(optimizer="adam", loss="mse", metrics=["mse"])
+        model.fit(x, y, epochs=1)
