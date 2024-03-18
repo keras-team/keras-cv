@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from keras_cv.api_export import keras_cv_export
 from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_backbone import (  # noqa: E501
     EfficientNetLiteBackbone,
 )
@@ -41,6 +42,7 @@ ALIAS_DOCSTRING = """Instantiates the {name} architecture.
 """  # noqa: E501
 
 
+@keras_cv_export("keras_cv.models.EfficientNetLiteB0Backbone")
 class EfficientNetLiteB0Backbone(EfficientNetLiteBackbone):
     def __new__(
         cls,
@@ -73,6 +75,7 @@ class EfficientNetLiteB0Backbone(EfficientNetLiteBackbone):
         return {}
 
 
+@keras_cv_export("keras_cv.models.EfficientNetLiteB1Backbone")
 class EfficientNetLiteB1Backbone(EfficientNetLiteBackbone):
     def __new__(
         cls,
@@ -105,6 +108,7 @@ class EfficientNetLiteB1Backbone(EfficientNetLiteBackbone):
         return {}
 
 
+@keras_cv_export("keras_cv.models.EfficientNetLiteB2Backbone")
 class EfficientNetLiteB2Backbone(EfficientNetLiteBackbone):
     def __new__(
         cls,
@@ -137,6 +141,7 @@ class EfficientNetLiteB2Backbone(EfficientNetLiteBackbone):
         return {}
 
 
+@keras_cv_export("keras_cv.models.EfficientNetLiteB3Backbone")
 class EfficientNetLiteB3Backbone(EfficientNetLiteBackbone):
     def __new__(
         cls,
@@ -169,6 +174,7 @@ class EfficientNetLiteB3Backbone(EfficientNetLiteBackbone):
         return {}
 
 
+@keras_cv_export("keras_cv.models.EfficientNetLiteB4Backbone")
 class EfficientNetLiteB4Backbone(EfficientNetLiteBackbone):
     def __new__(
         cls,

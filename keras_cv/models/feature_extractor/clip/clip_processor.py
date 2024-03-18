@@ -19,7 +19,7 @@ from keras_cv.backend import ops
 from keras_cv.models.feature_extractor.clip.clip_tokenizer import CLIPTokenizer
 
 
-@keras_cv_export("keras_cv.models.feature_extractors.CLIPProcessor")
+@keras_cv_export("keras_cv.models.feature_extractor.CLIPProcessor")
 class CLIPProcessor:
     """
     CLIPProcessor is a utility class that provides functionality for processing

@@ -14,10 +14,12 @@
 
 from keras import layers
 
+from keras_cv.api_export import keras_cv_export
 from keras_cv.models import utils
 from keras_cv.models.backbones.backbone import Backbone
 
 
+@keras_cv_export("keras_cv.models.VGG16Backbone")
 class VGG16Backbone(Backbone):
     """
     Reference:
