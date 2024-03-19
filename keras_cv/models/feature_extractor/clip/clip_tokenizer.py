@@ -149,8 +149,9 @@ if BytePairTokenizer:
                 self._bpe_merge_and_update_cache(unseen_tokens)
                 return self.cache.lookup(flat_tokens)
 
-            # If `has_unseen_words == True`, it means not all tokens are in cache,
-            # we will process the unseen tokens. Otherwise return the cache lookup.
+            # If `has_unseen_words == True`, it means not all tokens are,
+            # in cache we will process the unseen tokens. Otherwise
+            # return the cache lookup.
             tokenized_words = tf.cond(
                 has_unseen_words,
                 process_unseen_tokens,
