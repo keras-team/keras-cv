@@ -11,7 +11,7 @@ class CoCaAttentionPooling(layers.Layer):
     """
 
     def __init__(self, head_dim, num_heads, **kwargs):
-        super().__init__(self, **kwargs)
+        super().__init__(**kwargs)
 
         self.head_dim = head_dim
         self.num_heads = num_heads
@@ -23,7 +23,7 @@ class CoCaAttentionPooling(layers.Layer):
         self.layer_norm = layers.LayerNormalization()
 
     def build(self, input_shape):
-        super().build(input_shape)
+        # super().build(input_shape)
 
         if(len(input_shape) < 2):
             raise ValueError("Building CoCa Attention Pooling requires input shape of shape (query_shape, value_shape)")

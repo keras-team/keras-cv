@@ -70,24 +70,24 @@ class CoCa(Task):
     """
 
     def __init__(
-        self,
-        img_patch_size=18,
-        encoder_depth=40,
-        encoder_heads=16,
-        encoder_intermediate_dim=6144,
-        encoder_width=1408,
-        unimodal_decoder_depth=18,
-        multimodal_decoder_depth=18,
-        decoder_intermediate_dim=5632,
-        unimodal_decoder_heads=16,
-        multimodal_decoder_heads=16,
-        contrastive_query_length=1,
-        captioning_query_length=256,
-        contrastive_attn_heads=16,
-        captioning_attn_heads=16,
-        contrastive_loss_weight=0.5,
-        captioning_loss_weight=0.5,
-        **kwargs,
+            self,
+            img_patch_size=18,
+            encoder_depth=40,
+            encoder_heads=16,
+            encoder_intermediate_dim=6144,
+            encoder_width=1408,
+            unimodal_decoder_depth=18,
+            multimodal_decoder_depth=18,
+            decoder_intermediate_dim=5632,
+            unimodal_decoder_heads=16,
+            multimodal_decoder_heads=16,
+            contrastive_query_length=1,
+            captioning_query_length=256,
+            contrastive_attn_heads=16,
+            captioning_attn_heads=16,
+            contrastive_loss_weight=0.5,
+            captioning_loss_weight=0.5,
+            **kwargs,
     ):
         super().__init__(**kwargs)
 
@@ -136,14 +136,12 @@ class CoCa(Task):
                 for _ in range(self.unimodal_decoder_depth)
             ]
         )
-        self.multimodal_text_decoder = Sequential(
-            [
-                TransformerDecoder(
-                    self.decoder_intermediate_dim, self.multimodal_decoder_heads
-                )
-                for _ in range(self.multimodal_decoder_depth)
-            ]
-        )
+        self.multimodal_text_decoders = [
+            TransformerDecoder(
+                self.decoder_intermediate_dim, self.multimodal_decoder_heads
+            )
+            for _ in range(self.multimodal_decoder_depth)
+        ]
 
         self.contrastive_attn_pooling = CoCaAttentionPooling(
             self.encoder_width, self.contrastive_attn_heads
@@ -158,8 +156,6 @@ class CoCa(Task):
         self.captioning_query = None
 
     def build(self, input_shape):
-        super().build(input_shape)
-
         # Validate Input Shape
         if len(input_shape) < 2:
             raise ValueError(
@@ -175,13 +171,13 @@ class CoCa(Task):
                 "Image shape expected to be of shape [batch_size, height, width, channels]. Instead got "
                 f"shape: {images_shape}"
             )
-        elif len(text_shape) != 2:
+        elif len(text_shape) != 3:
             raise ValueError(
-                "Text shape expected to be of shape [batch_size, context_length]. Instead got shape"
+                "Text shape expected to be of shape [batch_size, context_length, text_dim]. Instead got shape"
                 f": {text_shape}"
             )
 
-        text_dim = text_shape[1]
+        text_dim = text_shape[-1]
         batch_size = images_shape[0]
         if batch_size != text_shape[0]:
             raise ValueError(
@@ -193,9 +189,9 @@ class CoCa(Task):
 
         # Add 1 for CLs token appended by patching
         num_patches = (images_shape[1] // self.img_patch_size) * (
-            images_shape[2] // self.img_patch_size
+                images_shape[2] // self.img_patch_size
         ) + 1
-        self.image_encoder.build((batch_size, self.encoder_width, num_patches))
+        self.image_encoder.build((batch_size, num_patches, self.encoder_width))
 
         text_shape_with_cls_token = [s for s in text_shape]
         text_shape_with_cls_token[1] += 1
@@ -212,10 +208,9 @@ class CoCa(Task):
              (batch_size, num_patches, self.encoder_width))
         )
 
-        self.multimodal_text_decoder.build(
-            (batch_size, self.encoder_width, self.captioning_query_length),
-            text_shape_with_cls_token,
-        )
+        for text_decoder in self.multimodal_text_decoders:
+            text_decoder.build((batch_size, self.encoder_width, self.captioning_query_length),
+                                text_shape)
 
         # Learnable Weights
         self.cls_token = self.add_weight(
@@ -239,22 +234,23 @@ class CoCa(Task):
             trainable=True,
         )
 
+        self.built = True
+
     def call(self, images, texts):
         """
         Forward pass of the Coca Model from raw image and text data
 
         Args:
             images: [batch_size, height, width, channels] representing images
-            texts: Tensor, typically represented as [batch_size, sequence_length, feature_length] or
-                [batch_size, sequence_length, num_heads, feature_length]. The sequence_length and/or feature_length
-                are required.
+            texts: Tensor, typically represented as [batch_size, sequence_length, feature_length].
+                The sequence_length and/or feature_length are required.
 
         Returns:
             Output: Output of the captioning Transformer Decoder with captioning cross-attention
         """
         img_encoding = self.image_patching(
             images
-        )  # [batch_size, encoder_width, img_patches_len+1]
+        )  # [batch_size, img_patches_len+1, encoder_width]
         img_encoding = self.image_encoder(
             img_encoding
         )  # [batch_size, img_patches_len+1, encoder_width]
@@ -280,11 +276,13 @@ class CoCa(Task):
         )
 
         # [batch_size, sequence_length, captioning_query_length], notice we remove the CLs token
-        multimodal_out = self.multimodal_text_decoder(
-            unimodal_out[:, :-1, :],
-            encoder_sequence=captioning_feature,
-            decoder_attention_mask=mask,
-        )
+        multimodal_out = unimodal_out[:, :-1, :]
+        for decoder in self.multimodal_text_decoders:
+            multimodal_out = decoder(
+                multimodal_out,
+                encoder_sequence=captioning_feature,
+                decoder_attention_mask=mask
+            )
 
         return multimodal_out
 
@@ -311,3 +309,11 @@ class CoCa(Task):
             }
         )
         return config
+
+    @classmethod
+    def from_config(cls, config):
+        return cls(**config)
+
+    def load_own_variables(self, store):
+        print(store)
+        super().load_own_variables(store)
