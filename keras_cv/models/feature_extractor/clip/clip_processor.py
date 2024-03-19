@@ -12,14 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-try:
-    from keras_nlp.layers import StartEndPacker
-except ImportError:
-    keras_nlp = None
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 from keras_cv.models.feature_extractor.clip.clip_tokenizer import CLIPTokenizer
+
+try:
+    from keras_nlp.layers import StartEndPacker
+except ImportError:
+    keras_nlp = None
 
 
 @keras_cv_export("keras_cv.models.feature_extractors.CLIPProcessor")
