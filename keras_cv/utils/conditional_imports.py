@@ -33,6 +33,11 @@ try:
 except ImportError:
     pycocotools = None
 
+try:
+    import keras_nlp
+except ImportError:
+    keras_nlp = None
+
 
 def assert_cv2_installed(symbol_name):
     if cv2 is None:
@@ -69,4 +74,13 @@ def assert_pycocotools_installed(symbol_name):
             f"{symbol_name} requires the `pycocotools` package. "
             "Please install the package using "
             "`pip install pycocotools`."
+        )
+
+
+def assert_keras_nlp_installed(symbol_name):
+    if keras_nlp is None:
+        raise ImportError(
+            f"{symbol_name} requires the `keras_nlp` package. "
+            "Please install the package using "
+            "`pip install keras_nlp`."
         )

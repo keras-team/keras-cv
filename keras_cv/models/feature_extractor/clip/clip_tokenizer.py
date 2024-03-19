@@ -16,10 +16,9 @@ import tensorflow as tf
 import tensorflow_text as tf_text
 
 try:
-    import keras_nlp
     from keras_nlp.tokenizers import BytePairTokenizer
 except ImportError:
-    keras_nlp = None
+    BytePairTokenizer = None
 
 # As python and TF handles special spaces differently, we need to
 # manually handle special spaces during string split.
@@ -104,83 +103,82 @@ def remove_strings_from_inputs(tensor, string_to_remove):
     return result
 
 
-class CLIPTokenizer(BytePairTokenizer):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        if keras_nlp is None:
-            raise ValueError(
-                "ClipTokenizer requires keras-nlp. Please install "
-                "using pip `pip install -U keras-nlp && pip install -U keras`"
+if BytePairTokenizer:
+    class CLIPTokenizer(BytePairTokenizer):
+        def __init__(self, **kwargs):
+            super().__init__(**kwargs)
+
+        def _bpe_merge_and_update_cache(self, tokens):
+            """Process unseen tokens and add to cache."""
+            words = self._transform_bytes(tokens)
+            tokenized_words = self._bpe_merge(words)
+
+            # For each word, join all its token by a whitespace,
+            # e.g., ["dragon", "fly"] => "dragon fly" for hash purpose.
+            tokenized_words = tf.strings.reduce_join(
+                tokenized_words,
+                axis=1,
+            )
+            self.cache.insert(tokens, tokenized_words)
+
+        def tokenize(self, inputs):
+            self._check_vocabulary()
+            if not isinstance(inputs, (tf.Tensor, tf.RaggedTensor)):
+                inputs = tf.convert_to_tensor(inputs)
+
+            if self.add_prefix_space:
+                inputs = tf.strings.join([" ", inputs])
+
+            scalar_input = inputs.shape.rank == 0
+            if scalar_input:
+                inputs = tf.expand_dims(inputs, 0)
+
+            raw_tokens = split_strings_for_bpe(inputs, self.unsplittable_tokens)
+            token_row_splits = raw_tokens.row_splits
+            flat_tokens = raw_tokens.flat_values
+            # Check cache.
+            cache_lookup = self.cache.lookup(flat_tokens)
+            cache_mask = cache_lookup == ""
+
+            has_unseen_words = tf.math.reduce_any(
+                (cache_lookup == "") & (flat_tokens != "")
             )
 
-    def _bpe_merge_and_update_cache(self, tokens):
-        """Process unseen tokens and add to cache."""
-        words = self._transform_bytes(tokens)
-        tokenized_words = self._bpe_merge(words)
+            def process_unseen_tokens():
+                unseen_tokens = tf.boolean_mask(flat_tokens, cache_mask)
+                self._bpe_merge_and_update_cache(unseen_tokens)
+                return self.cache.lookup(flat_tokens)
 
-        # For each word, join all its token by a whitespace,
-        # e.g., ["dragon", "fly"] => "dragon fly" for hash purpose.
-        tokenized_words = tf.strings.reduce_join(
-            tokenized_words,
-            axis=1,
-        )
-        self.cache.insert(tokens, tokenized_words)
+            # If `has_unseen_words == True`, it means not all tokens are in cache,
+            # we will process the unseen tokens. Otherwise return the cache lookup.
+            tokenized_words = tf.cond(
+                has_unseen_words,
+                process_unseen_tokens,
+                lambda: cache_lookup,
+            )
+            tokens = tf.strings.split(tokenized_words, sep=" ")
+            if self.compute_dtype != tf.string:
+                # Encode merged tokens.
+                tokens = self.token_to_id_map.lookup(tokens)
 
-    def tokenize(self, inputs):
-        self._check_vocabulary()
-        if not isinstance(inputs, (tf.Tensor, tf.RaggedTensor)):
-            inputs = tf.convert_to_tensor(inputs)
+            # Unflatten to match input.
+            tokens = tf.RaggedTensor.from_row_splits(
+                tokens.flat_values,
+                tf.gather(tokens.row_splits, token_row_splits),
+            )
 
-        if self.add_prefix_space:
-            inputs = tf.strings.join([" ", inputs])
+            # Convert to a dense output if `sequence_length` is set.
+            if self.sequence_length:
+                output_shape = tokens.shape.as_list()
+                output_shape[-1] = self.sequence_length
+                tokens = tokens.to_tensor(shape=output_shape)
 
-        scalar_input = inputs.shape.rank == 0
-        if scalar_input:
-            inputs = tf.expand_dims(inputs, 0)
+            # Convert to a dense output if input in scalar
+            if scalar_input:
+                tokens = tf.squeeze(tokens, 0)
+                tf.ensure_shape(tokens, shape=[self.sequence_length])
 
-        raw_tokens = split_strings_for_bpe(inputs, self.unsplittable_tokens)
-        token_row_splits = raw_tokens.row_splits
-        flat_tokens = raw_tokens.flat_values
-        # Check cache.
-        cache_lookup = self.cache.lookup(flat_tokens)
-        cache_mask = cache_lookup == ""
+            return tokens
 
-        has_unseen_words = tf.math.reduce_any(
-            (cache_lookup == "") & (flat_tokens != "")
-        )
-
-        def process_unseen_tokens():
-            unseen_tokens = tf.boolean_mask(flat_tokens, cache_mask)
-            self._bpe_merge_and_update_cache(unseen_tokens)
-            return self.cache.lookup(flat_tokens)
-
-        # If `has_unseen_words == True`, it means not all tokens are in cache,
-        # we will process the unseen tokens. Otherwise return the cache lookup.
-        tokenized_words = tf.cond(
-            has_unseen_words,
-            process_unseen_tokens,
-            lambda: cache_lookup,
-        )
-        tokens = tf.strings.split(tokenized_words, sep=" ")
-        if self.compute_dtype != tf.string:
-            # Encode merged tokens.
-            tokens = self.token_to_id_map.lookup(tokens)
-
-        # Unflatten to match input.
-        tokens = tf.RaggedTensor.from_row_splits(
-            tokens.flat_values,
-            tf.gather(tokens.row_splits, token_row_splits),
-        )
-
-        # Convert to a dense output if `sequence_length` is set.
-        if self.sequence_length:
-            output_shape = tokens.shape.as_list()
-            output_shape[-1] = self.sequence_length
-            tokens = tokens.to_tensor(shape=output_shape)
-
-        # Convert to a dense output if input in scalar
-        if scalar_input:
-            tokens = tf.squeeze(tokens, 0)
-            tf.ensure_shape(tokens, shape=[self.sequence_length])
-
-        return tokens
+else:
+    CLIPTokenizer = None
