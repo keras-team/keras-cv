@@ -18,6 +18,7 @@ from keras_cv.backend import ops
 from keras_cv.models.feature_extractor.clip.clip_tokenizer import CLIPTokenizer
 
 try:
+    import keras_nlp
     from keras_nlp.layers import StartEndPacker
 except ImportError:
     keras_nlp = None
