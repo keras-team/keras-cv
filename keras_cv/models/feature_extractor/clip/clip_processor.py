@@ -11,12 +11,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from keras_nlp.layers import StartEndPacker
 
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 from keras_cv.models.feature_extractor.clip.clip_tokenizer import CLIPTokenizer
+
+try:
+    import keras_nlp
+    from keras_nlp.layers import StartEndPacker
+except ImportError:
+    keras_nlp = None
 
 
 @keras_cv_export("keras_cv.models.feature_extractor.CLIPProcessor")
@@ -45,6 +50,11 @@ class CLIPProcessor:
     """
 
     def __init__(self, input_resolution, vocabulary, merges, **kwargs):
+        if keras_nlp is None:
+            raise ValueError(
+                "ClipTokenizer requires keras-nlp. Please install "
+                "using pip `pip install -U keras-nlp && pip install -U keras`"
+            )
         self.input_resolution = input_resolution
         self.vocabulary = vocabulary
         self.merges = merges
