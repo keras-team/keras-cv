@@ -40,7 +40,7 @@ class ROIPooler(keras.layers.Layer):
         image_shape: List of Tuple of 3 integers, or `TensorShape` of the input
             image shape.
 
-    Usage:
+    Example:
     ```python
     feature_map = tf.random.normal([2, 16, 16, 512])
     roi_pooler = ROIPooler(bounding_box_format="yxyx", target_size=[7, 7],

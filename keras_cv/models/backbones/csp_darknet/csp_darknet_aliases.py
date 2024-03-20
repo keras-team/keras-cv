@@ -41,7 +41,7 @@ ALIAS_DOCSTRING = """CSPDarkNetBackbone model with {stackwise_channels} channels
             to use as image input for the model.
         input_shape: optional shape tuple, defaults to (None, None, 3).
 
-    Examples:
+    Example:
     ```python
     input_data = tf.ones(shape=(8, 224, 224, 3))
 

@@ -35,7 +35,7 @@ class DropPath(keras.layers.Layer):
         rate: float, the probability of the residual branch being dropped.
         seed: (Optional) integer. Used to create a random seed.
 
-    Usage:
+    Example:
     `DropPath` can be used in any network as follows:
     ```python
 

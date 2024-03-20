@@ -53,7 +53,7 @@ class RandomBrightness(VectorizedBaseImageAugmentationLayer):
       be clipped to the range `[0, 255]`, the valid range of RGB colors, and
       rescaled based on the `value_range` if needed.
 
-    Usage:
+    Example:
     ```python
     (images, labels), _ = keras.datasets.cifar10.load_data()
     random_brightness = keras_cv.layers.preprocessing.RandomBrightness()

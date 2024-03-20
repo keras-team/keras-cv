@@ -42,7 +42,7 @@ class GIoULoss(keras.losses.Loss):
         - [GIoU paper](https://arxiv.org/pdf/1902.09630)
         - [TFAddons Implementation](https://www.tensorflow.org/addons/api_docs/python/tfa/losses/GIoULoss)
 
-    Sample Usage:
+    Example:
     ```python
     y_true = np.random.uniform(size=(5, 10, 5), low=0, high=10)
     y_pred = np.random.uniform(size=(5, 10, 4), low=0, high=10)

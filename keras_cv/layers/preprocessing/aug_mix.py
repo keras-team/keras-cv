@@ -60,7 +60,7 @@ class AugMix(BaseImageAugmentationLayer):
         - [Official Code](https://github.com/google-research/augmix)
         - [Unofficial TF Code](https://github.com/szacho/augmix-tf)
 
-    Sample Usage:
+    Example:
     ```python
     (images, labels), _ = keras.datasets.cifar10.load_data()
     augmix = keras_cv.layers.AugMix([0, 255])

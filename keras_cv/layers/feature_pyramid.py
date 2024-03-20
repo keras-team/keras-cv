@@ -68,7 +68,7 @@ class FeaturePyramid(keras.layers.Layer):
             levels. Defaults to None, and a `keras.Conv2D` layer with kernel 3x3
             will be created for each pyramid level.
 
-    Sample Usage:
+    Example:
     ```python
 
     inp = keras.layers.Input((384, 384, 3))

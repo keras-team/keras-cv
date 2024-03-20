@@ -31,7 +31,7 @@ ALIAS_DOCSTRING = """VitDet{size}Backbone model.
     For transfer learning use cases, make sure to read the
     [guide to transfer learning & fine-tuning](https://keras.io/guides/transfer_learning/).
 
-    Examples:
+    Example:
     ```python
     input_data = np.ones(shape=(1, 1024, 1024, 3))
 

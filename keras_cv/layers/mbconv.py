@@ -85,7 +85,7 @@ class MBConvBlock(keras.layers.Layer):
             block
 
 
-        Example usage:
+        Example:
 
         ```
         inputs = tf.random.normal(shape=(1, 64, 64, 32), dtype=tf.float32)

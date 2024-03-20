@@ -50,7 +50,7 @@ class OldChannelShuffle(BaseImageAugmentationLayer):
         training: A boolean argument that determines whether the call should be
             run in inference mode or training mode, defaults to True.
 
-    Usage:
+    Example:
     ```python
     (images, labels), _ = keras.datasets.cifar10.load_data()
     channel_shuffle = keras_cv.layers.ChannelShuffle()

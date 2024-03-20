@@ -28,7 +28,7 @@ ALIAS_DOCSTRING = """SegFormer model.
         backbone: a KerasCV backbone for feature extraction.
         num_classes: the number of classes for segmentation, including the background class.
 
-    Examples:
+    Example:
     ```python
     input_data = tf.ones(shape=(8, 224, 224, 3))
 

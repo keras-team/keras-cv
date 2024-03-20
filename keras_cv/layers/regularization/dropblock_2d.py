@@ -48,7 +48,7 @@ class DropBlock2D(keras.layers.Layer):
         seed: integer. To use as random seed.
         name: string. The name of the layer.
 
-    Usage:
+    Examples:
     DropBlock2D can be used inside a `keras.Model`:
     ```python
     # (...)

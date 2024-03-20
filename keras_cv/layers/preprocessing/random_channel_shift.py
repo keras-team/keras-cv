@@ -49,7 +49,7 @@ class RandomChannelShift(BaseImageAugmentationLayer):
             less channels.
         seed: Integer. Used to create a random seed.
 
-    Usage:
+    Example:
     ```python
     (images, labels), _ = keras.datasets.cifar10.load_data()
     rgb_shift = keras_cv.layers.RandomChannelShift(value_range=(0, 255),

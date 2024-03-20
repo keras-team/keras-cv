@@ -45,7 +45,7 @@ class SegFormerMultiheadAttention(keras.layers.Layer):
             sr_ratio: integer, the sequence reduction ratio to perform
                 on the sequence before key and value projections.
 
-        Basic usage:
+        Example:
 
         ```
         tensor = tf.random.uniform([1, 196, 32])

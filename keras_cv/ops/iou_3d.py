@@ -29,7 +29,7 @@ def iou_3d(y_true, y_pred):
     https://github.com/keras-team/keras-cv/blob/master/keras_cv/bounding_box_3d/formats.py
     for more details on supported bounding box formats.
 
-    Sample Usage:
+    Example:
     ```python
     y_true = [[0, 0, 0, 2, 2, 2, 0], [1, 1, 1, 2, 2, 2, 3 * math.pi / 4]]
     y_pred = [[1, 1, 1, 2, 2, 2, math.pi / 4], [1, 1, 1, 2, 2, 2, 0]]

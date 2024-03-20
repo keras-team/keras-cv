@@ -44,7 +44,7 @@ class PatchingAndEmbedding(layers.Layer):
         Patchified and linearly projected input images, including a prepended
         learnable class token with shape (batch, num_patches+1, project_dim)
 
-    Basic usage:
+    Example:
 
     ```
     images = #... batch of images

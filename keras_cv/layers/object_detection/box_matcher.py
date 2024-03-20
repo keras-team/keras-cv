@@ -67,7 +67,7 @@ class BoxMatcher(keras.layers.Layer):
         ValueError: if `thresholds` not sorted or
         len(`match_values`) != len(`thresholds`) + 1
 
-    Usage:
+    Example:
 
     ```python
     box_matcher = keras_cv.layers.BoxMatcher([0.3, 0.7], [-1, 0, 1])

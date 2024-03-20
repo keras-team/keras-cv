@@ -63,7 +63,7 @@ class EfficientNetLiteBackbone(Backbone):
         input_tensor: optional Keras tensor (i.e. output of `keras.layers.Input()`)
             to use as image input for the model.
 
-    Usage:
+    Example:
     ```python
     # Construct an EfficientNetLite from a preset:
     efficientnet = models.EfficientNetLiteBackbone.from_preset(

@@ -115,7 +115,7 @@ class Task(keras.Model):
                 initialization, Defaults to `None`.If `None`, the preset
                 value will be used.
 
-        Examples:
+        Example:
         ```python
         # Load architecture and weights from preset
         model = keras_cv.models.{{model_name}}.from_preset(

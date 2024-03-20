@@ -231,7 +231,7 @@ class FasterRCNN(keras.Model):
     References:
         - [FasterRCNN](https://arxiv.org/pdf/1506.01497.pdf)
 
-    Usage:
+    Example:
     ```python
     retinanet = keras_cv.models.FasterRCNN(
         num_classes=20,

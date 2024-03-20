@@ -35,7 +35,7 @@ class FourierMix(BaseImageAugmentationLayer):
     References:
         - [FMix paper](https://arxiv.org/abs/2002.12047).
 
-    Sample usage:
+    Example:
     ```python
     (images, labels), _ = keras.datasets.cifar10.load_data()
     fourier_mix = keras_cv.layers.preprocessing.FourierMix(0.5)

@@ -53,7 +53,7 @@ class OldJitteredResize(BaseImageAugmentationLayer):
     are translated and scaled according to the random scaling and random
     cropping.
 
-    Usage:
+    Example:
     ```python
     train_ds = load_object_detection_dataset()
     jittered_resize = layers.JitteredResize(

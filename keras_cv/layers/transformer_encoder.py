@@ -38,7 +38,7 @@ class TransformerEncoder(layers.Layer):
         layer_norm_epsilon: default 1e-06, the epsilon for `LayerNormalization`
             layers
 
-    Basic usage:
+    Example:
 
     ```
     project_dim = 1024

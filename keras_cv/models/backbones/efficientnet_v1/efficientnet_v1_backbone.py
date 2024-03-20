@@ -63,7 +63,7 @@ class EfficientNetV1Backbone(Backbone):
         stackwise_squeeze_and_excite_ratios: list of ints, the squeeze and
             excite ratios passed to the squeeze and excitation blocks.
 
-    Usage:
+    Example:
     ```python
     # Construct an EfficientNetV1 from a preset:
     efficientnet = keras_cv.models.EfficientNetV1Backbone.from_preset(

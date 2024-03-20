@@ -42,7 +42,7 @@ class OldGrayscale(BaseImageAugmentationLayer):
             after the `Grayscale` operation:
                  a. (..., height, width, 1) if output_channels = 1
                  b. (..., height, width, 3) if output_channels = 3.
-    Usage:
+    Example:
     ```python
     (images, labels), _ = keras.datasets.cifar10.load_data()
     to_grayscale = keras_cv.layers.preprocessing.Grayscale()
