@@ -545,6 +545,7 @@ class VideoSwinWindowAttention(keras.Model):
         rel_pos_bias = ops.take(
             self.relative_position_bias_table,
             self.relative_position_index[:depth, :depth],
+            axis=0,
         )
         rel_pos_bias = ops.reshape(rel_pos_bias, [depth, depth, -1])
         rel_pos_bias = ops.transpose(rel_pos_bias, [2, 0, 1])
