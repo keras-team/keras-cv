@@ -1,4 +1,4 @@
-# Tensorflow cpu-only version.
+# TensorFlow cpu-only version.
 tensorflow-cpu>=2.16.1
 
 # Torch cpu-only version.

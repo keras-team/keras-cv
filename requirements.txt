@@ -1,4 +1,4 @@
-# Tensorflow.
+# TensorFlow.
 tensorflow-cpu>=2.16.1
 
 # Torch.
