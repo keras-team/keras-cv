@@ -33,12 +33,17 @@ MERGE_PATH = keras.utils.get_file(
     None,
     "https://storage.googleapis.com/keras-cv/models/clip/merges.txt",
 )
+MODEL_PATH = keras.utils.get_file(
+    None,
+    "https://storage.googleapis.com/keras-cv/models/clip/clip-vit-base-patch32.weights.h5",  # noqa: E501
+)
 
 
 class CLIPTest(TestCase):
     @pytest.mark.large
     def test_clip_model_golden_values(self):
-        model = CLIP.from_preset("clip-vit-base-patch32")
+        model = CLIP()
+        model.load_weights(MODEL_PATH)
         processed_image = np.ones(shape=[1, 224, 224, 3])
         processed_text = np.ones(shape=[3, 77])
         attention_mask = np.ones(shape=[3, 77])
@@ -89,7 +94,8 @@ class CLIPTest(TestCase):
 
     @pytest.mark.large
     def test_image_encoder_golden_values(self):
-        model = CLIP.from_preset("clip-vit-base-patch32")
+        model = CLIP()
+        model.load_weights(MODEL_PATH)
         processed_image = np.ones(shape=[1, 224, 224, 3])
         processed_text = np.ones(shape=[3, 77])
         attention_mask = np.ones(shape=[3, 77])
@@ -108,6 +114,7 @@ class CLIPTest(TestCase):
     @pytest.mark.large
     def test_text_encoder_golden_values(self):
         model = CLIP()
+        model.load_weights(MODEL_PATH)
         processed_image = np.ones(shape=[1, 224, 224, 3])
         processed_text = np.ones(shape=[3, 77])
         attention_mask = np.ones(shape=[3, 77])

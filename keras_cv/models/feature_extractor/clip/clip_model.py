@@ -103,65 +103,40 @@ class CLIP(Task):
                 "ClipTokenizer requires keras-nlp. Please install "
                 "using pip `pip install -U keras-nlp && pip install -U keras`"
             )
-        self.embed_dim = embed_dim
-        self.image_resolution = image_resolution
-        self.vision_layers = vision_layers
-        self.vision_width = vision_width
-        self.vision_patch_size = vision_patch_size
-        self.context_length = context_length
-        self.vocab_size = vocab_size
-        self.transformer_width = transformer_width
-        self.transformer_heads = transformer_heads
-        self.transformer_layers = transformer_layers
 
-        vision_heads = self.vision_width // 64
+        vision_heads = vision_width // 64
+        image_input = keras.layers.Input(
+            shape=(image_resolution, image_resolution, 3), name="image"
+        )
+        text_input = keras.layers.Input(shape=(context_length,), name="text")
+        attention_mask_input = keras.layers.Input(
+            shape=(context_length,), name="attention_mask"
+        )
         self.image_encoder = CLIPImageEncoder(
-            input_resolution=self.image_resolution,
-            patch_size=self.vision_patch_size,
-            width=self.vision_width,
-            num_layers=self.vision_layers,
+            input_resolution=image_resolution,
+            patch_size=vision_patch_size,
+            width=vision_width,
+            num_layers=vision_layers,
             heads=vision_heads,
-            output_dim=self.embed_dim,
+            output_dim=embed_dim,
             name="image_encoder",
         )
         self.text_encoder = CLIPTextEncoder(
-            transformer_width=self.transformer_width,
-            transformer_layers=self.transformer_layers,
-            transformer_heads=self.transformer_heads,
-            vocab_size=self.vocab_size,
-            embed_dim=self.embed_dim,
-            context_length=self.context_length,
+            transformer_width=transformer_width,
+            transformer_layers=transformer_layers,
+            transformer_heads=transformer_heads,
+            vocab_size=vocab_size,
+            embed_dim=embed_dim,
+            context_length=context_length,
             name="text_encoder",
         )
 
         self.logit_scale = keras.Variable(
             ops.ones([]) * ops.log(1 / 0.07), name="logit_scale"
         )
-        self.image_embeddings = None
-        self.text_embeddings = None
-
-    def build(self, input_shape):
-        super().build(input_shape)
-        self.text_encoder.build([None, self.context_length])
-        self.image_encoder.build(
-            [None, self.image_resolution, self.image_resolution, 3]
-        )
-
-    def encode_images(self, image):
-        return self.image_encoder(image)
-
-    def encode_text(self, text, attention_mask=None):
-        return self.text_encoder(text, attention_mask=attention_mask)
-
-    def call(self, inputs):
-        image, text = inputs["image"], inputs["text"]
-        if "attention_mask" in inputs:
-            attention_mask = inputs["attention_mask"]
-        else:
-            attention_mask = None
-        self.image_embeddings = self.encode_images(image)
+        self.image_embeddings = self.encode_images(image_input)
         self.text_embeddings = self.encode_text(
-            text, attention_mask=attention_mask
+            text_input, attention_mask=attention_mask_input
         )
         normalize_image_features = ops.sqrt(
             ops.sum(ops.power(self.image_embeddings, 2), keepdims=True)
@@ -180,8 +155,36 @@ class CLIP(Task):
             * logit_scale
         )
         logits_per_text = ops.transpose(logits_per_image)
+        outputs = {
+            "logits_per_image": logits_per_image,
+            "logits_per_text": logits_per_text,
+        }
 
-        return logits_per_image, logits_per_text
+        super().__init__(
+            inputs={
+                "image_input": image_input,
+                "text_input": text_input,
+                "attention_mask_input": attention_mask_input,
+            },
+            ouputs=outputs,
+            **kwargs,
+        )
+        self.embed_dim = embed_dim
+        self.image_resolution = image_resolution
+        self.vision_layers = vision_layers
+        self.vision_width = vision_width
+        self.vision_patch_size = vision_patch_size
+        self.context_length = context_length
+        self.vocab_size = vocab_size
+        self.transformer_width = transformer_width
+        self.transformer_heads = transformer_heads
+        self.transformer_layers = transformer_layers
+
+    def encode_images(self, image):
+        return self.image_encoder(image)
+
+    def encode_text(self, text, attention_mask=None):
+        return self.text_encoder(text, attention_mask=attention_mask)
 
     @classproperty
     def presets(cls):
