@@ -38,6 +38,11 @@ try:
 except ImportError:
     keras_nlp = None
 
+try:
+    import tensorflow_text
+except ImportError:
+    tensorflow_text = None
+
 
 def assert_cv2_installed(symbol_name):
     if cv2 is None:
@@ -83,4 +88,13 @@ def assert_keras_nlp_installed(symbol_name):
             f"{symbol_name} requires the `keras_nlp` package. "
             "Please install the package using "
             "`pip install keras_nlp`."
+        )
+
+
+def assert_tf_text_installed(symbol_name):
+    if tensorflow_text is None:
+        raise ImportError(
+            f"{symbol_name} requires the `tensorflow_text` package. "
+            "Please install the package using "
+            "`pip install tensorflow_text`."
         )
