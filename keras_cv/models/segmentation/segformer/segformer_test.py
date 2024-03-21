@@ -53,7 +53,7 @@ class SegFormerTest(TestCase):
     @pytest.mark.large
     def test_segformer_call(self):
         backbone = MiTBackbone.from_preset("mit_b0")
-        mit_model = SegFormer(backbone=backbone, num_classes=1)
+        mit_model = SegFormer(backbone=backbone, num_classes=2)
 
         images = np.random.uniform(size=(2, 224, 224, 3))
         mit_output = mit_model(images)
@@ -98,7 +98,7 @@ class SegFormerTest(TestCase):
         target_size = [512, 512, 3]
 
         backbone = MiTBackbone.from_preset("mit_b0", input_shape=[512, 512, 3])
-        model = SegFormer(backbone=backbone, num_classes=1)
+        model = SegFormer(backbone=backbone, num_classes=2)
 
         input_batch = np.ones(shape=[2] + target_size)
         model_output = model(input_batch)
@@ -121,7 +121,7 @@ class SegFormerTest(TestCase):
     def test_preset_saved_model(self):
         target_size = [224, 224, 3]
 
-        model = SegFormer.from_preset("segformer_b0", num_classes=1)
+        model = SegFormer.from_preset("segformer_b0", num_classes=2)
 
         input_batch = np.ones(shape=[2] + target_size)
         model_output = model(input_batch)
