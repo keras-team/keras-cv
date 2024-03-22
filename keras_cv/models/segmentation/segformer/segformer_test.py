@@ -53,13 +53,14 @@ class SegFormerTest(TestCase):
     @pytest.mark.large
     def test_segformer_call(self):
         backbone = MiTBackbone.from_preset("mit_b0")
-        mit_model = SegFormer(backbone=backbone, num_classes=2)
-
+        mit_model = SegFormer(backbone=backbone, num_classes=1)
+        mit_model.compile(loss=keras.losses.BinaryCrossentropy())
         images = np.random.uniform(size=(2, 224, 224, 3))
         mit_output = mit_model(images)
         mit_pred = mit_model.predict(images)
 
         seg_model = SegFormer.from_preset("segformer_b0", num_classes=1)
+        seg_model.compile(loss=keras.losses.BinaryCrossentropy())
         seg_output = seg_model(images)
         seg_pred = seg_model.predict(images)
 
