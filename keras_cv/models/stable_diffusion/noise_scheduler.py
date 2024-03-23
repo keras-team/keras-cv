@@ -41,11 +41,11 @@ class NoiseScheduler:
     def __init__(
         self,
         train_timesteps=1000,
-        beta_start=0.0001,
-        beta_end=0.02,
-        beta_schedule="linear",
+        beta_start=0.00085,
+        beta_end=0.012,
+        beta_schedule="scaled_linear",
         variance_type="fixed_small",
-        clip_sample=True,
+        clip_sample=False,
     ):
         self.train_timesteps = train_timesteps
 
