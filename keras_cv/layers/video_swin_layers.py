@@ -330,7 +330,7 @@ class VideoSwinPatchingAndEmbedding(keras.Model):
         x = ops.pad(x, self.pads)
         x = self.proj(x)
 
-        if self.norm is not None:
+        if self.norm_layer is not None:
             x = self.norm(x)
 
         return x
