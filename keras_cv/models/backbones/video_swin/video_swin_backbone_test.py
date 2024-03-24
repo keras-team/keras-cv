@@ -82,3 +82,13 @@ class TestVideoSwinSBackbone(TestCase):
         y = np.zeros((1, 48, 3, 3, 768))
         model.compile(optimizer="adam", loss="mse", metrics=["mse"])
         model.fit(x, y, epochs=1)
+
+    @pytest.mark.extra_large
+    def test_can_run_non_square_shape(self):
+        input_batch = np.ones(shape=(2, 8, 224, 256, 3))
+        model = VideoSwinBackbone(
+            input_shape=(8, 224, 256, 3),
+            include_rescaling=False,
+            num_classes=10,
+        )
+        model(input_batch)
