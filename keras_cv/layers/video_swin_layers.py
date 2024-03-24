@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import numpy as np
-import tensorflow as tf
 from keras import layers
 
 from keras_cv.api_export import keras_cv_export
@@ -406,7 +405,7 @@ class VideoSwinPatchMerging(layers.Layer):
 
         x = self.reduction(x)
         return x
-    
+
     def compute_output_shape(self, input_shape):
         batch_size, depth, height, width, _ = input_shape
         return (batch_size, depth, height // 2, width // 2, 2 * self.input_dim)
