@@ -123,12 +123,6 @@ class VideoSwinBackbone(Backbone):
                 "Depth, height and width of the video must be specified"
                 " in `input_shape`."
             )
-        if input_spec.shape[-3] != input_spec.shape[-2]:
-            raise ValueError(
-                "Input video must be square i.e. the height must"
-                " be equal to the width in the `input_shape`"
-                " tuple/tensor."
-            )
 
         x = input_spec
 

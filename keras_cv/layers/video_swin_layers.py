@@ -418,6 +418,10 @@ class VideoSwinPatchMerging(layers.Layer):
 
         x = self.reduction(x)
         return x
+    
+    def compute_output_shape(self, input_shape):
+        batch_size, depth, height, width, _ = input_shape
+        return (batch_size, depth, height // 2, width // 2, 2 * self.input_dim)
 
     def get_config(self):
         config = super().get_config()
@@ -710,18 +714,8 @@ class VideoSwinBasicLayer(keras.Model):
 
     def compute_output_shape(self, input_shape):
         if self.downsample is not None:
-            # TODO: remove tensorflow dependencies.
-            # GitHub issue: https://github.com/keras-team/keras/issues/19259 # noqa: E501
-            output_shape = tf.TensorShape(
-                [
-                    input_shape[0],
-                    self.depth_pad,
-                    self.height_pad // 2,
-                    self.width_pad // 2,
-                    2 * self.input_dim,
-                ]
-            )
-            return output_shape
+            input_shape = self.downsample.compute_output_shape(input_shape)
+            return input_shape
 
         return input_shape
 
