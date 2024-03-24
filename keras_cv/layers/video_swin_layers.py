@@ -400,7 +400,7 @@ class VideoSwinPatchMerging(layers.Layer):
         x3 = x[:, :, 1::2, 1::2, :]  # B D H/2 W/2 C
         x = ops.concatenate([x0, x1, x2, x3], axis=-1)  # B D H/2 W/2 4*C
 
-        if self.norm is not None:
+        if self.norm_layer is not None:
             x = self.norm(x)
 
         x = self.reduction(x)
