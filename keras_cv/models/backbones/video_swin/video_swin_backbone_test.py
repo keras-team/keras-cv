@@ -89,6 +89,5 @@ class TestVideoSwinSBackbone(TestCase):
         model = VideoSwinBackbone(
             input_shape=(8, 224, 256, 3),
             include_rescaling=False,
-            num_classes=10,
         )
         model(input_batch)
