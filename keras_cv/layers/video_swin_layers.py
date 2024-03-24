@@ -299,18 +299,24 @@ class VideoSwinPatchingAndEmbedding(keras.Model):
         self.embed_dim = embed_dim
         self.norm_layer = norm_layer
 
-    def _compute_padding(self, dim, patch_size):
+    def __compute_padding(self, dim, patch_size):
         pad_amount = patch_size - (dim % patch_size)
         return [0, pad_amount if pad_amount != patch_size else 0]
 
     def build(self, input_shape):
         self.pads = [
             [0, 0],
-            self._compute_padding(input_shape[1], self.patch_size[0]),
-            self._compute_padding(input_shape[2], self.patch_size[1]),
-            self._compute_padding(input_shape[3], self.patch_size[2]),
+            self.__compute_padding(input_shape[1], self.patch_size[0]),
+            self.__compute_padding(input_shape[2], self.patch_size[1]),
+            self.__compute_padding(input_shape[3], self.patch_size[2]),
             [0, 0],
         ]
+
+        if self.norm_layer is not None:
+            self.norm = self.norm_layer(
+                axis=-1, epsilon=1e-5, name="embed_norm"
+            )
+            self.norm.build((None, None, None, None, self.embed_dim))
 
         self.proj = layers.Conv3D(
             self.embed_dim,
@@ -319,13 +325,6 @@ class VideoSwinPatchingAndEmbedding(keras.Model):
             name="embed_proj",
         )
         self.proj.build((None, None, None, None, input_shape[-1]))
-
-        self.norm = None
-        if self.norm_layer is not None:
-            self.norm = self.norm_layer(
-                axis=-1, epsilon=1e-5, name="embed_norm"
-            )
-            self.norm.build((None, None, None, None, self.embed_dim))
         self.built = True
 
     def call(self, x):
@@ -336,16 +335,6 @@ class VideoSwinPatchingAndEmbedding(keras.Model):
             x = self.norm(x)
 
         return x
-
-    def compute_output_shape(self, input_shape):
-        spatial_dims = [
-            (dim - self.patch_size[i]) // self.patch_size[i] + 1
-            for i, dim in enumerate(input_shape[1:-1])
-        ]
-        output_shape = (
-            (input_shape[0],) + tuple(spatial_dims) + (self.embed_dim,)
-        )
-        return output_shape
 
     def get_config(self):
         config = super().get_config()
@@ -387,7 +376,6 @@ class VideoSwinPatchMerging(layers.Layer):
             (batch_size, depth, height // 2, width // 2, 4 * channel)
         )
 
-        self.norm = None
         if self.norm_layer is not None:
             self.norm = self.norm_layer(axis=-1, epsilon=1e-5)
             self.norm.build(
@@ -633,7 +621,7 @@ class VideoSwinBasicLayer(keras.Model):
         attn_drop_rate=0.0,
         drop_path_rate=0.0,
         norm_layer=None,
-        downsample=None,
+        downsampling_layer=None,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -649,9 +637,9 @@ class VideoSwinBasicLayer(keras.Model):
         self.attn_drop_rate = attn_drop_rate
         self.drop_path_rate = drop_path_rate
         self.norm_layer = norm_layer
-        self.downsample = downsample
+        self.downsampling_layer = downsampling_layer
 
-    def _compute_dim_padded(self, input_dim, window_dim_size):
+    def __compute_dim_padded(self, input_dim, window_dim_size):
         input_dim = ops.cast(input_dim, dtype="float32")
         window_dim_size = ops.cast(window_dim_size, dtype="float32")
         return ops.cast(
@@ -662,13 +650,13 @@ class VideoSwinBasicLayer(keras.Model):
         self.window_size, self.shift_size = get_window_size(
             input_shape[1:-1], self.window_size, self.shift_size
         )
-        self.depth_pad = self._compute_dim_padded(
+        self.depth_pad = self.__compute_dim_padded(
             input_shape[1], self.window_size[0]
         )
-        self.height_pad = self._compute_dim_padded(
+        self.height_pad = self.__compute_dim_padded(
             input_shape[2], self.window_size[1]
         )
-        self.width_pad = self._compute_dim_padded(
+        self.width_pad = self.__compute_dim_padded(
             input_shape[3], self.window_size[2]
         )
         self.attn_mask = compute_mask(
@@ -701,8 +689,8 @@ class VideoSwinBasicLayer(keras.Model):
             for i in range(self.depth)
         ]
 
-        if self.downsample is not None:
-            self.downsample = self.downsample(
+        if self.downsampling_layer is not None:
+            self.downsample = self.downsampling_layer(
                 input_dim=self.input_dim, norm_layer=self.norm_layer
             )
             self.downsample.build(input_shape)
@@ -713,7 +701,7 @@ class VideoSwinBasicLayer(keras.Model):
         self.built = True
 
     def compute_output_shape(self, input_shape):
-        if self.downsample is not None:
+        if self.downsampling_layer is not None:
             input_shape = self.downsample.compute_output_shape(input_shape)
             return input_shape
 
@@ -734,7 +722,7 @@ class VideoSwinBasicLayer(keras.Model):
 
         x = ops.reshape(x, [batch_size, depth, height, width, channel])
 
-        if self.downsample is not None:
+        if self.downsampling_layer is not None:
             x = self.downsample(x)
 
         return x

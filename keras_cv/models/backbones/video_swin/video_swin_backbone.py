@@ -166,7 +166,7 @@ class VideoSwinBackbone(Backbone):
                 attn_drop_rate=attn_drop_rate,
                 drop_path_rate=dpr[sum(depths[:i]) : sum(depths[: i + 1])],
                 norm_layer=norm_layer,
-                downsample=(
+                downsampling_layer=(
                     VideoSwinPatchMerging if (i < num_layers - 1) else None
                 ),
                 name=f"videoswin_basic_layer_{i + 1}",
