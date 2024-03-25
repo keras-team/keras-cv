@@ -354,7 +354,7 @@ class YOLOV8Detector(Task):
             `keras_cv.layers.MultiClassNonMaxSuppression` layer, which uses
             a Non-Max Suppression for box pruning.
 
-    Examples:
+    Example:
     ```python
     images = tf.ones(shape=(1, 512, 512, 3))
     labels = {

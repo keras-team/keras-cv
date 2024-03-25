@@ -51,7 +51,7 @@ class HierarchicalTransformerEncoder(keras.layers.Layer):
             `SegFormerMultiheadAttention`. If set to > 1, a `Conv2D`
              layer is used to reduce the length of the sequence. Defaults to `1`.
 
-    Basic usage:
+    Example:
 
     ```
     project_dim = 1024

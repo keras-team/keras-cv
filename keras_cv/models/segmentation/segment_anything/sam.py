@@ -54,7 +54,7 @@ class SegmentAnythingModel(Task):
         - [Segment Anything paper](https://arxiv.org/abs/2304.02643)
         - [Segment Anything GitHub](https://github.com/facebookresearch/segment-anything)
 
-    Examples:
+    Example:
 
     >>> import numpy as np
     >>> from keras_cv.models import ViTDetBBackbone

@@ -42,7 +42,7 @@ class ContrastiveTrainer(keras.Model):
       A `keras.Model` instance.
 
 
-    Usage:
+    Example:
     ```python
     encoder = keras.Sequential(
         [

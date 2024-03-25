@@ -70,7 +70,7 @@ class BASNet(Task):
             refinement module head for the model. If not provided, a default
             head is created with a Conv2D layer.
 
-    Examples:
+    Example:
     ```python
 
     import keras_cv

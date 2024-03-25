@@ -38,7 +38,7 @@ class BinaryCrossentropy(keras.losses.Loss):
         axis: the axis along which to mean the ious. Defaults to `no_reduction`
             which implies mean across no axes.
 
-    Usage:
+    Example:
     ```python
     model.compile(
       loss=BinaryCrossentropy(from_logits=True)

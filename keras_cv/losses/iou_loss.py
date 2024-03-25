@@ -47,7 +47,7 @@ class IoULoss(keras.losses.Loss):
     References:
         - [UnitBox paper](https://arxiv.org/pdf/1608.01471)
 
-    Sample Usage:
+    Example:
     ```python
     y_true = np.random.uniform(size=(5, 10, 5), low=10, high=10)
     y_pred = np.random.uniform(size=(5, 10, 5), low=10, high=10)

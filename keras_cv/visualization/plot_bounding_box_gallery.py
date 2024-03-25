@@ -54,7 +54,7 @@ def plot_bounding_box_gallery(
 ):
     """Plots a gallery of images with corresponding bounding box annotations.
 
-    Usage:
+    Example:
     ```python
     train_ds = tfds.load(
         "voc/2007", split="train", with_info=False, shuffle_files=True

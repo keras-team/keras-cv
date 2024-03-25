@@ -29,7 +29,7 @@ def to_ragged(bounding_boxes, sentinel=-1, dtype=tf.float32):
     checking for padded sentinel value of the class_id axis of the
     bounding_boxes.
 
-    Usage:
+    Example:
     ```python
     bounding_boxes = {
         "boxes": tf.constant([[2, 3, 4, 5], [0, 1, 2, 3]]),

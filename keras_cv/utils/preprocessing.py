@@ -68,7 +68,7 @@ def transform_value_range(
     Returns:
         a new Tensor with values in the target range.
 
-    Usage:
+    Example:
     ```python
     original_range = [0, 1]
     target_range = [0, 255]

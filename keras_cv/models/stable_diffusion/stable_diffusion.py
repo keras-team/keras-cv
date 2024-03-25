@@ -285,7 +285,7 @@ class StableDiffusionBase:
     def image_encoder(self):
         """image_encoder returns the VAE Encoder with pretrained weights.
 
-        Usage:
+        Example:
         ```python
         sd = keras_cv.models.StableDiffusion()
         my_image = np.ones((512, 512, 3))

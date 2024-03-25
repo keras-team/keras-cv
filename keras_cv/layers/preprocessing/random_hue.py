@@ -48,7 +48,7 @@ class RandomHue(VectorizedBaseImageAugmentationLayer):
             preprocessing pipeline is set up.
         seed: Integer. Used to create a random seed.
 
-    Usage:
+    Example:
     ```python
     (images, labels), _ = keras.datasets.cifar10.load_data()
     random_hue = keras_cv.layers.preprocessing.RandomHue()

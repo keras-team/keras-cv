@@ -82,7 +82,7 @@ def convert_format(keypoints, source, target, images=None, dtype=None):
     will need to be processed separately due to the mismatching image
     shapes.
 
-    Usage:
+    Example:
 
     ```python
     images, keypoints = load_my_dataset()

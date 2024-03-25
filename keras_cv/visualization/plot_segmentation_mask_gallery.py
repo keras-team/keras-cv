@@ -79,7 +79,7 @@ def plot_segmentation_mask_gallery(
         kwargs: keyword arguments to propagate to
             `keras_cv.visualization.plot_image_gallery()`.
 
-    Usage:
+    Example:
     ```python
     train_ds = tfds.load(
         "oxford_iiit_pet", split="train", with_info=False, shuffle_files=True

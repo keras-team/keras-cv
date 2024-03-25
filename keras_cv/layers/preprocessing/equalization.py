@@ -35,7 +35,7 @@ class Equalization(VectorizedBaseImageAugmentationLayer):
         bins: Integer indicating the number of bins to use in histogram
             equalization. Should be in the range [0, 256].
 
-    Usage:
+    Example:
     ```python
     equalize = Equalization()
 

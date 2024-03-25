@@ -31,7 +31,7 @@ class NormalFactorSampler(FactorSampler):
         min_value: values below min_value are clipped to min_value.
         max_value: values above max_value are clipped to max_value.
 
-    Usage:
+    Example:
     ```python
     factor = keras_cv.core.NormalFactor(
         mean=0.5,

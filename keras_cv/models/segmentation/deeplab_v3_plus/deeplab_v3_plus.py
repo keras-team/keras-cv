@@ -74,7 +74,7 @@ class DeepLabV3Plus(Task):
             and feature from decoder, otherwise a default DeepLabV3
             convolutional head is used.
 
-    Examples:
+    Example:
     ```python
     import keras_cv
 

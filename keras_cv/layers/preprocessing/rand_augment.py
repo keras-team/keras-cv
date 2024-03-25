@@ -67,7 +67,7 @@ class RandAugment(RandomAugmentationPipeline):
         geometric: whether to include geometric augmentations. This
             should be set to False when performing object detection. Defaults to
             True.
-    Usage:
+    Example:
     ```python
     (x_test, y_test), _ = keras.datasets.cifar10.load_data()
     rand_augment = keras_cv.layers.RandAugment(

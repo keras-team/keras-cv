@@ -42,7 +42,7 @@ class FocalLoss(keras.losses.Loss):
     References:
         - [Focal Loss paper](https://arxiv.org/abs/1708.02002)
 
-    Standalone usage:
+    Example:
     ```python
     y_true = np.random.uniform(size=[10], low=0, high=4)
     y_pred = np.random.uniform(size=[10], low=0, high=4)

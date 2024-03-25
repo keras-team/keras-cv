@@ -58,7 +58,7 @@ class RandomContrast(VectorizedBaseImageAugmentationLayer):
             `mean` is the mean value of the channel.
         seed: Integer. Used to create a random seed.
 
-    Usage:
+    Example:
     ```python
     (images, labels), _ = keras.datasets.cifar10.load_data()
     random_contrast = keras_cv.layers.preprocessing.RandomContrast()

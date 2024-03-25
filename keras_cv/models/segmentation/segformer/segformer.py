@@ -54,7 +54,7 @@ class SegFormer(Task):
             convolution layer projecting the concatenated features into
             a segmentation map. Defaults to 256`.
 
-    Examples:
+    Example:
 
     Using the class with a `backbone`:
 

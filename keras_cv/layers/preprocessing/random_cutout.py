@@ -58,7 +58,7 @@ class RandomCutout(VectorizedBaseImageAugmentationLayer):
             when `fill_mode="constant"`.
         seed: Integer. Used to create a random seed.
 
-    Sample usage:
+    Example:
     ```python
     (images, labels), _ = keras.datasets.cifar10.load_data()
     random_cutout = keras_cv.layers.preprocessing.RandomCutout(0.5, 0.5)
