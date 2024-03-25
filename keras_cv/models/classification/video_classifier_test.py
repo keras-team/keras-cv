@@ -72,6 +72,7 @@ class VideoClassifierTest(TestCase):
         ("avg_pooling", "avg"), ("max_pooling", "max")
     )
     def test_pooling_arg_call(self, pooling):
+        input_batch = np.ones(shape=(2, 8, 224, 224, 3))
         model = VideoClassifier(
             backbone=VideoSwinBackbone(
                 input_shape=(8, 224, 224, 3), include_rescaling=True
@@ -79,17 +80,18 @@ class VideoClassifierTest(TestCase):
             num_classes=10,
             pooling=pooling,
         )
-        model(self.input_batch)
+        model(input_batch)
 
     @pytest.mark.large  # Saving is slow, so mark these large.
     def test_saved_model(self):
+        input_batch = np.ones(shape=(2, 8, 224, 224, 3))
         model = VideoClassifier(
             backbone=VideoSwinBackbone(
                 input_shape=(8, 224, 224, 3), include_rescaling=False
             ),
             num_classes=10,
         )
-        model_output = model(self.input_batch)
+        model_output = model(input_batch)
         save_path = os.path.join(self.get_temp_dir(), "video_classifier.keras")
         model.save(save_path)
         restored_model = keras.models.load_model(save_path)
@@ -98,7 +100,7 @@ class VideoClassifierTest(TestCase):
         self.assertIsInstance(restored_model, VideoClassifier)
 
         # Check that output matches.
-        restored_output = restored_model(self.input_batch)
+        restored_output = restored_model(input_batch)
         self.assertAllClose(
             ops.convert_to_numpy(model_output),
             ops.convert_to_numpy(restored_output),
