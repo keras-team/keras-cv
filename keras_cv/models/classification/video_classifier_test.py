@@ -51,6 +51,9 @@ class VideoClassifierTest(TestCase):
     )
     @pytest.mark.large  # Fit is slow, so mark these large.
     def test_classifier_fit(self, jit_compile):
+        if jit_compile and keras.backend.backend() == "torch":
+            self.skipTest("TODO: Torch Backend `jit_compile` fails on GPU.")
+            self.supports_jit = False
         model = VideoClassifier(
             backbone=VideoSwinBackbone(
                 input_shape=(8, 224, 224, 3), include_rescaling=True
