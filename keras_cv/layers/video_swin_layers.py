@@ -871,6 +871,9 @@ class VideoSwinTransformerBlock(keras.Model):
             [pad_l, self.pad_r],
             [0, 0],
         ]
+        self.do_pad = any(
+            value > 0 for value in (self.pad_d1, self.pad_r, self.pad_b)
+        )
         self.built = True
 
     def first_forward(self, x, mask_matrix, training):
@@ -941,15 +944,8 @@ class VideoSwinTransformerBlock(keras.Model):
             x = shifted_x
 
         # pad if required
-        do_pad = ops.logical_or(
-            ops.greater(self.pad_d1, 0),
-            ops.logical_or(
-                ops.greater(self.pad_r, 0), ops.greater(self.pad_b, 0)
-            ),
-        )
-        x = ops.cond(
-            do_pad, lambda: x[:, :depth, :height, :width, :], lambda: x
-        )
+        if self.do_pad:
+            return x[:, :depth, :height, :width, :]
 
         return x
 
