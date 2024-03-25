@@ -21,13 +21,6 @@ from keras_cv.tests.test_case import TestCase
 
 
 class ChannelShuffleTest(TestCase):
-    def test_return_shapes(self):
-        xs = tf.ones((2, 512, 512, 3))
-
-        layer = ChannelShuffle(groups=3)
-        xs = layer(xs, training=True)
-        self.assertEqual(xs.shape, (2, 512, 512, 3))
-
     def test_channel_shuffle_call_results_one_channel(self):
         xs = tf.cast(
             tf.stack(
@@ -70,7 +63,21 @@ class ChannelShuffleTest(TestCase):
         self.assertTrue(np.any(ops.convert_to_numpy(xs[0]) == 2.0))
         self.assertTrue(np.any(ops.convert_to_numpy(xs[1]) == 1.0))
 
-    @pytest.mark.tf_only
+    def test_layer_basics(self):
+        input_data = tf.cast(
+            tf.ones((2, 512, 512, 3)),
+            dtype=tf.float32,
+        )
+        init_kwargs = {
+            "groups": 3,
+        }
+        self.run_preprocessing_layer_test(
+            cls=ChannelShuffle,
+            init_kwargs=init_kwargs,
+            input_data=input_data,
+            expected_output_shape=(2, 512, 512, 3),
+        )
+
     def test_in_tf_function(self):
         xs = tf.cast(
             tf.stack(

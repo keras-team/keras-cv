@@ -20,6 +20,28 @@ from keras_cv.tests.test_case import TestCase
 
 
 class AutoContrastTest(TestCase):
+    def test_layer_basics(self):
+        img = np.array(
+            [[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]],
+            dtype=np.float32,
+        )
+        img = np.expand_dims(img, axis=0)
+        expected_output = [
+            [
+                [[0.0, 0.0, 0.0], [85.0, 85.0, 85.0]],
+                [[170.0, 170.0, 170.0], [255.0, 255.0, 255.0]],
+            ]
+        ]
+        init_kwargs = {
+            "value_range": (0, 255),
+        }
+        self.run_preprocessing_layer_test(
+            cls=preprocessing.AutoContrast,
+            init_kwargs=init_kwargs,
+            input_data=img,
+            expected_output=expected_output,
+        )
+
     def test_constant_channels_dont_get_nanned(self):
         img = np.array([1, 1], dtype=np.float32)
         img = np.expand_dims(img, axis=-1)
@@ -59,16 +81,6 @@ class AutoContrastTest(TestCase):
 
         self.assertTrue(np.any(ops.convert_to_numpy(ys[0, ..., 0]) == 255.0))
         self.assertTrue(np.any(ops.convert_to_numpy(ys[0, ..., 1]) == 255.0))
-
-        self.assertAllClose(
-            ys,
-            [
-                [
-                    [[0.0, 0.0, 0.0], [85.0, 85.0, 85.0]],
-                    [[170.0, 170.0, 170.0], [255.0, 255.0, 255.0]],
-                ]
-            ],
-        )
 
     def test_auto_contrast_expands_value_range_uint8(self):
         img = np.array([0, 128], dtype=np.uint8)

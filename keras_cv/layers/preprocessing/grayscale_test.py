@@ -19,21 +19,17 @@ from keras_cv.tests.test_case import TestCase
 
 
 class GrayscaleTest(TestCase):
-    def test_return_shapes(self):
-        xs = tf.ones((2, 52, 24, 3))
-
-        layer = preprocessing.Grayscale(
-            output_channels=1,
+    def test_layer_basics(self):
+        input_data = tf.ones((2, 52, 24, 3))
+        init_kwargs = {
+            "output_channels": 3,
+        }
+        self.run_preprocessing_layer_test(
+            cls=preprocessing.Grayscale,
+            init_kwargs=init_kwargs,
+            input_data=input_data,
+            expected_output_shape=(2, 52, 24, 3),
         )
-        xs1 = layer(xs, training=True)
-
-        layer = preprocessing.Grayscale(
-            output_channels=3,
-        )
-        xs2 = layer(xs, training=True)
-
-        self.assertEqual(xs1.shape, (2, 52, 24, 1))
-        self.assertEqual(xs2.shape, (2, 52, 24, 3))
 
     @pytest.mark.tf_only
     def test_in_tf_function(self):
@@ -66,41 +62,3 @@ class GrayscaleTest(TestCase):
 
         self.assertEqual(xs1.shape, (2, 10, 10, 1))
         self.assertEqual(xs2.shape, (2, 10, 10, 3))
-
-    def test_non_square_image(self):
-        xs = tf.cast(
-            tf.stack([2 * tf.ones((52, 24, 3)), tf.ones((52, 24, 3))], axis=0),
-            tf.float32,
-        )
-
-        layer = preprocessing.Grayscale(
-            output_channels=1,
-        )
-        xs1 = layer(xs, training=True)
-
-        layer = preprocessing.Grayscale(
-            output_channels=3,
-        )
-        xs2 = layer(xs, training=True)
-
-        self.assertEqual(xs1.shape, (2, 52, 24, 1))
-        self.assertEqual(xs2.shape, (2, 52, 24, 3))
-
-    def test_in_single_image(self):
-        xs = tf.cast(
-            tf.ones((52, 24, 3)),
-            dtype=tf.float32,
-        )
-
-        layer = preprocessing.Grayscale(
-            output_channels=1,
-        )
-        xs1 = layer(xs, training=True)
-
-        layer = preprocessing.Grayscale(
-            output_channels=3,
-        )
-        xs2 = layer(xs, training=True)
-
-        self.assertEqual(xs1.shape, (52, 24, 1))
-        self.assertEqual(xs2.shape, (52, 24, 3))
