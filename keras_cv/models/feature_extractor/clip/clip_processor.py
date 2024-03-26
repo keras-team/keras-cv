@@ -16,10 +16,10 @@ from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 from keras_cv.models.feature_extractor.clip.clip_tokenizer import CLIPTokenizer
+from keras_cv.utils.conditional_imports import assert_keras_nlp_installed
 
 try:
     import keras_nlp
-    from keras_nlp.layers import StartEndPacker
 except ImportError:
     keras_nlp = None
 
@@ -50,11 +50,7 @@ class CLIPProcessor:
     """
 
     def __init__(self, input_resolution, vocabulary, merges, **kwargs):
-        if keras_nlp is None:
-            raise ValueError(
-                "ClipTokenizer requires keras-nlp. Please install "
-                "using pip `pip install -U keras-nlp && pip install -U keras`"
-            )
+        assert_keras_nlp_installed("CLIPProcessor")
         self.input_resolution = input_resolution
         self.vocabulary = vocabulary
         self.merges = merges
@@ -64,7 +60,7 @@ class CLIPProcessor:
             merges=self.merges,
             unsplittable_tokens=["</w>"],
         )
-        self.packer = StartEndPacker(
+        self.packer = keras_nlp.layers.StartEndPacker(
             start_value=self.tokenizer.token_to_id("<|startoftext|>"),
             end_value=self.tokenizer.token_to_id("<|endoftext|>"),
             pad_value=None,
