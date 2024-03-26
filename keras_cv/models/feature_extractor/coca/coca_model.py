@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import keras
 from keras import Sequential
 from keras_nlp.layers import RotaryEmbedding
 from keras_nlp.layers import TransformerDecoder
@@ -91,6 +92,9 @@ class CoCa(Task):
     ):
         super().__init__(**kwargs)
 
+        #
+        # Save Details
+        #
         self.img_patch_size = img_patch_size
 
         self.encoder_depth = encoder_depth
@@ -112,7 +116,9 @@ class CoCa(Task):
         self.captioning_attn_heads = captioning_attn_heads
         self.captioning_loss_weight = captioning_loss_weight
 
+        #
         # Layer Definitions
+        #
         self.image_patching = PatchingAndEmbedding(
             self.encoder_width, self.img_patch_size
         )
@@ -151,103 +157,20 @@ class CoCa(Task):
         )
 
         # These are learnable weights defined in build as per Keras recommendations
-        self.cls_token = None
         self.contrastive_query = None
         self.captioning_query = None
 
-    def build(self, input_shape):
-        # Validate Input Shape
-        if len(input_shape) < 2:
-            raise ValueError(
-                "Build arguments to coca expected to contain shapes of both text and image data; "
-                f"got {len(input_shape)} shapes."
-            )
-
-        images_shape = input_shape[0]
-        text_shape = input_shape[1]
-
-        if len(images_shape) != 4:
-            raise ValueError(
-                "Image shape expected to be of shape [batch_size, height, width, channels]. Instead got "
-                f"shape: {images_shape}"
-            )
-        elif len(text_shape) != 3:
-            raise ValueError(
-                "Text shape expected to be of shape [batch_size, context_length, text_dim]. Instead got shape"
-                f": {text_shape}"
-            )
-
-        text_dim = text_shape[-1]
-        batch_size = images_shape[0]
-        if batch_size != text_shape[0]:
-            raise ValueError(
-                f"Differing batch sizes between images and texts input. {batch_size} vs {text_shape[0]}"
-            )
-
-        # Build Layers
-        self.image_patching.build(images_shape)
-
-        # Add 1 for CLs token appended by patching
-        num_patches = (images_shape[1] // self.img_patch_size) * (
-                images_shape[2] // self.img_patch_size
-        ) + 1
-        self.image_encoder.build((batch_size, num_patches, self.encoder_width))
-
-        text_shape_with_cls_token = [s for s in text_shape]
-        text_shape_with_cls_token[1] += 1
-        self.text_embedding.build(text_shape_with_cls_token)
-
-        self.unimodal_text_decoder.build(text_shape_with_cls_token)
-
-        self.contrastive_attn_pooling.build(
-            ((batch_size, self.encoder_width, self.contrastive_query_length),
-             (batch_size, num_patches, self.encoder_width))
-        )
-        self.captioning_attn_pooling.build(
-            ((batch_size, self.encoder_width, self.captioning_query_length),
-             (batch_size, num_patches, self.encoder_width))
+        #
+        # Functional Model
+        #
+        images = keras.Input(
+            shape=(None,), dtype="int32", name="images"
         )
 
-        for text_decoder in self.multimodal_text_decoders:
-            text_decoder.build((batch_size, self.encoder_width, self.captioning_query_length),
-                                text_shape)
-
-        # Learnable Weights
-        self.cls_token = self.add_weight(
-            shape=(batch_size, 1, text_dim), name="cls_token", trainable=True
+        captions = keras.Input(
+            shape=(None,), dtype="int32", name="caption"
         )
 
-        self.contrastive_query = self.add_weight(
-            shape=(
-                batch_size,
-                self.encoder_width,
-                self.contrastive_query_length,
-            ),
-            trainable=True,
-        )
-        self.captioning_query = self.add_weight(
-            shape=(
-                batch_size,
-                self.encoder_width,
-                self.captioning_query_length,
-            ),
-            trainable=True,
-        )
-
-        self.built = True
-
-    def call(self, images, texts):
-        """
-        Forward pass of the Coca Model from raw image and text data
-
-        Args:
-            images: [batch_size, height, width, channels] representing images
-            texts: Tensor, typically represented as [batch_size, sequence_length, feature_length].
-                The sequence_length and/or feature_length are required.
-
-        Returns:
-            Output: Output of the captioning Transformer Decoder with captioning cross-attention
-        """
         img_encoding = self.image_patching(
             images
         )  # [batch_size, img_patches_len+1, encoder_width]
@@ -255,18 +178,41 @@ class CoCa(Task):
             img_encoding
         )  # [batch_size, img_patches_len+1, encoder_width]
 
-        # This is only needed for loss calculations
-        # contrastive_feature = self.con_attn_pooling(self.contrastive_query, img_encoding)
+        # Learnable Weights
+        self.contrastive_query = self.add_weight(
+            shape=(
+                None,
+                self.encoder_width,
+                self.contrastive_query_length,
+            ),
+            trainable=True,
+        )
+        self.captioning_query = self.add_weight(
+            shape=(
+                None,
+                self.encoder_width,
+                self.captioning_query_length,
+            ),
+            trainable=True,
+        )
+
+        # This is for contrastive loss; [batch_size, encoder_width, contrastive_query_length]
+        contrastive_feature = self.con_attn_pooling(self.contrastive_query, img_encoding)
 
         # [batch_size, encoder_width, captioning_query_length]
         captioning_feature = self.captioning_attn_pooling(
             self.captioning_query, img_encoding
         )
 
+        # Learnable CLs Token
+        self.cls_token = self.add_weight(
+            shape=(None, 1, ), name="cls_token", trainable=True
+        )
+
         # [batch_size, sequence_length+1, text_dim]
-        text_tokens = ops.concatenate(texts, self.cls_token)
+        text_tokens = ops.concatenate(captions, self.cls_token)
         mask = ops.concatenate(
-            (ops.ones_like(texts), ops.zeros_like(self.cls_token))
+            (ops.ones_like(captions), ops.zeros_like(self.cls_token))
         )
 
         # [batch_size, sequence_length+1, text_dim]
@@ -284,7 +230,17 @@ class CoCa(Task):
                 decoder_attention_mask=mask
             )
 
-        return multimodal_out
+        super().__init__(
+            inputs={
+                "images": images,
+                "captions": captions,
+            },
+            outputs={
+                "multimodal_out": multimodal_out,
+                "contrastive_feature": contrastive_feature
+            },
+        )
+
 
     def get_config(self):
         config = super().get_config()
