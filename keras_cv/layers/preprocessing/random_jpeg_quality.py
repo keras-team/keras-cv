@@ -35,7 +35,7 @@ class RandomJpegQuality(BaseImageAugmentationLayer):
         `tf.image.adjust_jpeg_quality()`.
         seed: Integer. Used to create a random seed.
 
-    Usage:
+    Example:
     ```python
     layer = keras_cv.RandomJpegQuality(factor=(75, 100)))
     (images, labels), _ = keras.datasets.cifar10.load_data()

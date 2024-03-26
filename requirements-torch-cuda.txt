@@ -1,5 +1,5 @@
-# Tensorflow cpu-only version.
-tf-nightly-cpu==2.16.0.dev20240209  # Pin a working nightly until rc0.
+# TensorFlow cpu-only version.
+tensorflow-cpu>=2.16.1
 
 # Torch with cuda support.
 --extra-index-url https://download.pytorch.org/whl/cu121

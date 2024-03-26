@@ -14,6 +14,7 @@
 
 import copy
 
+from keras_cv.api_export import keras_cv_export
 from keras_cv.models.segmentation.segformer.segformer import SegFormer
 from keras_cv.models.segmentation.segformer.segformer_presets import presets
 from keras_cv.utils.python_utils import classproperty
@@ -27,7 +28,7 @@ ALIAS_DOCSTRING = """SegFormer model.
         backbone: a KerasCV backbone for feature extraction.
         num_classes: the number of classes for segmentation, including the background class.
 
-    Examples:
+    Example:
     ```python
     input_data = tf.ones(shape=(8, 224, 224, 3))
 
@@ -39,6 +40,7 @@ ALIAS_DOCSTRING = """SegFormer model.
 """  # noqa: E501
 
 
+@keras_cv_export("keras_cv.models.SegFormerB0")
 class SegFormerB0(SegFormer):
     def __new__(
         cls,
@@ -67,6 +69,7 @@ class SegFormerB0(SegFormer):
         return cls.presets
 
 
+@keras_cv_export("keras_cv.models.SegFormerB1")
 class SegFormerB1(SegFormer):
     def __new__(
         cls,
@@ -95,6 +98,7 @@ class SegFormerB1(SegFormer):
         return cls.presets
 
 
+@keras_cv_export("keras_cv.models.SegFormerB2")
 class SegFormerB2(SegFormer):
     def __new__(
         cls,
@@ -123,6 +127,7 @@ class SegFormerB2(SegFormer):
         return cls.presets
 
 
+@keras_cv_export("keras_cv.models.SegFormerB3")
 class SegFormerB3(SegFormer):
     def __new__(
         cls,
@@ -151,6 +156,7 @@ class SegFormerB3(SegFormer):
         return cls.presets
 
 
+@keras_cv_export("keras_cv.models.SegFormerB4")
 class SegFormerB4(SegFormer):
     def __new__(
         cls,
@@ -179,6 +185,7 @@ class SegFormerB4(SegFormer):
         return cls.presets
 
 
+@keras_cv_export("keras_cv.models.SegFormerB5")
 class SegFormerB5(SegFormer):
     def __new__(
         cls,

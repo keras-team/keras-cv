@@ -75,7 +75,7 @@ class MobileNetV3Backbone(Backbone):
             - If `alpha` = 1, default number of filters from the paper
                 are used at each layer.
 
-    Examples:
+    Example:
     ```python
     input_data = tf.ones(shape=(8, 224, 224, 3))
 

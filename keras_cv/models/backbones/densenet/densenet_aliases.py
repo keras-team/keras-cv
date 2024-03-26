@@ -39,7 +39,7 @@ ALIAS_DOCSTRING = """DenseNetBackbone model with {num_layers} layers.
         input_tensor: optional Keras tensor (i.e. output of `layers.Input()`)
             to use as image input for the model.
 
-    Examples:
+    Example:
     ```python
     input_data = tf.ones(shape=(8, 224, 224, 3))
 

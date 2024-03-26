@@ -24,6 +24,7 @@ Reference:
 import copy
 import math
 
+from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.models import utils
 from keras_cv.models.backbones.backbone import Backbone
@@ -35,6 +36,7 @@ from keras_cv.utils.python_utils import classproperty
 BN_AXIS = 3
 
 
+@keras_cv_export("keras_cv.models.EfficientNetLiteBackbone")
 @keras.saving.register_keras_serializable(package="keras_cv.models")
 class EfficientNetLiteBackbone(Backbone):
     """Instantiates the EfficientNetLite architecture using given scaling
@@ -61,7 +63,7 @@ class EfficientNetLiteBackbone(Backbone):
         input_tensor: optional Keras tensor (i.e. output of `keras.layers.Input()`)
             to use as image input for the model.
 
-    Usage:
+    Example:
     ```python
     # Construct an EfficientNetLite from a preset:
     efficientnet = models.EfficientNetLiteBackbone.from_preset(

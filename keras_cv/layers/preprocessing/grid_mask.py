@@ -82,7 +82,7 @@ class GridMask(BaseImageAugmentationLayer):
             [0 to 255]
         seed: Integer. Used to create a random seed.
 
-    Usage:
+    Example:
     ```python
     (images, labels), _ = keras.datasets.cifar10.load_data()
     random_gridmask = keras_cv.layers.preprocessing.GridMask()

@@ -70,7 +70,7 @@ class MiTBackbone(Backbone):
             input_tensor: optional Keras tensor (i.e. output of `keras.layers.Input()`)
                 to use as image input for the model.
 
-        Examples:
+        Example:
 
         Using the class with a `backbone`:
 

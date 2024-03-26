@@ -39,7 +39,7 @@ class OverlappingPatchingAndEmbedding(keras.layers.Layer):
             stride: integer, the stride to use for the patching before
                 projection. Defaults to `5`.
 
-        Basic usage:
+        Example:
 
         ```
         project_dim = 1024

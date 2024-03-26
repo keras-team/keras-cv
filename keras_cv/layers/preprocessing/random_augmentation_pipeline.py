@@ -36,7 +36,7 @@ class RandomAugmentationPipeline(BaseImageAugmentationLayer):
     This layer can be used to create custom policies resembling `RandAugment` or
     `AutoAugment`.
 
-    Usage:
+    Example:
     ```python
     # construct a list of layers
     layers = keras_cv.layers.RandAugment.get_standard_policy(

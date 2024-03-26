@@ -35,7 +35,7 @@ class ChannelShuffle(VectorizedBaseImageAugmentationLayer):
         groups: Number of groups to divide the input channels, defaults to 3.
         seed: Integer. Used to create a random seed.
 
-    Usage:
+    Example:
     ```python
     (images, labels), _ = keras.datasets.cifar10.load_data()
     channel_shuffle = ChannelShuffle(groups=3)

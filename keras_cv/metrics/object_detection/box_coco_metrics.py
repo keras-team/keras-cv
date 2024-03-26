@@ -93,7 +93,7 @@ class BoxCOCOMetrics(keras.metrics.Metric):
             values will allow for faster training times, while lower numbers
             allow for higher numerical precision in metric reporting.
 
-    Usage:
+    Example:
     `BoxCOCOMetrics()` can be used like any standard metric with any
     KerasCV object detection model. Inputs to `y_true` must be KerasCV bounding
     box dictionaries, `{"classes": classes, "boxes": boxes}`, and `y_pred` must

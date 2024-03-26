@@ -40,7 +40,7 @@ class CIoULoss(keras.losses.Loss):
     References:
         - [CIoU paper](https://arxiv.org/pdf/2005.03572.pdf)
 
-    Sample Usage:
+    Example:
     ```python
     y_true = np.random.uniform(
         size=(5, 10, 5),

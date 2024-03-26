@@ -69,7 +69,7 @@ class ROIGenerator(keras.layers.Layer):
             feature maps / levels (as in FPN) this number is per
             feature map / level.
 
-    Usage:
+    Example:
     ```python
     roi_generator = ROIGenerator("xyxy")
     boxes = {2: tf.random.normal([32, 5, 4])}

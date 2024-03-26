@@ -66,7 +66,7 @@ class OldMosaic(BaseImageAugmentationLayer):
         - [Yolov5 implementation](https://github.com/ultralytics/yolov5).
         - [YoloX implementation](https://github.com/Megvii-BaseDetection/YOLOX)
 
-    Sample usage:
+    Example:
     ```python
     (images, labels), _ = keras.datasets.cifar10.load_data()
     labels = tf.one_hot(labels,10)

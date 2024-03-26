@@ -42,7 +42,7 @@ class RandomSaturation(VectorizedBaseImageAugmentationLayer):
             same, please pass a tuple with two identical floats: `(0.5, 0.5)`.
         seed: Integer. Used to create a random seed.
 
-    Usage:
+    Example:
     ```python
     (images, labels), _ = keras.datasets.cifar10.load_data()
     random_saturation = keras_cv.layers.preprocessing.RandomSaturation()

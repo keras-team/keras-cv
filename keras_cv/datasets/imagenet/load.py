@@ -71,7 +71,7 @@ def load(
 ):
     """Loads the ImageNet dataset from TFRecords
 
-    Usage:
+    Example:
     ```python
     dataset, ds_info = keras_cv.datasets.imagenet.load(
         split="train", tfrecord_path="gs://my-bucket/imagenet-tfrecords"

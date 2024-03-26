@@ -41,7 +41,7 @@ ALIAS_DOCSTRING = """CSPDarkNetBackbone model with {stackwise_channels} channels
             to use as image input for the model.
         input_shape: optional shape tuple, defaults to (None, None, 3).
 
-    Examples:
+    Example:
     ```python
     input_data = tf.ones(shape=(8, 224, 224, 3))
 
@@ -52,7 +52,7 @@ ALIAS_DOCSTRING = """CSPDarkNetBackbone model with {stackwise_channels} channels
 """  # noqa: E501
 
 
-@keras_cv_export("keras_cv.losses.CSPDarkNetTinyBackbone")
+@keras_cv_export("keras_cv.models.CSPDarkNetTinyBackbone")
 class CSPDarkNetTinyBackbone(CSPDarkNetBackbone):
     def __new__(
         cls,
@@ -87,7 +87,7 @@ class CSPDarkNetTinyBackbone(CSPDarkNetBackbone):
         return cls.presets
 
 
-@keras_cv_export("keras_cv.losses.CSPDarkNetSBackbone")
+@keras_cv_export("keras_cv.models.CSPDarkNetSBackbone")
 class CSPDarkNetSBackbone(CSPDarkNetBackbone):
     def __new__(
         cls,
@@ -118,7 +118,7 @@ class CSPDarkNetSBackbone(CSPDarkNetBackbone):
         return {}
 
 
-@keras_cv_export("keras_cv.losses.CSPDarkNetMBackbone")
+@keras_cv_export("keras_cv.models.CSPDarkNetMBackbone")
 class CSPDarkNetMBackbone(CSPDarkNetBackbone):
     def __new__(
         cls,
@@ -149,7 +149,7 @@ class CSPDarkNetMBackbone(CSPDarkNetBackbone):
         return {}
 
 
-@keras_cv_export("keras_cv.losses.CSPDarkNetLBackbone")
+@keras_cv_export("keras_cv.models.CSPDarkNetLBackbone")
 class CSPDarkNetLBackbone(CSPDarkNetBackbone):
     def __new__(
         cls,
@@ -184,7 +184,7 @@ class CSPDarkNetLBackbone(CSPDarkNetBackbone):
         return cls.presets
 
 
-@keras_cv_export("keras_cv.losses.CSPDarkNetXLBackbone")
+@keras_cv_export("keras_cv.models.CSPDarkNetXLBackbone")
 class CSPDarkNetXLBackbone(CSPDarkNetBackbone):
     def __new__(
         cls,

@@ -31,7 +31,7 @@ class UniformFactorSampler(FactorSampler):
         seed: A shape int or Tensor, the seed to the random number generator.
             Must have dtype int32 or int64. (When using XLA, only int32 is
             allowed.)
-    Usage:
+    Example:
     ```python
     uniform_factor = keras_cv.UniformFactorSampler(0, 0.5)
     random_sharpness = keras_cv.layers.RandomSharpness(factor=uniform_factor)

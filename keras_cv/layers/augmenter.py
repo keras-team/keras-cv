@@ -23,7 +23,7 @@ class Augmenter(keras.layers.Layer):
     Args:
         layers: A list of `keras.layers.Layers` to apply to the example
 
-    Examples:
+    Example:
     from keras_cv import layers
     images = np.ones((16, 256, 256, 3))
     augmenter = layers.Augmenter(

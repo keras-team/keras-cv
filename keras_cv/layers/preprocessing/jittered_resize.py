@@ -68,7 +68,7 @@ class JitteredResize(VectorizedBaseImageAugmentationLayer):
             `"mitchellcubic"`.
         seed: (Optional) integer to use as the random seed.
 
-    Usage:
+    Example:
     ```python
     train_ds = load_object_detection_dataset()
     jittered_resize = layers.JitteredResize(

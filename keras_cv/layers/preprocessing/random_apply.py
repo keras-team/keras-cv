@@ -39,7 +39,7 @@ class RandomApply(BaseImageAugmentationLayer):
             but currently doesn't work with XLA. Defaults to False.
         seed: integer, controls random behaviour.
 
-    Example usage:
+    Example:
     ```
     # Let's declare an example layer that will set all image pixels to zero.
     zero_out = keras.layers.Lambda(lambda x: {"images": 0 * x["images"]})

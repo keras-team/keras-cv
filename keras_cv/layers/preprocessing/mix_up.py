@@ -36,7 +36,7 @@ class MixUp(BaseImageAugmentationLayer):
         - [MixUp paper](https://arxiv.org/abs/1710.09412).
         - [MixUp for Object Detection paper](https://arxiv.org/pdf/1902.04103).
 
-    Sample usage:
+    Example:
     ```python
     (images, labels), _ = keras.datasets.cifar10.load_data()
     images, labels = images[:10], labels[:10]

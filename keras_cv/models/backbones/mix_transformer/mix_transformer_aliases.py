@@ -14,6 +14,7 @@
 
 import copy
 
+from keras_cv.api_export import keras_cv_export
 from keras_cv.models.backbones.mix_transformer.mix_transformer_backbone import (
     MiTBackbone,
 )
@@ -35,7 +36,7 @@ ALIAS_DOCSTRING = """MiT model.
         input_tensor: optional Keras tensor (i.e., output of `layers.Input()`)
             to use as image input for the model.
 
-    Examples:
+    Example:
     ```python
     input_data = tf.ones(shape=(8, 224, 224, 3))
 
@@ -46,6 +47,7 @@ ALIAS_DOCSTRING = """MiT model.
 """  # noqa: E501
 
 
+@keras_cv_export("keras_cv.models.MiTB0Backbone")
 class MiTB0Backbone(MiTBackbone):
     def __new__(
         cls,
@@ -80,6 +82,7 @@ class MiTB0Backbone(MiTBackbone):
         return cls.presets
 
 
+@keras_cv_export("keras_cv.models.MiTB1Backbone")
 class MiTB1Backbone(MiTBackbone):
     def __new__(
         cls,
@@ -109,6 +112,7 @@ class MiTB1Backbone(MiTBackbone):
         return {}
 
 
+@keras_cv_export("keras_cv.models.MiTB2Backbone")
 class MiTB2Backbone(MiTBackbone):
     def __new__(
         cls,
@@ -138,6 +142,7 @@ class MiTB2Backbone(MiTBackbone):
         return {}
 
 
+@keras_cv_export("keras_cv.models.MiTB3Backbone")
 class MiTB3Backbone(MiTBackbone):
     def __new__(
         cls,
@@ -167,6 +172,7 @@ class MiTB3Backbone(MiTBackbone):
         return {}
 
 
+@keras_cv_export("keras_cv.models.MiTB4Backbone")
 class MiTB4Backbone(MiTBackbone):
     def __new__(
         cls,
@@ -196,6 +202,7 @@ class MiTB4Backbone(MiTBackbone):
         return {}
 
 
+@keras_cv_export("keras_cv.models.MiTB5Backbone")
 class MiTB5Backbone(MiTBackbone):
     def __new__(
         cls,

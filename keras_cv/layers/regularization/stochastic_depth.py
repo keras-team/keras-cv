@@ -32,7 +32,7 @@ class StochasticDepth(keras.layers.Layer):
     Args:
         rate: float, the probability of the residual branch being dropped.
 
-    Usage:
+    Example:
 
     `StochasticDepth` can be used in a residual network as follows:
     ```python

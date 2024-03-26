@@ -74,7 +74,7 @@ def plot_image_gallery(
 ):
     """Displays a gallery of images.
 
-    Usage:
+    Example:
     ```python
     train_ds = tfds.load(
         "cats_vs_dogs",

@@ -40,7 +40,7 @@ class RepeatedAugmentation(BaseImageAugmentationLayer):
         shuffle: whether to shuffle the result. Essential when using an
             asynchronous distribution strategy such as ParameterServerStrategy.
 
-    Usage:
+    Example:
 
     List of identical augmenters:
     ```python

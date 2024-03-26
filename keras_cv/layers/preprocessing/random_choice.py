@@ -28,7 +28,7 @@ class RandomChoice(BaseImageAugmentationLayer):
     `call`(), the policy selects a random layer from the provided list of
     `layers`. It then calls the `layer()` on the inputs.
 
-    Usage:
+    Example:
     ```python
     # construct a list of layers
     layers = keras_cv.layers.RandAugment.get_standard_policy(

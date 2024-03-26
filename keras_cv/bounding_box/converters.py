@@ -338,7 +338,7 @@ def convert_format(
     performance loss, as each image will need to be processed separately due to
     the mismatching image shapes.
 
-    Usage:
+    Example:
 
     ```python
     boxes = load_coco_dataset()

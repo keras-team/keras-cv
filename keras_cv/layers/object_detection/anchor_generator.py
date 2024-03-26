@@ -51,7 +51,7 @@ class AnchorGenerator(keras.layers.Layer):
       clip_boxes: whether to clip generated anchor boxes to the image
         size, defaults to `False`.
 
-    Usage:
+    Example:
     ```python
     strides = [8, 16, 32]
     scales = [1, 1.2599210498948732, 1.5874010519681994]

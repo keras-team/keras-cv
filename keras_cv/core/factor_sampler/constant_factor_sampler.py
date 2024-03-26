@@ -29,7 +29,7 @@ class ConstantFactorSampler(FactorSampler):
     Args:
         value: the value to return from `__call__()`.
 
-    Usage:
+    Example:
     ```python
     constant_factor = keras_cv.ConstantFactorSampler(0.5)
     random_sharpness = keras_cv.layers.RandomSharpness(factor=constant_factor)

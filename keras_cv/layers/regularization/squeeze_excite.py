@@ -47,7 +47,7 @@ class SqueezeAndExcite2D(keras.layers.Layer):
             keras.layers.Layer) or keras.activations.Activation instance
             denoting activation to be applied after excite convolution.
             Defaults to `sigmoid`.
-    Usage:
+    Example:
 
     ```python
     # (...)

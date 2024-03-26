@@ -55,7 +55,7 @@ class Solarization(VectorizedBaseImageAugmentationLayer):
             values above this threshold will be solarized.
         seed: Integer. Used to create a random seed.
 
-    Usage:
+    Example:
     ```python
     (images, labels), _ = keras.datasets.cifar10.load_data()
     print(images[0, 0, 0])

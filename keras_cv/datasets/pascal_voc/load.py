@@ -52,7 +52,7 @@ def load(
 ):
     """Loads the PascalVOC 2007 dataset.
 
-    Usage:
+    Example:
     ```python
     dataset, ds_info = keras_cv.datasets.pascal_voc.load(
         split="train", bounding_box_format="xywh", batch_size=9

@@ -14,6 +14,7 @@
 import copy
 import math
 
+from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.models import utils
 from keras_cv.models.backbones.backbone import Backbone
@@ -23,6 +24,7 @@ from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_backbone_presets 
 from keras_cv.utils.python_utils import classproperty
 
 
+@keras_cv_export("keras_cv.models.EfficientNetV1Backbone")
 @keras.saving.register_keras_serializable(package="keras_cv.models")
 class EfficientNetV1Backbone(Backbone):
     """Instantiates the EfficientNetV1 architecture.
@@ -61,7 +63,7 @@ class EfficientNetV1Backbone(Backbone):
         stackwise_squeeze_and_excite_ratios: list of ints, the squeeze and
             excite ratios passed to the squeeze and excitation blocks.
 
-    Usage:
+    Example:
     ```python
     # Construct an EfficientNetV1 from a preset:
     efficientnet = keras_cv.models.EfficientNetV1Backbone.from_preset(
