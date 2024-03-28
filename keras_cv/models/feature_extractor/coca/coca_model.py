@@ -52,6 +52,8 @@ class CoCa(Task):
     All default arguments should be consistent with the original paper's details.
 
     Args:
+        img_shape: The shape of a single image, typically expressed as [height, weight, channels]
+        caption_shape: The shape of a single caption, typically expressed as [sequence_length, text_dim]
         img_patch_size: N of each NxN patch generated from linearization of the input images
         encoder_depth: number of image encoder blocks
         encoder_heads: number of attention heads used in each image encoder block
@@ -72,6 +74,8 @@ class CoCa(Task):
 
     def __init__(
             self,
+            img_shape=(512, 512, 3),
+            caption_shape = (10, 48),
             img_patch_size=18,
             encoder_depth=40,
             encoder_heads=16,
@@ -95,6 +99,9 @@ class CoCa(Task):
         #
         # Save Details
         #
+        self.img_shape = img_shape
+        self.caption_shape = caption_shape
+
         self.img_patch_size = img_patch_size
 
         self.encoder_depth = encoder_depth
@@ -163,13 +170,8 @@ class CoCa(Task):
         #
         # Functional Model
         #
-        images = keras.Input(
-            shape=(None,), dtype="int32", name="images"
-        )
-
-        captions = keras.Input(
-            shape=(None,), dtype="int32", name="caption"
-        )
+        images = keras.Input(shape=self.img_shape, name="images")
+        captions = keras.Input(shape=self.caption_shape, name="caption")
 
         img_encoding = self.image_patching(
             images
@@ -182,31 +184,31 @@ class CoCa(Task):
         self.contrastive_query = self.add_weight(
             shape=(
                 None,
-                self.encoder_width,
                 self.contrastive_query_length,
+                self.encoder_width,
             ),
             trainable=True,
         )
         self.captioning_query = self.add_weight(
             shape=(
                 None,
-                self.encoder_width,
                 self.captioning_query_length,
+                self.encoder_width,
             ),
             trainable=True,
         )
 
-        # This is for contrastive loss; [batch_size, encoder_width, contrastive_query_length]
+        # This is for contrastive loss; [batch_size, contrastive_query_length, encoder_width]
         contrastive_feature = self.con_attn_pooling(self.contrastive_query, img_encoding)
 
-        # [batch_size, encoder_width, captioning_query_length]
+        # [batch_size, captioning_query_length, encoder_width]
         captioning_feature = self.captioning_attn_pooling(
             self.captioning_query, img_encoding
         )
 
         # Learnable CLs Token
         self.cls_token = self.add_weight(
-            shape=(None, 1, ), name="cls_token", trainable=True
+            shape=(None, 1, self.caption_shape[-1]), name="cls_token", trainable=True
         )
 
         # [batch_size, sequence_length+1, text_dim]
@@ -246,6 +248,8 @@ class CoCa(Task):
         config = super().get_config()
         config.update(
             {
+                "img_shape": self.img_shape,
+                "caption_shape": self.caption_shape,
                 "img_patch_size": self.img_patch_size,
                 "encoder_depth": self.encoder_depth,
                 "encoder_heads": self.encoder_heads,

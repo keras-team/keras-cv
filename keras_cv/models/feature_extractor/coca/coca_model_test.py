@@ -12,7 +12,6 @@ class CoCaTest(TestCase):
     def test_coca_model_save(self):
         # TODO: Transformer encoder breaks if you have project dim < num heads
         model = CoCa()
-        model.build(((1, 512, 512, 3), (1, 1, 48)))
 
         save_path = os.path.join(self.get_temp_dir(), "coca.keras")
         model.save(save_path)
