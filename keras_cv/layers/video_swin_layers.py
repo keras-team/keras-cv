@@ -820,10 +820,7 @@ class VideoSwinTransformerBlock(keras.Model):
         self.window_size, self.shift_size = get_window_size(
             input_shape[1:-1], self.window_size, self.shift_size
         )
-
-        self.apply_cyclic_shift = False
-        if any(i > 0 for i in self.shift_size):
-            self.apply_cyclic_shift = True
+        self.apply_cyclic_shift = any(i > 0 for i in self.shift_size)
 
         # layers
         self.drop_path = (
@@ -871,7 +868,7 @@ class VideoSwinTransformerBlock(keras.Model):
             [pad_l, self.pad_r],
             [0, 0],
         ]
-        self.do_pad = any(
+        self.apply_pad = any(
             value > 0 for value in (self.pad_d1, self.pad_r, self.pad_b)
         )
         self.built = True
@@ -944,7 +941,7 @@ class VideoSwinTransformerBlock(keras.Model):
             x = shifted_x
 
         # pad if required
-        if self.do_pad:
+        if self.apply_pad:
             return x[:, :depth, :height, :width, :]
 
         return x
