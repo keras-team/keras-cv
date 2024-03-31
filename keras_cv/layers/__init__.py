@@ -135,9 +135,6 @@ from keras_cv.layers.segformer_multihead_attention import (
 )
 from keras_cv.layers.spatial_pyramid import SpatialPyramidPooling
 from keras_cv.layers.transformer_encoder import TransformerEncoder
-from keras_cv.layers.video_swin_layers import VideoSwinBasicLayer
-from keras_cv.layers.video_swin_layers import VideoSwinPatchingAndEmbedding
-from keras_cv.layers.video_swin_layers import VideoSwinPatchMerging
 from keras_cv.layers.vit_det_layers import AddRelativePositionalEmbedding
 from keras_cv.layers.vit_det_layers import MultiHeadAttentionWithRelativePE
 from keras_cv.layers.vit_det_layers import ViTDetPatchingAndEmbedding
