@@ -13,9 +13,7 @@
 # limitations under the License.
 
 import numpy as np
-from keras import layers
 
-from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 from keras_cv.layers import DropPath
@@ -214,7 +212,7 @@ def compute_mask(depth, height, width, window_size, shift_size):
     return attn_mask
 
 
-class MLP(layers.Layer):
+class MLP(keras.Layer):
     """A Multilayer perceptron(MLP) layer.
 
     Args:
@@ -343,7 +341,7 @@ class VideoSwinPatchingAndEmbedding(keras.Model):
         return config
 
 
-class VideoSwinPatchMerging(layers.Layer):
+class VideoSwinPatchMerging(keras.Layer):
     """Patch Merging Layer in Video Swin Transformer models.
 
     This layer performs a downsampling step by merging four neighboring patches
