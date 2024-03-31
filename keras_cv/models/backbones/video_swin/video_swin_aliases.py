@@ -48,6 +48,7 @@ class VideoSwinTBackbone(VideoSwinBackbone):
         embed_dim=96,
         depths=[2, 2, 6, 2],
         num_heads=[3, 6, 12, 24],
+        window_size=[8, 7, 7],
         include_rescaling=True,
         **kwargs,
     ):
@@ -56,6 +57,7 @@ class VideoSwinTBackbone(VideoSwinBackbone):
                 "embed_dim": embed_dim,
                 "depths": depths,
                 "num_heads": num_heads,
+                "window_size": window_size,
                 "include_rescaling": include_rescaling,
             }
         )
@@ -83,6 +85,7 @@ class VideoSwinSBackbone(VideoSwinBackbone):
         embed_dim=96,
         depths=[2, 2, 18, 2],
         num_heads=[3, 6, 12, 24],
+        window_size=[8, 7, 7],
         include_rescaling=True,
         **kwargs,
     ):
@@ -91,6 +94,7 @@ class VideoSwinSBackbone(VideoSwinBackbone):
                 "embed_dim": embed_dim,
                 "depths": depths,
                 "num_heads": num_heads,
+                "window_size": window_size,
                 "include_rescaling": include_rescaling,
             }
         )
@@ -118,6 +122,7 @@ class VideoSwinBBackbone(VideoSwinBackbone):
         embed_dim=128,
         depths=[2, 2, 18, 2],
         num_heads=[4, 8, 16, 32],
+        window_size=[8, 7, 7],
         include_rescaling=True,
         **kwargs,
     ):
@@ -126,6 +131,7 @@ class VideoSwinBBackbone(VideoSwinBackbone):
                 "embed_dim": embed_dim,
                 "depths": depths,
                 "num_heads": num_heads,
+                "window_size": window_size,
                 "include_rescaling": include_rescaling,
             }
         )
