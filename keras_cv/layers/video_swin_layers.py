@@ -269,9 +269,6 @@ class MLP(layers.Layer):
         return config
 
 
-@keras_cv_export(
-    "keras_cv.layers.VideoSwinPatchingAndEmbedding", package="keras_cv.layers"
-)
 class VideoSwinPatchingAndEmbedding(keras.Model):
     """Video to Patch Embedding layer for Video Swin Transformer models.
 
@@ -745,9 +742,6 @@ class VideoSwinBasicLayer(keras.Model):
         return config
 
 
-@keras_cv_export(
-    "keras_cv.layers.VideoSwinTransformerBlock", package="keras_cv.layers"
-)
 class VideoSwinTransformerBlock(keras.Model):
     """Video Swin Transformer Block.
 
