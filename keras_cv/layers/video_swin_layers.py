@@ -236,10 +236,10 @@ class MLP(keras.Layer):
         self.hidden_dim = hidden_dim
         self._activation_identifier = activation
         self.drop_rate = drop_rate
-        self.activation = layers.Activation(self._activation_identifier)
-        self.fc1 = layers.Dense(self.hidden_dim)
-        self.fc2 = layers.Dense(self.output_dim)
-        self.dropout = layers.Dropout(self.drop_rate)
+        self.activation = keras.layers.Activation(self._activation_identifier)
+        self.fc1 = keras.layers.Dense(self.hidden_dim)
+        self.fc2 = keras.layers.Dense(self.output_dim)
+        self.dropout = keras.layers.Dropout(self.drop_rate)
 
     def build(self, input_shape):
         self.fc1.build(input_shape)
@@ -312,7 +312,7 @@ class VideoSwinPatchingAndEmbedding(keras.Model):
             )
             self.norm.build((None, None, None, None, self.embed_dim))
 
-        self.proj = layers.Conv3D(
+        self.proj = keras.layers.Conv3D(
             self.embed_dim,
             kernel_size=self.patch_size,
             strides=self.patch_size,
@@ -365,7 +365,7 @@ class VideoSwinPatchMerging(keras.Layer):
 
     def build(self, input_shape):
         batch_size, depth, height, width, channel = input_shape
-        self.reduction = layers.Dense(2 * self.input_dim, use_bias=False)
+        self.reduction = keras.layers.Dense(2 * self.input_dim, use_bias=False)
         self.reduction.build(
             (batch_size, depth, height // 2, width // 2, 4 * channel)
         )
@@ -500,10 +500,12 @@ class VideoSwinWindowAttention(keras.Model):
         )
 
         # layers
-        self.qkv = layers.Dense(self.input_dim * 3, use_bias=self.qkv_bias)
-        self.attn_drop = layers.Dropout(self.attn_drop_rate)
-        self.proj = layers.Dense(self.input_dim)
-        self.proj_drop = layers.Dropout(self.proj_drop_rate)
+        self.qkv = keras.layers.Dense(
+            self.input_dim * 3, use_bias=self.qkv_bias
+        )
+        self.attn_drop = keras.layers.Dropout(self.attn_drop_rate)
+        self.proj = keras.layers.Dense(self.input_dim)
+        self.proj_drop = keras.layers.Dropout(self.proj_drop_rate)
         self.qkv.build(input_shape)
         self.proj.build(input_shape)
         self.built = True
@@ -779,7 +781,7 @@ class VideoSwinTransformerBlock(keras.Model):
         attn_drop_rate=0.0,
         drop_path_rate=0.0,
         activation="gelu",
-        norm_layer=layers.LayerNormalization,
+        norm_layer=keras.layers.LayerNormalization,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -818,7 +820,7 @@ class VideoSwinTransformerBlock(keras.Model):
         self.drop_path = (
             DropPath(self.drop_path_rate)
             if self.drop_path_rate > 0.0
-            else layers.Identity()
+            else keras.layers.Identity()
         )
 
         self.norm1 = self.norm_layer(axis=-1, epsilon=1e-05)
