@@ -212,7 +212,7 @@ def compute_mask(depth, height, width, window_size, shift_size):
     return attn_mask
 
 
-class MLP(keras.Layer):
+class MLP(keras.layers.Layer):
     """A Multilayer perceptron(MLP) layer.
 
     Args:
@@ -341,7 +341,7 @@ class VideoSwinPatchingAndEmbedding(keras.Model):
         return config
 
 
-class VideoSwinPatchMerging(keras.Layer):
+class VideoSwinPatchMerging(keras.layers.Layer):
     """Patch Merging Layer in Video Swin Transformer models.
 
     This layer performs a downsampling step by merging four neighboring patches
