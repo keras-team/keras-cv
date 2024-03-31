@@ -292,6 +292,7 @@ model.compile(
         reduction="sum"
     ),
     box_loss=[car_box_loss, pedestrian_box_loss],
+    jit_compile=False
 )
 
 """
