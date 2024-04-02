@@ -14,9 +14,9 @@
 
 
 from keras_cv.backend import ops
-from keras_cv.layers.video_swin_layers import VideoSwinPatchingAndEmbedding
-from keras_cv.layers.video_swin_layers import VideoSwinPatchMerging
-from keras_cv.layers.video_swin_layers import VideoSwinWindowAttention
+from keras_cv.models.backbones.video_swin.video_swin_layers import VideoSwinPatchingAndEmbedding
+from keras_cv.models.backbones.video_swin.video_swin_layers import VideoSwinPatchMerging
+from keras_cv.models.backbones.video_swin.video_swin_layers import VideoSwinWindowAttention
 from keras_cv.tests.test_case import TestCase
 
 

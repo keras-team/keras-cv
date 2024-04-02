@@ -19,9 +19,9 @@ from keras import layers
 
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
-from keras_cv.layers.video_swin_layers import VideoSwinBasicLayer
-from keras_cv.layers.video_swin_layers import VideoSwinPatchingAndEmbedding
-from keras_cv.layers.video_swin_layers import VideoSwinPatchMerging
+from keras_cv.models.backbones.video_swin.video_swin_layers import VideoSwinBasicLayer
+from keras_cv.models.backbones.video_swin.video_swin_layers import VideoSwinPatchingAndEmbedding
+from keras_cv.models.backbones.video_swin.video_swin_layers import VideoSwinPatchMerging
 from keras_cv.models import utils
 from keras_cv.models.backbones.backbone import Backbone
 from keras_cv.models.backbones.video_swin.video_swin_backbone_presets import (  # noqa: E501
