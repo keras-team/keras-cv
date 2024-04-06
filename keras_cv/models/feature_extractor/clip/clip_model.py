@@ -26,6 +26,7 @@ from keras_cv.models.feature_extractor.clip.clip_text_model import (
     CLIPTextEncoder,
 )
 from keras_cv.models.task import Task
+from keras_cv.utils.conditional_imports import assert_keras_nlp_installed
 from keras_cv.utils.python_utils import classproperty
 
 try:
@@ -98,11 +99,7 @@ class CLIP(Task):
         **kwargs,
     ):
         super().__init__(**kwargs)
-        if keras_nlp is None:
-            raise ValueError(
-                "ClipTokenizer requires keras-nlp. Please install "
-                "using pip `pip install -U keras-nlp && pip install -U keras`"
-            )
+        assert_keras_nlp_installed("CLIP")
         self.embed_dim = embed_dim
         self.image_resolution = image_resolution
         self.vision_layers = vision_layers

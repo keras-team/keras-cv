@@ -13,13 +13,19 @@
 # limitations under the License.
 import regex as re
 import tensorflow as tf
-import tensorflow_text as tf_text
+
+from keras_cv.utils.conditional_imports import assert_keras_nlp_installed
+from keras_cv.utils.conditional_imports import assert_tf_text_installed
 
 try:
-    import keras_nlp
     from keras_nlp.tokenizers import BytePairTokenizer
 except ImportError:
-    keras_nlp = None
+    BytePairTokenizer = object
+
+try:
+    import tensorflow_text as tf_text
+except ImportError:
+    tf_text = None
 
 # As python and TF handles special spaces differently, we need to
 # manually handle special spaces during string split.
@@ -41,6 +47,9 @@ def split_strings_for_bpe(inputs, unsplittable_tokens=None):
     # support lookahead match, we are using an alternative insert a special
     # token "६" before leading space of non-space characters and after the
     # trailing space, e.g., " keras" will be "६ keras".
+
+    assert_tf_text_installed("split_strings_for_bpe")
+
     inputs = tf.strings.regex_replace(
         inputs, rf"( )([^\s{SPECIAL_WHITESPACES}])", r"६\1\2"
     )
@@ -106,12 +115,8 @@ def remove_strings_from_inputs(tensor, string_to_remove):
 
 class CLIPTokenizer(BytePairTokenizer):
     def __init__(self, **kwargs):
+        assert_keras_nlp_installed("CLIPTokenizer")
         super().__init__(**kwargs)
-        if keras_nlp is None:
-            raise ValueError(
-                "ClipTokenizer requires keras-nlp. Please install "
-                "using pip `pip install -U keras-nlp && pip install -U keras`"
-            )
 
     def _bpe_merge_and_update_cache(self, tokens):
         """Process unseen tokens and add to cache."""
@@ -154,8 +159,9 @@ class CLIPTokenizer(BytePairTokenizer):
             self._bpe_merge_and_update_cache(unseen_tokens)
             return self.cache.lookup(flat_tokens)
 
-        # If `has_unseen_words == True`, it means not all tokens are in cache,
-        # we will process the unseen tokens. Otherwise return the cache lookup.
+        # If `has_unseen_words == True`, it means not all tokens are,
+        # in cache we will process the unseen tokens. Otherwise
+        # return the cache lookup.
         tokenized_words = tf.cond(
             has_unseen_words,
             process_unseen_tokens,
