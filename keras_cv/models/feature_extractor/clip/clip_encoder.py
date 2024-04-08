@@ -221,6 +221,12 @@ class CLIPAttention(keras.layers.Layer):
             * 0.02
         )
         out_proj_std = (self.proj_dim**-0.5) * 0.02
+        in_proj_std = ops.convert_to_tensor(
+            in_proj_std, dtype=self.dtype_policy
+        )
+        out_proj_std = ops.convert_to_tensor(
+            out_proj_std, dtype=self.dtype_policy
+        )
         self.q_proj = keras.layers.Dense(
             units=self.proj_dim,
             kernel_initializer=get_initializer(in_proj_std),
