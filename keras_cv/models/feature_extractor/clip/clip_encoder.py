@@ -54,13 +54,6 @@ class ResidualAttention(keras.layers.Layer):
         self.proj_dim = proj_dim
         self.num_heads = num_heads
         self.num_hidden_layers = num_hidden_layers
-        self.fc_std = np.power(2 * self.proj_dim, -0.5) * 0.02
-
-        self.in_proj_std = (
-            np.power(self.proj_dim, -0.5)
-            * (np.power(2 * self.num_hidden_layers, -0.5))
-            * 0.02
-        )
         self.attn = CLIPAttention(
             self.proj_dim,
             self.num_heads,
