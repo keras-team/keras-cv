@@ -35,7 +35,10 @@ MERGE_PATH = keras.utils.get_file(
 )
 
 
-@pytest.mark.skipif(keras_3 is False)
+@pytest.mark.skipif(
+    keras_3 is False,
+    reason="Only works with Keras 3",
+)
 class CLIPTest(TestCase):
     @pytest.mark.large
     def test_clip_model_golden_values(self):
