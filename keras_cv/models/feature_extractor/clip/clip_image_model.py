@@ -16,7 +16,6 @@ from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 from keras_cv.models.feature_extractor.clip.clip_encoder import CLIPEncoder
-from keras_cv.models.feature_extractor.clip.clip_encoder import get_initializer
 
 
 class CLIPPatchingAndEmbedding(keras.layers.Layer):
@@ -32,7 +31,6 @@ class CLIPPatchingAndEmbedding(keras.layers.Layer):
             padding="valid",
             use_bias=False,
             data_format="channels_last",
-            kernel_initializer=get_initializer(0.02),
             name="patch_embed.embedding",
         )
         self.width = width
@@ -41,9 +39,6 @@ class CLIPPatchingAndEmbedding(keras.layers.Layer):
         self.num_patches = ops.power(
             (self.input_resolution // self.patch_size), 2
         )
-        self.class_embedding_initializer = get_initializer(
-            ops.power(self.width, -0.5) * 0.02
-        )
         self.output_dim = output_dim
 
     def build(self, input_shape):
@@ -51,7 +46,6 @@ class CLIPPatchingAndEmbedding(keras.layers.Layer):
         self.conv1.build(input_shape)
         self.class_embedding = self.add_weight(
             shape=((self.width,)),
-            initializer=self.class_embedding_initializer,
             name="patch_embed.class_embedding",
         )
 
