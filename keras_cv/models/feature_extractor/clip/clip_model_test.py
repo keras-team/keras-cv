@@ -36,16 +36,12 @@ MERGE_PATH = keras.utils.get_file(
 
 
 @pytest.mark.skipif(
-    not keras_3,
+    not keras_3(),
     reason="Only works with Keras 3",
 )
 class CLIPTest(TestCase):
 
     @pytest.mark.large
-    @pytest.mark.skipif(
-        not keras_3,
-        reason="Only works with Keras 3",
-    )
     def test_clip_model_golden_values(self):
         model = CLIP.from_preset("clip-vit-base-patch32")
         processed_image = np.ones(shape=[1, 224, 224, 3])
@@ -98,10 +94,6 @@ class CLIPTest(TestCase):
         dataset.map(processor)
 
     @pytest.mark.large
-    @pytest.mark.skipif(
-        not keras_3,
-        reason="Only works with Keras 3",
-    )
     def test_presets(self):
         model = CLIP.from_preset("clip-vit-base-patch32")
         processed_image = np.ones(shape=[1, 224, 224, 3])
@@ -116,10 +108,6 @@ class CLIPTest(TestCase):
         )
 
     @pytest.mark.large  # Saving is slow, so mark these large.
-    @pytest.mark.skipif(
-        not keras_3,
-        reason="Only works with Keras 3",
-    )
     def test_saved_model(self):
         model = CLIP.from_preset("clip-vit-base-patch32")
         processed_image = np.ones(shape=[1, 224, 224, 3])
