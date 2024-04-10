@@ -11,25 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import numpy as np
-
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
-
-
-def get_initializer(initializer_range=0.02):
-    """
-    Creates a `keras.initializers.TruncatedNormal` with the given range.
-
-    Args:
-        initializer_range (*float*, defaults to 0.02): Standard deviation of the
-        initializer range.
-
-    Returns:
-        `keras.initializers.TruncatedNormal`: The truncated normal initializer.
-    """
-    return keras.initializers.TruncatedNormal(stddev=initializer_range)
 
 
 @keras_cv_export("keras_cv.models.feature_extractor.QuickGELU")
@@ -54,13 +38,6 @@ class ResidualAttention(keras.layers.Layer):
         self.proj_dim = proj_dim
         self.num_heads = num_heads
         self.num_hidden_layers = num_hidden_layers
-        self.fc_std = np.power(2 * self.proj_dim, -0.5) * 0.02
-
-        self.in_proj_std = (
-            np.power(self.proj_dim, -0.5)
-            * (np.power(2 * self.num_hidden_layers, -0.5))
-            * 0.02
-        )
         self.attn = CLIPAttention(
             self.proj_dim,
             self.num_heads,
@@ -156,9 +133,14 @@ class CLIPEncoder(keras.layers.Layer):
         ]
 
     def build(self, input_shape):
-        super().build(input_shape)
         for block in self.resblocks:
             block.build(input_shape)
+        self.built = True
+
+    def compute_output_shape(self, input_shape):
+        for block in self.resblocks:
+            input_shape = block.compute_output_shape(input_shape)
+        return input_shape
 
     def call(
         self,
@@ -173,9 +155,6 @@ class CLIPEncoder(keras.layers.Layer):
                 attention_mask=attention_mask,
             )
         return x
-
-    def compute_output_shape(self, inputs_shape):
-        return inputs_shape
 
     def get_config(self):
         config = super().get_config()
@@ -213,30 +192,20 @@ class CLIPAttention(keras.layers.Layer):
             )
 
         self.scale = self.head_dim**-0.5
-        in_proj_std = (
-            (self.proj_dim**-0.5)
-            * ((2 * self.num_hidden_layers) ** -0.5)
-            * 0.02
-        )
-        out_proj_std = (self.proj_dim**-0.5) * 0.02
         self.q_proj = keras.layers.Dense(
             units=self.proj_dim,
-            kernel_initializer=get_initializer(in_proj_std),
             name="q_proj",
         )
         self.k_proj = keras.layers.Dense(
             units=self.proj_dim,
-            kernel_initializer=get_initializer(in_proj_std),
             name="k_proj",
         )
         self.v_proj = keras.layers.Dense(
             units=self.proj_dim,
-            kernel_initializer=get_initializer(in_proj_std),
             name="v_proj",
         )
         self.out_proj = keras.layers.Dense(
             units=self.proj_dim,
-            kernel_initializer=get_initializer(out_proj_std),
             name="out_proj",
         )
 

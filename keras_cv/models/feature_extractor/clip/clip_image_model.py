@@ -16,10 +16,8 @@ from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.backend import ops
 from keras_cv.models.feature_extractor.clip.clip_encoder import CLIPEncoder
-from keras_cv.models.feature_extractor.clip.clip_encoder import get_initializer
 
 
-@keras_cv_export("keras_cv.models.feature_extractor.CLIPPatchingAndEmbedding")
 class CLIPPatchingAndEmbedding(keras.layers.Layer):
     def __init__(
         self, width, patch_size, input_resolution, output_dim, **kwargs
@@ -33,7 +31,6 @@ class CLIPPatchingAndEmbedding(keras.layers.Layer):
             padding="valid",
             use_bias=False,
             data_format="channels_last",
-            kernel_initializer=get_initializer(0.02),
             name="patch_embed.embedding",
         )
         self.width = width
@@ -42,9 +39,6 @@ class CLIPPatchingAndEmbedding(keras.layers.Layer):
         self.num_patches = ops.power(
             (self.input_resolution // self.patch_size), 2
         )
-        self.class_embedding_initializer = get_initializer(
-            ops.power(self.width, -0.5) * 0.02
-        )
         self.output_dim = output_dim
 
     def build(self, input_shape):
@@ -52,7 +46,6 @@ class CLIPPatchingAndEmbedding(keras.layers.Layer):
         self.conv1.build(input_shape)
         self.class_embedding = self.add_weight(
             shape=((self.width,)),
-            initializer=self.class_embedding_initializer,
             name="patch_embed.class_embedding",
         )
 
@@ -66,6 +59,13 @@ class CLIPPatchingAndEmbedding(keras.layers.Layer):
             trainable=True,
             name="patch_embed.positional_embedding",
         )
+
+    def compute_output_shape(self, input_shape):
+        return [
+            None,
+            (self.input_resolution // self.patch_size) ** 2 + 1,
+            self.width,
+        ]
 
     def call(self, x):
         batch_size = ops.shape(x)[0]
@@ -143,12 +143,15 @@ class CLIPImageEncoder(keras.Model):
         )
 
     def build(self, input_shape):
-        super().build(input_shape)
         self.embeddings.build(input_shape)
         self.pre_norm.build([None, None, self.width])
         self.encoder.build(None)
         self.post_norm.build([None, self.width])
-        self.image_projector.build([None, None, self.width])
+        self.image_projector.build([None, self.width])
+        self.built = True
+
+    def compute_output_shape(self, input_shape):
+        return [input_shape[0], self.output_dim]
 
     def call(self, image):
         x = self.embeddings(image)
