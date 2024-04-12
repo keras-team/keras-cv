@@ -141,7 +141,7 @@ def _clip_boxes(boxes, box_format, image_shape):
 
     if isinstance(image_shape, list) or isinstance(image_shape, tuple):
         height, width, _ = image_shape
-        max_length = [height, width, height, width]
+        max_length = ops.stack([height, width, height, width], axis=-1)
     else:
         image_shape = ops.cast(image_shape, dtype=boxes.dtype)
         height = image_shape[0]

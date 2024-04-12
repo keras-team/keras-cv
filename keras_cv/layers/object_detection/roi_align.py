@@ -25,31 +25,26 @@ def _feature_bilinear_interpolation(features, kernel_y, kernel_x):
 
     The RoIAlign feature f can be computed by bilinear interpolation
     of four neighboring feature points f0, f1, f2, and f3.
+
     f(y, x) = [hy, ly] * [[f00, f01], * [hx, lx]^T
-                          [f10, f11]]
+                            [f10, f11]]
     f(y, x) = (hy*hx)f00 + (hy*lx)f01 + (ly*hx)f10 + (lx*ly)f11
     f(y, x) = w00*f00 + w01*f01 + w10*f10 + w11*f11
     kernel_y = [hy, ly]
     kernel_x = [hx, lx]
 
     Args:
-      features: The features are in shape of [batch_size, num_boxes,
-        output_size * 2, output_size * 2, num_filters].
-      kernel_y: Tensor of size [batch_size, boxes, output_size, 2, 1].
-      kernel_x: Tensor of size [batch_size, boxes, output_size, 2, 1].
+        features: The features are in shape of [batch_size, num_boxes, output_size *
+        2, output_size * 2, num_filters].
+        kernel_y: Tensor of size [batch_size, boxes, output_size, 2, 1].
+        kernel_x: Tensor of size [batch_size, boxes, output_size, 2, 1].
 
     Returns:
-      A 5-D tensor representing feature crop of shape
-      [batch_size, num_boxes, output_size, output_size, num_filters].
-    """
-    features_shape = ops.shape(features)
-    batch_size, num_boxes, output_size, num_filters = (
-        features_shape[0],
-        features_shape[1],
-        features_shape[2],
-        features_shape[4],
-    )
+        A 5-D tensor representing feature crop of shape
+        [batch_size, num_boxes, output_size, output_size, num_filters].
 
+    """
+    (batch_size, num_boxes, output_size, _, num_filters) = ops.shape(features)
     output_size = output_size // 2
     kernel_y = ops.reshape(
         kernel_y, [batch_size, num_boxes, output_size * 2, 1]
@@ -69,48 +64,38 @@ def _feature_bilinear_interpolation(features, kernel_y, kernel_x):
         features,
         [batch_size * num_boxes, output_size * 2, output_size * 2, num_filters],
     )
-    features = ops.nn.average_pool(
-        features, [1, 2, 2, 1], [1, 2, 2, 1], "VALID"
-    )
+    features = ops.average_pool(features, [1, 2, 2, 1], [1, 2, 2, 1], "VALID")
     features = ops.reshape(
         features, [batch_size, num_boxes, output_size, output_size, num_filters]
     )
     return features
 
 
-def _compute_grid_positions(
-    boxes,
-    boundaries,
-    output_size,
-    sample_offset,
-):
-    """
-    Computes the grid position w.r.t. the corresponding feature map.
+def _compute_grid_positions(boxes, boundaries, output_size, sample_offset):
+    """Compute the grid position w.r.t.
+
+    the corresponding feature map.
 
     Args:
-      boxes: a 3-D tensor of shape [batch_size, num_boxes, 4] encoding the
+        boxes: a 3-D tensor of shape [batch_size, num_boxes, 4] encoding the
         information of each box w.r.t. the corresponding feature map.
         boxes[:, :, 0:2] are the grid position in (y, x) (float) of the top-left
         corner of each box. boxes[:, :, 2:4] are the box sizes in (h, w) (float)
-          in terms of the number of pixels of the corresponding feature map
-          size.
-      boundaries: a 3-D tensor of shape [batch_size, num_boxes, 2] representing
+            in terms of the number of pixels of the corresponding feature map size.
+        boundaries: a 3-D tensor of shape [batch_size, num_boxes, 2] representing
         the boundary (in (y, x)) of the corresponding feature map for each box.
-        Any resampled grid points that go beyond the boundary will be clipped.
-      output_size: a scalar indicating the output crop size.
-      sample_offset: a float number in [0, 1] indicates the subpixel sample
-        offset from grid point.
+        Any resampled grid points that go beyond the bounary will be clipped.
+        output_size: a scalar indicating the output crop size.
+        sample_offset: a float number in [0, 1] indicates the subpixel sample offset
+        from grid point.
 
     Returns:
-      kernel_y: Tensor of size [batch_size, boxes, output_size, 2, 1].
-      kernel_x: Tensor of size [batch_size, boxes, output_size, 2, 1].
-      box_grid_y0y1: Tensor of size [batch_size, boxes, output_size, 2]
-      box_grid_x0x1: Tensor of size [batch_size, boxes, output_size, 2]
+        kernel_y: Tensor of size [batch_size, boxes, output_size, 2, 1].
+        kernel_x: Tensor of size [batch_size, boxes, output_size, 2, 1].
+        box_grid_y0y1: Tensor of size [batch_size, boxes, output_size, 2]
+        box_grid_x0x1: Tensor of size [batch_size, boxes, output_size, 2]
     """
-    boxes_shape = ops.shape(boxes)
-    batch_size, num_boxes = boxes_shape[0], boxes_shape[1]
-    if batch_size is None:
-        batch_size = ops.shape(boxes)[0]
+    batch_size, num_boxes, _ = ops.shape(boxes)
     box_grid_x = []
     box_grid_y = []
     for i in range(output_size):
@@ -125,12 +110,8 @@ def _compute_grid_positions(
 
     box_grid_y0 = ops.floor(box_grid_y)
     box_grid_x0 = ops.floor(box_grid_x)
-    box_grid_x0 = ops.maximum(
-        ops.cast(0.0, dtype=box_grid_x0.dtype), box_grid_x0
-    )
-    box_grid_y0 = ops.maximum(
-        ops.cast(0.0, dtype=box_grid_y0.dtype), box_grid_y0
-    )
+    box_grid_x0 = ops.maximum(0.0, box_grid_x0)
+    box_grid_y0 = ops.maximum(0.0, box_grid_y0)
 
     box_grid_x0 = ops.minimum(
         box_grid_x0, ops.expand_dims(boundaries[:, :, 1], -1)
@@ -168,51 +149,33 @@ def _compute_grid_positions(
 
 
 def multilevel_crop_and_resize(
-    features,
-    boxes,
-    output_size: int = 7,
-    sample_offset: float = 0.5,
+    features, boxes, output_size=7, sample_offset=0.5
 ):
-    """
-    Crop and resize on multilevel feature pyramid.
+    """Crop and resize on multilevel feature pyramid.
 
     Generate the (output_size, output_size) set of pixels for each input box
     by first locating the box into the correct feature level, and then cropping
-    and resizing it using the corresponding feature map of that level.
+    and resizing it using the correspoding feature map of that level.
 
     Args:
-      features: A dictionary with key as pyramid level and value as features.
-        The pyramid level keys need to be represented by strings like so:
-        "P2", "P3", "P4", and so on.
-        The features are in shape of [batch_size, height_l, width_l,
-        num_filters].
-      boxes: A 3-D Tensor of shape [batch_size, num_boxes, 4]. Each row
-        represents a box with [y1, x1, y2, x2] in un-normalized coordinates.
-      output_size: A scalar to indicate the output crop size.
-      sample_offset: a float number in [0, 1] indicates the subpixel sample
-        offset from grid point.
+        features: A dictionary with key as pyramid level and value as features. The
+        features are in shape of [batch_size, height_l, width_l, num_filters].
+        boxes: A 3-D Tensor of shape [batch_size, num_boxes, 4]. Each row represents
+        a box with [y1, x1, y2, x2] in un-normalized coordinates.
+        output_size: A scalar to indicate the output crop size.
 
     Returns:
-      A 5-D tensor representing feature crop of shape
-      [batch_size, num_boxes, output_size, output_size, num_filters].
+        A 5-D tensor representing feature crop of shape
+        [batch_size, num_boxes, output_size, output_size, num_filters].
     """
-
-    levels_str = list(features.keys())
-    # Levels are represented by strings with a prefix "P" to represent
-    # pyramid levels. The integer level can be obtained by looking at
-    # the value that follows the "P".
-    levels = [int(level_str[1:]) for level_str in levels_str]
+    levels = list(features.keys())
+    levels = [int(level[1:]) for level in levels]
     min_level = min(levels)
     max_level = max(levels)
-    features_shape = ops.shape(features[f"P{min_level}"])
-    batch_size, max_feature_height, max_feature_width, num_filters = (
-        features_shape[0],
-        features_shape[1],
-        features_shape[2],
-        features_shape[3],
+    batch_size, max_feature_height, max_feature_width, num_filters = ops.shape(
+        features[f"P{min_level}"]
     )
-
-    num_boxes = ops.shape(boxes)[1]
+    _, num_boxes, _ = ops.shape(boxes)
 
     # Stack feature pyramid into a features_all of shape
     # [batch_size, levels, height, width, num_filters].
@@ -223,14 +186,14 @@ def multilevel_crop_and_resize(
         shape = ops.shape(features[f"P{level}"])
         feature_heights.append(shape[1])
         feature_widths.append(shape[2])
-        # Concat tensor of [batch_size, height_l * width_l, num_filters] for
-        # each level.
+        # Concat tensor of [batch_size, height_l * width_l, num_filters] for each
+        # levels.
         features_all.append(
             ops.reshape(features[f"P{level}"], [batch_size, -1, num_filters])
         )
-    features_r2 = ops.reshape(
-        ops.concatenate(features_all, 1), [-1, num_filters]
-    )
+        features_r2 = ops.reshape(
+            ops.concatenate(features_all, 1), [-1, num_filters]
+        )
 
     # Calculate height_l * width_l for each level.
     level_dim_sizes = [
@@ -242,26 +205,15 @@ def multilevel_crop_and_resize(
     for i in range(len(feature_widths) - 1):
         level_dim_offsets.append(level_dim_offsets[i] + level_dim_sizes[i])
     batch_dim_size = level_dim_offsets[-1] + level_dim_sizes[-1]
-    level_dim_offsets = (
-        ops.ones_like(level_dim_offsets, dtype="int32") * level_dim_offsets
-    )
-    height_dim_sizes = (
-        ops.ones_like(feature_widths, dtype="int32") * feature_widths
-    )
+    level_dim_offsets = ops.array(level_dim_offsets, dtype="int32")
+    height_dim_sizes = ops.array(feature_widths, dtype="int32")
 
     # Assigns boxes to the right level.
     box_width = boxes[:, :, 3] - boxes[:, :, 1]
     box_height = boxes[:, :, 2] - boxes[:, :, 0]
-    areas_sqrt = ops.sqrt(
-        ops.cast(box_height, "float32") * ops.cast(box_width, "float32")
-    )
-
-    # following the FPN paper to divide by 224.
+    areas_sqrt = ops.sqrt(box_height * box_width)
     levels = ops.cast(
-        ops.floor_divide(
-            ops.log(ops.divide(areas_sqrt, 224.0)),
-            ops.log(2.0),
-        )
+        ops.floor_divide(ops.log(ops.divide(areas_sqrt, 224.0)), ops.log(2.0))
         + 4.0,
         dtype="int32",
     )
@@ -270,7 +222,7 @@ def multilevel_crop_and_resize(
 
     # Projects box location and sizes to corresponding feature levels.
     scale_to_level = ops.cast(
-        ops.pow(2.0, ops.cast(levels, "float32")),
+        ops.power(ops.array(2.0), ops.cast(levels, "float32")),
         dtype=boxes.dtype,
     )
     boxes /= ops.expand_dims(scale_to_level, axis=2)
@@ -287,7 +239,7 @@ def multilevel_crop_and_resize(
 
     # Maps levels to [0, max_level-min_level].
     levels -= min_level
-    level_strides = ops.pow([[2.0]], ops.cast(levels, "float32"))
+    level_strides = ops.power([[2.0]], ops.cast(levels, "float32"))
     boundary = ops.cast(
         ops.concatenate(
             [
@@ -308,12 +260,9 @@ def multilevel_crop_and_resize(
     )
 
     # Compute grid positions.
-    (
-        kernel_y,
-        kernel_x,
-        box_gridy0y1,
-        box_gridx0x1,
-    ) = _compute_grid_positions(boxes, boundary, output_size, sample_offset)
+    kernel_y, kernel_x, box_gridy0y1, box_gridx0x1 = _compute_grid_positions(
+        boxes, boundary, output_size, sample_offset=sample_offset
+    )
 
     x_indices = ops.cast(
         ops.reshape(box_gridx0x1, [batch_size, num_boxes, output_size * 2]),
@@ -333,8 +282,7 @@ def multilevel_crop_and_resize(
     # Get level offset for each box. Each box belongs to one level.
     levels_offset = ops.tile(
         ops.reshape(
-            ops.take(level_dim_offsets, levels),
-            [batch_size, num_boxes, 1, 1],
+            ops.take(level_dim_offsets, levels), [batch_size, num_boxes, 1, 1]
         ),
         [1, 1, output_size * 2, output_size * 2],
     )
@@ -354,17 +302,11 @@ def multilevel_crop_and_resize(
         [-1],
     )
 
-    # TODO(tanzhenyu): replace tf.gather with tf.gather_nd and try to get
-    #  similar performance.
+    # TODO(tanzhenyu): replace tf.gather with tf.gather_nd and try to get similar
+    # performance.
     features_per_box = ops.reshape(
-        ops.take(features_r2, indices),
-        [
-            batch_size,
-            num_boxes,
-            output_size * 2,
-            output_size * 2,
-            num_filters,
-        ],
+        ops.take(features_r2, indices, axis=0),
+        [batch_size, num_boxes, output_size * 2, output_size * 2, num_filters],
     )
 
     # Bilinear interpolation.
@@ -397,7 +339,6 @@ class _ROIAligner(keras.layers.Layer):
           sample_offset: A `float` in [0, 1] of the subpixel sample offset.
           **kwargs: Additional keyword arguments passed to Layer.
         """
-        # assert_tf_keras("keras_cv.layers._ROIAligner")
         self._config_dict = {
             "bounding_box_format": bounding_box_format,
             "crop_size": target_size,

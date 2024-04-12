@@ -198,6 +198,7 @@ from keras_cv.models.backbones.vit_det.vit_det_backbone import ViTDetBackbone
 from keras_cv.models.classification.image_classifier import ImageClassifier
 from keras_cv.models.classification.video_classifier import VideoClassifier
 from keras_cv.models.feature_extractor.clip import CLIP
+from keras_cv.models.object_detection.faster_rcnn.faster_rcnn import FasterRCNN
 from keras_cv.models.object_detection.retinanet.retinanet import RetinaNet
 from keras_cv.models.object_detection.yolo_v8.yolo_v8_backbone import (
     YOLOV8Backbone,
