@@ -12,25 +12,48 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from keras_cv.models.backbones.densenet.densenet_aliases import (
+    DenseNet121Backbone,
+)
+from keras_cv.models.backbones.densenet.densenet_aliases import (
+    DenseNet169Backbone,
+)
+from keras_cv.models.backbones.densenet.densenet_aliases import (
+    DenseNet201Backbone,
+)
+from keras_cv.models.backbones.densenet.densenet_backbone import (
+    DenseNetBackbone,
+)
 from keras_cv.models.backbones.densenet.densenet_backbone_presets import (
     backbone_presets_no_weights,
 )
 from keras_cv.models.backbones.densenet.densenet_backbone_presets import (
     backbone_presets_with_weights,
 )
-from keras_cv.models.backbones.densenet.densenet_backbone import (
-    DenseNetBackbone,
-)
-from keras_cv.models.backbones.densenet.densenet_aliases import (
-    DenseNet121Backbone, DenseNet169Backbone, DenseNet201Backbone
-)
-from keras_cv.utils.preset_utils import register_presets, register_preset
+from keras_cv.utils.preset_utils import register_preset
+from keras_cv.utils.preset_utils import register_presets
 
-register_presets(backbone_presets_no_weights, (DenseNetBackbone, ), with_weights=False)
-register_presets(backbone_presets_with_weights, (DenseNetBackbone, ), with_weights=True)
-register_preset("densenet121_imagenet", backbone_presets_with_weights["densenet121_imagenet"],
-                (DenseNet121Backbone,), with_weights=True)
-register_preset("densenet169_imagenet", backbone_presets_with_weights["densenet169_imagenet"],
-                (DenseNet169Backbone,), with_weights=True)
-register_preset("densenet201_imagenet", backbone_presets_with_weights["densenet201_imagenet"],
-                (DenseNet201Backbone,), with_weights=True)
+register_presets(
+    backbone_presets_no_weights, (DenseNetBackbone,), with_weights=False
+)
+register_presets(
+    backbone_presets_with_weights, (DenseNetBackbone,), with_weights=True
+)
+register_preset(
+    "densenet121_imagenet",
+    backbone_presets_with_weights["densenet121_imagenet"],
+    (DenseNet121Backbone,),
+    with_weights=True,
+)
+register_preset(
+    "densenet169_imagenet",
+    backbone_presets_with_weights["densenet169_imagenet"],
+    (DenseNet169Backbone,),
+    with_weights=True,
+)
+register_preset(
+    "densenet201_imagenet",
+    backbone_presets_with_weights["densenet201_imagenet"],
+    (DenseNet201Backbone,),
+    with_weights=True,
+)

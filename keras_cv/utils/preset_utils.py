@@ -197,6 +197,7 @@ def check_config_class(
         )
     return keras.saving.get_registered_object(config["registered_name"])
 
+
 def check_preset_class(
     preset,
     classes,
@@ -228,6 +229,7 @@ def check_preset_class(
             f"Received: `{cls}`."
         )
     return cls
+
 
 def legacy_load_weights(layer, weights_path):
     # Hacky fix for TensorFlow 2.13 and 2.14 when loading a `.weights.h5` file.

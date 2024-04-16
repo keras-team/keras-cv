@@ -194,4 +194,3 @@ class YOLOV8Backbone(Backbone):
             }
         )
         return config
-

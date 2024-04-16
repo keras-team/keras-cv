@@ -20,6 +20,7 @@ from keras_cv.layers import MBConvBlock
 from keras_cv.models import utils
 from keras_cv.models.backbones.backbone import Backbone
 
+
 @keras_cv_export("keras_cv.models.EfficientNetV2Backbone")
 class EfficientNetV2Backbone(Backbone):
     """Instantiates the EfficientNetV2 architecture.

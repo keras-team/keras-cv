@@ -102,7 +102,6 @@ class VideoSwinBBackbone(VideoSwinBackbone):
         return VideoSwinBackbone.from_preset("videoswin_base", **kwargs)
 
 
-
 setattr(VideoSwinTBackbone, "__doc__", ALIAS_DOCSTRING.format(size="T"))
 setattr(VideoSwinSBackbone, "__doc__", ALIAS_DOCSTRING.format(size="S"))
 setattr(VideoSwinBBackbone, "__doc__", ALIAS_DOCSTRING.format(size="B"))

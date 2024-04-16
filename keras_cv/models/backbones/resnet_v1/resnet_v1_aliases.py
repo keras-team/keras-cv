@@ -110,7 +110,6 @@ class ResNet50Backbone(ResNetBackbone):
         return ResNetBackbone.from_preset("resnet50", **kwargs)
 
 
-
 @keras_cv_export("keras_cv.models.ResNet101Backbone")
 class ResNet101Backbone(ResNetBackbone):
     def __new__(
@@ -149,7 +148,6 @@ class ResNet152Backbone(ResNetBackbone):
             }
         )
         return ResNetBackbone.from_preset("resnet152", **kwargs)
-
 
 
 setattr(ResNet18Backbone, "__doc__", ALIAS_DOCSTRING.format(num_layers=18))

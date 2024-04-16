@@ -63,6 +63,7 @@ class DenseNet121Backbone(DenseNetBackbone):
         )
         return DenseNetBackbone.from_preset("densenet121", **kwargs)
 
+
 @keras_cv_export("keras_cv.models.DenseNet169Backbone")
 class DenseNet169Backbone(DenseNetBackbone):
     def __new__(

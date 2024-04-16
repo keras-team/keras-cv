@@ -112,6 +112,7 @@ class EfficientNetV1B3Backbone(EfficientNetV1Backbone):
         )
         return EfficientNetV1Backbone.from_preset("efficientnetv1_b3", **kwargs)
 
+
 @keras_cv_export("keras_cv.models.EfficientNetV1B4Backbone")
 class EfficientNetV1B4Backbone(EfficientNetV1Backbone):
     def __new__(
@@ -130,6 +131,7 @@ class EfficientNetV1B4Backbone(EfficientNetV1Backbone):
             }
         )
         return EfficientNetV1Backbone.from_preset("efficientnetv1_b4", **kwargs)
+
 
 @keras_cv_export("keras_cv.models.EfficientNetV1B5Backbone")
 class EfficientNetV1B5Backbone(EfficientNetV1Backbone):

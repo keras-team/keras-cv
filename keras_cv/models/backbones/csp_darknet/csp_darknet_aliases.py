@@ -147,7 +147,6 @@ class CSPDarkNetXLBackbone(CSPDarkNetBackbone):
         return CSPDarkNetBackbone.from_preset("csp_darknet_xl", **kwargs)
 
 
-
 setattr(
     CSPDarkNetTinyBackbone,
     "__doc__",

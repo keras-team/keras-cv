@@ -17,7 +17,6 @@ from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_backbone import (
     MobileNetV3Backbone,
 )
 
-
 ALIAS_DOCSTRING = """MobileNetV3Backbone model with {num_layers} layers.
 
     References:

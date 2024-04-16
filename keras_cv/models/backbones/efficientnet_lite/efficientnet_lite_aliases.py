@@ -107,7 +107,6 @@ class EfficientNetLiteB2Backbone(EfficientNetLiteBackbone):
         )
 
 
-
 @keras_cv_export("keras_cv.models.EfficientNetLiteB3Backbone")
 class EfficientNetLiteB3Backbone(EfficientNetLiteBackbone):
     def __new__(
@@ -150,6 +149,7 @@ class EfficientNetLiteB4Backbone(EfficientNetLiteBackbone):
         return EfficientNetLiteBackbone.from_preset(
             "efficientnetlite_b4", **kwargs
         )
+
 
 setattr(
     EfficientNetLiteB0Backbone,

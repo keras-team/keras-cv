@@ -32,6 +32,7 @@ from keras_cv.models.backbones.csp_darknet.csp_darknet_utils import (
     SpatialPyramidPoolingBottleneck,
 )
 
+
 @keras_cv_export("keras_cv.models.CSPDarkNetBackbone")
 class CSPDarkNetBackbone(Backbone):
     """This class represents the CSPDarkNet architecture.

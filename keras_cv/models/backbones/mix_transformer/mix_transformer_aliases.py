@@ -61,7 +61,6 @@ class MiTB0Backbone(MiTBackbone):
         return MiTBackbone.from_preset("mit_b0", **kwargs)
 
 
-
 @keras_cv_export("keras_cv.models.MiTB1Backbone")
 class MiTB1Backbone(MiTBackbone):
     def __new__(
@@ -80,6 +79,7 @@ class MiTB1Backbone(MiTBackbone):
             }
         )
         return MiTBackbone.from_preset("mit_b1", **kwargs)
+
 
 @keras_cv_export("keras_cv.models.MiTB2Backbone")
 class MiTB2Backbone(MiTBackbone):
@@ -101,7 +101,6 @@ class MiTB2Backbone(MiTBackbone):
         return MiTBackbone.from_preset("mit_b2", **kwargs)
 
 
-
 @keras_cv_export("keras_cv.models.MiTB3Backbone")
 class MiTB3Backbone(MiTBackbone):
     def __new__(
@@ -120,6 +119,8 @@ class MiTB3Backbone(MiTBackbone):
             }
         )
         return MiTBackbone.from_preset("mit_b3", **kwargs)
+
+
 @keras_cv_export("keras_cv.models.MiTB4Backbone")
 class MiTB4Backbone(MiTBackbone):
     def __new__(
