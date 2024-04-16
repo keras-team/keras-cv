@@ -21,10 +21,10 @@ from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_aliases import (
 from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_backbone import (
     MobileNetV3Backbone,
 )
-from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_backbone_presets import (
+from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_backbone_presets import (  # noqa: E501
     backbone_presets_no_weights,
 )
-from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_backbone_presets import (
+from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_backbone_presets import (  # noqa: E501
     backbone_presets_with_weights,
 )
 from keras_cv.utils.preset_utils import register_preset

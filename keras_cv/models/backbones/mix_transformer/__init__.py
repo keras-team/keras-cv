@@ -18,10 +18,10 @@ from keras_cv.models.backbones.mix_transformer.mix_transformer_aliases import (
 from keras_cv.models.backbones.mix_transformer.mix_transformer_backbone import (
     MiTBackbone,
 )
-from keras_cv.models.backbones.mix_transformer.mix_transformer_backbone_presets import (
+from keras_cv.models.backbones.mix_transformer.mix_transformer_backbone_presets import (  # noqa: E501
     backbone_presets_no_weights,
 )
-from keras_cv.models.backbones.mix_transformer.mix_transformer_backbone_presets import (
+from keras_cv.models.backbones.mix_transformer.mix_transformer_backbone_presets import (  # noqa: E501
     backbone_presets_with_weights,
 )
 from keras_cv.utils.preset_utils import register_preset

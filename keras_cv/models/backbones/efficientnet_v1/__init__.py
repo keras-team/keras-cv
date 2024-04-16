@@ -15,10 +15,10 @@
 from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_backbone import (
     EfficientNetV1Backbone,
 )
-from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_backbone_presets import (
+from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_backbone_presets import (  # noqa: E501
     backbone_presets_no_weights,
 )
-from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_backbone_presets import (
+from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_backbone_presets import (  # noqa: E501
     backbone_presets_with_weights,
 )
 from keras_cv.utils.preset_utils import register_presets

@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_backbone import (
+from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_backbone import (  # noqa: E501
     EfficientNetLiteBackbone,
 )
-from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_backbone_presets import (
+from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_backbone_presets import (  # noqa: E501
     backbone_presets_no_weights,
 )
-from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_backbone_presets import (
+from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_backbone_presets import (  # noqa: E501
     backbone_presets_with_weights,
 )
 from keras_cv.utils.preset_utils import register_presets
