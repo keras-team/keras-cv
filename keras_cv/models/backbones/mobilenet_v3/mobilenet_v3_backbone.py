@@ -20,20 +20,11 @@ References:
     - [Based on the original keras.applications MobileNetv3](https://github.com/keras-team/keras/blob/master/keras/applications/mobilenet_v3.py)
 """  # noqa: E501
 
-import copy
-
 from keras_cv import layers as cv_layers
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.models import utils
 from keras_cv.models.backbones.backbone import Backbone
-from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_backbone_presets import (  # noqa: E501
-    backbone_presets,
-)
-from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_backbone_presets import (  # noqa: E501
-    backbone_presets_with_weights,
-)
-from keras_cv.utils.python_utils import classproperty
 
 CHANNEL_AXIS = -1
 BN_EPSILON = 1e-3
@@ -197,17 +188,6 @@ class MobileNetV3Backbone(Backbone):
             }
         )
         return config
-
-    @classproperty
-    def presets(cls):
-        """Dictionary of preset names and configurations."""
-        return copy.deepcopy(backbone_presets)
-
-    @classproperty
-    def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include
-        weights."""
-        return copy.deepcopy(backbone_presets_with_weights)
 
 
 class HardSigmoidActivation(keras.layers.Layer):

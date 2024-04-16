@@ -17,3 +17,13 @@ from keras_cv.models.object_detection_3d.center_pillar import (
 from keras_cv.models.object_detection_3d.center_pillar_backbone import (
     CenterPillarBackbone,
 )
+from keras_cv.models.object_detection_3d.center_pillar_backbone_presets import (
+    backbone_presets_no_weights,
+)
+from keras_cv.models.object_detection_3d.center_pillar_backbone_presets import (
+    backbone_presets_with_weights,
+)
+from keras_cv.utils.preset_utils import register_presets
+
+register_presets(backbone_presets_no_weights, (CenterPillarBackbone, ), with_weights=False)
+register_presets(backbone_presets_with_weights, (CenterPillarBackbone, ), with_weights=True)

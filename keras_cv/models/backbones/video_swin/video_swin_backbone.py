@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import copy
 from functools import partial
 
 import numpy as np
@@ -21,12 +20,6 @@ from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.models import utils
 from keras_cv.models.backbones.backbone import Backbone
-from keras_cv.models.backbones.video_swin.video_swin_backbone_presets import (  # noqa: E501
-    backbone_presets,
-)
-from keras_cv.models.backbones.video_swin.video_swin_backbone_presets import (  # noqa: E501
-    backbone_presets_with_weights,
-)
 from keras_cv.models.backbones.video_swin.video_swin_layers import (
     VideoSwinBasicLayer,
 )
@@ -36,7 +29,6 @@ from keras_cv.models.backbones.video_swin.video_swin_layers import (
 from keras_cv.models.backbones.video_swin.video_swin_layers import (
     VideoSwinPatchMerging,
 )
-from keras_cv.utils.python_utils import classproperty
 
 
 @keras_cv_export("keras_cv.models.VideoSwinBackbone", package="keras_cv.models")
@@ -221,17 +213,6 @@ class VideoSwinBackbone(Backbone):
             }
         )
         return config
-
-    @classproperty
-    def presets(cls):
-        """Dictionary of preset names and configurations."""
-        return copy.deepcopy(backbone_presets)
-
-    @classproperty
-    def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include
-        weights."""
-        return copy.deepcopy(backbone_presets_with_weights)
 
     @property
     def pyramid_level_inputs(self):

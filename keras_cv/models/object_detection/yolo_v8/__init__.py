@@ -14,3 +14,16 @@
 from keras_cv.models.object_detection.yolo_v8.yolo_v8_label_encoder import (
     YOLOV8LabelEncoder,
 )
+from keras_cv.models.object_detection.yolo_v8.yolo_v8_backbone_presets import (
+    backbone_presets_no_weights,
+)
+from keras_cv.models.object_detection.yolo_v8.yolo_v8_backbone_presets import (
+    backbone_presets_with_weights,
+)
+from keras_cv.models.object_detection.yolo_v8.yolo_v8_backbone import (
+    YOLOV8Backbone,
+)
+from keras_cv.utils.preset_utils import register_presets
+
+register_presets(backbone_presets_no_weights, (YOLOV8Backbone, ), with_weights=False)
+register_presets(backbone_presets_with_weights, (YOLOV8Backbone, ), with_weights=True)

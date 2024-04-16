@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import collections
 import datetime
 import inspect
 import json
@@ -27,6 +28,11 @@ except ImportError:
 KAGGLE_PREFIX = "kaggle://"
 GS_PREFIX = "gs://"
 
+# Global state for preset registry.
+BUILTIN_PRESETS = {}
+BUILTIN_PRESETS_FOR_CLASS = collections.defaultdict(dict)
+BUILTIN_PRESETS_FOR_CLASS_WITH_WEIGHT = collections.defaultdict(dict)
+
 
 def get_file(preset, path):
     """Download a preset file in necessary and return the local path."""
@@ -34,6 +40,10 @@ def get_file(preset, path):
         raise ValueError(
             f"A preset identifier must be a string. Received: preset={preset}"
         )
+
+    if preset in BUILTIN_PRESETS:
+        preset = BUILTIN_PRESETS[preset]["kaggle_handle"]
+
     if preset.startswith(KAGGLE_PREFIX):
         if kagglehub is None:
             raise ImportError(
@@ -170,6 +180,23 @@ def load_from_preset(
     return layer
 
 
+def check_config_class(
+    preset,
+    config_file="config.json",
+):
+    """Validate a preset is being loaded on the correct class."""
+    config_path = get_file(preset, config_file)
+    try:
+        with open(config_path) as config_file:
+            config = json.load(config_file)
+    except:
+        raise ValueError(
+            f"The specified preset  `{preset}` is unknown. "
+            "Please check documentation to ensure the correct preset "
+            "handle is being used."
+        )
+    return keras.saving.get_registered_object(config["registered_name"])
+
 def check_preset_class(
     preset,
     classes,
@@ -202,7 +229,6 @@ def check_preset_class(
         )
     return cls
 
-
 def legacy_load_weights(layer, weights_path):
     # Hacky fix for TensorFlow 2.13 and 2.14 when loading a `.weights.h5` file.
     # We find the `Functional` class, and temporarily remove the
@@ -216,3 +242,33 @@ def legacy_load_weights(layer, weights_path):
     functional_cls._layer_checkpoint_dependencies = {}
     layer.load_weights(weights_path)
     functional_cls._layer_checkpoint_dependencies = property
+
+
+def register_preset(preset_name, preset, classes, with_weights=False):
+    BUILTIN_PRESETS[preset_name] = preset
+    for cls in classes:
+        BUILTIN_PRESETS_FOR_CLASS[cls][preset_name] = preset
+        if with_weights:
+            BUILTIN_PRESETS_FOR_CLASS_WITH_WEIGHT[cls][preset_name] = preset
+
+
+def register_presets(presets, classes, with_weights=False):
+    for preset_name, preset in presets.items():
+        register_preset(preset_name, preset, classes, with_weights)
+
+
+def list_presets(cls, with_weights=False):
+    """Find all registered builtin presets for a class."""
+    if with_weights:
+        return dict(BUILTIN_PRESETS_FOR_CLASS_WITH_WEIGHT[cls])
+    return dict(BUILTIN_PRESETS_FOR_CLASS[cls])
+
+
+def list_subclasses(cls):
+    """Find all registered subclasses of a class."""
+    custom_objects = keras.saving.get_custom_objects().values()
+    subclasses = []
+    for x in custom_objects:
+        if inspect.isclass(x) and x != cls and issubclass(x, cls):
+            subclasses.append(x)
+    return subclasses

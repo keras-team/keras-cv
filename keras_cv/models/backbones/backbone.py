@@ -15,10 +15,11 @@
 
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
-from keras_cv.utils.preset_utils import check_preset_class
+from keras_cv.utils.preset_utils import check_config_class
+from keras_cv.utils.preset_utils import list_presets
+from keras_cv.utils.preset_utils import list_subclasses
 from keras_cv.utils.preset_utils import load_from_preset
 from keras_cv.utils.python_utils import classproperty
-from keras_cv.utils.python_utils import format_docstring
 
 
 @keras_cv_export("keras_cv.models.Backbone")
@@ -64,12 +65,18 @@ class Backbone(keras.Model):
     @classproperty
     def presets(cls):
         """Dictionary of preset names and configs."""
-        return {}
+        presets = list_presets(cls)
+        for subclass in list_subclasses(cls):
+            presets.update(subclass.presets)
+        return presets
 
     @classproperty
     def presets_with_weights(cls):
         """Dictionary of preset names and configs that include weights."""
-        return {}
+        presets = list_presets(cls, with_weights=True)
+        for subclass in list_subclasses(cls):
+            presets.update(subclass.presets)
+        return presets
 
     @classproperty
     def presets_without_weights(cls):
@@ -109,46 +116,18 @@ class Backbone(keras.Model):
             load_weights=False,
         ```
         """
-        # We support short IDs for official presets, e.g. `"bert_base_en"`.
-        # Map these to a Kaggle Models handle.
-        if preset in cls.presets:
-            preset = cls.presets[preset]["kaggle_handle"]
-
-        check_preset_class(preset, cls)
+        preset_cls = check_config_class(preset)
+        if not issubclass(preset_cls, cls):
+            raise ValueError(
+                f"Preset has type `{preset_cls.__name__}` which is not a "
+                f"a subclass of calling class `{cls.__name__}`. Call "
+                f"`from_preset` directly on `{preset_cls.__name__}` instead."
+            )
         return load_from_preset(
             preset,
             load_weights=load_weights,
             config_overrides=kwargs,
         )
-
-    def __init_subclass__(cls, **kwargs):
-        # Use __init_subclass__ to set up a correct docstring for from_preset.
-        super().__init_subclass__(**kwargs)
-
-        # If the subclass does not define from_preset, assign a wrapper so that
-        # each class can have a distinct docstring.
-        if "from_preset" not in cls.__dict__:
-
-            def from_preset(calling_cls, *args, **kwargs):
-                return super(cls, calling_cls).from_preset(*args, **kwargs)
-
-            cls.from_preset = classmethod(from_preset)
-
-        if not cls.presets:
-            cls.from_preset.__func__.__doc__ = """Not implemented.
-
-            No presets available for this class.
-            """
-
-        # Format and assign the docstring unless the subclass has overridden it.
-        if cls.from_preset.__doc__ is None:
-            cls.from_preset.__func__.__doc__ = Backbone.from_preset.__doc__
-            format_docstring(
-                model_name=cls.__name__,
-                example_preset_name=next(iter(cls.presets_with_weights), ""),
-                preset_names='", "'.join(cls.presets),
-                preset_with_weights_names='", "'.join(cls.presets_with_weights),
-            )(cls.from_preset.__func__)
 
     @property
     def pyramid_level_inputs(self):

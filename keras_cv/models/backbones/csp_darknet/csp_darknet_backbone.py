@@ -13,18 +13,11 @@
 # limitations under the License.
 
 """CSPDarkNet backbone model. """
-import copy
 
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.models import utils
 from keras_cv.models.backbones.backbone import Backbone
-from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone_presets import (
-    backbone_presets,
-)
-from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone_presets import (
-    backbone_presets_with_weights,
-)
 from keras_cv.models.backbones.csp_darknet.csp_darknet_utils import (
     CrossStagePartial,
 )
@@ -38,8 +31,6 @@ from keras_cv.models.backbones.csp_darknet.csp_darknet_utils import Focus
 from keras_cv.models.backbones.csp_darknet.csp_darknet_utils import (
     SpatialPyramidPoolingBottleneck,
 )
-from keras_cv.utils.python_utils import classproperty
-
 
 @keras_cv_export("keras_cv.models.CSPDarkNetBackbone")
 class CSPDarkNetBackbone(Backbone):
@@ -169,14 +160,3 @@ class CSPDarkNetBackbone(Backbone):
             }
         )
         return config
-
-    @classproperty
-    def presets(cls):
-        """Dictionary of preset names and configurations."""
-        return copy.deepcopy(backbone_presets)
-
-    @classproperty
-    def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include
-        weights."""
-        return copy.deepcopy(backbone_presets_with_weights)

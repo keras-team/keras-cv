@@ -280,7 +280,7 @@ class RetinaNetTest(TestCase):
             bounding_box_format="xyxy",
             backbone=keras_cv.models.ResNet50Backbone.from_preset(
                 "resnet50_imagenet",
-                load_weights=False,
+                #load_weights=False,
             ),
         )
 

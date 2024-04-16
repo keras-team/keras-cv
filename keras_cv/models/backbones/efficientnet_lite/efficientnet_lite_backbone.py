@@ -21,17 +21,12 @@ Reference:
     - [Based on the original EfficientNet Lite's](https://github.com/tensorflow/tpu/tree/master/models/official/efficientnet/lite)
 """  # noqa: E501
 
-import copy
 import math
 
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.models import utils
 from keras_cv.models.backbones.backbone import Backbone
-from keras_cv.models.backbones.efficientnet_lite.efficientnet_lite_backbone_presets import (  # noqa: E501
-    backbone_presets,
-)
-from keras_cv.utils.python_utils import classproperty
 
 BN_AXIS = 3
 
@@ -246,11 +241,6 @@ class EfficientNetLiteBackbone(Backbone):
             }
         )
         return config
-
-    @classproperty
-    def presets(cls):
-        """Dictionary of preset names and configurations."""
-        return copy.deepcopy(backbone_presets)
 
 
 def conv_kernel_initializer(scale=2.0):
