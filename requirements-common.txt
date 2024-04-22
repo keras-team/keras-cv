@@ -6,7 +6,6 @@ kagglehub
 keras-core>=0.1.6
 keras_nlp
 tensorflow-datasets
-tensorflow-text
 pycocotools
 # Tooling deps.
 packaging
