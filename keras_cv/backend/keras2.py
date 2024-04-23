@@ -14,6 +14,9 @@
 
 import types
 
+from tensorflow import keras  # noqa: F403, F401
+from tensorflow.keras import *  # noqa: F403, F401
+
 _KERAS_CORE_ALIASES = {
     "utils->saving": [
         "register_keras_serializable",
@@ -23,9 +26,6 @@ _KERAS_CORE_ALIASES = {
     ],
     "models->saving": ["load_model"],
 }
-
-from tensorflow import keras  # noqa: F403, F401
-from tensorflow.keras import *  # noqa: F403, F401
 
 if not hasattr(keras, "saving"):
     keras.saving = types.SimpleNamespace()
