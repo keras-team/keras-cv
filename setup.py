@@ -76,6 +76,7 @@ setup(
         "tensorflow-datasets",
         "keras-core",
         "kagglehub",
+        "keras_nlp"
     ],
     extras_require={
         "tests": [
