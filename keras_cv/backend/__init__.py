@@ -26,7 +26,14 @@ Keras 2. The sub-modules exposed are as follows:
 - `random`: `keras.random` for Keras 3 or `keras_core.ops` for Keras 2.
 """
 from keras_cv.backend import config  # noqa: E402
-from keras_cv.backend import keras  # noqa: E402
+
+if config.keras_3():
+    import keras  # noqa: E402
+
+    keras.backend.name_scope = keras.name_scope
+else:
+    import keras_cv.backend.keras2 as keras  # noqa: E402
+
 from keras_cv.backend import ops  # noqa: E402
 from keras_cv.backend import random  # noqa: E402
 from keras_cv.backend import tf_ops  # noqa: E402
