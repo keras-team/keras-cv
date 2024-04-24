@@ -68,6 +68,7 @@ then
       keras_cv/models/object_detection/retinanet \
       keras_cv/models/object_detection/yolo_v8 \
       keras_cv/models/object_detection_3d \
+      keras_cv/models/video_classification \
       keras_cv/models/segmentation \
       keras_cv/models/feature_extractor/clip \
       keras_cv/models/stable_diffusion
@@ -82,6 +83,7 @@ else
       keras_cv/models/classification \
       keras_cv/models/object_detection/retinanet \
       keras_cv/models/object_detection/yolo_v8 \
+      keras_cv/models/video_classification \
       keras_cv/models/object_detection_3d \
       keras_cv/models/segmentation \
       keras_cv/models/feature_extractor/clip \
