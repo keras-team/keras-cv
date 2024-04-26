@@ -48,9 +48,9 @@ def export_version_string(version, is_nightly=False):
             f.write(setup_contents)
 
     # Make sure to export the __version__ string
-    with open(os.path.join(package, "src", "version.py")) as f:
+    with open(os.path.join(package, "src", "version_utils.py")) as f:
         init_contents = f.read()
-    with open(os.path.join(package, "src", "version.py"), "w") as f:
+    with open(os.path.join(package, "src", "version_utils.py"), "w") as f:
         init_contents = re.sub(
             "\n__version__ = .*\n",
             f'\n__version__ = "{version}"\n',
@@ -72,7 +72,7 @@ def copy_source_to_build_directory(root_path):
     os.chdir(build_directory)
 
 
-def build(root_path, is_nightly=False, rc_index=None):
+def build(root_path, is_nightly=False):
     if os.path.exists(build_directory):
         raise ValueError(f"Directory already exists: {build_directory}")
 
@@ -80,9 +80,9 @@ def build(root_path, is_nightly=False, rc_index=None):
         copy_source_to_build_directory(root_path)
         print(os.getcwd())
 
-        from keras_cv.src.version import __version__  # noqa: E402
+        from keras_cv.src.version_utils import __version__  # noqa: E402
 
-        export_version_string(__version__, is_nightly, rc_index)
+        export_version_string(__version__, is_nightly)
         return build_and_save_output(root_path, __version__)
     finally:
         # Clean up: remove the build directory (no longer needed)
