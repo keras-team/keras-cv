@@ -27,12 +27,12 @@ Keras 2. The sub-modules exposed are as follows:
 """
 from keras_cv.backend import config  # noqa: E402
 
-if config.keras_3():
+if not config.keras_3():
+    import keras_cv.backend.keras2 as keras  # noqa: E402
+else:
     import keras  # noqa: E402
 
     keras.backend.name_scope = keras.name_scope
-else:
-    import keras_cv.backend.keras2 as keras  # noqa: E402
 
 from keras_cv.backend import ops  # noqa: E402
 from keras_cv.backend import random  # noqa: E402
