@@ -35,7 +35,7 @@ from keras_cv.src.models.segmentation.segment_anything.sam_layers import (
 from keras_cv.src.models.segmentation.segment_anything.sam_mask_decoder import (
     SAMMaskDecoder,
 )
-from keras_cv.src.models.segmentation.segment_anything.sam_prompt_encoder import (
+from keras_cv.src.models.segmentation.segment_anything.sam_prompt_encoder import (  # noqa: E501
     SAMPromptEncoder,
 )
 from keras_cv.src.models.segmentation.segment_anything.sam_transformer import (

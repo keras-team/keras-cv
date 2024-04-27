@@ -25,7 +25,7 @@ from keras_cv.src.models.backbones.backbone_presets import (
     backbone_presets_with_weights,
 )
 from keras_cv.src.models.object_detection.__internal__ import unpack_input
-from keras_cv.src.models.object_detection.yolo_v8.yolo_v8_detector_presets import (
+from keras_cv.src.models.object_detection.yolo_v8.yolo_v8_detector_presets import (  # noqa: E501
     yolo_v8_detector_presets,
 )
 from keras_cv.src.models.object_detection.yolo_v8.yolo_v8_label_encoder import (

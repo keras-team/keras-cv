@@ -18,10 +18,10 @@ from keras_cv.src.tests.test_case import TestCase
 
 class ConstantFactorSamplerTest(TestCase):
     def test_sample(self):
-        factor = keras_cv.ConstantFactorSampler(0.3)
+        factor = keras_cv.src.ConstantFactorSampler(0.3)
         self.assertEqual(factor(), 0.3)
 
     def test_config(self):
-        factor = keras_cv.ConstantFactorSampler(0.3)
+        factor = keras_cv.src.ConstantFactorSampler(0.3)
         config = factor.get_config()
         self.assertEqual(config["value"], 0.3)

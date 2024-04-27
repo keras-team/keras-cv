@@ -18,7 +18,7 @@ from keras_cv.src.api_export import keras_cv_export
 from keras_cv.src.models.backbones.csp_darknet.csp_darknet_backbone import (
     CSPDarkNetBackbone,
 )
-from keras_cv.src.models.backbones.csp_darknet.csp_darknet_backbone_presets import (
+from keras_cv.src.models.backbones.csp_darknet.csp_darknet_backbone_presets import (  # noqa: E501
     backbone_presets,
 )
 from keras_cv.src.utils.python_utils import classproperty

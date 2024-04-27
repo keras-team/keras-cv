@@ -17,7 +17,7 @@ import copy
 from keras_cv.src.models.backbones.video_swin.video_swin_backbone import (
     VideoSwinBackbone,
 )
-from keras_cv.src.models.backbones.video_swin.video_swin_backbone_presets import (
+from keras_cv.src.models.backbones.video_swin.video_swin_backbone_presets import (  # noqa: E501
     backbone_presets,
 )
 from keras_cv.src.utils.python_utils import classproperty

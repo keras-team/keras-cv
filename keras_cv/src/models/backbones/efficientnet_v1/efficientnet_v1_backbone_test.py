@@ -19,10 +19,10 @@ import pytest
 from absl.testing import parameterized
 
 from keras_cv.src.backend import keras
-from keras_cv.src.models.backbones.efficientnet_v1.efficientnet_v1_aliases import (
+from keras_cv.src.models.backbones.efficientnet_v1.efficientnet_v1_aliases import (  # noqa: E501
     EfficientNetV1B0Backbone,
 )
-from keras_cv.src.models.backbones.efficientnet_v1.efficientnet_v1_backbone import (
+from keras_cv.src.models.backbones.efficientnet_v1.efficientnet_v1_backbone import (  # noqa: E501
     EfficientNetV1Backbone,
 )
 from keras_cv.src.tests.test_case import TestCase

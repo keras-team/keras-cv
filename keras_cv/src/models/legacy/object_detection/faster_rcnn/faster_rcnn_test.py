@@ -19,7 +19,7 @@ from tensorflow import keras
 from tensorflow.keras import optimizers
 
 from keras_cv.src.models import ResNet18V2Backbone
-from keras_cv.src.models.legacy.object_detection.faster_rcnn.faster_rcnn import (
+from keras_cv.src.models.legacy.object_detection.faster_rcnn.faster_rcnn import (  # noqa: E501
     FasterRCNN,
 )
 from keras_cv.src.models.object_detection.__test_utils__ import (

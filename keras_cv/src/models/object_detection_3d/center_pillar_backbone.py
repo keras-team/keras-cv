@@ -16,7 +16,7 @@ import copy
 from keras_cv.src.api_export import keras_cv_export
 from keras_cv.src.backend import keras
 from keras_cv.src.models.backbones.backbone import Backbone
-from keras_cv.src.models.object_detection_3d.center_pillar_backbone_presets import (
+from keras_cv.src.models.object_detection_3d.center_pillar_backbone_presets import (  # noqa: E501
     backbone_presets,
 )
 from keras_cv.src.utils.python_utils import classproperty

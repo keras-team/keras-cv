@@ -27,7 +27,7 @@ from keras_cv.src.models.legacy.darknet import DarkNet53
 from keras_cv.src.models.legacy.mlp_mixer import MLPMixerB16
 from keras_cv.src.models.legacy.mlp_mixer import MLPMixerB32
 from keras_cv.src.models.legacy.mlp_mixer import MLPMixerL16
-from keras_cv.src.models.legacy.object_detection.faster_rcnn.faster_rcnn import (
+from keras_cv.src.models.legacy.object_detection.faster_rcnn.faster_rcnn import (  # noqa: E501
     FasterRCNN,
 )
 from keras_cv.src.models.legacy.regnet import RegNetX002

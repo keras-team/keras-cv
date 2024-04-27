@@ -98,7 +98,7 @@ class GridMaskTest(TestCase):
 
         fill_value = 255.0
         layer = GridMask(
-            ratio_factor=keras_cv.ConstantFactorSampler(0.5),
+            ratio_factor=keras_cv.src.ConstantFactorSampler(0.5),
             rotation_factor=0.5,
             fill_mode="constant",
             fill_value=fill_value,

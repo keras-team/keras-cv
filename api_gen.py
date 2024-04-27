@@ -7,7 +7,6 @@ It generates API and formats user and generated APIs.
 """
 
 import os
-import re
 import shutil
 
 import namex
@@ -98,7 +97,7 @@ def build():
         update_package_init(build_init_fname)
         # Add __version__ to keras package
         export_version_string(build_api_init_fname)
-        # Copy back the keras_cv/api and keras_cv/__init__.py from build directory
+        # Copy back the keras_cv/api and keras_cv/__init__.py from build dir
         if os.path.exists(code_api_dir):
             shutil.rmtree(code_api_dir)
         shutil.copytree(build_api_dir, code_api_dir)

@@ -23,7 +23,7 @@ then
 fi
 [ $# -eq 0  ] && echo "no issues with isort"
 
-flake8 $files
+flake8 $files --exclude keras_cv/api
 if ! [ $? -eq 0 ]
 then
   echo "Please fix the code style issue."
@@ -39,7 +39,7 @@ then
 fi
 [ $# -eq 0  ] && echo "no issues with black"
 
-for i in $(find keras_cv -name '*.py') # or whatever other pattern...
+for i in $(find keras_cv/src -name '*.py') # or whatever other pattern...
 do
   if ! grep -q Copyright $i
   then

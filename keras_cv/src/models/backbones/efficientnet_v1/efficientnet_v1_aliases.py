@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from keras_cv.src.api_export import keras_cv_export
-from keras_cv.src.models.backbones.efficientnet_v1.efficientnet_v1_backbone import (
+from keras_cv.src.models.backbones.efficientnet_v1.efficientnet_v1_backbone import (  # noqa: E501
     EfficientNetV1Backbone,
 )
 from keras_cv.src.utils.python_utils import classproperty

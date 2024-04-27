@@ -27,7 +27,7 @@ from keras_cv.src.layers.object_detection.anchor_generator import (
     AnchorGenerator,
 )
 from keras_cv.src.layers.object_detection.box_matcher import BoxMatcher
-from keras_cv.src.layers.object_detection.multi_class_non_max_suppression import (
+from keras_cv.src.layers.object_detection.multi_class_non_max_suppression import (  # noqa: E501
     MultiClassNonMaxSuppression,
 )
 from keras_cv.src.layers.object_detection.non_max_suppression import (
@@ -125,7 +125,7 @@ from keras_cv.src.layers.preprocessing_3d.waymo.global_random_rotation import (
 from keras_cv.src.layers.preprocessing_3d.waymo.global_random_scaling import (
     GlobalRandomScaling,
 )
-from keras_cv.src.layers.preprocessing_3d.waymo.global_random_translation import (
+from keras_cv.src.layers.preprocessing_3d.waymo.global_random_translation import (  # noqa: E501
     GlobalRandomTranslation,
 )
 from keras_cv.src.layers.preprocessing_3d.waymo.group_points_by_bounding_boxes import (  # noqa: E501

@@ -28,7 +28,7 @@ from keras_cv.src.models.backbones.test_backbone_presets import (
 from keras_cv.src.models.object_detection.__test_utils__ import (
     _create_bounding_box_dataset,
 )
-from keras_cv.src.models.object_detection.yolo_v8.yolo_v8_detector_presets import (
+from keras_cv.src.models.object_detection.yolo_v8.yolo_v8_detector_presets import (  # noqa: E501
     yolo_v8_detector_presets,
 )
 from keras_cv.src.tests.test_case import TestCase

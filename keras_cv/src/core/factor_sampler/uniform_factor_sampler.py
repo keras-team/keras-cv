@@ -33,7 +33,7 @@ class UniformFactorSampler(FactorSampler):
             allowed.)
     Example:
     ```python
-    uniform_factor = keras_cv.UniformFactorSampler(0, 0.5)
+    uniform_factor = keras_cv.src.UniformFactorSampler(0, 0.5)
     random_sharpness = keras_cv.layers.RandomSharpness(factor=uniform_factor)
     # random_sharpness will now sample factors between 0, and 0.5
     ```

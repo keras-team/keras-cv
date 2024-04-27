@@ -5,7 +5,7 @@
 import numpy as np
 
 from keras_cv.src.layers.preprocessing_3d import base_augmentation_layer_3d
-from keras_cv.src.layers.preprocessing_3d.waymo.global_random_translation import (
+from keras_cv.src.layers.preprocessing_3d.waymo.global_random_translation import (  # noqa: E501
     GlobalRandomTranslation,
 )
 from keras_cv.src.tests.test_case import TestCase

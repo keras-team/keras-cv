@@ -18,10 +18,10 @@ from keras_cv.src.backend import keras
 from keras_cv.src.backend import ops
 from keras_cv.src.models import utils
 from keras_cv.src.models.backbones.backbone import Backbone
-from keras_cv.src.models.object_detection.yolo_v8.yolo_v8_backbone_presets import (
+from keras_cv.src.models.object_detection.yolo_v8.yolo_v8_backbone_presets import (  # noqa: E501
     backbone_presets,
 )
-from keras_cv.src.models.object_detection.yolo_v8.yolo_v8_backbone_presets import (
+from keras_cv.src.models.object_detection.yolo_v8.yolo_v8_backbone_presets import (  # noqa: E501
     backbone_presets_with_weights,
 )
 from keras_cv.src.models.object_detection.yolo_v8.yolo_v8_layers import (

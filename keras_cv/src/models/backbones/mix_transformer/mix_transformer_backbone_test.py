@@ -20,10 +20,10 @@ from absl.testing import parameterized
 
 from keras_cv.src.backend import keras
 from keras_cv.src.backend import ops
-from keras_cv.src.models.backbones.mix_transformer.mix_transformer_aliases import (
+from keras_cv.src.models.backbones.mix_transformer.mix_transformer_aliases import (  # noqa: E501
     MiTB0Backbone,
 )
-from keras_cv.src.models.backbones.mix_transformer.mix_transformer_backbone import (
+from keras_cv.src.models.backbones.mix_transformer.mix_transformer_backbone import (  # noqa: E501
     MiTBackbone,
 )
 from keras_cv.src.tests.test_case import TestCase

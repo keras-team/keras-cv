@@ -86,17 +86,16 @@ jobs:
         KAGGLE_KEY: ${{ secrets.KAGGLE_KEY}}
         JAX_ENABLE_X64: true
       run: |
-        pytest keras_cv/bounding_box \
-               keras_cv/callbacks \
-               keras_cv/losses \
-               keras_cv/layers/object_detection \
-               keras_cv/layers/preprocessing \
-               keras_cv/models/backbones \
-               keras_cv/models/classification \
-               keras_cv/models/object_detection/retinanet \
-               keras_cv/models/object_detection/yolo_v8 \
-               keras_cv/models/object_detection_3d \
-               keras_cv/models/segmentation \
+        pytest keras_cv/src/bounding_box \
+               keras_cv/src/callbacks \
+               keras_cv/src/losses \
+               keras_cv/src/layers/object_detection \
+               keras_cv/src/layers/preprocessing \
+               keras_cv/src/models/classification \
+               keras_cv/src/models/object_detection/retinanet \
+               keras_cv/src/models/object_detection/yolo_v8 \
+               keras_cv/src/models/object_detection_3d \
+               keras_cv/src/models/segmentation \
                --durations 0
   format:
     name: Check the code format
@@ -121,10 +120,20 @@ jobs:
           ${{ runner.os }}-pip-
     - name: Install dependencies
       run: |
-        pip install tensorflow~=2.14
+        pip install -r requirements.txt
         pip install -e ".[tests]" --progress-bar off --upgrade
+        pip install keras-nlp-nightly
     - name: Lint
       run: bash shell/lint.sh
+    - name: Check for API changes
+      run: |
+        bash shell/api_gen.sh
+        git status
+        clean=$(git status | grep "nothing to commit")
+        if [ -z "$clean" ]; then
+          echo "Please run shell/api_gen.sh to generate API."
+          exit 1
+        fi
     - name: Clang
       uses: DoozyX/clang-format-lint-action@v0.17
       with:

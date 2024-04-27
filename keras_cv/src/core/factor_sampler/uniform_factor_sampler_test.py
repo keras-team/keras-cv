@@ -18,11 +18,11 @@ from keras_cv.src.tests.test_case import TestCase
 
 class UniformFactorSamplerTest(TestCase):
     def test_sample(self):
-        factor = keras_cv.UniformFactorSampler(0.3, 0.6)
+        factor = keras_cv.src.UniformFactorSampler(0.3, 0.6)
         self.assertTrue(0.3 <= factor() <= 0.6)
 
     def test_config(self):
-        factor = keras_cv.UniformFactorSampler(0.3, 0.6)
+        factor = keras_cv.src.UniformFactorSampler(0.3, 0.6)
         config = factor.get_config()
         self.assertEqual(config["lower"], 0.3)
         self.assertEqual(config["upper"], 0.6)

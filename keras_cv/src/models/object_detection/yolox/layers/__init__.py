@@ -18,7 +18,7 @@ from keras_cv.src.models.object_detection.yolox.layers.yolox_decoder import (
 from keras_cv.src.models.object_detection.yolox.layers.yolox_head import (
     YoloXHead,
 )
-from keras_cv.src.models.object_detection.yolox.layers.yolox_label_encoder import (
+from keras_cv.src.models.object_detection.yolox.layers.yolox_label_encoder import (  # noqa: E501
     YoloXLabelEncoder,
 )
 from keras_cv.src.models.object_detection.yolox.layers.yolox_pafpn import (

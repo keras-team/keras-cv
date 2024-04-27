@@ -15,7 +15,7 @@
 import copy
 
 from keras_cv.src.api_export import keras_cv_export
-from keras_cv.src.models.backbones.mix_transformer.mix_transformer_backbone import (
+from keras_cv.src.models.backbones.mix_transformer.mix_transformer_backbone import (  # noqa: E501
     MiTBackbone,
 )
 from keras_cv.src.models.backbones.mix_transformer.mix_transformer_backbone_presets import (  # noqa: E501

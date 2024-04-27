@@ -14,7 +14,7 @@
 import copy
 
 from keras_cv.src.api_export import keras_cv_export
-from keras_cv.src.models.backbones.efficientnet_v2.efficientnet_v2_backbone import (
+from keras_cv.src.models.backbones.efficientnet_v2.efficientnet_v2_backbone import (  # noqa: E501
     EfficientNetV2Backbone,
 )
 from keras_cv.src.models.backbones.efficientnet_v2.efficientnet_v2_backbone_presets import (  # noqa: E501

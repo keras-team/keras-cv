@@ -20,7 +20,7 @@ from keras_cv.src.backend import ops
 from keras_cv.src.layers.object_detection_3d.heatmap_decoder import (
     HeatmapDecoder,
 )
-from keras_cv.src.models.object_detection_3d.center_pillar_backbone_presets import (
+from keras_cv.src.models.object_detection_3d.center_pillar_backbone_presets import (  # noqa: E501
     backbone_presets,
 )
 from keras_cv.src.models.task import Task
