@@ -23,12 +23,12 @@ if [ "${KERAS2:-0}" == "1" ]
 then
    echo "Keras2 detected."
    pip install -r requirements-common.txt --progress-bar off --timeout 1000
-   pip install tensorflow~=2.14
+   pip install tensorflow~=2.15.0
    pip install --extra-index-url https://download.pytorch.org/whl/cpu torch==2.1.0+cpu
    pip install torchvision~=0.16.0
    pip install "jax[cpu]"
    pip install keras-nlp-nightly --no-deps
-   pip install tensorflow-text==2.15
+   pip install tensorflow-text==2.15.0
 
 elif [ "$KERAS_BACKEND" == "tensorflow" ]
 then

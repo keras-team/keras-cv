@@ -270,7 +270,7 @@ def multilevel_crop_and_resize(
 
     # Projects box location and sizes to corresponding feature levels.
     scale_to_level = ops.cast(
-        ops.pow(2.0, ops.cast(levels, "float32")),
+        ops.power(2.0, ops.cast(levels, "float32")),
         dtype=boxes.dtype,
     )
     boxes /= ops.expand_dims(scale_to_level, axis=2)
@@ -287,7 +287,7 @@ def multilevel_crop_and_resize(
 
     # Maps levels to [0, max_level-min_level].
     levels -= min_level
-    level_strides = ops.pow([[2.0]], ops.cast(levels, "float32"))
+    level_strides = ops.power([[2.0]], ops.cast(levels, "float32"))
     boundary = ops.cast(
         ops.concatenate(
             [

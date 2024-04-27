@@ -145,6 +145,7 @@ class ROIGenerator(keras.layers.Layer):
             # If so, remove the last dimension to make it 2D
             if len(scores_shape) == 3:
                 scores = ops.squeeze(scores, axis=-1)
+                scores_shape = ops.shape(scores)
             _, num_boxes = scores_shape
             level_pre_nms_topk = min(num_boxes, pre_nms_topk)
             level_post_nms_topk = min(num_boxes, post_nms_topk)
