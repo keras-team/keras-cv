@@ -34,6 +34,7 @@ jobs:
       - name: Install dependencies
         run: |
             pip install -r requirements.txt --progress-bar off
+            pip install keras-nlp
       - name: Build a binary wheel and a source tarball
         run: |
           export BUILD_WITH_CUSTOM_OPS=false
