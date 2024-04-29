@@ -14,7 +14,7 @@
 
 import copy
 
-from keras_cv.api_export import keras_cv_export
+from keras_cv.src.api_export import keras_cv_export
 from keras_cv.src.models.backbones.video_swin.video_swin_backbone import (
     VideoSwinBackbone,
 )

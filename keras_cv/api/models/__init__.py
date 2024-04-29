@@ -178,6 +178,15 @@ from keras_cv.src.models.backbones.resnet_v2.resnet_v2_backbone import (
     ResNetV2Backbone,
 )
 from keras_cv.src.models.backbones.vgg16.vgg16_backbone import VGG16Backbone
+from keras_cv.src.models.backbones.video_swin.video_swin_aliases import (
+    VideoSwinBBackbone,
+)
+from keras_cv.src.models.backbones.video_swin.video_swin_aliases import (
+    VideoSwinSBackbone,
+)
+from keras_cv.src.models.backbones.video_swin.video_swin_aliases import (
+    VideoSwinTBackbone,
+)
 from keras_cv.src.models.backbones.video_swin.video_swin_backbone import (
     VideoSwinBackbone,
 )
