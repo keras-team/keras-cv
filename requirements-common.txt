@@ -13,4 +13,4 @@ isort
 black
 pytest
 build
-namex
+namex>=0.0.8

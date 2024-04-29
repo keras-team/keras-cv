@@ -133,6 +133,12 @@ pytest keras_cv/layers/preprocessing/cut_mix_test.py -k="label"
 
 ### Run all tests
 
+Run API generation script when creating PRs that update `keras_export` public APIs:
+
+```
+./shell/api_gen.sh
+```
+
 You can run the unit tests for KerasCV by running:
 
 ```
