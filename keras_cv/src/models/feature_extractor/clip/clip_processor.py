@@ -33,6 +33,7 @@ try:
     from keras_nlp.layers import StartEndPacker
 except ImportError:
     keras_nlp = None
+    StartEndPacker = None
 
 
 @keras_cv_export("keras_cv.models.feature_extractor.CLIPProcessor")

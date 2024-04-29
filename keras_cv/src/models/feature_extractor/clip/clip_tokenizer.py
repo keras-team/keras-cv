@@ -13,13 +13,18 @@
 # limitations under the License.
 import regex as re
 import tensorflow as tf
-import tensorflow_text as tf_text
+
+try:
+    import tensorflow_text as tf_text
+except ImportError:
+    tf_text = None
 
 try:
     import keras_nlp
     from keras_nlp.tokenizers import BytePairTokenizer
 except ImportError:
     keras_nlp = None
+    BytePairTokenizer = object
 
 # As python and TF handles special spaces differently, we need to
 # manually handle special spaces during string split.
@@ -41,6 +46,11 @@ def split_strings_for_bpe(inputs, unsplittable_tokens=None):
     # support lookahead match, we are using an alternative insert a special
     # token "६" before leading space of non-space characters and after the
     # trailing space, e.g., " keras" will be "६ keras".
+    if tf_text is None:
+        raise ImportError(
+            "BytePairTokenization requires `tensorflow_text`."
+            "Please install with `pip install tensorflow_text`."
+        )
     inputs = tf.strings.regex_replace(
         inputs, rf"( )([^\s{SPECIAL_WHITESPACES}])", r"६\1\2"
     )
