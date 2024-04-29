@@ -14,6 +14,7 @@
 
 import copy
 
+from keras_cv.src.api_export import keras_cv_export
 from keras_cv.src.models.backbones.video_swin.video_swin_backbone import (
     VideoSwinBackbone,
 )
@@ -42,6 +43,7 @@ ALIAS_DOCSTRING = """VideoSwin{size}Backbone model.
 """  # noqa: E501
 
 
+@keras_cv_export("keras_cv.models.VideoSwinTBackbone")
 class VideoSwinTBackbone(VideoSwinBackbone):
     def __new__(
         cls,
@@ -79,6 +81,7 @@ class VideoSwinTBackbone(VideoSwinBackbone):
         return cls.presets
 
 
+@keras_cv_export("keras_cv.models.VideoSwinSBackbone")
 class VideoSwinSBackbone(VideoSwinBackbone):
     def __new__(
         cls,
@@ -116,6 +119,7 @@ class VideoSwinSBackbone(VideoSwinBackbone):
         return cls.presets
 
 
+@keras_cv_export("keras_cv.models.VideoSwinBBackbone")
 class VideoSwinBBackbone(VideoSwinBackbone):
     def __new__(
         cls,
