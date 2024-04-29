@@ -12,16 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import copy
 
 from keras_cv.api_export import keras_cv_export
 from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone import (
     CSPDarkNetBackbone,
 )
-from keras_cv.models.backbones.csp_darknet.csp_darknet_backbone_presets import (
-    backbone_presets,
-)
-from keras_cv.utils.python_utils import classproperty
 
 ALIAS_DOCSTRING = """CSPDarkNetBackbone model with {stackwise_channels} channels
     and {stackwise_depth} depths.
@@ -71,21 +66,6 @@ class CSPDarkNetTinyBackbone(CSPDarkNetBackbone):
         )
         return CSPDarkNetBackbone.from_preset("csp_darknet_tiny", **kwargs)
 
-    @classproperty
-    def presets(cls):
-        """Dictionary of preset names and configurations."""
-        return {
-            "csp_darknet_tiny_imagenet": copy.deepcopy(
-                backbone_presets["csp_darknet_tiny_imagenet"]
-            )
-        }
-
-    @classproperty
-    def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include
-        weights."""
-        return cls.presets
-
 
 @keras_cv_export("keras_cv.models.CSPDarkNetSBackbone")
 class CSPDarkNetSBackbone(CSPDarkNetBackbone):
@@ -105,17 +85,6 @@ class CSPDarkNetSBackbone(CSPDarkNetBackbone):
             }
         )
         return CSPDarkNetBackbone.from_preset("csp_darknet_s", **kwargs)
-
-    @classproperty
-    def presets(cls):
-        """Dictionary of preset names and configurations."""
-        return {}
-
-    @classproperty
-    def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include
-        weights."""
-        return {}
 
 
 @keras_cv_export("keras_cv.models.CSPDarkNetMBackbone")
@@ -137,17 +106,6 @@ class CSPDarkNetMBackbone(CSPDarkNetBackbone):
         )
         return CSPDarkNetBackbone.from_preset("csp_darknet_m", **kwargs)
 
-    @classproperty
-    def presets(cls):
-        """Dictionary of preset names and configurations."""
-        return {}
-
-    @classproperty
-    def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include
-        weights."""
-        return {}
-
 
 @keras_cv_export("keras_cv.models.CSPDarkNetLBackbone")
 class CSPDarkNetLBackbone(CSPDarkNetBackbone):
@@ -168,21 +126,6 @@ class CSPDarkNetLBackbone(CSPDarkNetBackbone):
         )
         return CSPDarkNetBackbone.from_preset("csp_darknet_l", **kwargs)
 
-    @classproperty
-    def presets(cls):
-        """Dictionary of preset names and configurations."""
-        return {
-            "csp_darknet_l_imagenet": copy.deepcopy(
-                backbone_presets["csp_darknet_l_imagenet"]
-            )
-        }
-
-    @classproperty
-    def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include
-        weights."""
-        return cls.presets
-
 
 @keras_cv_export("keras_cv.models.CSPDarkNetXLBackbone")
 class CSPDarkNetXLBackbone(CSPDarkNetBackbone):
@@ -202,17 +145,6 @@ class CSPDarkNetXLBackbone(CSPDarkNetBackbone):
             }
         )
         return CSPDarkNetBackbone.from_preset("csp_darknet_xl", **kwargs)
-
-    @classproperty
-    def presets(cls):
-        """Dictionary of preset names and configurations."""
-        return {}
-
-    @classproperty
-    def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include
-        weights."""
-        return {}
 
 
 setattr(

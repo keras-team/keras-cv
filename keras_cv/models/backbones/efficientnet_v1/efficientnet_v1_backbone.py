@@ -11,17 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import copy
 import math
 
 from keras_cv.api_export import keras_cv_export
 from keras_cv.backend import keras
 from keras_cv.models import utils
 from keras_cv.models.backbones.backbone import Backbone
-from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_backbone_presets import (  # noqa: E501
-    backbone_presets,
-)
-from keras_cv.utils.python_utils import classproperty
 
 
 @keras_cv_export("keras_cv.models.EfficientNetV1Backbone")
@@ -283,11 +278,6 @@ class EfficientNetV1Backbone(Backbone):
             }
         )
         return config
-
-    @classproperty
-    def presets(cls):
-        """Dictionary of preset names and configurations."""
-        return copy.deepcopy(backbone_presets)
 
 
 def conv_kernel_initializer(scale=2.0):

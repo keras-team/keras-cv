@@ -12,16 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import copy
-
 from keras_cv.api_export import keras_cv_export
 from keras_cv.models.backbones.mix_transformer.mix_transformer_backbone import (
     MiTBackbone,
 )
-from keras_cv.models.backbones.mix_transformer.mix_transformer_backbone_presets import (  # noqa: E501
-    backbone_presets,
-)
-from keras_cv.utils.python_utils import classproperty
 
 ALIAS_DOCSTRING = """MiT model.
 
@@ -66,21 +60,6 @@ class MiTB0Backbone(MiTBackbone):
         )
         return MiTBackbone.from_preset("mit_b0", **kwargs)
 
-    @classproperty
-    def presets(cls):
-        """Dictionary of preset names and configurations."""
-        return {
-            "mit_b0_imagenet": copy.deepcopy(
-                backbone_presets["mit_b0_imagenet"]
-            ),
-        }
-
-    @classproperty
-    def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include
-        weights."""
-        return cls.presets
-
 
 @keras_cv_export("keras_cv.models.MiTB1Backbone")
 class MiTB1Backbone(MiTBackbone):
@@ -100,16 +79,6 @@ class MiTB1Backbone(MiTBackbone):
             }
         )
         return MiTBackbone.from_preset("mit_b1", **kwargs)
-
-    @classproperty
-    def presets(cls):
-        """Dictionary of preset names and configurations."""
-        return {}
-
-    @classproperty
-    def presets_with_weights(cls):
-        """Dictionary of preset names and configurations."""
-        return {}
 
 
 @keras_cv_export("keras_cv.models.MiTB2Backbone")
@@ -131,16 +100,6 @@ class MiTB2Backbone(MiTBackbone):
         )
         return MiTBackbone.from_preset("mit_b2", **kwargs)
 
-    @classproperty
-    def presets(cls):
-        """Dictionary of preset names and configurations."""
-        return {}
-
-    @classproperty
-    def presets_with_weights(cls):
-        """Dictionary of preset names and configurations."""
-        return {}
-
 
 @keras_cv_export("keras_cv.models.MiTB3Backbone")
 class MiTB3Backbone(MiTBackbone):
@@ -160,16 +119,6 @@ class MiTB3Backbone(MiTBackbone):
             }
         )
         return MiTBackbone.from_preset("mit_b3", **kwargs)
-
-    @classproperty
-    def presets(cls):
-        """Dictionary of preset names and configurations."""
-        return {}
-
-    @classproperty
-    def presets_with_weights(cls):
-        """Dictionary of preset names and configurations."""
-        return {}
 
 
 @keras_cv_export("keras_cv.models.MiTB4Backbone")
@@ -191,16 +140,6 @@ class MiTB4Backbone(MiTBackbone):
         )
         return MiTBackbone.from_preset("mit_b4", **kwargs)
 
-    @classproperty
-    def presets(cls):
-        """Dictionary of preset names and configurations."""
-        return {}
-
-    @classproperty
-    def presets_with_weights(cls):
-        """Dictionary of preset names and configurations."""
-        return {}
-
 
 @keras_cv_export("keras_cv.models.MiTB5Backbone")
 class MiTB5Backbone(MiTBackbone):
@@ -220,16 +159,6 @@ class MiTB5Backbone(MiTBackbone):
             }
         )
         return MiTBackbone.from_preset("mit_b5", **kwargs)
-
-    @classproperty
-    def presets(cls):
-        """Dictionary of preset names and configurations."""
-        return {}
-
-    @classproperty
-    def presets_with_weights(cls):
-        """Dictionary of preset names and configurations."""
-        return {}
 
 
 setattr(

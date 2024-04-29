@@ -12,16 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import copy
-
 from keras_cv.api_export import keras_cv_export
 from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_backbone import (
     MobileNetV3Backbone,
 )
-from keras_cv.models.backbones.mobilenet_v3.mobilenet_v3_backbone_presets import (  # noqa: E501
-    backbone_presets,
-)
-from keras_cv.utils.python_utils import classproperty
 
 ALIAS_DOCSTRING = """MobileNetV3Backbone model with {num_layers} layers.
 
@@ -70,20 +64,6 @@ class MobileNetV3SmallBackbone(MobileNetV3Backbone):
         )
         return MobileNetV3Backbone.from_preset("mobilenet_v3_small", **kwargs)
 
-    @classproperty
-    def presets(cls):
-        """Dictionary of preset names and configurations."""
-        return {
-            "mobilenet_v3_small_imagenet": copy.deepcopy(
-                backbone_presets["mobilenet_v3_small_imagenet"]
-            ),
-        }
-
-    @classproperty
-    def presets_with_weights(cls):
-        """Dictionary of preset names and configurations."""
-        return cls.presets
-
 
 @keras_cv_export("keras_cv.models.MobileNetV3LargeBackbone")
 class MobileNetV3LargeBackbone(MobileNetV3Backbone):
@@ -103,21 +83,6 @@ class MobileNetV3LargeBackbone(MobileNetV3Backbone):
             }
         )
         return MobileNetV3Backbone.from_preset("mobilenet_v3_large", **kwargs)
-
-    @classproperty
-    def presets(cls):
-        """Dictionary of preset names and configurations."""
-        return {
-            "mobilenet_v3_large_imagenet": copy.deepcopy(
-                backbone_presets["mobilenet_v3_large_imagenet"]
-            ),
-        }
-
-    @classproperty
-    def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include
-        weights."""
-        return cls.presets
 
 
 setattr(

@@ -12,16 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import copy
-
 from keras_cv.api_export import keras_cv_export
 from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone import (
     ResNetV2Backbone,
 )
-from keras_cv.models.backbones.resnet_v2.resnet_v2_backbone_presets import (  # noqa: E501
-    backbone_presets,
-)
-from keras_cv.utils.python_utils import classproperty
 
 ALIAS_DOCSTRING = """ResNetV2Backbone model with {num_layers} layers.
 
@@ -75,17 +69,6 @@ class ResNet18V2Backbone(ResNetV2Backbone):
         )
         return ResNetV2Backbone.from_preset("resnet18_v2", **kwargs)
 
-    @classproperty
-    def presets(cls):
-        """Dictionary of preset names and configurations."""
-        return {}
-
-    @classproperty
-    def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include
-        weights."""
-        return {}
-
 
 @keras_cv_export("keras_cv.models.ResNet34V2Backbone")
 class ResNet34V2Backbone(ResNetV2Backbone):
@@ -105,17 +88,6 @@ class ResNet34V2Backbone(ResNetV2Backbone):
             }
         )
         return ResNetV2Backbone.from_preset("resnet34_v2", **kwargs)
-
-    @classproperty
-    def presets(cls):
-        """Dictionary of preset names and configurations."""
-        return {}
-
-    @classproperty
-    def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include
-        weights."""
-        return {}
 
 
 @keras_cv_export("keras_cv.models.ResNet50V2Backbone")
@@ -137,21 +109,6 @@ class ResNet50V2Backbone(ResNetV2Backbone):
         )
         return ResNetV2Backbone.from_preset("resnet50_v2", **kwargs)
 
-    @classproperty
-    def presets(cls):
-        """Dictionary of preset names and configurations."""
-        return {
-            "resnet50_v2_imagenet": copy.deepcopy(
-                backbone_presets["resnet50_v2_imagenet"]
-            ),
-        }
-
-    @classproperty
-    def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include
-        weights."""
-        return cls.presets
-
 
 @keras_cv_export("keras_cv.models.ResNet101V2Backbone")
 class ResNet101V2Backbone(ResNetV2Backbone):
@@ -172,17 +129,6 @@ class ResNet101V2Backbone(ResNetV2Backbone):
         )
         return ResNetV2Backbone.from_preset("resnet101_v2", **kwargs)
 
-    @classproperty
-    def presets(cls):
-        """Dictionary of preset names and configurations."""
-        return {}
-
-    @classproperty
-    def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include
-        weights."""
-        return {}
-
 
 @keras_cv_export("keras_cv.models.ResNet152V2Backbone")
 class ResNet152V2Backbone(ResNetV2Backbone):
@@ -202,17 +148,6 @@ class ResNet152V2Backbone(ResNetV2Backbone):
             }
         )
         return ResNetV2Backbone.from_preset("resnet152_v2", **kwargs)
-
-    @classproperty
-    def presets(cls):
-        """Dictionary of preset names and configurations."""
-        return {}
-
-    @classproperty
-    def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include
-        weights."""
-        return {}
 
 
 setattr(

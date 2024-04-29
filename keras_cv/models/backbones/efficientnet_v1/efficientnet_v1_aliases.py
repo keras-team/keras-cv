@@ -16,7 +16,6 @@ from keras_cv.api_export import keras_cv_export
 from keras_cv.models.backbones.efficientnet_v1.efficientnet_v1_backbone import (
     EfficientNetV1Backbone,
 )
-from keras_cv.utils.python_utils import classproperty
 
 ALIAS_DOCSTRING = """Instantiates the {name} architecture.
 
@@ -53,17 +52,6 @@ class EfficientNetV1B0Backbone(EfficientNetV1Backbone):
         )
         return EfficientNetV1Backbone.from_preset("efficientnetv1_b0", **kwargs)
 
-    @classproperty
-    def presets(cls):
-        """Dictionary of preset names and configurations."""
-        return {}
-
-    @classproperty
-    def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include
-        weights."""
-        return {}
-
 
 @keras_cv_export("keras_cv.models.EfficientNetV1B1Backbone")
 class EfficientNetV1B1Backbone(EfficientNetV1Backbone):
@@ -83,17 +71,6 @@ class EfficientNetV1B1Backbone(EfficientNetV1Backbone):
             }
         )
         return EfficientNetV1Backbone.from_preset("efficientnetv1_b1", **kwargs)
-
-    @classproperty
-    def presets(cls):
-        """Dictionary of preset names and configurations."""
-        return {}
-
-    @classproperty
-    def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include
-        weights."""
-        return {}
 
 
 @keras_cv_export("keras_cv.models.EfficientNetV1B2Backbone")
@@ -115,17 +92,6 @@ class EfficientNetV1B2Backbone(EfficientNetV1Backbone):
         )
         return EfficientNetV1Backbone.from_preset("efficientnetv1_b2", **kwargs)
 
-    @classproperty
-    def presets(cls):
-        """Dictionary of preset names and configurations."""
-        return {}
-
-    @classproperty
-    def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include
-        weights."""
-        return {}
-
 
 @keras_cv_export("keras_cv.models.EfficientNetV1B3Backbone")
 class EfficientNetV1B3Backbone(EfficientNetV1Backbone):
@@ -145,17 +111,6 @@ class EfficientNetV1B3Backbone(EfficientNetV1Backbone):
             }
         )
         return EfficientNetV1Backbone.from_preset("efficientnetv1_b3", **kwargs)
-
-    @classproperty
-    def presets(cls):
-        """Dictionary of preset names and configurations."""
-        return {}
-
-    @classproperty
-    def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include
-        weights."""
-        return {}
 
 
 @keras_cv_export("keras_cv.models.EfficientNetV1B4Backbone")
@@ -177,17 +132,6 @@ class EfficientNetV1B4Backbone(EfficientNetV1Backbone):
         )
         return EfficientNetV1Backbone.from_preset("efficientnetv1_b4", **kwargs)
 
-    @classproperty
-    def presets(cls):
-        """Dictionary of preset names and configurations."""
-        return {}
-
-    @classproperty
-    def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include
-        weights."""
-        return {}
-
 
 @keras_cv_export("keras_cv.models.EfficientNetV1B5Backbone")
 class EfficientNetV1B5Backbone(EfficientNetV1Backbone):
@@ -207,17 +151,6 @@ class EfficientNetV1B5Backbone(EfficientNetV1Backbone):
             }
         )
         return EfficientNetV1Backbone.from_preset("efficientnetv1_b5", **kwargs)
-
-    @classproperty
-    def presets(cls):
-        """Dictionary of preset names and configurations."""
-        return {}
-
-    @classproperty
-    def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include
-        weights."""
-        return {}
 
 
 @keras_cv_export("keras_cv.models.EfficientNetV1B6Backbone")
@@ -239,17 +172,6 @@ class EfficientNetV1B6Backbone(EfficientNetV1Backbone):
         )
         return EfficientNetV1Backbone.from_preset("efficientnetv1_b6", **kwargs)
 
-    @classproperty
-    def presets(cls):
-        """Dictionary of preset names and configurations."""
-        return {}
-
-    @classproperty
-    def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include
-        weights."""
-        return {}
-
 
 @keras_cv_export("keras_cv.models.EfficientNetV1B7Backbone")
 class EfficientNetV1B7Backbone(EfficientNetV1Backbone):
@@ -269,17 +191,6 @@ class EfficientNetV1B7Backbone(EfficientNetV1Backbone):
             }
         )
         return EfficientNetV1Backbone.from_preset("efficientnetv1_b7", **kwargs)
-
-    @classproperty
-    def presets(cls):
-        """Dictionary of preset names and configurations."""
-        return {}
-
-    @classproperty
-    def presets_with_weights(cls):
-        """Dictionary of preset names and configurations that include
-        weights."""
-        return {}
 
 
 setattr(

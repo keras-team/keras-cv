@@ -14,7 +14,7 @@
 """YOLOv8 Backbone presets."""
 
 
-backbone_presets = {
+backbone_presets_no_weights = {
     "center_pillar_waymo_open_dataset": {
         "metadata": {
             "description": "An example CenterPillar backbone for WOD.",
@@ -23,4 +23,11 @@ backbone_presets = {
         },
         "kaggle_handle": "gs://keras-cv-kaggle/center_pillar_waymo_open_dataset",  # noqa: E501
     },
+}
+
+backbone_presets_with_weights = {}
+
+backbone_presets = {
+    **backbone_presets_no_weights,
+    **backbone_presets_with_weights,
 }
