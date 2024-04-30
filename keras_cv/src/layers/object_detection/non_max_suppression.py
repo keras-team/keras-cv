@@ -14,7 +14,13 @@
 
 import math
 
-import tensorflow as tf
+try:
+    import tensorflow as tf
+except ImportError:
+    raise ImportError(
+        "To use  KerasCV, please install TensorFlow: `pip install tensorflow`. "
+        "The TensorFlow package is required for data preprocessing with any backend."
+    )
 
 from keras_cv.src import bounding_box
 from keras_cv.src.api_export import keras_cv_export
@@ -323,7 +329,13 @@ def non_max_suppression(
             ops.reshape(sorted_indices, [-1]), take_along_axis_idx
         )
     else:
-        import tensorflow as tf
+        try:
+    import tensorflow as tf
+except ImportError:
+    raise ImportError(
+        "To use  KerasCV, please install TensorFlow: `pip install tensorflow`. "
+        "The TensorFlow package is required for data preprocessing with any backend."
+    )
 
         idx = tf.gather(ops.reshape(sorted_indices, [-1]), take_along_axis_idx)
     idx = ops.reshape(idx, [batch_size, -1])

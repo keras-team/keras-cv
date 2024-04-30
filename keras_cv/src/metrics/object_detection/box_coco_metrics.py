@@ -16,7 +16,13 @@ import sys
 import types
 
 import numpy as np
-import tensorflow as tf
+try:
+    import tensorflow as tf
+except ImportError:
+    raise ImportError(
+        "To use  KerasCV, please install TensorFlow: `pip install tensorflow`. "
+        "The TensorFlow package is required for data preprocessing with any backend."
+    )
 import tensorflow.keras as keras
 
 from keras_cv.src import bounding_box

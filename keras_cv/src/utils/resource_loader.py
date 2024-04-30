@@ -20,7 +20,13 @@ from __future__ import print_function
 import os
 import warnings
 
-import tensorflow as tf
+try:
+    import tensorflow as tf
+except ImportError:
+    raise ImportError(
+        "To use  KerasCV, please install TensorFlow: `pip install tensorflow`. "
+        "The TensorFlow package is required for data preprocessing with any backend."
+    )
 
 TF_VERSION_FOR_ABI_COMPATIBILITY = "2.13"
 abi_warning_already_raised = False

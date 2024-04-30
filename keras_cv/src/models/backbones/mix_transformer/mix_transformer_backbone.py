@@ -75,7 +75,13 @@ class MiTBackbone(Backbone):
         Using the class with a `backbone`:
 
         ```python
-        import tensorflow as tf
+        try:
+    import tensorflow as tf
+except ImportError:
+    raise ImportError(
+        "To use  KerasCV, please install TensorFlow: `pip install tensorflow`. "
+        "The TensorFlow package is required for data preprocessing with any backend."
+    )
         import keras_cv
 
         images = np.ones(shape=(1, 96, 96, 3))
