@@ -61,11 +61,9 @@ class CenterNetBoxLoss(TestCase):
                 ]
             ]
         )
-
         heading_loss = loss.heading_regression_loss(
             heading_true=heading_true, heading_pred=heading_pred
         )
-
         ce_loss = -np.log(np.exp(1) / np.exp([1, 0, 0, 0]).sum())
-        loss = ce_loss * heading_pred.shape[1]
-        self.assertAllClose(np.sum(heading_loss), loss)
+        expected_loss = ce_loss * heading_pred.shape[1]
+        self.assertAllClose(np.sum(heading_loss), expected_loss)
