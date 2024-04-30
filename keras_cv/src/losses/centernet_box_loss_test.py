@@ -42,3 +42,30 @@ class CenterNetBoxLoss(TestCase):
             y_pred=np.random.uniform(size=(2, 10, 6 + 2 * 4)),
         )
         self.assertEqual(result.shape, target_size)
+
+    def test_heading_regression_loss(self):
+        num_heading_bins = 4
+        loss = keras_cv.losses.CenterNetBoxLoss(
+            num_heading_bins=num_heading_bins, anchor_size=[1.0, 1.0, 1.0]
+        )
+        heading_true = np.array(
+            [[0, (1 / 2.0) * np.pi, np.pi, (3.0 / 2.0) * np.pi]]
+        )
+        heading_pred = np.array(
+            [
+                [
+                    [1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                    [0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                    [0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                    [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0],
+                ]
+            ]
+        )
+
+        heading_loss = loss.heading_regression_loss(
+            heading_true=heading_true, heading_pred=heading_pred
+        )
+
+        ce_loss = -np.log(np.exp(1) / np.exp([1, 0, 0, 0]).sum())
+        loss = ce_loss * heading_pred.shape[1]
+        self.assertAllClose(np.sum(heading_loss), loss)
