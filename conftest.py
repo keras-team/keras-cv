@@ -16,8 +16,8 @@ import pytest
 import tensorflow as tf
 from packaging import version
 
-from keras_cv.backend import config as backend_config
-from keras_cv.backend.config import keras_3
+from keras_cv.src.backend import config as backend_config
+from keras_cv.src.backend.config import keras_3
 
 
 def pytest_addoption(parser):
