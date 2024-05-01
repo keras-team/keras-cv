@@ -20,6 +20,7 @@ from typing import Sequence
 from typing import Tuple
 
 import numpy as np
+
 try:
     import tensorflow as tf
 except ImportError:

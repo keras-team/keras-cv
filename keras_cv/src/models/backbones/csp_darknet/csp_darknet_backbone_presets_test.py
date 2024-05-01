@@ -14,6 +14,7 @@
 """Tests for loading pretrained model presets."""
 
 import pytest
+
 try:
     import tensorflow as tf
 except ImportError:

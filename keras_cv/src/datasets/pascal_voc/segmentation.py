@@ -43,6 +43,7 @@ import tarfile
 import xml
 
 import numpy as np
+
 try:
     import tensorflow as tf
 except ImportError:

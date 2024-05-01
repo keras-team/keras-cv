@@ -16,6 +16,7 @@ import sys
 import types
 
 import numpy as np
+
 try:
     import tensorflow as tf
 except ImportError:

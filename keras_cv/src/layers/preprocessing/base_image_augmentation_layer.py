@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import keras
+
 try:
     import tensorflow as tf
 except ImportError:

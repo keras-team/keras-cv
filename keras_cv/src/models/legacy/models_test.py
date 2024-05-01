@@ -16,6 +16,7 @@
 import os
 
 import pytest
+
 try:
     import tensorflow as tf
 except ImportError:

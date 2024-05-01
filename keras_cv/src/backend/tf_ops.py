@@ -46,6 +46,7 @@ from tensorflow import reduce_max as max  # noqa: F403, F401
 from tensorflow import split  # noqa: F403, F401
 
 import numpy as np
+
 try:
     import tensorflow as tf
 except ImportError:

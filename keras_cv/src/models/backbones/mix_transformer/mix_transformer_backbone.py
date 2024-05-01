@@ -52,53 +52,53 @@ class MiTBackbone(Backbone):
         **kwargs,
     ):
         """A Keras model implementing the MixTransformer architecture to be
-        used as a backbone for the SegFormer architecture.
+                used as a backbone for the SegFormer architecture.
 
-        References:
-            - [SegFormer: Simple and Efficient Design for Semantic Segmentation with Transformers](https://arxiv.org/abs/2105.15203) # noqa: E501
-            - [Based on the TensorFlow implementation from DeepVision](https://github.com/DavidLandup0/deepvision/tree/main/deepvision/models/classification/mix_transformer) # noqa: E501
+                References:
+                    - [SegFormer: Simple and Efficient Design for Semantic Segmentation with Transformers](https://arxiv.org/abs/2105.15203) # noqa: E501
+                    - [Based on the TensorFlow implementation from DeepVision](https://github.com/DavidLandup0/deepvision/tree/main/deepvision/models/classification/mix_transformer) # noqa: E501
 
-        Args:
-            include_rescaling: bool, whether to rescale the inputs. If set
-                to `True`, inputs will be passed through a `Rescaling(1/255.0)`
-                layer.
-            depths: the number of transformer encoders to be used per stage in the
-                network
-            embedding_dims: the embedding dims per hierarchical stage, used as
-                the levels of the feature pyramid
-            input_shape: optional shape tuple, defaults to (None, None, 3).
-            input_tensor: optional Keras tensor (i.e. output of `keras.layers.Input()`)
-                to use as image input for the model.
+                Args:
+                    include_rescaling: bool, whether to rescale the inputs. If set
+                        to `True`, inputs will be passed through a `Rescaling(1/255.0)`
+                        layer.
+                    depths: the number of transformer encoders to be used per stage in the
+                        network
+                    embedding_dims: the embedding dims per hierarchical stage, used as
+                        the levels of the feature pyramid
+                    input_shape: optional shape tuple, defaults to (None, None, 3).
+                    input_tensor: optional Keras tensor (i.e. output of `keras.layers.Input()`)
+                        to use as image input for the model.
 
-        Example:
+                Example:
 
-        Using the class with a `backbone`:
+                Using the class with a `backbone`:
 
-        ```python
-        try:
-    import tensorflow as tf
-except ImportError:
-    raise ImportError(
-        "To use KerasCV, please install TensorFlow: `pip install tensorflow`. "
-        "The TensorFlow package is required for data preprocessing with any backend."
-    )
-        import keras_cv
+                ```python
+                try:
+            import tensorflow as tf
+        except ImportError:
+            raise ImportError(
+                "To use KerasCV, please install TensorFlow: `pip install tensorflow`. "
+                "The TensorFlow package is required for data preprocessing with any backend."
+            )
+                import keras_cv
 
-        images = np.ones(shape=(1, 96, 96, 3))
-        labels = np.zeros(shape=(1, 96, 96, 1))
-        backbone = keras_cv.models.MiTBackbone.from_preset("mit_b0_imagenet")
+                images = np.ones(shape=(1, 96, 96, 3))
+                labels = np.zeros(shape=(1, 96, 96, 1))
+                backbone = keras_cv.models.MiTBackbone.from_preset("mit_b0_imagenet")
 
-        # Evaluate model
-        model(images)
+                # Evaluate model
+                model(images)
 
-        # Train model
-        model.compile(
-            optimizer="adam",
-            loss=keras.losses.BinaryCrossentropy(from_logits=False),
-            metrics=["accuracy"],
-        )
-        model.fit(images, labels, epochs=3)
-        ```
+                # Train model
+                model.compile(
+                    optimizer="adam",
+                    loss=keras.losses.BinaryCrossentropy(from_logits=False),
+                    metrics=["accuracy"],
+                )
+                model.fit(images, labels, epochs=3)
+                ```
         """
         drop_path_rate = 0.1
         dpr = [x for x in np.linspace(0.0, drop_path_rate, sum(depths))]

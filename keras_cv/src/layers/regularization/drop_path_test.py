@@ -14,6 +14,7 @@
 
 import numpy as np
 import pytest
+
 try:
     import tensorflow as tf
 except ImportError:

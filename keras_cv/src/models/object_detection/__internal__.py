@@ -16,6 +16,7 @@ import functools
 import math
 
 import numpy as np
+
 try:
     import tensorflow as tf
 except ImportError:
