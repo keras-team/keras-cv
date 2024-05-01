@@ -229,7 +229,7 @@ Copyright (c) 2023 Waymo LLC. All rights reserved.
    from this software without specific prior written permission.
 
    Additional IP Rights Grant (Patents)
-   "Works" means the code located at keras_cv/layers/preprocessing_3d/waymo
+   "Works" means the code located at keras_cv/src/layers/preprocessing_3d/waymo
    licensed from Waymo LLC ("Waymo") for inclusion in the KerasCV project at
    github.com/keras-team/keras-cv. “Patents" means the pending U.S. Patent App.
    No. 63/418,259 and any issued patents arising therefrom. Subject to the terms
