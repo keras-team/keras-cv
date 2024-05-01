@@ -11,6 +11,6 @@ py_library(
     name = "keras_cv",
     srcs = glob(["**/*.py"]),
     data = [
-      "//keras_cv/custom_ops:_keras_cv_custom_ops.so",
+      "//keras_cv/src/custom_ops:_keras_cv_custom_ops.so",
     ]
 )
