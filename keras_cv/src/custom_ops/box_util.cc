@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "keras_cv/custom_ops/box_util.h"
+#include "keras_cv/src/custom_ops/box_util.h"
 
 #include <algorithm>
 #include <cmath>
