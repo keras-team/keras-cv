@@ -18,7 +18,7 @@ try:
     import tensorflow as tf
 except ImportError:
     raise ImportError(
-        "To use  KerasCV, please install TensorFlow: `pip install tensorflow`. "
+        "To use KerasCV, please install TensorFlow: `pip install tensorflow`. "
         "The TensorFlow package is required for data preprocessing with any backend."
     )
 
@@ -329,13 +329,7 @@ def non_max_suppression(
             ops.reshape(sorted_indices, [-1]), take_along_axis_idx
         )
     else:
-        try:
-    import tensorflow as tf
-except ImportError:
-    raise ImportError(
-        "To use  KerasCV, please install TensorFlow: `pip install tensorflow`. "
-        "The TensorFlow package is required for data preprocessing with any backend."
-    )
+        import tensorflow as tf
 
         idx = tf.gather(ops.reshape(sorted_indices, [-1]), take_along_axis_idx)
     idx = ops.reshape(idx, [batch_size, -1])
