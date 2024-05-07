@@ -58,7 +58,7 @@ class ImageEncoder(keras.Sequential):
 
         if download_weights:
             image_encoder_weights_fpath = keras.utils.get_file(
-                origin="https://huggingface.co/fchollet/stable-diffusion/resolve/main/vae_encoder.h5",  # noqa: E501
+                origin="https://huggingface.co/fchollet/stable-diffusion/blob/main/vae_encoder.h5",  # noqa: E501
                 file_hash="c60fb220a40d090e0f86a6ab4c312d113e115c87c40ff75d11ffcf380aab7ebb",  # noqa: E501
             )
             self.load_weights(image_encoder_weights_fpath)
