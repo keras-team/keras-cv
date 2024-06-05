@@ -2,7 +2,13 @@
 #
 # Licensed under the terms in https://github.com/keras-team/keras-cv/blob/master/keras_cv/layers/preprocessing_3d/waymo/LICENSE  # noqa: E501
 
-import tensorflow as tf
+try:
+    import tensorflow as tf
+except ImportError:
+    raise ImportError(
+        "To use KerasCV, please install TensorFlow: `pip install tensorflow`. "
+        "The TensorFlow package is required for data preprocessing with any backend."
+    )
 
 from keras_cv.src.api_export import keras_cv_export
 from keras_cv.src.bounding_box_3d import CENTER_XYZ_DXDYDZ_PHI
