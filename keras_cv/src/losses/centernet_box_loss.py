@@ -66,13 +66,11 @@ class CenterNetBoxLoss(keras.losses.Loss):
 
     def heading_regression_loss(self, heading_true, heading_pred):
         # Set the heading to within 0 -> 2pi
-        heading_true = ops.floor(ops.mod(heading_true, 2 * math.pi))
+        heading_true = ops.mod(heading_true, 2 * math.pi)
 
         # Divide 2pi into bins. shifted by 0.5 * angle_per_class.
         angle_per_class = (2 * math.pi) / self.num_heading_bins
-        shift_angle = ops.floor(
-            ops.mod(heading_true + angle_per_class / 2, 2 * math.pi)
-        )
+        shift_angle = ops.mod(heading_true + angle_per_class / 2, 2 * math.pi)
 
         heading_bin_label_float = ops.floor(
             ops.divide(shift_angle, angle_per_class)
