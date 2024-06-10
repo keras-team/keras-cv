@@ -12,6 +12,10 @@ from keras_cv.src.utils.train import get_feature_extractor
 from keras_cv.src.models.object_detection.faster_rcnn import FeaturePyramid
 from keras_cv.src.models.object_detection.faster_rcnn import RPNHead
 
+
+@keras_cv_export(
+    ["keras_cv.models.FasterRCNN", "keras_cv.models.object_detection.FasterRCNN"]
+)
 class FasterRCNN(Task):
     def __init__(
         self,
