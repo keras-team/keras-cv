@@ -242,3 +242,6 @@ from keras_cv.src.models.segmentation.segformer.segformer_aliases import (
 )
 from keras_cv.src.models.stable_diffusion import StableDiffusion
 from keras_cv.src.models.stable_diffusion import StableDiffusionV2
+from keras_cv.src.models.object_detection.faster_rcnn.faster_rcnn import (
+    FasterRCNN
+)
