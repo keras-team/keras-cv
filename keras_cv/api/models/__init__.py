@@ -259,4 +259,7 @@ from keras_cv.src.models.stable_diffusion.stable_diffusion import (
 from keras_cv.src.models.stable_diffusion.stable_diffusion import (
     StableDiffusionV2,
 )
+from keras_cv.src.models.object_detection.faster_rcnn.faster_rcnn import (
+    FasterRCNN
+)
 from keras_cv.src.models.task import Task

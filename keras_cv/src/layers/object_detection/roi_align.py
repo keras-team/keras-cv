@@ -357,7 +357,7 @@ def multilevel_crop_and_resize(
     # TODO(tanzhenyu): replace tf.gather with tf.gather_nd and try to get
     #  similar performance.
     features_per_box = ops.reshape(
-        ops.take(features_r2, indices),
+        ops.take(features_r2, indices, axis=0),
         [
             batch_size,
             num_boxes,
