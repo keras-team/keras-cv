@@ -268,7 +268,7 @@ class FasterRCNN(Task):
         
         # Generate anchors
         # image shape must not contain the batch size
-        # local_batch = keras.ops.shape(images)[0]
+        local_batch = keras.ops.shape(images)[0]
         image_shape = keras.ops.shape(images)[1:]
         anchors = self.anchor_generator(image_shape=image_shape)
         
@@ -288,9 +288,9 @@ class FasterRCNN(Task):
         )
         # 3. Computing the weights
         rpn_box_weights /= (
-            self.rpn_labeler.samples_per_image * 0.25
+            self.rpn_labeler.samples_per_image * local_batch * 0.25
         )
-        rpn_cls_weights /= self.rpn_labeler.samples_per_image
+        rpn_cls_weights /= self.rpn_labeler.samples_per_image * local_batch
         
         #######################################################################
         # Call RPN
@@ -347,8 +347,8 @@ class FasterRCNN(Task):
         cls_weights = ops.squeeze(cls_weights, axis=-1)
 
         # 6. Box and class weights -- exclusive to compute loss
-        box_weights /= self.roi_sampler.num_sampled_rois *  0.25
-        cls_weights /= self.roi_sampler.num_sampled_rois
+        box_weights /= self.roi_sampler.num_sampled_rois * local_batch * 0.25
+        cls_weights /= self.roi_sampler.num_sampled_rois * local_batch
 
         #######################################################################
         # Call RCNN
