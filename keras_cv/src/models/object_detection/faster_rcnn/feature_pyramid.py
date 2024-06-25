@@ -29,7 +29,6 @@ class FeaturePyramid(keras.layers.Layer):
         self.conv_c3_1x1 = keras.layers.Conv2D(256, 1, 1, "same")
         self.conv_c4_1x1 = keras.layers.Conv2D(256, 1, 1, "same")
         self.conv_c5_1x1 = keras.layers.Conv2D(256, 1, 1, "same")
-
         self.conv_c2_3x3 = keras.layers.Conv2D(256, 3, 1, "same")
         self.conv_c3_3x3 = keras.layers.Conv2D(256, 3, 1, "same")
         self.conv_c4_3x3 = keras.layers.Conv2D(256, 3, 1, "same")
@@ -37,39 +36,55 @@ class FeaturePyramid(keras.layers.Layer):
         self.conv_c6_3x3 = keras.layers.Conv2D(256, 3, 1, "same")
         self.conv_c6_pool = keras.layers.MaxPool2D()
         self.upsample_2x = keras.layers.UpSampling2D(2)
-
-    def call(self, inputs, training=None):
-        c2_output = inputs["P2"]
-        c3_output = inputs["P3"]
-        c4_output = inputs["P4"]
-        c5_output = inputs["P5"]
-
-        c6_output = self.conv_c6_pool(c5_output)
-        p6_output = c6_output
-        p5_output = self.conv_c5_1x1(c5_output)
-        p4_output = self.conv_c4_1x1(c4_output)
-        p3_output = self.conv_c3_1x1(c3_output)
-        p2_output = self.conv_c2_1x1(c2_output)
-
-        p4_output = p4_output + self.upsample_2x(p5_output)
-        p3_output = p3_output + self.upsample_2x(p4_output)
-        p2_output = p2_output + self.upsample_2x(p3_output)
-
-        p6_output = self.conv_c6_3x3(p6_output)
-        p5_output = self.conv_c5_3x3(p5_output)
-        p4_output = self.conv_c4_3x3(p4_output)
-        p3_output = self.conv_c3_3x3(p3_output)
-        p2_output = self.conv_c2_3x3(p2_output)
-
+    
+    def call(self, inputs, training=False):
+        if isinstance(inputs, dict):
+            c2_output = inputs["P2"]
+            c3_output = inputs["P3"]
+            c4_output = inputs["P4"]
+            c5_output = inputs["P5"]
+        else:
+            c2_output, c3_output, c4_output, c5_output = inputs
+        
+        # Build top to bottom path
+        p5_output = self.conv_c5_1x1(c5_output, training=training)
+        p4_output = self.conv_c4_1x1(c4_output, training=training)
+        p3_output = self.conv_c3_1x1(c3_output, training=training)
+        p2_output = self.conv_c2_1x1(c2_output, training=training)
+        
+        p4_output = p4_output + self.upsample_2x(p5_output, training=training)
+        p3_output = p3_output + self.upsample_2x(p4_output, training=training)
+        p2_output = p2_output + self.upsample_2x(p3_output, training=training)
+        
+        p6_output = self.conv_c6_pool(c5_output, training=training)
+        p6_output = self.conv_c6_3x3(p6_output, training=training)
+        p5_output = self.conv_c5_3x3(p5_output, training=training)
+        p4_output = self.conv_c4_3x3(p4_output, training=training)
+        p3_output = self.conv_c3_3x3(p3_output, training=training)
+        p2_output = self.conv_c2_3x3(p2_output, training=training)
+        
         return {
-            "P2": p2_output,
-            "P3": p3_output,
+            "P2": p2_output, 
+            "P3": p3_output, 
             "P4": p4_output,
-            "P5": p5_output,
+            "P5": p5_output, 
             "P6": p6_output,
         }
-
-    def get_config(self):
-        config = {}
-        base_config = super().get_config()
-        return dict(list(base_config.items()) + list(config.items()))
+        
+    def build(self, input_shape):
+        p2_channels = input_shape["P2"][-1]
+        p3_channels = input_shape["P3"][-1]
+        p4_channels = input_shape["P4"][-1]
+        p5_channels = input_shape["P5"][-1]
+        
+        self.conv_c2_1x1.build((None, None, None, p2_channels))
+        self.conv_c3_1x1.build((None, None, None, p3_channels))
+        self.conv_c4_1x1.build((None, None, None, p4_channels))
+        self.conv_c5_1x1.build((None, None, None, p5_channels))
+        self.conv_c2_3x3.build((None, None, None, 256))
+        self.conv_c3_3x3.build((None, None, None, 256))
+        self.conv_c4_3x3.build((None, None, None, 256))
+        self.conv_c5_3x3.build((None, None, None, 256))
+        self.conv_c6_pool.build((None, None, None, p5_channels))
+        self.conv_c6_3x3.build((None, None, None, p5_channels))
+        self.built = True

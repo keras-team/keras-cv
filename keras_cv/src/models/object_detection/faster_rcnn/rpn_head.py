@@ -1,8 +1,5 @@
-import tree
-
 from keras_cv.src.api_export import keras_cv_export
 from keras_cv.src.backend import keras
-from keras_cv.src.backend import ops
 
 
 @keras_cv_export(
@@ -22,20 +19,15 @@ class RPNHead(keras.layers.Layer):
     """
 
     def __init__(
-        self,
+        self, 
         num_anchors_per_location=3,
         **kwargs,
     ):
         super().__init__(**kwargs)
         self.num_anchors = num_anchors_per_location
 
-    def build(self, input_shape):
-        if isinstance(input_shape, (dict, list, tuple)):
-            input_shape = tree.flatten(input_shape)
-            input_shape = input_shape[0:4]
-        filters = input_shape[-1]
         self.conv = keras.layers.Conv2D(
-            filters=filters,
+            filters=256,
             kernel_size=3,
             strides=1,
             padding="same",
@@ -57,19 +49,14 @@ class RPNHead(keras.layers.Layer):
             kernel_initializer="truncated_normal",
         )
 
-    def call(self, feature_map, training=None):
+    def call(self, feature_map, training=False):
         def call_single_level(f_map):
-            batch_size = ops.shape(f_map)[0]
             # [BS, H, W, C]
-            t = self.conv(f_map)
+            t = self.conv(f_map, training=training)
             # [BS, H, W, K]
-            rpn_scores = self.objectness_logits(t)
+            rpn_scores = self.objectness_logits(t, training=training)
             # [BS, H, W, K * 4]
-            rpn_boxes = self.anchor_deltas(t)
-            # [BS, H*W*K, 4]
-            rpn_boxes = ops.reshape(rpn_boxes, [batch_size, -1, 4])
-            # [BS, H*W*K, 1]
-            rpn_scores = ops.reshape(rpn_scores, [batch_size, -1, 1])
+            rpn_boxes = self.anchor_deltas(t, training=training)
             return rpn_boxes, rpn_scores
 
         if not isinstance(feature_map, (dict, list, tuple)):
@@ -97,3 +84,28 @@ class RPNHead(keras.layers.Layer):
         }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
+    
+    def compute_output_shape(self, input_shape):
+        p2_shape = input_shape["P2"][:-1]
+        p3_shape = input_shape["P3"][:-1]
+        p4_shape = input_shape["P4"][:-1]
+        p5_shape = input_shape["P5"][:-1]
+        p6_shape = input_shape["P6"][:-1]
+        
+        rpn_scores_shape = {
+            'P2': p2_shape + (self.num_anchors,),
+            'P3': p3_shape + (self.num_anchors,),
+            'P4': p4_shape + (self.num_anchors,),
+            'P5': p5_shape + (self.num_anchors,),
+            'P6': p6_shape + (self.num_anchors,),
+        }
+        
+        rpn_boxes_shape = {
+            'P2': p2_shape + (self.num_anchors * 4,),
+            'P3': p3_shape + (self.num_anchors * 4,),
+            'P4': p4_shape + (self.num_anchors * 4,),
+            'P5': p5_shape + (self.num_anchors * 4,),
+            'P6': p6_shape + (self.num_anchors * 4,),
+        }
+        
+        return rpn_boxes_shape, rpn_scores_shape   
