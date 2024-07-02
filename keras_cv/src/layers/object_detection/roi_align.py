@@ -378,7 +378,7 @@ def multilevel_crop_and_resize(
 #  performance as this is mostly a duplicate of
 #  https://github.com/tensorflow/models/blob/master/official/legacy/detection/ops/spatial_transform_ops.py#L324
 @keras.utils.register_keras_serializable(package="keras_cv")
-class _ROIAligner(keras.layers.Layer):
+class ROIAligner(keras.layers.Layer):
     """Performs ROIAlign for the second stage processing."""
 
     def __init__(
@@ -397,13 +397,10 @@ class _ROIAligner(keras.layers.Layer):
           sample_offset: A `float` in [0, 1] of the subpixel sample offset.
           **kwargs: Additional keyword arguments passed to Layer.
         """
-        # assert_tf_keras("keras_cv.layers._ROIAligner")
-        self._config_dict = {
-            "bounding_box_format": bounding_box_format,
-            "crop_size": target_size,
-            "sample_offset": sample_offset,
-        }
         super().__init__(**kwargs)
+        self.bounding_box_format = bounding_box_format
+        self.target_size = target_size
+        self.sample_offset = sample_offset
 
     def call(
         self,
@@ -427,16 +424,19 @@ class _ROIAligner(keras.layers.Layer):
         """
         boxes = bounding_box.convert_format(
             boxes,
-            source=self._config_dict["bounding_box_format"],
+            source=self.bounding_box_format,
             target="yxyx",
         )
         roi_features = multilevel_crop_and_resize(
             features,
             boxes,
-            output_size=self._config_dict["crop_size"],
-            sample_offset=self._config_dict["sample_offset"],
+            output_size=self.target_size,
+            sample_offset=self.sample_offset,
         )
         return roi_features
 
     def get_config(self):
-        return self._config_dict
+        config = super().get_config()
+        config["bounding_box_format"] = self.bounding_box_format
+        config["target_size"] = self.target_size
+        config["sample_offset"] = self.sample_offset

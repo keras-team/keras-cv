@@ -28,7 +28,9 @@ from keras_cv.src.models.backbones.test_backbone_presets import (
 from keras_cv.src.models.object_detection.__test_utils__ import (
     _create_bounding_box_dataset,
 )
-from keras_cv.src.models.object_detection.faster_rcnn.faster_rcnn import FasterRCNN
+from keras_cv.src.models.object_detection.faster_rcnn.faster_rcnn import (
+    FasterRCNN,
+)
 from keras_cv.src.tests.test_case import TestCase
 
 

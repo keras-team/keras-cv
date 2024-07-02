@@ -22,7 +22,7 @@ from keras_cv.src.utils import target_gather
 
 
 @keras.utils.register_keras_serializable(package="keras_cv")
-class _ROISampler(keras.layers.Layer):
+class ROISampler(keras.layers.Layer):
     """
     Sample ROIs for loss related calculation.
 

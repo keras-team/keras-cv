@@ -47,9 +47,7 @@ class RCNNHead(keras.layers.Layer):
             layer = keras.layers.Dense(units=fc_dim, activation="relu")
             self.fcs.append(layer)
         self.box_pred = keras.layers.Dense(units=4)
-        self.cls_score = keras.layers.Dense(
-            units=num_classes + 1
-        )
+        self.cls_score = keras.layers.Dense(units=num_classes + 1)
 
     def call(self, feature_map, training=False):
         x = feature_map
@@ -60,29 +58,27 @@ class RCNNHead(keras.layers.Layer):
         rcnn_boxes = self.box_pred(x, training=training)
         rcnn_scores = self.cls_score(x, training=training)
         return rcnn_boxes, rcnn_scores
-    
+
     def build(self, input_shape):
         intermediate_shape = input_shape
         if self.conv_dims:
             for idx in range(len(self.convs)):
                 self.convs[idx].build(intermediate_shape)
-                intermediate_shape = intermediate_shape[:-1] + (self.conv_dims[idx],)
-            
+                intermediate_shape = intermediate_shape[:-1] + (
+                    self.conv_dims[idx],
+                )
+
         for idx in range(len(self.fc_dims)):
             self.fcs[idx].build(intermediate_shape)
             intermediate_shape = intermediate_shape[:-1] + (self.fc_dims[idx],)
-        
+
         self.box_pred.build(intermediate_shape)
         self.cls_score.build(intermediate_shape)
-                
+
         self.built = True
-    
 
     def get_config(self):
-        config = {
-            "num_classes": self.num_classes,
-            "conv_dims": self.conv_dims,
-            "fc_dims": self.fc_dims,
-        }
-        base_config = super().get_config()
-        return dict(list(base_config.items()) + list(config.items()))
+        config = super().get_config()
+        config["num_classes"] = self.num_classes
+        config["conv_dims"] = self.conv_dims
+        config["fc_dims"] = self.fc_dims

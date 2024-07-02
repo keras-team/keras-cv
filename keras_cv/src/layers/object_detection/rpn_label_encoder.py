@@ -24,7 +24,7 @@ from keras_cv.src.utils import target_gather
 
 
 @keras.utils.register_keras_serializable(package="keras_cv")
-class _RpnLabelEncoder(keras.layers.Layer):
+class RpnLabelEncoder(keras.layers.Layer):
     """Transforms the raw labels into training targets for region proposal
     network (RPN).
 

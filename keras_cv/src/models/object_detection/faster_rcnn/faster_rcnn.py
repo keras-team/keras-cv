@@ -1,17 +1,18 @@
 import tree
 
 from keras_cv.src import layers as cv_layers
+from keras_cv.src import losses
 from keras_cv.src.api_export import keras_cv_export
 from keras_cv.src.backend import keras
 from keras_cv.src.backend import ops
 from keras_cv.src.bounding_box.converters import _decode_deltas_to_boxes
 from keras_cv.src.bounding_box.utils import _clip_boxes
 from keras_cv.src.layers.object_detection.box_matcher import BoxMatcher
-from keras_cv.src.layers.object_detection.roi_align import _ROIAligner
+from keras_cv.src.layers.object_detection.roi_align import ROIAligner
 from keras_cv.src.layers.object_detection.roi_generator import ROIGenerator
-from keras_cv.src.layers.object_detection.roi_sampler import _ROISampler
+from keras_cv.src.layers.object_detection.roi_sampler import ROISampler
 from keras_cv.src.layers.object_detection.rpn_label_encoder import (
-    _RpnLabelEncoder,
+    RpnLabelEncoder,
 )
 from keras_cv.src.models.object_detection.__internal__ import unpack_input
 from keras_cv.src.models.object_detection.faster_rcnn import FeaturePyramid
@@ -19,7 +20,6 @@ from keras_cv.src.models.object_detection.faster_rcnn import RCNNHead
 from keras_cv.src.models.object_detection.faster_rcnn import RPNHead
 from keras_cv.src.models.task import Task
 from keras_cv.src.utils.train import get_feature_extractor
-from keras_cv.src import losses
 
 BOX_VARIANCE = [0.1, 0.1, 0.2, 0.2]
 
@@ -38,23 +38,36 @@ class FasterRCNN(Task):
         bounding_box_format,
         anchor_generator=None,
         feature_pyramid=None,
+        fpn_min_level=2,
+        fpn_max_level=5,
+        rpn_head=None,
+        rpn_filters=256,
+        rpn_kernel_size=3,
+        rpn_label_en_pos_th=0.7,
+        rpn_label_en_neg_th=0.3,
+        rpn_label_en_samples_per_image=256,
+        rpn_label_en_pos_frac=0.5,
         rcnn_head=None,
         label_encoder=None,
         *args,
         **kwargs,
     ):
         # 1. Backbone
-        extractor_levels = ["P2", "P3", "P4", "P5"]
+        extractor_levels = [
+            f"P{level}" for level in range(fpn_min_level, fpn_max_level + 1)
+        ]
         extractor_layer_names = [
             backbone.pyramid_level_inputs[i] for i in extractor_levels
         ]
         feature_extractor = get_feature_extractor(
             backbone, extractor_layer_names, extractor_levels
         )
-        
+
         # 2. Feature Pyramid
-        feature_pyramid = feature_pyramid or FeaturePyramid()
-        
+        feature_pyramid = feature_pyramid or FeaturePyramid(
+            min_level=fpn_min_level, max_level=fpn_max_level
+        )
+
         # 3. Anchors
         scales = [2**x for x in [0]]
         aspect_ratios = [0.5, 1.0, 2.0]
@@ -62,15 +75,18 @@ class FasterRCNN(Task):
             anchor_generator
             or FasterRCNN.default_anchor_generator(
                 scales,
-                aspect_ratios, 
+                aspect_ratios,
                 bounding_box_format,
-                
             )
         )
-        
+
         # 4. RPN Head
         num_anchors_per_location = len(scales) * len(aspect_ratios)
-        rpn_head = RPNHead(num_anchors_per_location)
+        rpn_head = rpn_head or RPNHead(
+            num_anchors_per_location=num_anchors_per_location,
+            num_filters=rpn_filters,
+            kernel_size=rpn_kernel_size,
+        )
         # 5. ROI Generator
         roi_generator = ROIGenerator(
             bounding_box_format=bounding_box_format,
@@ -78,48 +94,50 @@ class FasterRCNN(Task):
             nms_score_threshold_test=float("-inf"),
             name="roi_generator",
         )
-        
+
         # 6. ROI Pooler
-        roi_pooler = _ROIAligner(bounding_box_format="yxyx", name="roi_pooler")
-        
-        
+        roi_pooler = ROIAligner(bounding_box_format="yxyx", name="roi_pooler")
+
         # 7. RCNN Head
-        rcnn_head = rcnn_head or RCNNHead(
-            num_classes,
-            name="rcnn_head"
-        )
+        rcnn_head = rcnn_head or RCNNHead(num_classes, name="rcnn_head")
 
         # Begin construction of forward pass
-        image_shape =  feature_extractor.input_shape[1:]
+        image_shape = feature_extractor.input_shape[1:]
         if None in image_shape:
-            raise ValueError("Image shape should not have None")
-        
+            raise ValueError(
+                "Found `None` in image_shape, to build anchors `image_shape`"
+                "is required without any `None`. Make sure to pass "
+                "`image_shape` to the backbone preset while passing to"
+                "the Faster R-CNN detector."
+            )
+
         images = keras.layers.Input(
-           image_shape, 
-           name="images",
+            image_shape,
+            name="images",
         )
         backbone_outputs = feature_extractor(images)
         feature_map = feature_pyramid(backbone_outputs)
-        
-        
+
         # [BS, num_anchors, 4], [BS, num_anchors, 1]
         rpn_boxes, rpn_scores = rpn_head(feature_map)
 
         for lvl in rpn_boxes:
-            rpn_boxes[lvl] = keras.layers.Reshape(
-                target_shape=(-1, 4))(rpn_boxes[lvl])
-        
+            rpn_boxes[lvl] = keras.layers.Reshape(target_shape=(-1, 4))(
+                rpn_boxes[lvl]
+            )
+
         for lvl in rpn_scores:
-            rpn_scores[lvl] = keras.layers.Reshape(
-                target_shape=(-1, 1))(rpn_scores[lvl])
-        
-        rpn_cls_pred = keras.layers.Concatenate(axis=1, name="rpn_classification")(
-            tree.flatten(rpn_scores)
-        )
+            rpn_scores[lvl] = keras.layers.Reshape(target_shape=(-1, 1))(
+                rpn_scores[lvl]
+            )
+
+        rpn_cls_pred = keras.layers.Concatenate(
+            axis=1, name="rpn_classification"
+        )(tree.flatten(rpn_scores))
         rpn_box_pred = keras.layers.Concatenate(axis=1, name="rpn_box")(
             tree.flatten(rpn_boxes)
         )
-        
+
         anchors = anchor_generator(image_shape=image_shape)
         decoded_rpn_boxes = _decode_deltas_to_boxes(
             anchors=anchors,
@@ -130,21 +148,23 @@ class FasterRCNN(Task):
         )
         # Generate ROI's from RPN head
         rois, _ = roi_generator(decoded_rpn_boxes, rpn_scores)
-        
         feature_map = roi_pooler(features=feature_map, boxes=rois)
-        
+
         # Reshape the feature map [BS, H*W*K]
         feature_map = keras.layers.Reshape(
-            target_shape=(rois.shape[1],  -1))(feature_map)
-        
+            target_shape=(
+                rois.shape[1],
+                (roi_pooler.target_size**2) * rpn_head.num_filters,
+            )
+        )(feature_map)
         # Pass final feature map to RCNN Head for predictions
         box_pred, cls_pred = rcnn_head(feature_map=feature_map)
-        
+
         box_pred = keras.layers.Concatenate(axis=1, name="box")([box_pred])
         cls_pred = keras.layers.Concatenate(axis=1, name="classification")(
             [cls_pred]
         )
-        
+
         inputs = {"images": images}
         outputs = {
             "box": box_pred,
@@ -152,24 +172,24 @@ class FasterRCNN(Task):
             "rpn_box": rpn_box_pred,
             "rpn_classification": rpn_cls_pred,
         }
-        
+
         super().__init__(
             inputs=inputs,
             outputs=outputs,
             **kwargs,
         )
-        
+
         # Define the model parameters
         self.bounding_box_format = bounding_box_format
         self.anchor_generator = anchor_generator
         self.num_classes = num_classes
-        self.rpn_labeler = label_encoder or _RpnLabelEncoder(
+        self.rpn_labeler = label_encoder or RpnLabelEncoder(
             anchor_format=bounding_box_format,
             ground_truth_box_format=bounding_box_format,
-            positive_threshold=0.7,
-            negative_threshold=0.3,
-            samples_per_image=256,
-            positive_fraction=0.5,
+            positive_threshold=rpn_label_en_pos_th,
+            negative_threshold=rpn_label_en_neg_th,
+            samples_per_image=rpn_label_en_samples_per_image,
+            positive_fraction=rpn_label_en_pos_frac,
             box_variance=BOX_VARIANCE,
         )
         self.feature_extractor = feature_extractor
@@ -179,7 +199,7 @@ class FasterRCNN(Task):
         self.box_matcher = BoxMatcher(
             thresholds=[0.0, 0.5], match_values=[-2, -1, 1]
         )
-        self.roi_sampler = _ROISampler(
+        self.roi_sampler = ROISampler(
             bounding_box_format="yxyx",
             roi_matcher=self.box_matcher,
             background_class=num_classes,
@@ -187,7 +207,7 @@ class FasterRCNN(Task):
         )
         self.roi_pooler = roi_pooler
         self.rcnn_head = rcnn_head
-    
+
     def compile(
         self,
         box_loss=None,
@@ -207,7 +227,7 @@ class FasterRCNN(Task):
             )
         box_loss = _parse_box_loss(box_loss)
         classification_loss = _parse_classification_loss(classification_loss)
-        
+
         rpn_box_loss = _parse_box_loss(rpn_box_loss)
         rpn_classification_loss = _parse_rpn_classification_loss(
             rpn_classification_loss
@@ -252,7 +272,7 @@ class FasterRCNN(Task):
         self._has_user_metrics = metrics is not None and len(metrics) != 0
         self._user_metrics = metrics
         super().compile(loss=losses, **kwargs)
-        
+
     def compute_loss(self, x, y, y_pred, sample_weight, **kwargs):
         # 1. Unpack the inputs
         images = x
@@ -262,16 +282,16 @@ class FasterRCNN(Task):
                 "Expected 'classes' to be a Tensor of rank 2. "
                 f"Got y['classes'].shape={keras.ops.shape(y['classes'])}."
             )
-            
+
         gt_classes = y["classes"]
         gt_classes = keras.ops.expand_dims(y["classes"], axis=-1)
-        
+
         # Generate anchors
         # image shape must not contain the batch size
         local_batch = keras.ops.shape(images)[0]
         image_shape = keras.ops.shape(images)[1:]
         anchors = self.anchor_generator(image_shape=image_shape)
-        
+
         # 2. Label with the anchors -- exclusive to compute_loss
         (
             rpn_box_targets,
@@ -291,31 +311,32 @@ class FasterRCNN(Task):
             self.rpn_labeler.samples_per_image * local_batch * 0.25
         )
         rpn_cls_weights /= self.rpn_labeler.samples_per_image * local_batch
-        
+
         #######################################################################
         # Call RPN
         #######################################################################
 
         backbone_outputs = self.feature_extractor(images)
         feature_map = self.feature_pyramid(backbone_outputs)
-        
+
         # [BS, num_anchors, 4], [BS, num_anchors, 1]
         rpn_boxes, rpn_scores = self.rpn_head(feature_map)
         for lvl in rpn_boxes:
-            rpn_boxes[lvl] = keras.layers.Reshape(
-                target_shape=(-1, 4))(rpn_boxes[lvl])
-        
+            rpn_boxes[lvl] = keras.layers.Reshape(target_shape=(-1, 4))(
+                rpn_boxes[lvl]
+            )
+
         for lvl in rpn_scores:
-            rpn_scores[lvl] = keras.layers.Reshape(
-                target_shape=(-1, 1))(rpn_scores[lvl])
-        
-        rpn_cls_pred = keras.layers.Concatenate(axis=1, name="rpn_classification")(
-            tree.flatten(rpn_scores)
-        )
+            rpn_scores[lvl] = keras.layers.Reshape(target_shape=(-1, 1))(
+                rpn_scores[lvl]
+            )
+
+        rpn_cls_pred = keras.layers.Concatenate(
+            axis=1, name="rpn_classification"
+        )(tree.flatten(rpn_scores))
         rpn_box_pred = keras.layers.Concatenate(axis=1, name="rpn_box")(
             tree.flatten(rpn_boxes)
         )
-        
 
         decoded_rpn_boxes = _decode_deltas_to_boxes(
             anchors=anchors,
@@ -328,22 +349,22 @@ class FasterRCNN(Task):
         rois, _ = self.roi_generator(decoded_rpn_boxes, rpn_scores)
         rois = _clip_boxes(rois, self.bounding_box_format, image_shape)
 
-        # 4. Stop gradient from flowing into the ROI -- exclusive to compute_loss
+        # 4. Stop gradient from flowing into the ROI
+        # -- exclusive to compute_loss
         rois = keras.ops.stop_gradient(rois)
 
-        # 5. Sample the ROIS -- exclusive to compute_loss -- exclusive to compute loss
+        # 5. Sample the ROIS -- exclusive to compute_loss
+        # -- exclusive to compute loss
         (
             rois,
             box_targets,
             box_weights,
             cls_targets,
             cls_weights,
-        ) = self.roi_sampler(
-            rois, 
-            gt_boxes, 
-            gt_classes
-        )
-        cls_targets = ops.squeeze(cls_targets, axis=-1) # to apply one hot encoding
+        ) = self.roi_sampler(rois, gt_boxes, gt_classes)
+        cls_targets = ops.squeeze(
+            cls_targets, axis=-1
+        )  # to apply one hot encoding
         cls_weights = ops.squeeze(cls_weights, axis=-1)
 
         # 6. Box and class weights -- exclusive to compute loss
@@ -364,12 +385,12 @@ class FasterRCNN(Task):
 
         # [BS, H*W*K, 4], [BS, H*W*K, num_classes + 1]
         box_pred, cls_pred = self.rcnn_head(feature_map=feature_map)
-        
+
         # Class targets will be in categorical so change it to one hot encoding
         cls_targets = keras.ops.one_hot(
             cls_targets,
-            self.num_classes + 1, # +1 for background class
-            dtype=cls_pred.dtype
+            self.num_classes + 1,  # +1 for background class
+            dtype=cls_pred.dtype,
         )
 
         y_true = {
@@ -394,7 +415,7 @@ class FasterRCNN(Task):
         return super().compute_loss(
             x=x, y=y_true, y_pred=y_pred, sample_weight=weights, **kwargs
         )
-    
+
     def train_step(self, *args):
         data = args[-1]
         args = args[:-1]
@@ -406,10 +427,10 @@ class FasterRCNN(Task):
         args = args[:-1]
         x, y = unpack_input(data)
         return super().test_step(*args, (x, y))
-    
+
     @staticmethod
     def default_anchor_generator(scales, aspect_ratios, bounding_box_format):
-        strides={f"P{i}": 2**i for i in range(2, 7)}
+        strides = {f"P{i}": 2**i for i in range(2, 7)}
         sizes = {
             "P2": 32.0,
             "P3": 64.0,
@@ -426,8 +447,7 @@ class FasterRCNN(Task):
             clip_boxes=True,
             name="anchor_generator",
         )
-        
-    
+
 
 def _parse_box_loss(loss):
     if not isinstance(loss, str):
@@ -445,18 +465,22 @@ def _parse_box_loss(loss):
         f"callable, or the string 'SmoothL1'. Got loss={loss}."
     )
 
+
 def _parse_rpn_classification_loss(loss):
     if not isinstance(loss, str):
         # support arbitrary callables
         return loss
-    
+
     if loss.lower() == "binarycrossentropy":
-        return keras.losses.BinaryCrossentropy(reduction="sum", from_logits=True)
-        
+        return keras.losses.BinaryCrossentropy(
+            reduction="sum", from_logits=True
+        )
+
     raise ValueError(
         f"Expected `rpn_classification_loss` to be either BinaryCrossentropy"
         f" loss callable, or the string 'BinaryCrossentropy'. Got loss={loss}."
     )
+
 
 def _parse_classification_loss(loss):
     if not isinstance(loss, str):
@@ -467,9 +491,10 @@ def _parse_classification_loss(loss):
     if loss.lower() == "focal":
         return losses.FocalLoss(reduction="sum", from_logits=True)
     if loss.lower() == "categoricalcrossentropy":
-        return keras.losses.CategoricalCrossentropy(reduction="sum", from_logits=True)
-    
-    
+        return keras.losses.CategoricalCrossentropy(
+            reduction="sum", from_logits=True
+        )
+
     raise ValueError(
         f"Expected `classification_loss` to be either a Keras Loss, "
         f"callable, or the string 'Focal', CategoricalCrossentropy'. "
