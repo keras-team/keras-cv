@@ -19,16 +19,20 @@ class RPNHead(keras.layers.Layer):
     """
 
     def __init__(
-        self, 
+        self,
         num_anchors_per_location=3,
+        num_filters=256,
+        kernel_size=3,
         **kwargs,
     ):
         super().__init__(**kwargs)
         self.num_anchors = num_anchors_per_location
+        self.num_filters = num_filters
+        self.kernel_size = kernel_size
 
         self.conv = keras.layers.Conv2D(
-            filters=256,
-            kernel_size=3,
+            filters=num_filters,
+            kernel_size=kernel_size,
             strides=1,
             padding="same",
             activation="relu",
@@ -79,33 +83,33 @@ class RPNHead(keras.layers.Layer):
             return rpn_boxes, rpn_scores
 
     def get_config(self):
-        config = {
-            "num_anchors_per_location": self.num_anchors,
-        }
-        base_config = super().get_config()
-        return dict(list(base_config.items()) + list(config.items()))
-    
+        config = super().get_config()
+        config["num_anchors_per_location"] = self.num_anchors
+        config["num_filters"] = self.num_filters
+        config["kernel_size"] = self.kernel_size
+        return config
+
     def compute_output_shape(self, input_shape):
         p2_shape = input_shape["P2"][:-1]
         p3_shape = input_shape["P3"][:-1]
         p4_shape = input_shape["P4"][:-1]
         p5_shape = input_shape["P5"][:-1]
         p6_shape = input_shape["P6"][:-1]
-        
+
         rpn_scores_shape = {
-            'P2': p2_shape + (self.num_anchors,),
-            'P3': p3_shape + (self.num_anchors,),
-            'P4': p4_shape + (self.num_anchors,),
-            'P5': p5_shape + (self.num_anchors,),
-            'P6': p6_shape + (self.num_anchors,),
+            "P2": p2_shape + (self.num_anchors,),
+            "P3": p3_shape + (self.num_anchors,),
+            "P4": p4_shape + (self.num_anchors,),
+            "P5": p5_shape + (self.num_anchors,),
+            "P6": p6_shape + (self.num_anchors,),
         }
-        
+
         rpn_boxes_shape = {
-            'P2': p2_shape + (self.num_anchors * 4,),
-            'P3': p3_shape + (self.num_anchors * 4,),
-            'P4': p4_shape + (self.num_anchors * 4,),
-            'P5': p5_shape + (self.num_anchors * 4,),
-            'P6': p6_shape + (self.num_anchors * 4,),
+            "P2": p2_shape + (self.num_anchors * 4,),
+            "P3": p3_shape + (self.num_anchors * 4,),
+            "P4": p4_shape + (self.num_anchors * 4,),
+            "P5": p5_shape + (self.num_anchors * 4,),
+            "P6": p6_shape + (self.num_anchors * 4,),
         }
-        
-        return rpn_boxes_shape, rpn_scores_shape   
+
+        return rpn_boxes_shape, rpn_scores_shape
