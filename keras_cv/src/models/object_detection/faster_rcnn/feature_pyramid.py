@@ -21,70 +21,224 @@ from keras_cv.src.backend import keras
     package="keras_cv.models.faster_rcnn",
 )
 class FeaturePyramid(keras.layers.Layer):
-    """Builds the Feature Pyramid with the feature maps from the backbone."""
+    """Implements a Feature Pyramid Network.
 
-    def __init__(self, **kwargs):
+    This implements the paper:
+      Tsung-Yi Lin, Piotr Dollar, Ross Girshick, Kaiming He, Bharath Hariharan,
+      and Serge Belongie. Feature Pyramid Networks for Object Detection.
+      (https://arxiv.org/pdf/1612.03144)
+
+    Feature Pyramid Networks (FPNs) are basic components that are added to an
+    existing feature extractor (CNN) to combine features at different scales.
+    For the basic FPN, the inputs are features `Ci` from different levels of a
+    CNN, which is usually the last block for each level, where the feature is
+    scaled from the image by a factor of `1/2^i`.
+
+    There is an output associated with each level in the basic FPN. The output
+    Pi at level `i` (corresponding to Ci) is given by performing a merge
+    operation on the outputs of:
+
+    1) a lateral operation on Ci (usually a conv2D layer with kernel = 1 and
+       strides = 1)
+    2) a top-down upsampling operation from Pi+1 (except for the top most level)
+
+    The final output of each level will also have a conv2D operation
+    (typically with kernel = 3 and strides = 1).
+
+    The inputs to the layer should be a dict with int keys should match the
+    pyramid_levels, e.g. for `pyramid_levels` = [2,3,4,5], the expected input
+    dict should be `{2:c2, 3:c3, 4:c4, 5:c5}`.
+
+    The output of the layer will have same structures as the inputs, a dict with
+    int keys and value for each of the level.
+
+    Args:
+        min_level: a python int for the lowest level of the pyramid for
+            feature extraction.
+        max_level: a python int for the highest level of the pyramid for
+            feature extraction.
+        num_channels: an integer representing the number of channels for the FPN
+            operations, defaults to 256.
+        lateral_layers: a python dict with int keys that matches to each of the
+            pyramid level. The values of the dict should be `keras.Layer`, which
+            will be called with feature activation outputs from backbone at each
+            level. Defaults to None, and a `keras.Conv2D` layer with kernel 1x1
+            will be created for each pyramid level.
+        output_layers: a python dict with int keys that matches to each of the
+            pyramid level. The values of the dict should be `keras.Layer`, which
+            will be called with feature inputs and merged result from upstream
+            levels. Defaults to None, and a `keras.Conv2D` layer with kernel 3x3
+            will be created for each pyramid level.
+
+    Example:
+    ```python
+
+    inp = keras.layers.Input((384, 384, 3))
+    backbone = keras.applications.EfficientNetB0(
+        input_tensor=inp,
+        include_top=False
+    )
+    layer_names = ['block2b_add',
+        'block3b_add',
+        'block5c_add',
+        'top_activation'
+    ]
+
+    backbone_outputs = {}
+    for i, layer_name in enumerate(layer_names):
+        backbone_outputs[i+2] = backbone.get_layer(layer_name).output
+
+    # output_dict is a dict with 2, 3, 4, 5 as keys
+    output_dict = keras_cv.layers.FeaturePyramid(
+        min_level=2,
+        max_level=5
+    )(backbone_outputs)
+    ```
+    """
+
+    def __init__(
+        self,
+        min_level,
+        max_level,
+        num_channels=256,
+        lateral_layers=None,
+        output_layers=None,
+        **kwargs,
+    ):
         super().__init__(**kwargs)
-        self.conv_c2_1x1 = keras.layers.Conv2D(256, 1, 1, "same")
-        self.conv_c3_1x1 = keras.layers.Conv2D(256, 1, 1, "same")
-        self.conv_c4_1x1 = keras.layers.Conv2D(256, 1, 1, "same")
-        self.conv_c5_1x1 = keras.layers.Conv2D(256, 1, 1, "same")
-        self.conv_c2_3x3 = keras.layers.Conv2D(256, 3, 1, "same")
-        self.conv_c3_3x3 = keras.layers.Conv2D(256, 3, 1, "same")
-        self.conv_c4_3x3 = keras.layers.Conv2D(256, 3, 1, "same")
-        self.conv_c5_3x3 = keras.layers.Conv2D(256, 3, 1, "same")
-        self.conv_c6_3x3 = keras.layers.Conv2D(256, 3, 1, "same")
-        self.conv_c6_pool = keras.layers.MaxPool2D()
-        self.upsample_2x = keras.layers.UpSampling2D(2)
-    
-    def call(self, inputs, training=False):
-        if isinstance(inputs, dict):
-            c2_output = inputs["P2"]
-            c3_output = inputs["P3"]
-            c4_output = inputs["P4"]
-            c5_output = inputs["P5"]
+        self.min_level = min_level
+        self.max_level = max_level
+        self.pyramid_levels = [
+            f"P{level}" for level in range(min_level, max_level + 1)
+        ]
+        self.num_channels = num_channels
+
+        # required for successful serialization
+        self.lateral_layers_passed = lateral_layers
+        self.output_layers_passed = output_layers
+
+        if not lateral_layers:
+            # populate self.lateral_ops with default FPN Conv2D 1X1 layers
+            self.lateral_layers = {}
+            for i in self.pyramid_levels:
+                self.lateral_layers[i] = keras.layers.Conv2D(
+                    self.num_channels,
+                    kernel_size=1,
+                    strides=1,
+                    padding="same",
+                    name=f"lateral_P{i}",
+                )
         else:
-            c2_output, c3_output, c4_output, c5_output = inputs
-        
-        # Build top to bottom path
-        p5_output = self.conv_c5_1x1(c5_output, training=training)
-        p4_output = self.conv_c4_1x1(c4_output, training=training)
-        p3_output = self.conv_c3_1x1(c3_output, training=training)
-        p2_output = self.conv_c2_1x1(c2_output, training=training)
-        
-        p4_output = p4_output + self.upsample_2x(p5_output, training=training)
-        p3_output = p3_output + self.upsample_2x(p4_output, training=training)
-        p2_output = p2_output + self.upsample_2x(p3_output, training=training)
-        
-        p6_output = self.conv_c6_pool(c5_output, training=training)
-        p6_output = self.conv_c6_3x3(p6_output, training=training)
-        p5_output = self.conv_c5_3x3(p5_output, training=training)
-        p4_output = self.conv_c4_3x3(p4_output, training=training)
-        p3_output = self.conv_c3_3x3(p3_output, training=training)
-        p2_output = self.conv_c2_3x3(p2_output, training=training)
-        
-        return {
-            "P2": p2_output, 
-            "P3": p3_output, 
-            "P4": p4_output,
-            "P5": p5_output, 
-            "P6": p6_output,
-        }
-        
-    def build(self, input_shape):
-        p2_channels = input_shape["P2"][-1]
-        p3_channels = input_shape["P3"][-1]
-        p4_channels = input_shape["P4"][-1]
-        p5_channels = input_shape["P5"][-1]
-        
-        self.conv_c2_1x1.build((None, None, None, p2_channels))
-        self.conv_c3_1x1.build((None, None, None, p3_channels))
-        self.conv_c4_1x1.build((None, None, None, p4_channels))
-        self.conv_c5_1x1.build((None, None, None, p5_channels))
-        self.conv_c2_3x3.build((None, None, None, 256))
-        self.conv_c3_3x3.build((None, None, None, 256))
-        self.conv_c4_3x3.build((None, None, None, 256))
-        self.conv_c5_3x3.build((None, None, None, 256))
-        self.conv_c6_pool.build((None, None, None, p5_channels))
-        self.conv_c6_3x3.build((None, None, None, p5_channels))
-        self.built = True
+            self._validate_user_layers(lateral_layers, "lateral_layers")
+            self.lateral_layers = lateral_layers
+
+        # Output conv2d layers.
+        if not output_layers:
+            self.output_layers = {}
+            for i in self.pyramid_levels:
+                self.output_layers[i] = keras.layers.Conv2D(
+                    self.num_channels,
+                    kernel_size=3,
+                    strides=1,
+                    padding="same",
+                    name=f"output_P{i}",
+                )
+        else:
+            self._validate_user_layers(output_layers, "output_layers")
+            self.output_layers = output_layers
+
+        # this layer is cutom to Faster R-CNN
+        self.final_conv = keras.layers.Conv2D(
+            self.num_channels,
+            kernel_size=3,
+            strides=1,
+            padding="same",
+            name=f"output_P{self.max_level+1}",
+        )
+        self.max_pool = keras.layers.MaxPool2D()
+
+        # the same upsampling layer is used for all levels
+        self.top_down_op = keras.layers.UpSampling2D(size=2)
+        # the same merge layer is used for all levels
+        self.merge_op = keras.layers.Add()
+
+    def _validate_user_layers(self, user_input, param_name):
+        if (
+            not isinstance(user_input, dict)
+            or sorted(user_input.keys()) != self.pyramid_levels
+        ):
+            raise ValueError(
+                f"Expect {param_name} to be a dict with keys as "
+                f"{self.pyramid_levels}, got {user_input}"
+            )
+
+    def call(self, features):
+        # Note that this assertion might not be true for all the subclasses. It
+        # is possible to have FPN that has high levels than the height of
+        # backbone outputs.
+        if (
+            not isinstance(features, dict)
+            or sorted(features.keys()) != self.pyramid_levels
+        ):
+            raise ValueError(
+                "FeaturePyramid expects input features to be a dict with int "
+                "keys that match the values provided in pyramid_levels. "
+                f"Expect feature keys: {self.pyramid_levels}, got: {features}"
+            )
+        return self.build_feature_pyramid(features)
+
+    def build_feature_pyramid(self, input_features):
+        # To illustrate the connection/topology, the basic flow for a FPN with
+        # level 2, 3, 4, 5 is like below:
+        #
+        #
+        # input_l5 -> max_pool_2d_l6 -------> conv2d_3x3_l6 -> output_l6
+        #     |
+        #     |
+        # input_l5 -> conv2d_1x1_l5 ----V---> conv2d_3x3_l5 -> output_l5
+        #                               V
+        #                          upsample2d
+        #                               V
+        # input_l4 -> conv2d_1x1_l4 -> Add -> conv2d_3x3_l4 -> output_l4
+        #                               V
+        #                          upsample2d
+        #                               V
+        # input_l3 -> conv2d_1x1_l3 -> Add -> conv2d_3x3_l3 -> output_l3
+        #                               V
+        #                          upsample2d
+        #                               V
+        # input_l2 -> conv2d_1x1_l2 -> Add -> conv2d_3x3_l2 -> output_l2
+
+        output_features = {}
+        for level in range(self.max_level, self.min_level - 1, -1):
+            output = self.lateral_layers[f"P{level}"](
+                input_features[f"P{level}"]
+            )
+            if level < self.max_level:
+                # for the top most output, it doesn't need to merge with any
+                # upper stream outputs
+                upstream_output = self.top_down_op(
+                    output_features[f"P{level + 1}"]
+                )
+                output = self.merge_op([output, upstream_output])
+            output_features[f"P{level}"] = output
+
+        output_features[f"P{self.max_level+1}"] = self.final_conv(
+            self.max_pool(input_features[f"P{self.max_level}"])
+        )
+        # Post apply the output layers so that we don't leak them to the down
+        # stream level
+        for level in range(self.max_level, self.min_level - 1, -1):
+            output_features[f"P{level}"] = self.output_layers[f"P{level}"](
+                output_features[f"P{level}"]
+            )
+
+        return output_features
+
+    def get_config(self):
+        config = super().get_config()
+        config["min_level"] = self.min_level
+        config["max_level"] = self.max_level
+        config["num_channels"] = self.num_channels
+        config["lateral_layers"] = self.lateral_layers_passed
+        config["output_layers"] = self.output_layers_passed
