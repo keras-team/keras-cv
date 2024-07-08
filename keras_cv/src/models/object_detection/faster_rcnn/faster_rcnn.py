@@ -148,6 +148,8 @@ class FasterRCNN(Task):
         )
         # Generate ROI's from RPN head
         rois, _ = roi_generator(decoded_rpn_boxes, rpn_scores)
+        rois = _clip_boxes(rois, bounding_box_format, image_shape)
+        
         feature_map = roi_pooler(features=feature_map, boxes=rois)
 
         # Reshape the feature map [BS, H*W*K]
