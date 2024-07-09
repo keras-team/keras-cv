@@ -15,9 +15,10 @@
 import math
 
 import tensorflow as tf
-from tensorflow.keras import layers
+from keras import layers
+from keras import ops
 
-from keras_cv.src.api_export import keras_cv_export
+from keras_cv.api_export import keras_cv_export
 
 
 @keras_cv_export("keras_cv.layers.PatchingAndEmbedding")
@@ -44,7 +45,7 @@ class PatchingAndEmbedding(layers.Layer):
         Patchified and linearly projected input images, including a prepended
         learnable class token with shape (batch, num_patches+1, project_dim)
 
-    Example:
+    Basic usage:
 
     ```
     images = #... batch of images
@@ -221,3 +222,66 @@ class PatchingAndEmbedding(layers.Layer):
         }
         base_config = super().get_config()
         return dict(list(base_config.items()) + list(config.items()))
+
+
+@keras_cv_export("keras_cv.layers.Unpatching")
+class Unpatching(layers.Layer):
+    """
+    Layer to unpatchify image data.
+
+    This layer expects patches sorted by column and reorganizes the patches such that they will each be positioned as a
+    2D shape with some number of channels.
+
+    Any necessary padding or truncation will be applied to reach the target shape.
+
+    Args:
+        target_shape: The target image shape after unpatching, of form [height, width]
+    """
+
+    def __init__(self, target_shape):
+        self.target_shape = target_shape
+
+    def call(self, patches):
+        """
+        Reconstructs an unpatched image from the sequence of column sequence patches.
+
+        If there are insufficient patches to construct the image of requested dimensions, additional zero-patches will
+        be appended. If excessive patches are provided, unnecessary patches will be truncated from the end.
+
+        Args:
+            patches: Patches of images in column sequence (i.e. each patch is vertically oriented relative to the
+                previous patch). Expected shape of [batch_size, patch_num, patch_height, patch_width, channels].
+
+        Returns:
+            Unpatched image: Image reconstructed from the patches,
+                of expected shape [batch_size, height, width, channels].
+        """
+        batch_size, patch_count, patch_height, patch_width, channels = (
+            ops.shape(patches)
+        )
+
+        target_height, target_width = self.target_shape
+
+        patches_per_column = target_height // patch_height
+        patches_per_row = target_width // patch_width
+        required_patches = patches_per_column * patches_per_row
+
+        if required_patches > patch_count:
+            corrected_patches = ops.concatenate(
+                [
+                    patches,
+                    ops.zeros(
+                        (
+                            required_patches - patch_count,
+                            patch_height,
+                            patch_height,
+                            channels,
+                        )
+                    ),
+                ],
+                axis=1,
+            )
+        else:
+            corrected_patches = patches[:, :required_patches]
+
+        return ops.split(corrected_patches, patches_per_column, axis=1)
