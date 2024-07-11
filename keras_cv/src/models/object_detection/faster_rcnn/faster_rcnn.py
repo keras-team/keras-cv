@@ -1,5 +1,6 @@
 import tree
 
+from keras_cv.src import bounding_box
 from keras_cv.src import layers as cv_layers
 from keras_cv.src import losses
 from keras_cv.src.api_export import keras_cv_export
@@ -49,6 +50,7 @@ class FasterRCNN(Task):
         rpn_label_en_pos_frac=0.5,
         rcnn_head=None,
         label_encoder=None,
+        prediction_decoder=None,
         *args,
         **kwargs,
     ):
@@ -76,7 +78,7 @@ class FasterRCNN(Task):
             or FasterRCNN.default_anchor_generator(
                 scales,
                 aspect_ratios,
-                bounding_box_format,
+                "yxyx",
             )
         )
 
@@ -89,7 +91,7 @@ class FasterRCNN(Task):
         )
         # 5. ROI Generator
         roi_generator = ROIGenerator(
-            bounding_box_format=bounding_box_format,
+            bounding_box_format="yxyx",
             nms_score_threshold_train=float("-inf"),
             nms_score_threshold_test=float("-inf"),
             name="roi_generator",
@@ -118,7 +120,7 @@ class FasterRCNN(Task):
         backbone_outputs = feature_extractor(images)
         feature_map = feature_pyramid(backbone_outputs)
 
-        # [BS, num_anchors, 4], [BS, num_anchors, 1]
+        # [P2, P3, P4, P5, P6] -> ([BS, num_anchors, 4], [BS, num_anchors, 1])
         rpn_boxes, rpn_scores = rpn_head(feature_map)
 
         for lvl in rpn_boxes:
@@ -142,14 +144,14 @@ class FasterRCNN(Task):
         decoded_rpn_boxes = _decode_deltas_to_boxes(
             anchors=anchors,
             boxes_delta=rpn_boxes,
-            anchor_format=bounding_box_format,
-            box_format=bounding_box_format,
+            anchor_format="yxyx",
+            box_format="yxyx",
             variance=BOX_VARIANCE,
         )
-        # Generate ROI's from RPN head
+
         rois, _ = roi_generator(decoded_rpn_boxes, rpn_scores)
-        rois = _clip_boxes(rois, bounding_box_format, image_shape)
-        
+        rois = _clip_boxes(rois, "yxyx", image_shape)
+
         feature_map = roi_pooler(features=feature_map, boxes=rois)
 
         # Reshape the feature map [BS, H*W*K]
@@ -186,7 +188,7 @@ class FasterRCNN(Task):
         self.anchor_generator = anchor_generator
         self.num_classes = num_classes
         self.rpn_labeler = label_encoder or RpnLabelEncoder(
-            anchor_format=bounding_box_format,
+            anchor_format="yxyx",
             ground_truth_box_format=bounding_box_format,
             positive_threshold=rpn_label_en_pos_th,
             negative_threshold=rpn_label_en_neg_th,
@@ -209,6 +211,15 @@ class FasterRCNN(Task):
         )
         self.roi_pooler = roi_pooler
         self.rcnn_head = rcnn_head
+        self._prediction_decoder = (
+            prediction_decoder
+            or cv_layers.MultiClassNonMaxSuppression(
+                bounding_box_format=bounding_box_format,
+                from_logits=True,
+                max_detections_per_class=10,
+                max_detections=10,
+            )
+        )
 
     def compile(
         self,
@@ -343,13 +354,13 @@ class FasterRCNN(Task):
         decoded_rpn_boxes = _decode_deltas_to_boxes(
             anchors=anchors,
             boxes_delta=rpn_boxes,
-            anchor_format=self.bounding_box_format,
-            box_format=self.bounding_box_format,
+            anchor_format="yxyx",
+            box_format="yxyx",
             variance=BOX_VARIANCE,
         )
 
         rois, _ = self.roi_generator(decoded_rpn_boxes, rpn_scores)
-        rois = _clip_boxes(rois, self.bounding_box_format, image_shape)
+        rois = _clip_boxes(rois, "yxyx", image_shape)
 
         # 4. Stop gradient from flowing into the ROI
         # -- exclusive to compute_loss
@@ -429,6 +440,66 @@ class FasterRCNN(Task):
         args = args[:-1]
         x, y = unpack_input(data)
         return super().test_step(*args, (x, y))
+
+    def predict_step(self, *args):
+        outputs = super().predict_step(*args)
+        if type(outputs) is tuple:
+            return self.decode_predictions(outputs[0], args[-1]), outputs[1]
+        else:
+            return self.decode_predictions(outputs, args[-1])
+
+    @property
+    def prediction_decoder(self):
+        return self._prediction_decoder
+
+    @prediction_decoder.setter
+    def prediction_decoder(self, prediction_decoder):
+        if prediction_decoder.bounding_box_format != self.bounding_box_format:
+            raise ValueError(
+                "Expected `prediction_decoder` and RetinaNet to "
+                "use the same `bounding_box_format`, but got "
+                "`prediction_decoder.bounding_box_format="
+                f"{prediction_decoder.bounding_box_format}`, and "
+                "`self.bounding_box_format="
+                f"{self.bounding_box_format}`."
+            )
+        self._prediction_decoder = prediction_decoder
+        self.make_predict_function(force=True)
+        self.make_train_function(force=True)
+        self.make_test_function(force=True)
+
+    def decode_predictions(self, predictions, images):
+        box_pred, cls_pred = predictions["box"], predictions["classification"]
+        # box_pred is on "center_yxhw" format, convert to target format.
+        image_shape = tuple(images[0].shape)
+        anchors = self.anchor_generator(image_shape=image_shape)
+        anchors = ops.concatenate([a for a in anchors.values()], axis=0)
+
+        box_pred = _decode_deltas_to_boxes(
+            anchors=anchors,
+            boxes_delta=box_pred,
+            anchor_format=self.anchor_generator.bounding_box_format,
+            box_format=self.bounding_box_format,
+            variance=BOX_VARIANCE,
+            image_shape=image_shape,
+        )
+        # box_pred is now in "self.bounding_box_format" format
+        box_pred = bounding_box.convert_format(
+            box_pred,
+            source=self.bounding_box_format,
+            target=self.prediction_decoder.bounding_box_format,
+            image_shape=image_shape,
+        )
+        y_pred = self.prediction_decoder(
+            box_pred, cls_pred, image_shape=image_shape
+        )
+        y_pred["boxes"] = bounding_box.convert_format(
+            y_pred["boxes"],
+            source=self.prediction_decoder.bounding_box_format,
+            target=self.bounding_box_format,
+            image_shape=image_shape,
+        )
+        return y_pred
 
     @staticmethod
     def default_anchor_generator(scales, aspect_ratios, bounding_box_format):
