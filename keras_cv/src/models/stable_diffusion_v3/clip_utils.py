@@ -151,6 +151,7 @@ class CLIPLayer(keras.layers.Layer):
         hidden_dim,
         num_heads,
         intermediate_size,
+        intermediate_activation = 'quick_gelu',
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -162,13 +163,13 @@ class CLIPLayer(keras.layers.Layer):
             self.num_heads,
             name="multi_head_attention",
         )
+        self.intermediate_activation = intermediate_activation
         self.layer_norm_1 = keras.layers.LayerNormalization(
             epsilon=1e-5, name="layer_norm_1"
         )
         self.mlp_dense_1 = keras.layers.Dense(
-            self.hidden_dim * 4,
+            self.intermediate_size,
             name="c_fc",
-            activation=quick_gelu,
         )
         self.mlp_dense_2 = keras.layers.Dense(
             self.hidden_dim,
@@ -177,6 +178,10 @@ class CLIPLayer(keras.layers.Layer):
         self.layer_norm_2 = keras.layers.LayerNormalization(
             epsilon=1e-5, name="layer_norm_2"
         )
+        if self.intermediate_activation == 'quick_gelu':
+          self.activation = quick_gelu
+        else:
+          self.activation = keras.layers.Activation(self.intermediate_activation, name="activation")
 
     def compute_attention(
         self, x, causal_attention_mask=None, attention_mask=None
@@ -205,7 +210,7 @@ class CLIPLayer(keras.layers.Layer):
         self.attn.build(None)
         self.layer_norm_1.build([None, None, self.hidden_dim])
         self.mlp_dense_1.build([None, None, self.hidden_dim])
-        self.mlp_dense_2.build([None, None, self.hidden_dim * 4])
+        self.mlp_dense_2.build([None, None, self.intermediate_size])
         self.layer_norm_2.build([None, None, self.hidden_dim])
         self.built = True
 
@@ -220,6 +225,7 @@ class CLIPLayer(keras.layers.Layer):
         x = x + residual
         residual = x
         x = self.mlp_dense_1(self.layer_norm_2(residual))
+        x = self.activation(x)
         x = self.mlp_dense_2(x)
         x = residual + x
         return x
@@ -234,6 +240,7 @@ class CLIPLayer(keras.layers.Layer):
                 "hidden_dim": self.hidden_dim,
                 "num_heads": self.num_heads,
                 "intermediate_size": self.intermediate_size,
+                "intermediate_activation":self.intermediate_activation,
             }
         )
         return config
@@ -241,18 +248,20 @@ class CLIPLayer(keras.layers.Layer):
 
 class CLIPEncoder(keras.layers.Layer):
     def __init__(
-        self, width, num_layers, num_heads, intermediate_size, **kwargs
+        self, width, num_layers, num_heads, intermediate_size, intermediate_activation, **kwargs
     ):
         super().__init__(**kwargs)
         self.width = width
         self.num_layers = num_layers
         self.num_heads = num_heads
         self.intermediate_size = intermediate_size
+        self.intermediate_activation = intermediate_activation
         self.resblocks = [
             CLIPLayer(
                 self.width,
                 self.num_heads,
                 self.intermediate_size,
+                self.intermediate_activation
             )
             for _ in range(self.num_layers)
         ]
