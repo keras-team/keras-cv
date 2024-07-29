@@ -259,7 +259,7 @@ def multilevel_crop_and_resize(
     # following the FPN paper to divide by 224.
     levels = ops.cast(
         ops.floor_divide(
-            ops.log(ops.divide(areas_sqrt, 224.0)),
+            ops.log(ops.divide_no_nan(areas_sqrt, 224.0)),
             ops.log(2.0),
         )
         + 4.0,
