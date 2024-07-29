@@ -158,7 +158,7 @@ class ROIGenerator(keras.layers.Layer):
             # TODO(tanzhenyu): consider supporting soft / batched nms for accl
             boxes = NonMaxSuppression(
                 bounding_box_format=self.bounding_box_format,
-                from_logits=False,
+                from_logits=True,
                 iou_threshold=nms_iou_threshold,
                 confidence_threshold=nms_score_threshold,
                 max_detections=level_post_nms_topk,
@@ -193,7 +193,7 @@ class ROIGenerator(keras.layers.Layer):
 
     def compute_output_shape(self, input_shape):
         return (None, None, 4), (None, None, 1)
-        
+
     def get_config(self):
         config = {
             "bounding_box_format": self.bounding_box_format,
