@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from collections import OrderedDict
+
 from keras_cv.src.api_export import keras_cv_export
 from keras_cv.src.backend import keras
 
@@ -208,9 +210,6 @@ class FeaturePyramid(keras.layers.Layer):
 
         for i in range(self.max_level, self.min_level - 1, -1):
             level = f"P{i}"
-            print(level)
-            print(input_features[level])
-            print(self.lateral_layers.keys())
             output = self.lateral_layers[level](input_features[level])
             if i < self.max_level:
                 # for the top most output, it doesn't need to merge with any
@@ -228,16 +227,14 @@ class FeaturePyramid(keras.layers.Layer):
         output_features[f"P{self.max_level + 1}"] = self.max_pool(
             output_features[f"P{self.max_level}"]
         )
-
+        output_features = OrderedDict(sorted(output_features.items()))
         return output_features
 
     def get_config(self):
-        config = {
-            "min_level": self.min_level,
-            "max_level": self.max_level,
-            "num_channels": self.num_channels,
-            "lateral_layers": self.lateral_layers_passed,
-            "output_layers": self.output_layers_passed,
-        }
-        base_config = super().get_config()
-        return dict(list(base_config.items()) + list(config.items()))
+        config = super().get_config()
+        config["min_level"] = self.min_level
+        config["max_level"] = self.max_level
+        config["num_channels"] = self.num_channels
+        config["lateral_layers"] = self.lateral_layers
+        config["output_layers"] = self.output_layers
+        return config

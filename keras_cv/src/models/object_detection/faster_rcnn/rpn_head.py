@@ -36,21 +36,21 @@ class RPNHead(keras.layers.Layer):
             strides=1,
             padding="same",
             activation="relu",
-            kernel_initializer="truncated_normal",
+            kernel_initializer=keras.initializers.RandomNormal(stddev=0.01),
         )
         self.objectness_logits = keras.layers.Conv2D(
             filters=self.num_anchors * 1,
             kernel_size=1,
             strides=1,
-            padding="same",
-            kernel_initializer="truncated_normal",
+            padding="valid",
+            kernel_initializer=keras.initializers.RandomNormal(stddev=1e-5),
         )
         self.anchor_deltas = keras.layers.Conv2D(
             filters=self.num_anchors * 4,
             kernel_size=1,
             strides=1,
-            padding="same",
-            kernel_initializer="truncated_normal",
+            padding="valid",
+            kernel_initializer=keras.initializers.RandomNormal(stddev=1e-5),
         )
 
     def call(self, feature_map, training=False):

@@ -41,9 +41,10 @@ class ROISampler(keras.layers.Layer):
     if its range is [0, num_classes).
 
     Args:
-      bounding_box_format: The format of bounding boxes to generate. Refer
+      roi_bounding_box_format: The format of roi bounding boxes. Refer
         [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
         for more details on supported bounding box formats.
+      gt_bounding_box_format: The format of gt bounding boxes.
       roi_matcher: a `BoxMatcher` object that matches proposals with ground
         truth boxes. The positive match must be 1 and negative match must be -1.
         Such assumption is not being validated here.
@@ -59,7 +60,8 @@ class ROISampler(keras.layers.Layer):
 
     def __init__(
         self,
-        bounding_box_format: str,
+        roi_bounding_box_format: str,
+        gt_bounding_box_format: str,
         roi_matcher: box_matcher.BoxMatcher,
         positive_fraction: float = 0.25,
         background_class: int = 0,
@@ -68,7 +70,8 @@ class ROISampler(keras.layers.Layer):
         **kwargs,
     ):
         super().__init__(**kwargs)
-        self.bounding_box_format = bounding_box_format
+        self.roi_bounding_box_format = roi_bounding_box_format
+        self.gt_bounding_box_format = gt_bounding_box_format
         self.roi_matcher = roi_matcher
         self.positive_fraction = positive_fraction
         self.background_class = background_class
@@ -97,6 +100,12 @@ class ROISampler(keras.layers.Layer):
           sampled_gt_classes: [batch_size, num_sampled_rois, 1]
           sampled_class_weights: [batch_size, num_sampled_rois, 1]
         """
+        rois = bounding_box.convert_format(
+            rois, source=self.roi_bounding_box_format, target="yxyx"
+        )
+        gt_boxes = bounding_box.convert_format(
+            gt_boxes, source=self.gt_bounding_box_format, target="yxyx"
+        )
         if self.append_gt_boxes:
             # num_rois += num_gt
             rois = ops.concatenate([rois, gt_boxes], axis=1)
@@ -110,12 +119,6 @@ class ROISampler(keras.layers.Layer):
                 "num_rois must be less than `num_sampled_rois` "
                 f"({self.num_sampled_rois}), got {num_rois}"
             )
-        rois = bounding_box.convert_format(
-            rois, source=self.bounding_box_format, target="yxyx"
-        )
-        gt_boxes = bounding_box.convert_format(
-            gt_boxes, source=self.bounding_box_format, target="yxyx"
-        )
         # [batch_size, num_rois, num_gt]
         similarity_mat = iou.compute_iou(
             rois, gt_boxes, bounding_box_format="yxyx", use_masking=True

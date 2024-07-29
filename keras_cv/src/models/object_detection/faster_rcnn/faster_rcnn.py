@@ -1,14 +1,18 @@
 import tree
 
-from keras_cv.src import bounding_box
-from keras_cv.src import layers as cv_layers
 from keras_cv.src import losses
 from keras_cv.src.api_export import keras_cv_export
 from keras_cv.src.backend import keras
 from keras_cv.src.backend import ops
 from keras_cv.src.bounding_box.converters import _decode_deltas_to_boxes
 from keras_cv.src.bounding_box.utils import _clip_boxes
+from keras_cv.src.layers.object_detection.anchor_generator import (
+    AnchorGenerator,
+)
 from keras_cv.src.layers.object_detection.box_matcher import BoxMatcher
+from keras_cv.src.layers.object_detection.multi_class_non_max_suppression import (  # noqa: E501
+    MultiClassNonMaxSuppression,
+)
 from keras_cv.src.layers.object_detection.roi_align import ROIAligner
 from keras_cv.src.layers.object_detection.roi_generator import ROIGenerator
 from keras_cv.src.layers.object_detection.roi_sampler import ROISampler
@@ -89,6 +93,7 @@ class FasterRCNN(Task):
             num_filters=rpn_filters,
             kernel_size=rpn_kernel_size,
         )
+
         # 5. ROI Generator
         roi_generator = ROIGenerator(
             bounding_box_format="yxyx",
@@ -171,10 +176,10 @@ class FasterRCNN(Task):
 
         inputs = {"images": images}
         outputs = {
-            "box": box_pred,
-            "classification": cls_pred,
             "rpn_box": rpn_box_pred,
             "rpn_classification": rpn_cls_pred,
+            "box": box_pred,
+            "classification": cls_pred,
         }
 
         super().__init__(
@@ -204,29 +209,29 @@ class FasterRCNN(Task):
             thresholds=[0.0, 0.5], match_values=[-2, -1, 1]
         )
         self.roi_sampler = ROISampler(
-            bounding_box_format="yxyx",
+            roi_bounding_box_format="yxyx",
+            gt_bounding_box_format=bounding_box_format,
             roi_matcher=self.box_matcher,
-            background_class=num_classes,
-            num_sampled_rois=512,
         )
         self.roi_pooler = roi_pooler
         self.rcnn_head = rcnn_head
         self._prediction_decoder = (
             prediction_decoder
-            or cv_layers.MultiClassNonMaxSuppression(
+            or MultiClassNonMaxSuppression(
                 bounding_box_format=bounding_box_format,
-                from_logits=True,
-                max_detections_per_class=10,
-                max_detections=10,
+                from_logits=False,
+                max_detections_per_class=200,
+                max_detections=200,
+                confidence_threshold=0.3,
             )
         )
 
     def compile(
         self,
-        box_loss=None,
-        classification_loss=None,
         rpn_box_loss=None,
         rpn_classification_loss=None,
+        box_loss=None,
+        classification_loss=None,
         weight_decay=0.0001,
         loss=None,
         metrics=None,
@@ -238,21 +243,22 @@ class FasterRCNN(Task):
                 "Instead, please pass `box_loss` and `classification_loss`. "
                 "`loss` will be ignored during training."
             )
-        box_loss = _parse_box_loss(box_loss)
-        classification_loss = _parse_classification_loss(classification_loss)
-
         rpn_box_loss = _parse_box_loss(rpn_box_loss)
         rpn_classification_loss = _parse_rpn_classification_loss(
             rpn_classification_loss
         )
+
         if hasattr(rpn_classification_loss, "from_logits"):
             if not rpn_classification_loss.from_logits:
                 raise ValueError(
                     "FasterRCNN.compile() expects `from_logits` to be True for "
                     "`rpn_classification_loss`. Got "
                     "`rpn_classification_loss.from_logits="
-                    f"{classification_loss.from_logits}`"
+                    f"{rpn_classification_loss.from_logits}`"
                 )
+        box_loss = _parse_box_loss(box_loss)
+        classification_loss = _parse_classification_loss(classification_loss)
+
         if hasattr(classification_loss, "from_logits"):
             if not classification_loss.from_logits:
                 raise ValueError(
@@ -271,38 +277,41 @@ class FasterRCNN(Task):
                     "`box_loss.bounding_box_format="
                     f"{self.bounding_box_format}`"
                 )
+
         self.rpn_box_loss = rpn_box_loss
         self.rpn_cls_loss = rpn_classification_loss
         self.box_loss = box_loss
         self.cls_loss = classification_loss
         self.weight_decay = weight_decay
         losses = {
-            "box": self.box_loss,
-            "classification": self.cls_loss,
             "rpn_box": self.rpn_box_loss,
             "rpn_classification": self.rpn_cls_loss,
+            "box": self.box_loss,
+            "classification": self.cls_loss,
         }
         self._has_user_metrics = metrics is not None and len(metrics) != 0
         self._user_metrics = metrics
         super().compile(loss=losses, **kwargs)
 
-    def compute_loss(self, x, y, y_pred, sample_weight, **kwargs):
+    def compute_loss(
+        self, x, y, y_pred, sample_weight, training=True, **kwargs
+    ):
         # 1. Unpack the inputs
         images = x
         gt_boxes = y["boxes"]
-        if keras.ops.ndim(y["classes"]) != 2:
+        if ops.ndim(y["classes"]) != 2:
             raise ValueError(
                 "Expected 'classes' to be a Tensor of rank 2. "
-                f"Got y['classes'].shape={keras.ops.shape(y['classes'])}."
+                f"Got y['classes'].shape={ops.shape(y['classes'])}."
             )
 
         gt_classes = y["classes"]
-        gt_classes = keras.ops.expand_dims(y["classes"], axis=-1)
+        gt_classes = ops.expand_dims(gt_classes, axis=-1)
 
         # Generate anchors
         # image shape must not contain the batch size
-        local_batch = keras.ops.shape(images)[0]
-        image_shape = keras.ops.shape(images)[1:]
+        local_batch = ops.shape(images)[0]
+        image_shape = ops.shape(images)[1:]
         anchors = self.anchor_generator(image_shape=image_shape)
 
         # 2. Label with the anchors -- exclusive to compute_loss
@@ -312,7 +321,7 @@ class FasterRCNN(Task):
             rpn_cls_targets,
             rpn_cls_weights,
         ) = self.rpn_labeler(
-            anchors_dict=keras.ops.concatenate(
+            anchors_dict=ops.concatenate(
                 tree.flatten(anchors),
                 axis=0,
             ),
@@ -359,15 +368,17 @@ class FasterRCNN(Task):
             variance=BOX_VARIANCE,
         )
 
-        rois, _ = self.roi_generator(decoded_rpn_boxes, rpn_scores)
+        rois, _ = self.roi_generator(
+            decoded_rpn_boxes, rpn_scores, training=training
+        )
         rois = _clip_boxes(rois, "yxyx", image_shape)
+
+        # print(f"ROI's Generated from RPN Network: {rois}")
 
         # 4. Stop gradient from flowing into the ROI
         # -- exclusive to compute_loss
-        rois = keras.ops.stop_gradient(rois)
-
+        rois = ops.stop_gradient(rois)
         # 5. Sample the ROIS -- exclusive to compute_loss
-        # -- exclusive to compute loss
         (
             rois,
             box_targets,
@@ -375,14 +386,28 @@ class FasterRCNN(Task):
             cls_targets,
             cls_weights,
         ) = self.roi_sampler(rois, gt_boxes, gt_classes)
-        cls_targets = ops.squeeze(
-            cls_targets, axis=-1
-        )  # to apply one hot encoding
+
+        # to apply one hot encoding
+        cls_targets = ops.squeeze(cls_targets, axis=-1)
         cls_weights = ops.squeeze(cls_weights, axis=-1)
 
         # 6. Box and class weights -- exclusive to compute loss
         box_weights /= self.roi_sampler.num_sampled_rois * local_batch * 0.25
         cls_weights /= self.roi_sampler.num_sampled_rois * local_batch
+
+        # print(f"Box Targets Shape: {box_targets.shape}")
+        # print(f"Box Weights Shape: {box_weights.shape}")
+        # print(f"Cls Targets Shape: {cls_targets.shape}")
+        # print(f"Cls Weights Shape: {cls_weights.shape}")
+        # print(f"RPN Box Targets Shape: {rpn_box_targets.shape}")
+        # print(f"RPN Box Weights Shape: {rpn_box_weights.shape}")
+        # print(f"RPN Cls Targets Shape: {rpn_cls_targets.shape}")
+        # print(f"RPN Cls Weights Shape: {rpn_cls_weights.shape}")
+        # print(f"Cls Weights: {cls_weights}")
+        # print(f"Box Weights: {box_weights}")
+
+        # print(f"Cls Targets: {cls_targets}")
+        # print(f"Box Targets: {box_targets}")
 
         #######################################################################
         # Call RCNN
@@ -391,20 +416,13 @@ class FasterRCNN(Task):
         feature_map = self.roi_pooler(features=feature_map, boxes=rois)
 
         # [BS, H*W*K]
-        feature_map = keras.ops.reshape(
+        feature_map = ops.reshape(
             feature_map,
-            newshape=keras.ops.shape(rois)[:2] + (-1,),
+            newshape=ops.shape(rois)[:2] + (-1,),
         )
 
         # [BS, H*W*K, 4], [BS, H*W*K, num_classes + 1]
         box_pred, cls_pred = self.rcnn_head(feature_map=feature_map)
-
-        # Class targets will be in categorical so change it to one hot encoding
-        cls_targets = keras.ops.one_hot(
-            cls_targets,
-            self.num_classes + 1,  # +1 for background class
-            dtype=cls_pred.dtype,
-        )
 
         y_true = {
             "rpn_box": rpn_box_targets,
@@ -441,66 +459,6 @@ class FasterRCNN(Task):
         x, y = unpack_input(data)
         return super().test_step(*args, (x, y))
 
-    def predict_step(self, *args):
-        outputs = super().predict_step(*args)
-        if type(outputs) is tuple:
-            return self.decode_predictions(outputs[0], args[-1]), outputs[1]
-        else:
-            return self.decode_predictions(outputs, args[-1])
-
-    @property
-    def prediction_decoder(self):
-        return self._prediction_decoder
-
-    @prediction_decoder.setter
-    def prediction_decoder(self, prediction_decoder):
-        if prediction_decoder.bounding_box_format != self.bounding_box_format:
-            raise ValueError(
-                "Expected `prediction_decoder` and RetinaNet to "
-                "use the same `bounding_box_format`, but got "
-                "`prediction_decoder.bounding_box_format="
-                f"{prediction_decoder.bounding_box_format}`, and "
-                "`self.bounding_box_format="
-                f"{self.bounding_box_format}`."
-            )
-        self._prediction_decoder = prediction_decoder
-        self.make_predict_function(force=True)
-        self.make_train_function(force=True)
-        self.make_test_function(force=True)
-
-    def decode_predictions(self, predictions, images):
-        box_pred, cls_pred = predictions["box"], predictions["classification"]
-        # box_pred is on "center_yxhw" format, convert to target format.
-        image_shape = tuple(images[0].shape)
-        anchors = self.anchor_generator(image_shape=image_shape)
-        anchors = ops.concatenate([a for a in anchors.values()], axis=0)
-
-        box_pred = _decode_deltas_to_boxes(
-            anchors=anchors,
-            boxes_delta=box_pred,
-            anchor_format=self.anchor_generator.bounding_box_format,
-            box_format=self.bounding_box_format,
-            variance=BOX_VARIANCE,
-            image_shape=image_shape,
-        )
-        # box_pred is now in "self.bounding_box_format" format
-        box_pred = bounding_box.convert_format(
-            box_pred,
-            source=self.bounding_box_format,
-            target=self.prediction_decoder.bounding_box_format,
-            image_shape=image_shape,
-        )
-        y_pred = self.prediction_decoder(
-            box_pred, cls_pred, image_shape=image_shape
-        )
-        y_pred["boxes"] = bounding_box.convert_format(
-            y_pred["boxes"],
-            source=self.prediction_decoder.bounding_box_format,
-            target=self.bounding_box_format,
-            image_shape=image_shape,
-        )
-        return y_pred
-
     @staticmethod
     def default_anchor_generator(scales, aspect_ratios, bounding_box_format):
         strides = {f"P{i}": 2**i for i in range(2, 7)}
@@ -511,7 +469,7 @@ class FasterRCNN(Task):
             "P5": 256.0,
             "P6": 512.0,
         }
-        return cv_layers.AnchorGenerator(
+        return AnchorGenerator(
             bounding_box_format=bounding_box_format,
             sizes=sizes,
             aspect_ratios=aspect_ratios,
@@ -564,7 +522,7 @@ def _parse_classification_loss(loss):
     if loss.lower() == "focal":
         return losses.FocalLoss(reduction="sum", from_logits=True)
     if loss.lower() == "categoricalcrossentropy":
-        return keras.losses.CategoricalCrossentropy(
+        return keras.losses.SparseCategoricalCrossentropy(
             reduction="sum", from_logits=True
         )
 
