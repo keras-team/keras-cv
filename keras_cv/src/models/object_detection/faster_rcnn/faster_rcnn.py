@@ -219,10 +219,9 @@ class FasterRCNN(Task):
             prediction_decoder
             or MultiClassNonMaxSuppression(
                 bounding_box_format=bounding_box_format,
-                from_logits=False,
-                max_detections_per_class=200,
-                max_detections=200,
-                confidence_threshold=0.3,
+                from_logits=True,
+                max_detections_per_class=10,
+                max_detections=10,
             )
         )
 
