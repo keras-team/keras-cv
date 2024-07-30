@@ -295,12 +295,18 @@ def multilevel_crop_and_resize(
         ops.concatenate(
             [
                 ops.expand_dims(
-                    [[ops.cast(max_feature_height, "float32")]] / level_strides
+                    ops.convert_to_tensor(
+                        [[ops.cast(max_feature_height, "float32")]]
+                    )
+                    / level_strides
                     - 1,
                     axis=-1,
                 ),
                 ops.expand_dims(
-                    [[ops.cast(max_feature_width, "float32")]] / level_strides
+                    ops.convert_to_tensor(
+                        [[ops.cast(max_feature_width, "float32")]]
+                    )
+                    / level_strides
                     - 1,
                     axis=-1,
                 ),
