@@ -166,7 +166,7 @@ class RpnLabelEncoder(keras.layers.Layer):
             negative_matches,
             self.samples_per_image,
             self.positive_fraction,
-            seed=self.seed_generator
+            seed=self.seed_generator,
         )
         # [num_anchors, 1] or [batch_size, num_anchors, 1]
         class_sample_weights = ops.cast(

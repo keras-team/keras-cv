@@ -175,7 +175,7 @@ class ROISampler(keras.layers.Layer):
             negative_matches,
             self.num_sampled_rois,
             self.positive_fraction,
-            seed=self.seed_generator
+            seed=self.seed_generator,
         )
         # [batch_size, num_sampled_rois] in the range of [0, num_rois)
         sampled_indicators, sampled_indices = ops.top_k(

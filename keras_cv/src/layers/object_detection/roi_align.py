@@ -69,9 +69,7 @@ def _feature_bilinear_interpolation(features, kernel_y, kernel_x):
         features,
         [batch_size * num_boxes, output_size * 2, output_size * 2, num_filters],
     )
-    features = ops.nn.average_pool(
-        features, [1, 2, 2, 1], [1, 2, 2, 1], "VALID"
-    )
+    features = ops.nn.average_pool(features, (2, 2), (2, 2), "VALID")
     features = ops.reshape(
         features, [batch_size, num_boxes, output_size, output_size, num_filters]
     )
@@ -242,6 +240,11 @@ def multilevel_crop_and_resize(
     for i in range(len(feature_widths) - 1):
         level_dim_offsets.append(level_dim_offsets[i] + level_dim_sizes[i])
     batch_dim_size = level_dim_offsets[-1] + level_dim_sizes[-1]
+
+    level_dim_offsets = ops.convert_to_tensor(level_dim_offsets)
+    feature_widths = ops.convert_to_tensor(feature_widths)
+    feature_heights = ops.convert_to_tensor(feature_heights)
+
     level_dim_offsets = (
         ops.ones_like(level_dim_offsets, dtype="int32") * level_dim_offsets
     )
@@ -440,3 +443,6 @@ class ROIAligner(keras.layers.Layer):
         config["bounding_box_format"] = self.bounding_box_format
         config["target_size"] = self.target_size
         config["sample_offset"] = self.sample_offset
+
+    def compute_output_shape(self, input_shape):
+        return (None, None, self.target_size, self.target_size, 256)

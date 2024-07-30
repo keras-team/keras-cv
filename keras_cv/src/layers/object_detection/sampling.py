@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, Union
+from typing import Optional
+from typing import Union
 
 from keras_cv.src.backend import ops
 from keras_cv.src.backend import random
@@ -54,9 +55,13 @@ def balanced_sample(
     # maxval=1.)
     zeros = ops.zeros_like(positive_matches, dtype="float32")
     ones = ops.ones_like(positive_matches, dtype="float32")
-    ones_rand = ones + random.uniform(ops.shape(ones), minval=-0.2, maxval=0.2, seed=seed)
+    ones_rand = ones + random.uniform(
+        ops.shape(ones), minval=-0.2, maxval=0.2, seed=seed
+    )
     halfs = 0.5 * ops.ones_like(positive_matches, dtype="float32")
-    halfs_rand = halfs + random.uniform(ops.shape(halfs), minval=-0.2, maxval=0.2, seed=seed)
+    halfs_rand = halfs + random.uniform(
+        ops.shape(halfs), minval=-0.2, maxval=0.2, seed=seed
+    )
     values = zeros
     values = ops.where(positive_matches, ones_rand, values)
     values = ops.where(negative_matches, halfs_rand, values)
