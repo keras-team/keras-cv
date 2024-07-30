@@ -76,13 +76,15 @@ class RCNNHead(keras.layers.Layer):
         if self.conv_dims:
             for idx in range(len(self.convs)):
                 self.convs[idx].build(intermediate_shape)
-                intermediate_shape = intermediate_shape[:-1] + (
+                intermediate_shape = tuple(intermediate_shape[:-1]) + (
                     self.conv_dims[idx],
                 )
 
         for idx in range(len(self.fc_dims)):
             self.fcs[idx].build(intermediate_shape)
-            intermediate_shape = intermediate_shape[:-1] + (self.fc_dims[idx],)
+            intermediate_shape = tuple(intermediate_shape[:-1]) + (
+                self.fc_dims[idx],
+            )
 
         self.box_pred.build(intermediate_shape)
         self.cls_score.build(intermediate_shape)
@@ -94,3 +96,5 @@ class RCNNHead(keras.layers.Layer):
         config["num_classes"] = self.num_classes
         config["conv_dims"] = self.conv_dims
         config["fc_dims"] = self.fc_dims
+
+        return config

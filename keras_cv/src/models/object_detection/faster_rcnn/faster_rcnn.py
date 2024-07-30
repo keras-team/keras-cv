@@ -216,13 +216,10 @@ class FasterRCNN(Task):
         )
         self.roi_pooler = roi_pooler
         self.rcnn_head = rcnn_head
-        self._prediction_decoder = (
-            prediction_decoder
-            or NonMaxSuppression(
-                bounding_box_format=bounding_box_format,
-                from_logits=True,
-                max_detections=100,
-            )
+        self._prediction_decoder = prediction_decoder or NonMaxSuppression(
+            bounding_box_format=bounding_box_format,
+            from_logits=True,
+            max_detections=100,
         )
 
     def compile(
@@ -393,7 +390,7 @@ class FasterRCNN(Task):
         # 6. Box and class weights -- exclusive to compute loss
         box_weights /= self.roi_sampler.num_sampled_rois * local_batch * 0.25
         cls_weights /= self.roi_sampler.num_sampled_rois * local_batch
-        cls_targets = ops.one_hot(cls_targets, num_classes=self.num_classes+1)
+        cls_targets = ops.one_hot(cls_targets, num_classes=self.num_classes + 1)
 
         # print(f"Box Targets Shape: {box_targets.shape}")
         # print(f"Box Weights Shape: {box_weights.shape}")
@@ -478,7 +475,7 @@ class FasterRCNN(Task):
             clip_boxes=True,
             name="anchor_generator",
         )
-    
+
     def get_config(self):
         return {
             "num_classes": self.num_classes,
@@ -487,21 +484,15 @@ class FasterRCNN(Task):
             "label_encoder": keras.saving.serialize_keras_object(
                 self.label_encoder
             ),
-            "rpn_head": keras.saving.serialize_keras_object(
-                self.rpn_head
-            ),
+            "rpn_head": keras.saving.serialize_keras_object(self.rpn_head),
             "prediction_decoder": self._prediction_decoder,
-            "rcnn_head": self.rcnn_head, 
+            "rcnn_head": self.rcnn_head,
         }
 
     @classmethod
     def from_config(cls, config):
-        if "rpn_head" in config and isinstance(
-            config["rpn_head"], dict
-        ):
-            config["rpn_head"] = keras.layers.deserialize(
-                config["rpn_head"]
-            )
+        if "rpn_head" in config and isinstance(config["rpn_head"], dict):
+            config["rpn_head"] = keras.layers.deserialize(config["rpn_head"])
         if "label_encoder" in config and isinstance(
             config["label_encoder"], dict
         ):
@@ -514,12 +505,8 @@ class FasterRCNN(Task):
             config["prediction_decoder"] = keras.layers.deserialize(
                 config["prediction_decoder"]
             )
-        if "rcnn_head" in config and isinstance(
-            config["rcnn_head"], dict
-        ):
-            config["rcnn_head"] = keras.layers.deserialize(
-                config["rcnn_head"]
-            )
+        if "rcnn_head" in config and isinstance(config["rcnn_head"], dict):
+            config["rcnn_head"] = keras.layers.deserialize(config["rcnn_head"])
 
         return super().from_config(config)
 

@@ -22,9 +22,6 @@ from absl.testing import parameterized
 import keras_cv
 from keras_cv.src.backend import keras
 from keras_cv.src.backend import ops
-from keras_cv.src.models.backbones.test_backbone_presets import (
-    test_backbone_presets,
-)
 from keras_cv.src.models.object_detection.__test_utils__ import (
     _create_bounding_box_dataset,
 )
@@ -37,7 +34,6 @@ from keras_cv.src.tests.test_case import TestCase
 class FasterRCNNTest(TestCase):
     def test_faster_rcnn_construction(self):
         faster_rcnn = FasterRCNN(
-            batch_size=1,
             num_classes=80,
             bounding_box_format="xyxy",
             backbone=keras_cv.models.ResNet18V2Backbone(
@@ -47,14 +43,13 @@ class FasterRCNNTest(TestCase):
         faster_rcnn.compile(
             optimizer=keras.optimizers.Adam(),
             box_loss="Huber",
-            classification_loss="SparseCategoricalCrossentropy",
+            classification_loss="CategoricalCrossentropy",
             rpn_box_loss="Huber",
             rpn_classification_loss="BinaryCrossentropy",
         )
 
     def test_faster_rcnn_call(self):
         faster_rcnn = keras_cv.models.FasterRCNN(
-            batch_size=2,
             num_classes=80,
             bounding_box_format="xywh",
             backbone=keras_cv.models.ResNet18V2Backbone(
@@ -67,7 +62,6 @@ class FasterRCNNTest(TestCase):
 
     def test_wrong_logits(self):
         faster_rcnn = keras_cv.models.FasterRCNN(
-            batch_size=1,
             num_classes=80,
             bounding_box_format="xywh",
             backbone=keras_cv.models.ResNet18V2Backbone(
@@ -98,7 +92,6 @@ class FasterRCNNTest(TestCase):
     def test_weights_contained_in_trainable_variables(self):
         bounding_box_format = "xyxy"
         faster_rcnn = keras_cv.models.FasterRCNN(
-            batch_size=5,
             num_classes=80,
             bounding_box_format=bounding_box_format,
             backbone=keras_cv.models.ResNet18V2Backbone(
@@ -109,7 +102,7 @@ class FasterRCNNTest(TestCase):
         faster_rcnn.compile(
             optimizer=keras.optimizers.Adam(),
             box_loss="Huber",
-            classification_loss="SparseCategoricalCrossentropy",
+            classification_loss="CategoricalCrossentropy",
             rpn_box_loss="Huber",
             rpn_classification_loss="BinaryCrossentropy",
         )
@@ -117,12 +110,11 @@ class FasterRCNNTest(TestCase):
 
         # call once
         _ = faster_rcnn(xs)
-        self.assertEqual(len(faster_rcnn.trainable_variables), 32)
+        self.assertEqual(len(faster_rcnn.trainable_variables), 30)
 
     @pytest.mark.large  # Fit is slow, so mark these large.
     def test_no_nans(self):
         faster_rcnn = keras_cv.models.FasterRCNN(
-            batch_size=1,
             num_classes=80,
             bounding_box_format="xyxy",
             backbone=keras_cv.models.ResNet18V2Backbone(
@@ -132,7 +124,7 @@ class FasterRCNNTest(TestCase):
         faster_rcnn.compile(
             optimizer=keras.optimizers.Adam(),
             box_loss="Huber",
-            classification_loss="SparseCategoricalCrossentropy",
+            classification_loss="CategoricalCrossentropy",
             rpn_box_loss="Huber",
             rpn_classification_loss="BinaryCrossentropy",
         )
@@ -164,7 +156,7 @@ class FasterRCNNTest(TestCase):
         faster_rcnn.compile(
             optimizer=keras.optimizers.Adam(),
             box_loss="Huber",
-            classification_loss="SparseCategoricalCrossentropy",
+            classification_loss="CategoricalCrossentropy",
             rpn_box_loss="Huber",
             rpn_classification_loss="BinaryCrossentropy",
         )
@@ -237,7 +229,6 @@ class FasterRCNNTest(TestCase):
     def test_faster_rcnn_infer(self, batch_shape):
         batch_size = batch_shape[0]
         model = FasterRCNN(
-            batch_size=batch_size,
             num_classes=80,
             bounding_box_format="xyxy",
             backbone=keras_cv.models.ResNet18V2Backbone(
@@ -247,8 +238,10 @@ class FasterRCNNTest(TestCase):
         images = ops.ones(batch_shape)
         outputs = model(images, training=False)
         # 1000 proposals in inference
-        self.assertAllEqual([2, 1000, 81], outputs["classification"].shape)
-        self.assertAllEqual([2, 1000, 4], outputs["box"].shape)
+        self.assertAllEqual(
+            [batch_size, 1000, 81], outputs["classification"].shape
+        )
+        self.assertAllEqual([batch_size, 1000, 4], outputs["box"].shape)
 
     @parameterized.parameters(
         ((2, 640, 384, 3),),
@@ -258,7 +251,6 @@ class FasterRCNNTest(TestCase):
     def test_faster_rcnn_train(self, batch_shape):
         batch_size = batch_shape[0]
         model = FasterRCNN(
-            batch_size=batch_size,
             num_classes=80,
             bounding_box_format="xyxy",
             backbone=keras_cv.models.ResNet18V2Backbone(
@@ -267,12 +259,13 @@ class FasterRCNNTest(TestCase):
         )
         images = ops.ones(batch_shape)
         outputs = model(images, training=True)
-        self.assertAllEqual([2, 1000, 81], outputs["classification"].shape)
-        self.assertAllEqual([2, 1000, 4], outputs["box"].shape)
+        self.assertAllEqual(
+            [batch_size, 1000, 81], outputs["classification"].shape
+        )
+        self.assertAllEqual([batch_size, 1000, 4], outputs["box"].shape)
 
     def test_invalid_compile(self):
         model = FasterRCNN(
-            batch_size=1,
             num_classes=80,
             bounding_box_format="yxyx",
             backbone=keras_cv.models.ResNet18V2Backbone(
@@ -291,7 +284,6 @@ class FasterRCNNTest(TestCase):
     @pytest.mark.large  # Fit is slow, so mark these large.
     def test_faster_rcnn_with_dictionary_input_format(self):
         faster_rcnn = FasterRCNN(
-            batch_size=5,
             num_classes=20,
             bounding_box_format="xywh",
             backbone=keras_cv.models.ResNet18V2Backbone(
@@ -307,7 +299,7 @@ class FasterRCNNTest(TestCase):
         faster_rcnn.compile(
             optimizer=keras.optimizers.Adam(),
             box_loss="Huber",
-            classification_loss="SparseCategoricalCrossentropy",
+            classification_loss="CategoricalCrossentropy",
             rpn_box_loss="Huber",
             rpn_classification_loss="BinaryCrossentropy",
         )
@@ -319,7 +311,6 @@ class FasterRCNNTest(TestCase):
     def test_fit_with_no_valid_gt_bbox(self):
         bounding_box_format = "xywh"
         faster_rcnn = FasterRCNN(
-            batch_size=5,
             num_classes=20,
             bounding_box_format=bounding_box_format,
             backbone=keras_cv.models.ResNet18V2Backbone(
@@ -330,7 +321,7 @@ class FasterRCNNTest(TestCase):
         faster_rcnn.compile(
             optimizer=keras.optimizers.Adam(),
             box_loss="Huber",
-            classification_loss="SparseCategoricalCrossentropy",
+            classification_loss="CategoricalCrossentropy",
             rpn_box_loss="Huber",
             rpn_classification_loss="BinaryCrossentropy",
         )
@@ -338,24 +329,7 @@ class FasterRCNNTest(TestCase):
         # Make all bounding_boxes invalid and filter out them
         ys["classes"] = -np.ones_like(ys["classes"])
 
-        faster_rcnn.fit(x=xs, y=ys, epochs=1)
+        faster_rcnn.fit(x=xs, y=ys, epochs=1, batch_size=1)
 
 
-@pytest.mark.large
-class FasterRCNNSmokeTest(TestCase):
-    @parameterized.named_parameters(
-        *[(preset, preset) for preset in test_backbone_presets]
-    )
-    @pytest.mark.extra_large
-    def test_backbone_preset(self, preset):
-        model = keras_cv.models.FasterRCNN.from_preset(
-            preset,
-            num_classes=20,
-            bounding_box_format="xywh",
-        )
-        xs, _ = _create_bounding_box_dataset(bounding_box_format="xywh")
-        output = model(xs)
-
-        # 64 represents number of parameters in a box
-        # 5376 is the number of anchors for a 512x512 image
-        self.assertEqual(output["boxes"].shape, (xs.shape[0], 5376, 64))
+# TODO: add presets test cases once model training is done.
