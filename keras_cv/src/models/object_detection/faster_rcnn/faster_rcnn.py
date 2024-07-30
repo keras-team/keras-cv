@@ -10,8 +10,8 @@ from keras_cv.src.layers.object_detection.anchor_generator import (
     AnchorGenerator,
 )
 from keras_cv.src.layers.object_detection.box_matcher import BoxMatcher
-from keras_cv.src.layers.object_detection.multi_class_non_max_suppression import (  # noqa: E501
-    MultiClassNonMaxSuppression,
+from keras_cv.src.layers.object_detection.non_max_suppression import (
+    NonMaxSuppression,
 )
 from keras_cv.src.layers.object_detection.roi_align import ROIAligner
 from keras_cv.src.layers.object_detection.roi_generator import ROIGenerator
@@ -192,7 +192,7 @@ class FasterRCNN(Task):
         self.bounding_box_format = bounding_box_format
         self.anchor_generator = anchor_generator
         self.num_classes = num_classes
-        self.rpn_labeler = label_encoder or RpnLabelEncoder(
+        self.label_encoder = label_encoder or RpnLabelEncoder(
             anchor_format="yxyx",
             ground_truth_box_format=bounding_box_format,
             positive_threshold=rpn_label_en_pos_th,
@@ -201,6 +201,7 @@ class FasterRCNN(Task):
             positive_fraction=rpn_label_en_pos_frac,
             box_variance=BOX_VARIANCE,
         )
+        self.backbone = backbone
         self.feature_extractor = feature_extractor
         self.feature_pyramid = feature_pyramid
         self.rpn_head = rpn_head
@@ -217,11 +218,10 @@ class FasterRCNN(Task):
         self.rcnn_head = rcnn_head
         self._prediction_decoder = (
             prediction_decoder
-            or MultiClassNonMaxSuppression(
+            or NonMaxSuppression(
                 bounding_box_format=bounding_box_format,
                 from_logits=True,
-                max_detections_per_class=10,
-                max_detections=10,
+                max_detections=100,
             )
         )
 
@@ -319,7 +319,7 @@ class FasterRCNN(Task):
             rpn_box_weights,
             rpn_cls_targets,
             rpn_cls_weights,
-        ) = self.rpn_labeler(
+        ) = self.label_encoder(
             anchors_dict=ops.concatenate(
                 tree.flatten(anchors),
                 axis=0,
@@ -329,9 +329,9 @@ class FasterRCNN(Task):
         )
         # 3. Computing the weights
         rpn_box_weights /= (
-            self.rpn_labeler.samples_per_image * local_batch * 0.25
+            self.label_encoder.samples_per_image * local_batch * 0.25
         )
-        rpn_cls_weights /= self.rpn_labeler.samples_per_image * local_batch
+        rpn_cls_weights /= self.label_encoder.samples_per_image * local_batch
 
         #######################################################################
         # Call RPN
@@ -393,6 +393,7 @@ class FasterRCNN(Task):
         # 6. Box and class weights -- exclusive to compute loss
         box_weights /= self.roi_sampler.num_sampled_rois * local_batch * 0.25
         cls_weights /= self.roi_sampler.num_sampled_rois * local_batch
+        cls_targets = ops.one_hot(cls_targets, num_classes=self.num_classes+1)
 
         # print(f"Box Targets Shape: {box_targets.shape}")
         # print(f"Box Weights Shape: {box_weights.shape}")
@@ -477,6 +478,50 @@ class FasterRCNN(Task):
             clip_boxes=True,
             name="anchor_generator",
         )
+    
+    def get_config(self):
+        return {
+            "num_classes": self.num_classes,
+            "bounding_box_format": self.bounding_box_format,
+            "backbone": keras.saving.serialize_keras_object(self.backbone),
+            "label_encoder": keras.saving.serialize_keras_object(
+                self.label_encoder
+            ),
+            "rpn_head": keras.saving.serialize_keras_object(
+                self.rpn_head
+            ),
+            "prediction_decoder": self._prediction_decoder,
+            "rcnn_head": self.rcnn_head, 
+        }
+
+    @classmethod
+    def from_config(cls, config):
+        if "rpn_head" in config and isinstance(
+            config["rpn_head"], dict
+        ):
+            config["rpn_head"] = keras.layers.deserialize(
+                config["rpn_head"]
+            )
+        if "label_encoder" in config and isinstance(
+            config["label_encoder"], dict
+        ):
+            config["label_encoder"] = keras.layers.deserialize(
+                config["label_encoder"]
+            )
+        if "prediction_decoder" in config and isinstance(
+            config["prediction_decoder"], dict
+        ):
+            config["prediction_decoder"] = keras.layers.deserialize(
+                config["prediction_decoder"]
+            )
+        if "rcnn_head" in config and isinstance(
+            config["rcnn_head"], dict
+        ):
+            config["rcnn_head"] = keras.layers.deserialize(
+                config["rcnn_head"]
+            )
+
+        return super().from_config(config)
 
 
 def _parse_box_loss(loss):
@@ -521,7 +566,7 @@ def _parse_classification_loss(loss):
     if loss.lower() == "focal":
         return losses.FocalLoss(reduction="sum", from_logits=True)
     if loss.lower() == "categoricalcrossentropy":
-        return keras.losses.SparseCategoricalCrossentropy(
+        return keras.losses.CategoricalCrossentropy(
             reduction="sum", from_logits=True
         )
 
