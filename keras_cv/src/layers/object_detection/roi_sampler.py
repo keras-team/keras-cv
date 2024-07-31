@@ -77,7 +77,7 @@ class ROISampler(keras.layers.Layer):
         self.background_class = background_class
         self.num_sampled_rois = num_sampled_rois
         self.append_gt_boxes = append_gt_boxes
-        self.seed_generator = keras.random.SeedGenerator(seed=1337)
+        self.seed_generator = keras.random.SeedGenerator()
         self.built = True
         # for debugging.
         self._positives = keras.metrics.Mean()

@@ -84,7 +84,7 @@ class RpnLabelEncoder(keras.layers.Layer):
             force_match_for_each_col=False,
         )
         self.box_variance = box_variance
-        self.seed_generator = keras.random.SeedGenerator(seed=1337)
+        self.seed_generator = keras.random.SeedGenerator()
         self.built = True
         self._positives = keras.metrics.Mean(name="percent_boxes_matched")
 
