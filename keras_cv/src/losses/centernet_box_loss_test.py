@@ -16,6 +16,7 @@ import numpy as np
 from absl.testing import parameterized
 
 import keras_cv
+from keras_cv.src.backend import ops
 from keras_cv.src.tests.test_case import TestCase
 
 
@@ -66,4 +67,4 @@ class CenterNetBoxLoss(TestCase):
         )
         ce_loss = -np.log(np.exp(1) / np.exp([1, 0, 0, 0]).sum())
         expected_loss = ce_loss * num_heading_bins
-        self.assertAllClose(np.sum(heading_loss), expected_loss)
+        self.assertAllClose(ops.sum(heading_loss), expected_loss)
