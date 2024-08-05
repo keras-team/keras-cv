@@ -10,9 +10,6 @@ from keras_cv.src.layers.object_detection.anchor_generator import (
     AnchorGenerator,
 )
 from keras_cv.src.layers.object_detection.box_matcher import BoxMatcher
-from keras_cv.src.layers.object_detection.non_max_suppression import (
-    NonMaxSuppression,
-)
 from keras_cv.src.layers.object_detection.roi_align import ROIAligner
 from keras_cv.src.layers.object_detection.roi_generator import ROIGenerator
 from keras_cv.src.layers.object_detection.roi_sampler import ROISampler
@@ -58,7 +55,7 @@ class FasterRCNN(Task):
         *args,
         **kwargs,
     ):
-        # 1. Backbone
+        # Backbone
         extractor_levels = [
             f"P{level}" for level in range(fpn_min_level, fpn_max_level + 1)
         ]
@@ -69,24 +66,26 @@ class FasterRCNN(Task):
             backbone, extractor_layer_names, extractor_levels
         )
 
-        # 2. Feature Pyramid
+        # Feature Pyramid
         feature_pyramid = feature_pyramid or FeaturePyramid(
             min_level=fpn_min_level, max_level=fpn_max_level
         )
 
-        # 3. Anchors
+        # Anchor Generator
         scales = [2**x for x in [0]]
         aspect_ratios = [0.5, 1.0, 2.0]
         anchor_generator = (
             anchor_generator
             or FasterRCNN.default_anchor_generator(
+                fpn_min_level,
+                fpn_max_level + 1,
                 scales,
                 aspect_ratios,
                 "yxyx",
             )
         )
 
-        # 4. RPN Head
+        # RPN Head
         num_anchors_per_location = len(scales) * len(aspect_ratios)
         rpn_head = rpn_head or RPNHead(
             num_anchors_per_location=num_anchors_per_location,
@@ -94,7 +93,7 @@ class FasterRCNN(Task):
             kernel_size=rpn_kernel_size,
         )
 
-        # 5. ROI Generator
+        # RoI Generator
         roi_generator = ROIGenerator(
             bounding_box_format="yxyx",
             nms_score_threshold_train=float("-inf"),
@@ -102,10 +101,10 @@ class FasterRCNN(Task):
             name="roi_generator",
         )
 
-        # 6. ROI Pooler
-        roi_pooler = ROIAligner(bounding_box_format="yxyx", name="roi_pooler")
+        # RoI Align
+        roi_aligner = ROIAligner(bounding_box_format="yxyx", name="roi_align")
 
-        # 7. RCNN Head
+        # R-CNN Head
         rcnn_head = rcnn_head or RCNNHead(num_classes, name="rcnn_head")
 
         # Begin construction of forward pass
@@ -122,12 +121,18 @@ class FasterRCNN(Task):
             image_shape,
             name="images",
         )
+
+        # 1. Forward through backbone
         backbone_outputs = feature_extractor(images)
+
+        # 2. Forward through FPN decoder
         feature_map = feature_pyramid(backbone_outputs)
 
         # [P2, P3, P4, P5, P6] -> ([BS, num_anchors, 4], [BS, num_anchors, 1])
+        # 3. Pass through RPN Head
         rpn_boxes, rpn_scores = rpn_head(feature_map)
 
+        # Reshape and Concatenate all the output boxes of all levels
         for lvl in rpn_boxes:
             rpn_boxes[lvl] = keras.layers.Reshape(target_shape=(-1, 4))(
                 rpn_boxes[lvl]
@@ -137,7 +142,6 @@ class FasterRCNN(Task):
             rpn_scores[lvl] = keras.layers.Reshape(target_shape=(-1, 1))(
                 rpn_scores[lvl]
             )
-
         rpn_cls_pred = keras.layers.Concatenate(
             axis=1, name="rpn_classification"
         )(tree.flatten(rpn_scores))
@@ -145,6 +149,7 @@ class FasterRCNN(Task):
             tree.flatten(rpn_boxes)
         )
 
+        # 4. Generate Anchors
         anchors = anchor_generator(image_shape=image_shape)
         decoded_rpn_boxes = _decode_deltas_to_boxes(
             anchors=anchors,
@@ -154,19 +159,22 @@ class FasterRCNN(Task):
             variance=BOX_VARIANCE,
         )
 
-        rois, _ = roi_generator(decoded_rpn_boxes, rpn_scores)
+        # 5. Generate RoI's from Decoded RPN boxes
+        rois, roi_scores = roi_generator(decoded_rpn_boxes, rpn_scores)
         rois = _clip_boxes(rois, "yxyx", image_shape)
 
-        feature_map = roi_pooler(features=feature_map, boxes=rois)
+        # 6. Align/Pool from feature map based on RoI's
+        feature_map = roi_aligner(features=feature_map, boxes=rois)
 
         # Reshape the feature map [BS, H*W*K]
         feature_map = keras.layers.Reshape(
             target_shape=(
                 rois.shape[1],
-                (roi_pooler.target_size**2) * rpn_head.num_filters,
+                (roi_aligner.target_size**2) * rpn_head.num_filters,
             )
         )(feature_map)
-        # Pass final feature map to RCNN Head for predictions
+
+        # 7. Forward Pass final feature map to RCNN Head for predictions
         box_pred, cls_pred = rcnn_head(feature_map=feature_map)
 
         box_pred = keras.layers.Concatenate(axis=1, name="box")([box_pred])
@@ -180,6 +188,7 @@ class FasterRCNN(Task):
             "rpn_classification": rpn_cls_pred,
             "box": box_pred,
             "classification": cls_pred,
+            "rois": rois,
         }
 
         super().__init__(
@@ -192,6 +201,9 @@ class FasterRCNN(Task):
         self.bounding_box_format = bounding_box_format
         self.anchor_generator = anchor_generator
         self.num_classes = num_classes
+        self.feature_extractor = feature_extractor
+        self.feature_pyramid = feature_pyramid
+        self.rpn_head = rpn_head
         self.label_encoder = label_encoder or RpnLabelEncoder(
             anchor_format="yxyx",
             ground_truth_box_format=bounding_box_format,
@@ -201,10 +213,6 @@ class FasterRCNN(Task):
             positive_fraction=rpn_label_en_pos_frac,
             box_variance=BOX_VARIANCE,
         )
-        self.backbone = backbone
-        self.feature_extractor = feature_extractor
-        self.feature_pyramid = feature_pyramid
-        self.rpn_head = rpn_head
         self.roi_generator = roi_generator
         self.box_matcher = BoxMatcher(
             thresholds=[0.0, 0.5], match_values=[-2, -1, 1]
@@ -213,14 +221,11 @@ class FasterRCNN(Task):
             roi_bounding_box_format="yxyx",
             gt_bounding_box_format=bounding_box_format,
             roi_matcher=self.box_matcher,
+            num_sampled_rois=512,
         )
-        self.roi_pooler = roi_pooler
+
+        self.roi_aligner = roi_aligner
         self.rcnn_head = rcnn_head
-        self._prediction_decoder = prediction_decoder or NonMaxSuppression(
-            bounding_box_format=bounding_box_format,
-            from_logits=True,
-            max_detections=100,
-        )
 
     def compile(
         self,
@@ -304,8 +309,9 @@ class FasterRCNN(Task):
         gt_classes = y["classes"]
         gt_classes = ops.expand_dims(gt_classes, axis=-1)
 
-        # Generate anchors
-        # image shape must not contain the batch size
+        #######################################################################
+        # Generate  Anchors and Generate RPN Targets
+        #######################################################################
         local_batch = ops.shape(images)[0]
         image_shape = ops.shape(images)[1:]
         anchors = self.anchor_generator(image_shape=image_shape)
@@ -324,6 +330,7 @@ class FasterRCNN(Task):
             gt_boxes=gt_boxes,
             gt_classes=gt_classes,
         )
+
         # 3. Computing the weights
         rpn_box_weights /= (
             self.label_encoder.samples_per_image * local_batch * 0.25
@@ -331,14 +338,13 @@ class FasterRCNN(Task):
         rpn_cls_weights /= self.label_encoder.samples_per_image * local_batch
 
         #######################################################################
-        # Call RPN
+        # Call Backbone, FPN and RPN Head
         #######################################################################
 
         backbone_outputs = self.feature_extractor(images)
         feature_map = self.feature_pyramid(backbone_outputs)
-
-        # [BS, num_anchors, 4], [BS, num_anchors, 1]
         rpn_boxes, rpn_scores = self.rpn_head(feature_map)
+
         for lvl in rpn_boxes:
             rpn_boxes[lvl] = keras.layers.Reshape(target_shape=(-1, 4))(
                 rpn_boxes[lvl]
@@ -349,12 +355,17 @@ class FasterRCNN(Task):
                 rpn_scores[lvl]
             )
 
+        # [BS, num_anchors, 4], [BS, num_anchors, 1]
         rpn_cls_pred = keras.layers.Concatenate(
             axis=1, name="rpn_classification"
         )(tree.flatten(rpn_scores))
         rpn_box_pred = keras.layers.Concatenate(axis=1, name="rpn_box")(
             tree.flatten(rpn_boxes)
         )
+
+        #######################################################################
+        # Generate RoI's and RoI Sampling
+        #######################################################################
 
         decoded_rpn_boxes = _decode_deltas_to_boxes(
             anchors=anchors,
@@ -369,11 +380,10 @@ class FasterRCNN(Task):
         )
         rois = _clip_boxes(rois, "yxyx", image_shape)
 
-        # print(f"ROI's Generated from RPN Network: {rois}")
-
         # 4. Stop gradient from flowing into the ROI
         # -- exclusive to compute_loss
         rois = ops.stop_gradient(rois)
+
         # 5. Sample the ROIS -- exclusive to compute_loss
         (
             rois,
@@ -383,7 +393,6 @@ class FasterRCNN(Task):
             cls_weights,
         ) = self.roi_sampler(rois, gt_boxes, gt_classes)
 
-        # to apply one hot encoding
         cls_targets = ops.squeeze(cls_targets, axis=-1)
         cls_weights = ops.squeeze(cls_weights, axis=-1)
 
@@ -392,25 +401,11 @@ class FasterRCNN(Task):
         cls_weights /= self.roi_sampler.num_sampled_rois * local_batch
         cls_targets = ops.one_hot(cls_targets, num_classes=self.num_classes + 1)
 
-        # print(f"Box Targets Shape: {box_targets.shape}")
-        # print(f"Box Weights Shape: {box_weights.shape}")
-        # print(f"Cls Targets Shape: {cls_targets.shape}")
-        # print(f"Cls Weights Shape: {cls_weights.shape}")
-        # print(f"RPN Box Targets Shape: {rpn_box_targets.shape}")
-        # print(f"RPN Box Weights Shape: {rpn_box_weights.shape}")
-        # print(f"RPN Cls Targets Shape: {rpn_cls_targets.shape}")
-        # print(f"RPN Cls Weights Shape: {rpn_cls_weights.shape}")
-        # print(f"Cls Weights: {cls_weights}")
-        # print(f"Box Weights: {box_weights}")
-
-        # print(f"Cls Targets: {cls_targets}")
-        # print(f"Box Targets: {box_targets}")
-
         #######################################################################
-        # Call RCNN
+        # Call RoI Aligner and RCNN Head
         #######################################################################
 
-        feature_map = self.roi_pooler(features=feature_map, boxes=rois)
+        feature_map = self.roi_aligner(features=feature_map, boxes=rois)
 
         # [BS, H*W*K]
         feature_map = ops.reshape(
@@ -457,15 +452,11 @@ class FasterRCNN(Task):
         return super().test_step(*args, (x, y))
 
     @staticmethod
-    def default_anchor_generator(scales, aspect_ratios, bounding_box_format):
-        strides = {f"P{i}": 2**i for i in range(2, 7)}
-        sizes = {
-            "P2": 32.0,
-            "P3": 64.0,
-            "P4": 128.0,
-            "P5": 256.0,
-            "P6": 512.0,
-        }
+    def default_anchor_generator(
+        min_level, max_level, scales, aspect_ratios, bounding_box_format
+    ):
+        strides = {f"P{i}": 2**i for i in range(min_level, max_level + 1)}
+        sizes = {f"P{i}": 2 ** (3 + i) for i in range(min_level, max_level + 1)}
         return AnchorGenerator(
             bounding_box_format=bounding_box_format,
             sizes=sizes,
