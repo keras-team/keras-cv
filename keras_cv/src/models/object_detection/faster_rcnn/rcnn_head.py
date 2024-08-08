@@ -47,9 +47,6 @@ class RCNNHead(keras.layers.Layer):
             layer = keras.layers.Dense(
                 units=fc_dim,
                 activation="relu",
-                kernel_initializer=keras.initializers.VarianceScaling(
-                    scale=1 / 3.0, mode="fan_out", distribution="uniform"
-                ),
             )
             self.fcs.append(layer)
         self.box_pred = keras.layers.Dense(
@@ -58,7 +55,7 @@ class RCNNHead(keras.layers.Layer):
         )
         self.cls_score = keras.layers.Dense(
             units=num_classes + 1,
-            kernel_initializer=keras.initializers.RandomNormal(stddev=0.001),
+            kernel_initializer=keras.initializers.RandomNormal(stddev=0.01),
         )
 
     def call(self, feature_map, training=False):

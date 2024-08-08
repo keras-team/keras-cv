@@ -4,12 +4,16 @@ from keras_cv.src import losses
 from keras_cv.src.api_export import keras_cv_export
 from keras_cv.src.backend import keras
 from keras_cv.src.backend import ops
+from keras_cv.src.bounding_box import convert_format
 from keras_cv.src.bounding_box.converters import _decode_deltas_to_boxes
 from keras_cv.src.bounding_box.utils import _clip_boxes
 from keras_cv.src.layers.object_detection.anchor_generator import (
     AnchorGenerator,
 )
 from keras_cv.src.layers.object_detection.box_matcher import BoxMatcher
+from keras_cv.src.layers.object_detection.non_max_suppression import (
+    NonMaxSuppression,
+)
 from keras_cv.src.layers.object_detection.roi_align import ROIAligner
 from keras_cv.src.layers.object_detection.roi_generator import ROIGenerator
 from keras_cv.src.layers.object_detection.roi_sampler import ROISampler
@@ -226,6 +230,11 @@ class FasterRCNN(Task):
 
         self.roi_aligner = roi_aligner
         self.rcnn_head = rcnn_head
+        self._prediction_decoder = prediction_decoder or NonMaxSuppression(
+            bounding_box_format=bounding_box_format,
+            from_logits=False,
+            max_detections=100,
+        )
 
     def compile(
         self,
@@ -450,6 +459,73 @@ class FasterRCNN(Task):
         args = args[:-1]
         x, y = unpack_input(data)
         return super().test_step(*args, (x, y))
+
+    def predict_step(self, *args):
+        outputs = super().predict_step(*args)
+        if type(outputs) is tuple:
+            return self.decode_predictions(outputs[0], args[-1]), outputs[1]
+        else:
+            return self.decode_predictions(outputs, args[-1])
+
+    @property
+    def prediction_decoder(self):
+        return self._prediction_decoder
+
+    @prediction_decoder.setter
+    def prediction_decoder(self, prediction_decoder):
+        if prediction_decoder.bounding_box_format != self.bounding_box_format:
+            raise ValueError(
+                "Expected `prediction_decoder` and FasterRCNN to "
+                "use the same `bounding_box_format`, but got "
+                "`prediction_decoder.bounding_box_format="
+                f"{prediction_decoder.bounding_box_format}`, and "
+                "`self.bounding_box_format="
+                f"{self.bounding_box_format}`."
+            )
+        self._prediction_decoder = prediction_decoder
+        self.make_predict_function(force=True)
+        self.make_train_function(force=True)
+        self.make_test_function(force=True)
+
+    def decode_predictions(self, predictions, images):
+        rois = predictions["rois"]
+        box_pred, cls_pred = predictions["box"], predictions["classification"]
+        # box_pred is on "center_yxhw" format, convert to target format.
+        image_shape = tuple(images[0].shape)
+
+        box_pred = _decode_deltas_to_boxes(
+            anchors=rois,
+            boxes_delta=box_pred,
+            anchor_format=self.roi_aligner.bounding_box_format,
+            box_format=self.bounding_box_format,
+            variance=BOX_VARIANCE,
+            image_shape=image_shape,
+        )
+
+        box_pred = convert_format(
+            box_pred,
+            source=self.bounding_box_format,
+            target=self.prediction_decoder.bounding_box_format,
+            image_shape=image_shape,
+        )
+        cls_pred = ops.softmax(cls_pred)
+        cls_pred = ops.slice(cls_pred, [0, 0, 1], [-1, -1, -1])
+
+        y_pred = self.prediction_decoder(
+            box_pred, cls_pred, image_shape=image_shape
+        )
+
+        y_pred["classes"] = ops.where(
+            y_pred["classes"] == -1, -1, y_pred["classes"] + 1
+        )
+
+        y_pred["boxes"] = convert_format(
+            y_pred["boxes"],
+            source=self.prediction_decoder.bounding_box_format,
+            target=self.bounding_box_format,
+            image_shape=image_shape,
+        )
+        return y_pred
 
     @staticmethod
     def default_anchor_generator(

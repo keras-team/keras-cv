@@ -150,8 +150,12 @@ class FeaturePyramid(keras.layers.Layer):
         else:
             self._validate_user_layers(output_layers, "output_layers")
             self.output_layers = output_layers
-        # this layer is cutom to Faster R-CNN
-        self.max_pool = keras.layers.MaxPool2D()
+        # Applies a max_pool2d (not actual max_pool2d, we just subsample) on
+        # top of the last feature map
+        # Use max pooling to simulate stride 2 subsampling
+        self.max_pool = keras.layers.MaxPool2D(
+            pool_size=(1, 1), strides=2, padding="same"
+        )
 
         # the same upsampling layer is used for all levels
         self.top_down_op = keras.layers.UpSampling2D(size=2)
