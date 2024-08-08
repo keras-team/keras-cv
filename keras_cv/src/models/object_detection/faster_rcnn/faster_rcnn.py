@@ -509,7 +509,11 @@ class FasterRCNN(Task):
             image_shape=image_shape,
         )
         cls_pred = ops.softmax(cls_pred)
-        cls_pred = ops.slice(cls_pred, [0, 0, 1], [-1, -1, -1])
+        cls_pred = ops.slice(
+            cls_pred,
+            start_indices=[0, 0, 1],
+            shape=[cls_pred.shape[0], cls_pred.shape[1], cls_pred.shape[2] - 1],
+        )
 
         y_pred = self.prediction_decoder(
             box_pred, cls_pred, image_shape=image_shape
