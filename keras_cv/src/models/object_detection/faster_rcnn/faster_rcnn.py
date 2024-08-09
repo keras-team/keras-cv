@@ -59,7 +59,7 @@ class FasterRCNN(Task):
         *args,
         **kwargs,
     ):
-        # Backbone
+        # 1. Backbone
         extractor_levels = [
             f"P{level}" for level in range(fpn_min_level, fpn_max_level + 1)
         ]
@@ -70,12 +70,12 @@ class FasterRCNN(Task):
             backbone, extractor_layer_names, extractor_levels
         )
 
-        # Feature Pyramid
+        # 2. Feature Pyramid
         feature_pyramid = feature_pyramid or FeaturePyramid(
             min_level=fpn_min_level, max_level=fpn_max_level
         )
 
-        # Anchor Generator
+        # 3. Anchors
         scales = [2**x for x in [0]]
         aspect_ratios = [0.5, 1.0, 2.0]
         anchor_generator = (
@@ -89,7 +89,7 @@ class FasterRCNN(Task):
             )
         )
 
-        # RPN Head
+        # 4. RPN Head
         num_anchors_per_location = len(scales) * len(aspect_ratios)
         rpn_head = rpn_head or RPNHead(
             num_anchors_per_location=num_anchors_per_location,
@@ -97,7 +97,7 @@ class FasterRCNN(Task):
             kernel_size=rpn_kernel_size,
         )
 
-        # RoI Generator
+        # 5. RoI Generator
         roi_generator = ROIGenerator(
             bounding_box_format="yxyx",
             nms_score_threshold_train=float("-inf"),
@@ -105,10 +105,10 @@ class FasterRCNN(Task):
             name="roi_generator",
         )
 
-        # RoI Align
+        # 6. RoI Align
         roi_aligner = ROIAligner(bounding_box_format="yxyx", name="roi_align")
 
-        # R-CNN Head
+        # 7. R-CNN Head
         rcnn_head = rcnn_head or RCNNHead(num_classes, name="rcnn_head")
 
         # Begin construction of forward pass
@@ -126,14 +126,14 @@ class FasterRCNN(Task):
             name="images",
         )
 
-        # 1. Forward through backbone
+        # Forward through backbone
         backbone_outputs = feature_extractor(images)
 
-        # 2. Forward through FPN decoder
+        # Forward through FPN decoder
         feature_map = feature_pyramid(backbone_outputs)
 
         # [P2, P3, P4, P5, P6] -> ([BS, num_anchors, 4], [BS, num_anchors, 1])
-        # 3. Pass through RPN Head
+        # Pass through RPN Head
         rpn_boxes, rpn_scores = rpn_head(feature_map)
 
         # Reshape and Concatenate all the output boxes of all levels
@@ -153,7 +153,6 @@ class FasterRCNN(Task):
             tree.flatten(rpn_boxes)
         )
 
-        # 4. Generate Anchors
         anchors = anchor_generator(image_shape=image_shape)
         decoded_rpn_boxes = _decode_deltas_to_boxes(
             anchors=anchors,
@@ -163,11 +162,9 @@ class FasterRCNN(Task):
             variance=BOX_VARIANCE,
         )
 
-        # 5. Generate RoI's from Decoded RPN boxes
         rois, roi_scores = roi_generator(decoded_rpn_boxes, rpn_scores)
         rois = _clip_boxes(rois, "yxyx", image_shape)
 
-        # 6. Align/Pool from feature map based on RoI's
         feature_map = roi_aligner(features=feature_map, boxes=rois)
 
         # Reshape the feature map [BS, H*W*K]
@@ -178,7 +175,7 @@ class FasterRCNN(Task):
             )
         )(feature_map)
 
-        # 7. Forward Pass final feature map to RCNN Head for predictions
+        # Pass final feature map to RCNN Head for predictions
         box_pred, cls_pred = rcnn_head(feature_map=feature_map)
 
         box_pred = keras.layers.Concatenate(axis=1, name="box")([box_pred])
@@ -201,7 +198,6 @@ class FasterRCNN(Task):
             **kwargs,
         )
 
-        # Define the model parameters
         self.bounding_box_format = bounding_box_format
         self.anchor_generator = anchor_generator
         self.num_classes = num_classes
@@ -306,6 +302,7 @@ class FasterRCNN(Task):
     def compute_loss(
         self, x, y, y_pred, sample_weight, training=True, **kwargs
     ):
+
         # 1. Unpack the inputs
         images = x
         gt_boxes = y["boxes"]
@@ -530,6 +527,26 @@ class FasterRCNN(Task):
             image_shape=image_shape,
         )
         return y_pred
+
+    def compute_metrics(self, x, y, y_pred, sample_weight):
+        metrics = {}
+        metrics.update(super().compute_metrics(x, {}, {}, sample_weight={}))
+
+        if not self._has_user_metrics:
+            return metrics
+
+        y_pred = self.decode_predictions(y_pred, x)
+
+        for metric in self._user_metrics:
+            metric.update_state(y, y_pred, sample_weight=sample_weight)
+
+        for metric in self._user_metrics:
+            result = metric.result()
+            if isinstance(result, dict):
+                metrics.update(result)
+            else:
+                metrics[metric.name] = result
+        return metrics
 
     @staticmethod
     def default_anchor_generator(
