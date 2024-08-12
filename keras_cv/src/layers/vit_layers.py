@@ -15,8 +15,8 @@
 import math
 
 import tensorflow as tf
-from keras import layers
-from keras import ops
+from keras_cv.backend import layers
+from keras_cv.backend import ops
 
 from keras_cv.api_export import keras_cv_export
 
