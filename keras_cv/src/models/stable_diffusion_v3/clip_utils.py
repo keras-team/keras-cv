@@ -732,7 +732,7 @@ class CLIPTextModel(keras.Model):
 
     def build(self, input_shape):
         self.text_model.build(input_shape)
-        self.text_projection.build([None, hidden_dim])
+        self.text_projection.build([None, self.hidden_dim])
 
     def get_input_embeddings(self):
         return self.text_model.embeddings.token_embedding.weights[0]

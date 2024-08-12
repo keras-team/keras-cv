@@ -31,7 +31,8 @@ class MMDiTSelfAttention(keras.layers.Layer):
         self.cdense = keras.layers.Dense(key_dim)
 
         if normalization_mode == "rms_normalization":
-            # TODO(varuns1997): Re-Implement RMSNormalization for Keras 2 Compatibility
+            # TODO(varuns1997): Re-Implement RMSNormalization
+            # for Keras 2 Compatibility
             self.query_normalization = keras.layers.LayerNormalization(
                 rms_scaling=True
             )

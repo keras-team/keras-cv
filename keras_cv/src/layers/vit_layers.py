@@ -229,13 +229,16 @@ class Unpatching(keras.layers.Layer):
     """
     Layer to unpatchify image data.
 
-    This layer expects patches sorted by column and reorganizes the patches such that they will each be positioned as a
-    2D shape with some number of channels.
+    This layer expects patches sorted by column and reorganizes the patches
+    such that they will each be positioned as a 2D shape with some
+    number of channels.
 
-    Any necessary padding or truncation will be applied to reach the target shape.
+    Any necessary padding or truncation will be applied to reach the target
+    shape.
 
     Args:
-        target_shape: The target image shape after unpatching, of form [height, width]
+        target_shape: The target image shape after unpatching,
+         of form [height, width]
     """
 
     def __init__(self, target_shape):
@@ -243,14 +246,19 @@ class Unpatching(keras.layers.Layer):
 
     def call(self, patches):
         """
-        Reconstructs an unpatched image from the sequence of column sequence patches.
+        Reconstructs an unpatched image from the sequence of column sequence
+        patches.
 
-        If there are insufficient patches to construct the image of requested dimensions, additional zero-patches will
-        be appended. If excessive patches are provided, unnecessary patches will be truncated from the end.
+        If there are insufficient patches to construct the image of requested
+        dimensions, additional zero-patches will
+        be appended. If excessive patches are provided, unnecessary patches
+        will be truncated from the end.
 
         Args:
-            patches: Patches of images in column sequence (i.e. each patch is vertically oriented relative to the
-                previous patch). Expected shape of [batch_size, patch_num, patch_height, patch_width, channels].
+            patches: Patches of images in column sequence (i.e. each patch
+            is vertically oriented relative to the
+                previous patch). Expected shape of [batch_size, patch_num,
+                 patch_height, patch_width, channels].
 
         Returns:
             Unpatched image: Image reconstructed from the patches,
