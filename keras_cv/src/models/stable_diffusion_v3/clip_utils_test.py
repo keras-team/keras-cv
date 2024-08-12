@@ -32,11 +32,16 @@ class ClipUtilsTest(TestCase):
         num_layers = 4
         heads = 8
         intermediate_size = 256
+        intermediate_activation = "quick_gelu"
         clip_encoder = CLIPEncoder(
-            hidden_dim, num_layers, heads, intermediate_size
+            hidden_dim,
+            num_layers,
+            heads,
+            intermediate_size,
+            intermediate_activation,
         )
         dummy_input = np.random.rand(batch_size, sequence_length, hidden_dim)
-        output = clip_encoder(dummy_input)
+        output, _ = clip_encoder(dummy_input)
         self.assertEqual(output.shape, (32, 20, 64))
 
     def test_clip_embeddings(self):
@@ -91,6 +96,7 @@ class ClipUtilsTest(TestCase):
         out_keras = sd3_tokenizer.tokenize_with_weights("A cat")
         expected_g_tokens = [(49406, 1.0), (320, 1), (2368, 1), (49407, 1.0)]
         expected_l_tokens = [(49406, 1.0), (320, 1), (2368, 1), (49407, 1.0)]
+        # pylint: disable=unused-variable
         expected_t5xxl_tokens = [(71, 1), (1712, 1), (1, 1.0), (0, 1.0)]
         self.assertEqual(out_keras["g"][0][:4], expected_g_tokens)
         self.assertEqual(out_keras["l"][0][:4], expected_l_tokens)
