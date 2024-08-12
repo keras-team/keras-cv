@@ -96,8 +96,7 @@ class ClipUtilsTest(TestCase):
         out_keras = sd3_tokenizer.tokenize_with_weights("A cat")
         expected_g_tokens = [(49406, 1.0), (320, 1), (2368, 1), (49407, 1.0)]
         expected_l_tokens = [(49406, 1.0), (320, 1), (2368, 1), (49407, 1.0)]
-        # pylint: disable=unused-variable
-        expected_t5xxl_tokens = [(71, 1), (1712, 1), (1, 1.0), (0, 1.0)]
+        expected_t5xxl_tokens = [(71, 1), (1712, 1), (1, 1.0), (0, 1.0)] # pylint: disable=unused-variable
         self.assertEqual(out_keras["g"][0][:4], expected_g_tokens)
         self.assertEqual(out_keras["l"][0][:4], expected_l_tokens)
         # TODO - uncomment to test T5XXLTokenizer after it is added
