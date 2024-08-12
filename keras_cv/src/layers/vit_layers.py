@@ -71,7 +71,7 @@ class PatchingAndEmbedding(keras.layers.Layer):
                 f"Padding must be either 'SAME' or 'VALID', but {padding} was "
                 "passed."
             )
-        self.projection = layers.Conv2D(
+        self.projection = keras.layers.Conv2D(
             filters=self.project_dim,
             kernel_size=self.patch_size,
             strides=self.patch_size,
@@ -88,7 +88,7 @@ class PatchingAndEmbedding(keras.layers.Layer):
             * input_shape[2]
             // self.patch_size
         )
-        self.position_embedding = layers.Embedding(
+        self.position_embedding = keras.layers.Embedding(
             input_dim=self.num_patches + 1, output_dim=self.project_dim
         )
 
