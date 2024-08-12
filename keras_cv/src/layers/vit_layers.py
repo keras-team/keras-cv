@@ -225,7 +225,7 @@ class PatchingAndEmbedding(keras.layers.Layer):
 
 
 @keras_cv_export("keras_cv.layers.Unpatching")
-class Unpatching(layers.Layer):
+class Unpatching(keras.layers.Layer):
     """
     Layer to unpatchify image data.
 
