@@ -202,6 +202,7 @@ class FasterRCNN(Task):
         self.anchor_generator = anchor_generator
         self.num_classes = num_classes
         self.feature_extractor = feature_extractor
+        self.backbone = backbone
         self.feature_pyramid = feature_pyramid
         self.rpn_head = rpn_head
         self.label_encoder = label_encoder or RpnLabelEncoder(

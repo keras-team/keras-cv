@@ -16,14 +16,14 @@ import numpy as np
 
 from keras_cv.src.backend import ops
 from keras_cv.src.layers.object_detection.rpn_label_encoder import (
-    _RpnLabelEncoder,
+    RpnLabelEncoder,
 )
 from keras_cv.src.tests.test_case import TestCase
 
 
 class RpnLabelEncoderTest(TestCase):
     def test_rpn_label_encoder(self):
-        rpn_encoder = _RpnLabelEncoder(
+        rpn_encoder = RpnLabelEncoder(
             anchor_format="xyxy",
             ground_truth_box_format="xyxy",
             positive_threshold=0.7,
@@ -72,7 +72,7 @@ class RpnLabelEncoderTest(TestCase):
         self.skipTest(
             "TODO: resolving flaky test, https://github.com/keras-team/keras-cv/issues/2336"  # noqa
         )
-        rpn_encoder = _RpnLabelEncoder(
+        rpn_encoder = RpnLabelEncoder(
             anchor_format="xyxy",
             ground_truth_box_format="xyxy",
             positive_threshold=0.7,
@@ -98,7 +98,7 @@ class RpnLabelEncoderTest(TestCase):
         self.assertAllClose(expected_cls_weights[3], cls_weights[3])
 
     def test_rpn_label_encoder_batched(self):
-        rpn_encoder = _RpnLabelEncoder(
+        rpn_encoder = RpnLabelEncoder(
             anchor_format="xyxy",
             ground_truth_box_format="xyxy",
             positive_threshold=0.7,

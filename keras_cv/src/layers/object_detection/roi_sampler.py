@@ -44,7 +44,7 @@ class ROISampler(keras.layers.Layer):
       roi_bounding_box_format: The format of roi bounding boxes. Refer
         [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
         for more details on supported bounding box formats.
-      gt_bounding_box_format: The format of gt bounding boxes.
+      gt_bounding_box_format: The format of ground truth bounding boxes.
       roi_matcher: a `BoxMatcher` object that matches proposals with ground
         truth boxes. The positive match must be 1 and negative match must be -1.
         Such assumption is not being validated here.
@@ -209,16 +209,15 @@ class ROISampler(keras.layers.Layer):
         )
 
     def get_config(self):
-        config = {
-            "bounding_box_format": self.bounding_box_format,
-            "positive_fraction": self.positive_fraction,
-            "background_class": self.background_class,
-            "num_sampled_rois": self.num_sampled_rois,
-            "append_gt_boxes": self.append_gt_boxes,
-            "roi_matcher": self.roi_matcher.get_config(),
-        }
-        base_config = super().get_config()
-        return dict(list(base_config.items()) + list(config.items()))
+        config = super().get_config()
+        config["roi_bounding_box_format"] = self.roi_bounding_box_format
+        config["gt_bounding_box_format"] = self.gt_bounding_box_format
+        config["positive_fraction"] = self.positive_fraction,
+        config["background_class"] = self.background_class,
+        config["num_sampled_rois"] = self.num_sampled_rois,
+        config["append_gt_boxes"] = self.append_gt_boxes,
+        config["roi_matcher"] = self.roi_matcher.get_config()
+        return config
 
     @classmethod
     def from_config(cls, config, custom_objects=None):

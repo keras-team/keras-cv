@@ -17,15 +17,16 @@ import numpy as np
 
 from keras_cv.src.backend import ops
 from keras_cv.src.layers.object_detection.box_matcher import BoxMatcher
-from keras_cv.src.layers.object_detection.roi_sampler import _ROISampler
+from keras_cv.src.layers.object_detection.roi_sampler import ROISampler
 from keras_cv.src.tests.test_case import TestCase
 
 
 class ROISamplerTest(TestCase):
     def test_roi_sampler(self):
         box_matcher = BoxMatcher(thresholds=[0.3], match_values=[-1, 1])
-        roi_sampler = _ROISampler(
-            bounding_box_format="xyxy",
+        roi_sampler = ROISampler(
+            roi_bounding_box_format="xyxy",
+            gt_bounding_box_format="xyxy",
             roi_matcher=box_matcher,
             positive_fraction=0.5,
             num_sampled_rois=2,
@@ -71,8 +72,9 @@ class ROISamplerTest(TestCase):
             "TODO: resolving flaky test, https://github.com/keras-team/keras-cv/issues/2336"  # noqa
         )
         box_matcher = BoxMatcher(thresholds=[0.1], match_values=[-1, 1])
-        roi_sampler = _ROISampler(
-            bounding_box_format="xyxy",
+        roi_sampler = ROISampler(
+            roi_bounding_box_format="xyxy",
+            gt_bounding_box_format="xyxy",
             roi_matcher=box_matcher,
             positive_fraction=0.5,
             num_sampled_rois=2,
@@ -125,8 +127,9 @@ class ROISamplerTest(TestCase):
         # the 2nd roi and 2nd gt box has IOU of 0.923, setting
         # positive_threshold to 0.95 to ignore it.
         box_matcher = BoxMatcher(thresholds=[0.95], match_values=[-1, 1])
-        roi_sampler = _ROISampler(
-            bounding_box_format="xyxy",
+        roi_sampler = ROISampler(
+            roi_bounding_box_format="xyxy",
+            gt_bounding_box_format="xyxy",
             roi_matcher=box_matcher,
             positive_fraction=0.5,
             num_sampled_rois=2,
@@ -164,8 +167,9 @@ class ROISamplerTest(TestCase):
         # the 2nd roi and 2nd gt box has IOU of 0.923, setting
         # positive_threshold to 0.95 to ignore it.
         box_matcher = BoxMatcher(thresholds=[0.95], match_values=[-1, 1])
-        roi_sampler = _ROISampler(
-            bounding_box_format="xyxy",
+        roi_sampler = ROISampler(
+            roi_bounding_box_format="xyxy",
+            gt_bounding_box_format="xyxy",
             roi_matcher=box_matcher,
             positive_fraction=0.5,
             background_class=-1,
@@ -205,8 +209,9 @@ class ROISamplerTest(TestCase):
         # the 2nd roi and 2nd gt box has IOU of 0.923, setting
         # positive_threshold to 0.95 to ignore it.
         box_matcher = BoxMatcher(thresholds=[0.95], match_values=[-1, 1])
-        roi_sampler = _ROISampler(
-            bounding_box_format="xyxy",
+        roi_sampler = ROISampler(
+            roi_bounding_box_format="xyxy",
+            gt_bounding_box_format="xyxy",
             roi_matcher=box_matcher,
             positive_fraction=0.5,
             num_sampled_rois=2,
@@ -245,8 +250,9 @@ class ROISamplerTest(TestCase):
 
     def test_roi_sampler_large_num_sampled_rois(self):
         box_matcher = BoxMatcher(thresholds=[0.95], match_values=[-1, 1])
-        roi_sampler = _ROISampler(
-            bounding_box_format="xyxy",
+        roi_sampler = ROISampler(
+            roi_bounding_box_format="xyxy",
+            gt_bounding_box_format="xyxy",
             roi_matcher=box_matcher,
             positive_fraction=0.5,
             num_sampled_rois=200,
@@ -273,13 +279,14 @@ class ROISamplerTest(TestCase):
 
     def test_serialization(self):
         box_matcher = BoxMatcher(thresholds=[0.95], match_values=[-1, 1])
-        roi_sampler = _ROISampler(
-            bounding_box_format="xyxy",
+        roi_sampler = ROISampler(
+            roi_bounding_box_format="xyxy",
+            gt_bounding_box_format="xyxy",
             roi_matcher=box_matcher,
             positive_fraction=0.5,
             num_sampled_rois=200,
             append_gt_boxes=True,
         )
         sampler_config = roi_sampler.get_config()
-        new_sampler = _ROISampler.from_config(sampler_config)
+        new_sampler = ROISampler.from_config(sampler_config)
         self.assertAllEqual(new_sampler.roi_matcher.match_values, [-1, 1])
