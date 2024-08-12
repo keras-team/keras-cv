@@ -19,8 +19,8 @@
 # https://github.com/keras-team/keras-cv/tree/v0.8.2/keras_cv/models/stable_diffusion  # noqa: E501
 # Also see: https://github.com/divamgupta/stable-diffusion-tensorflow/tree/master/stable_diffusion_tf  # noqa: E501
 
-from keras_cv.backend import keras
-from keras_cv.backend import ops
+from keras_cv.src.backend import keras
+from keras_cv.src.backend import ops
 
 
 class VAEDecoder(keras.Model):
