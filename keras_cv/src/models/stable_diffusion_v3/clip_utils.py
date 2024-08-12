@@ -17,8 +17,8 @@ from functools import lru_cache
 
 import regex as re
 
-from keras_cv.backend import keras
-from keras_cv.backend import ops
+from keras_cv.src.backend import keras
+from keras_cv.src.backend import ops
 
 
 def quick_gelu(x):
