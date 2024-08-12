@@ -18,8 +18,8 @@
 # Adapted from KerasNLP.
 # See files at: https://github.com/keras-team/keras-nlp/tree/c9baf2f4fab91832fc448624e034a30fe9a41f80/keras_nlp/models/t5  # noqa: E501
 
-from keras_cv.backend import keras
-from keras_cv.backend import ops
+from keras_cv.src.backend import keras
+from keras_cv.src.backend import ops
 
 
 class T5Encoder(keras.Model):

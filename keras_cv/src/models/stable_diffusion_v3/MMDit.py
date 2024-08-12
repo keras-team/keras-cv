@@ -1,4 +1,4 @@
-from keras_cv.backend import keras
+from keras_cv.src.backend import keras
 from keras_cv.layers.vit_layers import PatchingAndEmbedding
 from keras_cv.models.stable_diffusion.v3 import embedding
 from keras_cv.models.stable_diffusion.v3.MMDiT_block import MMDiTBlock

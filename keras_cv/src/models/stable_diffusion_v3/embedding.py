@@ -1,6 +1,6 @@
 from keras_nlp.layers import RotaryEmbedding
 
-from keras_cv.backend import keras
+from keras_cv.src.backend import keras
 
 
 class TimestepEmbedding(keras.layers.Layer):
