@@ -151,7 +151,7 @@ class CLIPLayer(keras.layers.Layer):
         hidden_dim,
         num_heads,
         intermediate_size,
-        intermediate_activation = 'quick_gelu',
+        intermediate_activation="quick_gelu",
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -178,10 +178,12 @@ class CLIPLayer(keras.layers.Layer):
         self.layer_norm_2 = keras.layers.LayerNormalization(
             epsilon=1e-5, name="layer_norm_2"
         )
-        if self.intermediate_activation == 'quick_gelu':
-          self.activation = quick_gelu
+        if self.intermediate_activation == "quick_gelu":
+            self.activation = quick_gelu
         else:
-          self.activation = keras.layers.Activation(self.intermediate_activation, name="activation")
+            self.activation = keras.layers.Activation(
+                self.intermediate_activation, name="activation"
+            )
 
     def compute_attention(
         self, x, causal_attention_mask=None, attention_mask=None
@@ -240,7 +242,7 @@ class CLIPLayer(keras.layers.Layer):
                 "hidden_dim": self.hidden_dim,
                 "num_heads": self.num_heads,
                 "intermediate_size": self.intermediate_size,
-                "intermediate_activation":self.intermediate_activation,
+                "intermediate_activation": self.intermediate_activation,
             }
         )
         return config
@@ -248,7 +250,13 @@ class CLIPLayer(keras.layers.Layer):
 
 class CLIPEncoder(keras.layers.Layer):
     def __init__(
-        self, width, num_layers, num_heads, intermediate_size, intermediate_activation, **kwargs
+        self,
+        width,
+        num_layers,
+        num_heads,
+        intermediate_size,
+        intermediate_activation,
+        **kwargs,
     ):
         super().__init__(**kwargs)
         self.width = width
@@ -261,7 +269,7 @@ class CLIPEncoder(keras.layers.Layer):
                 self.width,
                 self.num_heads,
                 self.intermediate_size,
-                self.intermediate_activation
+                self.intermediate_activation,
             )
             for _ in range(self.num_layers)
         ]
@@ -276,16 +284,24 @@ class CLIPEncoder(keras.layers.Layer):
         x,
         causal_attention_mask=None,
         attention_mask=None,
+        intermediate_output=None,
     ):
-        for block in self.resblocks:
-            x = block(
-                x,
-                causal_attention_mask=causal_attention_mask,
-                attention_mask=attention_mask,
-            )
-        return x
+        if intermediate_output is not None:
+            if intermediate_output < 0:
+                intermediate_output = self.num_layers + intermediate_output
+        intermediate = None
+        for i, block in enumerate(self.resblocks):
+            if i == intermediate_output:
+                x = block(
+                    x,
+                    causal_attention_mask=causal_attention_mask,
+                    attention_mask=attention_mask,
+                )
+                intermediate = ops.copy(x)
+        return x, intermediate
 
     def compute_output_shape(self, inputs_shape):
+
         return inputs_shape
 
     def get_config(self):
@@ -630,6 +646,105 @@ class SD3Tokenizer:
         return out
 
 
+class CLIPTextModel_(keras.Model):
+    def __init__(
+        self,
+        num_layers,
+        hidden_dim,
+        num_heads,
+        intermediate_size,
+        intermediate_activation,
+        **kwargs,
+    ):
+        super().__init__()
+        self.num_layers = num_layers
+        self.hidden_dim = hidden_dim
+        self.num_heads = num_heads
+        self.intermediate_size = intermediate_size
+        self.intermediate_activation = intermediate_activation
+        self.embeddings = CLIPEmbeddings(hidden_dim)
+        self.encoder = CLIPEncoder(
+            hidden_dim,
+            num_layers,
+            num_heads,
+            intermediate_size,
+            intermediate_activation,
+        )
+        self.final_layer_norm = keras.layers.LayerNormalization(axis=-1)
+
+    def build(self, input_shape):
+        self.embeddings.build(input_shape)
+        self.encoder.build(input_shape)
+        self.final_layer_norm.build([None, None, self.hidden_dim])
+
+    def call(
+        self,
+        input_tokens,
+        intermediate_output=None,
+        final_layer_norm_intermediate=True,
+    ):
+        x = self.embeddings(input_tokens)
+        # Compute causal mask
+        causal_mask = ops.ones((ops.shape(x)[1], ops.shape(x)[1]))
+        causal_mask = ops.triu(causal_mask)
+        causal_mask = ops.cast(causal_mask, "float32")
+        x, i = self.encoder(
+            x,
+            causal_attention_mask=causal_mask,
+            intermediate_output=intermediate_output,
+        )
+        x = self.final_layer_norm(x)
+        if i is not None and final_layer_norm_intermediate:
+            i = self.final_layer_norm(i)
+
+        indices = ops.expand_dims(
+            ops.cast(ops.argmax(input_tokens, axis=-1), "int32"), axis=-1
+        )
+        pooled_output = ops.take_along_axis(x, indices[:, :, None], axis=1)
+        pooled_output = ops.squeeze(pooled_output)
+
+        return x, i, pooled_output
+
+
+class CLIPTextModel(keras.Model):
+    def __init__(
+        self,
+        num_layers,
+        hidden_dim,
+        num_heads,
+        intermediate_size,
+        intermediate_activation,
+        **kwargs,
+    ):
+        super().__init__()
+        self.num_layers = num_layers
+        self.text_model = CLIPTextModel_(
+            num_layers,
+            hidden_dim,
+            num_heads,
+            intermediate_size,
+            intermediate_activation,
+        )
+        self.text_projection = keras.layers.Dense(
+            units=hidden_dim, use_bias=False
+        )
+
+    def build(self, input_shape):
+        self.text_model.build(input_shape)
+        self.text_projection.build([None, hidden_dim])
+
+    def get_input_embeddings(self):
+        return self.text_model.embeddings.token_embedding.weights[0]
+
+    def set_input_embeddings(self, embeddings):
+        self.text_model.embeddings.token_embedding.weights[0].assign(embeddings)
+
+    def call(self, *args, **kwargs):
+        x = self.text_model(*args, **kwargs)
+        out = self.text_projection(x[2])
+        return (x[0], x[1], out, x[2])
+
+
 class ClipTokenWeightEncoder:
     def encode_token_weights(self, token_weight_pairs):
         tokens = list(map(lambda a: a[0], token_weight_pairs[0]))
@@ -640,3 +755,115 @@ class ClipTokenWeightEncoder:
             first_pooled = pooled
         output = [out[0:1]]
         return ops.concatenate(output, axis=-2), first_pooled
+
+
+class SDClipModel(keras.Model, ClipTokenWeightEncoder):
+    """Uses the CLIP transformer encoder for text (from huggingface)"""
+
+    LAYERS = ["last", "pooled", "hidden"]
+
+    def __init__(
+        self,
+        num_layers,
+        hidden_dim,
+        num_heads,
+        intermediate_size,
+        intermediate_activation="quick_gelu",
+        max_length=77,
+        layer="last",
+        layer_idx=None,
+        model_class=CLIPTextModel,
+        special_tokens={"start": 49406, "end": 49407, "pad": 49407},
+        layer_norm_hidden_state=True,
+        return_projected_pooled=True,
+        **kwargs,
+    ):
+        super().__init__(**kwargs)
+        assert layer in self.LAYERS
+        self.model_class = model_class
+        self.transformer = model_class(
+            num_layers,
+            hidden_dim,
+            num_heads,
+            intermediate_size,
+            intermediate_activation,
+        )
+        self.num_layers = num_layers
+        self.max_length = max_length
+        self.transformer.build((None, None))
+        self.layer = layer
+        self.layer_idx = None
+        self.special_tokens = special_tokens
+        self.logit_scale = keras.Variable(4.6055)
+        self.layer_norm_hidden_state = layer_norm_hidden_state
+        self.return_projected_pooled = return_projected_pooled
+        if layer == "hidden":
+            assert layer_idx is not None
+            assert abs(layer_idx) < self.num_layers
+            self.set_clip_options({"layer": layer_idx})
+
+    def set_clip_options(self, options):
+        layer_idx = options.get("layer", self.layer_idx)
+        self.return_projected_pooled = options.get(
+            "projected_pooled", self.return_projected_pooled
+        )
+        if layer_idx is None or abs(layer_idx) > self.num_layers:
+            self.layer = "last"
+        else:
+            self.layer = "hidden"
+            self.layer_idx = layer_idx
+
+    def call(self, tokens):
+        backup_embeds = self.transformer.get_input_embeddings()
+        tokens = ops.cast(tokens, "int64")
+        outputs = self.transformer(
+            tokens,
+            intermediate_output=self.layer_idx,
+            final_layer_norm_intermediate=self.layer_norm_hidden_state,
+        )
+        self.transformer.set_input_embeddings(backup_embeds)
+        if self.layer == "last":
+            z = outputs[0]
+        else:
+            z = outputs[1]
+        pooled_output = None
+        if len(outputs) >= 3:
+            if (
+                not self.return_projected_pooled
+                and len(outputs) >= 4
+                and outputs[3] is not None
+            ):
+                pooled_output = ops.cast(outputs[3], "float32")
+            elif outputs[2] is not None:
+                pooled_output = ops.cast(outputs[2], "float32")
+        return ops.cast(z, "float32"), pooled_output
+
+
+class SDXLClipG(SDClipModel):
+    """Wraps the CLIP-G model into the SD-CLIP-Model interface"""
+
+    def __init__(
+        self,
+        num_layers,
+        hidden_dim,
+        num_heads,
+        intermediate_size,
+        intermediate_activation="gelu",
+        layer="penultimate",
+        layer_idx=None,
+        **kwargs,
+    ):
+        if layer == "penultimate":
+            layer = "hidden"
+            layer_idx = -2
+        super().__init__(
+            num_layers=num_layers,
+            hidden_dim=hidden_dim,
+            num_heads=num_heads,
+            intermediate_size=intermediate_size,
+            intermediate_activation=intermediate_activation,
+            layer=layer,
+            layer_idx=layer_idx,
+            special_tokens={"start": 49406, "end": 49407, "pad": 0},
+            layer_norm_hidden_state=False,
+        )
