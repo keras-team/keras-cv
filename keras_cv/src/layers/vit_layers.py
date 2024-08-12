@@ -15,10 +15,10 @@
 import math
 
 import tensorflow as tf
-from keras_cv.backend import layers
-from keras_cv.backend import ops
+from keras_cv.src.backend import layers
+from keras_cv.src.backend import ops
 
-from keras_cv.api_export import keras_cv_export
+from keras_cv.src.api_export import keras_cv_export
 
 
 @keras_cv_export("keras_cv.layers.PatchingAndEmbedding")
