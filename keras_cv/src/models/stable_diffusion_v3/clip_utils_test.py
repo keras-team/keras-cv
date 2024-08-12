@@ -15,11 +15,11 @@
 
 import numpy as np
 
-from keras_cv.models.stable_diffusion.v3.clip_utils import CLIPEmbeddings
-from keras_cv.models.stable_diffusion.v3.clip_utils import CLIPEncoder
-from keras_cv.models.stable_diffusion.v3.clip_utils import CLIPTokenizer
-from keras_cv.models.stable_diffusion.v3.clip_utils import SD3Tokenizer
-from keras_cv.tests.test_case import TestCase
+from keras_cv.src.models.stable_diffusion_v3.clip_utils import CLIPEmbeddings
+from keras_cv.src.models.stable_diffusion_v3.clip_utils import CLIPEncoder
+from keras_cv.src.models.stable_diffusion_v3.clip_utils import CLIPTokenizer
+from keras_cv.src.models.stable_diffusion_v3.clip_utils import SD3Tokenizer
+from keras_cv.src.tests.test_case import TestCase
 
 
 class ClipUtilsTest(TestCase):
