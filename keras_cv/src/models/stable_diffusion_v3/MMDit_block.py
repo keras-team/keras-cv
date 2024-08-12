@@ -1,6 +1,6 @@
-import keras
+from keras_cv.src.backend import keras
 
-from keras_cv.backend import ops
+from keras_cv.src.backend import ops
 
 
 class MMDiTSelfAttention(keras.layers.Layer):
