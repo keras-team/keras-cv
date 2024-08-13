@@ -206,6 +206,9 @@ from keras_cv.src.models.backbones.vit_det.vit_det_backbone import (
 from keras_cv.src.models.classification.image_classifier import ImageClassifier
 from keras_cv.src.models.classification.video_classifier import VideoClassifier
 from keras_cv.src.models.feature_extractor.clip import CLIP
+from keras_cv.src.models.object_detection.faster_rcnn.faster_rcnn import (
+    FasterRCNN,
+)
 from keras_cv.src.models.object_detection.retinanet.retinanet import RetinaNet
 from keras_cv.src.models.object_detection.yolo_v8.yolo_v8_backbone import (
     YOLOV8Backbone,
@@ -242,6 +245,3 @@ from keras_cv.src.models.segmentation.segformer.segformer_aliases import (
 )
 from keras_cv.src.models.stable_diffusion import StableDiffusion
 from keras_cv.src.models.stable_diffusion import StableDiffusionV2
-from keras_cv.src.models.object_detection.faster_rcnn.faster_rcnn import (
-    FasterRCNN
-)

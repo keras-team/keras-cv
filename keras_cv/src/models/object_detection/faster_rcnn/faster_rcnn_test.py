@@ -113,7 +113,7 @@ class FasterRCNNTest(TestCase):
         self.assertEqual(len(faster_rcnn.trainable_variables), 30)
 
     @pytest.mark.large  # Fit is slow, so mark these large.
-    @pytest.mark.filterwarnings('ignore::UserWarning')
+    @pytest.mark.filterwarnings("ignore::UserWarning")
     def test_no_nans(self):
         faster_rcnn = keras_cv.models.FasterRCNN(
             num_classes=80,
@@ -146,7 +146,7 @@ class FasterRCNNTest(TestCase):
             self.assertFalse(ops.any(ops.isnan(weight)))
 
     @pytest.mark.large  # Fit is slow, so mark these large.
-    @pytest.mark.filterwarnings('ignore::UserWarning')
+    @pytest.mark.filterwarnings("ignore::UserWarning")
     def test_weights_change(self):
         faster_rcnn = keras_cv.models.FasterRCNN(
             num_classes=80,
@@ -284,7 +284,7 @@ class FasterRCNNTest(TestCase):
             )
 
     @pytest.mark.large  # Fit is slow, so mark these large.
-    @pytest.mark.filterwarnings('ignore::UserWarning')
+    @pytest.mark.filterwarnings("ignore::UserWarning")
     def test_faster_rcnn_with_dictionary_input_format(self):
         faster_rcnn = FasterRCNN(
             num_classes=20,
@@ -311,7 +311,7 @@ class FasterRCNNTest(TestCase):
         faster_rcnn.evaluate(dataset)
 
     @pytest.mark.large  # Fit is slow, so mark these large.
-    @pytest.mark.filterwarnings('ignore::UserWarning')
+    @pytest.mark.filterwarnings("ignore::UserWarning")
     def test_fit_with_no_valid_gt_bbox(self):
         bounding_box_format = "xywh"
         faster_rcnn = FasterRCNN(
