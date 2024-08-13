@@ -212,10 +212,10 @@ class ROISampler(keras.layers.Layer):
         config = super().get_config()
         config["roi_bounding_box_format"] = self.roi_bounding_box_format
         config["gt_bounding_box_format"] = self.gt_bounding_box_format
-        config["positive_fraction"] = self.positive_fraction,
-        config["background_class"] = self.background_class,
-        config["num_sampled_rois"] = self.num_sampled_rois,
-        config["append_gt_boxes"] = self.append_gt_boxes,
+        config["positive_fraction"] = self.positive_fraction
+        config["background_class"] = self.background_class
+        config["num_sampled_rois"] = self.num_sampled_rois
+        config["append_gt_boxes"] = self.append_gt_boxes
         config["roi_matcher"] = self.roi_matcher.get_config()
         return config
 

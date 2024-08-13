@@ -74,12 +74,8 @@ class FeaturePyramid(keras.layers.Layer):
 
     Example:
     ```python
-    images = keras.layers.Input(
-        image_shape,
-        name="images",
-    )
+    images = np.ones((1, 512, 512, 3))
     extractor_levels= ["P2", "P3", "P4", "P5"]
-
     backbone = keras_cv.models.ResNetV2Backbone.from_preset(
         "resnet50_v2_imagenet", include_rescaling=True
     )

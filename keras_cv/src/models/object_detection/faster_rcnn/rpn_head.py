@@ -15,7 +15,10 @@ class RPNHead(keras.layers.Layer):
     for a detector (RCNN).
 
     Args:
-        num_achors_per_location: The number of anchors per location.
+        num_achors_per_location: (Optional) the number of anchors per location,
+            defaults to 3.
+        num_filters: (Optional) number convolution filters
+        kernel_size: (Optional) kernel size of the convolution filters.
     """
 
     def __init__(

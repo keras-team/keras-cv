@@ -21,6 +21,16 @@ from keras_cv.src.backend import keras
     package="keras_cv.models.faster_rcnn",
 )
 class RCNNHead(keras.layers.Layer):
+    """A Keras layer implementing the R-CNN Head.
+
+    Args:
+        num_classes: The number of object classes to be detected.
+        conv_dims: (Optional) a list of integers specifying the number of
+            filters for each convolutional layer. Defaults to [].
+        fc_dims: (Optional) a list of integers specifying the number of
+            units for each fully-connected layer. Defaults to [1024, 1024].
+    """
+
     def __init__(
         self,
         num_classes,
