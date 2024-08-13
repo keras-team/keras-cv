@@ -15,14 +15,14 @@
 import math
 
 import tensorflow as tf
-from keras import layers
-from keras import ops
 
-from keras_cv.api_export import keras_cv_export
+from keras_cv.src.api_export import keras_cv_export
+from keras_cv.src.backend import keras
+from keras_cv.src.backend import ops
 
 
 @keras_cv_export("keras_cv.layers.PatchingAndEmbedding")
-class PatchingAndEmbedding(layers.Layer):
+class PatchingAndEmbedding(keras.layers.Layer):
     """
     Layer to patchify images, prepend a class token, positionally embed and
     create a projection of patches for Vision Transformers
@@ -71,7 +71,7 @@ class PatchingAndEmbedding(layers.Layer):
                 f"Padding must be either 'SAME' or 'VALID', but {padding} was "
                 "passed."
             )
-        self.projection = layers.Conv2D(
+        self.projection = keras.layers.Conv2D(
             filters=self.project_dim,
             kernel_size=self.patch_size,
             strides=self.patch_size,
@@ -88,7 +88,7 @@ class PatchingAndEmbedding(layers.Layer):
             * input_shape[2]
             // self.patch_size
         )
-        self.position_embedding = layers.Embedding(
+        self.position_embedding = keras.layers.Embedding(
             input_dim=self.num_patches + 1, output_dim=self.project_dim
         )
 
@@ -225,17 +225,20 @@ class PatchingAndEmbedding(layers.Layer):
 
 
 @keras_cv_export("keras_cv.layers.Unpatching")
-class Unpatching(layers.Layer):
+class Unpatching(keras.layers.Layer):
     """
     Layer to unpatchify image data.
 
-    This layer expects patches sorted by column and reorganizes the patches such that they will each be positioned as a
-    2D shape with some number of channels.
+    This layer expects patches sorted by column and reorganizes the patches
+    such that they will each be positioned as a 2D shape with some
+    number of channels.
 
-    Any necessary padding or truncation will be applied to reach the target shape.
+    Any necessary padding or truncation will be applied to reach the target
+    shape.
 
     Args:
-        target_shape: The target image shape after unpatching, of form [height, width]
+        target_shape: The target image shape after unpatching,
+         of form [height, width]
     """
 
     def __init__(self, target_shape):
@@ -243,14 +246,19 @@ class Unpatching(layers.Layer):
 
     def call(self, patches):
         """
-        Reconstructs an unpatched image from the sequence of column sequence patches.
+        Reconstructs an unpatched image from the sequence of column sequence
+        patches.
 
-        If there are insufficient patches to construct the image of requested dimensions, additional zero-patches will
-        be appended. If excessive patches are provided, unnecessary patches will be truncated from the end.
+        If there are insufficient patches to construct the image of requested
+        dimensions, additional zero-patches will
+        be appended. If excessive patches are provided, unnecessary patches
+        will be truncated from the end.
 
         Args:
-            patches: Patches of images in column sequence (i.e. each patch is vertically oriented relative to the
-                previous patch). Expected shape of [batch_size, patch_num, patch_height, patch_width, channels].
+            patches: Patches of images in column sequence (i.e. each patch
+            is vertically oriented relative to the
+                previous patch). Expected shape of [batch_size, patch_num,
+                 patch_height, patch_width, channels].
 
         Returns:
             Unpatched image: Image reconstructed from the patches,
