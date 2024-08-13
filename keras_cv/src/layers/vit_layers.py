@@ -264,9 +264,13 @@ class Unpatching(keras.layers.Layer):
             Unpatched image: Image reconstructed from the patches,
                 of expected shape [batch_size, height, width, channels].
         """
-        batch_size, patch_count, patch_height, patch_width, channels = (
-            ops.shape(patches)
-        )
+        (
+            batch_size,
+            patch_count,
+            patch_height,
+            patch_width,
+            channels,
+        ) = ops.shape(patches)
 
         target_height, target_width = self.target_shape
 

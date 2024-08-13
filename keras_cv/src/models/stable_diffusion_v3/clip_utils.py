@@ -302,7 +302,6 @@ class CLIPEncoder(keras.layers.Layer):
         return x, intermediate
 
     def compute_output_shape(self, inputs_shape):
-
         return inputs_shape
 
     def get_config(self):

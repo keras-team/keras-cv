@@ -26,7 +26,6 @@ from keras_cv.src.tests.test_case import TestCase
 
 
 class TestVideoSwinSBackbone(TestCase):
-
     @pytest.mark.large
     def test_call(self):
         model = VideoSwinBackbone(  # TODO: replace with aliases
