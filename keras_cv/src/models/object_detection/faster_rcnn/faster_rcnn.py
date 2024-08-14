@@ -1,3 +1,17 @@
+# Copyright 2022 The KerasCV Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import tree
 
 from keras_cv.src import losses
@@ -212,6 +226,7 @@ class FasterRCNN(Task):
             bounding_box_format="yxyx",
             nms_score_threshold_train=float("-inf"),
             nms_score_threshold_test=float("-inf"),
+            nms_from_logits=True,
             name="roi_generator",
         )
 
@@ -299,7 +314,6 @@ class FasterRCNN(Task):
             "rpn_classification": rpn_cls_pred,
             "box": box_pred,
             "classification": cls_pred,
-            "rois": rois,
         }
 
         super().__init__(
@@ -598,11 +612,30 @@ class FasterRCNN(Task):
         self.make_test_function(force=True)
 
     def decode_predictions(self, predictions, images):
-        rois = predictions["rois"]
-        box_pred, cls_pred = predictions["box"], predictions["classification"]
-        # box_pred is on "center_yxhw" format, convert to target format.
-        image_shape = tuple(images[0].shape)
+        image_shape = ops.shape(images)[1:]
+        anchors = self.anchor_generator(image_shape=image_shape)
+        rpn_boxes, rpn_scores = (
+            predictions["rpn_box"],
+            predictions["rpn_classification"],
+        )
+        decoded_rpn_boxes = _decode_deltas_to_boxes(
+            anchors=ops.concatenate(
+                tree.flatten(anchors),
+                axis=0,
+            ),
+            boxes_delta=rpn_boxes,
+            anchor_format="yxyx",
+            box_format="yxyx",
+            variance=BOX_VARIANCE,
+        )
 
+        rois, _ = self.roi_generator(
+            decoded_rpn_boxes, rpn_scores, training=False
+        )
+        rois = _clip_boxes(rois, "yxyx", image_shape)
+        box_pred, cls_pred = predictions["box"], predictions["classification"]
+
+        # box_pred is on "center_yxhw" format, convert to target format.
         box_pred = _decode_deltas_to_boxes(
             anchors=rois,
             boxes_delta=box_pred,
@@ -714,7 +747,7 @@ class FasterRCNN(Task):
 
 def _parse_box_loss(loss):
     # support arbitrary callables
-    if isinstance(loss, str):
+    if not isinstance(loss, str):
         return loss
 
     # case insensitive comparison
@@ -731,7 +764,7 @@ def _parse_box_loss(loss):
 
 def _parse_rpn_classification_loss(loss):
     # support arbitrary callables
-    if isinstance(loss, str):
+    if not isinstance(loss, str):
         return loss
 
     if loss.lower() == "binarycrossentropy":
@@ -747,7 +780,7 @@ def _parse_rpn_classification_loss(loss):
 
 def _parse_classification_loss(loss):
     # support arbitrary callables
-    if isinstance(loss, str):
+    if not isinstance(loss, str):
         return loss
 
     # case insensitive comparison

@@ -68,6 +68,7 @@ class ROIGenerator(keras.layers.Layer):
             applying NMS in inference mode. When RPN is run on multiple
             feature maps / levels (as in FPN) this number is per
             feature map / level.
+        nms_from_logits: bool. True means input score is logits, False means confidence.
 
     Example:
     ```python
@@ -90,6 +91,7 @@ class ROIGenerator(keras.layers.Layer):
         nms_score_threshold_test: float = 0.0,
         nms_iou_threshold_test: float = 0.7,
         post_nms_topk_test: int = 1000,
+        nms_from_logits: bool = False,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -102,6 +104,7 @@ class ROIGenerator(keras.layers.Layer):
         self.nms_score_threshold_test = nms_score_threshold_test
         self.nms_iou_threshold_test = nms_iou_threshold_test
         self.post_nms_topk_test = post_nms_topk_test
+        self.nms_from_logits = nms_from_logits
         self.built = True
 
     def call(
@@ -158,7 +161,7 @@ class ROIGenerator(keras.layers.Layer):
             # TODO(tanzhenyu): consider supporting soft / batched nms for accl
             boxes = NonMaxSuppression(
                 bounding_box_format=self.bounding_box_format,
-                from_logits=True,
+                from_logits=self.nms_from_logits,
                 iou_threshold=nms_iou_threshold,
                 confidence_threshold=nms_score_threshold,
                 max_detections=level_post_nms_topk,

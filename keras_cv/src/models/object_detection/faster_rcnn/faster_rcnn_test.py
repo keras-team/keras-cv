@@ -1,4 +1,4 @@
-# Copyright 2022 The KerasCV Authors
+# Copyright 2024 The KerasCV Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ class FasterRCNNTest(TestCase):
         )
 
     def test_faster_rcnn_call(self):
-        faster_rcnn = keras_cv.models.FasterRCNN(
+        faster_rcnn = FasterRCNN(
             num_classes=80,
             bounding_box_format="xywh",
             backbone=keras_cv.models.ResNet18V2Backbone(
@@ -61,7 +61,7 @@ class FasterRCNNTest(TestCase):
         _ = faster_rcnn.predict(images)
 
     def test_wrong_logits(self):
-        faster_rcnn = keras_cv.models.FasterRCNN(
+        faster_rcnn = FasterRCNN(
             num_classes=80,
             bounding_box_format="xywh",
             backbone=keras_cv.models.ResNet18V2Backbone(
@@ -91,7 +91,7 @@ class FasterRCNNTest(TestCase):
 
     def test_weights_contained_in_trainable_variables(self):
         bounding_box_format = "xyxy"
-        faster_rcnn = keras_cv.models.FasterRCNN(
+        faster_rcnn = FasterRCNN(
             num_classes=80,
             bounding_box_format=bounding_box_format,
             backbone=keras_cv.models.ResNet18V2Backbone(
@@ -113,9 +113,8 @@ class FasterRCNNTest(TestCase):
         self.assertEqual(len(faster_rcnn.trainable_variables), 30)
 
     @pytest.mark.large  # Fit is slow, so mark these large.
-    @pytest.mark.filterwarnings("ignore::UserWarning")
     def test_no_nans(self):
-        faster_rcnn = keras_cv.models.FasterRCNN(
+        faster_rcnn = FasterRCNN(
             num_classes=80,
             bounding_box_format="xyxy",
             backbone=keras_cv.models.ResNet18V2Backbone(
@@ -146,9 +145,8 @@ class FasterRCNNTest(TestCase):
             self.assertFalse(ops.any(ops.isnan(weight)))
 
     @pytest.mark.large  # Fit is slow, so mark these large.
-    @pytest.mark.filterwarnings("ignore::UserWarning")
     def test_weights_change(self):
-        faster_rcnn = keras_cv.models.FasterRCNN(
+        faster_rcnn = FasterRCNN(
             num_classes=80,
             bounding_box_format="xyxy",
             backbone=keras_cv.models.ResNet18V2Backbone(
@@ -274,17 +272,19 @@ class FasterRCNNTest(TestCase):
                 input_shape=(512, 512, 3)
             ),
         )
-        with self.assertRaisesRegex(ValueError, "Expected"):
+        with self.assertRaisesRegex(ValueError, "expects"):
             model.compile(rpn_box_loss="binary_crossentropy")
         with self.assertRaisesRegex(ValueError, "from_logits"):
             model.compile(
+                box_loss="Huber",
+                classification_loss="CategoricalCrossentropy",
+                rpn_box_loss="Huber",
                 rpn_classification_loss=keras.losses.BinaryCrossentropy(
                     from_logits=False
-                )
+                ),
             )
 
     @pytest.mark.large  # Fit is slow, so mark these large.
-    @pytest.mark.filterwarnings("ignore::UserWarning")
     def test_faster_rcnn_with_dictionary_input_format(self):
         faster_rcnn = FasterRCNN(
             num_classes=20,
@@ -311,7 +311,6 @@ class FasterRCNNTest(TestCase):
         faster_rcnn.evaluate(dataset)
 
     @pytest.mark.large  # Fit is slow, so mark these large.
-    @pytest.mark.filterwarnings("ignore::UserWarning")
     def test_fit_with_no_valid_gt_bbox(self):
         bounding_box_format = "xywh"
         faster_rcnn = FasterRCNN(
