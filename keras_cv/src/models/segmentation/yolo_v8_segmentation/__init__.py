@@ -1,0 +1,1 @@
+from .yolo_v8_segmentation import YOLOV8Segmentation
