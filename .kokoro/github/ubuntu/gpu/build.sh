@@ -67,6 +67,7 @@ then
       keras_cv/src/models/classification \
       keras_cv/src/models/object_detection/retinanet \
       keras_cv/src/models/object_detection/yolo_v8 \
+      keras_cv/src/models/object_detection/faster_rcnn \
       keras_cv/src/models/object_detection_3d \
       keras_cv/src/models/segmentation \
       keras_cv/src/models/feature_extractor/clip \
@@ -82,6 +83,7 @@ else
       keras_cv/src/models/classification \
       keras_cv/src/models/object_detection/retinanet \
       keras_cv/src/models/object_detection/yolo_v8 \
+      keras_cv/src/models/object_detection/faster_rcnn \
       keras_cv/src/models/object_detection_3d \
       keras_cv/src/models/segmentation \
       keras_cv/src/models/feature_extractor/clip \
