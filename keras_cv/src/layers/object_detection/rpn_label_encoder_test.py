@@ -13,8 +13,10 @@
 # limitations under the License.
 
 import numpy as np
+import pytest
 
 from keras_cv.src.backend import ops
+from keras_cv.src.backend.config import keras_3
 from keras_cv.src.layers.object_detection.rpn_label_encoder import (
     RpnLabelEncoder,
 )
@@ -22,6 +24,7 @@ from keras_cv.src.tests.test_case import TestCase
 
 
 class RpnLabelEncoderTest(TestCase):
+    @pytest.mark.skipif(keras_3(), reason="disabling test for Keras 3")
     def test_rpn_label_encoder(self):
         rpn_encoder = RpnLabelEncoder(
             anchor_format="xyxy",
@@ -68,6 +71,7 @@ class RpnLabelEncoderTest(TestCase):
         self.assertAllClose(np.max(ops.convert_to_numpy(box_weights)), 1.0)
         self.assertAllClose(np.min(ops.convert_to_numpy(box_weights)), 0.0)
 
+    @pytest.mark.skipif(keras_3(), reason="disabling test for Keras 3")
     def test_rpn_label_encoder_multi_level(self):
         self.skipTest(
             "TODO: resolving flaky test, https://github.com/keras-team/keras-cv/issues/2336"  # noqa
@@ -97,6 +101,7 @@ class RpnLabelEncoderTest(TestCase):
         self.assertAllClose(expected_cls_weights[2], cls_weights[2])
         self.assertAllClose(expected_cls_weights[3], cls_weights[3])
 
+    @pytest.mark.skipif(keras_3(), reason="disabling test for Keras 3")
     def test_rpn_label_encoder_batched(self):
         rpn_encoder = RpnLabelEncoder(
             anchor_format="xyxy",

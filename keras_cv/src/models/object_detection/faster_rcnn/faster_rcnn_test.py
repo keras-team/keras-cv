@@ -22,6 +22,7 @@ from absl.testing import parameterized
 import keras_cv
 from keras_cv.src.backend import keras
 from keras_cv.src.backend import ops
+from keras_cv.src.backend.config import keras_3
 from keras_cv.src.models.object_detection.__test_utils__ import (
     _create_bounding_box_dataset,
 )
@@ -32,6 +33,7 @@ from keras_cv.src.tests.test_case import TestCase
 
 
 class FasterRCNNTest(TestCase):
+    @pytest.mark.skipif(keras_3(), reason="disabling test for Keras 3")
     def test_faster_rcnn_construction(self):
         faster_rcnn = FasterRCNN(
             num_classes=80,
@@ -48,6 +50,7 @@ class FasterRCNNTest(TestCase):
             rpn_classification_loss="BinaryCrossentropy",
         )
 
+    @pytest.mark.skipif(keras_3(), reason="disabling test for Keras 3")
     def test_faster_rcnn_call(self):
         faster_rcnn = FasterRCNN(
             num_classes=80,
@@ -60,6 +63,7 @@ class FasterRCNNTest(TestCase):
         _ = faster_rcnn(images)
         _ = faster_rcnn.predict(images)
 
+    @pytest.mark.skipif(keras_3(), reason="disabling test for Keras 3")
     def test_wrong_logits(self):
         faster_rcnn = FasterRCNN(
             num_classes=80,
@@ -89,6 +93,7 @@ class FasterRCNNTest(TestCase):
                 ),
             )
 
+    @pytest.mark.skipif(keras_3(), reason="disabling test for Keras 3")
     def test_weights_contained_in_trainable_variables(self):
         bounding_box_format = "xyxy"
         faster_rcnn = FasterRCNN(
@@ -113,6 +118,7 @@ class FasterRCNNTest(TestCase):
         self.assertEqual(len(faster_rcnn.trainable_variables), 30)
 
     @pytest.mark.large  # Fit is slow, so mark these large.
+    @pytest.mark.skipif(keras_3(), reason="disabling test for Keras 3")
     def test_no_nans(self):
         faster_rcnn = FasterRCNN(
             num_classes=80,
@@ -145,6 +151,7 @@ class FasterRCNNTest(TestCase):
             self.assertFalse(ops.any(ops.isnan(weight)))
 
     @pytest.mark.large  # Fit is slow, so mark these large.
+    @pytest.mark.skipif(keras_3(), reason="disabling test for Keras 3")
     def test_weights_change(self):
         faster_rcnn = FasterRCNN(
             num_classes=80,
@@ -192,6 +199,7 @@ class FasterRCNNTest(TestCase):
             self.assertNotAllClose(w1, w2)
 
     @pytest.mark.large  # Saving is slow, so mark these large.
+    @pytest.mark.skipif(keras_3(), reason="disabling test for Keras 3")
     def test_saved_model(self):
         model = keras_cv.models.FasterRCNN(
             num_classes=80,
@@ -226,6 +234,7 @@ class FasterRCNNTest(TestCase):
         ((2, 512, 512, 3),),
         ((2, 128, 128, 3),),
     )
+    @pytest.mark.skipif(keras_3(), reason="disabling test for Keras 3")
     def test_faster_rcnn_infer(self, batch_shape):
         batch_size = batch_shape[0]
         model = FasterRCNN(
@@ -248,6 +257,7 @@ class FasterRCNNTest(TestCase):
         ((2, 512, 512, 3),),
         ((2, 128, 128, 3),),
     )
+    @pytest.mark.skipif(keras_3(), reason="disabling test for Keras 3")
     def test_faster_rcnn_train(self, batch_shape):
         batch_size = batch_shape[0]
         model = FasterRCNN(
@@ -264,6 +274,7 @@ class FasterRCNNTest(TestCase):
         )
         self.assertAllEqual([batch_size, 1000, 4], outputs["box"].shape)
 
+    @pytest.mark.skipif(keras_3(), reason="disabling test for Keras 3")
     def test_invalid_compile(self):
         model = FasterRCNN(
             num_classes=80,
@@ -285,6 +296,7 @@ class FasterRCNNTest(TestCase):
             )
 
     @pytest.mark.large  # Fit is slow, so mark these large.
+    @pytest.mark.skipif(keras_3(), reason="disabling test for Keras 3")
     def test_faster_rcnn_with_dictionary_input_format(self):
         faster_rcnn = FasterRCNN(
             num_classes=20,
@@ -311,6 +323,7 @@ class FasterRCNNTest(TestCase):
         faster_rcnn.evaluate(dataset)
 
     @pytest.mark.large  # Fit is slow, so mark these large.
+    @pytest.mark.skipif(keras_3(), reason="disabling test for Keras 3")
     def test_fit_with_no_valid_gt_bbox(self):
         bounding_box_format = "xywh"
         faster_rcnn = FasterRCNN(

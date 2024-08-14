@@ -52,9 +52,10 @@ BOX_VARIANCE = [0.1, 0.1, 0.2, 0.2]
 class FasterRCNN(Task):
     """A Keras model implementing the Faster R-CNN architecture.
 
-    Implements the Faster R-CNN architecture for object detection. The constructor
-    requires `num_classes`, `bounding_box_format`, and a backbone. Optionally,
-    a custom label encoder, and prediction decoder may be provided.
+    This model is compatible with Keras 3 only. Implements the Faster R-CNN architecture
+    for object detection. The constructor requires `num_classes`, `bounding_box_format`,
+    and a backbone. Optionally, a custom label encoder, and prediction decoder
+    may be provided.
 
     Example:
     ```python

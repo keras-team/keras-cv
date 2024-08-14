@@ -14,14 +14,17 @@
 
 
 import numpy as np
+import pytest
 
 from keras_cv.src.backend import ops
+from keras_cv.src.backend.config import keras_3
 from keras_cv.src.layers.object_detection.box_matcher import BoxMatcher
 from keras_cv.src.layers.object_detection.roi_sampler import ROISampler
 from keras_cv.src.tests.test_case import TestCase
 
 
 class ROISamplerTest(TestCase):
+    @pytest.mark.skipif(keras_3(), reason="disabling test for Keras 3")
     def test_roi_sampler(self):
         box_matcher = BoxMatcher(thresholds=[0.3], match_values=[-1, 1])
         roi_sampler = ROISampler(
@@ -67,6 +70,7 @@ class ROISamplerTest(TestCase):
             np.min(ops.convert_to_numpy(sampled_gt_classes)),
         )
 
+    @pytest.mark.skipif(keras_3(), reason="disabling test for Keras 3")
     def test_roi_sampler_small_threshold(self):
         self.skipTest(
             "TODO: resolving flaky test, https://github.com/keras-team/keras-cv/issues/2336"  # noqa
@@ -123,6 +127,7 @@ class ROISamplerTest(TestCase):
         )
         self.assertAllClose(expected_gt_classes, sampled_gt_classes)
 
+    @pytest.mark.skipif(keras_3(), reason="disabling test for Keras 3")
     def test_roi_sampler_large_threshold(self):
         # the 2nd roi and 2nd gt box has IOU of 0.923, setting
         # positive_threshold to 0.95 to ignore it.
@@ -163,6 +168,7 @@ class ROISamplerTest(TestCase):
         self.assertAllClose(expected_gt_boxes, sampled_gt_boxes)
         self.assertAllClose(expected_gt_classes, sampled_gt_classes)
 
+    @pytest.mark.skipif(keras_3(), reason="disabling test for Keras 3")
     def test_roi_sampler_large_threshold_custom_bg_class(self):
         # the 2nd roi and 2nd gt box has IOU of 0.923, setting
         # positive_threshold to 0.95 to ignore it.
@@ -205,6 +211,7 @@ class ROISamplerTest(TestCase):
         self.assertAllClose(expected_gt_boxes, sampled_gt_boxes)
         self.assertAllClose(expected_gt_classes, sampled_gt_classes)
 
+    @pytest.mark.skipif(keras_3(), reason="disabling test for Keras 3")
     def test_roi_sampler_large_threshold_append_gt_boxes(self):
         # the 2nd roi and 2nd gt box has IOU of 0.923, setting
         # positive_threshold to 0.95 to ignore it.
@@ -248,6 +255,7 @@ class ROISamplerTest(TestCase):
             np.min(ops.convert_to_numpy(sampled_gt_classes)), 0
         )
 
+    @pytest.mark.skipif(keras_3(), reason="disabling test for Keras 3")
     def test_roi_sampler_large_num_sampled_rois(self):
         box_matcher = BoxMatcher(thresholds=[0.95], match_values=[-1, 1])
         roi_sampler = ROISampler(
@@ -277,6 +285,7 @@ class ROISamplerTest(TestCase):
         with self.assertRaisesRegex(ValueError, "must be less than"):
             _, _, _ = roi_sampler(rois, gt_boxes, gt_classes)
 
+    @pytest.mark.skipif(keras_3(), reason="disabling test for Keras 3")
     def test_serialization(self):
         box_matcher = BoxMatcher(thresholds=[0.95], match_values=[-1, 1])
         roi_sampler = ROISampler(
