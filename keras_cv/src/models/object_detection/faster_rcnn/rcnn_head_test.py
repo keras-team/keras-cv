@@ -38,7 +38,7 @@ class RCNNHeadTest(TestCase):
         inputs = ops.ones(shape=(batch_size, num_rois, feature_map_size))
         outputs = layer(inputs)
 
-        self.assertEqual([batch_size, num_rois, 4], outputs[0].shape)
+        self.assertEqual((batch_size, num_rois, 4), outputs[0].shape)
         self.assertEqual(
-            [batch_size, num_rois, num_classes + 1], outputs[1].shape
+            (batch_size, num_rois, num_classes + 1), outputs[1].shape
         )
