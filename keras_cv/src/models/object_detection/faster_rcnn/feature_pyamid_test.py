@@ -13,13 +13,16 @@
 # limitations under the License.
 
 import numpy as np
+import pytest
 
 from keras_cv.src.backend import keras
+from keras_cv.src.backend.config import keras_3
 from keras_cv.src.models.object_detection.faster_rcnn import FeaturePyramid
 from keras_cv.src.tests.test_case import TestCase
 
 
 class FeaturePyramidTest(TestCase):
+    @pytest.mark.skipif(not keras_3(), reason="disabling test for Keras 2")
     def test_return_type_dict(self):
         layer = FeaturePyramid(min_level=2, max_level=5)
         c2 = np.ones([2, 64, 64, 3])
@@ -32,6 +35,7 @@ class FeaturePyramidTest(TestCase):
         self.assertTrue(isinstance(output, dict))
         self.assertEquals(sorted(output.keys()), ["P2", "P3", "P4", "P5", "P6"])
 
+    @pytest.mark.skipif(not keras_3(), reason="disabling test for Keras 2")
     def test_result_shapes(self):
         layer = FeaturePyramid(min_level=2, max_level=5)
         c2 = np.ones([2, 64, 64, 3])
@@ -60,6 +64,7 @@ class FeaturePyramidTest(TestCase):
             self.assertEquals(output[level].shape[2], inputs[level].shape[2])
             self.assertEquals(output[level].shape[3], layer.num_channels)
 
+    @pytest.mark.skipif(not keras_3(), reason="disabling test for Keras 2")
     def test_with_keras_input_tensor(self):
         # This mimic the model building with Backbone network
         layer = FeaturePyramid(min_level=2, max_level=5)
@@ -75,6 +80,7 @@ class FeaturePyramidTest(TestCase):
             self.assertEquals(output[level].shape[2], inputs[level].shape[2])
             self.assertEquals(output[level].shape[3], layer.num_channels)
 
+    @pytest.mark.skipif(not keras_3(), reason="disabling test for Keras 2")
     def test_invalid_lateral_layers(self):
         lateral_layers = [keras.layers.Conv2D(256, 1)] * 3
         with self.assertRaisesRegexp(
@@ -95,6 +101,7 @@ class FeaturePyramidTest(TestCase):
                 min_level=2, max_level=5, lateral_layers=lateral_layers
             )
 
+    @pytest.mark.skipif(not keras_3(), reason="disabling test for Keras 2")
     def test_invalid_output_layers(self):
         output_layers = [keras.layers.Conv2D(256, 3)] * 3
         with self.assertRaisesRegexp(
@@ -115,6 +122,7 @@ class FeaturePyramidTest(TestCase):
                 min_level=2, max_level=5, output_layers=output_layers
             )
 
+    @pytest.mark.skipif(not keras_3(), reason="disabling test for Keras 2")
     def test_invalid_input_features(self):
         layer = FeaturePyramid(min_level=2, max_level=5)
 

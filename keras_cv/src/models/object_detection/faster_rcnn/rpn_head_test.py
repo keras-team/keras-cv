@@ -12,15 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
 from absl.testing import parameterized
 
 from keras_cv.src.backend import keras
 from keras_cv.src.backend import ops
+from keras_cv.src.backend.config import keras_3
 from keras_cv.src.models.object_detection.faster_rcnn import RPNHead
 from keras_cv.src.tests.test_case import TestCase
 
 
 class RCNNHeadTest(TestCase):
+    @pytest.mark.skipif(not keras_3(), reason="disabling test for Keras 2")
     def test_return_type_dict(
         self,
     ):
@@ -42,6 +45,7 @@ class RCNNHeadTest(TestCase):
             sorted(rpn_scores.keys()), ["P2", "P3", "P4", "P5", "P6"]
         )
 
+    @pytest.mark.skipif(not keras_3(), reason="disabling test for Keras 2")
     def test_return_type_list(self):
         layer = RPNHead()
         c2 = ops.ones([2, 128, 128, 256])
@@ -55,6 +59,7 @@ class RCNNHeadTest(TestCase):
         self.assertTrue(isinstance(rpn_boxes, list))
         self.assertTrue(isinstance(rpn_scores, list))
 
+    @pytest.mark.skipif(not keras_3(), reason="disabling test for Keras 2")
     @parameterized.parameters(
         (3,),
         (9,),

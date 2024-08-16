@@ -12,9 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
 from absl.testing import parameterized
 
 from keras_cv.src.backend import ops
+from keras_cv.src.backend.config import keras_3
 from keras_cv.src.models.object_detection.faster_rcnn import RCNNHead
 from keras_cv.src.tests.test_case import TestCase
 
@@ -24,6 +26,7 @@ class RCNNHeadTest(TestCase):
         (2, 512, 20, 7, 256),
         (1, 1000, 80, 14, 512),
     )
+    @pytest.mark.skipif(not keras_3(), reason="disabling test for Keras 2")
     def test_rcnn_head_output_shapes(
         self,
         batch_size,
