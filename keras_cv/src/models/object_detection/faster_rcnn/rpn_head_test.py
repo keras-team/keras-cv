@@ -28,11 +28,11 @@ class RCNNHeadTest(TestCase):
         self,
     ):
         layer = RPNHead()
-        c2 = ops.ones([2, 128, 128, 256])
-        c3 = ops.ones([2, 64, 64, 256])
-        c4 = ops.ones([2, 32, 32, 256])
-        c5 = ops.ones([2, 16, 16, 256])
-        c6 = ops.ones([2, 8, 8, 256])
+        c2 = ops.ones([2, 64, 64, 256])
+        c3 = ops.ones([2, 32, 32, 256])
+        c4 = ops.ones([2, 16, 16, 256])
+        c5 = ops.ones([2, 8, 8, 256])
+        c6 = ops.ones([2, 4, 4, 256])
 
         inputs = {"P2": c2, "P3": c3, "P4": c4, "P5": c5, "P6": c6}
         rpn_boxes, rpn_scores = layer(inputs)
@@ -48,11 +48,11 @@ class RCNNHeadTest(TestCase):
     @pytest.mark.skipif(not keras_3(), reason="disabling test for Keras 2")
     def test_return_type_list(self):
         layer = RPNHead()
-        c2 = ops.ones([2, 128, 128, 256])
-        c3 = ops.ones([2, 64, 64, 256])
-        c4 = ops.ones([2, 32, 32, 256])
-        c5 = ops.ones([2, 16, 16, 256])
-        c6 = ops.ones([2, 8, 8, 256])
+        c2 = ops.ones([2, 64, 64, 256])
+        c3 = ops.ones([2, 32, 32, 256])
+        c4 = ops.ones([2, 16, 16, 256])
+        c5 = ops.ones([2, 8, 8, 256])
+        c6 = ops.ones([2, 4, 4, 256])
 
         inputs = [c2, c3, c4, c5, c6]
         rpn_boxes, rpn_scores = layer(inputs)
@@ -66,11 +66,11 @@ class RCNNHeadTest(TestCase):
     )
     def test_with_keras_input_tensor_and_num_anchors(self, num_anchors):
         layer = RPNHead(num_anchors_per_location=num_anchors)
-        c2 = keras.layers.Input([128, 128, 256])
-        c3 = keras.layers.Input([64, 64, 256])
-        c4 = keras.layers.Input([32, 32, 256])
-        c5 = keras.layers.Input([16, 16, 256])
-        c6 = keras.layers.Input([8, 8, 256])
+        c2 = keras.layers.Input([64, 64, 256])
+        c3 = keras.layers.Input([32, 32, 256])
+        c4 = keras.layers.Input([16, 16, 256])
+        c5 = keras.layers.Input([8, 8, 256])
+        c6 = keras.layers.Input([4, 4, 256])
 
         inputs = {"P2": c2, "P3": c3, "P4": c4, "P5": c5, "P6": c6}
         rpn_boxes, rpn_scores = layer(inputs)

@@ -39,7 +39,7 @@ class FasterRCNNTest(TestCase):
             num_classes=80,
             bounding_box_format="xyxy",
             backbone=keras_cv.models.ResNet18V2Backbone(
-                input_shape=(512, 512, 3)
+                input_shape=(256, 256, 3)
             ),
         )
         faster_rcnn.compile(
@@ -50,16 +50,17 @@ class FasterRCNNTest(TestCase):
             rpn_classification_loss="BinaryCrossentropy",
         )
 
+    @pytest.mark.large()
     @pytest.mark.skipif(not keras_3(), reason="disabling test for Keras 2")
     def test_faster_rcnn_call(self):
         faster_rcnn = FasterRCNN(
             num_classes=80,
             bounding_box_format="xywh",
             backbone=keras_cv.models.ResNet18V2Backbone(
-                input_shape=(512, 512, 3)
+                input_shape=(256, 256, 3)
             ),
         )
-        images = np.random.uniform(size=(2, 512, 512, 3))
+        images = np.random.uniform(size=(2, 256, 256, 3))
         _ = faster_rcnn(images)
         _ = faster_rcnn.predict(images)
 
@@ -69,7 +70,7 @@ class FasterRCNNTest(TestCase):
             num_classes=80,
             bounding_box_format="xywh",
             backbone=keras_cv.models.ResNet18V2Backbone(
-                input_shape=(512, 512, 3)
+                input_shape=(256, 256, 3)
             ),
         )
 
@@ -93,6 +94,7 @@ class FasterRCNNTest(TestCase):
                 ),
             )
 
+    @pytest.mark.large()
     @pytest.mark.skipif(not keras_3(), reason="disabling test for Keras 2")
     def test_weights_contained_in_trainable_variables(self):
         bounding_box_format = "xyxy"
@@ -100,7 +102,7 @@ class FasterRCNNTest(TestCase):
             num_classes=80,
             bounding_box_format=bounding_box_format,
             backbone=keras_cv.models.ResNet18V2Backbone(
-                input_shape=(512, 512, 3)
+                input_shape=(256, 256, 3)
             ),
         )
         faster_rcnn.backbone.trainable = False
@@ -124,7 +126,7 @@ class FasterRCNNTest(TestCase):
             num_classes=80,
             bounding_box_format="xyxy",
             backbone=keras_cv.models.ResNet18V2Backbone(
-                input_shape=(512, 512, 3)
+                input_shape=(256, 256, 3)
             ),
         )
         faster_rcnn.compile(
@@ -136,7 +138,7 @@ class FasterRCNNTest(TestCase):
         )
 
         # only a -1 box
-        xs = np.ones((1, 512, 512, 3), "float32")
+        xs = np.ones((1, 256, 256, 3), "float32")
         ys = {
             "classes": np.array([[-1]], "float32"),
             "boxes": np.array([[[0, 0, 0, 0]]], "float32"),
@@ -157,7 +159,7 @@ class FasterRCNNTest(TestCase):
             num_classes=80,
             bounding_box_format="xyxy",
             backbone=keras_cv.models.ResNet18V2Backbone(
-                input_shape=(512, 512, 3)
+                input_shape=(256, 256, 3)
             ),
         )
         faster_rcnn.compile(
@@ -174,7 +176,7 @@ class FasterRCNNTest(TestCase):
         ).batch(5, drop_remainder=True)
 
         # call once
-        _ = faster_rcnn(ops.ones((1, 512, 512, 3)))
+        _ = faster_rcnn(ops.ones((1, 256, 256, 3)))
         original_fpn_weights = faster_rcnn.feature_pyramid.get_weights()
         original_rpn_head_weights = faster_rcnn.rpn_head.get_weights()
         original_rcnn_head_weights = faster_rcnn.rcnn_head.get_weights()
@@ -205,10 +207,10 @@ class FasterRCNNTest(TestCase):
             num_classes=80,
             bounding_box_format="xyxy",
             backbone=keras_cv.models.ResNet18V2Backbone(
-                input_shape=(512, 512, 3)
+                input_shape=(256, 256, 3)
             ),
         )
-        input_batch = ops.ones(shape=(1, 512, 512, 3))
+        input_batch = ops.ones(shape=(1, 256, 256, 3))
         model_output = model(input_batch)
         save_path = os.path.join(self.get_temp_dir(), "faster_rcnn.keras")
         model.save(save_path)
@@ -231,9 +233,10 @@ class FasterRCNNTest(TestCase):
     # https://github.com/keras-team/keras-cv/pull/1882
     @parameterized.parameters(
         ((2, 640, 384, 3),),
-        ((2, 512, 512, 3),),
+        ((2, 256, 256, 3),),
         ((2, 128, 128, 3),),
     )
+    @pytest.mark.large
     @pytest.mark.skipif(not keras_3(), reason="disabling test for Keras 2")
     def test_faster_rcnn_infer(self, batch_shape):
         batch_size = batch_shape[0]
@@ -254,9 +257,10 @@ class FasterRCNNTest(TestCase):
 
     @parameterized.parameters(
         ((2, 640, 384, 3),),
-        ((2, 512, 512, 3),),
+        ((2, 256, 256, 3),),
         ((2, 128, 128, 3),),
     )
+    @pytest.mark.large
     @pytest.mark.skipif(not keras_3(), reason="disabling test for Keras 2")
     def test_faster_rcnn_train(self, batch_shape):
         batch_size = batch_shape[0]
@@ -280,7 +284,7 @@ class FasterRCNNTest(TestCase):
             num_classes=80,
             bounding_box_format="yxyx",
             backbone=keras_cv.models.ResNet18V2Backbone(
-                input_shape=(512, 512, 3)
+                input_shape=(256, 256, 3)
             ),
         )
         with self.assertRaisesRegex(ValueError, "expects"):
@@ -302,7 +306,7 @@ class FasterRCNNTest(TestCase):
             num_classes=20,
             bounding_box_format="xywh",
             backbone=keras_cv.models.ResNet18V2Backbone(
-                input_shape=(512, 512, 3)
+                input_shape=(256, 256, 3)
             ),
         )
 
@@ -330,7 +334,7 @@ class FasterRCNNTest(TestCase):
             num_classes=20,
             bounding_box_format=bounding_box_format,
             backbone=keras_cv.models.ResNet18V2Backbone(
-                input_shape=(512, 512, 3)
+                input_shape=(256, 256, 3)
             ),
         )
 

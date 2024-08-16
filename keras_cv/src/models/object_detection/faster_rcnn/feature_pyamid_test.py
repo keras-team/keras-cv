@@ -25,10 +25,10 @@ class FeaturePyramidTest(TestCase):
     @pytest.mark.skipif(not keras_3(), reason="disabling test for Keras 2")
     def test_return_type_dict(self):
         layer = FeaturePyramid(min_level=2, max_level=5)
-        c2 = np.ones([2, 64, 64, 3])
-        c3 = np.ones([2, 32, 32, 3])
-        c4 = np.ones([2, 16, 16, 3])
-        c5 = np.ones([2, 8, 8, 3])
+        c2 = np.ones([2, 32, 32, 3])
+        c3 = np.ones([2, 16, 16, 3])
+        c4 = np.ones([2, 8, 8, 3])
+        c5 = np.ones([2, 4, 4, 3])
 
         inputs = {"P2": c2, "P3": c3, "P4": c4, "P5": c5}
         output = layer(inputs)
@@ -38,10 +38,10 @@ class FeaturePyramidTest(TestCase):
     @pytest.mark.skipif(not keras_3(), reason="disabling test for Keras 2")
     def test_result_shapes(self):
         layer = FeaturePyramid(min_level=2, max_level=5)
-        c2 = np.ones([2, 64, 64, 3])
-        c3 = np.ones([2, 32, 32, 3])
-        c4 = np.ones([2, 16, 16, 3])
-        c5 = np.ones([2, 8, 8, 3])
+        c2 = np.ones([2, 32, 32, 3])
+        c3 = np.ones([2, 16, 16, 3])
+        c4 = np.ones([2, 8, 8, 3])
+        c5 = np.ones([2, 4, 4, 3])
 
         inputs = {"P2": c2, "P3": c3, "P4": c4, "P5": c5}
         output = layer(inputs)
@@ -68,10 +68,10 @@ class FeaturePyramidTest(TestCase):
     def test_with_keras_input_tensor(self):
         # This mimic the model building with Backbone network
         layer = FeaturePyramid(min_level=2, max_level=5)
-        c2 = keras.layers.Input([64, 64, 3])
-        c3 = keras.layers.Input([32, 32, 3])
-        c4 = keras.layers.Input([16, 16, 3])
-        c5 = keras.layers.Input([8, 8, 3])
+        c2 = keras.layers.Input([32, 32, 3])
+        c3 = keras.layers.Input([16, 16, 3])
+        c4 = keras.layers.Input([8, 8, 3])
+        c5 = keras.layers.Input([4, 4, 3])
 
         inputs = {"P2": c2, "P3": c3, "P4": c4, "P5": c5}
         output = layer(inputs)
@@ -126,10 +126,10 @@ class FeaturePyramidTest(TestCase):
     def test_invalid_input_features(self):
         layer = FeaturePyramid(min_level=2, max_level=5)
 
-        c2 = np.ones([2, 64, 64, 3])
-        c3 = np.ones([2, 32, 32, 3])
-        c4 = np.ones([2, 16, 16, 3])
-        c5 = np.ones([2, 8, 8, 3])
+        c2 = np.ones([2, 32, 32, 3])
+        c3 = np.ones([2, 16, 16, 3])
+        c4 = np.ones([2, 8, 8, 3])
+        c5 = np.ones([2, 4, 4, 3])
         inputs = {"P2": c2, "P3": c3, "P4": c4, "P5": c5}
         # Build required for Keas 3
         _ = layer(inputs)

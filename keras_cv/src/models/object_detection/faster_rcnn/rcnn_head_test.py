@@ -23,8 +23,8 @@ from keras_cv.src.tests.test_case import TestCase
 
 class RCNNHeadTest(TestCase):
     @parameterized.parameters(
-        (2, 512, 20, 7, 256),
-        (1, 1000, 80, 14, 512),
+        (2, 256, 20, 7, 256),
+        (1, 512, 80, 14, 512),
     )
     @pytest.mark.skipif(not keras_3(), reason="disabling test for Keras 2")
     def test_rcnn_head_output_shapes(
