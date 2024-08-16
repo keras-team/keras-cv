@@ -18,7 +18,6 @@ from absl.testing import parameterized
 from tensorflow import keras
 from tensorflow.keras import optimizers
 
-from keras_cv.src.backend import config as backend_config
 from keras_cv.src.models import ResNet18V2Backbone
 from keras_cv.src.models.legacy.object_detection.faster_rcnn.faster_rcnn import (  # noqa: E501
     FasterRCNN,
