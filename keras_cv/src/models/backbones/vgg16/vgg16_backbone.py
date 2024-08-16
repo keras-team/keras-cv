@@ -70,7 +70,6 @@ class VGG16Backbone(Backbone):
         name="VGG16",
         **kwargs,
     ):
-
         if include_top and num_classes is None:
             raise ValueError(
                 "If `include_top` is True, you should specify `num_classes`. "

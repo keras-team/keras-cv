@@ -40,7 +40,6 @@ MERGE_PATH = keras.utils.get_file(
     reason="Only works with Keras 3",
 )
 class CLIPTest(TestCase):
-
     @pytest.mark.large
     def test_clip_model_golden_values(self):
         model = CLIP.from_preset("clip-vit-base-patch32")

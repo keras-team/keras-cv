@@ -249,10 +249,10 @@ class OldRandomlyZoomedCrop(BaseImageAugmentationLayer):
                 config["zoom_factor"]
             )
         if isinstance(config["aspect_ratio_factor"], dict):
-            config["aspect_ratio_factor"] = (
-                keras.utils.deserialize_keras_object(
-                    config["aspect_ratio_factor"]
-                )
+            config[
+                "aspect_ratio_factor"
+            ] = keras.utils.deserialize_keras_object(
+                config["aspect_ratio_factor"]
             )
         return cls(**config)
 

@@ -47,7 +47,6 @@ class TestVideoSwinPatchingAndEmbedding(TestCase):
 
 
 class TestVideoSwinWindowAttention(TestCase):
-
     def setUp(self):
         self.window_attention_model = VideoSwinWindowAttention(
             input_dim=32,
