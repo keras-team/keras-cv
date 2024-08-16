@@ -20,7 +20,7 @@ from keras_cv.src.backend import ops
 
 def _create_bounding_box_dataset(
     bounding_box_format,
-    image_shape=(256, 256, 3),
+    image_shape=(512, 512, 3),
     use_dictionary_box_format=False,
 ):
     # Just about the easiest dataset you can have, all classes are 0, all boxes

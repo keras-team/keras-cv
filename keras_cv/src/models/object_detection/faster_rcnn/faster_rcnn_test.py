@@ -113,7 +113,9 @@ class FasterRCNNTest(TestCase):
             rpn_box_loss="Huber",
             rpn_classification_loss="BinaryCrossentropy",
         )
-        xs, ys = _create_bounding_box_dataset(bounding_box_format)
+        xs, ys = _create_bounding_box_dataset(
+            bounding_box_format, image_shape=(256, 256, 3)
+        )
 
         # call once
         _ = faster_rcnn(xs)
@@ -152,7 +154,7 @@ class FasterRCNNTest(TestCase):
         for weight in weights:
             self.assertFalse(ops.any(ops.isnan(weight)))
 
-    @pytest.mark.large  # Fit is slow, so mark these large.
+    @pytest.mark.extra_large  # Fit is slow, so mark these large.
     @pytest.mark.skipif(not keras_3(), reason="disabling test for Keras 2")
     def test_weights_change(self):
         faster_rcnn = FasterRCNN(
@@ -170,7 +172,9 @@ class FasterRCNNTest(TestCase):
             rpn_classification_loss="BinaryCrossentropy",
         )
 
-        images, boxes = _create_bounding_box_dataset("xyxy")
+        images, boxes = _create_bounding_box_dataset(
+            "xyxy", image_shape=(256, 256, 3)
+        )
         ds = tf.data.Dataset.from_tensor_slices(
             {"images": images, "bounding_boxes": boxes}
         ).batch(5, drop_remainder=True)
@@ -299,7 +303,7 @@ class FasterRCNNTest(TestCase):
                 ),
             )
 
-    @pytest.mark.large  # Fit is slow, so mark these large.
+    @pytest.mark.extra_large  # Fit is slow, so mark these large.
     @pytest.mark.skipif(not keras_3(), reason="disabling test for Keras 2")
     def test_faster_rcnn_with_dictionary_input_format(self):
         faster_rcnn = FasterRCNN(
@@ -310,7 +314,9 @@ class FasterRCNNTest(TestCase):
             ),
         )
 
-        images, boxes = _create_bounding_box_dataset("xywh")
+        images, boxes = _create_bounding_box_dataset(
+            "xywh", image_shape=(256, 256, 3)
+        )
         dataset = tf.data.Dataset.from_tensor_slices(
             {"images": images, "bounding_boxes": boxes}
         ).batch(5, drop_remainder=True)
@@ -345,7 +351,9 @@ class FasterRCNNTest(TestCase):
             rpn_box_loss="Huber",
             rpn_classification_loss="BinaryCrossentropy",
         )
-        xs, ys = _create_bounding_box_dataset(bounding_box_format)
+        xs, ys = _create_bounding_box_dataset(
+            bounding_box_format, image_shape=(256, 256, 3)
+        )
         # Make all bounding_boxes invalid and filter out them
         ys["classes"] = -np.ones_like(ys["classes"])
 
