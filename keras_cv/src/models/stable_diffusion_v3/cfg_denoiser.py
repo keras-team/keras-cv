@@ -1,4 +1,4 @@
-from keras import ops
+from keras_cv.src.backend import ops
 
 
 class CFGDenoiser:

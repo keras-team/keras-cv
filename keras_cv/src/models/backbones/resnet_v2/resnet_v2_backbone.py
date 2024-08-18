@@ -136,9 +136,9 @@ class ResNetV2Backbone(Backbone):
                 first_shortcut=(block_type == "block" or stack_index > 0),
                 name=f"v2_stack_{stack_index}",
             )
-            pyramid_level_inputs[
-                f"P{stack_index + 2}"
-            ] = utils.get_tensor_input_name(x)
+            pyramid_level_inputs[f"P{stack_index + 2}"] = (
+                utils.get_tensor_input_name(x)
+            )
 
         x = keras.layers.BatchNormalization(
             axis=BN_AXIS, epsilon=BN_EPSILON, name="post_bn"

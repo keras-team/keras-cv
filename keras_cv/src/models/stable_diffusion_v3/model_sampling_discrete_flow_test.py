@@ -13,8 +13,8 @@
 # limitations under the License.
 
 import numpy as np
-from keras import ops
 
+from keras_cv.src.backend import ops
 from keras_cv.src.models.stable_diffusion_v3.model_sampling_discrete_flow import (
     ModelSamplingDiscreteFlow,
 )

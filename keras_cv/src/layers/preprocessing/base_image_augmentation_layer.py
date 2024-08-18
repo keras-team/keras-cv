@@ -236,15 +236,15 @@ class BaseImageAugmentationLayer(keras.layers.Layer):
         bounding_boxes = inputs.get(BOUNDING_BOXES, None)
 
         if bounding_boxes is not None:
-            fn_output_signature[
-                BOUNDING_BOXES
-            ] = self._compute_bounding_box_signature(bounding_boxes)
+            fn_output_signature[BOUNDING_BOXES] = (
+                self._compute_bounding_box_signature(bounding_boxes)
+            )
 
         segmentation_masks = inputs.get(SEGMENTATION_MASKS, None)
         if segmentation_masks is not None:
-            fn_output_signature[
-                SEGMENTATION_MASKS
-            ] = self.compute_image_signature(segmentation_masks)
+            fn_output_signature[SEGMENTATION_MASKS] = (
+                self.compute_image_signature(segmentation_masks)
+            )
 
         keypoints = inputs.get(KEYPOINTS, None)
         if keypoints is not None:
