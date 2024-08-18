@@ -15,7 +15,7 @@
 from keras import ops
 
 
-class ModelSamplingDiscreteFlow:
+class ModelSampling:
     """Helper for sampler scheduling for Discrete Flow models"""
 
     def __init__(self, shift=1.0):

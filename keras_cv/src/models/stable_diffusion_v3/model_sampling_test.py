@@ -15,21 +15,19 @@
 import numpy as np
 
 from keras_cv.src.backend import ops
-from keras_cv.src.models.stable_diffusion_v3.model_sampling_discrete_flow import (
-    ModelSamplingDiscreteFlow,
-)
+from keras_cv.src.models.stable_diffusion_v3.model_sampling import ModelSampling
 from keras_cv.src.tests.test_case import TestCase
 
 
-class ClipUtilsTest(TestCase):
+class ModelSamplingTest(TestCase):
     def test_sigma_stats(self):
-        model_sampling = ModelSamplingDiscreteFlow()
+        model_sampling = ModelSampling()
         self.assertEqual(model_sampling.sigma_min, 0.001)
         self.assertEqual(model_sampling.sigma_max, 1.0)
 
     def test_timestep(self):
         steps = 50
-        model_sampling = ModelSamplingDiscreteFlow()
+        model_sampling = ModelSampling()
         start = model_sampling.timestep(model_sampling.sigma_max)
         end = model_sampling.timestep(model_sampling.sigma_min)
         timesteps = ops.linspace(start, end, steps)
@@ -41,7 +39,7 @@ class ClipUtilsTest(TestCase):
 
     def test_sigma(self):
         timesteps = np.linspace(1000, 1, 50)
-        model_sampling = ModelSamplingDiscreteFlow()
+        model_sampling = ModelSampling()
         sigmas = model_sampling.sigma(timesteps)
         sigmas = ops.pad(sigmas, [0, 1])
 
@@ -54,7 +52,7 @@ class ClipUtilsTest(TestCase):
         latent = np.ones((1, 40, 40, 16)).astype("float32") * 0.0609
         noise = np.zeros((1, 40, 40, 16)).astype("float32")  # Fixed noise
         sigma = 0.5
-        model_sampling = ModelSamplingDiscreteFlow()
+        model_sampling = ModelSampling()
         noise_scaled = model_sampling.noise_scaling(sigma, noise, latent)
         self.assertAllClose(
             noise_scaled, sigma * noise + (1.0 - sigma) * latent
