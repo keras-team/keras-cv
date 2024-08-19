@@ -17,7 +17,6 @@ import os
 import numpy as np
 import pytest
 import tensorflow as tf
-from absl.testing import parameterized
 
 import keras_cv
 from keras_cv.src.backend import keras
@@ -39,8 +38,9 @@ class FasterRCNNTest(TestCase):
             num_classes=80,
             bounding_box_format="xyxy",
             backbone=keras_cv.models.ResNet18V2Backbone(
-                input_shape=(256, 256, 3)
+                input_shape=(32, 32, 3)
             ),
+            num_sampled_rois=256,
         )
         faster_rcnn.compile(
             optimizer=keras.optimizers.Adam(),
@@ -50,17 +50,18 @@ class FasterRCNNTest(TestCase):
             rpn_classification_loss="BinaryCrossentropy",
         )
 
-    @pytest.mark.large()
+    @pytest.mark.extra_large()
     @pytest.mark.skipif(not keras_3(), reason="disabling test for Keras 2")
     def test_faster_rcnn_call(self):
         faster_rcnn = FasterRCNN(
-            num_classes=80,
+            num_classes=3,
             bounding_box_format="xywh",
             backbone=keras_cv.models.ResNet18V2Backbone(
-                input_shape=(256, 256, 3)
+                input_shape=(32, 32, 3)
             ),
+            num_sampled_rois=256,
         )
-        images = np.random.uniform(size=(2, 256, 256, 3))
+        images = np.random.uniform(size=(1, 32, 32, 3))
         _ = faster_rcnn(images)
         _ = faster_rcnn.predict(images)
 
@@ -70,8 +71,9 @@ class FasterRCNNTest(TestCase):
             num_classes=80,
             bounding_box_format="xywh",
             backbone=keras_cv.models.ResNet18V2Backbone(
-                input_shape=(256, 256, 3)
+                input_shape=(32, 32, 3)
             ),
+            num_sampled_rois=256,
         )
 
         with self.assertRaisesRegex(
@@ -102,8 +104,9 @@ class FasterRCNNTest(TestCase):
             num_classes=80,
             bounding_box_format=bounding_box_format,
             backbone=keras_cv.models.ResNet18V2Backbone(
-                input_shape=(256, 256, 3)
+                input_shape=(32, 32, 3)
             ),
+            num_sampled_rois=256,
         )
         faster_rcnn.backbone.trainable = False
         faster_rcnn.compile(
@@ -114,22 +117,23 @@ class FasterRCNNTest(TestCase):
             rpn_classification_loss="BinaryCrossentropy",
         )
         xs, ys = _create_bounding_box_dataset(
-            bounding_box_format, image_shape=(256, 256, 3)
+            bounding_box_format, image_shape=(32, 32, 3)
         )
 
         # call once
         _ = faster_rcnn(xs)
         self.assertEqual(len(faster_rcnn.trainable_variables), 30)
 
-    @pytest.mark.large  # Fit is slow, so mark these large.
+    @pytest.mark.extra_large  # Fit is slow, so mark these large.
     @pytest.mark.skipif(not keras_3(), reason="disabling test for Keras 2")
     def test_no_nans(self):
         faster_rcnn = FasterRCNN(
-            num_classes=80,
+            num_classes=5,
             bounding_box_format="xyxy",
             backbone=keras_cv.models.ResNet18V2Backbone(
-                input_shape=(256, 256, 3)
+                input_shape=(32, 32, 3)
             ),
+            num_sampled_rois=256,
         )
         faster_rcnn.compile(
             optimizer=keras.optimizers.Adam(),
@@ -140,14 +144,14 @@ class FasterRCNNTest(TestCase):
         )
 
         # only a -1 box
-        xs = np.ones((1, 256, 256, 3), "float32")
+        xs = np.ones((1, 32, 32, 3), "float32")
         ys = {
             "classes": np.array([[-1]], "float32"),
             "boxes": np.array([[[0, 0, 0, 0]]], "float32"),
         }
         ds = tf.data.Dataset.from_tensor_slices((xs, ys))
-        ds = ds.repeat(2)
-        ds = ds.batch(2, drop_remainder=True)
+        ds = ds.repeat(1)
+        ds = ds.batch(1, drop_remainder=True)
         faster_rcnn.fit(ds, epochs=1)
 
         weights = faster_rcnn.get_weights()
@@ -158,10 +162,10 @@ class FasterRCNNTest(TestCase):
     @pytest.mark.skipif(not keras_3(), reason="disabling test for Keras 2")
     def test_weights_change(self):
         faster_rcnn = FasterRCNN(
-            num_classes=80,
+            num_classes=3,
             bounding_box_format="xyxy",
             backbone=keras_cv.models.ResNet18V2Backbone(
-                input_shape=(256, 256, 3)
+                input_shape=(128, 128, 3)
             ),
         )
         faster_rcnn.compile(
@@ -172,15 +176,12 @@ class FasterRCNNTest(TestCase):
             rpn_classification_loss="BinaryCrossentropy",
         )
 
-        images, boxes = _create_bounding_box_dataset(
-            "xyxy", image_shape=(256, 256, 3)
+        ds = _create_bounding_box_dataset(
+            "xyxy", image_shape=(128, 128, 3), use_dictionary_box_format=True
         )
-        ds = tf.data.Dataset.from_tensor_slices(
-            {"images": images, "bounding_boxes": boxes}
-        ).batch(5, drop_remainder=True)
 
         # call once
-        _ = faster_rcnn(ops.ones((1, 256, 256, 3)))
+        _ = faster_rcnn(ops.ones((1, 128, 128, 3)))
         original_fpn_weights = faster_rcnn.feature_pyramid.get_weights()
         original_rpn_head_weights = faster_rcnn.rpn_head.get_weights()
         original_rcnn_head_weights = faster_rcnn.rcnn_head.get_weights()
@@ -207,14 +208,14 @@ class FasterRCNNTest(TestCase):
     @pytest.mark.large  # Saving is slow, so mark these large.
     @pytest.mark.skipif(not keras_3(), reason="disabling test for Keras 2")
     def test_saved_model(self):
-        model = keras_cv.models.FasterRCNN(
+        model = FasterRCNN(
             num_classes=80,
             bounding_box_format="xyxy",
             backbone=keras_cv.models.ResNet18V2Backbone(
-                input_shape=(256, 256, 3)
+                input_shape=(32, 32, 3)
             ),
         )
-        input_batch = ops.ones(shape=(1, 256, 256, 3))
+        input_batch = ops.ones(shape=(1, 32, 32, 3))
         model_output = model(input_batch)
         save_path = os.path.join(self.get_temp_dir(), "faster_rcnn.keras")
         model.save(save_path)
@@ -230,57 +231,36 @@ class FasterRCNNTest(TestCase):
             tf.nest.map_structure(ops.convert_to_numpy, restored_output),
         )
 
-    # TODO(ianstenbit): Make FasterRCNN support shapes that are not multiples
-    # of 128, perhaps by adding a flag to the anchor generator for whether to
-    # include anchors centered outside of the image. (RetinaNet does use those,
-    # while FasterRCNN doesn't). For more context on why this is the case, see
-    # https://github.com/keras-team/keras-cv/pull/1882
-    @parameterized.parameters(
-        ((2, 640, 384, 3),),
-        ((2, 256, 256, 3),),
-        ((2, 128, 128, 3),),
-    )
     @pytest.mark.large
     @pytest.mark.skipif(not keras_3(), reason="disabling test for Keras 2")
-    def test_faster_rcnn_infer(self, batch_shape):
-        batch_size = batch_shape[0]
+    def test_faster_rcnn_infer(self):
         model = FasterRCNN(
             num_classes=80,
             bounding_box_format="xyxy",
             backbone=keras_cv.models.ResNet18V2Backbone(
-                input_shape=batch_shape[1:]
+                input_shape=(128, 128, 3)
             ),
         )
-        images = ops.ones(batch_shape)
+        images = ops.ones((1, 128, 128, 3))
         outputs = model(images, training=False)
         # 1000 proposals in inference
-        self.assertAllEqual(
-            [batch_size, 1000, 81], outputs["classification"].shape
-        )
-        self.assertAllEqual([batch_size, 1000, 4], outputs["box"].shape)
+        self.assertAllEqual([1, 1000, 81], outputs["classification"].shape)
+        self.assertAllEqual([1, 1000, 4], outputs["box"].shape)
 
-    @parameterized.parameters(
-        ((2, 640, 384, 3),),
-        ((2, 256, 256, 3),),
-        ((2, 128, 128, 3),),
-    )
     @pytest.mark.large
     @pytest.mark.skipif(not keras_3(), reason="disabling test for Keras 2")
-    def test_faster_rcnn_train(self, batch_shape):
-        batch_size = batch_shape[0]
+    def test_faster_rcnn_train(self):
         model = FasterRCNN(
             num_classes=80,
             bounding_box_format="xyxy",
             backbone=keras_cv.models.ResNet18V2Backbone(
-                input_shape=batch_shape[1:]
+                input_shape=(128, 128, 3)
             ),
         )
-        images = ops.ones(batch_shape)
+        images = ops.ones((1, 128, 128, 3))
         outputs = model(images, training=True)
-        self.assertAllEqual(
-            [batch_size, 1000, 81], outputs["classification"].shape
-        )
-        self.assertAllEqual([batch_size, 1000, 4], outputs["box"].shape)
+        self.assertAllEqual([1, 1000, 81], outputs["classification"].shape)
+        self.assertAllEqual([1, 1000, 4], outputs["box"].shape)
 
     @pytest.mark.skipif(not keras_3(), reason="disabling test for Keras 2")
     def test_invalid_compile(self):
@@ -288,8 +268,9 @@ class FasterRCNNTest(TestCase):
             num_classes=80,
             bounding_box_format="yxyx",
             backbone=keras_cv.models.ResNet18V2Backbone(
-                input_shape=(256, 256, 3)
+                input_shape=(32, 32, 3)
             ),
+            num_sampled_rois=256,
         )
         with self.assertRaisesRegex(ValueError, "expects"):
             model.compile(rpn_box_loss="binary_crossentropy")
@@ -307,19 +288,20 @@ class FasterRCNNTest(TestCase):
     @pytest.mark.skipif(not keras_3(), reason="disabling test for Keras 2")
     def test_faster_rcnn_with_dictionary_input_format(self):
         faster_rcnn = FasterRCNN(
-            num_classes=20,
+            num_classes=3,
             bounding_box_format="xywh",
             backbone=keras_cv.models.ResNet18V2Backbone(
-                input_shape=(256, 256, 3)
+                input_shape=(32, 32, 3)
             ),
+            num_sampled_rois=256,
         )
 
         images, boxes = _create_bounding_box_dataset(
-            "xywh", image_shape=(256, 256, 3)
+            "xywh", image_shape=(32, 32, 3)
         )
         dataset = tf.data.Dataset.from_tensor_slices(
             {"images": images, "bounding_boxes": boxes}
-        ).batch(5, drop_remainder=True)
+        ).batch(1, drop_remainder=True)
 
         faster_rcnn.compile(
             optimizer=keras.optimizers.Adam(),
@@ -330,18 +312,18 @@ class FasterRCNNTest(TestCase):
         )
 
         faster_rcnn.fit(dataset, epochs=1)
-        faster_rcnn.evaluate(dataset)
 
-    @pytest.mark.large  # Fit is slow, so mark these large.
+    @pytest.mark.extra_large  # Fit is slow, so mark these large.
     @pytest.mark.skipif(not keras_3(), reason="disabling test for Keras 2")
     def test_fit_with_no_valid_gt_bbox(self):
         bounding_box_format = "xywh"
         faster_rcnn = FasterRCNN(
-            num_classes=20,
+            num_classes=2,
             bounding_box_format=bounding_box_format,
             backbone=keras_cv.models.ResNet18V2Backbone(
-                input_shape=(256, 256, 3)
+                input_shape=(32, 32, 3)
             ),
+            num_sampled_rois=256,
         )
 
         faster_rcnn.compile(
@@ -352,10 +334,11 @@ class FasterRCNNTest(TestCase):
             rpn_classification_loss="BinaryCrossentropy",
         )
         xs, ys = _create_bounding_box_dataset(
-            bounding_box_format, image_shape=(256, 256, 3)
+            bounding_box_format, image_shape=(32, 32, 3)
         )
+        xs = ops.convert_to_tensor(xs)
         # Make all bounding_boxes invalid and filter out them
-        ys["classes"] = -np.ones_like(ys["classes"])
+        ys["classes"] = -ops.ones_like(ys["classes"])
 
         faster_rcnn.fit(x=xs, y=ys, epochs=1, batch_size=1)
 

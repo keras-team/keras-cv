@@ -412,6 +412,7 @@ class ROIAligner(keras.layers.Layer):
         self.bounding_box_format = bounding_box_format
         self.target_size = target_size
         self.sample_offset = sample_offset
+        self.built = True
 
     def call(
         self,

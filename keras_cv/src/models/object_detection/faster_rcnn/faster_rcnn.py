@@ -357,6 +357,7 @@ class FasterRCNN(Task):
             from_logits=False,
             max_detections=num_max_decoder_detections,
         )
+        self.build(backbone.input_shape)
 
     def compile(
         self,

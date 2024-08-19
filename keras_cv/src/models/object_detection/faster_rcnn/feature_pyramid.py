@@ -238,3 +238,14 @@ class FeaturePyramid(keras.layers.Layer):
         config["lateral_layers"] = self.lateral_layers
         config["output_layers"] = self.output_layers
         return config
+
+    def build(self, input_shape):
+        for level in self.pyramid_levels:
+            self.lateral_layers[level].build(
+                (None, None, None, input_shape[level][-1])
+            )
+
+        for level in self.pyramid_levels:
+            self.output_layers[level].build((None, None, None, 256))
+        self.max_pool.build((None, None, None, 256))
+        self.built = True
