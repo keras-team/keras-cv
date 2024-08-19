@@ -23,3 +23,6 @@ wheels
 .devcontainer/
 .coverage
 .history
+
+# Common env config file use by pyenv
+.python_version
