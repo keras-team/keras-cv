@@ -175,9 +175,6 @@ def plot_image_gallery(
             current_axis.margins(x=0, y=0)
             current_axis.axis("off")
 
-    if path is None and show is None:
-        return fig
-
     if path is not None:
         plt.savefig(
             fname=path,
@@ -190,3 +187,5 @@ def plot_image_gallery(
     elif show:
         plt.show()
         plt.close()
+    else:
+        return fig
