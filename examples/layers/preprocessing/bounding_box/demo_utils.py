@@ -87,14 +87,9 @@ def visualize_bounding_boxes(image, bounding_boxes, bounding_box_format):
 def gallery_show(images):
     images = images.astype(int)
     image_count = len(images)
-    rows = 1
-    cols = 1
-    if image_count > 1:
-        cols = 2
-    if image_count > 2:
-        cols = 3
-    if image_count > 3:
-        rows = math.ceil(image_count / 3)
+    max_columns = 3
+    cols = min(image_count, max_columns)
+    rows = math.ceil(image_count / max_columns)
     for i in range(len(images)):
         image = images[i]
         plt.subplot(rows, cols, i + 1)
