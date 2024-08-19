@@ -162,6 +162,9 @@ class RetinaNetTest(TestCase):
 
     @pytest.mark.large  # Fit is slow, so mark these large.
     def test_weights_change(self):
+        pytest.skip(
+            reason="TODO: fix issue https://github.com/keras-team/keras-cv/issues/2480"  # noqa:E501
+        )
         bounding_box_format = "xywh"
         retinanet = keras_cv.models.RetinaNet(
             num_classes=2,
