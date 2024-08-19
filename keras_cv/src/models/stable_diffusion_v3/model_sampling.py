@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from keras import ops
+from keras_cv.src.backend import ops
 
 
 class ModelSampling:
