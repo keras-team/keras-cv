@@ -42,6 +42,8 @@ class BASNetTest(TestCase):
 
     @pytest.mark.large
     def test_basnet_call(self):
+        if keras.backend.backend() == "torch":
+            self.skipTest(reason="causing core dump error in pytorch")
         backbone = ResNet18Backbone()
         model = BASNet(
             input_shape=[64, 64, 3], backbone=backbone, num_classes=1
@@ -53,6 +55,8 @@ class BASNetTest(TestCase):
     @pytest.mark.large
     @pytest.mark.filterwarnings("ignore::UserWarning")
     def test_weights_change(self):
+        if keras.backend.backend() == "torch":
+            self.skipTest(reason="causing core dump error in pytorch")
         input_size = [64, 64, 3]
         target_size = [64, 64, 1]
 
@@ -98,6 +102,9 @@ class BASNetTest(TestCase):
 
     @pytest.mark.large
     def test_saved_model(self):
+        if keras.backend.backend() == "torch":
+            self.skipTest(reason="causing core dump error in pytorch")
+
         target_size = [64, 64, 3]
 
         backbone = ResNet18Backbone()
@@ -132,6 +139,8 @@ class BASNetSmokeTest(TestCase):
         *[(preset, preset) for preset in ["resnet18", "resnet34"]]
     )
     def test_backbone_preset(self, preset):
+        if keras.backend.backend() == "torch":
+            self.skipTest(reason="causing core dump error in pytorch")
         model = BASNet.from_preset(
             preset,
             num_classes=1,
