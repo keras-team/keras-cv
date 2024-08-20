@@ -18,7 +18,6 @@ from absl.testing import parameterized
 from tensorflow import keras
 from tensorflow.keras import optimizers
 
-from keras_cv.src.backend import config as backend_config
 from keras_cv.src.models import ResNet18V2Backbone
 from keras_cv.src.models.legacy.object_detection.faster_rcnn.faster_rcnn import (  # noqa: E501
     FasterRCNN,
@@ -40,10 +39,7 @@ class FasterRCNNTest(TestCase):
         ((2, 512, 512, 3),),
         ((2, 128, 128, 3),),
     )
-    @pytest.mark.skipif(
-        not backend_config.keras_3(),
-        reason="TODO: Fails in Keras2",
-    )
+    @pytest.mark.skip(reason="moved to stable models")
     def test_faster_rcnn_infer(self, batch_shape):
         model = FasterRCNN(
             num_classes=80,
@@ -61,10 +57,7 @@ class FasterRCNNTest(TestCase):
         ((2, 512, 512, 3),),
         ((2, 128, 128, 3),),
     )
-    @pytest.mark.skipif(
-        not backend_config.keras_3(),
-        reason="TODO: Fails in Keras2",
-    )
+    @pytest.mark.skip(reason="moved to stable models")
     def test_faster_rcnn_train(self, batch_shape):
         model = FasterRCNN(
             num_classes=80,
@@ -76,6 +69,7 @@ class FasterRCNNTest(TestCase):
         self.assertAllEqual([2, 1000, 81], outputs[1].shape)
         self.assertAllEqual([2, 1000, 4], outputs[0].shape)
 
+    @pytest.mark.skip(reason="moved to stable models")
     def test_invalid_compile(self):
         model = FasterRCNN(
             num_classes=80,
@@ -92,10 +86,7 @@ class FasterRCNNTest(TestCase):
             )
 
     @pytest.mark.large  # Fit is slow, so mark these large.
-    @pytest.mark.skipif(
-        not backend_config.keras_3(),
-        reason="TODO: Fails in Keras2",
-    )
+    @pytest.mark.skip(reason="moved to stable models")
     def test_faster_rcnn_with_dictionary_input_format(self):
         faster_rcnn = FasterRCNN(
             num_classes=20,

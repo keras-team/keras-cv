@@ -19,11 +19,13 @@ from keras_cv.src.backend import ops
 
 
 def _create_bounding_box_dataset(
-    bounding_box_format, use_dictionary_box_format=False
+    bounding_box_format,
+    image_shape=(512, 512, 3),
+    use_dictionary_box_format=False,
 ):
     # Just about the easiest dataset you can have, all classes are 0, all boxes
     # are exactly the same. [1, 1, 2, 2] are the coordinates in xyxy.
-    xs = np.random.normal(size=(1, 512, 512, 3))
+    xs = np.random.normal(size=(1,) + image_shape)
     xs = np.tile(xs, [5, 1, 1, 1])
 
     y_classes = np.zeros((5, 3), "float32")

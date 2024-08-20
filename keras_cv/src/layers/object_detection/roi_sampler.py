@@ -22,7 +22,7 @@ from keras_cv.src.utils import target_gather
 
 
 @keras.utils.register_keras_serializable(package="keras_cv")
-class _ROISampler(keras.layers.Layer):
+class ROISampler(keras.layers.Layer):
     """
     Sample ROIs for loss related calculation.
 
@@ -41,9 +41,10 @@ class _ROISampler(keras.layers.Layer):
     if its range is [0, num_classes).
 
     Args:
-      bounding_box_format: The format of bounding boxes to generate. Refer
+      roi_bounding_box_format: The format of roi bounding boxes. Refer
         [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
         for more details on supported bounding box formats.
+      gt_bounding_box_format: The format of ground truth bounding boxes.
       roi_matcher: a `BoxMatcher` object that matches proposals with ground
         truth boxes. The positive match must be 1 and negative match must be -1.
         Such assumption is not being validated here.
@@ -59,7 +60,8 @@ class _ROISampler(keras.layers.Layer):
 
     def __init__(
         self,
-        bounding_box_format: str,
+        roi_bounding_box_format: str,
+        gt_bounding_box_format: str,
         roi_matcher: box_matcher.BoxMatcher,
         positive_fraction: float = 0.25,
         background_class: int = 0,
@@ -68,12 +70,14 @@ class _ROISampler(keras.layers.Layer):
         **kwargs,
     ):
         super().__init__(**kwargs)
-        self.bounding_box_format = bounding_box_format
+        self.roi_bounding_box_format = roi_bounding_box_format
+        self.gt_bounding_box_format = gt_bounding_box_format
         self.roi_matcher = roi_matcher
         self.positive_fraction = positive_fraction
         self.background_class = background_class
         self.num_sampled_rois = num_sampled_rois
         self.append_gt_boxes = append_gt_boxes
+        self.seed_generator = keras.random.SeedGenerator()
         self.built = True
         # for debugging.
         self._positives = keras.metrics.Mean()
@@ -97,6 +101,12 @@ class _ROISampler(keras.layers.Layer):
           sampled_gt_classes: [batch_size, num_sampled_rois, 1]
           sampled_class_weights: [batch_size, num_sampled_rois, 1]
         """
+        rois = bounding_box.convert_format(
+            rois, source=self.roi_bounding_box_format, target="yxyx"
+        )
+        gt_boxes = bounding_box.convert_format(
+            gt_boxes, source=self.gt_bounding_box_format, target="yxyx"
+        )
         if self.append_gt_boxes:
             # num_rois += num_gt
             rois = ops.concatenate([rois, gt_boxes], axis=1)
@@ -110,12 +120,6 @@ class _ROISampler(keras.layers.Layer):
                 "num_rois must be less than `num_sampled_rois` "
                 f"({self.num_sampled_rois}), got {num_rois}"
             )
-        rois = bounding_box.convert_format(
-            rois, source=self.bounding_box_format, target="yxyx"
-        )
-        gt_boxes = bounding_box.convert_format(
-            gt_boxes, source=self.bounding_box_format, target="yxyx"
-        )
         # [batch_size, num_rois, num_gt]
         similarity_mat = iou.compute_iou(
             rois, gt_boxes, bounding_box_format="yxyx", use_masking=True
@@ -171,6 +175,7 @@ class _ROISampler(keras.layers.Layer):
             negative_matches,
             self.num_sampled_rois,
             self.positive_fraction,
+            seed=self.seed_generator,
         )
         # [batch_size, num_sampled_rois] in the range of [0, num_rois)
         sampled_indicators, sampled_indices = ops.top_k(
@@ -204,16 +209,15 @@ class _ROISampler(keras.layers.Layer):
         )
 
     def get_config(self):
-        config = {
-            "bounding_box_format": self.bounding_box_format,
-            "positive_fraction": self.positive_fraction,
-            "background_class": self.background_class,
-            "num_sampled_rois": self.num_sampled_rois,
-            "append_gt_boxes": self.append_gt_boxes,
-            "roi_matcher": self.roi_matcher.get_config(),
-        }
-        base_config = super().get_config()
-        return dict(list(base_config.items()) + list(config.items()))
+        config = super().get_config()
+        config["roi_bounding_box_format"] = self.roi_bounding_box_format
+        config["gt_bounding_box_format"] = self.gt_bounding_box_format
+        config["positive_fraction"] = self.positive_fraction
+        config["background_class"] = self.background_class
+        config["num_sampled_rois"] = self.num_sampled_rois
+        config["append_gt_boxes"] = self.append_gt_boxes
+        config["roi_matcher"] = self.roi_matcher.get_config()
+        return config
 
     @classmethod
     def from_config(cls, config, custom_objects=None):

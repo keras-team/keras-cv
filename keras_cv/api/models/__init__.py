@@ -5,6 +5,7 @@ since your modifications would be overwritten.
 """
 
 from keras_cv.api.models import classification
+from keras_cv.api.models import faster_rcnn
 from keras_cv.api.models import feature_extractor
 from keras_cv.api.models import object_detection
 from keras_cv.api.models import retinanet
@@ -205,6 +206,9 @@ from keras_cv.src.models.backbones.vit_det.vit_det_backbone import (
 from keras_cv.src.models.classification.image_classifier import ImageClassifier
 from keras_cv.src.models.classification.video_classifier import VideoClassifier
 from keras_cv.src.models.feature_extractor.clip.clip_model import CLIP
+from keras_cv.src.models.object_detection.faster_rcnn.faster_rcnn import (
+    FasterRCNN,
+)
 from keras_cv.src.models.object_detection.retinanet.retinanet import RetinaNet
 from keras_cv.src.models.object_detection.yolo_v8.yolo_v8_backbone import (
     YOLOV8Backbone,

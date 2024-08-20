@@ -24,7 +24,7 @@ from keras_cv.src.utils import target_gather
 
 
 @keras.utils.register_keras_serializable(package="keras_cv")
-class _RpnLabelEncoder(keras.layers.Layer):
+class RpnLabelEncoder(keras.layers.Layer):
     """Transforms the raw labels into training targets for region proposal
     network (RPN).
 
@@ -84,6 +84,7 @@ class _RpnLabelEncoder(keras.layers.Layer):
             force_match_for_each_col=False,
         )
         self.box_variance = box_variance
+        self.seed_generator = keras.random.SeedGenerator()
         self.built = True
         self._positives = keras.metrics.Mean(name="percent_boxes_matched")
 
@@ -165,6 +166,7 @@ class _RpnLabelEncoder(keras.layers.Layer):
             negative_matches,
             self.samples_per_image,
             self.positive_fraction,
+            seed=self.seed_generator,
         )
         # [num_anchors, 1] or [batch_size, num_anchors, 1]
         class_sample_weights = ops.cast(

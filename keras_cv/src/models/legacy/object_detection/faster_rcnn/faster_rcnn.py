@@ -25,11 +25,11 @@ from keras_cv.src.layers.object_detection.anchor_generator import (
     AnchorGenerator,
 )
 from keras_cv.src.layers.object_detection.box_matcher import BoxMatcher
-from keras_cv.src.layers.object_detection.roi_align import _ROIAligner
+from keras_cv.src.layers.object_detection.roi_align import ROIAligner
 from keras_cv.src.layers.object_detection.roi_generator import ROIGenerator
-from keras_cv.src.layers.object_detection.roi_sampler import _ROISampler
+from keras_cv.src.layers.object_detection.roi_sampler import ROISampler
 from keras_cv.src.layers.object_detection.rpn_label_encoder import (
-    _RpnLabelEncoder,
+    RpnLabelEncoder,
 )
 from keras_cv.src.models.object_detection import predict_utils
 from keras_cv.src.models.object_detection.__internal__ import unpack_input
@@ -317,13 +317,13 @@ class FasterRCNN(keras.Model):
         self.box_matcher = BoxMatcher(
             thresholds=[0.0, 0.5], match_values=[-2, -1, 1]
         )
-        self.roi_sampler = _ROISampler(
+        self.roi_sampler = ROISampler(
             bounding_box_format="yxyx",
             roi_matcher=self.box_matcher,
             background_class=num_classes,
             num_sampled_rois=512,
         )
-        self.roi_pooler = _ROIAligner(bounding_box_format="yxyx")
+        self.roi_pooler = ROIAligner(bounding_box_format="yxyx")
         self.rcnn_head = rcnn_head or RCNNHead(num_classes)
         self.backbone = backbone or models.ResNet50Backbone()
         extractor_levels = ["P2", "P3", "P4", "P5"]
@@ -334,7 +334,7 @@ class FasterRCNN(keras.Model):
             self.backbone, extractor_layer_names, extractor_levels
         )
         self.feature_pyramid = FeaturePyramid()
-        self.rpn_labeler = label_encoder or _RpnLabelEncoder(
+        self.rpn_labeler = label_encoder or RpnLabelEncoder(
             anchor_format="yxyx",
             ground_truth_box_format="yxyx",
             positive_threshold=0.7,

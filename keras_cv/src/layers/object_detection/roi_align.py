@@ -69,9 +69,7 @@ def _feature_bilinear_interpolation(features, kernel_y, kernel_x):
         features,
         [batch_size * num_boxes, output_size * 2, output_size * 2, num_filters],
     )
-    features = ops.nn.average_pool(
-        features, [1, 2, 2, 1], [1, 2, 2, 1], "VALID"
-    )
+    features = ops.nn.average_pool(features, (2, 2), (2, 2), "VALID")
     features = ops.reshape(
         features, [batch_size, num_boxes, output_size, output_size, num_filters]
     )
@@ -242,6 +240,11 @@ def multilevel_crop_and_resize(
     for i in range(len(feature_widths) - 1):
         level_dim_offsets.append(level_dim_offsets[i] + level_dim_sizes[i])
     batch_dim_size = level_dim_offsets[-1] + level_dim_sizes[-1]
+
+    level_dim_offsets = ops.convert_to_tensor(level_dim_offsets)
+    feature_widths = ops.convert_to_tensor(feature_widths)
+    feature_heights = ops.convert_to_tensor(feature_heights)
+
     level_dim_offsets = (
         ops.ones_like(level_dim_offsets, dtype="int32") * level_dim_offsets
     )
@@ -259,7 +262,9 @@ def multilevel_crop_and_resize(
     # following the FPN paper to divide by 224.
     levels = ops.cast(
         ops.floor_divide(
-            ops.log(ops.divide(areas_sqrt, 224.0)),
+            ops.log(
+                ops.divide_no_nan(areas_sqrt, ops.convert_to_tensor(224.0))
+            ),
             ops.log(2.0),
         )
         + 4.0,
@@ -292,12 +297,18 @@ def multilevel_crop_and_resize(
         ops.concatenate(
             [
                 ops.expand_dims(
-                    [[ops.cast(max_feature_height, "float32")]] / level_strides
+                    ops.convert_to_tensor(
+                        [[ops.cast(max_feature_height, "float32")]]
+                    )
+                    / level_strides
                     - 1,
                     axis=-1,
                 ),
                 ops.expand_dims(
-                    [[ops.cast(max_feature_width, "float32")]] / level_strides
+                    ops.convert_to_tensor(
+                        [[ops.cast(max_feature_width, "float32")]]
+                    )
+                    / level_strides
                     - 1,
                     axis=-1,
                 ),
@@ -357,7 +368,7 @@ def multilevel_crop_and_resize(
     # TODO(tanzhenyu): replace tf.gather with tf.gather_nd and try to get
     #  similar performance.
     features_per_box = ops.reshape(
-        ops.take(features_r2, indices),
+        ops.take(features_r2, indices, axis=0),
         [
             batch_size,
             num_boxes,
@@ -378,7 +389,7 @@ def multilevel_crop_and_resize(
 #  performance as this is mostly a duplicate of
 #  https://github.com/tensorflow/models/blob/master/official/legacy/detection/ops/spatial_transform_ops.py#L324
 @keras.utils.register_keras_serializable(package="keras_cv")
-class _ROIAligner(keras.layers.Layer):
+class ROIAligner(keras.layers.Layer):
     """Performs ROIAlign for the second stage processing."""
 
     def __init__(
@@ -397,13 +408,11 @@ class _ROIAligner(keras.layers.Layer):
           sample_offset: A `float` in [0, 1] of the subpixel sample offset.
           **kwargs: Additional keyword arguments passed to Layer.
         """
-        # assert_tf_keras("keras_cv.layers._ROIAligner")
-        self._config_dict = {
-            "bounding_box_format": bounding_box_format,
-            "crop_size": target_size,
-            "sample_offset": sample_offset,
-        }
         super().__init__(**kwargs)
+        self.bounding_box_format = bounding_box_format
+        self.target_size = target_size
+        self.sample_offset = sample_offset
+        self.built = True
 
     def call(
         self,
@@ -427,16 +436,22 @@ class _ROIAligner(keras.layers.Layer):
         """
         boxes = bounding_box.convert_format(
             boxes,
-            source=self._config_dict["bounding_box_format"],
+            source=self.bounding_box_format,
             target="yxyx",
         )
         roi_features = multilevel_crop_and_resize(
             features,
             boxes,
-            output_size=self._config_dict["crop_size"],
-            sample_offset=self._config_dict["sample_offset"],
+            output_size=self.target_size,
+            sample_offset=self.sample_offset,
         )
         return roi_features
 
     def get_config(self):
-        return self._config_dict
+        config = super().get_config()
+        config["bounding_box_format"] = self.bounding_box_format
+        config["target_size"] = self.target_size
+        config["sample_offset"] = self.sample_offset
+
+    def compute_output_shape(self, input_shape):
+        return (None, None, self.target_size, self.target_size, 256)
