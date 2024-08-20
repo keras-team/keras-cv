@@ -246,7 +246,7 @@ class YOLOV8DetectorSmokeTest(TestCase):
 
         self.assertAllClose(
             ops.convert_to_numpy(encoded_predictions["boxes"][0, 0:5, 0]),
-            [-0.830356,  0.752131,  1.809205,  1.657676,  1.413475],
+            [-0.830356, 0.752131, 1.809205, 1.657676, 1.413475],
         )
         self.assertAllClose(
             ops.convert_to_numpy(encoded_predictions["classes"][0, 0:5, 0]),
