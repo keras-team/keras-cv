@@ -5,6 +5,7 @@ since your modifications would be overwritten.
 """
 
 from keras_cv.api.models import classification
+from keras_cv.api.models import faster_rcnn
 from keras_cv.api.models import feature_extractor
 from keras_cv.api.models import object_detection
 from keras_cv.api.models import retinanet
