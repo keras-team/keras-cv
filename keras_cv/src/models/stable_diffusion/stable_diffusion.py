@@ -380,7 +380,7 @@ class StableDiffusion(StableDiffusionBase):
             rounded to the nearest valid value. Defaults to 512.
         jit_compile: bool, whether to compile the underlying models to XLA.
             This can lead to a significant speedup on some systems. Defaults to
-            False.
+            True.
 
     Example:
 
@@ -466,7 +466,8 @@ class StableDiffusionV2(StableDiffusionBase):
             rounded to the nearest valid value. Defaults to 512.
         jit_compile: bool, whether to compile the underlying models to XLA.
             This can lead to a significant speedup on some systems. Defaults to
-            False.
+            True.
+
     Example:
 
     ```python
