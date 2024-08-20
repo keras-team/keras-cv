@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Utility functions for preprocessing demos."""
+import math
+
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
@@ -84,9 +86,13 @@ def visualize_bounding_boxes(image, bounding_boxes, bounding_box_format):
 
 def gallery_show(images):
     images = images.astype(int)
-    for i in range(9):
+    image_count = len(images)
+    max_columns = 3
+    cols = min(image_count, max_columns)
+    rows = math.ceil(image_count / max_columns)
+    for i in range(len(images)):
         image = images[i]
-        plt.subplot(3, 3, i + 1)
+        plt.subplot(rows, cols, i + 1)
         plt.imshow(image.astype("uint8"))
         plt.axis("off")
     plt.show()
