@@ -36,6 +36,7 @@ then
    pip install -r requirements-tensorflow-cuda.txt --progress-bar off --timeout 1000
    pip install keras-nlp-nightly --no-deps
    pip install tensorflow-text~=2.16.0
+   pip install keras~=3.3.3
 
 elif [ "$KERAS_BACKEND" == "jax" ]
 then
@@ -43,6 +44,7 @@ then
    pip install -r requirements-jax-cuda.txt --progress-bar off --timeout 1000
    pip install keras-nlp-nightly --no-deps
    pip install tensorflow-text~=2.16.0
+   pip install keras~=3.3.3
 
 elif [ "$KERAS_BACKEND" == "torch" ]
 then
@@ -50,6 +52,7 @@ then
    pip install -r requirements-torch-cuda.txt --progress-bar off --timeout 1000
    pip install keras-nlp-nightly --no-deps
    pip install tensorflow-text~=2.16.0
+   pip install keras~=3.3.3
 fi
 
 pip install --no-deps -e "." --progress-bar off
