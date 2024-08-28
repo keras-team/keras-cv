@@ -91,8 +91,6 @@ class FasterRCNN(Task):
         classification_loss="CategoricalCrossentropy",
         rpn_box_loss="Huber",
         rpn_classification_loss="BinaryCrossentropy",
-        mask_loss=keras.losses.BinaryCrossentropy(
-          from_logits=True, reduction="sum"),
     )
     model.fit(images, labels, batch_size=1)
     ```
@@ -238,7 +236,6 @@ class FasterRCNN(Task):
 
         # R-CNN Head
         rcnn_head = rcnn_head or RCNNHead(num_classes, name="rcnn_head")
-        mask_head = MaskHead(num_classes, name="mask_head")
 
         # Begin construction of forward pass
         image_shape = feature_extractor.input_shape[1:]
@@ -296,7 +293,6 @@ class FasterRCNN(Task):
 
         feature_map = roi_aligner(features=feature_map, boxes=rois)
         
-        mask_pred = mask_head(feature_map=feature_map)
 
         # Reshape the feature map [BS, H*W*K]
         feature_map = keras.layers.Reshape(
@@ -313,7 +309,6 @@ class FasterRCNN(Task):
         cls_pred = keras.layers.Concatenate(axis=1, name="classification")(
             [cls_pred]
         )
-        mask_pred = keras.layers.Concatenate(axis=1, name="segmask")([mask_pred])
 
         inputs = {"images": images}
         outputs = {
@@ -321,7 +316,6 @@ class FasterRCNN(Task):
             "rpn_classification": rpn_cls_pred,
             "box": box_pred,
             "classification": cls_pred,
-            "segmask": mask_pred,
         }
 
         super().__init__(
@@ -360,7 +354,6 @@ class FasterRCNN(Task):
 
         self.roi_aligner = roi_aligner
         self.rcnn_head = rcnn_head
-        self.mask_head = mask_head
         self._prediction_decoder = prediction_decoder or NonMaxSuppression(
             bounding_box_format=bounding_box_format,
             from_logits=False,
@@ -374,7 +367,6 @@ class FasterRCNN(Task):
         rpn_classification_loss=None,
         box_loss=None,
         classification_loss=None,
-        mask_loss=None,
         weight_decay=0.0001,
         loss=None,
         metrics=None,
@@ -414,7 +406,6 @@ class FasterRCNN(Task):
                 )
         box_loss = _parse_box_loss(box_loss)
         classification_loss = _parse_classification_loss(classification_loss)
-        mask_loss = _parse_mask_loss(mask_loss)
 
         if hasattr(classification_loss, "from_logits"):
             if not classification_loss.from_logits:
@@ -439,14 +430,12 @@ class FasterRCNN(Task):
         self.rpn_cls_loss = rpn_classification_loss
         self.box_loss = box_loss
         self.cls_loss = classification_loss
-        self.mask_loss = mask_loss
         self.weight_decay = weight_decay
         losses = {
             "rpn_box": self.rpn_box_loss,
             "rpn_classification": self.rpn_cls_loss,
             "box": self.box_loss,
             "classification": self.cls_loss,
-            "segmask": self.mask_loss,
         }
         self._has_user_metrics = metrics is not None and len(metrics) != 0
         self._user_metrics = metrics
@@ -467,7 +456,6 @@ class FasterRCNN(Task):
 
         gt_classes = y["classes"]
         gt_classes = ops.expand_dims(gt_classes, axis=-1)
-        gt_masks = y["segmask"]
 
         # Generate  Anchors and Generate RPN Targets
         local_batch = ops.shape(images)[0]
@@ -543,9 +531,7 @@ class FasterRCNN(Task):
             box_weights,
             cls_targets,
             cls_weights,
-            segmask_targets,
-            segmask_weights,
-        ) = self.roi_sampler(rois, gt_boxes, gt_classes,gt_masks)
+        ) = self.roi_sampler(rois, gt_boxes, gt_classes)
 
         cls_targets = ops.squeeze(cls_targets, axis=-1)
         cls_weights = ops.squeeze(cls_weights, axis=-1)
@@ -553,18 +539,10 @@ class FasterRCNN(Task):
         # Box and class weights -- exclusive to compute loss
         box_weights /= self.roi_sampler.num_sampled_rois * local_batch * 0.25
         cls_weights /= self.roi_sampler.num_sampled_rois * local_batch
-        cls_targets_numeric = cls_targets
         cls_targets = ops.one_hot(cls_targets, num_classes=self.num_classes + 1)
 
         # Call RoI Aligner and RCNN Head
         feature_map = self.roi_aligner(features=feature_map, boxes=rois)
-        mask_pred = self.mask_head(feature_map=feature_map)
-        mask_pred = ops.reshape(mask_pred, (-1, *ops.shape(mask_pred)[2:]))
-        mask_pred_ind = ops.cast(ops.reshape(cls_targets_numeric, (ops.shape(mask_pred)[0],1,1,-1)), 'int32')
-        mask_pred = ops.take_along_axis(mask_pred, mask_pred_ind, axis=-1)
-        mask_pred = ops.reshape(mask_pred, (-1, self.roi_sampler.num_sampled_rois, *ops.shape(mask_pred)[1:-1]))
-
-        segmask_weights = segmask_weights / (segmask_targets.shape[2] * segmask_targets.shape[3])
 
         # [BS, H*W*K]
         feature_map = ops.reshape(
@@ -580,21 +558,18 @@ class FasterRCNN(Task):
             "rpn_classification": rpn_cls_targets,
             "box": box_targets,
             "classification": cls_targets,
-            "segmask": segmask_targets,
         }
         y_pred = {
             "rpn_box": rpn_box_pred,
             "rpn_classification": rpn_cls_pred,
             "box": box_pred,
             "classification": cls_pred,
-            "segmask": mask_pred,
         }
         weights = {
             "rpn_box": rpn_box_weights,
             "rpn_classification": rpn_cls_weights,
             "box": box_weights,
             "classification": cls_weights,
-            "segmask": segmask_weights,
         }
 
         return super().compute_loss(
@@ -703,60 +678,6 @@ class FasterRCNN(Task):
         )
         return y_pred
 
-    def resize_and_pad_mask(mask_pred, decoded_boxes, image_shape):
-        """Rescale masks from bounding box dimensions to the full image shape."""
-
-        num_rois = ops.shape(mask_pred)[0]
-        image_height = image_shape[0]
-        image_width = image_shape[1]
-
-        # Reshape mask_pred to (num_rois, mask_height, mask_width, 1) to use with image resizing functions
-        mask_pred = ops.expand_dims(mask_pred, -1)
-
-        # Initialize a list to store the padded masks
-        padded_masks_list = []
-
-        # Iterate over the batch and place the resized masks into the correct position
-        for i in range(num_rois):
-            y1, x1, y2, x2 = decoded_boxes[i]
-            box_height = y2 - y1
-            box_width = x2 - x1
-
-            # Resize the mask to the size of the bounding box
-            resized_mask = tf.image.resize(mask_pred[i], size=(box_height, box_width))
-
-            #  Place the resized mask into the correct position in the final mask
-            padded_mask = tf.image.pad_to_bounding_box(resized_mask[:, :, 0], y1, x1, image_height, image_width)
-
-            # Append the padded mask to the list
-            padded_masks_list.append(padded_mask)
-
-    # Stack the list of masks into a single tensor
-        final_masks = ops.stack(padded_masks_list, axis=0)
-
-        return final_masks
-    
-    def decode_segmentation_masks(mask_pred, class_pred, decoded_boxes, bbox_format, image_shape):
-        """Decode the predicted segmentation mask output, combining all
-        masks in one mask for each image."""
-
-        decoded_boxes = bounding_box.convert_format(
-            decoded_boxes, source=bbox_format, target='yxyx'
-        )
-        # pick the mask prediction for the predicted class
-        mask_pred = ops.take_along_axis(mask_pred, class_pred[:,:,None,None,None], axis=-1)
-
-        final_masks = []
-        for i in range(mask_pred.shape[0]):
-            # resize the mask according to the bounding box
-            image_masks = resize_and_pad_mask(mask_pred[i], decoded_boxes[i], image_shape)
-            # ignore empty predictions
-            image_masks = ops.where(class_pred[i,:,None,None]==-1, 0, image_masks)
-            # combine all RoI's masks in one mask for the image
-            final_masks.append(ops.max(image_masks, axis=0))
-
-        return ops.stack(final_masks, axis=0)
-
     def compute_metrics(self, x, y, y_pred, sample_weight):
         metrics = {}
         metrics.update(super().compute_metrics(x, {}, {}, sample_weight={}))
@@ -804,7 +725,6 @@ class FasterRCNN(Task):
             "rpn_head": keras.saving.serialize_keras_object(self.rpn_head),
             "prediction_decoder": self._prediction_decoder,
             "rcnn_head": self.rcnn_head,
-            "mask_head": self.mask_head,
         }
 
     @classmethod
@@ -825,8 +745,6 @@ class FasterRCNN(Task):
             )
         if "rcnn_head" in config and isinstance(config["rcnn_head"], dict):
             config["rcnn_head"] = keras.layers.deserialize(config["rcnn_head"])
-        if "mask_head" in config and isinstance(config["mask_head"], dict):
-            config["mask_head"] = keras.layers.deserialize(config["mask_head"])
 
         return super().from_config(config)
 
@@ -882,19 +800,6 @@ def _parse_classification_loss(loss):
         f"callable, or the string 'Focal', CategoricalCrossentropy'. "
         f"Got loss={loss}."
     )
-def _parse_mask_loss(loss):
-    if not isinstance(loss, str):
-        # support arbitrary callables
-        return loss
-
-    if loss.lower() == "binarycrossentropy":
-        return keras.losses.BinaryCrossentropy(reduction="sum", from_logits=True)
-
-    raise ValueError(
-        f"Expected `mask_loss` to be either BinaryCrossentropy"
-        f" loss callable, or the string 'BinaryCrossentropy'. Got loss={loss}."
-    )
-
 
 def unpack_input(data):
     if type(data) is dict:
