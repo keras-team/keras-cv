@@ -1,0 +1,110 @@
+# Copyright 2024 The KerasCV Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+from keras_cv.src.api_export import keras_cv_export
+from keras_cv.src.backend import keras
+
+
+@keras_cv_export(
+    "keras_cv.models.faster_rcnn.MaskHead",
+    package="keras_cv.models.faster_rcnn",
+)
+class MaskHead(keras.layers.Layer):
+    """A Keras layer implementing the R-CNN Mask Head.
+
+    The architecture is adopted from Matterport's Mask R-CNN implementation.
+
+    Args:
+        num_classes: The number of object classes that are being detected.
+        conv_dims: (Optional) a list of integers specifying the number of
+            filters for each convolutional layer. Defaults to [].
+        deconv_dim: (Optional) the numver of filters to use in the upsampling
+            convolutional layer.
+    """
+
+    def __init__(
+        self,
+        num_classes,
+        conv_dims=[256, 256],
+        deconv_dim=256,
+        **kwargs,
+    ):
+        super().__init__(**kwargs)
+        self.num_classes = num_classes
+        self.conv_dims = conv_dims
+        self.deconv_dim = deconv_dim
+        self.layers = []
+        for conv_dim in conv_dims:
+            conv = keras.layers.TimeDistributed(
+                keras.layers.Conv2D(
+                    filters=conv_dim,
+                    kernel_size=3,
+                    padding="same",
+                )
+            )
+            batchnorm = keras.layers.TimeDistributed(
+                keras.layers.BatchNormalization()
+            )
+            activation = keras.layers.Activation("relu")
+            self.layers.extend([conv, batchnorm, activation])
+
+        self.deconv = keras.layers.TimeDistributed(
+            keras.layers.Conv2DTranspose(
+                deconv_dim,
+                kernel_size=2,
+                strides=2,
+                activation="relu",
+                padding="valid",
+            )
+        )
+        # we do not use a final sigmoid activation, since we use
+        # from_logits=True during training
+        self.segmask_output = keras.layers.TimeDistributed(
+            keras.layers.Conv2D(
+                num_classes + 1,
+                kernel_size=1,
+                strides=1,
+                activation="linear",
+            )
+        )
+
+    def call(self, feature_map, training=False):
+        x = feature_map
+        for layer in self.layers:
+            x = layer(x, training=training)
+        x = self.deconv(x)
+        mask = self.segmask_output(x)
+        return mask
+
+    def build(self, input_shape):
+        intermediate_shape = input_shape
+        for idx, conv_dim in self.conv_dims:
+            self.layers[idx * 3].build(intermediate_shape)
+            intermediate_shape = tuple(intermediate_shape[:-1]) + (conv_dim,)
+            self.layers[idx * 3 + 1].build(intermediate_shape)
+        self.deconv.build(intermediate_shape)
+        intermediate_shape = tuple(intermediate_shape[:-3]) + (
+            intermediate_shape[-3] * 2,
+            intermediate_shape[-2] * 2,
+            self.deconv_dim,
+        )
+        self.segmask_output.build(intermediate_shape)
+        self.built = True
+
+    def get_config(self):
+        config = super().get_config()
+        config["num_classes"] = self.num_classes
+        config["conv_dims"] = self.conv_dims
+        config["deconv_dim"] = self.deconv_dim
+        return config

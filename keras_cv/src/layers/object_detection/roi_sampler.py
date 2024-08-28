@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import tensorflow as tf
 from keras_cv.src import bounding_box
 from keras_cv.src.backend import keras
 from keras_cv.src.backend import ops
@@ -44,7 +45,7 @@ class ROISampler(keras.layers.Layer):
       roi_bounding_box_format: The format of roi bounding boxes. Refer
         [to the keras.io docs](https://keras.io/api/keras_cv/bounding_box/formats/)
         for more details on supported bounding box formats.
-      gt_bounding_box_format: The format of ground truth bounding boxes.
+      gt_bounding_box_format: The format of gt bounding boxes.
       roi_matcher: a `BoxMatcher` object that matches proposals with ground
         truth boxes. The positive match must be 1 and negative match must be -1.
         Such assumption is not being validated here.
@@ -56,6 +57,7 @@ class ROISampler(keras.layers.Layer):
         further (loss) calculation, defaults to 256.
       append_gt_boxes: boolean, whether gt_boxes will be appended to rois
         before sample the rois, defaults to True.
+      mask_shape: The shape of segmentation masks used for training.
     """  # noqa: E501
 
     def __init__(
@@ -67,6 +69,7 @@ class ROISampler(keras.layers.Layer):
         background_class: int = 0,
         num_sampled_rois: int = 256,
         append_gt_boxes: bool = True,
+        mask_shape=(14,14),
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -77,6 +80,7 @@ class ROISampler(keras.layers.Layer):
         self.background_class = background_class
         self.num_sampled_rois = num_sampled_rois
         self.append_gt_boxes = append_gt_boxes
+        self.mask_shape = mask_shape
         self.seed_generator = keras.random.SeedGenerator()
         self.built = True
         # for debugging.
@@ -88,18 +92,22 @@ class ROISampler(keras.layers.Layer):
         rois,
         gt_boxes,
         gt_classes,
+        gt_masks=None
     ):
         """
         Args:
           rois: [batch_size, num_rois, 4]
           gt_boxes: [batch_size, num_gt, 4]
           gt_classes: [batch_size, num_gt, 1]
+          gt_masks: [batch_size, num_gt, height, width]
         Returns:
           sampled_rois: [batch_size, num_sampled_rois, 4]
           sampled_gt_boxes: [batch_size, num_sampled_rois, 4]
           sampled_box_weights: [batch_size, num_sampled_rois, 1]
           sampled_gt_classes: [batch_size, num_sampled_rois, 1]
           sampled_class_weights: [batch_size, num_sampled_rois, 1]
+          sampled_gt_masks: [batch_size, num_sampled_rois, mask_height, mask_width]
+          sampled_mask_weights: [batch_size, num_sampled_rois, 1]
         """
         rois = bounding_box.convert_format(
             rois, source=self.roi_bounding_box_format, target="yxyx"
@@ -200,13 +208,64 @@ class ROISampler(keras.layers.Layer):
         # [batch_size, num_sampled_rois, 1]
         sampled_indicators = sampled_indicators[..., None]
         sampled_class_weights = ops.cast(sampled_indicators, gt_classes.dtype)
-        return(
+
+        if gt_masks is not None:
+            sampled_gt_cols = target_gather._target_gather(
+                matched_gt_cols[:, :, None], sampled_indices
+            )
+            
+            # Get the batch size, and the mask dimensions
+            batch_size = ops.shape(sampled_gt_cols)[0]
+            mask_height = ops.shape(gt_masks)[1]
+            mask_width = ops.shape(gt_masks)[2]
+
+            # Flatten the bounding boxes and convert to normalized 
+            # coordinates (relative to the mask size)
+            normalized_gt_boxes = bounding_box.convert_format(
+                sampled_rois,
+                source="yxyx",
+                target="rel_yxyx",
+                image_shape=(mask_height,mask_width,1)
+            )
+            normalized_gt_boxes = ops.reshape(
+                normalized_gt_boxes, [batch_size * self.num_sampled_rois, 4])
+            
+            # [batch_size x num_sampled_rois, height, width, 1]
+            cropped_and_resized_masks = tf.image.crop_and_resize(
+                ops.expand_dims(gt_masks, axis=-1),
+                boxes=normalized_gt_boxes,
+                box_indices=tf.repeat(
+                    tf.range(batch_size), repeats=self.num_sampled_rois
+                ),
+                crop_size=self.mask_shape,
+            )
+            cropped_and_resized_masks = ops.reshape(
+                cropped_and_resized_masks,
+                [batch_size, self.num_sampled_rois, *self.mask_shape],
+            )
+            sampled_gt_masks = ops.equal(
+                cropped_and_resized_masks, sampled_gt_cols[...,None]+1
+            )
+            sampled_gt_masks = ops.cast(sampled_gt_masks, "float32")
+
+            # Mask weights: 1 for positive samples, 0 for background
+            sampled_mask_weights = sampled_box_weights
+
+        sampled_data = (
             sampled_rois,
             sampled_gt_boxes,
             sampled_box_weights,
             sampled_gt_classes,
             sampled_class_weights,
+            sampled_gt_masks,
+            sampled_mask_weights
         )
+        if gt_masks is not None:
+            sampled_data = sampled_data + (
+                sampled_gt_masks,
+                sampled_mask_weights,
+            )
+        return sampled_data
 
     def get_config(self):
         config = super().get_config()
@@ -216,6 +275,7 @@ class ROISampler(keras.layers.Layer):
         config["background_class"] = self.background_class
         config["num_sampled_rois"] = self.num_sampled_rois
         config["append_gt_boxes"] = self.append_gt_boxes
+        config["mask_shape"] = self.mask_shape
         config["roi_matcher"] = self.roi_matcher.get_config()
         return config
 
