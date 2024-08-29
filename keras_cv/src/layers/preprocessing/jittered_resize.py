@@ -103,6 +103,7 @@ class JitteredResize(VectorizedBaseImageAugmentationLayer):
         crop_size=None,
         bounding_box_format=None,
         interpolation="bilinear",
+        minimum_box_area_ratio=0.0,
         seed=None,
         **kwargs,
     ):
@@ -130,6 +131,8 @@ class JitteredResize(VectorizedBaseImageAugmentationLayer):
         self.seed = seed
 
         self.force_output_dense_images = True
+        
+        self.minimum_box_area_ratio = minimum_box_area_ratio
 
     def compute_ragged_image_signature(self, images):
         ragged_spec = tf.RaggedTensorSpec(
@@ -252,6 +255,7 @@ class JitteredResize(VectorizedBaseImageAugmentationLayer):
             result,
             image_shape=self.target_size + (3,),
             bounding_box_format="yxyx",
+            minimum_box_area_ratio=self.minimum_box_area_ratio
         )
         result = bounding_box.convert_format(
             result,
