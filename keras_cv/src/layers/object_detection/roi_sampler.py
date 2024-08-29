@@ -257,8 +257,6 @@ class ROISampler(keras.layers.Layer):
             sampled_box_weights,
             sampled_gt_classes,
             sampled_class_weights,
-            sampled_gt_masks,
-            sampled_mask_weights
         )
         if gt_masks is not None:
             sampled_data = sampled_data + (
