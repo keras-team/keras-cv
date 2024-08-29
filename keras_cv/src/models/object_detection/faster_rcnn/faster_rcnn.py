@@ -349,7 +349,6 @@ class FasterRCNN(Task):
             gt_bounding_box_format=bounding_box_format,
             roi_matcher=self.box_matcher,
             num_sampled_rois=num_sampled_rois,
-            mask_shape=(14,14)
         )
 
         self.roi_aligner = roi_aligner
@@ -663,7 +662,10 @@ class FasterRCNN(Task):
         )
 
         y_pred = self.prediction_decoder(
-            box_pred, cls_pred, image_shape=image_shape
+            box_pred,
+            cls_pred,
+            mask_prediction=predictions.get("mask_prediction"),
+            image_shape=image_shape
         )
 
         y_pred["classes"] = ops.where(
