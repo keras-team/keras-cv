@@ -306,6 +306,7 @@ class JitteredResize(VectorizedBaseImageAugmentationLayer):
                 "crop_size": self.crop_size,
                 "bounding_box_format": self.bounding_box_format,
                 "interpolation": self.interpolation,
+                "minimum_box_area_ratio": self.minimum_box_area_ratio,
                 "seed": self.seed,
             }
         )
