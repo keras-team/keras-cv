@@ -17,20 +17,21 @@ from keras_cv.src.backend import keras
 
 
 @keras_cv_export(
-    "keras_cv.models.faster_rcnn.MaskHead",
-    package="keras_cv.models.faster_rcnn",
+    "keras_cv.models.mask_rcnn.MaskHead",
+    package="keras_cv.models.mask_rcnn",
 )
 class MaskHead(keras.layers.Layer):
     """A Keras layer implementing the R-CNN Mask Head.
 
-    The architecture is adopted from Matterport's Mask R-CNN implementation.
+    The architecture is adopted from Matterport's Mask R-CNN implementation
+    https://github.com/matterport/Mask_RCNN/blob/master/mrcnn/model.py.
 
     Args:
         num_classes: The number of object classes that are being detected.
         conv_dims: (Optional) a list of integers specifying the number of
-            filters for each convolutional layer. Defaults to [].
-        deconv_dim: (Optional) the numver of filters to use in the upsampling
-            convolutional layer.
+            filters for each convolutional layer. Defaults to [256, 256].
+        deconv_dim: (Optional) the number of filters to use in the upsampling
+            convolutional layer. Defaults to 256.
     """
 
     def __init__(
@@ -70,7 +71,7 @@ class MaskHead(keras.layers.Layer):
         )
         # we do not use a final sigmoid activation, since we use
         # from_logits=True during training
-        self.segmask_output = keras.layers.TimeDistributed(
+        self.segmentation_mask_output = keras.layers.TimeDistributed(
             keras.layers.Conv2D(
                 num_classes + 1,
                 kernel_size=1,
@@ -89,7 +90,7 @@ class MaskHead(keras.layers.Layer):
 
     def build(self, input_shape):
         intermediate_shape = input_shape
-        for idx, conv_dim in self.conv_dims:
+        for idx, conv_dim in enumerate(self.conv_dims):
             self.layers[idx * 3].build(intermediate_shape)
             intermediate_shape = tuple(intermediate_shape[:-1]) + (conv_dim,)
             self.layers[idx * 3 + 1].build(intermediate_shape)

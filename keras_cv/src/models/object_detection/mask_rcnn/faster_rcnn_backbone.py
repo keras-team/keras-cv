@@ -15,7 +15,7 @@
 import tree
 
 from keras_cv.src import losses
-from keras_cv.src.api_export import keras_cv_export
+#from keras_cv.src.api_export import keras_cv_export
 from keras_cv.src.backend import keras
 from keras_cv.src.backend import ops
 from keras_cv.src.bounding_box import convert_format
@@ -25,30 +25,32 @@ from keras_cv.src.layers.object_detection.anchor_generator import (
     AnchorGenerator,
 )
 from keras_cv.src.layers.object_detection.box_matcher import BoxMatcher
-from keras_cv.src.layers.object_detection.non_max_suppression import (
-    NonMaxSuppression,
-)
 from keras_cv.src.layers.object_detection.roi_align import ROIAligner
 from keras_cv.src.layers.object_detection.roi_generator import ROIGenerator
-from keras_cv.src.layers.object_detection.roi_sampler import ROISampler
 from keras_cv.src.layers.object_detection.rpn_label_encoder import (
     RpnLabelEncoder,
 )
 from keras_cv.src.models.object_detection.faster_rcnn import FeaturePyramid
 from keras_cv.src.models.object_detection.faster_rcnn import RCNNHead
 from keras_cv.src.models.object_detection.faster_rcnn import RPNHead
+from keras_cv.src.models.object_detection.mask_rcnn.non_max_suppression import (
+    NonMaxSuppression,
+)
+from keras_cv.src.models.object_detection.mask_rcnn.roi_sampler import (
+    ROISampler,
+)
 from keras_cv.src.models.task import Task
 from keras_cv.src.utils.train import get_feature_extractor
 
 BOX_VARIANCE = [0.1, 0.1, 0.2, 0.2]
 
 
-@keras_cv_export(
-    [
-        "keras_cv.models.FasterRCNN",
-        "keras_cv.models.object_detection.FasterRCNN",
-    ]
-)
+# @keras_cv_export(
+#     [
+#         "keras_cv.models.FasterRCNN",
+#         "keras_cv.models.object_detection.FasterRCNN",
+#     ]
+# )
 class FasterRCNN(Task):
     """A Keras model implementing the Faster R-CNN architecture.
 
@@ -133,7 +135,7 @@ class FasterRCNN(Task):
         rpn_label_encoder_posistive_threshold: (Optional) the float threshold to set an
             anchor to positive match to gt box. Values above it are positive matches.
         rpn_label_encoder_negative_threshold: (Optional) the float threshold to set an
-            anchor to negative matchto gt box. Values below it are negative matches.
+            anchor to negative match to gt box. Values below it are negative matches.
         rpn_label_encoder_samples_per_image: (Optional) for each image, the number of
             positive and negative samples to generate.
         rpn_label_encoder_positive_fraction: (Optional) the fraction of positive samples to the total samples.
@@ -661,7 +663,10 @@ class FasterRCNN(Task):
         )
 
         y_pred = self.prediction_decoder(
-            box_pred, cls_pred, image_shape=image_shape
+            box_pred,
+            cls_pred,
+            mask_prediction=predictions.get("segmask"),
+            image_shape=image_shape,
         )
 
         y_pred["classes"] = ops.where(

@@ -13,7 +13,6 @@
 # limitations under the License.
 
 
-import tensorflow as tf
 import tree
 
 from keras_cv.src.api_export import keras_cv_export
@@ -22,22 +21,24 @@ from keras_cv.src.backend import ops
 from keras_cv.src.bounding_box import convert_format
 from keras_cv.src.bounding_box.converters import _decode_deltas_to_boxes
 from keras_cv.src.bounding_box.utils import _clip_boxes
-from keras_cv.src.layers.object_detection.roi_sampler import ROISampler
-from keras_cv.src.models.object_detection.faster_rcnn import MaskHead
-from keras_cv.src.models.object_detection.faster_rcnn.faster_rcnn import (
+from keras_cv.src.models.object_detection.mask_rcnn.faster_rcnn_backbone import (
     BOX_VARIANCE,
 )
-from keras_cv.src.models.object_detection.faster_rcnn.faster_rcnn import (
+from keras_cv.src.models.object_detection.mask_rcnn.faster_rcnn_backbone import (
     _parse_box_loss,
 )
-from keras_cv.src.models.object_detection.faster_rcnn.faster_rcnn import (
+from keras_cv.src.models.object_detection.mask_rcnn.faster_rcnn_backbone import (
     _parse_classification_loss,
 )
-from keras_cv.src.models.object_detection.faster_rcnn.faster_rcnn import (
+from keras_cv.src.models.object_detection.mask_rcnn.faster_rcnn_backbone import (
     _parse_rpn_classification_loss,
 )
-from keras_cv.src.models.object_detection.faster_rcnn.faster_rcnn import (
+from keras_cv.src.models.object_detection.mask_rcnn.faster_rcnn_backbone import (
     unpack_input,
+)
+from keras_cv.src.models.object_detection.mask_rcnn.mask_head import MaskHead
+from keras_cv.src.models.object_detection.mask_rcnn.roi_sampler import (
+    ROISampler,
 )
 from keras_cv.src.models.task import Task
 
@@ -58,12 +59,11 @@ class MaskRCNN(Task):
     This model is compatible with Keras 3 only.
 
     Args:
-         backbone: `keras.Model`. A FasterRCNN model that is used for
-            object detection.
+        backbone: `keras.Model`. A FasterRCNN backbone model.
         mask_head: (Optional) A `keras.Layer` that performs regression of
-            the segmentation masks.
-            If not provided, a network with 2 convolutional layers, an
-            upsampling layer and a class-specific layer will be used.
+            the segmentation masks. If not provided, a network with
+            2 convolutional layers, an upsampling layer and a class-specific
+            layer will be used.
     """  # noqa: E501
 
     def __init__(self, backbone, mask_head=None, **kwargs):
@@ -94,7 +94,7 @@ class MaskRCNN(Task):
             roi_bounding_box_format="yxyx",
             gt_bounding_box_format=backbone.bounding_box_format,
             roi_matcher=backbone.box_matcher,
-            num_sampled_rois=64,
+            num_sampled_rois=backbone.roi_sampler.num_sampled_rois,
             mask_shape=(14, 14),
         )
 
@@ -124,7 +124,7 @@ class MaskRCNN(Task):
         if hasattr(rpn_classification_loss, "from_logits"):
             if not rpn_classification_loss.from_logits:
                 raise ValueError(
-                    "FasterRCNN.compile() expects `from_logits` to be True for "
+                    "MaskRCNN.compile() expects `from_logits` to be True for "
                     "`rpn_classification_loss`. Got "
                     "`rpn_classification_loss.from_logits="
                     f"{rpn_classification_loss.from_logits}`"
@@ -136,7 +136,7 @@ class MaskRCNN(Task):
         if hasattr(classification_loss, "from_logits"):
             if not classification_loss.from_logits:
                 raise ValueError(
-                    "FasterRCNN.compile() expects `from_logits` to be True for "
+                    "MaskRCNN.compile() expects `from_logits` to be True for "
                     "`classification_loss`. Got "
                     "`classification_loss.from_logits="
                     f"{classification_loss.from_logits}`"
@@ -148,7 +148,7 @@ class MaskRCNN(Task):
             ):
                 raise ValueError(
                     "Wrong `bounding_box_format` passed to `box_loss` in "
-                    "`FasterRCNN.compile()`. Got "
+                    "`MaskRCNN.compile()`. Got "
                     "`box_loss.bounding_box_format="
                     f"{box_loss.bounding_box_format}`, want "
                     "`box_loss.bounding_box_format="
@@ -368,11 +368,12 @@ class MaskRCNN(Task):
     def decode_predictions(self, predictions, images):
         y_pred = self.backbone.decode_predictions(predictions, images)
         image_shape = ops.shape(images)[1:]
+        segmask_pred = ops.sigmoid(y_pred["segmask"])
         y_pred["segmask"] = self.decode_segmentation_masks(
-            segmask_pred=y_pred["segmask"],
+            segmask_pred=segmask_pred,
             class_pred=y_pred["classes"],
             decoded_boxes=y_pred["boxes"],
-            bbox_foramt=self.bounding_box_format,
+            bbox_format=self.backbone.bounding_box_format,
             image_shape=image_shape,
         )
         return y_pred
@@ -390,34 +391,46 @@ class MaskRCNN(Task):
         num_rois = ops.shape(segmask_pred)[0]
         image_height, image_width = image_shape[:2]
 
-        # Reshape segmask_pred to (num_rois, mask_height, mask_width, 1) to
-        # use with image resizing functions
-        segmask_pred = ops.expand_dims(segmask_pred, 1)
-
         # Initialize a list to store the padded masks
         padded_masks_list = []
 
         # Iterate over the batch and place the resized masks into the correct
         # position
         for i in range(num_rois):
-            if class_pred[i] == -1:
-                continue
-            y1, x1, y2, x2 = ops.maximum(ops.cast(decoded_boxes[i], "int32"), 0)
-            y1, y2 = ops.minimum([y1, y2], image_height)
-            x1, x2 = ops.minimum([x1, x2], image_width)
+            bounding_box = ops.maximum(ops.cast(decoded_boxes[i], "int32"), 0)
+            bounding_box = ops.minimum(
+                bounding_box, [image_height, image_width] * 2
+            )
+            y1, x1, y2, x2 = ops.unstack(bounding_box)
             box_height = y2 - y1
             box_width = x2 - x1
 
-            # Resize the mask to the size of the bounding box
-            resized_mask = tf.image.resize(
-                segmask_pred[i], size=(box_height, box_width)
-            )
+            def do_resize():
+                # Resize the mask to the size of the bounding box
+                resized_mask = ops.image.resize(
+                    segmask_pred[i], size=(box_height, box_width)
+                )
+                resized_mask = ops.squeeze(resized_mask, axis=-1)
 
-            # Place the resized mask into the correct position in the final mask
-            padded_mask = tf.image.pad_to_bounding_box(
-                resized_mask, y1, x1, image_height, image_width
+                # Place the resized mask into the correct position
+                # in the final mask
+                padded_mask = ops.pad(
+                    resized_mask,
+                    (
+                        (y1, image_height - y1 - box_height),
+                        (x1, image_width - x1 - box_width),
+                    ),
+                )
+                return padded_mask
+
+            # Only consider bounding boxes for valid predictions
+            padded_mask = ops.cond(
+                ops.all([class_pred[i] != -1, box_height > 0, box_width > 0]),
+                do_resize,
+                lambda: ops.zeros(
+                    (image_height, image_width), dtype=segmask_pred.dtype
+                ),
             )
-            padded_mask = ops.squeeze(padded_mask, axis=-1)
 
             # Append the padded mask to the list
             padded_masks_list.append(padded_mask)
@@ -438,7 +451,7 @@ class MaskRCNN(Task):
         )
         # pick the mask prediction for the predicted class
         segmask_pred = ops.take_along_axis(
-            segmask_pred, class_pred[:, :, None, None, None] + 1, axis=-1
+            segmask_pred, class_pred[:, :, None, None, None], axis=-1
         )
 
         final_masks = []
