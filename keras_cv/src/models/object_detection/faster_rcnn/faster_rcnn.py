@@ -292,7 +292,6 @@ class FasterRCNN(Task):
         rois = _clip_boxes(rois, "yxyx", image_shape)
 
         feature_map = roi_aligner(features=feature_map, boxes=rois)
-        
 
         # Reshape the feature map [BS, H*W*K]
         feature_map = keras.layers.Reshape(
@@ -662,10 +661,7 @@ class FasterRCNN(Task):
         )
 
         y_pred = self.prediction_decoder(
-            box_pred,
-            cls_pred,
-            mask_prediction=predictions.get("mask_prediction"),
-            image_shape=image_shape
+            box_pred, cls_pred, image_shape=image_shape
         )
 
         y_pred["classes"] = ops.where(
@@ -802,6 +798,7 @@ def _parse_classification_loss(loss):
         f"callable, or the string 'Focal', CategoricalCrossentropy'. "
         f"Got loss={loss}."
     )
+
 
 def unpack_input(data):
     if type(data) is dict:
