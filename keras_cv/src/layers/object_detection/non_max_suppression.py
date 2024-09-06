@@ -63,12 +63,7 @@ class NonMaxSuppression(keras.layers.Layer):
         self.built = True
 
     def call(
-        self,
-        box_prediction,
-        class_prediction,
-        mask_prediction=None,
-        images=None,
-        image_shape=None,
+        self, box_prediction, class_prediction, images=None, image_shape=None
     ):
         """Accepts images and raw predictions, and returns bounding box
         predictions.
@@ -77,7 +72,6 @@ class NonMaxSuppression(keras.layers.Layer):
             box_prediction: Dense Tensor of shape [batch, boxes, 4] in the
                 `bounding_box_format` specified in the constructor.
             class_prediction: Dense Tensor of shape [batch, boxes, num_classes].
-            mask_prediction: Dense Tensor of shape [batch, boxes, mask_height,mask_width].
         """
         target_format = "yxyx"
         if bounding_box.is_relative(self.bounding_box_format):
@@ -157,10 +151,6 @@ class NonMaxSuppression(keras.layers.Layer):
             class_prediction, ops.expand_dims(idx, axis=-1), axis=1
         )
 
-        if mask_prediction is not None:
-            mask_prediction = ops.take_along_axis(
-                mask_prediction, idx[..., None, None, None], axis=1
-            )
         box_prediction = bounding_box.convert_format(
             box_prediction,
             source=target_format,
@@ -174,8 +164,6 @@ class NonMaxSuppression(keras.layers.Layer):
             "classes": ops.argmax(class_prediction, axis=-1),
             "num_detections": valid_det,
         }
-        if mask_prediction is not None:
-            bounding_boxes["masks"] = mask_prediction
 
         # this is required to comply with KerasCV bounding box format.
         return bounding_box.mask_invalid_detections(
