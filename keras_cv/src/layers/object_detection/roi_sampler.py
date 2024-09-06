@@ -224,3 +224,4 @@ class ROISampler(keras.layers.Layer):
         roi_matcher_config = config.pop("roi_matcher")
         roi_matcher = box_matcher.BoxMatcher(**roi_matcher_config)
         return cls(roi_matcher=roi_matcher, **config)
+    
