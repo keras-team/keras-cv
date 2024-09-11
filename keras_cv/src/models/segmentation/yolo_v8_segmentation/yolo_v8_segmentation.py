@@ -41,16 +41,16 @@ from keras_cv.src.models.object_detection.yolo_v8.yolo_v8_layers import (
 from keras_cv.src.models.segmentation.yolo_v8_segmentation.yolo_v8_backbone import (  # noqa: E501
     apply_path_aggregation_fpn,
 )
-from keras_cv.src.models.segmentation.yolo_v8_segmentation.yolo_v8_backbone import (
+from keras_cv.src.models.segmentation.yolo_v8_segmentation.yolo_v8_backbone import (  # noqa: E501
     apply_yolo_v8_head,
 )
-from keras_cv.src.models.segmentation.yolo_v8_segmentation.yolo_v8_backbone import (
+from keras_cv.src.models.segmentation.yolo_v8_segmentation.yolo_v8_backbone import (  # noqa: E501
     decode_regression_to_boxes,
 )
-from keras_cv.src.models.segmentation.yolo_v8_segmentation.yolo_v8_backbone import (
+from keras_cv.src.models.segmentation.yolo_v8_segmentation.yolo_v8_backbone import (  # noqa: E501
     dist2bbox,
 )
-from keras_cv.src.models.segmentation.yolo_v8_segmentation.yolo_v8_backbone import (
+from keras_cv.src.models.segmentation.yolo_v8_segmentation.yolo_v8_backbone import (  # noqa: E501
     get_anchors,
 )
 from keras_cv.src.models.segmentation.yolo_v8_segmentation.yolo_v8_label_encoder import (  # noqa: E501
