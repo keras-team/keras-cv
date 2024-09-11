@@ -27,29 +27,31 @@ class MaskHead(keras.layers.Layer):
     https://github.com/matterport/Mask_RCNN/blob/master/mrcnn/model.py.
 
     Args:
-        num_classes: The number of object classes that are being detected.
-        conv_dims: (Optional) a list of integers specifying the number of
-            filters for each convolutional layer. Defaults to [256, 256].
-        deconv_dim: (Optional) the number of filters to use in the upsampling
-            convolutional layer. Defaults to 256.
+        num_classes: The number of object classes that are being detected,
+            excluding the background class.
+        stackwise_num_conv_filters: (Optional) a list of integers specifying
+            the number of filters for each convolutional layer. Defaults
+            to [256, 256].
+        num_deconv_filters: (Optional) the number of filters to use in the
+            upsampling convolutional layer. Defaults to 256.
     """
 
     def __init__(
         self,
         num_classes,
-        conv_dims=[256, 256],
-        deconv_dim=256,
+        stackwise_num_conv_filters=[256, 256],
+        num_deconv_filters=256,
         **kwargs,
     ):
         super().__init__(**kwargs)
         self.num_classes = num_classes
-        self.conv_dims = conv_dims
-        self.deconv_dim = deconv_dim
+        self.stackwise_num_conv_filters = stackwise_num_conv_filters
+        self.num_deconv_filters = num_deconv_filters
         self.layers = []
-        for conv_dim in conv_dims:
+        for num_filters in stackwise_num_conv_filters:
             conv = keras.layers.TimeDistributed(
                 keras.layers.Conv2D(
-                    filters=conv_dim,
+                    filters=num_filters,
                     kernel_size=3,
                     padding="same",
                 )
@@ -62,7 +64,7 @@ class MaskHead(keras.layers.Layer):
 
         self.deconv = keras.layers.TimeDistributed(
             keras.layers.Conv2DTranspose(
-                deconv_dim,
+                num_deconv_filters,
                 kernel_size=2,
                 strides=2,
                 activation="relu",
@@ -90,22 +92,22 @@ class MaskHead(keras.layers.Layer):
 
     def build(self, input_shape):
         intermediate_shape = input_shape
-        for idx, conv_dim in enumerate(self.conv_dims):
+        for idx, num_filters in enumerate(self.stackwise_num_conv_filters):
             self.layers[idx * 3].build(intermediate_shape)
-            intermediate_shape = tuple(intermediate_shape[:-1]) + (conv_dim,)
+            intermediate_shape = tuple(intermediate_shape[:-1]) + (num_filters,)
             self.layers[idx * 3 + 1].build(intermediate_shape)
         self.deconv.build(intermediate_shape)
         intermediate_shape = tuple(intermediate_shape[:-3]) + (
             intermediate_shape[-3] * 2,
             intermediate_shape[-2] * 2,
-            self.deconv_dim,
+            self.num_deconv_filters,
         )
         self.segmask_output.build(intermediate_shape)
         self.built = True
 
     def get_config(self):
         config = super().get_config()
-        config["num_classes"] = self.num_classes
+        config["stackwise_num_conv_filters"] = self.stackwise_num_conv_filters
         config["conv_dims"] = self.conv_dims
-        config["deconv_dim"] = self.deconv_dim
+        config["num_deconv_filters"] = self.num_deconv_filters
         return config
