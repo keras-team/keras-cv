@@ -253,6 +253,9 @@ from keras_cv.src.models.segmentation.segment_anything.sam_prompt_encoder import
 from keras_cv.src.models.segmentation.segment_anything.sam_transformer import (
     TwoWayTransformer,
 )
+from keras_cv.src.models.segmentation.yolo_v8_segmentation.yolo_v8_segmentation import (
+    YOLOV8Segmentation,
+)
 from keras_cv.src.models.stable_diffusion.stable_diffusion import (
     StableDiffusion,
 )

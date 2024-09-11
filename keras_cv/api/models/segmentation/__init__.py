@@ -12,3 +12,6 @@ from keras_cv.src.models.segmentation.segformer.segformer import SegFormer
 from keras_cv.src.models.segmentation.segment_anything.sam import (
     SegmentAnythingModel,
 )
+from keras_cv.src.models.segmentation.yolo_v8_segmentation.yolo_v8_segmentation import (
+    YOLOV8Segmentation,
+)
