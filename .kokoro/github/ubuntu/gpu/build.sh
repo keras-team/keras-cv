@@ -70,7 +70,8 @@ then
       keras_cv/src/models/object_detection_3d \
       keras_cv/src/models/segmentation \
       keras_cv/src/models/feature_extractor/clip \
-      keras_cv/src/models/stable_diffusion
+      keras_cv/src/models/stable_diffusion \
+      keras_cv/src/models/segmentation/yolo_v8_segmentation
 else
    pytest --cache-clear --check_gpu --run_large --durations 0 \
       keras_cv/src/bounding_box \
@@ -85,5 +86,6 @@ else
       keras_cv/src/models/object_detection_3d \
       keras_cv/src/models/segmentation \
       keras_cv/src/models/feature_extractor/clip \
-      keras_cv/src/models/stable_diffusion
+      keras_cv/src/models/stable_diffusion \
+      keras_cv/src/models/segmentation/yolo_v8_segmentation
 fi
