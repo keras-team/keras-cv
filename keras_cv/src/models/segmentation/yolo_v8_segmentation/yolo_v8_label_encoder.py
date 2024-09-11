@@ -19,7 +19,6 @@ implementation at https://github.com/fcjian/TOOD/blob/master/mmdet/core/bbox/ass
 import tensorflow as tf
 
 from keras_cv.src import bounding_box
-from keras_cv.src.api_export import keras_cv_export
 from keras_cv.src.backend import keras
 from keras_cv.src.backend import ops
 from keras_cv.src.bounding_box.iou import compute_ciou
@@ -35,7 +34,6 @@ def is_anchor_center_within_box(anchors, gt_bboxes):
     )
 
 
-@keras_cv_export("keras_cv.models.yolov8.LabelEncoder")
 class YOLOV8LabelEncoder(keras.layers.Layer):
     """
     Encodes ground truth boxes to target boxes and class labels for training a
