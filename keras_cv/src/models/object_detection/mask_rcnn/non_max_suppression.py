@@ -17,7 +17,6 @@ import math
 import tensorflow as tf
 
 from keras_cv.src import bounding_box
-from keras_cv.src.api_export import keras_cv_export
 from keras_cv.src.backend import keras
 from keras_cv.src.backend import ops
 from keras_cv.src.backend.config import keras_3
@@ -25,7 +24,7 @@ from keras_cv.src.backend.config import keras_3
 EPSILON = 1e-8
 
 
-@keras_cv_export("keras_cv.layers.NonMaxSuppression")
+@keras.utils.register_keras_serializable(package="keras_cv")
 class NonMaxSuppression(keras.layers.Layer):
     """A Keras layer that decodes predictions of an object detection model.
 
