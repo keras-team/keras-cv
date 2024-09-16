@@ -144,6 +144,7 @@ class MaskRCNN(Task):
         rpn_label_encoder_samples_per_image=256,
         rpn_label_encoder_positive_fraction=0.5,
         rcnn_head=None,
+        mask_head=None,
         num_sampled_rois=512,
         label_encoder=None,
         prediction_decoder=None,
@@ -205,7 +206,7 @@ class MaskRCNN(Task):
         rcnn_head = rcnn_head or RCNNHead(num_classes, name="rcnn_head")
 
         # Mask Head
-        mask_head = MaskHead(num_classes, name="mask_head")
+        mask_head = mask_head or MaskHead(num_classes, name="mask_head")
 
         # Begin construction of forward pass
         image_shape = feature_extractor.input_shape[1:]
@@ -263,6 +264,10 @@ class MaskRCNN(Task):
 
         feature_map = roi_aligner(features=feature_map, boxes=rois)
 
+        # Pass final feature map to the mask head for
+        # segmentation mask prediction
+        segmask_pred = mask_head(feature_map=feature_map)
+
         # Reshape the feature map [BS, H*W*K]
         feature_map = keras.layers.Reshape(
             target_shape=(
@@ -272,9 +277,7 @@ class MaskRCNN(Task):
         )(feature_map)
 
         # Pass final feature map to RCNN Head for predictions
-        # and the mask head for segmentation mask prediction
         box_pred, cls_pred = rcnn_head(feature_map=feature_map)
-        segmask_pred = mask_head(feature_map=feature_map)
 
         box_pred = keras.layers.Concatenate(axis=1, name="box")([box_pred])
         cls_pred = keras.layers.Concatenate(axis=1, name="classification")(
@@ -359,6 +362,20 @@ class MaskRCNN(Task):
                 "Instead, please pass `box_loss`, `classification_loss` and "
                 "`mask_loss`. `loss` will be ignored during training."
             )
+        if (
+            rpn_box_loss is None
+            or rpn_classification_loss is None
+            or box_loss is None
+            or classification_loss is None
+            or mask_loss is None
+        ):
+            raise ValueError(
+                "`MaskRCNN` expects all of `rpn_box_loss`, "
+                "`rpn_classification_loss`,"
+                "`box_loss`, `classification_loss` and "
+                "`mask_loss` to be not `None`."
+            )
+
         rpn_box_loss = _parse_box_loss(rpn_box_loss)
         rpn_classification_loss = _parse_rpn_classification_loss(
             rpn_classification_loss
@@ -383,6 +400,14 @@ class MaskRCNN(Task):
                     "`classification_loss`. Got "
                     "`classification_loss.from_logits="
                     f"{classification_loss.from_logits}`"
+                )
+        if hasattr(mask_loss, "from_logits"):
+            if not mask_loss.from_logits:
+                raise ValueError(
+                    "MaskRCNN.compile() expects `from_logits` to be True for "
+                    "`mask_loss`. Got "
+                    "`mask_loss.from_logits="
+                    f"{mask_loss.from_logits}`"
                 )
         if hasattr(box_loss, "bounding_box_format"):
             if box_loss.bounding_box_format != self.bounding_box_format:

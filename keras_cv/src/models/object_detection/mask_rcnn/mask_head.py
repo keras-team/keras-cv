@@ -87,7 +87,7 @@ class MaskHead(keras.layers.Layer):
         for layer in self.layers:
             x = layer(x, training=training)
         x = self.deconv(x)
-        mask = self.segmask_output(x)
+        mask = self.segmentation_mask_output(x)
         return mask
 
     def build(self, input_shape):
@@ -102,12 +102,12 @@ class MaskHead(keras.layers.Layer):
             intermediate_shape[-2] * 2,
             self.num_deconv_filters,
         )
-        self.segmask_output.build(intermediate_shape)
+        self.segmentation_mask_output.build(intermediate_shape)
         self.built = True
 
     def get_config(self):
         config = super().get_config()
+        config["num_classes"] = self.num_classes
         config["stackwise_num_conv_filters"] = self.stackwise_num_conv_filters
-        config["conv_dims"] = self.conv_dims
         config["num_deconv_filters"] = self.num_deconv_filters
         return config
