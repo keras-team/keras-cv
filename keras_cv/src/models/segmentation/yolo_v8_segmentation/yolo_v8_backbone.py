@@ -19,8 +19,6 @@ BATCH_NORM_MOMENTUM = 0.97
 BOX_REGRESSION_CHANNELS = 64
 
 
-# TODO(ianstenbit): Remove this method once we're using CSPDarkNet backbone
-# (Calls to it should be inlined in the detector head)
 def apply_conv_bn(
     inputs,
     output_channel,
