@@ -222,6 +222,7 @@ from keras_cv.src.models.segmentation import SAMMaskDecoder
 from keras_cv.src.models.segmentation import SAMPromptEncoder
 from keras_cv.src.models.segmentation import SegmentAnythingModel
 from keras_cv.src.models.segmentation import TwoWayTransformer
+from keras_cv.src.models.segmentation import YOLOV8Segmentation
 from keras_cv.src.models.segmentation.segformer.segformer_aliases import (
     SegFormer,
 )

@@ -21,3 +21,6 @@ from keras_cv.src.models.segmentation.segment_anything import (
     SegmentAnythingModel,
 )
 from keras_cv.src.models.segmentation.segment_anything import TwoWayTransformer
+from keras_cv.src.models.segmentation.yolo_v8_segmentation import (
+    YOLOV8Segmentation,
+)
