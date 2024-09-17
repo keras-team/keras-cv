@@ -27,8 +27,8 @@ from keras_cv.src.tests.test_case import TestCase
 
 
 class ROISamplerTest(TestCase):
-    @pytest.mark.skipif(not keras_3(), reason="disabling test for Keras 2")
     @parameterized.parameters((0,), (1,), (2,))
+    @pytest.mark.skipif(not keras_3(), reason="disabling test for Keras 2")
     def test_roi_sampler(self, mask_value):
         box_matcher = BoxMatcher(thresholds=[0.3], match_values=[-1, 1])
         roi_sampler = ROISampler(

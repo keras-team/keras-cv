@@ -281,7 +281,7 @@ def crop_and_resize(images, bounding_boxes, target_size):
             slice_x = ops.maximum(x1, 0)
             cropped_image = ops.slice(
                 images[image_idx],
-                (slice_y, slice_x, 0),
+                (slice_y, slice_x, ops.cast(0, slice_y.dtype)),
                 (y2 - slice_y, x2 - slice_x, channels),
             )
             # pad if the bounding box goes beyond the image
