@@ -11,10 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Label encoder for YOLOV8. This uses the TOOD Task Aligned Assigner approach.
-See https://arxiv.org/abs/2108.07755 for more info, as well as a reference
-implementation at https://github.com/fcjian/TOOD/blob/master/mmdet/core/bbox/assigners/task_aligned_assigner.py
-"""  # noqa: E501
 
 import tensorflow as tf
 
@@ -37,8 +33,10 @@ def is_anchor_center_within_box(anchors, gt_bboxes):
 class YOLOV8LabelEncoder(keras.layers.Layer):
     """
     Encodes ground truth boxes to target boxes and class labels for training a
-    YOLOV8 model. This is an implementation of the Task-aligned sample
-    assignment scheme proposed in https://arxiv.org/abs/2108.07755.
+    YOLOV8 model. This uses the TOOD Task Aligned Assigner approach.
+    See https://arxiv.org/abs/2108.07755 for more info, as well as a reference
+    implementation at https://github.com/fcjian/TOOD/blob/master/
+        mmdet/core/bbox/assigners/task_aligned_assigner.py
 
     Args:
         num_classes: integer, the number of classes in the training dataset
