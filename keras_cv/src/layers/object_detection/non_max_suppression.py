@@ -159,6 +159,7 @@ class NonMaxSuppression(keras.layers.Layer):
             image_shape=image_shape,
         )
         bounding_boxes = {
+            "idx": idx,
             "boxes": box_prediction,
             "confidence": confidence_prediction,
             "classes": ops.argmax(class_prediction, axis=-1),
