@@ -104,7 +104,9 @@ def get_anchors(
     return all_anchors, all_strides
 
 
-def apply_path_aggregation_fpn(features, depth=3, activation="swish", name="fpn"):
+def apply_path_aggregation_fpn(
+    features, depth=3, activation="swish", name="fpn"
+):
     """Applies the Feature Pyramid Network (FPN) to the outputs of a backbone.
 
     Args:
