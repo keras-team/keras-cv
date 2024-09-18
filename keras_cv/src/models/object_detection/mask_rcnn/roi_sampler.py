@@ -306,7 +306,9 @@ def crop_and_resize(images, bounding_boxes, target_size):
                 ),
             )
             # resize to the target size
-            resized_image = ops.image.resize(cropped_image, target_size)
+            resized_image = ops.image.resize(
+                cropped_image, target_size, interpolation="nearest"
+            )
             cropped_and_resized_images.append(resized_image)
 
     cropped_and_resized_images = ops.stack(cropped_and_resized_images, axis=0)

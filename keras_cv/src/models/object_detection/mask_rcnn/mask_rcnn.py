@@ -765,8 +765,11 @@ class MaskRCNN(Task):
                 return padded_mask
 
             # Only consider bounding boxes for valid predictions
+            valid_boxes = ops.all(
+                ops.stack([class_pred[i] != -1, box_height > 0, box_width > 0])
+            )
             padded_mask = ops.cond(
-                ops.all([class_pred[i] != -1, box_height > 0, box_width > 0]),
+                valid_boxes,
                 do_resize,
                 lambda: ops.zeros(
                     (image_height, image_width), dtype=segmask_pred.dtype
