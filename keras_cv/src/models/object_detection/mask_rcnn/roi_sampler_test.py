@@ -76,8 +76,9 @@ class ROISamplerTest(TestCase):
         )
         # the sampled mask is only set to 1 if the ground truth
         # mask indicates object 2
+        sampled_index = ops.where(sampled_gt_classes[0, :, 0] == 10)[0][0]
         self.assertAllClose(
-            sampled_gt_masks[0, 0],
+            sampled_gt_masks[0, sampled_index],
             (mask_value == 2) * np.ones((14, 14)),
         )
 
