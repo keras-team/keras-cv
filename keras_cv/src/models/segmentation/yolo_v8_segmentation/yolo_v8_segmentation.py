@@ -729,6 +729,8 @@ class YOLOV8Segmentation(Task):
     def decode_predictions(self, pred, images):
         boxes = pred["boxes"]
         scores = pred["classes"]
+
+        image_shape = tuple(images[0].shape)
         boxes = decode_regression_to_boxes(boxes)
 
         anchor_points, stride_tensor = get_anchors(image_shape=images.shape[1:])
@@ -742,7 +744,9 @@ class YOLOV8Segmentation(Task):
             images=images,
         )
 
-        return self.prediction_decoder(box_preds, scores)
+        return self.prediction_decoder(
+            box_preds, scores, image_shape=image_shape
+        )
 
     def predict_step(self, *args):
         outputs = super().predict_step(*args)
