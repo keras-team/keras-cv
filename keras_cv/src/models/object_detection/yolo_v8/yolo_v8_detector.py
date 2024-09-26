@@ -593,6 +593,7 @@ class YOLOV8Detector(Task):
         boxes = pred["boxes"]
         scores = pred["classes"]
 
+        image_shape = tuple(images[0].shape)
         boxes = decode_regression_to_boxes(boxes)
 
         anchor_points, stride_tensor = get_anchors(image_shape=images.shape[1:])
@@ -606,7 +607,9 @@ class YOLOV8Detector(Task):
             images=images,
         )
 
-        return self.prediction_decoder(box_preds, scores)
+        return self.prediction_decoder(
+            box_preds, scores, image_shape=image_shape
+        )
 
     def predict_step(self, *args):
         outputs = super().predict_step(*args)
