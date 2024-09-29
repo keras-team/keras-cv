@@ -16,7 +16,13 @@ See https://arxiv.org/abs/2108.07755 for more info, as well as a reference
 implementation at https://github.com/fcjian/TOOD/blob/master/mmdet/core/bbox/assigners/task_aligned_assigner.py
 """  # noqa: E501
 
-import tensorflow as tf
+try:
+    import tensorflow as tf
+except ImportError:
+    raise ImportError(
+        "To use KerasCV, please install TensorFlow: `pip install tensorflow`. "
+        "The TensorFlow package is required for data preprocessing with any backend."
+    )
 
 from keras_cv.src import bounding_box
 from keras_cv.src.api_export import keras_cv_export
