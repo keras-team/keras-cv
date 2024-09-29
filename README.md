@@ -29,9 +29,9 @@ these common tasks.
 ## Quick Links
 - [List of available models and presets](https://keras.io/api/keras_cv/models/)
 - [Developer Guides](https://keras.io/guides/keras_cv/)
-- [Contributing Guide](.github/CONTRIBUTING.md)
+- [Contributing Guide](CONTRIBUTING.md)
 - [Call for Contributions](https://github.com/keras-team/keras-cv/issues?q=is%3Aopen+is%3Aissue+label%3Acontribution-welcome)
-- [API Design Guidelines](.github/API_DESIGN.md)
+- [API Design Guidelines](API_DESIGN.md)
 
 ## Installation
 KerasCV supports both Keras 2 and Keras 3. We recommend Keras 3 for all new 
@@ -173,9 +173,9 @@ model.fit(
 ```
 
 ## Contributors
-If you'd like to contribute, please see our [contributing guide](.github/CONTRIBUTING.md).
+If you'd like to contribute, please see our [contributing guide](CONTRIBUTING.md).
 
-To find an issue to tackle, please check our [call for contributions](.github/CALL_FOR_CONTRIBUTIONS.md).
+To find an issue to tackle, please check our [call for contributions](CALL_FOR_CONTRIBUTIONS.md).
 
 We would like to leverage/outsource the Keras community not only for bug reporting,
 but also for active development for feature delivery. To achieve this, here is the predefined
