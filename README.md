@@ -3,8 +3,13 @@
 [![](https://github.com/keras-team/keras-cv/workflows/Tests/badge.svg?branch=master)](https://github.com/keras-team/keras-cv/actions?query=workflow%3ATests+branch%3Amaster)
 ![Downloads](https://img.shields.io/pypi/dm/keras-cv.svg)
 ![Python](https://img.shields.io/badge/python-v3.7.0+-success.svg)
-![Tensorflow](https://img.shields.io/badge/tensorflow-v2.9.0+-success.svg)
-[![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/keras-team/keras-cv/issues)
+
+> [!IMPORTANT]
+> 📢 KerasCV is moving to [KerasHub](https://github.com/keras-team/keras-hub/)! 📢
+> Read [the announcement](https://github.com/keras-team/keras-hub/issues/1831).
+>
+> KerasCV will not continue to work as is; nothing will break. All development
+> of new vision models should move to KerasHub.
 
 KerasCV is a library of modular computer vision components that work natively
 with TensorFlow, JAX, or PyTorch. Built on Keras 3, these models, layers, 
