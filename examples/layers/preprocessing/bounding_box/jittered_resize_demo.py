@@ -23,6 +23,7 @@ def main():
         target_size=(512, 512),
         scale_factor=(3 / 4, 4 / 3),
         bounding_box_format="xyxy",
+        minimum_box_area_ratio=0.5
     )
     result = dataset.map(jittered_resize, num_parallel_calls=tf.data.AUTOTUNE)
     demo_utils.visualize_data(result, bounding_box_format="xyxy")
