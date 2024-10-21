@@ -164,7 +164,7 @@ class GridMask(BaseImageAugmentationLayer):
             fill_value = tf.cast(fill_value, dtype=self.compute_dtype)
         else:
             # gaussian noise
-            fill_value = self._random_generator.random_normal(
+            fill_value = self._random_generator.normal(
                 shape=input_shape, dtype=self.compute_dtype
             )
 
