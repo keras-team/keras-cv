@@ -46,7 +46,14 @@ from tensorflow import reduce_max as max  # noqa: F403, F401
 from tensorflow import split  # noqa: F403, F401
 
 import numpy as np
-import tensorflow as tf
+
+try:
+    import tensorflow as tf
+except ImportError:
+    raise ImportError(
+        "To use KerasCV, please install TensorFlow: `pip install tensorflow`. "
+        "The TensorFlow package is required for data preprocessing with any backend."
+    )
 
 
 def smart_resize(x, size, interpolation="bilinear"):

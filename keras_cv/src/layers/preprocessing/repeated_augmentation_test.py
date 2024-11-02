@@ -12,7 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import pytest
-import tensorflow as tf
+
+try:
+    import tensorflow as tf
+except ImportError:
+    raise ImportError(
+        "To use KerasCV, please install TensorFlow: `pip install tensorflow`. "
+        "The TensorFlow package is required for data preprocessing with any backend."
+    )
 
 import keras_cv.src.layers as cv_layers
 from keras_cv.src.backend.config import keras_3
