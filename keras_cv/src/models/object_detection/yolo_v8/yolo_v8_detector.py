@@ -104,7 +104,9 @@ def get_anchors(
     return all_anchors, all_strides
 
 
-def apply_path_aggregation_fpn(features, depth=3, name="fpn"):
+def apply_path_aggregation_fpn(
+    features, depth=3, activation="swish", name="fpn"
+):
     """Applies the Feature Pyramid Network (FPN) to the outputs of a backbone.
 
     Args:
@@ -130,7 +132,7 @@ def apply_path_aggregation_fpn(features, depth=3, name="fpn"):
         channels=p4.shape[-1],
         depth=depth,
         shortcut=False,
-        activation="swish",
+        activation=activation,
         name=f"{name}_p4p5",
     )
 
@@ -142,7 +144,7 @@ def apply_path_aggregation_fpn(features, depth=3, name="fpn"):
         channels=p3.shape[-1],
         depth=depth,
         shortcut=False,
-        activation="swish",
+        activation=activation,
         name=f"{name}_p3p4p5",
     )
 
@@ -152,7 +154,7 @@ def apply_path_aggregation_fpn(features, depth=3, name="fpn"):
         p3p4p5.shape[-1],
         kernel_size=3,
         strides=2,
-        activation="swish",
+        activation=activation,
         name=f"{name}_p3p4p5_downsample1",
     )
     p3p4p5_d1 = ops.concatenate([p3p4p5_d1, p4p5], axis=-1)
@@ -160,7 +162,7 @@ def apply_path_aggregation_fpn(features, depth=3, name="fpn"):
         p3p4p5_d1,
         channels=p4p5.shape[-1],
         shortcut=False,
-        activation="swish",
+        activation=activation,
         name=f"{name}_p3p4p5_downsample1_block",
     )
 
@@ -171,7 +173,7 @@ def apply_path_aggregation_fpn(features, depth=3, name="fpn"):
         p3p4p5_d1.shape[-1],
         kernel_size=3,
         strides=2,
-        activation="swish",
+        activation=activation,
         name=f"{name}_p3p4p5_downsample2",
     )
     p3p4p5_d2 = ops.concatenate([p3p4p5_d2, p5], axis=-1)
@@ -179,7 +181,7 @@ def apply_path_aggregation_fpn(features, depth=3, name="fpn"):
         p3p4p5_d2,
         channels=p5.shape[-1],
         shortcut=False,
-        activation="swish",
+        activation=activation,
         name=f"{name}_p3p4p5_downsample2_block",
     )
 
@@ -189,6 +191,7 @@ def apply_path_aggregation_fpn(features, depth=3, name="fpn"):
 def apply_yolo_v8_head(
     inputs,
     num_classes,
+    activation="swish",
     name="yolo_v8_head",
 ):
     """Applies a YOLOV8 head.
@@ -229,14 +232,14 @@ def apply_yolo_v8_head(
             feature,
             box_channels,
             kernel_size=3,
-            activation="swish",
+            activation=activation,
             name=f"{cur_name}_box_1",
         )
         box_predictions = apply_conv_bn(
             box_predictions,
             box_channels,
             kernel_size=3,
-            activation="swish",
+            activation=activation,
             name=f"{cur_name}_box_2",
         )
         box_predictions = keras.layers.Conv2D(
@@ -249,14 +252,14 @@ def apply_yolo_v8_head(
             feature,
             class_channels,
             kernel_size=3,
-            activation="swish",
+            activation=activation,
             name=f"{cur_name}_class_1",
         )
         class_predictions = apply_conv_bn(
             class_predictions,
             class_channels,
             kernel_size=3,
-            activation="swish",
+            activation=activation,
             name=f"{cur_name}_class_2",
         )
         class_predictions = keras.layers.Conv2D(
@@ -400,6 +403,7 @@ class YOLOV8Detector(Task):
         num_classes,
         bounding_box_format,
         fpn_depth=2,
+        activation="swish",
         label_encoder=None,
         prediction_decoder=None,
         **kwargs,
@@ -416,12 +420,13 @@ class YOLOV8Detector(Task):
         features = list(feature_extractor(images).values())
 
         fpn_features = apply_path_aggregation_fpn(
-            features, depth=fpn_depth, name="pa_fpn"
+            features, depth=fpn_depth, activation=activation, name="pa_fpn"
         )
 
         outputs = apply_yolo_v8_head(
             fpn_features,
             num_classes,
+            activation=activation,
         )
 
         # To make loss metrics pretty, we use a no-op layer with a good name.
