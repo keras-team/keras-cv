@@ -66,7 +66,7 @@ def _relative_area(boxes, bounding_box_format):
 
 @keras_cv_export("keras_cv.bounding_box.clip_to_image")
 def clip_to_image(
-    bounding_boxes, bounding_box_format, images=None, image_shape=None
+    bounding_boxes, bounding_box_format, images=None, image_shape=None, minimum_box_area_ratio=0.0
 ):
     """clips bounding boxes to image boundaries.
 
@@ -92,6 +92,7 @@ def clip_to_image(
         images=images,
         image_shape=image_shape,
     )
+    original_areas = _relative_area(boxes, bounding_box_format="rel_xyxy")
     boxes, classes, images, squeeze = _format_inputs(boxes, classes, images)
     x1, y1, x2, y2 = ops.split(boxes, 4, axis=-1)
     clipped_bounding_boxes = ops.concatenate(
@@ -106,6 +107,7 @@ def clip_to_image(
     areas = _relative_area(
         clipped_bounding_boxes, bounding_box_format="rel_xyxy"
     )
+    area_ratios = ops.divide(areas, original_areas)
     clipped_bounding_boxes = bounding_box.convert_format(
         clipped_bounding_boxes,
         source="rel_xyxy",
@@ -113,10 +115,11 @@ def clip_to_image(
         images=images,
         image_shape=image_shape,
     )
+    passed = ops.logical_and(areas > 0.0, area_ratios > minimum_box_area_ratio)
     clipped_bounding_boxes = ops.where(
-        ops.expand_dims(areas > 0.0, axis=-1), clipped_bounding_boxes, -1.0
+        ops.expand_dims(passed, axis=-1), clipped_bounding_boxes, -1.0
     )
-    classes = ops.where(areas > 0.0, classes, -1)
+    classes = ops.where(passed, classes, -1)
     nan_indices = ops.any(ops.isnan(clipped_bounding_boxes), axis=-1)
     classes = ops.where(nan_indices, -1, classes)
 
