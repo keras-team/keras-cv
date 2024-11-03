@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import math
-
 from keras_cv.src import bounding_box
 from keras_cv.src.api_export import keras_cv_export
 from keras_cv.src.backend import keras
@@ -262,7 +260,7 @@ class _SingleAnchorGenerator:
         # [W]
         cx = ops.cast(
             ops.arange(
-                0.5 * stride, math.ceil(image_width / stride) * stride, stride
+                0.5 * stride, ops.ceil(image_width / stride) * stride, stride
             ),
             "float32",
         )
@@ -271,7 +269,7 @@ class _SingleAnchorGenerator:
         # [H]
         cy = ops.cast(
             ops.arange(
-                0.5 * stride, math.ceil(image_height / stride) * stride, stride
+                0.5 * stride, ops.ceil(image_height / stride) * stride, stride
             ),
             "float32",
         )
