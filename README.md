@@ -8,7 +8,7 @@
 > 📢 KerasCV is moving to [KerasHub](https://github.com/keras-team/keras-hub/)! 📢
 > Read [the announcement](https://github.com/keras-team/keras-hub/issues/1831).
 >
-> KerasCV will not continue to work as is; nothing will break. All development
+> KerasCV will continue to work as is; nothing will break. All development
 > of new vision models should move to KerasHub.
 
 KerasCV is a library of modular computer vision components that work natively
