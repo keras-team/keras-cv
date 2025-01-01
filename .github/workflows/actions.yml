@@ -137,7 +137,7 @@ jobs:
           exit 1
         fi
     - name: Clang
-      uses: DoozyX/clang-format-lint-action@v0.17
+      uses: DoozyX/clang-format-lint-action@v0.18
       with:
         source: '.'
         extensions: 'h,c,cpp,hpp,cc'
