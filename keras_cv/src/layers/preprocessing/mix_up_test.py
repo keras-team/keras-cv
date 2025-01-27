@@ -159,7 +159,7 @@ class MixUpTest(TestCase):
             tf.float32,
         )
         layer = MixUp()
-        with self.assertRaisesRegexp(
+        with self.assertRaisesRegex(
             ValueError, "expects inputs in a dictionary"
         ):
             _ = layer(xs)
@@ -169,7 +169,7 @@ class MixUpTest(TestCase):
         ys = tf.one_hot(tf.constant([1]), 2)
         inputs = {"images": xs, "labels": ys}
         layer = MixUp()
-        with self.assertRaisesRegexp(
+        with self.assertRaisesRegex(
             ValueError, "MixUp received a single image to `call`"
         ):
             _ = layer(inputs)
@@ -179,7 +179,7 @@ class MixUpTest(TestCase):
         ys = tf.one_hot(tf.constant([1, 0]), 2, dtype=tf.int32)
         inputs = {"images": xs, "labels": ys}
         layer = MixUp()
-        with self.assertRaisesRegexp(
+        with self.assertRaisesRegex(
             ValueError, "MixUp received labels with type"
         ):
             _ = layer(inputs)
@@ -187,7 +187,7 @@ class MixUpTest(TestCase):
     def test_image_input(self):
         xs = tf.ones((2, 512, 512, 3))
         layer = MixUp()
-        with self.assertRaisesRegexp(
+        with self.assertRaisesRegex(
             ValueError, "MixUp expects inputs in a dictionary with format"
         ):
             _ = layer(xs)

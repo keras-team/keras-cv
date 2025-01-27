@@ -32,7 +32,7 @@ class YoloXLabelEncoderTest(TestCase):
         )
         layer = YoloXLabelEncoder()
 
-        with self.assertRaisesRegexp(
+        with self.assertRaisesRegex(
             ValueError,
             "method does not support RaggedTensor inputs for the `images` "
             "argument.",

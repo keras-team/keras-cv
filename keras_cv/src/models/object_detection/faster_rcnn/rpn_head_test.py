@@ -38,10 +38,10 @@ class RCNNHeadTest(TestCase):
         rpn_boxes, rpn_scores = layer(inputs)
         self.assertTrue(isinstance(rpn_boxes, dict))
         self.assertTrue(isinstance(rpn_scores, dict))
-        self.assertEquals(
+        self.assertEqual(
             sorted(rpn_boxes.keys()), ["P2", "P3", "P4", "P5", "P6"]
         )
-        self.assertEquals(
+        self.assertEqual(
             sorted(rpn_scores.keys()), ["P2", "P3", "P4", "P5", "P6"]
         )
 
@@ -75,15 +75,15 @@ class RCNNHeadTest(TestCase):
         inputs = {"P2": c2, "P3": c3, "P4": c4, "P5": c5, "P6": c6}
         rpn_boxes, rpn_scores = layer(inputs)
         for level in inputs.keys():
-            self.assertEquals(rpn_boxes[level].shape[1], inputs[level].shape[1])
-            self.assertEquals(rpn_boxes[level].shape[2], inputs[level].shape[2])
-            self.assertEquals(rpn_boxes[level].shape[3], layer.num_anchors * 4)
+            self.assertEqual(rpn_boxes[level].shape[1], inputs[level].shape[1])
+            self.assertEqual(rpn_boxes[level].shape[2], inputs[level].shape[2])
+            self.assertEqual(rpn_boxes[level].shape[3], layer.num_anchors * 4)
 
         for level in inputs.keys():
-            self.assertEquals(
+            self.assertEqual(
                 rpn_scores[level].shape[1], inputs[level].shape[1]
             )
-            self.assertEquals(
+            self.assertEqual(
                 rpn_scores[level].shape[2], inputs[level].shape[2]
             )
-            self.assertEquals(rpn_scores[level].shape[3], layer.num_anchors * 1)
+            self.assertEqual(rpn_scores[level].shape[3], layer.num_anchors * 1)

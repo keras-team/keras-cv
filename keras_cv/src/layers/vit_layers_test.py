@@ -20,14 +20,14 @@ from keras_cv.src.tests.test_case import TestCase
 
 class ViTLayersTest(TestCase):
     def test_patching_wrong_patch_size(self):
-        with self.assertRaisesRegexp(
+        with self.assertRaisesRegex(
             ValueError,
             "The patch_size cannot be a negative number. Received -16",
         ):
             PatchingAndEmbedding(project_dim=16, patch_size=-16)
 
     def test_patching_wrong_padding(self):
-        with self.assertRaisesRegexp(
+        with self.assertRaisesRegex(
             ValueError,
             "Padding must be either 'SAME' or 'VALID', but REFLECT was passed.",
         ):
@@ -41,7 +41,7 @@ class ViTLayersTest(TestCase):
         output = layer(inputs)
         self.assertTrue(isinstance(output, tf.Tensor))
         self.assertLen(output, 1)
-        self.assertEquals(output.shape, [1, 197, 128])
+        self.assertEqual(output.shape, [1, 197, 128])
 
     def test_patch_embedding_interpolation(self):
         inputs = np.ones([1, 224, 224, 3])
@@ -58,7 +58,7 @@ class ViTLayersTest(TestCase):
 
         self.assertTrue(isinstance(output, tf.Tensor))
         self.assertLen(output, 1)
-        self.assertEquals(output.shape, [1, 1369, 128])
+        self.assertEqual(output.shape, [1, 1369, 128])
 
     def test_patch_embedding_interpolation_numerical(self):
         inputs = np.ones([1, 4, 4, 3])

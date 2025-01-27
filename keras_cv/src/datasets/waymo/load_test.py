@@ -44,7 +44,7 @@ class WaymoOpenDatasetLoadTest(TestCase):
         # Extract records into a list
         dataset = [record for record in dataset]
 
-        self.assertEquals(len(dataset), 1)
+        self.assertEqual(len(dataset), 1)
         self.assertNotEqual(dataset[0]["timestamp_micros"], 0)
 
     @pytest.mark.skipif(
@@ -58,5 +58,5 @@ class WaymoOpenDatasetLoadTest(TestCase):
         # Extract records into a list
         dataset = [record for record in dataset]
 
-        self.assertEquals(len(dataset), 1)
+        self.assertEqual(len(dataset), 1)
         self.assertNotEqual(dataset[0]["timestamp_micros"], 0)

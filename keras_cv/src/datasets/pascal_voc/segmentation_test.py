@@ -105,13 +105,13 @@ class PascalVocSegmentationDataTest(TestCase):
         train_ids = ["2007_000032", "2007_000039", "2007_000063"]
         eval_ids = ["2007_000033"]
         train_eval_ids = train_ids + eval_ids
-        self.assertEquals(
+        self.assertEqual(
             segmentation._get_image_ids(data_dir, "train"), train_ids
         )
-        self.assertEquals(
+        self.assertEqual(
             segmentation._get_image_ids(data_dir, "eval"), eval_ids
         )
-        self.assertEquals(
+        self.assertEqual(
             segmentation._get_image_ids(data_dir, "trainval"), train_eval_ids
         )
 
@@ -161,7 +161,7 @@ class PascalVocSegmentationDataTest(TestCase):
                 },
             ],
         }
-        self.assertEquals(metadata, expected_result)
+        self.assertEqual(metadata, expected_result)
 
     def test_decode_png_mask(self):
         local_data_dir = os.path.join(self.tempdir, "pascal_voc_2012/")
@@ -177,19 +177,19 @@ class PascalVocSegmentationDataTest(TestCase):
         segmentation._maybe_populate_voc_color_mapping()
         mask = segmentation._decode_png_mask(mask)
 
-        self.assertEquals(mask.shape, (281, 500, 1))
-        self.assertEquals(
+        self.assertEqual(mask.shape, (281, 500, 1))
+        self.assertEqual(
             tf.reduce_max(mask), 255
         )  # The 255 value is for the boundary
-        self.assertEquals(
+        self.assertEqual(
             tf.reduce_min(mask), 0
         )  # The 0 value is for the background
         # The mask contains two classes, 1 and 15, see the label section in the
         # previous test case.
-        self.assertEquals(
+        self.assertEqual(
             tf.reduce_sum(tf.cast(tf.equal(mask, 1), tf.int32)), 4734
         )
-        self.assertEquals(
+        self.assertEqual(
             tf.reduce_sum(tf.cast(tf.equal(mask, 15), tf.int32)), 866
         )
 
@@ -245,7 +245,7 @@ class PascalVocSegmentationDataTest(TestCase):
                 data_dir, "SegmentationObject", "2007_000032.png"
             ),
         }
-        self.assertEquals(result_dict, expected_result)
+        self.assertEqual(result_dict, expected_result)
 
     def test_build_metadata(self):
         local_data_dir = os.path.join(self.tempdir, "pascal_voc_2012/")
@@ -257,7 +257,7 @@ class PascalVocSegmentationDataTest(TestCase):
         image_ids = segmentation._get_image_ids(data_dir, "trainval")
         metadata = segmentation._build_metadata(data_dir, image_ids)
 
-        self.assertEquals(
+        self.assertEqual(
             metadata["image/filename"],
             [
                 "2007_000032.jpg",
@@ -296,7 +296,7 @@ class PascalVocSegmentationDataTest(TestCase):
         dataset = segmentation._build_dataset_from_metadata(metadata)
 
         entry = next(dataset.take(1).as_numpy_iterator())
-        self.assertEquals(entry["image/filename"], b"2007_000032.jpg")
+        self.assertEqual(entry["image/filename"], b"2007_000032.jpg")
         expected_keys = [
             "image",
             "image/filename",
@@ -316,18 +316,18 @@ class PascalVocSegmentationDataTest(TestCase):
 
         # Check the mask png content
         png = entry["class_segmentation"]
-        self.assertEquals(png.shape, (281, 500, 1))
-        self.assertEquals(
+        self.assertEqual(png.shape, (281, 500, 1))
+        self.assertEqual(
             tf.reduce_max(png), 255
         )  # The 255 value is for the boundary
-        self.assertEquals(
+        self.assertEqual(
             tf.reduce_min(png), 0
         )  # The 0 value is for the background
         # The mask contains two classes, 1 and 15, see the label section in the
         # previous test case.
-        self.assertEquals(
+        self.assertEqual(
             tf.reduce_sum(tf.cast(tf.equal(png, 1), tf.int32)), 4734
         )
-        self.assertEquals(
+        self.assertEqual(
             tf.reduce_sum(tf.cast(tf.equal(png, 15), tf.int32)), 866
         )

@@ -27,7 +27,7 @@ class AugmenterTest(TestCase):
             ]
         )
         output = augmenter(images)
-        self.assertEquals(output.shape, images.shape)
+        self.assertEqual(output.shape, images.shape)
 
     def test_call_with_labels(self):
         images = {
@@ -43,4 +43,4 @@ class AugmenterTest(TestCase):
             ]
         )
         output = augmenter(images)
-        self.assertEquals(output["images"].shape, images["images"].shape)
+        self.assertEqual(output["images"].shape, images["images"].shape)

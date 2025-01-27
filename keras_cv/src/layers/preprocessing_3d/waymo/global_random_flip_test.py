@@ -52,18 +52,18 @@ class GlobalRandomFlipTest(TestCase):
         self.assertNotAllClose(inputs, outputs)
 
     def test_noop_raises_error(self):
-        with self.assertRaisesRegexp(
+        with self.assertRaisesRegex(
             ValueError, "must flip over at least 1 axis"
         ):
             _ = GlobalRandomFlip(flip_x=False, flip_y=False, flip_z=False)
 
     def test_flip_x_or_z_raises_error(self):
-        with self.assertRaisesRegexp(
+        with self.assertRaisesRegex(
             ValueError, "only supports flipping over the Y"
         ):
             _ = GlobalRandomFlip(flip_x=True, flip_y=False, flip_z=False)
 
-        with self.assertRaisesRegexp(
+        with self.assertRaisesRegex(
             ValueError, "only supports flipping over the Y"
         ):
             _ = GlobalRandomFlip(flip_x=False, flip_y=False, flip_z=True)

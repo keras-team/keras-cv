@@ -33,7 +33,7 @@ class FeaturePyramidTest(TestCase):
         inputs = {"P2": c2, "P3": c3, "P4": c4, "P5": c5}
         output = layer(inputs)
         self.assertTrue(isinstance(output, dict))
-        self.assertEquals(sorted(output.keys()), ["P2", "P3", "P4", "P5", "P6"])
+        self.assertEqual(sorted(output.keys()), ["P2", "P3", "P4", "P5", "P6"])
 
     @pytest.mark.skipif(not keras_3(), reason="disabling test for Keras 2")
     def test_result_shapes(self):
@@ -46,9 +46,9 @@ class FeaturePyramidTest(TestCase):
         inputs = {"P2": c2, "P3": c3, "P4": c4, "P5": c5}
         output = layer(inputs)
         for level in inputs.keys():
-            self.assertEquals(output[level].shape[1], inputs[level].shape[1])
-            self.assertEquals(output[level].shape[2], inputs[level].shape[2])
-            self.assertEquals(output[level].shape[3], layer.num_channels)
+            self.assertEqual(output[level].shape[1], inputs[level].shape[1])
+            self.assertEqual(output[level].shape[2], inputs[level].shape[2])
+            self.assertEqual(output[level].shape[3], layer.num_channels)
 
         # Test with different resolution and channel size
         c2 = np.ones([2, 64, 128, 4])
@@ -60,9 +60,9 @@ class FeaturePyramidTest(TestCase):
         layer = FeaturePyramid(min_level=2, max_level=5)
         output = layer(inputs)
         for level in inputs.keys():
-            self.assertEquals(output[level].shape[1], inputs[level].shape[1])
-            self.assertEquals(output[level].shape[2], inputs[level].shape[2])
-            self.assertEquals(output[level].shape[3], layer.num_channels)
+            self.assertEqual(output[level].shape[1], inputs[level].shape[1])
+            self.assertEqual(output[level].shape[2], inputs[level].shape[2])
+            self.assertEqual(output[level].shape[3], layer.num_channels)
 
     @pytest.mark.skipif(not keras_3(), reason="disabling test for Keras 2")
     def test_with_keras_input_tensor(self):
@@ -76,14 +76,14 @@ class FeaturePyramidTest(TestCase):
         inputs = {"P2": c2, "P3": c3, "P4": c4, "P5": c5}
         output = layer(inputs)
         for level in inputs.keys():
-            self.assertEquals(output[level].shape[1], inputs[level].shape[1])
-            self.assertEquals(output[level].shape[2], inputs[level].shape[2])
-            self.assertEquals(output[level].shape[3], layer.num_channels)
+            self.assertEqual(output[level].shape[1], inputs[level].shape[1])
+            self.assertEqual(output[level].shape[2], inputs[level].shape[2])
+            self.assertEqual(output[level].shape[3], layer.num_channels)
 
     @pytest.mark.skipif(not keras_3(), reason="disabling test for Keras 2")
     def test_invalid_lateral_layers(self):
         lateral_layers = [keras.layers.Conv2D(256, 1)] * 3
-        with self.assertRaisesRegexp(
+        with self.assertRaisesRegex(
             ValueError, "Expect lateral_layers to be a dict"
         ):
             _ = FeaturePyramid(
@@ -94,7 +94,7 @@ class FeaturePyramidTest(TestCase):
             "P3": keras.layers.Conv2D(256, 1),
             "P4": keras.layers.Conv2D(256, 1),
         }
-        with self.assertRaisesRegexp(
+        with self.assertRaisesRegex(
             ValueError, "with keys as .* ['P2', 'P3', 'P4', 'P5']"
         ):
             _ = FeaturePyramid(
@@ -104,7 +104,7 @@ class FeaturePyramidTest(TestCase):
     @pytest.mark.skipif(not keras_3(), reason="disabling test for Keras 2")
     def test_invalid_output_layers(self):
         output_layers = [keras.layers.Conv2D(256, 3)] * 3
-        with self.assertRaisesRegexp(
+        with self.assertRaisesRegex(
             ValueError, "Expect output_layers to be a dict"
         ):
             _ = FeaturePyramid(
@@ -115,7 +115,7 @@ class FeaturePyramidTest(TestCase):
             "P3": keras.layers.Conv2D(256, 3),
             "P4": keras.layers.Conv2D(256, 3),
         }
-        with self.assertRaisesRegexp(
+        with self.assertRaisesRegex(
             ValueError, "with keys as .* ['P2', 'P3', 'P4', 'P5']"
         ):
             _ = FeaturePyramid(
@@ -134,13 +134,13 @@ class FeaturePyramidTest(TestCase):
         # Build required for Keas 3
         _ = layer(inputs)
         list_input = [c2, c3, c4, c5]
-        with self.assertRaisesRegexp(
+        with self.assertRaisesRegex(
             ValueError, "expects input features to be a dict"
         ):
             layer(list_input)
 
         dict_input_with_missing_feature = {"P2": c2, "P3": c3, "P4": c4}
-        with self.assertRaisesRegexp(
+        with self.assertRaisesRegex(
             ValueError, "Expect feature keys.*['P2', 'P3', 'P4', 'P5']"
         ):
             layer(dict_input_with_missing_feature)

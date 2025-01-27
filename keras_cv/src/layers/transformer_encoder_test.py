@@ -26,14 +26,14 @@ class TransformerEncoderTest(TestCase):
         output = layer(inputs, training=True)
         self.assertTrue(isinstance(output, tf.Tensor))
         self.assertLen(output, 1)
-        self.assertEquals(output.shape, [1, 197, 128])
+        self.assertEqual(output.shape, [1, 197, 128])
 
     def test_wrong_input_dims(self):
         layer = TransformerEncoder(project_dim=128, num_heads=2, mlp_dim=128)
         # Input dims must equal output dims because of the addition
         # of the residual to the final layer
         inputs = tf.random.normal([1, 197, 256])
-        with self.assertRaisesRegexp(
+        with self.assertRaisesRegex(
             ValueError,
             "The input and output dimensionality must be the same, but the "
             "TransformerEncoder was provided with 256 and 128",
@@ -45,7 +45,7 @@ class TransformerEncoderTest(TestCase):
         # Input dims must equal output dims because of the addition
         # of the residual to the final layer
         inputs = tf.random.normal([1, 197, 128])
-        with self.assertRaisesRegexp(
+        with self.assertRaisesRegex(
             ValueError,
             "The input and output dimensionality must be the same, but the "
             "TransformerEncoder was provided with 128 and 256",

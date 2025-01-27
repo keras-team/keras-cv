@@ -30,7 +30,7 @@ class FeaturePyramidTest(TestCase):
         inputs = {2: c2, 3: c3, 4: c4, 5: c5}
         output = layer(inputs)
         self.assertTrue(isinstance(output, dict))
-        self.assertEquals(sorted(output.keys()), [2, 3, 4, 5])
+        self.assertEqual(sorted(output.keys()), [2, 3, 4, 5])
 
     def test_result_shapes(self):
         layer = FeaturePyramid(min_level=2, max_level=5)
@@ -42,9 +42,9 @@ class FeaturePyramidTest(TestCase):
         inputs = {2: c2, 3: c3, 4: c4, 5: c5}
         output = layer(inputs)
         for level in inputs.keys():
-            self.assertEquals(output[level].shape[1], inputs[level].shape[1])
-            self.assertEquals(output[level].shape[2], inputs[level].shape[2])
-            self.assertEquals(output[level].shape[3], layer.num_channels)
+            self.assertEqual(output[level].shape[1], inputs[level].shape[1])
+            self.assertEqual(output[level].shape[2], inputs[level].shape[2])
+            self.assertEqual(output[level].shape[3], layer.num_channels)
 
         # Test with different resolution and channel size
         c2 = np.ones([2, 64, 128, 4])
@@ -56,9 +56,9 @@ class FeaturePyramidTest(TestCase):
         layer = FeaturePyramid(min_level=2, max_level=5)
         output = layer(inputs)
         for level in inputs.keys():
-            self.assertEquals(output[level].shape[1], inputs[level].shape[1])
-            self.assertEquals(output[level].shape[2], inputs[level].shape[2])
-            self.assertEquals(output[level].shape[3], layer.num_channels)
+            self.assertEqual(output[level].shape[1], inputs[level].shape[1])
+            self.assertEqual(output[level].shape[2], inputs[level].shape[2])
+            self.assertEqual(output[level].shape[3], layer.num_channels)
 
     def test_with_keras_input_tensor(self):
         # This mimic the model building with Backbone network
@@ -71,13 +71,13 @@ class FeaturePyramidTest(TestCase):
         inputs = {2: c2, 3: c3, 4: c4, 5: c5}
         output = layer(inputs)
         for level in inputs.keys():
-            self.assertEquals(output[level].shape[1], inputs[level].shape[1])
-            self.assertEquals(output[level].shape[2], inputs[level].shape[2])
-            self.assertEquals(output[level].shape[3], layer.num_channels)
+            self.assertEqual(output[level].shape[1], inputs[level].shape[1])
+            self.assertEqual(output[level].shape[2], inputs[level].shape[2])
+            self.assertEqual(output[level].shape[3], layer.num_channels)
 
     def test_invalid_lateral_layers(self):
         lateral_layers = [keras.layers.Conv2D(256, 1)] * 3
-        with self.assertRaisesRegexp(
+        with self.assertRaisesRegex(
             ValueError, "Expect lateral_layers to be a dict"
         ):
             _ = FeaturePyramid(
@@ -88,7 +88,7 @@ class FeaturePyramidTest(TestCase):
             3: keras.layers.Conv2D(256, 1),
             4: keras.layers.Conv2D(256, 1),
         }
-        with self.assertRaisesRegexp(
+        with self.assertRaisesRegex(
             ValueError, "with keys as .* [2, 3, 4, 5]"
         ):
             _ = FeaturePyramid(
@@ -97,7 +97,7 @@ class FeaturePyramidTest(TestCase):
 
     def test_invalid_output_layers(self):
         output_layers = [keras.layers.Conv2D(256, 3)] * 3
-        with self.assertRaisesRegexp(
+        with self.assertRaisesRegex(
             ValueError, "Expect output_layers to be a dict"
         ):
             _ = FeaturePyramid(
@@ -108,7 +108,7 @@ class FeaturePyramidTest(TestCase):
             3: keras.layers.Conv2D(256, 3),
             4: keras.layers.Conv2D(256, 3),
         }
-        with self.assertRaisesRegexp(
+        with self.assertRaisesRegex(
             ValueError, "with keys as .* [2, 3, 4, 5]"
         ):
             _ = FeaturePyramid(
@@ -126,13 +126,13 @@ class FeaturePyramidTest(TestCase):
         # Build required for Keas 3
         _ = layer(inputs)
         list_input = [c2, c3, c4, c5]
-        with self.assertRaisesRegexp(
+        with self.assertRaisesRegex(
             ValueError, "expects input features to be a dict"
         ):
             layer(list_input)
 
         dict_input_with_missing_feature = {2: c2, 3: c3, 4: c4}
-        with self.assertRaisesRegexp(
+        with self.assertRaisesRegex(
             ValueError, "Expect feature keys.*[2, 3, 4, 5]"
         ):
             layer(dict_input_with_missing_feature)

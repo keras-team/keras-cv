@@ -25,7 +25,7 @@ class SqueezeAndExcite2DTest(TestCase):
 
         layer = SqueezeAndExcite2D(8, 2)
         outputs = layer(inputs)
-        self.assertEquals(inputs.shape, outputs.shape)
+        self.assertEqual(inputs.shape, outputs.shape)
 
     def test_custom_activation(self):
         def custom_activation(x):
@@ -41,7 +41,7 @@ class SqueezeAndExcite2DTest(TestCase):
             excite_activation=custom_activation,
         )
         outputs = layer(inputs)
-        self.assertEquals(inputs.shape, outputs.shape)
+        self.assertEqual(inputs.shape, outputs.shape)
 
     def test_raises_invalid_ratio_error(self):
         with self.assertRaisesRegex(

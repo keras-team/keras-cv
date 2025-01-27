@@ -25,7 +25,7 @@ class SpatialPyramidPoolingTest(TestCase):
 
         inputs = c4
         output = layer(inputs, training=True)
-        self.assertEquals(output.shape, (2, 16, 16, 256))
+        self.assertEqual(output.shape, (2, 16, 16, 256))
 
     def test_with_keras_tensor(self):
         layer = SpatialPyramidPooling(dilation_rates=[6, 12, 18])
@@ -33,4 +33,4 @@ class SpatialPyramidPoolingTest(TestCase):
 
         inputs = c4
         output = layer(inputs, training=True)
-        self.assertEquals(output.shape, (None, 16, 16, 256))
+        self.assertEqual(output.shape, (None, 16, 16, 256))

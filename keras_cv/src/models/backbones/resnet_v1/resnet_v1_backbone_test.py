@@ -123,20 +123,20 @@ class ResNetBackboneTest(TestCase):
         inputs = keras.Input(shape=[input_size, input_size, 3])
         outputs = backbone_model(inputs)
         levels = ["P2", "P3", "P4", "P5"]
-        self.assertEquals(list(outputs.keys()), levels)
-        self.assertEquals(
+        self.assertEqual(list(outputs.keys()), levels)
+        self.assertEqual(
             outputs["P2"].shape,
             (None, input_size // 2**2, input_size // 2**2, 256),
         )
-        self.assertEquals(
+        self.assertEqual(
             outputs["P3"].shape,
             (None, input_size // 2**3, input_size // 2**3, 512),
         )
-        self.assertEquals(
+        self.assertEqual(
             outputs["P4"].shape,
             (None, input_size // 2**4, input_size // 2**4, 1024),
         )
-        self.assertEquals(
+        self.assertEqual(
             outputs["P5"].shape,
             (None, input_size // 2**5, input_size // 2**5, 2048),
         )

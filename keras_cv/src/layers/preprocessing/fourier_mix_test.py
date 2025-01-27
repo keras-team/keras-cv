@@ -147,7 +147,7 @@ class FourierMixTest(TestCase):
             tf.float32,
         )
         layer = FourierMix()
-        with self.assertRaisesRegexp(
+        with self.assertRaisesRegex(
             ValueError, "expects inputs in a dictionary"
         ):
             _ = layer(xs)
@@ -157,7 +157,7 @@ class FourierMixTest(TestCase):
         ys = tf.one_hot(tf.constant([1]), 2)
         inputs = {"images": xs, "labels": ys}
         layer = FourierMix()
-        with self.assertRaisesRegexp(
+        with self.assertRaisesRegex(
             ValueError, "FourierMix received a single image to `call`"
         ):
             _ = layer(inputs)
