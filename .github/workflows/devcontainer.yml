@@ -20,7 +20,7 @@ jobs:
     steps:
 
       - name: Checkout (GitHub)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Build and run dev container task
         uses: devcontainers/ci@v0.3
