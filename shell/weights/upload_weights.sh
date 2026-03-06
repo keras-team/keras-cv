@@ -8,5 +8,5 @@ GCS_PATH=$2
 
 echo Checksum: $(shasum -a 256 $WEIGHTS)
 
-gsutil cp $WEIGHTS $GCS_PATH/
-gsutil acl ch -u AllUsers:R $GCS_PATH/$WEIGHTS
+gcloud storage cp $WEIGHTS $GCS_PATH/
+gcloud storage objects update --add-acl-grant=AllUsers:R $GCS_PATH/$WEIGHTS
