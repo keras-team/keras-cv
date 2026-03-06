@@ -76,8 +76,8 @@ def convert_backbone_presets():
                 config_filename="config.json",
             )
             # Delete first to clean up any exising version.
-            os.system(f"gsutil rm -rf gs://{BUCKET}/{preset}")
-            os.system(f"gsutil cp -r {preset} gs://{BUCKET}/{preset}")
+            os.system(f"gcloud storage rm --recursive --continue-on-error gs://{BUCKET}/{preset}")
+            os.system(f"gcloud storage cp --recursive {preset} gs://{BUCKET}/{preset}")
             for root, _, files in os.walk(preset):
                 for file in files:
                     path = os.path.join(BUCKET, root, file)
@@ -121,8 +121,8 @@ def convert_task_presets():
                 config_filename="config.json",
             )
             # Delete first to clean up any exising version.
-            os.system(f"gsutil rm -rf gs://{BUCKET}/{preset}")
-            os.system(f"gsutil cp -r {preset} gs://{BUCKET}/{preset}")
+            os.system(f"gcloud storage rm --recursive --continue-on-error gs://{BUCKET}/{preset}")
+            os.system(f"gcloud storage cp --recursive {preset} gs://{BUCKET}/{preset}")
             for root, _, files in os.walk(preset):
                 for file in files:
                     path = os.path.join(BUCKET, root, file)

@@ -73,5 +73,6 @@ with open("efficientnet_v2/preset_updates.json", "w") as f:
     json.dump(preset_updates, f, indent=4)
 
 print("Please run:")
-print("`gsutil cp -r efficientnet_v2/ gs://keras-cv/models/`")
+print("`gcloud storage cp --recursive efficientnet_v2/ gs://keras-cv/models/`")
+# The gsutil to gcloud migration guide does not provide a mapping for ACL role abbreviations like 'R'.
 print('`gsutil acl ch -u AllUsers:R "gs://keras-cv/models/efficientnet_v2/*"`')

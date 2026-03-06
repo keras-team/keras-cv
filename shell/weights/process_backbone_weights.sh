@@ -15,8 +15,8 @@ echo With top checksum: $(shasum -a 256 $WEIGHTS)
 echo Without top: $GCS_PATH/$OUTPUT_WEIGHTS
 echo Without top checksum: $(shasum -a 256 $OUTPUT_WEIGHTS)
 
-gsutil cp $WEIGHTS $GCS_PATH/
-gsutil cp $OUTPUT_WEIGHTS $GCS_PATH/
+gcloud storage cp $WEIGHTS $GCS_PATH/
+gcloud storage cp $OUTPUT_WEIGHTS $GCS_PATH/
 
-gsutil acl ch -u AllUsers:R $GCS_PATH/$WEIGHTS
-gsutil acl ch -u AllUsers:R $GCS_PATH/$OUTPUT_WEIGHTS
+gcloud storage objects update $GCS_PATH/$WEIGHTS --add-acl-grant=AllUsers:R
+gcloud storage objects update $GCS_PATH/$OUTPUT_WEIGHTS --add-acl-grant=AllUsers:R
